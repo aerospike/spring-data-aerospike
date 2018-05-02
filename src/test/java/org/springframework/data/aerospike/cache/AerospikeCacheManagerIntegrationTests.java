@@ -16,6 +16,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseIntegrationTests 
 
     private static final String KEY = "foo";
     private static final String VALUE = "bar";
+    private static final String SETNAME = "test";
 
     @Autowired
     AerospikeClient client;
@@ -25,7 +26,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseIntegrationTests 
     @After
     public void tearDown() throws Exception {
         cachingComponent.reset();
-        client.delete(null, new Key(getNameSpace(), AerospikeCacheManager.DEFAULT_SET_NAME, KEY));
+        client.delete(null, new Key(getNameSpace(), SETNAME, KEY));
     }
 
     @Test
@@ -59,13 +60,13 @@ public class AerospikeCacheManagerIntegrationTests extends BaseIntegrationTests 
             noOfCalls = 0;
         }
 
-        @Cacheable("TEST")
+        @Cacheable(SETNAME)
         public CachedObject cachingMethod(String param) {
             noOfCalls++;
             return new CachedObject(VALUE);
         }
 
-        @CacheEvict("TEST")
+        @CacheEvict(SETNAME)
         public void cacheEvictingMethod(String param) {
 
         }

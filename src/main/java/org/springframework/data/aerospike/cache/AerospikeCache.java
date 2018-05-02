@@ -46,13 +46,12 @@ public class AerospikeCache implements Cache {
 
 	@Override
 	public void clear() {
-		// TODO Auto-generated method stub
+		client.truncate(null, namespace, set, null);
 	}
 
 	@Override
 	public void evict(Object key) {
 		this.client.delete(null, getKey(key));
-
 	}
 
 	@Override
@@ -91,8 +90,7 @@ public class AerospikeCache implements Cache {
 
 	@Override
 	public <T> T get(Object key, Callable<T> valueLoader) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 
 
