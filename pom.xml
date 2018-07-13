@@ -5,9 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.aerospike</groupId>
-    <artifactId>spring-data-aerospike</artifactId>
+    <artifactId>spring-data-aerospike-parent</artifactId>
     <version>1.2.1.RELEASE</version>
     <name>Spring Data Aerospike</name>
+    <packaging>pom</packaging>
     <organization>
         <name>Aerospike Inc.</name>
         <url>http://www.aerospike.com</url>
@@ -18,6 +19,11 @@
 		<artifactId>spring-data-parent</artifactId>
 		<version>2.0.8.RELEASE</version>
 	</parent>
+
+    <modules>
+        <module>spring-data-aerospike</module>
+        <module>spring-data-aerospike-autoconfigure</module>
+    </modules>
 
     <properties>
         <bundlor.enabled>false</bundlor.enabled>
@@ -142,77 +148,6 @@
         </dependencies>
     </dependencyManagement>
 
-    <dependencies>
-
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-commons</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-keyvalue</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.aerospike</groupId>
-            <artifactId>aerospike-client</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.aerospike</groupId>
-            <artifactId>aerospike-helper-java</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.playtika.testcontainers</groupId>
-            <artifactId>embedded-aerospike</artifactId>
-            <version>${embedded-aerospike.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter</artifactId>
-            <version>${spring-cloud-starter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring-boot-starter-test.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <version>${awaitility.version}</version>
-            <scope>test</scope>
-        </dependency>
-
-
-    </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -281,15 +216,6 @@
                 </dependencies>
             </plugin>
         </plugins>
-
-        <resources>
-            <resource>
-                <directory>${project.basedir}/src/main/lua</directory>
-                <includes>
-                    <include>**/*.lua</include>
-                </includes>
-            </resource>
-        </resources>
     </build>
 
     <repositories>
