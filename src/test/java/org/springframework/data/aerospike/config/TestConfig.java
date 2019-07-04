@@ -1,6 +1,3 @@
-/**
- *
- */
 package org.springframework.data.aerospike.config;
 
 import com.aerospike.client.AerospikeClient;
@@ -17,8 +14,10 @@ import org.springframework.data.aerospike.cache.AerospikeCacheManager;
 import org.springframework.data.aerospike.cache.AerospikeCacheManagerIntegrationTests.CachingComponent;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
+import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 import org.springframework.data.aerospike.sample.ContactRepository;
 import org.springframework.data.aerospike.sample.CustomerRepository;
+import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -31,6 +30,7 @@ import java.util.Collections;
  */
 @Configuration
 @EnableAerospikeRepositories(basePackageClasses = {ContactRepository.class, CustomerRepository.class})
+@EnableReactiveAerospikeRepositories(basePackageClasses = {ReactiveCustomerRepository.class})
 @EnableCaching
 @EnableAutoConfiguration
 public class TestConfig extends AbstractReactiveAerospikeDataConfiguration  {

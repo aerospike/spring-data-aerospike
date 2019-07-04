@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.core;
 
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.context.MappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -52,5 +53,9 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> execute(Supplier<T> supplier);
 
     Mono<Boolean> exists(Object id, Class<?> type);
+
+    <T> Mono<Boolean> delete(T objectToDelete);
+
+    MappingContext<?, ?> getMappingContext();
 
 }

@@ -1,10 +1,8 @@
 package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeClient;
-import com.aerospike.client.Info;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
-import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -112,6 +110,14 @@ abstract class BaseAerospikeTemplate {
     public String getSetName(Class<?> entityClass) {
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
         return entity.getSetName();
+    }
+
+    public MappingContext<?, ?> getMappingContext() {
+        return this.mappingContext;
+    }
+
+    public String getNamespace() {
+        return namespace;
     }
 
     <T> T mapToEntity(Key key, Class<T> type, Record record) {
