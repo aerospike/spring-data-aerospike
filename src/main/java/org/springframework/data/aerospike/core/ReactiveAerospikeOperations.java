@@ -40,7 +40,7 @@ public interface ReactiveAerospikeOperations {
 
     <T> Flux<T> findAll(Class<T> type);
 
-    <T> Mono<Optional<T>> findById(Serializable id, Class<T> type);
+    <T> Mono<Optional<T>> findById(Object id, Class<T> type);
 
     <T> Flux<T> findByIds(Iterable<?> ids, Class<T> type);
 
