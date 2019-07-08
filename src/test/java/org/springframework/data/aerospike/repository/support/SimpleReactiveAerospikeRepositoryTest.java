@@ -26,9 +26,16 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.repository.core.EntityInformation;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -45,6 +52,7 @@ public class SimpleReactiveAerospikeRepositoryTest {
 	SimpleReactiveAerospikeRepository<Person, String> aerospikeRepository;
 
 	private Person testPerson;
+	private List<Person> testPersons;
 
 	@Rule
 	public ExpectedException exception = ExpectedException.none();
@@ -53,6 +61,10 @@ public class SimpleReactiveAerospikeRepositoryTest {
 	@Before
 	public void setUp() {
 		testPerson = new Person("21", "Jean");
+		testPersons = asList(
+				new Person("one", "Jean", 21),
+				new Person("two", "Jean2", 22),
+				new Person("three", "Jean3", 23));
 	}
 
 	@Test
@@ -63,4 +75,25 @@ public class SimpleReactiveAerospikeRepositoryTest {
 
 		assertThat(testPerson).isEqualTo(myPerson);
 	}
+
+    @Test
+    public void testSaveAllIterable() {
+        when(operations.save(any(Person.class))).then(invocation -> Mono.just(invocation.getArgument(0)));
+
+        List<Person> result = aerospikeRepository.saveAll(testPersons).collectList().block();
+
+        assertThat(result).isEqualTo(testPersons);
+        verify(operations, times(testPersons.size())).save(any(Person.class));
+    }
+
+    @Test
+    public void testSaveAllPublisher() {
+        when(operations.save(any(Person.class))).then(invocation -> Mono.just(invocation.getArgument(0)));
+
+        List<Person> result = aerospikeRepository.saveAll(Flux.fromIterable(testPersons)).collectList().block();
+
+        assertThat(result).isEqualTo(testPersons);
+        verify(operations, times(testPersons.size())).save(any(Person.class));
+    }
+
 }

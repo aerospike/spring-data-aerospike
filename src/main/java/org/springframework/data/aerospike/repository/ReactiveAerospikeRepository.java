@@ -5,7 +5,7 @@ import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 
 /**
- * Reactive aerospike specific {@link Repository}
+ * Aerospike specific {@link Repository} interface with reactive support.
  *
  * @author Igor Ermolenko
  */
