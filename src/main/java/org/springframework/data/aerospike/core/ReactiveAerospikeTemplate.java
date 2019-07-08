@@ -1,6 +1,12 @@
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.*;
+import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Bin;
+import com.aerospike.client.Key;
+import com.aerospike.client.Operation;
+import com.aerospike.client.Record;
+import com.aerospike.client.Value;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.KeyRecord;
@@ -20,7 +26,6 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -28,8 +33,12 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.aerospike.client.ResultCode.*;
-import static com.aerospike.client.policy.RecordExistsAction.*;
+import static com.aerospike.client.ResultCode.GENERATION_ERROR;
+import static com.aerospike.client.ResultCode.KEY_EXISTS_ERROR;
+import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
+import static com.aerospike.client.policy.RecordExistsAction.CREATE_ONLY;
+import static com.aerospike.client.policy.RecordExistsAction.REPLACE;
+import static com.aerospike.client.policy.RecordExistsAction.UPDATE_ONLY;
 import static java.util.Arrays.asList;
 import static java.util.Objects.nonNull;
 
@@ -57,7 +66,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<T> save(T document) {
-        Assert.notNull(document, "Object to insert must not be null!");
+        Assert.notNull(document, "Object to save must not be null!");
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
@@ -183,7 +192,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .onErrorMap(this::translateError);
     }
 
-    public <T> Mono<Optional<T>> findById(Serializable id, Class<T> type) {
+    public <T> Mono<Optional<T>> findById(Object id, Class<T> type) {
         Key key = getKey(id, type);
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);

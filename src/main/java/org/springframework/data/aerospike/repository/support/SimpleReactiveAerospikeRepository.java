@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository.support;
 
+import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
@@ -8,19 +9,17 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+
 /**
  * Stub implementation of {@link ReactiveAerospikeRepository}.
  *
  * @author Igor Ermolenko
  */
+@RequiredArgsConstructor
 public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospikeRepository<T, ID> {
-    private final ReactiveAerospikeOperations operations;
     private final EntityInformation<T, ID> entityInformation;
-
-    public SimpleReactiveAerospikeRepository(EntityInformation<T, ID> entityInformation, ReactiveAerospikeOperations operations) {
-        this.entityInformation = entityInformation;
-        this.operations = operations;
-    }
+    private final ReactiveAerospikeOperations operations;
 
     @Override
     public <S extends T> Mono<S> save(S entity) {
@@ -30,17 +29,23 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
 
     @Override
     public <S extends T> Flux<S> saveAll(Iterable<S> entities) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        Assert.notNull(entities, "The given Iterable of entities must not be null!");
+        return Flux.fromIterable(entities).flatMap(this::save);
     }
 
     @Override
     public <S extends T> Flux<S> saveAll(Publisher<S> entityStream) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        Assert.notNull(entityStream, "The given Publisher of entities must not be null!");
+        return Flux.from(entityStream).flatMap(this::save);
     }
 
     @Override
     public Mono<T> findById(ID id) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        Assert.notNull(id, "The given id must not be null!");
+        return operations.findById(id, entityInformation.getJavaType())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .switchIfEmpty(Mono.empty());
     }
 
     @Override
