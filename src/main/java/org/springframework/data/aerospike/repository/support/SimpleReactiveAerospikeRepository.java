@@ -44,8 +44,26 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     }
 
     @Override
-    public Mono<T> findById(Publisher<ID> id) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+    public Mono<T> findById(Publisher<ID> publisher) {
+        Assert.notNull(publisher, "The given publisher of Id's must not be null!");
+        return Mono.from(publisher).flatMap(id -> operations.findById(id, entityInformation.getJavaType()));
+    }
+
+    @Override
+    public Flux<T> findAll() {
+        return operations.findAll(entityInformation.getJavaType());
+    }
+
+    @Override
+    public Flux<T> findAllById(Iterable<ID> ids) {
+        Assert.notNull(ids, "The given Iterable of Id's must not be null!");
+        return operations.findByIds(ids, entityInformation.getJavaType());
+    }
+
+    @Override
+    public Flux<T> findAllById(Publisher<ID> publisher) {
+        Assert.notNull(publisher, "The given publisher of Id's must not be null!");
+        return Flux.from(publisher).flatMap(id -> operations.findById(id, entityInformation.getJavaType()));
     }
 
     @Override
@@ -54,22 +72,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     }
 
     @Override
-    public Mono<Boolean> existsById(Publisher<ID> id) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
-    }
-
-    @Override
-    public Flux<T> findAll() {
-        throw new UnsupportedOperationException("Method not implemented yet.");
-    }
-
-    @Override
-    public Flux<T> findAllById(Iterable<ID> ids) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
-    }
-
-    @Override
-    public Flux<T> findAllById(Publisher<ID> idStream) {
+    public Mono<Boolean> existsById(Publisher<ID> publisher) {
         throw new UnsupportedOperationException("Method not implemented yet.");
     }
 
