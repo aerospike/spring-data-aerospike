@@ -64,6 +64,7 @@ import org.springframework.data.aerospike.SampleClasses.ComplexIdToStringConvert
 import org.springframework.data.aerospike.SampleClasses.Contact;
 import org.springframework.data.aerospike.SampleClasses.ContainerOfCustomFieldNames;
 import org.springframework.data.aerospike.SampleClasses.CustomFieldNames;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
@@ -950,6 +951,42 @@ public class MappingAerospikeConverterTest {
 				new Bin("@_class", VersionedClass.class.getName()),
 				new Bin("field", "data")
 		);
+	}
+
+	@Test
+	public void shouldWriteObjectWithByteArrayField() {
+		DocumentWithByteArray object = new DocumentWithByteArray("user-id", new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
+		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
+
+		converter.write(object, forWrite);
+
+		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, "DocumentWithByteArray", "user-id");
+		assertThat(forWrite.getBins()).containsOnly(
+				new Bin("@user_key", "user-id"),
+				new Bin("@_class", DocumentWithByteArray.class.getName()),
+				new Bin("array", new byte[]{1, 0, 0, 1, 1, 1, 0, 0}));
+	}
+
+	@Test
+	public void shouldReadObjectWithByteArrayField() {
+		Map<String, Object> bins = new HashMap<>();
+		bins.put("array", new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
+		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, "DocumentWithByteArray", "user-id"), record(bins));
+
+		DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
+
+		assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1, 0, 0, 1, 1, 1, 0, 0}));
+	}
+
+	@Test
+	public void shouldReadObjectWithByteArrayFieldWithOneValueInData() {
+		Map<String, Object> bins = new HashMap<>();
+		bins.put("array", 1);
+		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, "DocumentWithByteArray", "user-id"), record(bins));
+
+		DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
+
+		assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1}));
 	}
 
 	private void assertThatKeyIsEqualTo(Key key, String namespace, String myset, Object expected) {

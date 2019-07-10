@@ -17,7 +17,11 @@ package org.springframework.data.aerospike;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import org.joda.time.DateTime;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.aerospike.annotation.Expiration;
@@ -32,7 +36,15 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
@@ -483,5 +495,16 @@ public class SampleClasses {
 
 	@Document
 	public static class DocumentWithoutCollection {
+	}
+
+	@Data
+	@AllArgsConstructor
+	@Document
+	public static class DocumentWithByteArray {
+		@Id
+		private String id;
+		@Field
+		private byte[] array;
+
 	}
 }

@@ -20,6 +20,7 @@ import static org.springframework.data.aerospike.utility.TimeUtils.offsetInSecon
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 import org.springframework.core.CollectionFactory;
@@ -44,6 +45,7 @@ import org.springframework.util.Assert;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.Value;
+import org.springframework.util.CollectionUtils;
 
 public class MappingAerospikeReadConverter implements EntityReader<Object, AerospikeReadData> {
 
@@ -145,13 +147,20 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		if (conversions.hasCustomReadTarget(source.getClass(), targetClass)) {
 			return (T) conversionService.convert(source, targetClass);
 		} else if (propertyType.isCollectionLike()) {
-			return convertCollection((Collection) source, propertyType);
+			return convertCollection(asCollection(source), propertyType);
 		} else if (propertyType.isMap()) {
 			return (T) convertMap((Map<String, Object>) source, propertyType);
 		} else if (source instanceof Map) { // custom type
 			return convertCustomType((Map<String, Object>) source, propertyType);
 		}
 		return (T) convertIfNeeded(source, targetClass);
+	}
+
+	private static Collection<?> asCollection(Object source) {
+		if (source instanceof Collection) {
+			return (Collection<?>) source;
+		}
+		return source.getClass().isArray() ? CollectionUtils.arrayToList(source) : Collections.singleton(source);
 	}
 
 	private <T> T convertCustomType(Map<String, Object> source, TypeInformation<?> propertyType) {

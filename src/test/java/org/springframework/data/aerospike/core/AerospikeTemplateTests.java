@@ -33,13 +33,23 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.*;
+import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
+import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.repository.query.Criteria;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.parser.Part;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -49,7 +59,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Duration.TEN_SECONDS;
-import static org.springframework.data.aerospike.SampleClasses.*;
+import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
 
 /**
  *
@@ -817,5 +827,16 @@ public class AerospikeTemplateTests extends BaseIntegrationTests {
 		assertThatThrownBy(() -> template.find(query, Person.class))
 				.isInstanceOf(IllegalArgumentException.class)
 				.hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
+	}
+
+	@Test
+	public void shouldSaveAndFindDocumentWithByteArrayField() {
+		DocumentWithByteArray document = new DocumentWithByteArray(id, new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
+
+		template.save(document);
+
+		DocumentWithByteArray result = template.findById(id, DocumentWithByteArray.class);
+
+		assertThat(result).isEqualTo(document);
 	}
 }
