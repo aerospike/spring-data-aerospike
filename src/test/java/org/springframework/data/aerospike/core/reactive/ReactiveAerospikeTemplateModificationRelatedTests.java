@@ -9,7 +9,7 @@ import reactor.test.StepVerifier;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
+
 
 /**
  * Tests for save related methods in {@link ReactiveAerospikeTemplate}.
@@ -55,8 +55,8 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
         Person expected = Person.builder().id(id).firstName("Nastya").build();
         StepVerifier.create(appended).expectNext(expected).verifyComplete();
 
-        Mono<Optional<Person>> storedPerson = reactiveTemplate.findById(id, Person.class);
-        StepVerifier.create(storedPerson).expectNext(Optional.of(expected)).verifyComplete();
+        Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class);
+        StepVerifier.create(storedPerson).expectNext(expected).verifyComplete();
     }
 
     @Test
@@ -77,8 +77,8 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
         Person expected = Person.builder().id(id).firstName("Nastya").emailAddress("nastya@gmail.com").build();
         StepVerifier.create(appended).expectNext(expected).verifyComplete();
 
-        Mono<Optional<Person>> storedPerson = reactiveTemplate.findById(id, Person.class);
-        StepVerifier.create(storedPerson).expectNext(Optional.of(expected)).verifyComplete();
+        Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class);
+        StepVerifier.create(storedPerson).expectNext(expected).verifyComplete();
     }
 
     @Test
@@ -95,8 +95,8 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
         Person expected = Person.builder().id(id).firstName("Nastya").build();
         StepVerifier.create(appended).expectNext(expected).verifyComplete();
 
-        Mono<Optional<Person>> storedPerson = reactiveTemplate.findById(id, Person.class);
-        StepVerifier.create(storedPerson).expectNext(Optional.of(expected)).verifyComplete();
+        Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class);
+        StepVerifier.create(storedPerson).expectNext(expected).verifyComplete();
     }
 
     @Test
@@ -117,7 +117,7 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
         Person expected = Person.builder().id(id).firstName("Nastya").emailAddress("nastya@gmail.com").build();
         StepVerifier.create(appended).expectNext(expected).verifyComplete();
 
-        Mono<Optional<Person>> storedPerson = reactiveTemplate.findById(id, Person.class);
-        StepVerifier.create(storedPerson).expectNext(Optional.of(expected)).verifyComplete();
+        Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class);
+        StepVerifier.create(storedPerson).expectNext(expected).verifyComplete();
     }
 }

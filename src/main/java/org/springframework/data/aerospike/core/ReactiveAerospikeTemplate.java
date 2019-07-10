@@ -5,7 +5,6 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Operation;
-import com.aerospike.client.Record;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -29,7 +28,6 @@ import reactor.core.publisher.Mono;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -186,28 +184,29 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @SuppressWarnings("unchecked")
     private <T> Mono<T> executeOperationsOnValue(T value, AerospikeWriteData data, Operation[] operations, WritePolicy writePolicy) {
         return reactorClient.operate(writePolicy, data.getKey(), operations)
-                .map(keyRecord -> mapToEntityOptional(keyRecord.key, (Class<T>) value.getClass(), keyRecord.record))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .filter(keyRecord -> Objects.nonNull(keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, (Class<T>) value.getClass(), keyRecord.record))
                 .onErrorMap(this::translateError);
     }
 
-    public <T> Mono<Optional<T>> findById(Object id, Class<T> type) {
+    public <T> Mono<T> findById(Object id, Class<T> type) {
         Key key = getKey(id, type);
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for entity without expiration property");
             return getAndTouch(key, entity.getExpiration())
-                    .map(keyRecord -> mapToEntityOptional(keyRecord.key, type, keyRecord.record))
-                    .onErrorReturn(
+                    .filter(keyRecord -> Objects.nonNull(keyRecord.record))
+                    .map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record))
+                    .onErrorResume(
                             th -> th instanceof AerospikeException && ((AerospikeException) th).getResultCode() == KEY_NOT_FOUND_ERROR,
-                            Optional.empty()
+                            th -> Mono.empty()
                     )
                     .onErrorMap(this::translateError);
         } else {
             return reactorClient.get(key)
-                    .map(keyRecord -> mapToEntityOptional(keyRecord.key, type, keyRecord.record))
+                    .filter(keyRecord -> Objects.nonNull(keyRecord.record))
+                    .map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record))
                     .onErrorMap(this::translateError);
         }
     }
@@ -308,11 +307,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         WritePolicy policy = new WritePolicy(client.writePolicyDefault);
         policy.expiration = expiration;
         return reactorClient.operate(policy, key, Operation.touch(), Operation.get());
-    }
-
-
-    private <T> Optional<T> mapToEntityOptional(Key key, Class<T> type, Record record) {
-        return Optional.ofNullable(record).map(r -> mapToEntity(key, type, r));
     }
 
     private WritePolicyBuilder createWritePolicyBuilder(RecordExistsAction recordExistsAction) {

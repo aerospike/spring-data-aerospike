@@ -9,8 +9,6 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Optional;
-
 /**
  * Stub implementation of {@link ReactiveAerospikeRepository}.
  *
@@ -42,10 +40,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     @Override
     public Mono<T> findById(ID id) {
         Assert.notNull(id, "The given id must not be null!");
-        return operations.findById(id, entityInformation.getJavaType())
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .switchIfEmpty(Mono.empty());
+        return operations.findById(id, entityInformation.getJavaType());
     }
 
     @Override

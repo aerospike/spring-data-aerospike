@@ -6,9 +6,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.Serializable;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -40,7 +38,7 @@ public interface ReactiveAerospikeOperations {
 
     <T> Flux<T> findAll(Class<T> type);
 
-    <T> Mono<Optional<T>> findById(Object id, Class<T> type);
+    <T> Mono<T> findById(Object id, Class<T> type);
 
     <T> Flux<T> findByIds(Iterable<?> ids, Class<T> type);
 
