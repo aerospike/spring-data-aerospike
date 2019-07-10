@@ -5,15 +5,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
-import org.springframework.data.aerospike.sample.*;
+import org.springframework.data.aerospike.sample.CompositeObject;
+import org.springframework.data.aerospike.sample.Customer;
+import org.springframework.data.aerospike.sample.ReactiveCompositeObjectRepository;
+import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
+import org.springframework.data.aerospike.sample.SimpleObject;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 /**
@@ -30,9 +33,9 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseIntegration
 
     @Before
     public void setUp() {
-        customer1 = new Customer("Homer", "Simpson");
-        customer2 = new Customer("Marge", "Simpson");
-        customer3 = new Customer("Bart", "Simpson");
+        customer1 = Customer.builder().id(nextId()).firstname("Homer").lastname("Simpson").age(42).build();
+        customer2 = Customer.builder().id(nextId()).firstname("Marge").lastname("Simpson").age(39).build();
+        customer3 = Customer.builder().id(nextId()).firstname("Bart").lastname("Simpson").age(15).build();
     }
 
 
@@ -61,7 +64,7 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseIntegration
                 .recordWith(ArrayList::new)
                 .thenConsumeWhile(customer -> true)
                 .consumeRecordedWith(actual ->
-                        assertThat(actual, containsInAnyOrder(customer1, customer2, customer3))
+                        assertThat(actual).containsOnly(customer1, customer2, customer3)
                 ).verifyComplete();
 
         assertCustomerExistsInRepo(customer1);
@@ -117,17 +120,17 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseIntegration
         StepVerifier.create(compositeRepo.save(expected)).expectNext(expected).verifyComplete();
 
         StepVerifier.create(compositeRepo.findById(expected.getId())).consumeNextWith(actual -> {
-            assertThat(actual.getIntValue(), is(equalTo(expected.getIntValue())));
-            assertThat(actual.getSimpleObject().getProperty1(), is(equalTo(expected.getSimpleObject().getProperty1())));
-            assertThat(actual.getSimpleObject().getProperty2(), is(equalTo(expected.getSimpleObject().getProperty2())));
+            assertThat(actual.getIntValue()).isEqualTo(expected.getIntValue());
+            assertThat(actual.getSimpleObject().getProperty1()).isEqualTo(expected.getSimpleObject().getProperty1());
+            assertThat(actual.getSimpleObject().getProperty2()).isEqualTo(expected.getSimpleObject().getProperty2());
         }).verifyComplete();
     }
 
 
     private void assertCustomerExistsInRepo(Customer customer) {
         StepVerifier.create(customerRepo.findById(customer.getId())).consumeNextWith(actual -> {
-            assertThat(actual.getFirstname(), is(equalTo(customer.getFirstname())));
-            assertThat(actual.getLastname(), is(equalTo(customer.getLastname())));
+            assertThat(actual.getFirstname()).isEqualTo(customer.getFirstname());
+            assertThat(actual.getLastname()).isEqualTo(customer.getLastname());
         }).verifyComplete();
     }
 

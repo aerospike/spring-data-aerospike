@@ -16,20 +16,19 @@
 package org.springframework.data.aerospike.repository;
 
 
-import java.util.Arrays;
-import java.util.Optional;
-
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
-
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.CustomerRepository;
 
-import jersey.repackaged.com.google.common.collect.Lists;
+import java.util.Arrays;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -41,24 +40,24 @@ public class CustomerRepositoriesIntegrationTests extends BaseIntegrationTests {
 
 	@Test
 	public void testCreate() {
-		repository.save(new Customer("dave-001", "Dave", "Matthews"));
+		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
 	}
 
 	@Test
 	public void testExists() {
-		repository.save(new Customer("dave-001", "Dave", "Matthews"));
+		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
 		boolean exists = repository.existsById("dave-001");
 		assertTrue(exists);
 	}
 
 	@Test
 	public void testDelete() {
-		repository.delete(new Customer("dave-001", "Dave", "Matthews"));
+		repository.delete(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
 	}
 
 	@Test
 	public void testReadById() {
-		Customer customer = repository.save(new Customer("dave-001", "Dave", "Matthews"));
+		Customer customer = repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
 		Optional<Customer> findById = repository.findById("dave-001");
 
 		assertThat(findById).hasValueSatisfying(actual -> {
@@ -69,10 +68,10 @@ public class CustomerRepositoriesIntegrationTests extends BaseIntegrationTests {
 
 	@Test
 	public void testFindAllByIDs(){
-		repository.save(new Customer("dave-001", "Dave", "AMatthews"));
-		repository.save(new Customer("dave-002", "Dave", "BMatthews"));
-		repository.save(new Customer("dave-003", "Dave", "CMatthews"));
-		repository.save(new Customer("dave-004", "Dave", "DMatthews"));
+		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("AMatthews").build());
+		repository.save(Customer.builder().id("dave-002").firstname("Dave").lastname("BMatthews").build());
+		repository.save(Customer.builder().id("dave-003").firstname("Dave").lastname("CMatthews").build());
+		repository.save(Customer.builder().id("dave-004").firstname("Dave").lastname("DMatthews").build());
 		Iterable<Customer> customers = repository.findAllById(Arrays.asList("dave-001", "dave-004"));
 		assertEquals(Lists.newArrayList(customers).size(), 2);
 	}
