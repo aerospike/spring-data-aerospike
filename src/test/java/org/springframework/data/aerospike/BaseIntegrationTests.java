@@ -19,6 +19,7 @@ import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.ContactRepository;
+import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.PersonRepository;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
@@ -66,6 +67,7 @@ public abstract class BaseIntegrationTests {
 
     protected void cleanDb() {
         template.delete(Person.class);
+        template.delete(Customer.class);
         template.delete(SampleClasses.VersionedClass.class);
     }
 
