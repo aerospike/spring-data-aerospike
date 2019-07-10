@@ -26,7 +26,7 @@ public abstract class BaseReactiveAerospikeTemplateTests extends BaseIntegration
     }
 
     <T> T findById(Serializable id, Class<T> type) {
-        return reactiveTemplate.findById(id, type).block().get();
+        return reactiveTemplate.findById(id, type).block();
     }
 
 }

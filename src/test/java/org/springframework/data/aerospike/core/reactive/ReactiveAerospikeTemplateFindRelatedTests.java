@@ -4,20 +4,26 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.query.IndexType;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
+import reactor.test.StepVerifier;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
 
 /**
@@ -29,33 +35,35 @@ public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveAeros
     @Test
     public void findById_shouldReturnValueForExistingKey() {
         Person person = new Person(id, "Dave", "Matthews");
-        reactiveTemplate.save(person).block();
-        Optional<Person> result = reactiveTemplate.findById(id, Person.class).block();
-        assertTrue(result.isPresent());
-        assertEquals("Matthews", result.get().getLastname());
-        assertEquals("Dave", result.get().getFirstname());
+        StepVerifier.create(reactiveTemplate.save(person)).expectNext(person).verifyComplete();
+
+        StepVerifier.create(reactiveTemplate.findById(id, Person.class)).consumeNextWith(actual -> {
+            Assert.assertThat(actual.getFirstname(), is(equalTo(person.getFirstname())));
+            Assert.assertThat(actual.getLastname(), is(equalTo(person.getLastname())));
+        }).verifyComplete();
     }
 
     @Test
     public void findById_shouldReturnNullForNonExistingKey() {
-        Optional<Person> result = reactiveTemplate.findById("dave-is-absent", Person.class).block();
-        assertFalse(result.isPresent());
+        StepVerifier.create(reactiveTemplate.findById("dave-is-absent", Person.class))
+                .expectNextCount(0).verifyComplete();
     }
 
     @Test
     public void findById_shouldReturnNullForNonExistingKeyIfTouchOnReadSetToTrue() {
-        Optional<SampleClasses.DocumentWithTouchOnRead> result =
-                reactiveTemplate.findById("foo-is-absent", SampleClasses.DocumentWithTouchOnRead.class).block();
-        assertFalse(result.isPresent());
+        StepVerifier.create(reactiveTemplate.findById("foo-is-absent", SampleClasses.DocumentWithTouchOnRead.class))
+                .expectNextCount(0).verifyComplete();
+
     }
 
     @Test
     public void findById_shouldIncreaseVersionIfTouchOnReadSetToTrue() {
         SampleClasses.DocumentWithTouchOnRead document = new SampleClasses.DocumentWithTouchOnRead(id, 1);
-        reactiveTemplate.save(document).block();
+        StepVerifier.create(reactiveTemplate.save(document)).expectNext(document).verifyComplete();
 
-        Optional<SampleClasses.DocumentWithTouchOnRead> result = reactiveTemplate.findById(document.getId(), SampleClasses.DocumentWithTouchOnRead.class).block();
-        assertThat(result.get().getVersion()).isEqualTo(document.getVersion() + 1);
+        StepVerifier.create(reactiveTemplate.findById(document.getId(), SampleClasses.DocumentWithTouchOnRead.class)).consumeNextWith(actual -> {
+            Assert.assertThat(actual.getVersion(), is(equalTo(document.getVersion() + 1)));
+        }).verifyComplete();
     }
 
     @Test(expected = IllegalStateException.class)
@@ -216,7 +224,8 @@ public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveAeros
 
         Record raw = client.get(new Policy(), new Key(getNameSpace(), "versioned-set", id));
         assertThat(raw.generation).isEqualTo(3);
-        Optional<SampleClasses.VersionedClass> actual = reactiveTemplate.findById(id, SampleClasses.VersionedClass.class).block();
-        assertThat(actual.get().version).isEqualTo(3);
+        StepVerifier.create(reactiveTemplate.findById(id, SampleClasses.VersionedClass.class)).consumeNextWith(actual -> {
+            Assert.assertThat(actual.getVersion(), is(equalTo(3L)));
+        }).verifyComplete();
     }
 }
