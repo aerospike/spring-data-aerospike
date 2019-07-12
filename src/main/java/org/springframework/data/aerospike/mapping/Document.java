@@ -58,7 +58,9 @@ public @interface Document {
 	String language() default "";
 
 	/**
-	 * An optional expiration time for the document. Default is no expiration. Ignored if entity has field
+	 * An optional expiration time for the document.
+	 * Default is namespace configuration variable "default-ttl" on the server.
+	 * Ignored if entity has field
 	 * annotated by {@link org.springframework.data.aerospike.annotation.Expiration}
 	 * <br/>
 	 * Only one of two might might be set at the same time: either {@link #expiration()} or {@link #expirationExpression()}
