@@ -8,7 +8,6 @@ import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
-import org.springframework.data.aerospike.sample.ReactiveCompositeObjectRepository;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
@@ -29,8 +28,6 @@ import static org.springframework.data.domain.Sort.Order.asc;
 public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseIntegrationTests {
     @Autowired
     ReactiveCustomerRepository customerRepo;
-    @Autowired
-    ReactiveCompositeObjectRepository compositeRepo;
 
     private Customer customer1, customer2, customer3, customer4;
 
@@ -48,10 +45,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseIntegration
         createIndexIfNotExists(Customer.class, "customer_last_name_index", "lastname", IndexType.STRING);
         createIndexIfNotExists(Customer.class, "customer_age_index", "age", IndexType.NUMERIC);
 
-        StepVerifier.create(customerRepo.save(customer1)).expectNext(customer1).verifyComplete();
-        StepVerifier.create(customerRepo.save(customer2)).expectNext(customer2).verifyComplete();
-        StepVerifier.create(customerRepo.save(customer3)).expectNext(customer3).verifyComplete();
-        StepVerifier.create(customerRepo.save(customer4)).expectNext(customer4).verifyComplete();
+        StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2, customer3, customer4))).expectNextCount(4).verifyComplete();
     }
 
     @Test

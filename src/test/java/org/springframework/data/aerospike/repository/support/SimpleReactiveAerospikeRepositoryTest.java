@@ -23,8 +23,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
+import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.repository.core.EntityInformation;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -49,14 +49,14 @@ import static org.mockito.Mockito.when;
 public class SimpleReactiveAerospikeRepositoryTest {
 
     @Mock
-    EntityInformation<Person, String> metadata;
+    EntityInformation<Customer, String> metadata;
     @Mock
     ReactiveAerospikeOperations operations;
     @InjectMocks
-    SimpleReactiveAerospikeRepository<Person, String> aerospikeRepository;
+    SimpleReactiveAerospikeRepository<Customer, String> repository;
 
-    private Person testPerson;
-    private List<Person> testPersons;
+    private Customer testCustomer;
+    private List<Customer> testCustomers;
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
@@ -64,97 +64,116 @@ public class SimpleReactiveAerospikeRepositoryTest {
 
     @Before
     public void setUp() {
-        testPerson = new Person("21", "Jean");
-        testPersons = asList(
-                new Person("one", "Jean", 21),
-                new Person("two", "Jean2", 22),
-                new Person("three", "Jean3", 23));
+        testCustomer = Customer.builder().id("21").firstname("Jean").build();
+        testCustomers = asList(
+                Customer.builder().id("one").firstname("Jean").age(21).build(),
+                Customer.builder().id("two").firstname("Jean2").age(22).build(),
+                Customer.builder().id("three").firstname("Jean3").age(23).build());
     }
 
     @Test
     public void testSave() {
-        when(operations.save(testPerson)).thenReturn(Mono.just(testPerson));
+        when(operations.save(testCustomer)).thenReturn(Mono.just(testCustomer));
 
-        Person result = aerospikeRepository.save(testPerson).block();
+        Customer result = repository.save(testCustomer).block();
 
-        assertThat(testPerson).isEqualTo(result);
+        assertThat(testCustomer).isEqualTo(result);
     }
 
     @Test
     public void testSaveAllIterable() {
-        when(operations.save(any(Person.class))).then(invocation -> Mono.just(invocation.getArgument(0)));
+        when(operations.save(any(Customer.class))).then(invocation -> Mono.just(invocation.getArgument(0)));
 
-        List<Person> result = aerospikeRepository.saveAll(testPersons).collectList().block();
+        List<Customer> result = repository.saveAll(testCustomers).collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testPersons);
-        verify(operations, times(testPersons.size())).save(any(Person.class));
+        assertThat(result).containsOnlyElementsOf(testCustomers);
+        verify(operations, times(testCustomers.size())).save(any(Customer.class));
     }
 
     @Test
     public void testSaveAllPublisher() {
-        when(operations.save(any(Person.class))).then(invocation -> Mono.just(invocation.getArgument(0)));
+        when(operations.save(any(Customer.class))).then(invocation -> Mono.just(invocation.getArgument(0)));
 
-        List<Person> result = aerospikeRepository.saveAll(Flux.fromIterable(testPersons)).collectList().block();
+        List<Customer> result = repository.saveAll(Flux.fromIterable(testCustomers)).collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testPersons);
-        verify(operations, times(testPersons.size())).save(any(Person.class));
+        assertThat(result).containsOnlyElementsOf(testCustomers);
+        verify(operations, times(testCustomers.size())).save(any(Customer.class));
     }
 
     @Test
     public void testFindById() {
-        when(metadata.getJavaType()).thenReturn(Person.class);
-        when(operations.findById("21", Person.class)).thenReturn(Mono.just(testPerson));
+        when(metadata.getJavaType()).thenReturn(Customer.class);
+        when(operations.findById("21", Customer.class)).thenReturn(Mono.just(testCustomer));
 
-        Person result = aerospikeRepository.findById("21").block();
+        Customer result = repository.findById("21").block();
 
-        assertThat(result).isEqualTo(testPerson);
+        assertThat(result).isEqualTo(testCustomer);
     }
 
     @Test
     public void testFindByIdPublisher() {
         List<String> ids = asList("21", "one", "two", "three");
 
-        when(metadata.getJavaType()).thenReturn(Person.class);
-        when(operations.findById("21", Person.class)).thenReturn(Mono.just(testPerson));
+        when(metadata.getJavaType()).thenReturn(Customer.class);
+        when(operations.findById("21", Customer.class)).thenReturn(Mono.just(testCustomer));
 
-        Person result = aerospikeRepository.findById(Flux.fromIterable(ids)).block();
+        Customer result = repository.findById(Flux.fromIterable(ids)).block();
 
-        assertThat(result).isEqualTo(testPerson);
+        assertThat(result).isEqualTo(testCustomer);
     }
 
 
     @Test
     public void testFindAll() {
-        when(metadata.getJavaType()).thenReturn(Person.class);
-        when(operations.findAll(Person.class)).thenReturn(Flux.fromIterable(testPersons));
+        when(metadata.getJavaType()).thenReturn(Customer.class);
+        when(operations.findAll(Customer.class)).thenReturn(Flux.fromIterable(testCustomers));
 
-        List<Person> result = aerospikeRepository.findAll().collectList().block();
+        List<Customer> result = repository.findAll().collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testPersons);
+        assertThat(result).containsOnlyElementsOf(testCustomers);
     }
 
     @Test
     public void testFindAllByIdIterable() {
-        List<String> ids = testPersons.stream().map(Person::getId).collect(toList());
-        when(metadata.getJavaType()).thenReturn(Person.class);
-        when(aerospikeRepository.findAllById(ids)).thenReturn(Flux.fromIterable(testPersons));
+        List<String> ids = testCustomers.stream().map(Customer::getId).collect(toList());
+        when(metadata.getJavaType()).thenReturn(Customer.class);
+        when(repository.findAllById(ids)).thenReturn(Flux.fromIterable(testCustomers));
 
-        List<Person> result = aerospikeRepository.findAllById(ids).collectList().block();
+        List<Customer> result = repository.findAllById(ids).collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testPersons);
+        assertThat(result).containsOnlyElementsOf(testCustomers);
     }
 
     @Test
     public void testFindAllByIdPublisher() {
-        Map<String, Person> id2person = testPersons.stream().collect(toMap(Person::getId, person -> person));
-        when(metadata.getJavaType()).thenReturn(Person.class);
-        when(operations.findById(any(String.class), eq(Person.class)))
+        Map<String, Customer> id2person = testCustomers.stream().collect(toMap(Customer::getId, person -> person));
+        when(metadata.getJavaType()).thenReturn(Customer.class);
+        when(operations.findById(any(String.class), eq(Customer.class)))
                 .then(invocation -> Mono.just(id2person.get(invocation.getArgument(0))));
 
-        List<Person> result = aerospikeRepository.findAllById(Flux.fromIterable(id2person.keySet())).collectList().block();
+        List<Customer> result = repository.findAllById(Flux.fromIterable(id2person.keySet())).collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testPersons);
+        assertThat(result).containsOnlyElementsOf(testCustomers);
     }
 
+    @Test
+    public void testExistsById() {
+        when(metadata.getJavaType()).thenReturn(Customer.class);
+        when(operations.exists(testCustomer.getId(), Customer.class)).thenReturn(Mono.just(true));
+
+        Boolean exists = repository.existsById(testCustomer.getId()).block();
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    public void testExistsByIdPublisher() {
+        List<String> ids = asList("21", "one", "two", "three");
+
+        when(metadata.getJavaType()).thenReturn(Customer.class);
+        when(operations.exists("21", Customer.class)).thenReturn(Mono.just(true));
+
+        Boolean exists = repository.existsById(Flux.fromIterable(ids)).block();
+        assertThat(exists).isTrue();
+    }
 
 }

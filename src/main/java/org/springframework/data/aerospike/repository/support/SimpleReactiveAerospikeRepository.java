@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
+import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
@@ -68,17 +70,21 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
 
     @Override
     public Mono<Boolean> existsById(ID id) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        Assert.notNull(id, "The given id must not be null!");
+
+        return operations.exists(id, entityInformation.getJavaType());
     }
 
     @Override
     public Mono<Boolean> existsById(Publisher<ID> publisher) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        Assert.notNull(publisher, "The given id must not be null!");
+
+        return Mono.from(publisher).flatMap(id -> operations.exists(id, entityInformation.getJavaType()));
     }
 
     @Override
     public Mono<Long> count() {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        throw new UnsupportedOperationException("Method not supported yet.");
     }
 
     @Override
