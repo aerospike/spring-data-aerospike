@@ -52,8 +52,9 @@ public interface ReactiveAerospikeOperations {
 
     Mono<Boolean> exists(Object id, Class<?> type);
 
-    <T> Mono<Boolean> delete(T objectToDelete);
+    Mono<Boolean> delete(Object id, Class<?> type);
+
+    Mono<Boolean> delete(Object objectToDelete);
 
     MappingContext<?, ?> getMappingContext();
-
 }
