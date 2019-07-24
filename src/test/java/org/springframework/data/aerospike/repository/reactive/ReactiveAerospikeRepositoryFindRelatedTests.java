@@ -11,6 +11,7 @@ import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseIntegration
 
     @Before
     public void setUp() {
-        cleanDb();
+        StepVerifier.create(deleteAll()).verifyComplete();
 
         customer1 = Customer.builder().id(nextId()).firstname("Homer").lastname("Simpson").age(42).build();
         customer2 = Customer.builder().id(nextId()).firstname("Marge").lastname("Simpson").age(39).build();
@@ -229,6 +230,9 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseIntegration
                 .verifyComplete();
     }
 
+    private Mono<Void> deleteAll() {
+        return customerRepo.findAll().flatMap(a -> customerRepo.delete(a)).then();
+    }
 }
 
       

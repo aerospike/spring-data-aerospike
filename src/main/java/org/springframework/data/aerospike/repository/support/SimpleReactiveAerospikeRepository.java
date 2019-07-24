@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
-import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
@@ -77,8 +75,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
 
     @Override
     public Mono<Boolean> existsById(Publisher<ID> publisher) {
-        Assert.notNull(publisher, "The given id must not be null!");
-
+        Assert.notNull(publisher, "The given publisher of Id's must not be null!");
         return Mono.from(publisher).flatMap(id -> operations.exists(id, entityInformation.getJavaType()));
     }
 
@@ -89,31 +86,38 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
 
     @Override
     public Mono<Void> deleteById(ID id) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        Assert.notNull(id, "The given id must not be null!");
+        return operations.delete(id, entityInformation.getJavaType()).then();
     }
 
     @Override
-    public Mono<Void> deleteById(Publisher<ID> id) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+    public Mono<Void> deleteById(Publisher<ID> publisher) {
+        Assert.notNull(publisher, "The given publisher of Id's must not be null!");
+        return Mono.from(publisher).flatMap(this::deleteById);
     }
 
     @Override
     public Mono<Void> delete(T entity) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        Assert.notNull(entity, "The given entity must not be null!");
+        return operations.delete(entity).then();
     }
 
     @Override
     public Mono<Void> deleteAll(Iterable<? extends T> entities) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        Assert.notNull(entities, "The given Iterable of entities must not be null!");
+        entities.forEach(entity ->
+                Assert.notNull(entity, "The given Iterable of entities must not contain null!"));
+        return Flux.fromIterable(entities).flatMap(this::delete).then();
     }
 
     @Override
     public Mono<Void> deleteAll(Publisher<? extends T> entityStream) {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        Assert.notNull(entityStream, "The given Publisher of entities must not be null!");
+        return Flux.from(entityStream).flatMap(this::delete).then();
     }
 
     @Override
     public Mono<Void> deleteAll() {
-        throw new UnsupportedOperationException("Method not implemented yet.");
+        throw new UnsupportedOperationException("Method not supported yet.");
     }
 }
