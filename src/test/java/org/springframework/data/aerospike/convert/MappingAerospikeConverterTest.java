@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
@@ -67,6 +68,7 @@ import org.springframework.data.aerospike.SampleClasses.CustomFieldNames;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
 import org.springframework.data.aerospike.SampleClasses.EnumProperties;
 import org.springframework.data.aerospike.SampleClasses.GenericType;
@@ -939,6 +941,17 @@ public class MappingAerospikeConverterTest {
 		DateTime actual = document.getExpiration();
 		DateTime expected = DateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
 		assertThat(actual.getMillis()).isCloseTo(expected.getMillis(), Offset.offset(100L));
+	}
+
+	@Test
+	public void shouldReadExpirationForDocumentWithPersistenceConstructor() {
+		int recordExpiration = toRecordExpiration(EXPIRATION_ONE_MINUTE);
+		Record record = new Record(Collections.emptyMap(), 0, recordExpiration);
+		Key key = new Key(NAMESPACE, "DocumentWithExpirationAnnotationAndPersistenceConstructor", "docId");
+		AerospikeReadData forRead = AerospikeReadData.forRead(key, record);
+
+		DocumentWithExpirationAnnotationAndPersistenceConstructor document = converter.read(DocumentWithExpirationAnnotationAndPersistenceConstructor.class, forRead);
+		assertThat(document.getExpiration()).isCloseTo(TimeUnit.MINUTES.toSeconds(1), Offset.offset(100L));
 	}
 
 	@Test

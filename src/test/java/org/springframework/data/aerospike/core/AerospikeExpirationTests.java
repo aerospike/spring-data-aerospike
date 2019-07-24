@@ -2,9 +2,11 @@ package org.springframework.data.aerospike.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
+import static org.springframework.data.aerospike.SampleClasses.*;
 
 import java.util.concurrent.TimeUnit;
 
+import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -12,6 +14,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
@@ -147,5 +150,14 @@ public class AerospikeExpirationTests extends BaseIntegrationTests {
 
         DocumentWithExpiration shouldExpire = template.findById(id, DocumentWithExpiration.class);
         assertThat(shouldExpire).isNull();
+    }
+
+    @Test
+    public void shouldSaveAndGetDocumentWithImmutableExpiration() {
+        template.insert(new DocumentWithExpirationAnnotationAndPersistenceConstructor(id, 60L));
+
+        DocumentWithExpirationAnnotationAndPersistenceConstructor doc = template.findById(id, DocumentWithExpirationAnnotationAndPersistenceConstructor.class);
+        assertThat(doc).isNotNull();
+        assertThat(doc.getExpiration()).isCloseTo(60L, Offset.offset(10L));
     }
 }

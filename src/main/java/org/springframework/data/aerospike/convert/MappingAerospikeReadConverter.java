@@ -83,7 +83,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		}
 
 		AerospikePersistentEntity<?> entity = mappingContext.getPersistentEntity(typeToUse);
-		RecordReadingPropertyValueProvider propertyValueProvider = new RecordReadingPropertyValueProvider(data.getKey(), record);
+		RecordReadingPropertyValueProvider propertyValueProvider = new RecordReadingPropertyValueProvider(data);
 		ConvertingPropertyAccessor accessor = getConvertingPropertyAccessor(entity, propertyValueProvider);
 
 		AerospikePersistentProperty idProperty = entity.getIdProperty();
@@ -95,8 +95,10 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		}
 		AerospikePersistentProperty expirationProperty = entity.getExpirationProperty();
 		if (expirationProperty != null) {
-			Object value = getExpiration(data, expirationProperty);
-			accessor.setProperty(expirationProperty, value);
+			Object value = getExpiration(data.getExpiration(), expirationProperty);
+			if (!expirationProperty.isImmutable() || !entity.isConstructorArgument(expirationProperty)) {
+				accessor.setProperty(expirationProperty, value);
+			}
 		}
 
 		return convertProperties(entity, propertyValueProvider, accessor);
@@ -218,12 +220,11 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		return new ConvertingPropertyAccessor(entity.getPropertyAccessor(instance), conversionService);
 	}
 
-	private Object getExpiration(AerospikeReadData data, AerospikePersistentProperty expirationProperty) {
-		if (expirationProperty.isExpirationSpecifiedAsUnixTime()) {
-			return offsetInSecondsToUnixTime(data.getExpiration());
+	private <T> T getExpiration(int expiration, AerospikePersistentProperty property) {
+		if (property.isExpirationSpecifiedAsUnixTime()) {
+			return (T) convertIfNeeded(offsetInSecondsToUnixTime(expiration), property.getType());
 		}
-
-		return data.getExpiration();
+		return (T) convertIfNeeded(expiration, property.getType());
 	}
 
 	/**
@@ -234,21 +235,30 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 	private class RecordReadingPropertyValueProvider implements PropertyValueProvider<AerospikePersistentProperty> {
 
 		private final Key key;
+		private final Integer expiration;
 		private final Map<String, Object> source;
 
-		public RecordReadingPropertyValueProvider(Key key, Map<String, Object> source) {
-			this.key = key;
-			this.source = source;
+		public RecordReadingPropertyValueProvider(AerospikeReadData readData) {
+			this(readData.getKey(), readData.getExpiration(), readData.getRecord());
 		}
 
 		public RecordReadingPropertyValueProvider(Map<String, Object> source) {
-			this(null, source);
+			this(null, null, source);
+		}
+
+		public RecordReadingPropertyValueProvider(Key key, Integer expiration, Map<String, Object> source) {
+			this.key = key;
+			this.expiration = expiration;
+			this.source = source;
 		}
 
 		@Override
 		public <T> T getPropertyValue(AerospikePersistentProperty property) {
 			if (key != null && property.isIdProperty()) {
 				return getIdValue(key, source, property);
+			}
+			if (expiration != null && property.isExpirationProperty()) {
+				return getExpiration(expiration, property);
 			}
 			Object value = source.get(property.getFieldName());
 

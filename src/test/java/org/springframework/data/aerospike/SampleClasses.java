@@ -22,6 +22,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import lombok.Value;
 import org.joda.time.DateTime;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.aerospike.annotation.Expiration;
@@ -401,6 +402,23 @@ public class SampleClasses {
 
 		@Expiration
 		private Integer expiration;
+	}
+
+	@Value
+	@Document(collection = "expiration-set")
+	public static class DocumentWithExpirationAnnotationAndPersistenceConstructor {
+
+		@Id
+		private final String id;
+
+		@Expiration
+		private final Long expiration;
+
+		@PersistenceConstructor
+		public DocumentWithExpirationAnnotationAndPersistenceConstructor(String id, Long expiration) {
+			this.id = id;
+			this.expiration = expiration;
+		}
 	}
 
 	@Data
