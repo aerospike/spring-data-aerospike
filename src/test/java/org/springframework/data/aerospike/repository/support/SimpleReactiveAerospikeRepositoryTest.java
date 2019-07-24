@@ -176,4 +176,45 @@ public class SimpleReactiveAerospikeRepositoryTest {
         assertThat(exists).isTrue();
     }
 
+    @Test
+    public void testDeleteById() {
+        when(metadata.getJavaType()).thenReturn(Customer.class);
+        when(operations.delete("77", Customer.class)).thenReturn(Mono.just(true));
+
+        repository.deleteById("77").block();
+        verify(operations, times(1)).delete("77", Customer.class);
+    }
+
+    @Test
+    public void testDeleteByIdPublisher() {
+        when(metadata.getJavaType()).thenReturn(Customer.class);
+        when(operations.delete("77", Customer.class)).thenReturn(Mono.just(true));
+
+        repository.deleteById(Flux.just("77", "88", "99")).block();
+        verify(operations, times(1)).delete("77", Customer.class);
+    }
+
+    @Test
+    public void testDelete() {
+        when(operations.delete(testCustomer)).thenReturn(Mono.just(true));
+
+        repository.delete(testCustomer).block();
+        verify(operations, times(1)).delete(testCustomer);
+    }
+
+    @Test
+    public void testDeleteAllIterable() {
+        when(operations.delete(any(Customer.class))).thenReturn(Mono.just(true));
+
+        repository.deleteAll(testCustomers).block();
+        verify(operations, times(testCustomers.size())).delete(any(Customer.class));
+    }
+
+    @Test
+    public void testDeleteAllPublisher() {
+        when(operations.delete(any(Customer.class))).thenReturn(Mono.just(true));
+
+        repository.deleteAll(Flux.fromIterable(testCustomers)).block();
+        verify(operations, times(testCustomers.size())).delete(any(Customer.class));
+    }
 }
