@@ -1,0 +1,204 @@
+[[aerospike.reactive.repositories]]
+= Reactive Aerospike repositories
+
+[[aerospike-repo-intro]]
+== Introduction
+
+This chapter will point out the specialties for reactive repository support for Aerospike. This builds on the core repository support explained in <<repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
+
+[[aerospike.reactive.repositories.libraries]]
+== Reactive Composition Libraries
+
+The reactive space offers various reactive composition libraries. The most common library is https://projectreactor.io/[Project Reactor].
+
+Spring Data Aerospike is built on top of the https://github.com/aerospike/aerospike-client-java/tree/master/extensions/reactor-client/[Aerospike Reactor Java Client Library], to provide maximal interoperability by relying on the https://www.reactive-streams.org/[Reactive Streams] initiative. Static APIs, such as `ReactiveAerospikeOperations`, are provided by using Project Reactor's `Flux` and `Mono` types. Project Reactor offers various adapters to convert reactive wrapper types  (`Flux` to `Observable` and vice versa).
+
+Spring Data's Repository abstraction is a dynamic API, mostly defined by you and your requirements as you declare query methods. Reactive Aerospike repositories can be implemented by using Project Reactor wrapper types by extending from the following library-specific repository interface:
+
+* `ReactiveAerospikeRepository`
+
+
+[[aerospike-reactive-repo-usage]]
+== Usage
+
+To access domain entities stored in an Aerospike you can use our sophisticated repository support that eases implementing those quite significantly. To do so, create an interface similar for your repository. Before you can do that, though, you need an entity, such as the entity defined in the following example:
+
+.Sample `Person` entity
+====
+[source,java]
+----
+public class Person {
+
+  @Id
+  private String id;
+  private String firstname;
+  private String lastname;
+  private Address address;
+
+  // … getters and setters omitted
+}
+----
+====
+We have a quite simple domain object here. The default serialization mechanism used in `ReactiveAerospikeTemplate` (which is backing the repository support) regards properties named id as document ID. Currently we support `String` and `long` as id-types. The following example shows how to create an interface that defines queries against the `Person` object from the preceding example:
+
+.Basic repository interface to persist Person entities
+====
+[source]
+----
+public interface ReactivePersonRepository extends ReactiveAerospikeRepository<Person, String> {
+
+  Flux<Person> findByFirstname(String firstname);
+
+}
+----
+====
+
+Right now this interface simply serves typing purposes but we will add additional methods to it later.
+
+For Java configuration, use the `@EnableReactiveAerospikeRepositories` annotation. The annotation carries the base packages attribute. This base packages to be scanned for interfaces extending `ReactiveAerospikeRepository` and create Spring beans for each of them found. If no base package is configured, the infrastructure scans the package of the annotated configuration class.
+
+The following listing shows how to use Java configuration for a repository:
+
+.Java configuration for repositories
+====
+[source,java]
+----
+@Configuration
+@EnableReactiveAerospikeRepositories(basePackages = "org.springframework.data.aerospike.example")
+public class TestRepositoryConfig extends AbstractReactiveAerospikeDataConfiguration {
+    @Override
+    protected Collection<Host> getHosts() {
+        return Collections.singleton(new Host("52.23.205.208", 3000));
+    }
+
+    @Override
+    protected String nameSpace() {
+        return "test";
+    }
+
+    @Override
+    protected EventLoops eventLoops() {
+        return new NioEventLoops();
+    }
+}
+----
+====
+
+As our domain repository extends `ReactiveCrudRepository` it provides you with CRUD operations. Working with the repository instance is a matter of dependency injecting it into a client, as the following example shows:
+
+.Access to Person entities
+====
+[source,java]
+----
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
+public class PersonRepositoryTests {
+    @Autowired
+    ReactivePersonRepository repository;
+
+    @Test
+    public void findByFirstnameCorrectly() {
+      Flux<Person> persons = repository.findByFirstname("TestFirstName");
+    }
+}
+----
+====
+
+The sample creates an application context with Spring's unit test support which will perform annotation based dependency injection into test cases. Inside the test method we simply use the repository to query the datastore.
+
+[[aerospiek.reactive.repositories.queries]]
+== Query methods
+
+Most of the data access operations you usually trigger on a repository result a query being executed against the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface
+
+.PersonRepository with query methods
+====
+[source,java]
+----
+public interface ReactivePersonRepository extends ReactiveAerospikeRepository<Person, String> {
+
+  Flux<Person> findByFirstname(String firstname);                                   <1>
+
+  Flux<Person> findByFirstname(Publisher<String> firstname);                        <2>
+
+  Mono<Person> findByFirstnameAndLastname(String firstname, String lastname);       <3>
+
+  Mono<Person> findFirstByLastname(String lastname);                                <4>
+
+  Flux<Person> findByFirstnameStartsWith(String prefix);                            <5>
+
+}
+----
+<1> The method shows a query for all people with the given `firstname`. The query is derived by parsing the method name for constraints that can be concatenated with `And` and `Or`. Thus, the method name results in a query expression of `{"firstname" : firstname}`.
+<2> The method shows a query for all people with the given `firstname` once the `firstname` is emitted by the given `Publisher`.
+<3> Find a single entity for the given criteria. It completes with `IncorrectResultSizeDataAccessException` on non-unique results.
+<4> Unless <3>, the first entity is always emitted even if the query yields more result documents.
+<5> The method shows a query for all people with the firstname starts from `prefix`
+====
+
+[[aerospike.reactive.repositories.example]]
+== Examples
+
+Here's a delete, insert and query example
+[source,java]
+----
+@ContextConfiguration(classes = TestRepositoryConfig.class)
+public class ReactiveRepositoryExample {
+
+    @Autowired
+    protected ReactivePersonRepository repository;
+    @Autowired
+    ReactiveAerospikeOperations aerospikeOperations;
+    @Autowired
+    AerospikeReactorClient client;
+
+    public RepositoryExample(ApplicationContext ctx) {
+        aerospikeOperations = ctx.getBean(ReactiveAerospikeTemplate.class);
+        repository = (ReactivePersonRepository) ctx.getBean("reactivePersonRepository");
+        client = ctx.getBean(AerospikeReactorClient.class);
+    }
+
+    protected void setUp() {
+        // Insert new Person items into repository
+        Person dave = new Person("Dave-01", "Matthews", 42);
+        Person donny = new Person("Dave-02", "Macintire", 39);
+        Person oliver = new Person("Oliver-01", "Matthews", 4);
+        Person carter = new Person("Carter-01", "Beauford", 49);
+        List<Person> all = saveAll(Arrays.asList(dave, donny, oliver, carter))
+            .collectList().block();
+    }
+
+    protected void cleanUp() {
+        // Delete all Person items from repository
+        repository.findAll().flatMap(a -> repository.delete(a)).blockLast();
+    }
+
+    protected void executeRepositoryCall() {
+        System.out.println("Results for first name exact match of 'Dave-02'");
+        repository.findByFirstname("Dave-02")
+            .doOnNext(person -> System.out.println(person.toString())).blockLast();
+
+        System.out.println("Results for first name starting with letter 'D'");
+        repository.findByFirstnameStartsWith("D")
+            .doOnNext(person -> System.out.println(person.toString())).blockLast();
+    }
+
+    public static void main(String[] args) {
+        ApplicationContext ctx =
+            new AnnotationConfigApplicationContext(TestRepositoryConfig.class);
+        ReactiveRepositoryExample repositoryExample = new ReactiveRepositoryExample(ctx);
+        repositoryExample.setUp();
+        repositoryExample.executeRepositoryCall();
+        repositoryExample.cleanUp();
+    }
+}
+----
+
+== Restrictions
+`ReactiveAerospikeRepository` currently does not support next operations:
+
+* all operations with indexes (create, delete, exists)
+* count()
+* deleteAll()
+
+This limitation is due to the lack of corresponding asynchronous methods in the Aerospike client.
