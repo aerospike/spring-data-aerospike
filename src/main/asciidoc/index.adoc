@@ -26,6 +26,7 @@ include::{spring-data-commons-docs}/repositories.adoc[]
 include::reference/introduction.adoc[]
 include::reference/aerospike.adoc[]
 include::reference/aerospike-repositories.adoc[]
+include::reference/aerospike-reactive-repositories.adoc[]
 include::reference/mapping.adoc[]
 include::reference/logging.adoc[]
 :leveloffset: -1
