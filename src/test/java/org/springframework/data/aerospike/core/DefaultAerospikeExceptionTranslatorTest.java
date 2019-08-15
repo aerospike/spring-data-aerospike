@@ -70,10 +70,24 @@ public class DefaultAerospikeExceptionTranslatorTest {
     }
 
     @Test
+    public void shouldTranslateConnectErrorWithNoMoreConnections() {
+        AerospikeException.Connection cause = new AerospikeException.Connection(ResultCode.NO_MORE_CONNECTIONS, "msg");
+        DataAccessException actual = translator.translateExceptionIfPossible(cause);
+        assertThat(actual).isExactlyInstanceOf(TransientDataAccessResourceException.class);
+    }
+
+    @Test
     public void shouldTranslateQueryKeyBusyError() {
         AerospikeException cause = new AerospikeException(ResultCode.KEY_BUSY);
         DataAccessException actual = translator.translateExceptionIfPossible(cause);
         assertThat(actual).isExactlyInstanceOf(TransientDataAccessResourceException.class);
+    }
+
+    @Test
+    public void shouldTranslateConnectErrorToAerospike() {
+        AerospikeException.Connection cause = new AerospikeException.Connection("msg");
+        DataAccessException actual = translator.translateExceptionIfPossible(cause);
+        assertThat(actual).isExactlyInstanceOf(QueryTimeoutException.class);
     }
 
     @Test
