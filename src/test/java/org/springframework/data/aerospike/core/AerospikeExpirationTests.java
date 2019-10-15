@@ -1,10 +1,9 @@
 package org.springframework.data.aerospike.core;
 
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.aerospike.SampleClasses.*;
-
-import java.util.concurrent.TimeUnit;
 
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
@@ -14,7 +13,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
@@ -23,7 +21,6 @@ import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpi
 
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
-import com.google.common.collect.ImmutableMap;
 
 //TODO: Potentially unstable tests. Instead of sleeping, we need somehow do time travel like in CouchbaseMock.
 public class AerospikeExpirationTests extends BaseIntegrationTests {
@@ -47,7 +44,7 @@ public class AerospikeExpirationTests extends BaseIntegrationTests {
         document.setId(id);
         document.setExpiration(DateTime.now().plusSeconds(1));
 
-        template.add(document, ImmutableMap.of("intField", 10L));
+        template.add(document, singletonMap("intField", 10L));
         Thread.sleep(500L);
 
         DocumentWithDefaultConstructor shouldNotExpire = template.findById(id, DocumentWithDefaultConstructor.class);

@@ -58,7 +58,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Duration.TEN_SECONDS;
+import static org.awaitility.Durations.TEN_SECONDS;
 import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
 
 /**

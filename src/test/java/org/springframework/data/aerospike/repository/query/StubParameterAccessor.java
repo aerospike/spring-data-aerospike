@@ -35,21 +35,9 @@ public class StubParameterAccessor implements AerospikeParameterAccessor {
 	
 	private final Object[] values;
 	
-	@SuppressWarnings("unused")
-	private Range<Distance> range = new Range<Distance>(null, null);
-	
 	@SuppressWarnings("unchecked")
 	public StubParameterAccessor(Object... values) {
-
 		this.values = values;
-
-		for (Object value : values) {
-			if (value instanceof Range) {
-				this.range = (Range<Distance>) value;
-			} else if (value instanceof Distance) {
-				this.range = new Range<Distance>(null, (Distance) value);
-			}
-		}
 	}
 	/* (non-Javadoc)
 	 * @see org.springframework.data.repository.query.ParameterAccessor#getPageable()
@@ -101,6 +89,11 @@ public class StubParameterAccessor implements AerospikeParameterAccessor {
 	@Override
 	public Optional<Class<?>> getDynamicProjection() {
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Class<?> findDynamicProjection() {
 		return null;
 	}
 

@@ -16,7 +16,6 @@
 package org.springframework.data.aerospike.repository;
 
 
-import jersey.repackaged.com.google.common.collect.Lists;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
@@ -27,8 +26,6 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -46,8 +43,10 @@ public class CustomerRepositoriesIntegrationTests extends BaseIntegrationTests {
 	@Test
 	public void testExists() {
 		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
+
 		boolean exists = repository.existsById("dave-001");
-		assertTrue(exists);
+
+		assertThat(exists).isTrue();
 	}
 
 	@Test
@@ -58,6 +57,7 @@ public class CustomerRepositoriesIntegrationTests extends BaseIntegrationTests {
 	@Test
 	public void testReadById() {
 		Customer customer = repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
+
 		Optional<Customer> findById = repository.findById("dave-001");
 
 		assertThat(findById).hasValueSatisfying(actual -> {
@@ -72,7 +72,9 @@ public class CustomerRepositoriesIntegrationTests extends BaseIntegrationTests {
 		repository.save(Customer.builder().id("dave-002").firstname("Dave").lastname("BMatthews").build());
 		repository.save(Customer.builder().id("dave-003").firstname("Dave").lastname("CMatthews").build());
 		repository.save(Customer.builder().id("dave-004").firstname("Dave").lastname("DMatthews").build());
+
 		Iterable<Customer> customers = repository.findAllById(Arrays.asList("dave-001", "dave-004"));
-		assertEquals(Lists.newArrayList(customers).size(), 2);
+
+		assertThat(customers).hasSize(2);
 	}
 }

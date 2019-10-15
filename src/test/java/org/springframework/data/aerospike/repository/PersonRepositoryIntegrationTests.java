@@ -299,7 +299,7 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 
 	@Test
 	public void findsPagedPersons() throws Exception {
-		Page<Person> result = repository.findAll(new PageRequest(1, 2, Direction.ASC, "lastname", "firstname"));
+		Page<Person> result = repository.findAll(PageRequest.of(1, 2, Direction.ASC, "lastname", "firstname"));
 		assertThat(result.isFirst(), is(false));
 		assertThat(result.isLast(), is(false));
 	}

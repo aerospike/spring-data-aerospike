@@ -109,21 +109,21 @@ public class SimpleAerospikeRepositoryTest {
 
 	@Test
 	public void testFindAllSort() {
-		when(operations.findAll(new Sort(Sort.Direction.ASC, "biff"), Person.class)).thenReturn(testPersons);
+		when(operations.findAll(Sort.by(Sort.Direction.ASC, "biff"), Person.class)).thenReturn(testPersons);
 
-		Iterable<Person> fetchList = aerospikeRepository.findAll(new Sort(Sort.Direction.ASC, "biff"));
+		Iterable<Person> fetchList = aerospikeRepository.findAll(Sort.by(Sort.Direction.ASC, "biff"));
 		assertThat(fetchList).isEqualTo(testPersons);
 	}
 
 	@Test
 	public void testFindAllPageable() {
-		Page<Person> page = new PageImpl<>(IterableConverter.toList(testPersons), new PageRequest(0, 2), 5);
+		Page<Person> page = new PageImpl<>(IterableConverter.toList(testPersons), PageRequest.of(0, 2), 5);
 
 		doReturn(testPersons.stream()).when(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
 		doReturn("set").when(operations).getSetName(Person.class);
 		doReturn(5L).when(operations).count(Person.class, "set");
 
-		Page<Person> result = aerospikeRepository.findAll(new PageRequest(0, 2));
+		Page<Person> result = aerospikeRepository.findAll(PageRequest.of(0, 2));
 
 		verify(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
 		assertThat(result).isEqualTo(page);
