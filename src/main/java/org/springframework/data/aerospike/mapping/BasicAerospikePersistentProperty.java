@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 the original author or authors.
+ * Copyright (c) 2018 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,18 +15,15 @@
  *******************************************************************************/
 package org.springframework.data.aerospike.mapping;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.annotation.Expiration;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mapping.Association;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.*;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,8 +31,6 @@ import java.util.Set;
 
 public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentProperty<AerospikePersistentProperty> implements
 		AerospikePersistentProperty {
-
-	private static final Logger LOG = LoggerFactory.getLogger(BasicAerospikePersistentProperty.class);
 
 	private static final Set<Class<?>> SUPPORTED_ID_TYPES = new HashSet<Class<?>>();
 
@@ -51,11 +46,10 @@ public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentP
 
 	private final FieldNamingStrategy fieldNamingStrategy;
 
-	public BasicAerospikePersistentProperty(Field field,
-											PropertyDescriptor propertyDescriptor,
+	public BasicAerospikePersistentProperty(Property property,
 											PersistentEntity<?, AerospikePersistentProperty> owner,
 											SimpleTypeHolder simpleTypeHolder, FieldNamingStrategy fieldNamingStrategy) {
-		super(field, propertyDescriptor, owner, simpleTypeHolder);
+		super(property, owner, simpleTypeHolder);
 
 		this.fieldNamingStrategy = fieldNamingStrategy == null ? PropertyNameFieldNamingStrategy.INSTANCE
 				: fieldNamingStrategy;
@@ -82,6 +76,7 @@ public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentP
 	/**
 	 * @return the key to be used to store the value of the property
 	 */
+	@Override
 	public String getFieldName() {
 		org.springframework.data.aerospike.mapping.Field annotation =
 				findAnnotation(org.springframework.data.aerospike.mapping.Field.class);

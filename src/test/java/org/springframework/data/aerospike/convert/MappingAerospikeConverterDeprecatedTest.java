@@ -267,7 +267,6 @@ public class MappingAerospikeConverterDeprecatedTest {
 		return map;
 	}
 
-	@SuppressWarnings("unchecked")
 	private Object getBinValue(String name, Collection<Bin> bins) {
 		if (bins == null || bins.isEmpty())
 			return null;

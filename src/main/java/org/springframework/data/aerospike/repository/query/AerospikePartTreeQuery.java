@@ -1,25 +1,29 @@
-/**
- * 
+/*
+ * Copyright 2012-2018 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.springframework.data.aerospike.repository.query;
 
-import java.lang.reflect.Constructor;
-
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.keyvalue.core.IterableConverter;
-import org.springframework.data.repository.query.EvaluationContextProvider;
-import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
-import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.expression.EvaluationContext;
-import org.springframework.expression.spel.standard.SpelExpression;
-import org.springframework.util.ClassUtils;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -28,111 +32,45 @@ import org.springframework.util.ClassUtils;
  * @author Jean Mercier
  *
  */
-public class AerospikePartTreeQuery implements RepositoryQuery {
+public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 	
-	private final EvaluationContextProvider evaluationContextProvider;
-	private final QueryMethod queryMethod;
 	private final AerospikeOperations aerospikeOperations;
-	private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
-	private Query<?> query;
-
-	public AerospikePartTreeQuery(QueryMethod queryMethod, EvaluationContextProvider evalContextProvider,
-			AerospikeOperations aerospikeOperations, Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-
-		this.queryMethod = queryMethod;
+	public AerospikePartTreeQuery(QueryMethod queryMethod, QueryMethodEvaluationContextProvider evalContextProvider,
+								  AerospikeOperations aerospikeOperations, Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+		super(queryMethod, evalContextProvider, queryCreator);
 		this.aerospikeOperations = aerospikeOperations;
-		this.evaluationContextProvider = evalContextProvider;
-		this.queryCreator = queryCreator;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.RepositoryQuery#getQueryMethod()
-	 */
-	@Override
-	public QueryMethod getQueryMethod() {
-		return queryMethod;
-	}
-
 	/* (non-Javadoc)
 	 * @see org.springframework.data.repository.query.RepositoryQuery#execute(java.lang.Object[])
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public Object execute(Object[] parameters) {
-		Query<?> query = prepareQuery(parameters);
+		ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
+		Query query = prepareQuery(parameters, accessor);
 
 		if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
 
-			Pageable page = (Pageable) parameters[queryMethod.getParameters().getPageableIndex()];
-			query.setOffset(page.getOffset());
-			query.setRows(page.getPageSize());
+			Stream<?> result = findByQuery(query);
+			long total = queryMethod.isSliceQuery() ? 0 : aerospikeOperations.count(query, queryMethod.getEntityInformation().getJavaType());
 
-			Iterable<?> result = this.aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
-
-			long count = queryMethod.isSliceQuery() ? 0 : aerospikeOperations.count(query, queryMethod.getEntityInformation()
-					.getJavaType());
-
-			return new PageImpl(IterableConverter.toList(result), page, count);
-
+			//TODO: should return SliceImpl for slice query
+			return new PageImpl(result.collect(Collectors.toList()), accessor.getPageable(), total);
+		} else if (queryMethod.isStreamQuery()) {
+			return findByQuery(query);
 		} else if (queryMethod.isCollectionQuery()) {
-
-			return this.aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
-
+			return findByQuery(query).collect(Collectors.toList());
 		} else if (queryMethod.isQueryForEntity()) {
-
-			Iterable<?> result = this.aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
-			return result.iterator().hasNext() ? result.iterator().next() : null;
-
+			Stream<?> result = findByQuery(query);
+			return result.findFirst().orElse(null);
 		}
 
-		throw new UnsupportedOperationException("Query method not supported.");
+		throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " not supported.");
 	}
 
-	/**
-	 * @param parameters
-	 * @return
-	 */
-	@SuppressWarnings("rawtypes")
-	private Query<?> prepareQuery(Object[] parameters) {
-		ParametersParameterAccessor accessor = new ParametersParameterAccessor(getQueryMethod().getParameters(), parameters);
-
-		this.query = createQuery(accessor);
-
-		Criteria criteria = (Criteria) query.getCritieria();
-		Query<?> q = new Query(criteria);
-
-		if (accessor.getPageable() != null) {
-			q.setOffset(accessor.getPageable().getOffset());
-			q.setRows(accessor.getPageable().getPageSize());
-		} else {
-			q.setOffset(-1);
-			q.setRows(-1);
-		}
-
-		if (accessor.getSort() != null) {
-			q.setSort(accessor.getSort());
-		} else {
-			q.setSort(this.query.getSort());
-		}
-
-		if (q.getCritieria() instanceof SpelExpression) {
-			EvaluationContext context = this.evaluationContextProvider.getEvaluationContext(getQueryMethod().getParameters(),
-					parameters);
-			((SpelExpression) q.getCritieria()).setEvaluationContext(context);
-		}
-
-		return q;
+	private Stream<?> findByQuery(Query query) {
+		return this.aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
 	}
-
-
-	public Query<?> createQuery(ParametersParameterAccessor accessor) {
-
-		PartTree tree = new PartTree(getQueryMethod().getName(), getQueryMethod().getEntityInformation().getJavaType());
-
-		Constructor<? extends AbstractQueryCreator<?, ?>> constructor = (Constructor<? extends AbstractQueryCreator<?, ?>>) ClassUtils
-				.getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class);
-		return (Query<?>) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
-	}
-
 }

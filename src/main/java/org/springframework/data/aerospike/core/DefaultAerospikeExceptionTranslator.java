@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +17,17 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.ResultCode;
-import org.springframework.dao.*;
-import org.springframework.data.keyvalue.core.UncategorizedKeyValueException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.dao.TransientDataAccessResourceException;
 
 /**
  * @author Peter Milne
+ * @author Anastasiia Smirnova
  * This class translates the AerospikeException and result code
  * to a DataAccessException.
  */
@@ -37,6 +43,13 @@ public class DefaultAerospikeExceptionTranslator implements AerospikeExceptionTr
 		if (cause instanceof AerospikeException){
 			int resultCode = ((AerospikeException)cause).getResultCode();
 			String msg = cause.getMessage();
+			if (cause instanceof AerospikeException.Connection) {
+				if (resultCode == ResultCode.SERVER_NOT_AVAILABLE) {
+					// we should throw query timeout exception only when opening new connection fails with SocketTimeoutException.
+					// see com.aerospike.client.cluster.Connection for more details
+					return new QueryTimeoutException(msg, cause);
+				}
+			}
 			switch (resultCode) {
 			/*
 			 * Future enhancements will be more elaborate 
@@ -61,6 +74,7 @@ public class DefaultAerospikeExceptionTranslator implements AerospikeExceptionTr
 
 			}
 		}
-		return new UncategorizedKeyValueException("Unexpected Aerospike Exception", cause);
+		//we should not convert exceptions that spring-data-aeropike does not recognise
+		return null;
 	}
 }

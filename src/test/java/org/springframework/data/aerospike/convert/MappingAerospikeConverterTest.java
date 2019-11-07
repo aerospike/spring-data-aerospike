@@ -1,40 +1,110 @@
+/*
+ * Copyright 2012-2018 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.aerospike.convert;
 
-import com.aerospike.client.Bin;
-import com.aerospike.client.Key;
-import com.aerospike.client.Record;
-import com.aerospike.client.Value;
-import org.assertj.core.data.Offset;
-import org.joda.time.DateTime;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.aerospike.SampleClasses.*;
-import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
-import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.data.aerospike.AsCollections.list;
+import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.AsCollections.set;
+import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
+import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_SECOND;
+import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
+import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
+import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
 
 import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.data.aerospike.AsCollections.*;
-import static org.springframework.data.aerospike.SampleClasses.*;
-import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
-import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
-import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
+import org.assertj.core.data.Offset;
+import org.joda.time.DateTime;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.env.Environment;
+import org.springframework.data.aerospike.SampleClasses.Address;
+import org.springframework.data.aerospike.SampleClasses.AerospikeReadDataToUserConverter;
+import org.springframework.data.aerospike.SampleClasses.ClassWithComplexId;
+import org.springframework.data.aerospike.SampleClasses.ClassWithIdField;
+import org.springframework.data.aerospike.SampleClasses.ClassWithIntId;
+import org.springframework.data.aerospike.SampleClasses.CollectionOfObjects;
+import org.springframework.data.aerospike.SampleClasses.ComplexId;
+import org.springframework.data.aerospike.SampleClasses.ComplexIdToStringConverter;
+import org.springframework.data.aerospike.SampleClasses.Contact;
+import org.springframework.data.aerospike.SampleClasses.ContainerOfCustomFieldNames;
+import org.springframework.data.aerospike.SampleClasses.CustomFieldNames;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
+import org.springframework.data.aerospike.SampleClasses.EnumProperties;
+import org.springframework.data.aerospike.SampleClasses.GenericType;
+import org.springframework.data.aerospike.SampleClasses.ListOfLists;
+import org.springframework.data.aerospike.SampleClasses.ListOfMaps;
+import org.springframework.data.aerospike.SampleClasses.MapWithCollectionValue;
+import org.springframework.data.aerospike.SampleClasses.MapWithGenericValue;
+import org.springframework.data.aerospike.SampleClasses.MapWithSimpleValue;
+import org.springframework.data.aerospike.SampleClasses.Name;
+import org.springframework.data.aerospike.SampleClasses.NestedMapsWithSimpleValue;
+import org.springframework.data.aerospike.SampleClasses.Person;
+import org.springframework.data.aerospike.SampleClasses.SetWithSimpleValue;
+import org.springframework.data.aerospike.SampleClasses.SimpleClass;
+import org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor;
+import org.springframework.data.aerospike.SampleClasses.SortedMapWithSimpleValue;
+import org.springframework.data.aerospike.SampleClasses.Street;
+import org.springframework.data.aerospike.SampleClasses.StringToComplexIdConverter;
+import org.springframework.data.aerospike.SampleClasses.TYPES;
+import org.springframework.data.aerospike.SampleClasses.User;
+import org.springframework.data.aerospike.SampleClasses.UserToAerospikeWriteDataConverter;
+import org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
+
+import com.aerospike.client.Bin;
+import com.aerospike.client.Key;
+import com.aerospike.client.Record;
+import com.aerospike.client.Value;
 
 public class MappingAerospikeConverterTest {
 
 	private static final String NAMESPACE = "namespace";
 	@Rule
 	public ExpectedException expectedException = ExpectedException.none();
+
+	ApplicationContext applicationContext = getApplicationContext();
 
 	private MappingAerospikeConverter converter = getMappingAerospikeConverter(new ComplexIdToStringConverter(), new StringToComplexIdConverter());
 
@@ -44,12 +114,24 @@ public class MappingAerospikeConverterTest {
 
 	private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeTypeAliasAccessor typeAliasAccessor, Converter<?, ?>... customConverters) {
 		AerospikeMappingContext mappingContext = new AerospikeMappingContext();
+		mappingContext.setApplicationContext(applicationContext);
 		mappingContext.setDefaultNameSpace(NAMESPACE);
 		CustomConversions customConversions = new CustomConversions(asList(customConverters), AerospikeSimpleTypes.HOLDER);
 
 		MappingAerospikeConverter converter = new MappingAerospikeConverter(mappingContext, customConversions, typeAliasAccessor);
 		converter.afterPropertiesSet();
 		return converter;
+	}
+
+	private ApplicationContext getApplicationContext() {
+		Environment environment = mock(Environment.class);
+		when(environment.resolveRequiredPlaceholders(anyString()))
+				.thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+
+		ApplicationContext applicationContext = mock(ApplicationContext.class);
+		when(applicationContext.getEnvironment()).thenReturn(environment);
+
+		return applicationContext;
 	}
 
 	@Test
@@ -198,7 +280,7 @@ public class MappingAerospikeConverterTest {
 		Set<String> field9 = set("val1", "val2");
 		Set<Set<String>> field10 = set(set("1", "2"), set("3", "4"), set());
 		SimpleClass object = new SimpleClass(0, "abyrvalg", 13, 14L, (float) 15, 16.0, true, new Date(8878888),
-				TYPES.SECOND, field9, field10);
+				TYPES.SECOND, field9, field10, (byte) 1);
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
 
 		converter.write(object, forWrite);
@@ -215,6 +297,8 @@ public class MappingAerospikeConverterTest {
 				new Bin("field8", "SECOND"),
 				new Bin("field9", list("val2", "val1")),
 				new Bin("field10", list(list(), list("1", "2"), list("3", "4"))),
+				new Bin("field11", (byte)1),
+//				new Bin("field12", (byte)'d'),//TODO: chars not supported
 				new Bin("@_class", "simpleclass"),
 				new Bin("@user_key", "0")
 		);
@@ -233,12 +317,15 @@ public class MappingAerospikeConverterTest {
 		bins.put("field8", "SECOND");
 		bins.put("field9", list("val1", "val2"));
 		bins.put("field10", list(list(), list("1", "2"), list("3", "4")));
+		bins.put("field11", (byte)1);
+		bins.put("field12", (byte)'d');//TODO: chars not supported
 		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 867), record(bins));
 
 		SimpleClass actual = converter.read(SimpleClass.class, forRead);
 
 		assertThat(actual).isEqualTo(new SimpleClass(867, "abyrvalg", 13, 14L, (float) 15, 16.0, true,
-				new Date(77777L), TYPES.SECOND, set("val1", "val2"), set(set("1", "2"), set("3", "4"), set())));
+				new Date(77777L), TYPES.SECOND, set("val1", "val2"), set(set("1", "2"), set("3", "4"), set()),
+				(byte)1));
 	}
 
 	@Test
@@ -480,6 +567,7 @@ public class MappingAerospikeConverterTest {
 		AerospikeReadData dbObject = AerospikeReadData.forRead(new Key(NAMESPACE, "NestedMapsWithSimpleValue", 10L), record(bins));
 
 		NestedMapsWithSimpleValue result = converter.read(NestedMapsWithSimpleValue.class, dbObject);
+
 
 		Map<String, Map<String, Map<String, String>>> map = of(
 				"level-1", of("level-1-1", of("1", "2")),
@@ -856,6 +944,17 @@ public class MappingAerospikeConverterTest {
 	}
 
 	@Test
+	public void shouldReadExpirationForDocumentWithPersistenceConstructor() {
+		int recordExpiration = toRecordExpiration(EXPIRATION_ONE_MINUTE);
+		Record record = new Record(Collections.emptyMap(), 0, recordExpiration);
+		Key key = new Key(NAMESPACE, "DocumentWithExpirationAnnotationAndPersistenceConstructor", "docId");
+		AerospikeReadData forRead = AerospikeReadData.forRead(key, record);
+
+		DocumentWithExpirationAnnotationAndPersistenceConstructor document = converter.read(DocumentWithExpirationAnnotationAndPersistenceConstructor.class, forRead);
+		assertThat(document.getExpiration()).isCloseTo(TimeUnit.MINUTES.toSeconds(1), Offset.offset(100L));
+	}
+
+	@Test
 	public void shouldNotWriteVersion() throws Exception {
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
 		converter.write(new VersionedClass("id", "data", 42), forWrite);
@@ -865,6 +964,42 @@ public class MappingAerospikeConverterTest {
 				new Bin("@_class", VersionedClass.class.getName()),
 				new Bin("field", "data")
 		);
+	}
+
+	@Test
+	public void shouldWriteObjectWithByteArrayField() {
+		DocumentWithByteArray object = new DocumentWithByteArray("user-id", new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
+		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
+
+		converter.write(object, forWrite);
+
+		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, "DocumentWithByteArray", "user-id");
+		assertThat(forWrite.getBins()).containsOnly(
+				new Bin("@user_key", "user-id"),
+				new Bin("@_class", DocumentWithByteArray.class.getName()),
+				new Bin("array", new byte[]{1, 0, 0, 1, 1, 1, 0, 0}));
+	}
+
+	@Test
+	public void shouldReadObjectWithByteArrayField() {
+		Map<String, Object> bins = new HashMap<>();
+		bins.put("array", new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
+		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, "DocumentWithByteArray", "user-id"), record(bins));
+
+		DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
+
+		assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1, 0, 0, 1, 1, 1, 0, 0}));
+	}
+
+	@Test
+	public void shouldReadObjectWithByteArrayFieldWithOneValueInData() {
+		Map<String, Object> bins = new HashMap<>();
+		bins.put("array", 1);
+		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, "DocumentWithByteArray", "user-id"), record(bins));
+
+		DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
+
+		assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1}));
 	}
 
 	private void assertThatKeyIsEqualTo(Key key, String namespace, String myset, Object expected) {

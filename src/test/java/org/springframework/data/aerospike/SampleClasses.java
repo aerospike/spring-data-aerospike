@@ -1,8 +1,28 @@
+/*
+ * Copyright 2012-2018 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.aerospike;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.Value;
 import org.joda.time.DateTime;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.aerospike.annotation.Expiration;
@@ -17,7 +37,15 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
@@ -59,9 +87,8 @@ public class SampleClasses {
 		final TYPES field8;
 		final Set<String> field9;
 		final Set<Set<String>> field10;
-//		TODO: see https://github.com/aerospike/aerospike-client-java/issues/75
-//		final byte field10;
-//		final char field11;
+		final byte field11;
+//		final char field12;
 
 	}
 
@@ -377,6 +404,23 @@ public class SampleClasses {
 		private Integer expiration;
 	}
 
+	@Value
+	@Document(collection = "expiration-set")
+	public static class DocumentWithExpirationAnnotationAndPersistenceConstructor {
+
+		@Id
+		private final String id;
+
+		@Expiration
+		private final Long expiration;
+
+		@PersistenceConstructor
+		public DocumentWithExpirationAnnotationAndPersistenceConstructor(String id, Long expiration) {
+			this.id = id;
+			this.expiration = expiration;
+		}
+	}
+
 	@Data
 	@AllArgsConstructor
 	@Document(collection = "expiration-set")
@@ -458,5 +502,27 @@ public class SampleClasses {
 		private String id;
 		@Expiration
 		private long expiration;
+	}
+
+	@Document(collection = DocumentWithExpressionInCollection.COLLECTION_PREFIX + "${setSuffix}")
+	public static class DocumentWithExpressionInCollection {
+
+		public static final String COLLECTION_PREFIX = "set-prefix-";
+
+	}
+
+	@Document
+	public static class DocumentWithoutCollection {
+	}
+
+	@Data
+	@AllArgsConstructor
+	@Document
+	public static class DocumentWithByteArray {
+		@Id
+		private String id;
+		@Field
+		private byte[] array;
+
 	}
 }

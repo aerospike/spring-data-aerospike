@@ -1,8 +1,10 @@
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.Key;
-import com.aerospike.client.Record;
-import com.google.common.collect.ImmutableMap;
+import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
+import static org.springframework.data.aerospike.SampleClasses.*;
+
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -11,12 +13,14 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.*;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationOneDay;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
 
-import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.Offset.offset;
+import com.aerospike.client.Key;
+import com.aerospike.client.Record;
 
 //TODO: Potentially unstable tests. Instead of sleeping, we need somehow do time travel like in CouchbaseMock.
 public class AerospikeExpirationTests extends BaseIntegrationTests {
@@ -40,7 +44,7 @@ public class AerospikeExpirationTests extends BaseIntegrationTests {
         document.setId(id);
         document.setExpiration(DateTime.now().plusSeconds(1));
 
-        template.add(document, ImmutableMap.of("intField", 10L));
+        template.add(document, singletonMap("intField", 10L));
         Thread.sleep(500L);
 
         DocumentWithDefaultConstructor shouldNotExpire = template.findById(id, DocumentWithDefaultConstructor.class);
@@ -120,13 +124,14 @@ public class AerospikeExpirationTests extends BaseIntegrationTests {
         Key key = new Key(template.getNamespace(), template.getSetName(DocumentWithExpirationOneDay.class), id);
 
         Record record = template.getAerospikeClient().get(null, key);
-        assertThat(record.getTimeToLive()).isCloseTo((int) TimeUnit.DAYS.toSeconds(1), offset(10));
+        int initialExpiration = record.expiration;
 
-        Thread.sleep(2000);
+        Thread.sleep(2_000);
         template.findById(id, DocumentWithExpirationOneDay.class);
 
         record = template.getAerospikeClient().get(null, key);
-        assertThat(record.getTimeToLive()).isCloseTo((int) TimeUnit.DAYS.toSeconds(1), offset(10));
+        assertThat(record.expiration - initialExpiration)
+                .isCloseTo(2, offset(1));
     }
 
     @Test
@@ -142,5 +147,14 @@ public class AerospikeExpirationTests extends BaseIntegrationTests {
 
         DocumentWithExpiration shouldExpire = template.findById(id, DocumentWithExpiration.class);
         assertThat(shouldExpire).isNull();
+    }
+
+    @Test
+    public void shouldSaveAndGetDocumentWithImmutableExpiration() {
+        template.insert(new DocumentWithExpirationAnnotationAndPersistenceConstructor(id, 60L));
+
+        DocumentWithExpirationAnnotationAndPersistenceConstructor doc = template.findById(id, DocumentWithExpirationAnnotationAndPersistenceConstructor.class);
+        assertThat(doc).isNotNull();
+        assertThat(doc.getExpiration()).isCloseTo(60L, Offset.offset(10L));
     }
 }

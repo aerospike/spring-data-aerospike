@@ -14,6 +14,7 @@ import org.springframework.util.CollectionUtils;
 
 import com.aerospike.client.Value;
 import com.aerospike.helper.query.Qualifier;
+import com.aerospike.helper.query.Qualifier.FilterOperation;
 
 /**
  *
@@ -60,30 +61,23 @@ public class Criteria implements CriteriaDefinition {
 	 * getCriteriaObject()
 	 */
 	@Override
-	public List<Qualifier> getCriteriaObject() {
-
-		List<Qualifier> qualifiers = new ArrayList<Qualifier>();
-
+	public Qualifier getCriteriaObject() {
 		if (this.criteriaChain.size() == 1) {
-			qualifiers.add(criteriaChain.get(0).getSingleCriteriaObject());
-			return qualifiers;
-		}
-		else if (CollectionUtils.isEmpty(this.criteriaChain)
-				&& !CollectionUtils.isEmpty(this.criteria)) {
-			qualifiers.add(getSingleCriteriaObject());
-		}
-		else {
+			return criteriaChain.get(0).getSingleCriteriaObject();
+		} else if (CollectionUtils.isEmpty(this.criteriaChain) && !CollectionUtils.isEmpty(this.criteria)){
+			return getSingleCriteriaObject();
+		} else {
+			FilterOperation op = FilterOperation.valueOf(key);
+			List<Qualifier> qualifiers = new ArrayList<Qualifier>();
 			for (Criteria c : this.criteriaChain) {
-				qualifiers.add(c.getSingleCriteriaObject());
+				qualifiers.add(c.getCriteriaObject());
 			}
+			return new Qualifier(op, (Qualifier[]) qualifiers.toArray(new Qualifier[qualifiers.size()]));
 		}
-		return qualifiers;
 	}
 
 	protected Qualifier getSingleCriteriaObject() {
-
 		Qualifier qualifier = null;
-
 		for (String k : this.criteria.keySet()) {
 			qualifier = (Qualifier) this.criteria.get(k);
 		}
@@ -121,7 +115,7 @@ public class Criteria implements CriteriaDefinition {
 	public Criteria and(String key) {
 		return new Criteria(this.criteriaChain, key);
 	}
-
+	
 	/**
 	 * @param property
 	 * @param next
@@ -133,7 +127,6 @@ public class Criteria implements CriteriaDefinition {
 		this.isValue = o;
 		this.criteria.put(Qualifier.FilterOperation.GT.name(), qualifier);
 		return this;
-
 	}
 
 	/**
@@ -228,14 +221,29 @@ public class Criteria implements CriteriaDefinition {
 	}
 
 	/**
-	 * @param base
-	 * @param criteria2
-	 * @return
+	 * Creates an 'or' criteria using the $or operator for all of the provided criteria
+	 *
+	 * @throws IllegalArgumentException if {@link #orOperator(Criteria...)} follows a not() call directly.
+	 * @param criteria
 	 */
 	public Criteria orOperator(Criteria... criteria) {
-		// TODO Auto-generated method stub
-		return null;
+		this.key = Qualifier.FilterOperation.OR.name();
+		return registerCriteriaChainElement(criteria);
 	}
+	
+	private Criteria registerCriteriaChainElement(Criteria... criteria) {
+		for(Criteria c : criteria){
+			if (lastOperatorWasNot()) {
+				throw new IllegalArgumentException(
+						"operator $not is not allowed around criteria chain element: " + c.getCriteriaObject());
+			} else {
+				criteriaChain.add(c);
+			}
+		}
+		return this;
+	}
+
+
 
 	/**
 	 * @return the criteriaChain

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,17 +15,16 @@
  */
 package org.springframework.data.aerospike.core;
 
-import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
-import com.aerospike.client.AerospikeClient;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 
+import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
@@ -88,16 +87,17 @@ public interface AerospikeOperations {//extends KeyValueOperations {
 
 	void delete(Class<?> type);
 
-	boolean delete(Serializable id, Class<?> type);
+	boolean delete(Object id, Class<?> type);
 	boolean delete(Object objectToDelete);
 
-	boolean exists(Serializable id, Class<?> type);
+	boolean exists(Object id, Class<?> type);
 	
-	<T> Iterable<T> find(Query<?> query, Class<T> type);
-	<T> List<T> findAll(Class<T> type);
+	<T> Stream<T> find(Query query, Class<T> type);
+	<T> Stream<T> findAll(Class<T> type);
 
-	<T> T findById(Serializable id, Class<T> type);
-	<T> List<T> findByIds(Collection<?> ids, Class<T> type);
+	<T> T findById(Object id, Class<T> type);
+
+	<T> List<T> findByIds(Iterable<?> IDs, Class<T> type);
 
 	<T> T add(T objectToAddTo, Map<String, Long> values);
 	<T> T add(T objectToAddTo, String binName, long value);
@@ -108,14 +108,15 @@ public interface AerospikeOperations {//extends KeyValueOperations {
 	<T> T prepend(T objectToPrependTo, String binName, String value);
 	
 	<T> Iterable<T> aggregate(Filter filter, Class<T> outputType, String module, String function, List<Value> arguments);
-	
+
+
 
 	/**
 	 * @param query
 	 * @param javaType
 	 * @return
 	 */
-	int count(Query<?> query, Class<?> javaType);
+	long count(Query query, Class<?> javaType);
 
 	/**
 	 * Execute operation against underlying store.
@@ -134,12 +135,12 @@ public interface AerospikeOperations {//extends KeyValueOperations {
 
 	/**
 	 * @param offset
-	 * @param rows
+	 * @param limit
 	 * @param sort
 	 * @param type
 	 * @return
 	 */
-	<T> Iterable<T> findInRange(int offset, int rows, Sort sort, Class<T> type);
+	<T> Stream<T> findInRange(long offset, long limit, Sort sort, Class<T> type);
 
 	/**
 	 * @param type

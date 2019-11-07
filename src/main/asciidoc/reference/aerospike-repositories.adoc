@@ -57,9 +57,9 @@ Right now this interface simply serves typing purposes but we will add additiona
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:aerospike="http://www.springframework.org/schema/data/aerospike"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    https://www.springframework.org/schema/beans/spring-beans-3.0.xsd
     http://www.springframework.org/schema/data/aerospike
-    http://www.springframework.org/schema/data/aerospike/spring-aerospike-1.0.xsd">
+    https://www.springframework.org/schema/data/aerospike/spring-aerospike-1.0.xsd">
 
   <aerospike:aerospike id="aerospike" />
 
@@ -74,7 +74,7 @@ Right now this interface simply serves typing purposes but we will add additiona
 
 This namespace element will cause the base packages to be scanned for interfaces extending `AerospikeRepository` and create Spring beans for each of them found. By default the repositories will get a `AerospikeTemplate` Spring bean wired that is called `aerospikeTemplate`.
 
-If you'd rather like to go with JavaConfig use the `@@EnableAerospikeRepositories` annotation. The annotation carries the very same attributes like the namespace element. If no base package is configured the infrastructure will scan the package of the annotated configuration class.
+If you'd rather like to go with JavaConfig use the `@EnableAerospikeRepositories` annotation. The annotation carries the very same attributes like the namespace element. If no base package is configured the infrastructure will scan the package of the annotated configuration class.
 
 .JavaConfig for repositories
 ====

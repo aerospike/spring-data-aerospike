@@ -3,8 +3,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import java.util.List;
-
 import com.aerospike.client.query.Filter;
 import com.aerospike.helper.query.Qualifier;
 
@@ -21,7 +19,7 @@ public interface CriteriaDefinition {
 	 * 
 	 * @return
 	 */
-	List<Qualifier> getCriteriaObject();
+	Qualifier getCriteriaObject();
 	/**
 	 * Get the identifying {@literal key}.
 	 * 
@@ -29,4 +27,9 @@ public interface CriteriaDefinition {
 	 * @since 1.6
 	 */
 	String getKey();
+	
+	public enum AerospikeMapCriteria{
+		KEY,
+		VALUE
+	}
 }

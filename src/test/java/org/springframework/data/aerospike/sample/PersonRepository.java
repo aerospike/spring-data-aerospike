@@ -1,13 +1,27 @@
-/**
- * 
+/*
+ * Copyright 2012-2018 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.springframework.data.aerospike.sample;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 //import java.util.stream.Stream;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.domain.Page;
@@ -26,7 +40,7 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 
 	List<Person> findByLastname(String lastname);
 	
-	List<Person> findByLastnameStartsWith(String prefix);
+	Page<Person> findByLastnameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 
 	List<Person> findByLastnameEndsWith(String postfix);
 
@@ -40,9 +54,9 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 
 	List<Person> findByAgeLessThan(int age, Sort sort);
 
-	List<Person> findByFirstnameIn(String... firstnames);
+	Stream<Person> findByFirstnameIn(List<String> firstnames);
 
-	List<Person> findByFirstnameNotIn(Collection<String> firstnames);
+	Stream<Person> findByFirstnameNotIn(Collection<String> firstnames);
 
 	List<Person> findByFirstnameAndLastname(String firstname, String lastname);
 
@@ -77,12 +91,14 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 
 	List<Person> findByCreatedAtAfter(Date date);
 
-	List<Person> findByLastnameNot(String lastname);
+	Stream<Person> findByLastnameNot(String lastname);
 
 	List<Person> findByCredentials(Credentials credentials);
 	
 	List<Person> findCustomerByAgeBetween(Integer from, Integer to);
-	
+
+	List<Person> findByAgeIn(ArrayList<Integer> ages);
+
 	List<Person> findPersonByFirstname(String firstname);
 
 	long countByLastname(String lastname);

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,22 +16,19 @@
 
 package org.springframework.data.aerospike.cache;
 
-import com.aerospike.client.AerospikeClient;
-import com.aerospike.client.Key;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.data.aerospike.BaseIntegrationTests;
-import org.springframework.data.aerospike.config.TestConfig;
-import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
+import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+
+import com.aerospike.client.AerospikeClient;
 
 /**
  * 

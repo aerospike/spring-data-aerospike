@@ -76,4 +76,10 @@ public class AerospikePersistentEntityTest extends BaseIntegrationTests {
         AerospikePersistentProperty expirationProperty = persistentEntity.getIdProperty();
         expirationProperty.isExpirationSpecifiedAsUnixTime();
     }
+
+    @Test
+    public void shouldResolvePlaceholdersInCollection() {
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithExpressionInCollection.class);
+        assertThat(persistentEntity.getSetName()).isEqualTo(DocumentWithExpressionInCollection.COLLECTION_PREFIX + "service1");
+    }
 }

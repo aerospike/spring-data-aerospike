@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 the original author or authors.
+ * Copyright (c) 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *  
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ * 		https://www.apache.org/licenses/LICENSE-2.0
  *  
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,15 +15,18 @@
  *******************************************************************************/
 package org.springframework.data.aerospike.repository;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.CustomerRepository;
+
+import java.util.Arrays;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 /**
  * @author Oliver Gierke
@@ -34,29 +37,44 @@ public class CustomerRepositoriesIntegrationTests extends BaseIntegrationTests {
 
 	@Test
 	public void testCreate() {
-		repository.save(new Customer("dave-001", "Dave", "Matthews"));
+		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
 	}
 
 	@Test
 	public void testExists() {
-		repository.save(new Customer("dave-001", "Dave", "Matthews"));
-		boolean exists = repository.exists("dave-001");
-		assertTrue(exists);
+		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
+
+		boolean exists = repository.existsById("dave-001");
+
+		assertThat(exists).isTrue();
 	}
 
 	@Test
 	public void testDelete() {
-		repository.delete(new Customer("dave-001", "Dave", "Matthews"));
+		repository.delete(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
 	}
 
 	@Test
 	public void testReadById() {
-		Customer customer = repository.save(new Customer("dave-001", "Dave", "Matthews"));
-		Customer findById = repository.findOne("dave-001");
+		Customer customer = repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
 
-		assertNotNull(findById);
-		assertEquals(customer.getLastname(), findById.getLastname());
-		assertEquals(customer.getFirstname(), findById.getFirstname());
+		Optional<Customer> findById = repository.findById("dave-001");
+
+		assertThat(findById).hasValueSatisfying(actual -> {
+			assertThat(actual.getLastname()).isEqualTo(customer.getLastname());
+			assertThat(actual.getFirstname()).isEqualTo(customer.getFirstname());
+		});
 	}
 
+	@Test
+	public void testFindAllByIDs(){
+		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("AMatthews").build());
+		repository.save(Customer.builder().id("dave-002").firstname("Dave").lastname("BMatthews").build());
+		repository.save(Customer.builder().id("dave-003").firstname("Dave").lastname("CMatthews").build());
+		repository.save(Customer.builder().id("dave-004").firstname("Dave").lastname("DMatthews").build());
+
+		Iterable<Customer> customers = repository.findAllById(Arrays.asList("dave-001", "dave-004"));
+
+		assertThat(customers).hasSize(2);
+	}
 }

@@ -13,13 +13,6 @@ import org.springframework.data.repository.query.ParameterAccessor;
  *
  */
 public interface AerospikeParameterAccessor extends ParameterAccessor {
-	/**
-	 * Returns the {@link TextCriteria} to be used for full text query.
-	 * 
-	 * @return null if not set.
-	 * @since 1.6
-	 */
-	TextCriteria getFullText();
 
 	/**
 	 * Returns the raw parameter values of the underlying query method.

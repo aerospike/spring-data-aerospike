@@ -1,6 +1,0 @@
-[[new-features]]
-New & Noteworthy
-
-
-* Support JSR-310 and ThreeTen back-port date/time types.
-* Improve support for `CONTAINS` keyword on collection like properties.

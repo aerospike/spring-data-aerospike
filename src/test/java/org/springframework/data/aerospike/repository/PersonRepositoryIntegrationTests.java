@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 the original author or authors.
+ * Copyright (c) 2018 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.repository;
 
 import com.aerospike.client.query.IndexType;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
@@ -28,11 +29,17 @@ import org.springframework.data.aerospike.sample.Person.Sex;
 import org.springframework.data.aerospike.sample.PersonRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
-import org.springframework.util.Assert;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -74,19 +81,17 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 		createIndexIfNotExists(Person.class, "first_name_index", "firstname", IndexType.STRING);
 		createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
 
-		all = (List<Person>) repository.save(Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi, leroi2, alicia));
-	}
-
-	@Test
-	public void testSetup() {
-		Assert.isInstanceOf(Person.class, dave);
+		all = (List<Person>) repository.saveAll(Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi, leroi2, alicia));
 	}
 
 	@Test
 	public void findsPersonById() throws Exception {
-		Person person = repository.findOne(dave.getId().toString());
-		Assert.isInstanceOf(Person.class, person);
-		assertThat(repository.findOne(dave.getId().toString()), is(dave));
+		Optional<Person> person = repository.findById(dave.getId());
+
+		assertThat(person).hasValueSatisfying(actual -> {
+			assertThat(actual).isInstanceOf(Person.class);
+			assertThat(actual).isEqualTo(dave);
+		});
 	}
 
 	@Test
@@ -98,7 +103,7 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 
 	@Test
 	public void findsAllWithGivenIds() {
-		List<Person> result = (List<Person>) repository.findAll(Arrays.asList(dave.id, boyd.id));
+		List<Person> result = (List<Person>) repository.findAllById(Arrays.asList(dave.id, boyd.id));
 		assertThat(result.size(), is(2));
 		assertThat(result, hasItem(dave));
 		assertThat(result, not(hasItems(oliver, carter, stefan, leroi, alicia)));
@@ -121,7 +126,7 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 
 	@Test
 	public void deletesPersonByIdCorrectly() {
-		repository.delete(dave.getId().toString());
+		repository.deleteById(dave.getId());
 		List<Person> result = (List<Person>) repository.findAll();
 		assertThat(result.size(), is(all.size() - 1));
 		assertThat(result, not(hasItem(dave)));
@@ -130,8 +135,147 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 	@Test
 	public void findsPersonsByFirstname() {
 		List<Person> result = repository.findByFirstname("Leroi");
-		assertThat(result.size(), is(2));
-		assertThat(result, hasItem(leroi));
+
+		assertThat(result).hasSize(2).containsOnly(leroi, leroi2);
+	}
+
+	@Test
+	public void findsByLastnameNot_forExistingResult() throws Exception {
+		Stream<Person> result = repository.findByLastnameNot("Moore");
+
+		assertThat(result)
+				.doesNotContain(leroi, leroi2)
+				.contains(dave, donny, oliver, carter, boyd, stefan, alicia);
+	}
+
+	@Test
+	public void findByFirstnameNotIn_forEmptyResult() throws Exception {
+		Set<String> allFirstNames = all.stream().map(p -> p.getFirstname()).collect(Collectors.toSet());
+//		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
+		assertThatThrownBy(() -> repository.findByFirstnameNotIn(allFirstNames))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Unsupported keyword!");
+
+//		assertThat(result).isEmpty();
+	}
+
+	@Test
+	public void findByFirstnameNotIn_forExistingResult() throws Exception {
+//		Stream<Person> result = repository.findByFirstnameNotIn(Collections.singleton("Alicia"));
+		assertThatThrownBy(() -> repository.findByFirstnameNotIn(Collections.singleton("Alicia")))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessage("Unsupported keyword!");
+
+//		assertThat(result).contains(dave, donny, oliver, carter, boyd, stefan, leroi, leroi2);
+	}
+
+	@Test
+	public void findByFirstnameIn_forEmptyResult() throws Exception {
+		Stream<Person> result = repository.findByFirstnameIn(Arrays.asList("Anastasiia", "Daniil"));
+
+		assertThat(result).isEmpty();
+	}
+
+	@Test
+	public void findByFirstnameIn_forExistingResult() throws Exception {
+		Stream<Person> result = repository.findByFirstnameIn(Arrays.asList("Alicia", "Stefan"));
+
+		assertThat(result).contains(alicia, stefan);
+	}
+
+	@Test
+	public void countByLastname_forExistingResult() throws Exception {
+		assertThatThrownBy(() -> repository.countByLastname("Leroi"))
+				.isInstanceOf(UnsupportedOperationException.class)
+				.hasMessage("Query method Person.countByLastname not supported.");
+
+//		assertThat(result).isEqualTo(2);
+	}
+
+	@Test
+	public void countByLastname_forEmptyResult() throws Exception {
+		assertThatThrownBy(() -> repository.countByLastname("Smirnova"))
+				.isInstanceOf(UnsupportedOperationException.class)
+				.hasMessage("Query method Person.countByLastname not supported.");
+
+//		assertThat(result).isEqualTo(0);
+	}
+
+	@Test
+	public void findByAgeGreaterThan_forExistingResult() throws Exception {
+		Slice<Person> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 10));
+
+		assertThat(slice.hasContent()).isTrue();
+		assertThat(slice.hasNext()).isFalse();
+		assertThat(slice.getContent()).hasSize(4).contains(dave, carter, boyd, leroi);
+	}
+
+	@Test
+	public void findByAgeGreaterThan_respectsLimit() {
+		Slice<Person> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1));
+
+		assertThat(slice.hasContent()).isTrue();
+		assertThat(slice.hasNext()).isFalse();//TODO: not implemented yet. should be true instead
+		assertThat(slice.getContent()).containsAnyOf(dave, carter, boyd, leroi).hasSize(1);
+	}
+
+	@Test
+	public void findByAgeGreaterThan_respectsLimitAndOffsetAndSort() {
+		List<Person> result = IntStream.range(0, 4)
+				.mapToObj(index -> repository.findByAgeGreaterThan(40, PageRequest.of(index, 1, Sort.by("age"))))
+				.flatMap(slice -> slice.getContent().stream())
+				.collect(Collectors.toList());
+
+		assertThat(result)
+				.hasSize(4)
+				.containsSequence(leroi, dave, boyd, carter);
+	}
+
+	@Test
+	public void findByAgeGreaterThan_returnsValidValuesForNextAndPrev() {
+		Slice<Person> first = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1, Sort.by("age")));
+
+		assertThat(first.hasContent()).isTrue();
+		assertThat(first.getNumberOfElements()).isEqualTo(1);
+		assertThat(first.hasNext()).isFalse();//TODO: not implemented yet. should be true instead
+		assertThat(first.isFirst()).isTrue();
+
+		Slice<Person> last = repository.findByAgeGreaterThan(40, PageRequest.of(3, 1, Sort.by("age")));
+
+		assertThat(last.hasContent()).isTrue();
+		assertThat(last.getNumberOfElements()).isEqualTo(1);
+		assertThat(last.hasNext()).isFalse();
+		assertThat(last.isLast()).isTrue();
+	}
+
+	@Test
+	public void findByAgeGreaterThan_forEmptyResult() throws Exception {
+		Slice<Person> slice = repository.findByAgeGreaterThan(100, PageRequest.of(0, 10));
+
+		assertThat(slice.hasContent()).isFalse();
+		assertThat(slice.hasNext()).isFalse();
+		assertThat(slice.getContent()).isEmpty();
+	}
+
+	@Test
+	public void findByLastnameStartsWithOrderByAgeAsc_respectsLimitAndOffset() {
+		Page<Person> first = repository.findByLastnameStartsWithOrderByAgeAsc("Moo", PageRequest.of(0, 1));
+
+		assertThat(first.getNumberOfElements()).isEqualTo(1);
+		assertThat(first.getTotalPages()).isEqualTo(2);
+		assertThat(first.get()).hasSize(1).containsOnly(leroi2);
+
+		Page<Person> last = repository.findByLastnameStartsWithOrderByAgeAsc("Moo", first.nextPageable());
+
+		assertThat(last.getTotalPages()).isEqualTo(2);
+		assertThat(last.getNumberOfElements()).isEqualTo(1);
+		assertThat(last.get()).hasSize(1).containsAnyOf(leroi);
+
+		Page<Person> all = repository.findByLastnameStartsWithOrderByAgeAsc("Moo", PageRequest.of(0, 5));
+
+		assertThat(all.getTotalPages()).isEqualTo(1);
+		assertThat(all.getNumberOfElements()).isEqualTo(2);
+		assertThat(all.get()).hasSize(2).containsOnly(leroi, leroi2);
 	}
 
 	@Test
@@ -155,11 +299,12 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 
 	@Test
 	public void findsPagedPersons() throws Exception {
-		Page<Person> result = repository.findAll(new PageRequest(1, 2, Direction.ASC, "lastname", "firstname"));
+		Page<Person> result = repository.findAll(PageRequest.of(1, 2, Direction.ASC, "lastname", "firstname"));
 		assertThat(result.isFirst(), is(false));
 		assertThat(result.isLast(), is(false));
 	}
 
+	@SuppressWarnings("unused")
 	@Test
 	public void findsPersonInAgeRangeCorrectly() throws Exception {
 		Iterable<Person> it = repository.findByAgeBetween(40, 45);
@@ -172,6 +317,7 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 		assertThat(result, hasItem(dave));
 	}
 
+	@SuppressWarnings("unused")
 	@Test
 	public void findsPersonInAgeRangeCorrectlyOrderByLastname() throws Exception {
 		Iterable<Person> it = repository.findByAgeBetweenOrderByLastname(30, 45);
@@ -182,6 +328,7 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 		assertEquals(6, count);
 	}
 
+	@SuppressWarnings("unused")
 	@Test
 	public void findsPersonInAgeRangeAndNameCorrectly() throws Exception {
 		Iterable<Person> it = repository.findByAgeBetweenAndLastname(40, 45, "Matthews");
@@ -210,7 +357,7 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 //		assertThat(repository.findByShippingAddresses(address), is(dave));
 //	}
 
-	@SuppressWarnings("serial")
+	@SuppressWarnings({ "serial", "unused" })
 	@Test
 	public void findsPersonByNameRetriveShippingAddressesCorrectly() throws Exception {
 		HashMap<String, Object> myMap = new HashMap<String, Object>();

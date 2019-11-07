@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,16 +15,19 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import static java.util.Arrays.asList;
+
+import java.util.Map;
+
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
-import org.springframework.data.convert.*;
-
-import java.util.Map;
-
-import static java.util.Arrays.asList;
+import org.springframework.data.convert.DefaultTypeMapper;
+import org.springframework.data.convert.EntityInstantiators;
+import org.springframework.data.convert.SimpleTypeInformationMapper;
+import org.springframework.data.convert.TypeMapper;
 
 /**
  * An implementation of {@link AerospikeConverter} to read domain objects from {@link AerospikeReadData} and write domain
@@ -79,4 +82,5 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
 	public void write(Object source, AerospikeWriteData sink) {
 		writeConverter.write(source, sink);
 	}
+
 }

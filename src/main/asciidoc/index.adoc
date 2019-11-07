@@ -6,7 +6,7 @@ Peter Milne Jean Mercier;
 :toc-placement!:
 :spring-data-commons-docs: ../../../../../git/spring-data-commons/src/main/asciidoc
 
-(C) 2015 The original authors.
+(C) 2018 The original authors.
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
@@ -26,6 +26,7 @@ include::{spring-data-commons-docs}/repositories.adoc[]
 include::reference/introduction.adoc[]
 include::reference/aerospike.adoc[]
 include::reference/aerospike-repositories.adoc[]
+include::reference/aerospike-reactive-repositories.adoc[]
 include::reference/mapping.adoc[]
 include::reference/logging.adoc[]
 :leveloffset: -1

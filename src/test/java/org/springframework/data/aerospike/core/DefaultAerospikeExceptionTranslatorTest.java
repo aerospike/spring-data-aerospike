@@ -1,3 +1,18 @@
+/*
+ * Copyright 2012-2018 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeException;
@@ -55,6 +70,13 @@ public class DefaultAerospikeExceptionTranslatorTest {
     }
 
     @Test
+    public void shouldTranslateConnectErrorWithNoMoreConnections() {
+        AerospikeException.Connection cause = new AerospikeException.Connection(ResultCode.NO_MORE_CONNECTIONS, "msg");
+        DataAccessException actual = translator.translateExceptionIfPossible(cause);
+        assertThat(actual).isExactlyInstanceOf(TransientDataAccessResourceException.class);
+    }
+
+    @Test
     public void shouldTranslateQueryKeyBusyError() {
         AerospikeException cause = new AerospikeException(ResultCode.KEY_BUSY);
         DataAccessException actual = translator.translateExceptionIfPossible(cause);
@@ -62,16 +84,23 @@ public class DefaultAerospikeExceptionTranslatorTest {
     }
 
     @Test
+    public void shouldTranslateConnectErrorToAerospike() {
+        AerospikeException.Connection cause = new AerospikeException.Connection("msg");
+        DataAccessException actual = translator.translateExceptionIfPossible(cause);
+        assertThat(actual).isExactlyInstanceOf(QueryTimeoutException.class);
+    }
+
+    @Test
     public void shouldTranslateAerospikeError() {
-        AerospikeException cause = new AerospikeException();
+        AerospikeException cause = new AerospikeException("any");
         DataAccessException actual = translator.translateExceptionIfPossible(cause);
         assertThat(actual).isExactlyInstanceOf(RecoverableDataAccessException.class);
     }
 
     @Test
-    public void shouldTranslateUnknownError() {
+    public void shouldNotTranslateUnknownError() {
         RuntimeException cause = new RuntimeException();
         DataAccessException actual = translator.translateExceptionIfPossible(cause);
-        assertThat(actual).isExactlyInstanceOf(UncategorizedKeyValueException.class);
+        assertThat(actual).isNull();
     }
 }

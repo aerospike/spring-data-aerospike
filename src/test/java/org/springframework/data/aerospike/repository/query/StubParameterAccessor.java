@@ -1,14 +1,28 @@
-/**
- * 
+/*
+ * Copyright 2012-2018 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.springframework.data.aerospike.repository.query;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Optional;
 
-import org.springframework.data.aerospike.core.AerospikeWriter;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Range;
 import org.springframework.data.domain.Sort;
-import org.springframework.util.Assert;
+import org.springframework.data.geo.Distance;
 
 /**
  *
@@ -17,27 +31,19 @@ import org.springframework.util.Assert;
  * @author Jean Mercier
  *
  */
-public class ConvertingParameterAccessor implements AerospikeParameterAccessor {
+public class StubParameterAccessor implements AerospikeParameterAccessor {
 	
-	@SuppressWarnings("unused")
-	private final AerospikeWriter<?> writer;
-	private final AerospikeParameterAccessor delegate;
+	private final Object[] values;
 	
-	public ConvertingParameterAccessor(AerospikeWriter<?> writer, AerospikeParameterAccessor delegate) {
-
-		Assert.notNull(writer);
-		Assert.notNull(delegate);
-
-		this.writer = writer;
-		this.delegate = delegate;
+	@SuppressWarnings("unchecked")
+	public StubParameterAccessor(Object... values) {
+		this.values = values;
 	}
-
 	/* (non-Javadoc)
 	 * @see org.springframework.data.repository.query.ParameterAccessor#getPageable()
 	 */
 	@Override
 	public Pageable getPageable() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -46,7 +52,6 @@ public class ConvertingParameterAccessor implements AerospikeParameterAccessor {
 	 */
 	@Override
 	public Sort getSort() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -55,8 +60,7 @@ public class ConvertingParameterAccessor implements AerospikeParameterAccessor {
 	 */
 	@Override
 	public Object getBindableValue(int index) {
-		// TODO Auto-generated method stub
-		return null;
+		return values[index];
 	}
 
 	/* (non-Javadoc)
@@ -64,7 +68,6 @@ public class ConvertingParameterAccessor implements AerospikeParameterAccessor {
 	 */
 	@Override
 	public boolean hasBindableNullValue() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -73,16 +76,7 @@ public class ConvertingParameterAccessor implements AerospikeParameterAccessor {
 	 */
 	@Override
 	public Iterator<Object> iterator() {
-		return delegate.iterator();
-	}
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.aerospike.repository.query.AerospikeParameterAccessor#getFullText()
-	 */
-	@Override
-	public TextCriteria getFullText() {
-		// TODO Auto-generated method stub
-		return null;
+		return Arrays.asList(values).iterator();
 	}
 
 	/* (non-Javadoc)
@@ -90,13 +84,16 @@ public class ConvertingParameterAccessor implements AerospikeParameterAccessor {
 	 */
 	@Override
 	public Object[] getValues() {
+		return this.values;
+	}
+	@Override
+	public Optional<Class<?>> getDynamicProjection() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Class<?> getDynamicProjection() {
-		// TODO Auto-generated method stub
+	public Class<?> findDynamicProjection() {
 		return null;
 	}
 

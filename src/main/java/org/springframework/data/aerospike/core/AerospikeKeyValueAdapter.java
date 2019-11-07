@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,7 +33,6 @@ import org.springframework.data.keyvalue.core.KeyValueTemplate;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
 import org.springframework.data.util.CloseableIterator;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -78,7 +77,7 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#put(java.io.Serializable, java.lang.Object, java.io.Serializable)
 	 */
 	@Override
-	public Object put(Serializable id, Object item, Serializable keyspace) {
+	public Object put(Object id, Object item, String keyspace) {
 		AerospikeWriteData data = AerospikeWriteData.forWrite();
 
 		converter.write(item, data);
@@ -93,9 +92,9 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#contains(java.io.Serializable, java.io.Serializable)
 	 */
 	@Override
-	public boolean contains(Serializable id, Serializable keyspace) {
+	public boolean contains(Object id, String keyspace) {
 
-		return client.exists(null, makeKey(keyspace.toString(), id.toString()));
+		return client.exists(null, makeKey(keyspace, id.toString()));
 	}
 
 	/* 
@@ -103,9 +102,9 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#get(java.io.Serializable, java.io.Serializable)
 	 */
 	@Override
-	public Object get(Serializable id, Serializable keyspace) {
+	public Object get(Object id, String keyspace) {
 
-		Key key = makeKey(keyspace.toString(), id.toString());
+		Key key = makeKey(keyspace, id.toString());
 		Record record = client.get(null, key);
 		if(record == null){
 			return null;
@@ -119,9 +118,9 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#delete(java.io.Serializable, java.io.Serializable)
 	 */
 	@Override
-	public Object delete(Serializable id, Serializable keyspace) {
+	public Object delete(Object id, String keyspace) {
 
-		Key key = new Key(namespace, keyspace.toString(), id.toString());
+		Key key = new Key(namespace, keyspace, id.toString());
 
 		Object object = get(id, keyspace);
 
@@ -139,11 +138,11 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#getAllOf(java.io.Serializable)
 	 */
 	@Override
-	public Collection<?> getAllOf(Serializable keyspace) {
+	public Collection<?> getAllOf(String keyspace) {
 		
 		Statement statement = new Statement();
 		statement.setNamespace(namespace);
-		statement.setSetName(keyspace.toString());
+		statement.setSetName(keyspace);
 
 		
 		List<Object> result = new ArrayList<Object>();
@@ -174,9 +173,9 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#deleteAllOf(java.io.Serializable)
 	 */
 	@Override
-	public void deleteAllOf(Serializable keyspace) {
+	public void deleteAllOf(String keyspace) {
 		//"set-config:context=namespace;id=namespace_name;set=set_name;set-delete=true;"
-		Utils.infoAll(client, "set-config:context=namespace;id=" + this.namespace + ";set=" + keyspace.toString() + ";set-delete=true;");
+		Utils.infoAll(client, "set-config:context=namespace;id=" + this.namespace + ";set=" + keyspace + ";set-delete=true;");
 	}
 
 	/* 
@@ -198,20 +197,20 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 	}
 	
 	@Override
-	public Collection<?> find(KeyValueQuery<?> query, Serializable keyspace) {
+	public Collection<?> find(KeyValueQuery<?> query, String keyspace) {
 		// TODO Auto-generated method stub
 		return super.find(query, keyspace);
 	}
 
 	@Override
-	public CloseableIterator<Entry<Serializable, Object>> entries(
-			Serializable keyspace) {
+	public CloseableIterator<Entry<Object, Object>> entries(
+			String keyspace) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public long count(Serializable keyspace) {
+	public long count(String keyspace) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

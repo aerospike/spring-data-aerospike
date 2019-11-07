@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 the original author or authors.
+ * Copyright (c) 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *  
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ * 		https://www.apache.org/licenses/LICENSE-2.0
  *  	
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,7 +19,7 @@ import com.aerospike.client.Key;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 import org.springframework.data.mapping.model.BasicPersistentEntity;
-import org.springframework.data.mapping.model.MappingException;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -34,7 +34,6 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 
 	static final int DEFAULT_EXPIRATION = 0;
 
-	private final TypeInformation<?> typeInformation;
 	private final String defaultNameSpace;
 
 	private AerospikePersistentProperty expirationProperty;
@@ -49,7 +48,6 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 	public BasicAerospikePersistentEntity(TypeInformation<T> information, String defaultNameSpace) {
 
 		super(information);
-		this.typeInformation = information;
 		this.defaultNameSpace = defaultNameSpace;
 	}
 
@@ -79,12 +77,14 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 		 */
 	@Override
 	public String getSetName() {
-		Class<?> clazz = typeInformation.getType();
-		Document annotation = clazz.getAnnotation(Document.class);
-		if(annotation != null && ! annotation.collection().isEmpty()){
-			return annotation.collection();
+		Class<T> type = getType();
+		Document annotation = type.getAnnotation(Document.class);
+		if (annotation != null && !annotation.collection().isEmpty()) {
+			Assert.notNull(environment, "Environment must be set to use 'collection'");
+
+			return environment.resolveRequiredPlaceholders(annotation.collection());
 		}
-		return clazz.getSimpleName();
+		return type.getSimpleName();
 	}
 
 	@Override

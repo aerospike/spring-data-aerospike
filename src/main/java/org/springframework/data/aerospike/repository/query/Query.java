@@ -3,16 +3,9 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.data.aerospike.InvalidAerospikeDataAccessApiUsageException;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
-
-import com.aerospike.helper.query.Qualifier;
 
 /**
  *
@@ -22,58 +15,27 @@ import com.aerospike.helper.query.Qualifier;
  * @param <T>
  *
  */
-public class Query<T> {
+public class Query {
+
+	private static final int NOT_SPECIFIED = -1;
 
 	private Sort sort;
-	private int offset = -1;
-	private int rows = -1;
-	private final Map<String, CriteriaDefinition> criteria = new LinkedHashMap<String, CriteriaDefinition>();
-
-	/**
-	 * Creates new instance of {@link KeyValueQuery}.
-	 */
-	public Query() {
-	}
+	private long offset = NOT_SPECIFIED;
+	private int rows = NOT_SPECIFIED;
+	private CriteriaDefinition criteria;
 
 	/**
 	 * Creates new instance of {@link KeyValueQuery} with given criteria.
-	 * 
+	 *
 	 * @param criteria can be {@literal null}.
 	 */
 	public Query(CriteriaDefinition criteria) {
-		addCriteria(criteria);
-		// this.criteria = criteria;
-	}
-
-	/**
-	 * Adds the given {@link CriteriaDefinition} to the current {@link Query}.
-	 * 
-	 * @param criteriaDefinition must not be {@literal null}.
-	 * @return
-	 * @since 1.6
-	 */
-	public Query<?> addCriteria(CriteriaDefinition criteriaDefinition) {
-
-		CriteriaDefinition existing = this.criteria.get(criteriaDefinition.getKey());
-		String key = criteriaDefinition.getKey();
-
-		if (existing == null) {
-			this.criteria.put(key, criteriaDefinition);
-		}
-		else {
-			throw new InvalidAerospikeDataAccessApiUsageException(
-					"Due to limitations of the Filter, "
-							+ "you can't add a second '" + key + "' criteria. "
-							+ "Query already contains '"
-							+ existing.getCriteriaObject() + "'.");
-		}
-
-		return this;
+		this.criteria = criteria;
 	}
 
 	/**
 	 * Creates new instance of {@link Query} with given {@link Sort}.
-	 * 
+	 *
 	 * @param sort can be {@literal null}.
 	 */
 	public Query(Sort sort) {
@@ -82,23 +44,16 @@ public class Query<T> {
 
 	/**
 	 * Get the criteria object.
-	 * 
+	 *
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
-	public T getCritieria() {
-		T value = null;
-		for (Map.Entry<String, CriteriaDefinition> entry : this.criteria
-				.entrySet()) {
-			value = (T) entry.getValue();
-			// now work with key and value...
-		}
-		return value;
+	public CriteriaDefinition getCriteria() {
+		return criteria;
 	}
 
 	/**
 	 * Get {@link Sort}.
-	 * 
+	 *
 	 * @return
 	 */
 	public Sort getSort() {
@@ -107,16 +62,24 @@ public class Query<T> {
 
 	/**
 	 * Number of elements to skip.
-	 * 
+	 *
 	 * @return negative value if not set.
 	 */
-	public int getOffset() {
+	public long getOffset() {
 		return this.offset;
+	}
+
+	public boolean hasOffset() {
+		return this.offset != NOT_SPECIFIED;
+	}
+
+	public boolean hasRows() {
+		return this.rows != NOT_SPECIFIED;
 	}
 
 	/**
 	 * Number of elements to read.
-	 * 
+	 *
 	 * @return negative value if not set.
 	 */
 	public int getRows() {
@@ -125,16 +88,16 @@ public class Query<T> {
 
 	/**
 	 * Set the number of elements to skip.
-	 * 
+	 *
 	 * @param offset use negative value for none.
 	 */
-	public void setOffset(int offset) {
+	public void setOffset(long offset) {
 		this.offset = offset;
 	}
 
 	/**
 	 * Set the number of elements to read.
-	 * 
+	 *
 	 * @param offset use negative value for all.
 	 */
 	public void setRows(int rows) {
@@ -143,7 +106,7 @@ public class Query<T> {
 
 	/**
 	 * Set {@link Sort} to be applied.
-	 * 
+	 *
 	 * @param sort
 	 */
 	public void setSort(Sort sort) {
@@ -152,11 +115,11 @@ public class Query<T> {
 
 	/**
 	 * Add given {@link Sort}.
-	 * 
+	 *
 	 * @param sort {@literal null} {@link Sort} will be ignored.
 	 * @return
 	 */
-	public Query<T> orderBy(Sort sort) {
+	public Query orderBy(Sort sort) {
 		if (sort == null) {
 			return this;
 		}
@@ -171,11 +134,11 @@ public class Query<T> {
 	}
 
 	/**
-	 * @see Query#setOffset(int)
+	 * @see Query#setOffset(long)
 	 * @param offset
 	 * @return
 	 */
-	public Query<T> skip(int offset) {
+	public Query skip(long offset) {
 		setOffset(offset);
 		return this;
 	}
@@ -185,7 +148,7 @@ public class Query<T> {
 	 * @param rows
 	 * @return
 	 */
-	public Query<T> limit(int rows) {
+	public Query limit(int rows) {
 		setRows(rows);
 		return this;
 	}
@@ -194,7 +157,7 @@ public class Query<T> {
 	 * @param sort
 	 * @return
 	 */
-	public Query<?> with(Sort sort) {
+	public Query with(Sort sort) {
 		if (sort == null) {
 			return this;
 		}
@@ -218,15 +181,6 @@ public class Query<T> {
 		return this;
 	}
 
-	public List<Qualifier> getQueryObject() {
-		List<Qualifier> qualifiers = null;
-		for (String k : criteria.keySet()) {
-			CriteriaDefinition c = criteria.get(k);
-			qualifiers = c.getCriteriaObject();
-		}
-
-		return qualifiers;
-	}
 
 //	/* (non-Javadoc)
 //	 * @see java.lang.Object#toString()

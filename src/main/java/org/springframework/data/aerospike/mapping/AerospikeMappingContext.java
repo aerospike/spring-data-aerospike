@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright (c) 2015 the original author or authors.
+ * Copyright (c) 2018 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *  
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ * 		https://www.apache.org/licenses/LICENSE-2.0
  *  	
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -24,6 +24,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.FieldNamingStrategy;
+import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.data.util.TypeInformation;
@@ -40,7 +41,6 @@ public class AerospikeMappingContext extends
 	private static final FieldNamingStrategy DEFAULT_NAMING_STRATEGY = PropertyNameFieldNamingStrategy.INSTANCE;
 
 	private FieldNamingStrategy fieldNamingStrategy = DEFAULT_NAMING_STRATEGY;
-	@SuppressWarnings("unused")
 	private ApplicationContext context;
 	private String defaultNameSpace;
 
@@ -72,9 +72,9 @@ public class AerospikeMappingContext extends
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
 	 */
 	@Override
-	protected AerospikePersistentProperty createPersistentProperty(Field field, PropertyDescriptor descriptor,
-			BasicAerospikePersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
-		return new CachingAerospikePersistentProperty(field, descriptor, owner, simpleTypeHolder, fieldNamingStrategy);
+	protected AerospikePersistentProperty createPersistentProperty(Property property,
+		BasicAerospikePersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
+		return new CachingAerospikePersistentProperty(property, owner, simpleTypeHolder, fieldNamingStrategy);
 	}
 
 	/*

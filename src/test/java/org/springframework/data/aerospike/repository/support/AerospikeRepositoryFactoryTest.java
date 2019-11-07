@@ -1,18 +1,20 @@
-/**
- * 
+/*
+ * Copyright 2012-2018 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.springframework.data.aerospike.repository.support;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.Serializable;
-
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,11 +22,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.context.ApplicationContext;
-import org.springframework.data.aerospike.convert.AerospikeConverter;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.aerospike.core.AerospikeOperations;
-import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
@@ -34,6 +33,15 @@ import org.springframework.data.repository.core.RepositoryInformation;
 import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.data.repository.core.support.PersistentEntityInformation;
 
+import java.io.Serializable;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 /**
  *
  *
@@ -41,13 +49,10 @@ import org.springframework.data.repository.core.support.PersistentEntityInformat
  * @author Jean Mercier
  *
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.StrictStubs.class)
 public class AerospikeRepositoryFactoryTest {
 
-	@Mock ApplicationContext applicationContext;
-	@Mock AerospikeTemplate template;
 	@Mock RepositoryInformation repositoryInformation;
-	@Mock AerospikeConverter converter;
 	@SuppressWarnings("rawtypes")
 	@Mock MappingContext context;
 	@Mock AerospikeRepositoryFactory aerospikeRepositoryFactoryMock;
@@ -63,15 +68,8 @@ public class AerospikeRepositoryFactoryTest {
 	@SuppressWarnings("unchecked")
 	@Before
 	public void setUp() throws Exception {
-			when(aerospikeOperations.getMappingContext()).thenReturn(context);
+		when(aerospikeOperations.getMappingContext()).thenReturn(context);
 
-	}
-
-	/**
-	 * @throws java.lang.Exception
-	 */
-	@After
-	public void tearDown() throws Exception {
 	}
 
 	/**
@@ -80,8 +78,7 @@ public class AerospikeRepositoryFactoryTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetEntityInformationClassOfT() {
-		when(context.getPersistentEntity(Person.class)).thenReturn(entity);
-		when(entity.getType()).thenReturn(Person.class);
+		when(context.getRequiredPersistentEntity(Person.class)).thenReturn(entity);
 
 		AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeOperations);
 		EntityInformation<Person, Serializable> entityInformation = factory.getEntityInformation(Person.class);
@@ -94,15 +91,11 @@ public class AerospikeRepositoryFactoryTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetTargetRepositoryRepositoryInformation() {
-		when(context.getPersistentEntity(Person.class)).thenReturn(entity);
-		when(entity.getType()).thenReturn(Person.class);
-		Mockito.<Class<?>>when(repositoryInformation.getDomainType()).thenReturn(Person.class);
-		Mockito.<Class<?>>when(repositoryInformation.getRepositoryBaseClass()).thenReturn(Person.class);
 		when(aerospikeRepositoryFactoryMock.getTargetRepository(repositoryInformation)).thenReturn(new Object());
 
 		Person.class.getDeclaredConstructors();
 
-			Object repository = aerospikeRepositoryFactoryMock.getTargetRepository(repositoryInformation);
+		Object repository = aerospikeRepositoryFactoryMock.getTargetRepository(repositoryInformation);
 		assertThat(repository, is(notNullValue()));
 	}
 

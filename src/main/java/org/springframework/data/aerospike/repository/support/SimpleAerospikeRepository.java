@@ -1,3 +1,18 @@
+/*
+ * Copyright 2012-2018 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.aerospike.repository.support;
 
 import com.aerospike.client.query.IndexType;
@@ -11,10 +26,12 @@ import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 
-import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class SimpleAerospikeRepository<T, ID extends Serializable> implements AerospikeRepository<T, ID> {
+public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, ID> {
 
 	private final AerospikeOperations operations;
 	private final EntityInformation<T, ID> entityInformation;
@@ -25,22 +42,21 @@ public class SimpleAerospikeRepository<T, ID extends Serializable> implements Ae
 		this.entityInformation = metadata;
 		this.operations = operations;
 	}
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findOne(java.io.Serializable)
-	 */
+
 	@Override
-	public T findOne(ID id) {
-		return operations.findById(id, entityInformation.getJavaType());
+	public Optional<T> findById(ID id) {
+		return Optional.ofNullable(operations.findById(id, entityInformation.getJavaType()));
 	}
 
 	@Override
 	public <S extends T> S save(S entity) {
+		Assert.notNull(entity, "Cannot save NULL entity");
+
 		operations.save(entity);
 		return entity;
 	}
 
-	public <S extends T> List<S> save(Iterable<S> entities) {
+	public <S extends T> List<S> saveAll(Iterable<S> entities) {
 		Assert.notNull(entities, "The given Iterable of entities not be null!");
 
 		List<S> result = IterableConverter.toList(entities);
@@ -56,18 +72,10 @@ public class SimpleAerospikeRepository<T, ID extends Serializable> implements Ae
 		operations.delete(entity);
 	}
 
-
-
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Sort)
-	 */
 	@Override
 	public Iterable<T> findAll(Sort sort) {
 		return operations.findAll(sort, entityInformation.getJavaType());
 	}
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.PagingAndSortingRepository#findAll(org.springframework.data.domain.Pageable)
-	 */
 
 	@Override
 	public Page<T> findAll(Pageable pageable) {
@@ -77,80 +85,53 @@ public class SimpleAerospikeRepository<T, ID extends Serializable> implements Ae
 			return new PageImpl<T>(result, null, result.size());
 		}
 
-		Iterable<T> content = operations.findInRange(pageable.getOffset(), pageable.getPageSize(), pageable.getSort(),entityInformation.getJavaType());
+		Class<T> type = entityInformation.getJavaType();
+		String setName = operations.getSetName(type);
 
-		String setName = operations.getSetName(entityInformation.getJavaType());
-		return new PageImpl<T>(IterableConverter.toList(content), pageable, this.operations.count(entityInformation.getJavaType(), setName));
+		Stream<T> content = operations.findInRange(pageable.getOffset(), pageable.getPageSize(), pageable.getSort(), type);
+		long totalCount = operations.count(type, setName);
+
+		return new PageImpl<T>(content.collect(Collectors.toList()), pageable, totalCount);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#exists(java.io.Serializable)
-	 */
 	@Override
-	public boolean exists(ID id) {
+	public boolean existsById(ID id) {
 		return operations.exists(id, entityInformation.getJavaType());
 	}
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findAll()
-	 */
 
 	@Override
 	public List<T> findAll() {
-		return IterableConverter.toList(operations.findAll(entityInformation.getJavaType()));
+		return operations.findAll(entityInformation.getJavaType()).collect(Collectors.toList());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#findAll(java.lang.Iterable)
-	 */
 	@Override
-	public Iterable<T> findAll(Iterable<ID> ids) {
-		Assert.notNull(ids, "List of ids must not be null!");
-
-		List<ID> idList = IterableConverter.toList(ids);
-		return operations.findByIds(idList, entityInformation.getJavaType());
+	public Iterable<T> findAllById(Iterable<ID> ids) {
+		return operations.findByIds(ids, entityInformation.getJavaType());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#count()
-	 */
 	@Override
 	public long count() {
 		return operations.count(entityInformation.getJavaType());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#delete(java.io.Serializable)
-	 */
 	@Override
-	public void delete(ID id) {
+	public void deleteById(ID id) {
 		Assert.notNull(id, "The given id must not be null!");
 		operations.delete(id, entityInformation.getJavaType());
-		
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#delete(java.lang.Iterable)
-	 */
 	@Override
-	public void delete(Iterable<? extends T> entities) {
+	public void deleteAll(Iterable<? extends T> entities) {
 		for (T entity : entities) {
 			delete(entity);
 		}
-		
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.CrudRepository#deleteAll()
-	 */
 	@Override
 	public void deleteAll() {
 		operations.delete(entityInformation.getJavaType());
-		
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.aerospike.repository.AerospikeRepository#createIndex(java.lang.Class, java.lang.String, java.lang.String, com.aerospike.client.query.IndexType)
-	 */
 	@Override
 	public <T> void createIndex(Class<T> domainType, String indexName, String binName, IndexType indexType) {
 		operations.createIndex(domainType, indexName, binName, indexType);

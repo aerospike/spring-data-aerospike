@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *  
- * 		http://www.apache.org/licenses/LICENSE-2.0
+ * 		https://www.apache.org/licenses/LICENSE-2.0
  *  	
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +39,14 @@ import static org.springframework.data.aerospike.mapping.BasicAerospikePersisten
 @Target({ ElementType.TYPE })
 public @interface Document {
 
-	//TODO: add support for SPEL expression
+	/**
+	 * An optional name of the collection. If the name is not specified, a {@link Class#getSimpleName()} of the entity's
+	 * class will be used.
+	 * Allows the actual value to be set using standard Spring property sources mechanism.
+	 * Syntax is the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}.
+	 * <br /><br />
+	 * SpEL is NOT supported.
+	 */
 	String collection() default "";
 
 	/**
@@ -51,7 +58,9 @@ public @interface Document {
 	String language() default "";
 
 	/**
-	 * An optional expiration time for the document. Default is no expiration. Ignored if entity has field
+	 * An optional expiration time for the document.
+	 * Default is namespace configuration variable "default-ttl" on the server.
+	 * Ignored if entity has field
 	 * annotated by {@link org.springframework.data.aerospike.annotation.Expiration}
 	 * <br/>
 	 * Only one of two might might be set at the same time: either {@link #expiration()} or {@link #expirationExpression()}

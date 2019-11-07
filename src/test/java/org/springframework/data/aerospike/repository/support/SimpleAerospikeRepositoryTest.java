@@ -1,5 +1,17 @@
-/**
+/*
+ * Copyright 2012-2018 the original author or authors
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.springframework.data.aerospike.repository.support;
 
@@ -11,8 +23,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.domain.Page;
@@ -23,18 +34,19 @@ import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
  * @author Peter Milne
  * @author Jean Mercier
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.StrictStubs.class)
 public class SimpleAerospikeRepositoryTest {
 
 	@Mock
@@ -66,9 +78,10 @@ public class SimpleAerospikeRepositoryTest {
 	public void testFindOne() {
 		when(operations.findById("21", Person.class)).thenReturn(testPerson);
 
-		Person person = aerospikeRepository.findOne("21");
+		Optional<Person> person = aerospikeRepository.findById("21");
 
-		assertThat(person.getFirstName()).isEqualTo("Jean");
+		assertThat(person)
+				.hasValueSatisfying(actual -> assertThat(actual.getFirstName()).isEqualTo("Jean"));
 	}
 
 	@Test
@@ -81,7 +94,7 @@ public class SimpleAerospikeRepositoryTest {
 
 	@Test
 	public void testSaveIterableOfS() {
-		List<Person> result = aerospikeRepository.save(testPersons);
+		List<Person> result = aerospikeRepository.saveAll(testPersons);
 
 		assertThat(result).isEqualTo(testPersons);
 		verify(operations, times(testPersons.size())).save(any());
@@ -96,22 +109,23 @@ public class SimpleAerospikeRepositoryTest {
 
 	@Test
 	public void testFindAllSort() {
-		when(operations.findAll(new Sort(Sort.Direction.ASC, "biff"), Person.class)).thenReturn(testPersons);
+		when(operations.findAll(Sort.by(Sort.Direction.ASC, "biff"), Person.class)).thenReturn(testPersons);
 
-		Iterable<Person> fetchList = aerospikeRepository.findAll(new Sort(Sort.Direction.ASC, "biff"));
+		Iterable<Person> fetchList = aerospikeRepository.findAll(Sort.by(Sort.Direction.ASC, "biff"));
 		assertThat(fetchList).isEqualTo(testPersons);
 	}
 
 	@Test
 	public void testFindAllPageable() {
-		Page<Person> page = new PageImpl<>(IterableConverter.toList(testPersons), new PageRequest(0, 2), 5);
+		Page<Person> page = new PageImpl<>(IterableConverter.toList(testPersons), PageRequest.of(0, 2), 5);
 
-		doReturn(testPersons).when(operations).findInRange(0, 2, null, Person.class);
-		doReturn(5L).when(operations).count(Mockito.anyVararg(), anyString());
+		doReturn(testPersons.stream()).when(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
+		doReturn("set").when(operations).getSetName(Person.class);
+		doReturn(5L).when(operations).count(Person.class, "set");
 
-		Page<Person> result = aerospikeRepository.findAll(new PageRequest(0, 2));
+		Page<Person> result = aerospikeRepository.findAll(PageRequest.of(0, 2));
 
-		verify(operations).findInRange(0, 2, null, Person.class);
+		verify(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
 		assertThat(result).isEqualTo(page);
 	}
 
@@ -119,39 +133,39 @@ public class SimpleAerospikeRepositoryTest {
 	public void testExists() {
 		when(operations.exists(testPerson.getId(), Person.class)).thenReturn(true);
 
-		boolean exists = aerospikeRepository.exists(testPerson.getId());
+		boolean exists = aerospikeRepository.existsById(testPerson.getId());
 		assertThat(exists).isTrue();
 	}
 
 	@Test
 	public void testFindAll() {
-		when(operations.findAll(Person.class)).thenReturn(testPersons);
+		when(operations.findAll(Person.class)).thenReturn(testPersons.stream());
 
 		List<Person> fetchList = aerospikeRepository.findAll();
 
-		assertThat(fetchList).isEqualTo(testPersons);
+		assertThat(fetchList).containsOnlyElementsOf(testPersons);
 	}
 
 	@Test
 	public void testFindAllIterableOfID() {
 		List<String> ids = testPersons.stream().map(Person::getId).collect(toList());
-		when(aerospikeRepository.findAll(ids)).thenReturn(testPersons);
+		when(aerospikeRepository.findAllById(ids)).thenReturn(testPersons);
 
-		List<Person> fetchList = (List<Person>) aerospikeRepository.findAll(ids);
+		List<Person> fetchList = (List<Person>) aerospikeRepository.findAllById(ids);
 
 		assertThat(fetchList).isEqualTo(testPersons);
 	}
 
 	@Test
 	public void testDeleteID() {
-		aerospikeRepository.delete("one");
+		aerospikeRepository.deleteById("one");
 
 		verify(operations).delete("one", Person.class);
 	}
 
 	@Test
 	public void testDeleteIterableOfQextendsT() {
-		aerospikeRepository.delete(testPersons);
+		aerospikeRepository.deleteAll(testPersons);
 
 		verify(operations, times(testPersons.size())).delete(any(Person.class));
 	}
@@ -159,8 +173,9 @@ public class SimpleAerospikeRepositoryTest {
 	@Test
 	public void testDeleteAll() {
 		aerospikeRepository.deleteAll();
-
-		verify(operations).delete(Person.class);
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {}
 	}
 
 	@Test

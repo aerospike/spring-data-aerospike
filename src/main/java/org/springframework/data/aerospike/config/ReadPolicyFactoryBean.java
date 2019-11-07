@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,7 +17,6 @@ package org.springframework.data.aerospike.config;
 
 import org.springframework.beans.factory.FactoryBean;
 
-import com.aerospike.client.policy.ConsistencyLevel;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.Priority;
 
@@ -70,15 +69,6 @@ public class ReadPolicyFactoryBean implements FactoryBean<Policy> {
 	 */
 	public void setSleepBetweenRetries(int sleepBetweenRetries){
 		this.policy.sleepBetweenRetries = sleepBetweenRetries;
-	}
-
-	/**
-	 * Configures how replicas should be consulted in a read operation to provide the desired
-	 * consistency guarantee. Default to allowing one replica to be used in the
-	 * read operation.
-	 */
-	public void setConsistencyLevel(ConsistencyLevel consistencyLevel){
-		this.policy.consistencyLevel = consistencyLevel;
 	}
 
 	/**

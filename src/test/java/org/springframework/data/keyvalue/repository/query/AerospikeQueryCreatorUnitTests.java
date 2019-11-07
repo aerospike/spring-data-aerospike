@@ -3,6 +3,9 @@
  */
 package org.springframework.data.keyvalue.repository.query;
 
+
+import java.lang.reflect.Method;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -11,10 +14,12 @@ import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
+import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
+import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.repository.query.StubParameterAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.parser.PartTree;
 
-import java.lang.reflect.Method;
 
 /**
  * @author Peter Milne
@@ -23,7 +28,7 @@ import java.lang.reflect.Method;
 public class AerospikeQueryCreatorUnitTests {
 
 	MappingContext<?, AerospikePersistentProperty> context;
-	Method findByFirstname, findByFirstnameAndFriend, findByFirstnameNotNull;
+	Method findByFirstname, findByFirstnameAndFriend, findByFirstnameNotNull, findByFirstNameIn;
 	@Mock
 	AerospikeConverter converter;
 
@@ -33,14 +38,22 @@ public class AerospikeQueryCreatorUnitTests {
 		context = new AerospikeMappingContext();
 	}
 
-	@SuppressWarnings({"unused", "rawtypes"})
+	@SuppressWarnings("unused")
 	@Test
 	public void createsQueryCorrectly() throws Exception {
 		PartTree tree = new PartTree("findByFirstName", Person.class);
 
-//		AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, getAccessor(converter, "Oliver"), context);
-//		Query query = creator.createQuery();
-		//assertThat(query, is(Query.query(Criteria.where("firstName").is("Oliver"))));
+		AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor(converter, "Oliver"), context);
+		Query query = creator.createQuery();
+	}
+	
+	@SuppressWarnings("unused")
+	@Test
+	public void createQueryByInList(){
+		PartTree tree = new PartTree("findByFirstNameOrFriend", Person.class);
+
+		AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor(converter, (Object[])new String[]{"Oliver", "Peter"}), context);
+		Query query = creator.createQuery();	
 	}
 
 }
