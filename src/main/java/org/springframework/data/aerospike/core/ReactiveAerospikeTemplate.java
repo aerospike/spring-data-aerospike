@@ -286,7 +286,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private <T> Mono<T> doPersistWithCas(T document, AerospikePersistentEntity<?> entity) {
         AerospikeWriteData data = writeData(document);
         ConvertingPropertyAccessor accessor = getPropertyAccessor(entity, document);
-        WritePolicy policy = getCasAwareWritePolicy(data, entity, accessor);
+        WritePolicy policy = getCasAwareWritePolicy(data);
         Operation[] operations = OperationUtils.operations(data.getBinsAsArray(), Operation::put, Operation.getHeader());
         return reactorClient.operate(policy, data.getKey(), operations)
                 .map(newKeyRecord -> {

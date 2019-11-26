@@ -39,6 +39,7 @@ import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import org.springframework.data.aerospike.SampleClasses.VersionedClassWithAllArgsConstructor;
 import org.springframework.data.aerospike.repository.query.Criteria;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
@@ -254,6 +255,18 @@ public class AerospikeTemplateTests extends BaseIntegrationTests {
 		assertThat(raw.generation).isEqualTo(3);
 		VersionedClass actual = template.findById(id, VersionedClass.class);
 		assertThat(actual.version).isEqualTo(3);
+	}
+
+	@Test
+	public void findById_shouldReadVersionedClassWithAllArgsConstructor() {
+		VersionedClassWithAllArgsConstructor inserted = new VersionedClassWithAllArgsConstructor(id, "foobar", 0L);
+		template.insert(inserted);
+
+		assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class).version).isEqualTo(1L);
+
+		template.update(new VersionedClassWithAllArgsConstructor(id, "foobar1", inserted.version));
+
+		assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class).version).isEqualTo(2L);
 	}
 
 	@Test

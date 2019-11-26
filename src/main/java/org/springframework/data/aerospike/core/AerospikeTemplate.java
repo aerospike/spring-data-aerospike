@@ -578,7 +578,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			Bin[] bins = data.getBinsAsArray();
 
 			ConvertingPropertyAccessor accessor = getPropertyAccessor(entity, document);
-			WritePolicy policy = getCasAwareWritePolicy(data, entity, accessor);
+			WritePolicy policy = getCasAwareWritePolicy(data);
 
 			Operation[] operations = operations(bins, Operation::put, Operation.getHeader());
 

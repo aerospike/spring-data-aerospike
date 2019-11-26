@@ -82,24 +82,9 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 			return conversionService.convert(data, rawType);
 		}
 
-		AerospikePersistentEntity<?> entity = mappingContext.getPersistentEntity(typeToUse);
+		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(typeToUse);
 		RecordReadingPropertyValueProvider propertyValueProvider = new RecordReadingPropertyValueProvider(data);
 		ConvertingPropertyAccessor accessor = getConvertingPropertyAccessor(entity, propertyValueProvider);
-
-		AerospikePersistentProperty idProperty = entity.getIdProperty();
-		if (idProperty != null) {
-			Object value = getIdValue(data.getKey(), record, idProperty);
-			if (!idProperty.isImmutable() || !entity.isConstructorArgument(idProperty)) {
-				accessor.setProperty(idProperty, value);
-			}
-		}
-		AerospikePersistentProperty expirationProperty = entity.getExpirationProperty();
-		if (expirationProperty != null) {
-			Object value = getExpiration(data.getExpiration(), expirationProperty);
-			if (!expirationProperty.isImmutable() || !entity.isConstructorArgument(expirationProperty)) {
-				accessor.setProperty(expirationProperty, value);
-			}
-		}
 
 		return convertProperties(entity, propertyValueProvider, accessor);
 	}
@@ -119,7 +104,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 
 			PreferredConstructor<?, AerospikePersistentProperty> constructor = entity.getPersistenceConstructor();
 
-			if (isNotReadable(constructor, persistentProperty)) {
+			if (constructor.isConstructorParameter(persistentProperty)) {
 				return;
 			}
 
@@ -132,11 +117,6 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		});
 
 		return (R) accessor.getBean();
-	}
-
-	private boolean isNotReadable(PreferredConstructor<?, AerospikePersistentProperty> constructor,
-								  AerospikePersistentProperty property) {
-		return constructor.isConstructorParameter(property) || property.isIdProperty() || property.isExpirationProperty();
 	}
 
 	private <T> T readValue(Object source, TypeInformation<?> propertyType) {
@@ -227,6 +207,10 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		return (T) convertIfNeeded(expiration, property.getType());
 	}
 
+	private <T> T getVersion(int generation, AerospikePersistentProperty property) {
+		return (T) convertIfNeeded(generation, property.getType());
+	}
+
 	/**
 	 * A {@link PropertyValueProvider} to lookup values on the configured {@link Record}.
 	 *
@@ -236,19 +220,21 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 
 		private final Key key;
 		private final Integer expiration;
+		private final int generation;
 		private final Map<String, Object> source;
 
 		public RecordReadingPropertyValueProvider(AerospikeReadData readData) {
-			this(readData.getKey(), readData.getExpiration(), readData.getRecord());
+			this(readData.getKey(), readData.getExpiration(), readData.getVersion(), readData.getRecord());
 		}
 
 		public RecordReadingPropertyValueProvider(Map<String, Object> source) {
-			this(null, null, source);
+			this(null, null, 0, source);
 		}
 
-		public RecordReadingPropertyValueProvider(Key key, Integer expiration, Map<String, Object> source) {
+		public RecordReadingPropertyValueProvider(Key key, Integer expiration, int generation, Map<String, Object> source) {
 			this.key = key;
 			this.expiration = expiration;
+			this.generation = generation;
 			this.source = source;
 		}
 
@@ -259,6 +245,10 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 			}
 			if (expiration != null && property.isExpirationProperty()) {
 				return getExpiration(expiration, property);
+			}
+			if (property.isVersionProperty()) {
+				// version of the document gets updated on save, so we do expect an accessor to be present
+				return getVersion(generation, property);
 			}
 			Object value = source.get(property.getFieldName());
 

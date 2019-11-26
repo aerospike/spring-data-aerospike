@@ -137,15 +137,7 @@ abstract class BaseAerospikeTemplate {
             return null;
         }
         AerospikeReadData data = AerospikeReadData.forRead(key, record);
-        T readEntity = converter.read(type, data);
-
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
-        if (entity.hasVersionProperty()) {
-            final ConvertingPropertyAccessor accessor = getPropertyAccessor(entity, readEntity);
-            accessor.setProperty(entity.getVersionProperty(), record.generation);
-        }
-
-        return readEntity;
+        return converter.read(type, data);
     }
 
     <T> Stream<T> findAllUsingQuery(Class<T> type, Query query) {
@@ -241,30 +233,34 @@ abstract class BaseAerospikeTemplate {
         return data;
     }
 
-    WritePolicy getCasAwareWritePolicy(AerospikeWriteData data, AerospikePersistentEntity<?> entity,
-                                       ConvertingPropertyAccessor<?> accessor) {
-        WritePolicyBuilder builder = WritePolicyBuilder.builder(this.client.writePolicyDefault)
-                .sendKey(true)
-                .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
-                .expiration(data.getExpiration());
-
-        Integer version = accessor.getProperty(entity.getVersionProperty(), Integer.class);
+    WritePolicy getCasAwareWritePolicy(AerospikeWriteData data) {
+        Integer version = data.getVersion();
         boolean existingDocument = version != null && version > 0L;
+
+        RecordExistsAction recordExistsAction;
         if (existingDocument) {
             //Updating existing document with generation
-            builder.recordExistsAction(RecordExistsAction.REPLACE_ONLY)
-                    .generation(version);
+            recordExistsAction = RecordExistsAction.REPLACE_ONLY;
         } else {
             // create new document. if exists we should fail with optimistic locking
-            builder.recordExistsAction(RecordExistsAction.CREATE_ONLY);
+            recordExistsAction = RecordExistsAction.CREATE_ONLY;
         }
-
-        return builder.build();
+        return expectGeneration(data, recordExistsAction);
     }
 
     WritePolicy ignoreGeneration() {
         return WritePolicyBuilder.builder(this.client.writePolicyDefault)
                 .generationPolicy(GenerationPolicy.NONE)
+                .build();
+    }
+
+    WritePolicy expectGeneration(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
+        return WritePolicyBuilder.builder(this.client.writePolicyDefault)
+                .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
+                .generation(data.getVersion() == null ? 0 : data.getVersion())
+                .sendKey(true)
+                .expiration(data.getExpiration())
+                .recordExistsAction(recordExistsAction)
                 .build();
     }
 

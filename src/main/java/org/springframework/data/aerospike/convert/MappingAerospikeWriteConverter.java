@@ -22,15 +22,19 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.convert.TypeMapper;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.data.mapping.MappingException;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.convert.AerospikeMetaData.USER_KEY;
@@ -75,6 +79,12 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
 			data.setKey(new Key(entity.getNamespace(), entity.getSetName(), id));
 			data.addBin(USER_KEY, id);
+		}
+
+		AerospikePersistentProperty versionProperty = entity.getVersionProperty();
+		if (versionProperty != null) {
+			Integer version = accessor.getProperty(versionProperty, Integer.class);
+			data.setVersion(version);
 		}
 
 		data.setExpiration(getExpiration(entity, accessor));

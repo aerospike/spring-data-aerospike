@@ -290,6 +290,25 @@ public class SampleClasses {
 	}
 
 	@Getter
+	public static class VersionedClassWithAllArgsConstructor {
+
+		@Id
+		private String id;
+
+		@Version
+		public long version;
+
+		public String field;
+
+		@PersistenceConstructor
+		public VersionedClassWithAllArgsConstructor(String id, String field, long version) {
+			this.id = id;
+			this.field = field;
+			this.version = version;
+		}
+	}
+
+	@Getter
 	@EqualsAndHashCode
 	@ToString
 	@Document(collection = "custom-set")

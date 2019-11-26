@@ -66,7 +66,7 @@ public interface AerospikeOperations {//extends KeyValueOperations {
 	 * If version is greater than zero - existing record will be updated with RecordExistsAction.REPLACE_ONLY policy
 	 * taking into consideration the version property of the document.
 	 *
-	 * If document does not have version property - record is updated with RecordExistsAction.UPDATE policy.
+	 * If document does not have version property - record is updated with RecordExistsAction.REPLACE policy.
 	 * This means that when such record does not exist it will be created, otherwise updated.
 	 * @param document
 	 */
