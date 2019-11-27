@@ -33,6 +33,7 @@
         <joda-time.version>2.10.5</joda-time.version>
         <embedded-aerospike.version>1.33</embedded-aerospike.version>
         <awaitility.version>4.0.1</awaitility.version>
+        <spring-boot-autoconfigure.version>2.2.0.RELEASE</spring-boot-autoconfigure.version>
     </properties>
 
     <licenses>
@@ -145,6 +146,11 @@
                 <version>${springdata.keyvalue}</version>
             </dependency>
             <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-autoconfigure</artifactId>
+                <version>${spring-boot-autoconfigure.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.aerospike</groupId>
                 <artifactId>aerospike-client</artifactId>
                 <version>${aerospike}</version>
@@ -193,6 +199,11 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
 
         <dependency>

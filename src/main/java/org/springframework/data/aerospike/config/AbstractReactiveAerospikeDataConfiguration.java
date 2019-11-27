@@ -4,6 +4,7 @@ import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.reactor.AerospikeReactorClient;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -19,6 +20,7 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 @Configuration
 public abstract class AbstractReactiveAerospikeDataConfiguration extends AbstractAerospikeDataConfiguration {
     @Bean(name = "reactiveAerospikeTemplate")
+    @ConditionalOnMissingBean(name = "reactiveAerospikeTemplate")
     public ReactiveAerospikeTemplate reactiveAerospikeTemplate(AerospikeClient aerospikeClient,
                                                                MappingAerospikeConverter mappingAerospikeConverter,
                                                                AerospikeMappingContext aerospikeMappingContext,
@@ -28,6 +30,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Abstrac
     }
 
     @Bean(name = "aerospikeReactorClient")
+    @ConditionalOnMissingBean(name = "aerospikeReactorClient")
     public AerospikeReactorClient aerospikeReactorClient(AerospikeClient aerospikeClient, EventLoops eventLoops) {
         return new AerospikeReactorClient(aerospikeClient, eventLoops);
     }

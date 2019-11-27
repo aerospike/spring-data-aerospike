@@ -4,6 +4,7 @@ import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Host;
 import com.aerospike.client.policy.ClientPolicy;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +31,7 @@ import java.util.*;
 public abstract class AbstractAerospikeDataConfiguration {
 
     @Bean(name = "aerospikeTemplate")
+    @ConditionalOnMissingBean(name = "aerospikeTemplate")
     public AerospikeTemplate aerospikeTemplate(AerospikeClient aerospikeClient,
                                                MappingAerospikeConverter mappingAerospikeConverter,
                                                AerospikeMappingContext aerospikeMappingContext,
@@ -78,6 +80,7 @@ public abstract class AbstractAerospikeDataConfiguration {
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
+    @ConditionalOnMissingBean(name = "aerospikeClient")
     public AerospikeClient aerospikeClient() {
         Collection<Host> hosts = getHosts();
         return new AerospikeClient(getClientPolicy(), hosts.toArray(new Host[hosts.size()]));
