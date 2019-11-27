@@ -119,7 +119,7 @@ abstract class BaseAerospikeTemplate {
         });
     }
 
-    public String getSetName(Class<?> entityClass) {
+    public <T> String getSetName(Class<T> entityClass) {
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
         return entity.getSetName();
     }
@@ -130,6 +130,11 @@ abstract class BaseAerospikeTemplate {
 
     public String getNamespace() {
         return namespace;
+    }
+
+    @SuppressWarnings("unchecked")
+    <T> Class<T> getEntityClass(T entity) {
+        return (Class<T>) entity.getClass();
     }
 
     <T> T mapToEntity(Key key, Class<T> type, Record record) {
@@ -234,17 +239,10 @@ abstract class BaseAerospikeTemplate {
     }
 
     WritePolicy getCasAwareWritePolicy(AerospikeWriteData data) {
-        Integer version = data.getVersion();
-        boolean existingDocument = version != null && version > 0L;
-
-        RecordExistsAction recordExistsAction;
-        if (existingDocument) {
-            //Updating existing document with generation
-            recordExistsAction = RecordExistsAction.REPLACE_ONLY;
-        } else {
-            // create new document. if exists we should fail with optimistic locking
-            recordExistsAction = RecordExistsAction.CREATE_ONLY;
-        }
+        RecordExistsAction recordExistsAction = data.getVersion()
+                .filter(v -> v > 0L)
+                .map(v -> RecordExistsAction.REPLACE_ONLY)//Updating existing document with generation
+                .orElse(RecordExistsAction.CREATE_ONLY);// create new document. if exists we should fail with optimistic locking
         return expectGeneration(data, recordExistsAction);
     }
 
@@ -257,7 +255,7 @@ abstract class BaseAerospikeTemplate {
     WritePolicy expectGeneration(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
         return WritePolicyBuilder.builder(this.client.writePolicyDefault)
                 .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
-                .generation(data.getVersion() == null ? 0 : data.getVersion())
+                .generation(data.getVersion().orElse(0))
                 .sendKey(true)
                 .expiration(data.getExpiration())
                 .recordExistsAction(recordExistsAction)

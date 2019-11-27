@@ -16,6 +16,7 @@ import java.util.function.Supplier;
  * @author Igor Ermolenko
  */
 public interface ReactiveAerospikeOperations {
+
     <T> Mono<T> save(T document);
 
     <T> Flux<T> insertAll(Collection<? extends T> documents);
@@ -36,25 +37,25 @@ public interface ReactiveAerospikeOperations {
 
     <T> Mono<T> prepend(T objectToPrependTo, String binName, String value);
 
-    <T> Flux<T> findAll(Class<T> type);
+    <T> Flux<T> findAll(Class<T> entityClass);
 
-    <T> Mono<T> findById(Object id, Class<T> type);
+    <T> Mono<T> findById(Object id, Class<T> entityClass);
 
-    <T> Flux<T> findByIds(Iterable<?> ids, Class<T> type);
+    <T> Flux<T> findByIds(Iterable<?> ids, Class<T> entityClass);
 
-    <T> Flux<T> find(Query query, Class<T> type);
+    <T> Flux<T> find(Query query, Class<T> entityClass);
 
-    <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> type);
+    <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass);
 
-    <T> Mono<Long> count(Query query, Class<T> type);
+    <T> Mono<Long> count(Query query, Class<T> entityClass);
 
     <T> Mono<T> execute(Supplier<T> supplier);
 
-    Mono<Boolean> exists(Object id, Class<?> type);
+    <T> Mono<Boolean> exists(Object id, Class<T> entityClass);
 
-    Mono<Boolean> delete(Object id, Class<?> type);
+    <T> Mono<Boolean> delete(Object id, Class<T> entityClass);
 
-    Mono<Boolean> delete(Object objectToDelete);
+    <T> Mono<Boolean> delete(T objectToDelete);
 
     MappingContext<?, ?> getMappingContext();
 }

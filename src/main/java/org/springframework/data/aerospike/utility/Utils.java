@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Info;
 import com.aerospike.client.cluster.Node;
+import lombok.experimental.UtilityClass;
 
 /**
  * Utility class containing useful methods
@@ -14,10 +15,8 @@ import com.aerospike.client.cluster.Node;
  * @author peter
  *
  */
+@UtilityClass
 public class Utils {
-	private Utils(){
-		super();
-	}
 	/**
 	 * Issues an "Info" request to all nodes in the cluster.
 	 * @param client

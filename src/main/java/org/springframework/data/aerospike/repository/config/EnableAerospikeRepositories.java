@@ -102,8 +102,8 @@ public @interface EnableAerospikeRepositories {
 	Key queryLookupStrategy() default Key.CREATE_IF_NOT_FOUND;
 
 	/**
-	 * Returns the {@link FactoryBean} class to be used for each repository instance. Defaults to
-	 * {@link KeyValueRepositoryFactoryBean}.
+	 * Returns the {@link FactoryBean} class to be used for each repository instance.
+	 * Defaults to {@link AerospikeRepositoryFactoryBean}.
 	 * 
 	 * @return
 	 */
@@ -111,11 +111,11 @@ public @interface EnableAerospikeRepositories {
 	
 	/**
 	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
-	 * 
+	 * Defaults to {@link SimpleAerospikeRepository}.
+	 *
 	 * @return
 	 * @since 1.8
 	 */
-//	Class<?> repositoryBaseClass() default DefaultRepositoryBaseClass.class;
 	Class<?> repositoryBaseClass() default SimpleAerospikeRepository.class;
 
 	/**
@@ -123,7 +123,6 @@ public @interface EnableAerospikeRepositories {
 	 * 
 	 * @return
 	 */
-//	String keyValueTemplateRef() default "aerospikeTemplate";
 	String keyValueTemplateRef() default "aerospikeTemplate";
 
 	/**

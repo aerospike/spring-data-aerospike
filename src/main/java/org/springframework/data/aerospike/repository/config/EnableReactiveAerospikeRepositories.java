@@ -21,7 +21,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.aerospike.repository.support.ReactiveAerospikeRepositoryFactoryBean;
 import org.springframework.data.aerospike.repository.support.SimpleReactiveAerospikeRepository;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
-import org.springframework.data.keyvalue.repository.support.KeyValueRepositoryFactoryBean;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 
@@ -96,7 +95,7 @@ public @interface EnableReactiveAerospikeRepositories {
 
 	/**
 	 * Returns the {@link FactoryBean} class to be used for each repository instance. Defaults to
-	 * {@link KeyValueRepositoryFactoryBean}.
+	 * {@link ReactiveAerospikeRepositoryFactoryBean}.
 	 * 
 	 * @return
 	 */
@@ -104,7 +103,8 @@ public @interface EnableReactiveAerospikeRepositories {
 	
 	/**
 	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
-	 * 
+	 * Defaults to {@link SimpleReactiveAerospikeRepository}.
+	 *
 	 * @return
 	 * @since 1.8
 	 */

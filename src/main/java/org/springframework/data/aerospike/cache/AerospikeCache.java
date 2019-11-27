@@ -18,6 +18,7 @@ import com.aerospike.client.policy.WritePolicy;
  * 
  * @author Venil Noronha
  */
+//TODO: extract this to the separate repository aerospike-spring-cache
 public class AerospikeCache implements Cache {
 
 	private static final String VALUE = "value";

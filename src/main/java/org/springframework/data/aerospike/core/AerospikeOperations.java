@@ -35,8 +35,10 @@ import com.aerospike.client.query.IndexType;
  * 
  * @author Oliver Gierke
  * @author Peter Milne
+ * @author Anastasiia Smirnova
+ * @author Roman Terentiev
  */
-public interface AerospikeOperations {//extends KeyValueOperations {
+public interface AerospikeOperations {
 
 	/**
 	 * The Set name used for the specified class by this template.
@@ -44,13 +46,13 @@ public interface AerospikeOperations {//extends KeyValueOperations {
 	 * @param entityClass must not be {@literal null}.
 	 * @return
 	 */
-	String getSetName(Class<?> entityClass);
+	<T> String getSetName(Class<T> entityClass);
 	
 	/**
 	 * Insert operation using the WritePolicy.recordExisits policy of CREATE_ONLY 
 	 * @param document
 	 */
-	void insert(Object document);
+	<T> void insert(T document);
 
 	/**
 	 * @return mapping context in use.
@@ -70,53 +72,57 @@ public interface AerospikeOperations {//extends KeyValueOperations {
 	 * This means that when such record does not exist it will be created, otherwise updated.
 	 * @param document
 	 */
-	void save(Object document);
+	<T> void save(T document);
 
 	/**
 	 * Persist document using specified WritePolicy
 	 * @param document
 	 * @param writePolicy
 	 */
-	void persist(Object document, WritePolicy writePolicy);
+	<T> void persist(T document, WritePolicy writePolicy);
 
 	/**
 	 * Update operation using the WritePolicy.recordExisits policy of UPDATE_ONLY
 	 * @param objectToUpdate
 	 */
-	void update(Object objectToUpdate);
+	<T> void update(T objectToUpdate);
 
-	void delete(Class<?> type);
+	<T> void delete(Class<T> entityClass);
 
-	boolean delete(Object id, Class<?> type);
-	boolean delete(Object objectToDelete);
-
-	boolean exists(Object id, Class<?> type);
+	<T> boolean delete(Object id, Class<T> entityClass);
 	
-	<T> Stream<T> find(Query query, Class<T> type);
-	<T> Stream<T> findAll(Class<T> type);
+	<T> boolean delete(T objectToDelete);
 
-	<T> T findById(Object id, Class<T> type);
+	<T> boolean exists(Object id, Class<T> entityClass);
+	
+	<T> Stream<T> find(Query query, Class<T> entityClass);
+	
+	<T> Stream<T> findAll(Class<T> entityClass);
 
-	<T> List<T> findByIds(Iterable<?> IDs, Class<T> type);
+	<T> T findById(Object id, Class<T> entityClass);
+
+	<T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass);
 
 	<T> T add(T objectToAddTo, Map<String, Long> values);
+	
 	<T> T add(T objectToAddTo, String binName, long value);
 
 	<T> T append(T objectToAppendTo, Map<String, String> values);
+	
 	<T> T append(T objectToAppendTo, String binName, String value);
+	
 	<T> T prepend(T objectToPrependTo, Map<String, String> values);
+	
 	<T> T prepend(T objectToPrependTo, String binName, String value);
 	
-	<T> Iterable<T> aggregate(Filter filter, Class<T> outputType, String module, String function, List<Value> arguments);
-
-
+	<T> Iterable<T> aggregate(Filter filter, Class<T> entityClass, String module, String function, List<Value> arguments);
 
 	/**
 	 * @param query
-	 * @param javaType
+	 * @param entityClass
 	 * @return
 	 */
-	long count(Query query, Class<?> javaType);
+	<T> long count(Query query, Class<T> entityClass);
 
 	/**
 	 * Execute operation against underlying store.
@@ -128,42 +134,42 @@ public interface AerospikeOperations {//extends KeyValueOperations {
 
 	/**
 	 * @param sort
-	 * @param type
+	 * @param entityClass
 	 * @return
 	 */
-	<T> Iterable<T> findAll(Sort sort, Class<T> type);
+	<T> Iterable<T> findAll(Sort sort, Class<T> entityClass);
 
 	/**
 	 * @param offset
 	 * @param limit
 	 * @param sort
-	 * @param type
+	 * @param entityClass
 	 * @return
 	 */
-	<T> Stream<T> findInRange(long offset, long limit, Sort sort, Class<T> type);
+	<T> Stream<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass);
 
 	/**
-	 * @param type
+	 * @param entityClass
 	 * @return
 	 */
-	long count(Class<?> type,String setName);
+	<T> long count(Class<T> entityClass, String setName);
 
 	/**
 	 * Creates index by specified name in Aerospike.
-	 * @param domainType
+	 * @param entityClass
 	 * @param indexName
 	 * @param binName
 	 * @param indexType
 	 */
-	<T> void createIndex(Class<T> domainType, String indexName, String binName,
+	<T> void createIndex(Class<T> entityClass, String indexName, String binName,
 			IndexType indexType);
 
 	/**
 	 * Deletes index by specified name from Aerospike.
-	 * @param domainType
+	 * @param entityClass
 	 * @param indexName
 	 */
-	<T> void deleteIndex(Class<T> domainType, String indexName);
+	<T> void deleteIndex(Class<T> entityClass, String indexName);
 
 	/**
 	 * Checks whether index by specified name exists in Aerospike.
@@ -173,10 +179,10 @@ public interface AerospikeOperations {//extends KeyValueOperations {
 	boolean indexExists(String indexName);
 
 	/**
-	 * @param type
+	 * @param entityClass
 	 * @return
 	 */
-	long count(Class<?> type);
+	<T> long count(Class<T> entityClass);
 
 	AerospikeClient getAerospikeClient();
 }

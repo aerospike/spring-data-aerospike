@@ -6,6 +6,7 @@ import com.aerospike.client.Key;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Value object to carry data to be written in object conversion.
@@ -75,8 +76,8 @@ public class AerospikeWriteData {
 		this.bins = bins;
 	}
 
-	public Integer getVersion() {
-		return version;
+	public Optional<Integer> getVersion() {
+		return Optional.ofNullable(version);
 	}
 
 	public void setVersion(Integer version) {

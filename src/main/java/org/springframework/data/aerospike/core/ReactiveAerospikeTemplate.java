@@ -42,6 +42,7 @@ import static org.springframework.data.aerospike.core.OperationUtils.operations;
  */
 @Slf4j
 public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations {
+
     private final AerospikeReactorClient reactorClient;
 
     public ReactiveAerospikeTemplate(AerospikeClient client,
@@ -76,18 +77,20 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<T> insert(T document) {
         Assert.notNull(document, "Document must not be null!");
+
         return doPersist(document, ignoreGeneration(RecordExistsAction.CREATE_ONLY));
     }
 
     @Override
     public <T> Mono<T> update(T document) {
         Assert.notNull(document, "Document must not be null!");
+
         return doPersist(document, ignoreGeneration(RecordExistsAction.UPDATE_ONLY));
     }
 
     @Override
-    public <T> Flux<T> findAll(Class<T> type) {
-        Stream<T> results = findAllUsingQuery(type, null, (Qualifier[]) null);
+    public <T> Flux<T> findAll(Class<T> entityClass) {
+        Stream<T> results = findAllUsingQuery(entityClass, null, (Qualifier[]) null);
         return Flux.fromStream(results);
     }
 
@@ -130,6 +133,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<T> append(T objectToAppendTo, Map<String, String> values) {
         Assert.notNull(objectToAppendTo, "Object to append to must not be null!");
+        Assert.notNull(values, "Values must not be null!");
 
         AerospikeWriteData data = writeData(objectToAppendTo);
         Operation[] operations = operations(values, Operation.Type.APPEND, Operation.get());
@@ -148,6 +152,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<T> prepend(T objectToPrependTo, Map<String, String> values) {
         Assert.notNull(objectToPrependTo, "Object to prepend to must not be null!");
+        Assert.notNull(values, "Values must not be null!");
 
         AerospikeWriteData data = writeData(objectToPrependTo);
         Operation[] operations = operations(values, Operation.Type.PREPEND, Operation.get());
@@ -163,23 +168,23 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return executeOperationsOnValue(objectToPrependTo, data, operations, null);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> Mono<T> executeOperationsOnValue(T value, AerospikeWriteData data, Operation[] operations, WritePolicy writePolicy) {
+    private <T> Mono<T> executeOperationsOnValue(T entity, AerospikeWriteData data, Operation[] operations, WritePolicy writePolicy) {
         return reactorClient.operate(writePolicy, data.getKey(), operations)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
-                .map(keyRecord -> mapToEntity(keyRecord.key, (Class<T>) value.getClass(), keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, getEntityClass(entity), keyRecord.record))
                 .onErrorMap(this::translateError);
     }
 
-    public <T> Mono<T> findById(Object id, Class<T> type) {
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
+    @Override
+    public <T> Mono<T> findById(Object id, Class<T> entityClass) {
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
         Key key = getKey(id, entity);
 
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for entity without expiration property");
             return getAndTouch(key, entity.getExpiration())
                     .filter(keyRecord -> Objects.nonNull(keyRecord.record))
-                    .map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record))
+                    .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record))
                     .onErrorResume(
                             th -> th instanceof AerospikeException && ((AerospikeException) th).getResultCode() == KEY_NOT_FOUND_ERROR,
                             th -> Mono.empty()
@@ -188,59 +193,68 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         } else {
             return reactorClient.get(key)
                     .filter(keyRecord -> Objects.nonNull(keyRecord.record))
-                    .map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record))
+                    .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record))
                     .onErrorMap(this::translateError);
         }
     }
 
     @Override
-    public <T> Flux<T> findByIds(Iterable<?> ids, Class<T> type) {
+    public <T> Flux<T> findByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(type, "Type must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
 
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 
         return Flux.fromIterable(ids)
                 .map(id -> getKey(id, entity))
                 .flatMap(reactorClient::get)
                 .filter(keyRecord -> nonNull(keyRecord.record))
-                .map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record));
+                .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }
 
     @Override
-    public <T> Flux<T> find(Query query, Class<T> type) {
+    public <T> Flux<T> find(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(type, "Type must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
 
-        Stream<T> results = findAllUsingQuery(type, query);
+        Stream<T> results = findAllUsingQuery(entityClass, query);
         return Flux.fromStream(results);
     }
 
     @Override
-    public <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> type) {
-        Assert.notNull(type, "Type for count must not be null!");
-        Stream<T> results = findAllUsingQuery(type, null, (Qualifier[]) null)
+    public <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Type for count must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
+
+        Stream<T> results = findAllUsingQuery(entityClass, null, (Qualifier[]) null)
                 .skip(offset)
                 .limit(limit);
         return Flux.fromStream(results);
     }
 
     @Override
-    public <T> Mono<Long> count(Query query, Class<T> type) {
-        Stream<KeyRecord> results = findAllRecordsUsingQuery(type, query);
+    public <T> Mono<Long> count(Query query, Class<T> entityClass) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
+
+        Stream<KeyRecord> results = findAllRecordsUsingQuery(entityClass, query);
         return Flux.fromStream(results).count();
     }
 
     @Override
     public <T> Mono<T> execute(Supplier<T> supplier) {
-        Assert.notNull(supplier, "Callback must not be null!");
+        Assert.notNull(supplier, "Supplier must not be null!");
+
         return Mono.fromSupplier(supplier)
                 .onErrorMap(this::translateError);
     }
 
     @Override
-    public Mono<Boolean> exists(Object id, Class<?> type) {
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
+    public <T> Mono<Boolean> exists(Object id, Class<T> entityClass) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
         Key key = getKey(id, entity);
         return reactorClient.exists(key)
                 .map(Objects::nonNull)
@@ -249,11 +263,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public Mono<Boolean> delete(Object id, Class<?> type) {
+    public <T> Mono<Boolean> delete(Object id, Class<T> entityClass) {
         Assert.notNull(id, "Id must not be null!");
-        Assert.notNull(type, "Type must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
 
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 
         return reactorClient
                 .delete(ignoreGeneration(), getKey(id, entity))
@@ -262,7 +276,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public Mono<Boolean> delete(Object objectToDelete) {
+    public <T> Mono<Boolean> delete(T objectToDelete) {
         Assert.notNull(objectToDelete, "Object to delete must not be null!");
 
         AerospikeWriteData data = writeData(objectToDelete);

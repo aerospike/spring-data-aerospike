@@ -44,6 +44,7 @@ import java.util.*;
  * 
  * @author Venil Noronha
  */
+//TODO: extract this to the separate repository aerospike-spring-cache
 public class AerospikeCacheManager extends AbstractTransactionSupportingCacheManager {
 
 	protected static final String DEFAULT_SET_NAME = "aerospike";
