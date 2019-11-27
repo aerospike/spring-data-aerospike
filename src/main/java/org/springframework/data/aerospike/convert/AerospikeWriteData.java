@@ -18,15 +18,25 @@ public class AerospikeWriteData {
 	private Key key;
 	private Collection<Bin> bins;
 	private int expiration;
+	private Integer version;
 
+	/**
+	 * Use the other constructor.
+	 */
+	@Deprecated
 	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration) {
+		this(key, bins, expiration, null);
+	}
+
+	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version) {
 		this.key = key;
 		this.bins = bins;
 		this.expiration = expiration;
+		this.version = version;
 	}
 
 	public static AerospikeWriteData forWrite() {
-		return new AerospikeWriteData(null, new ArrayList<>(), 0);
+		return new AerospikeWriteData(null, new ArrayList<>(), 0, null);
 	}
 
 	public void setKey(Key key) {
@@ -63,5 +73,13 @@ public class AerospikeWriteData {
 
 	public void setBins(Collection<Bin> bins) {
 		this.bins = bins;
+	}
+
+	public Integer getVersion() {
+		return version;
+	}
+
+	public void setVersion(Integer version) {
+		this.version = version;
 	}
 }

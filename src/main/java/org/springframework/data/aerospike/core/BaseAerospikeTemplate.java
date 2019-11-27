@@ -1,8 +1,11 @@
 package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
+import com.aerospike.client.Log;
 import com.aerospike.client.Record;
+import com.aerospike.client.ResultCode;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -15,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.support.PropertyComparator;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
@@ -41,6 +46,7 @@ import java.util.stream.Stream;
 /**
  * Base class for creation Aerospike templates
  *
+ * @author Anastasiia Smirnova
  * @author Igor Ermolenko
  */
 @Slf4j
@@ -94,25 +100,23 @@ abstract class BaseAerospikeTemplate {
     }
 
     private void loggerSetup() {
-        final Logger log = LoggerFactory.getLogger("com.aerospike.client");
-        com.aerospike.client.Log
-                .setCallback((level, message) -> {
-                    switch (level) {
-                        case INFO:
-                            log.info("{}", message);
-                            break;
-                        case DEBUG:
-                            log.debug("{}", message);
-                            break;
-                        case ERROR:
-                            log.error("{}", message);
-                            break;
-                        case WARN:
-                            log.warn("{}", message);
-                            break;
-                    }
-
-                });
+        Logger log = LoggerFactory.getLogger("com.aerospike.client");
+        Log.setCallback((level, message) -> {
+            switch (level) {
+                case INFO:
+                    log.info("{}", message);
+                    break;
+                case DEBUG:
+                    log.debug("{}", message);
+                    break;
+                case ERROR:
+                    log.error("{}", message);
+                    break;
+                case WARN:
+                    log.warn("{}", message);
+                    break;
+            }
+        });
     }
 
     public String getSetName(Class<?> entityClass) {
@@ -133,15 +137,7 @@ abstract class BaseAerospikeTemplate {
             return null;
         }
         AerospikeReadData data = AerospikeReadData.forRead(key, record);
-        T readEntity = converter.read(type, data);
-
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
-        if (entity.hasVersionProperty()) {
-            final ConvertingPropertyAccessor accessor = getPropertyAccessor(entity, readEntity);
-            accessor.setProperty(entity.getVersionProperty(), record.generation);
-        }
-
-        return readEntity;
+        return converter.read(type, data);
     }
 
     <T> Stream<T> findAllUsingQuery(Class<T> type, Query query) {
@@ -218,31 +214,61 @@ abstract class BaseAerospikeTemplate {
         return new ConvertingPropertyAccessor<T>(accessor, converter.getConversionService());
     }
 
-    WritePolicy getCasAwareWritePolicy(AerospikeWriteData data, AerospikePersistentEntity<?> entity,
-                                       ConvertingPropertyAccessor<?> accessor) {
-        WritePolicyBuilder builder = WritePolicyBuilder.builder(this.client.writePolicyDefault)
-                .sendKey(true)
-                .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
-                .expiration(data.getExpiration());
-
-        Integer version = accessor.getProperty(entity.getVersionProperty(), Integer.class);
-        boolean existingDocument = version != null && version > 0L;
-        if (existingDocument) {
-            //Updating existing document with generation
-            builder.recordExistsAction(RecordExistsAction.REPLACE_ONLY)
-                    .generation(version);
-        } else {
-            // create new document. if exists we should fail with optimistic locking
-            builder.recordExistsAction(RecordExistsAction.CREATE_ONLY);
+    RuntimeException translateCasError(AerospikeException e) {
+        int code = e.getResultCode();
+        if (code == ResultCode.KEY_EXISTS_ERROR || code == ResultCode.GENERATION_ERROR) {
+            return new OptimisticLockingFailureException("Save document with version value failed", e);
         }
-
-        return builder.build();
+        return translateError(e);
     }
 
-    Key getKey(Object id, Class<?> type) {
-        Assert.notNull(type, "Type must not be null!");
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
-        return getKey(id, entity);
+    RuntimeException translateError(AerospikeException e) {
+        DataAccessException translated = exceptionTranslator.translateExceptionIfPossible(e);
+        return translated == null ? e : translated;
+    }
+
+    <T> AerospikeWriteData writeData(T document) {
+        AerospikeWriteData data = AerospikeWriteData.forWrite();
+        converter.write(document, data);
+        return data;
+    }
+
+    WritePolicy getCasAwareWritePolicy(AerospikeWriteData data) {
+        Integer version = data.getVersion();
+        boolean existingDocument = version != null && version > 0L;
+
+        RecordExistsAction recordExistsAction;
+        if (existingDocument) {
+            //Updating existing document with generation
+            recordExistsAction = RecordExistsAction.REPLACE_ONLY;
+        } else {
+            // create new document. if exists we should fail with optimistic locking
+            recordExistsAction = RecordExistsAction.CREATE_ONLY;
+        }
+        return expectGeneration(data, recordExistsAction);
+    }
+
+    WritePolicy ignoreGeneration() {
+        return WritePolicyBuilder.builder(this.client.writePolicyDefault)
+                .generationPolicy(GenerationPolicy.NONE)
+                .build();
+    }
+
+    WritePolicy expectGeneration(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
+        return WritePolicyBuilder.builder(this.client.writePolicyDefault)
+                .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
+                .generation(data.getVersion() == null ? 0 : data.getVersion())
+                .sendKey(true)
+                .expiration(data.getExpiration())
+                .recordExistsAction(recordExistsAction)
+                .build();
+    }
+
+    WritePolicyBuilder ignoreGeneration(RecordExistsAction recordExistsAction) {
+        return WritePolicyBuilder.builder(this.client.writePolicyDefault)
+                .generationPolicy(GenerationPolicy.NONE)
+                .sendKey(true)
+                .recordExistsAction(recordExistsAction);
     }
 
     Key getKey(Object id, AerospikePersistentEntity<?> entity) {

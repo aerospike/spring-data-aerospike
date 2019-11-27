@@ -16,11 +16,13 @@ public class AerospikeReadData {
 	private final Key key;
 	private final Map<String, Object> record;
 	private final int expiration;
+	private final int version;
 
-	private AerospikeReadData(Key key, Map<String, Object> record, int expiration) {
+	private AerospikeReadData(Key key, Map<String, Object> record, int expiration, int version) {
 		this.key = key;
 		this.record = record;
 		this.expiration = expiration;
+		this.version = version;
 	}
 
 	public static AerospikeReadData forRead(Key key, Record record) {
@@ -28,7 +30,7 @@ public class AerospikeReadData {
 		Assert.notNull(record, "Record must not be null");
 		Assert.notNull(record.bins, "Record bins must not be null");
 
-		return new AerospikeReadData(key, record.bins, record.getTimeToLive());
+		return new AerospikeReadData(key, record.bins, record.getTimeToLive(), record.generation);
 	}
 
 	public Map<String, Object> getRecord() {
@@ -45,5 +47,9 @@ public class AerospikeReadData {
 
 	public int getExpiration() {
 		return expiration;
+	}
+
+	public int getVersion() {
+		return version;
 	}
 }

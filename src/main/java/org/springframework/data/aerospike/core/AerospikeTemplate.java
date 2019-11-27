@@ -15,16 +15,26 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.*;
+import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Bin;
+import com.aerospike.client.Info;
+import com.aerospike.client.Key;
+import com.aerospike.client.Operation;
+import com.aerospike.client.Record;
+import com.aerospike.client.ResultCode;
+import com.aerospike.client.Value;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
-import com.aerospike.client.query.*;
+import com.aerospike.client.query.Filter;
+import com.aerospike.client.query.IndexType;
+import com.aerospike.client.query.KeyRecord;
+import com.aerospike.client.query.ResultSet;
+import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
 import com.aerospike.helper.query.Qualifier;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -36,11 +46,17 @@ import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static org.springframework.data.aerospike.core.OperationUtils.operations;
 
 
 /**
@@ -48,6 +64,9 @@ import java.util.stream.Stream;
  * 
  * @author Oliver Gierke
  * @author Peter Milne
+ * @author Anastasiia Smirnova
+ * @author Igor Ermolenko
+ * @author Roman Terentiev
  */
 @Slf4j
 public class AerospikeTemplate extends BaseAerospikeTemplate implements AerospikeOperations {
@@ -88,8 +107,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			}
 			queryEngine.refreshIndexes();
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -103,8 +121,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			}
 			queryEngine.refreshIndexes();
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -120,8 +137,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			String response = Info.request(node, "sindex/" + namespace + '/' + indexName);
 			return !response.startsWith("FAIL:201");
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -134,10 +150,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		if (entity.hasVersionProperty()) {
 			doPersistWithCas(document, entity);
 		} else {
-			WritePolicyBuilder builder = WritePolicyBuilder.builder(this.client.writePolicyDefault)
-					.sendKey(true)
-					.recordExistsAction(RecordExistsAction.REPLACE);
-			doPersist(document, builder);
+			doPersist(document, ignoreGeneration(RecordExistsAction.REPLACE));
 		}
 	}
 
@@ -147,16 +160,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Assert.notNull(policy, "Policy must not be null!");
 
 		try {
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(document, data);
+			AerospikeWriteData data = writeData(document);
 
 			Key key = data.getKey();
 			Bin[] bins = data.getBinsAsArray();
 
 			client.put(policy, key, bins);
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -169,22 +180,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	public void insert(Object document) {
 		Assert.notNull(document, "Document must not be null!");
 
-		WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(this.client.writePolicyDefault)
-				.sendKey(true)
-				.recordExistsAction(RecordExistsAction.CREATE_ONLY);
-
-		doPersist(document, writePolicyBuilder);
+		doPersist(document, ignoreGeneration(RecordExistsAction.CREATE_ONLY));
 	}
 
 	@Override
 	public void update(Object document) {
 		Assert.notNull(document, "Document must not be null!");
 
-		WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(this.client.writePolicyDefault)
-				.sendKey(true)
-				.recordExistsAction(RecordExistsAction.UPDATE_ONLY);
-
-		doPersist(document, writePolicyBuilder);
+		doPersist(document, ignoreGeneration(RecordExistsAction.UPDATE_ONLY));
 	}
 
 	@Override
@@ -192,11 +195,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		try {
 			String set = getSetName(type);
 			client.truncate(null, getNamespace(), set, null);
-		}
-		catch (AerospikeException o_O) {
-			DataAccessException translatedException = exceptionTranslator
-					.translateExceptionIfPossible(o_O);
-			throw translatedException == null ? o_O : translatedException;
+		} catch (AerospikeException e) {
+			throw translateError(e);
 		}
 	}
 
@@ -208,10 +208,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
 			Key key = getKey(id, entity);
 
-			return this.client.delete(null, key);
+			return this.client.delete(ignoreGeneration(), key);
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -219,13 +218,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	public boolean delete(Object objectToDelete) {
 		Assert.notNull(objectToDelete, "Object to delete must not be null!");
 		try {
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(objectToDelete, data);
+			AerospikeWriteData data = writeData(objectToDelete);
 
-			return this.client.delete(null, data.getKey());
+			return this.client.delete(ignoreGeneration(), data.getKey());
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -240,8 +237,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			Record record = this.client.operate(null, key, Operation.getHeader());
 			return record != null;
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -269,8 +265,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			return mapToEntity(key, type, record);
 		}
 		catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -312,8 +307,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 					.mapToObj(index -> mapToEntity(keys[index], type, records[index]))
 					.collect(Collectors.toList());
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -365,9 +359,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Assert.notNull(supplier, "Callback must not be null!");
 		try {
 			return supplier.get();
-		} catch (RuntimeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+		} catch (AerospikeException e) {
+			throw translateError(e);
 		}
 	}
 
@@ -461,18 +454,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 				"Object to prepend to must not be null!");
 		try {
 
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(objectToPrependTo, data);
+			AerospikeWriteData data = writeData(objectToPrependTo);
 			Record record = this.client.operate(null, data.getKey(),
 					Operation.prepend(new Bin(fieldName, value)),
 					Operation.get(fieldName));
 
 			return mapToEntity(data.getKey(), (Class<T>) objectToPrependTo.getClass(), record);
-		}
-		catch (AerospikeException o_O) {
-			DataAccessException translatedException = exceptionTranslator
-					.translateExceptionIfPossible(o_O);
-			throw translatedException == null ? o_O : translatedException;
+		} catch (AerospikeException e) {
+			throw translateError(e);
 		}
 	}
 
@@ -482,24 +471,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Assert.notNull(objectToPrependTo,
 				"Object to prepend to must not be null!");
 		try {
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(objectToPrependTo, data);
-			Operation[] ops = new Operation[values.size() + 1];
-			int x = 0;
-			for (Map.Entry<String, String> entry : values.entrySet()) {
-				Bin newBin = new Bin(entry.getKey(), entry.getValue());
-				ops[x] = Operation.prepend(newBin);
-				x++;
-			}
-			ops[x] = Operation.get();
+			AerospikeWriteData data = writeData(objectToPrependTo);
+			Operation[] ops = operations(values, Operation.Type.PREPEND, Operation.get());
 			Record record = this.client.operate(null, data.getKey(), ops);
 
 			return mapToEntity(data.getKey(), (Class<T>) objectToPrependTo.getClass(), record);
 		}
-		catch (AerospikeException o_O) {
-			DataAccessException translatedException = exceptionTranslator
-					.translateExceptionIfPossible(o_O);
-			throw translatedException == null ? o_O : translatedException;
+		catch (AerospikeException e) {
+			throw translateError(e);
 		}
 	}
 
@@ -509,24 +488,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Assert.notNull(objectToAppendTo,
 				"Object to append to must not be null!");
 		try {
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(objectToAppendTo, data);
-			Operation[] ops = new Operation[values.size() + 1];
-			int x = 0;
-			for (Map.Entry<String, String> entry : values.entrySet()) {
-				Bin newBin = new Bin(entry.getKey(), entry.getValue());
-				ops[x] = Operation.append(newBin);
-				x++;
-			}
-			ops[x] = Operation.get();
+			AerospikeWriteData data = writeData(objectToAppendTo);
+			Operation[] ops = operations(values, Operation.Type.APPEND, Operation.get());
 			Record record = this.client.operate(null, data.getKey(), ops);
 
 			return mapToEntity(data.getKey(), (Class<T>) objectToAppendTo.getClass(), record);
 		}
-		catch (AerospikeException o_O) {
-			DataAccessException translatedException = exceptionTranslator
-					.translateExceptionIfPossible(o_O);
-			throw translatedException == null ? o_O : translatedException;
+		catch (AerospikeException e) {
+			throw translateError(e);
 		}
 	}
 
@@ -537,18 +506,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 				"Object to append to must not be null!");
 		try {
 
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(objectToAppendTo, data);
+			AerospikeWriteData data = writeData(objectToAppendTo);
 			Record record = this.client.operate(null, data.getKey(),
 					Operation.append(new Bin(binName, value)),
 					Operation.get(binName));
 
 			return mapToEntity(data.getKey(), (Class<T>) objectToAppendTo.getClass(), record);
-		}
-		catch (AerospikeException o_O) {
-			DataAccessException translatedException = exceptionTranslator
-					.translateExceptionIfPossible(o_O);
-			throw translatedException == null ? o_O : translatedException;
+		} catch (AerospikeException e) {
+			throw translateError(e);
 		}
 	}
 
@@ -557,27 +522,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Assert.notNull(objectToAddTo, "Object to add to must not be null!");
 		Assert.notNull(values, "Values must not be null!");
 		try {
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(objectToAddTo, data);
-			Operation[] operations = new Operation[values.size() + 1];
-			int x = 0;
-			for (Map.Entry<String, Long> entry : values.entrySet()) {
-				Bin newBin = new Bin(entry.getKey(), entry.getValue());
-				operations[x] = Operation.add(newBin);
-				x++;
-			}
-			operations[x] = Operation.get();
+			AerospikeWriteData data = writeData(objectToAddTo);
+			Operation[] ops = operations(values, Operation.Type.ADD, Operation.get());
 
 			WritePolicy writePolicy = new WritePolicy(this.client.writePolicyDefault);
 			writePolicy.expiration = data.getExpiration();
 
-			Record record = this.client.operate(writePolicy, data.getKey(),
-					operations);
+			Record record = this.client.operate(writePolicy, data.getKey(), ops);
 
 			return mapToEntity(data.getKey(), (Class<T>) objectToAddTo.getClass(), record);
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
@@ -586,8 +541,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Assert.notNull(objectToAddTo, "Object to add to must not be null!");
 		Assert.notNull(binName, "Bin name must not be null!");
 		try {
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(objectToAddTo, data);
+			AerospikeWriteData data = writeData(objectToAddTo);
 
 			WritePolicy writePolicy = new WritePolicy(this.client.writePolicyDefault);
 			writePolicy.expiration = data.getExpiration();
@@ -597,15 +551,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 			return mapToEntity(data.getKey(), (Class<T>) objectToAddTo.getClass(), record);
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
 	private void doPersist(Object document, WritePolicyBuilder policyBuilder) {
 		try {
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(document, data);
+			AerospikeWriteData data = writeData(document);
 
 			Key key = data.getKey();
 			Bin[] bins = data.getBinsAsArray();
@@ -614,34 +566,26 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 			client.put(policy, key, bins);
 		} catch (AerospikeException e) {
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateError(e);
 		}
 	}
 
 	private void doPersistWithCas(Object document, AerospikePersistentEntity<?> entity) {
 		try {
-			AerospikeWriteData data = AerospikeWriteData.forWrite();
-			converter.write(document, data);
+			AerospikeWriteData data = writeData(document);
 
 			Key key = data.getKey();
 			Bin[] bins = data.getBinsAsArray();
 
 			ConvertingPropertyAccessor accessor = getPropertyAccessor(entity, document);
-			WritePolicy policy = getCasAwareWritePolicy(data, entity, accessor);
+			WritePolicy policy = getCasAwareWritePolicy(data);
 
-			Operation[] operations = OperationUtils.operations(bins, Operation::put, Operation.getHeader());
+			Operation[] operations = operations(bins, Operation::put, Operation.getHeader());
 
 			Record newRecord = client.operate(policy, key, operations);
 			accessor.setProperty(entity.getVersionProperty(), newRecord.generation);
 		} catch (AerospikeException e) {
-			int code = e.getResultCode();
-			if (code == ResultCode.KEY_EXISTS_ERROR || code == ResultCode.GENERATION_ERROR) {
-				throw new OptimisticLockingFailureException("Save document with version value failed", e);
-			}
-
-			DataAccessException translatedException = exceptionTranslator.translateExceptionIfPossible(e);
-			throw translatedException == null ? e : translatedException;
+			throw translateCasError(e);
 		}
 	}
 }

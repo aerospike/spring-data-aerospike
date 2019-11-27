@@ -12,6 +12,7 @@ import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.List;
@@ -151,11 +152,12 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveAeros
             long counterValue = counter.incrementAndGet();
             String data = "value-" + counterValue;
             VersionedClass messageData = new VersionedClass(id, data);
-            try {
-                reactiveTemplate.save(messageData).block();
-            } catch (OptimisticLockingFailureException e) {
-                optimisticLockCounter.incrementAndGet();
-            }
+            reactiveTemplate.save(messageData)
+                    .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
+                        optimisticLockCounter.incrementAndGet();
+                        return Mono.empty();
+                    })
+                    .block();
         });
 
         assertThat(optimisticLockCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);

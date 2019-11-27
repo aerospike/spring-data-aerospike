@@ -12,8 +12,6 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.reactor.AerospikeReactorClient;
 import com.aerospike.helper.query.Qualifier;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -31,14 +29,9 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.aerospike.client.ResultCode.GENERATION_ERROR;
-import static com.aerospike.client.ResultCode.KEY_EXISTS_ERROR;
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
-import static com.aerospike.client.policy.RecordExistsAction.CREATE_ONLY;
-import static com.aerospike.client.policy.RecordExistsAction.REPLACE;
-import static com.aerospike.client.policy.RecordExistsAction.UPDATE_ONLY;
-import static java.util.Arrays.asList;
 import static java.util.Objects.nonNull;
+import static org.springframework.data.aerospike.core.OperationUtils.operations;
 
 /**
  * Primary implementation of {@link ReactiveAerospikeOperations}.
@@ -70,7 +63,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (entity.hasVersionProperty()) {
             return doPersistWithCas(document, entity);
         } else {
-            return doPersist(document, createWritePolicyBuilder(REPLACE));
+            return doPersist(document, ignoreGeneration(RecordExistsAction.REPLACE));
         }
     }
 
@@ -83,13 +76,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<T> insert(T document) {
         Assert.notNull(document, "Document must not be null!");
-        return doPersist(document, createWritePolicyBuilder(CREATE_ONLY));
+        return doPersist(document, ignoreGeneration(RecordExistsAction.CREATE_ONLY));
     }
 
     @Override
     public <T> Mono<T> update(T document) {
         Assert.notNull(document, "Document must not be null!");
-        return doPersist(document, createWritePolicyBuilder(UPDATE_ONLY));
+        return doPersist(document, ignoreGeneration(RecordExistsAction.UPDATE_ONLY));
     }
 
     @Override
@@ -139,7 +132,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(objectToAppendTo, "Object to append to must not be null!");
 
         AerospikeWriteData data = writeData(objectToAppendTo);
-        Operation[] operations = getOperations(values, Operation.Type.APPEND);
+        Operation[] operations = operations(values, Operation.Type.APPEND, Operation.get());
         return executeOperationsOnValue(objectToAppendTo, data, operations, null);
     }
 
@@ -157,7 +150,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(objectToPrependTo, "Object to prepend to must not be null!");
 
         AerospikeWriteData data = writeData(objectToPrependTo);
-        Operation[] operations = getOperations(values, Operation.Type.PREPEND);
+        Operation[] operations = operations(values, Operation.Type.PREPEND, Operation.get());
         return executeOperationsOnValue(objectToPrependTo, data, operations, null);
     }
 
@@ -170,17 +163,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return executeOperationsOnValue(objectToPrependTo, data, operations, null);
     }
 
-    private Operation[] getOperations(Map<String, String> values, Operation.Type operationType) {
-        Operation[] operations = new Operation[values.size() + 1];
-        int x = 0;
-        for (Map.Entry<String, String> entry : values.entrySet()) {
-            operations[x] = new Operation(operationType, entry.getKey(), Value.get(entry.getValue()));
-            x++;
-        }
-        operations[x] = Operation.get();
-        return operations;
-    }
-
     @SuppressWarnings("unchecked")
     private <T> Mono<T> executeOperationsOnValue(T value, AerospikeWriteData data, Operation[] operations, WritePolicy writePolicy) {
         return reactorClient.operate(writePolicy, data.getKey(), operations)
@@ -190,9 +172,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     public <T> Mono<T> findById(Object id, Class<T> type) {
-        Key key = getKey(id, type);
-
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
+        Key key = getKey(id, entity);
+
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for entity without expiration property");
             return getAndTouch(key, entity.getExpiration())
@@ -258,7 +240,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public Mono<Boolean> exists(Object id, Class<?> type) {
-        Key key = getKey(id, type);
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
+        Key key = getKey(id, entity);
         return reactorClient.exists(key)
                 .map(Objects::nonNull)
                 .defaultIfEmpty(false)
@@ -273,7 +256,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(type);
 
         return reactorClient
-                .delete(null, getKey(id, entity))
+                .delete(ignoreGeneration(), getKey(id, entity))
                 .map(k -> true)
                 .onErrorMap(this::translateError);
     }
@@ -285,7 +268,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikeWriteData data = writeData(objectToDelete);
 
         return this.reactorClient
-                .delete(null, data.getKey())
+                .delete(ignoreGeneration(), data.getKey())
                 .map(key -> true)
                 .onErrorMap(this::translateError);
     }
@@ -303,20 +286,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private <T> Mono<T> doPersistWithCas(T document, AerospikePersistentEntity<?> entity) {
         AerospikeWriteData data = writeData(document);
         ConvertingPropertyAccessor accessor = getPropertyAccessor(entity, document);
-        WritePolicy policy = getCasAwareWritePolicy(data, entity, accessor);
+        WritePolicy policy = getCasAwareWritePolicy(data);
         Operation[] operations = OperationUtils.operations(data.getBinsAsArray(), Operation::put, Operation.getHeader());
         return reactorClient.operate(policy, data.getKey(), operations)
                 .map(newKeyRecord -> {
                     accessor.setProperty(entity.getVersionProperty(), newKeyRecord.record.generation);
                     return document;
                 })
-                .onErrorMap(AerospikeException.class, e -> {
-                    if (asList(KEY_EXISTS_ERROR, GENERATION_ERROR).contains(e.getResultCode())) {
-                        throw new OptimisticLockingFailureException("Save document with version value failed", e);
-                    }
-                    return translateError(e);
-                })
-                .onErrorMap(this::translateError);
+                .onErrorMap(AerospikeException.class, this::translateCasError);
     }
 
     private Mono<KeyRecord> getAndTouch(Key key, int expiration) {
@@ -325,22 +302,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return reactorClient.operate(policy, key, Operation.touch(), Operation.get());
     }
 
-    private WritePolicyBuilder createWritePolicyBuilder(RecordExistsAction recordExistsAction) {
-        return WritePolicyBuilder.builder(client.writePolicyDefault)
-                .sendKey(true)
-                .recordExistsAction(recordExistsAction);
-    }
-
-    private <T> AerospikeWriteData writeData(T document) {
-        AerospikeWriteData data = AerospikeWriteData.forWrite();
-        converter.write(document, data);
-        return data;
-    }
-
     private Throwable translateError(Throwable e) {
         if (e instanceof AerospikeException) {
-            DataAccessException translated = exceptionTranslator.translateExceptionIfPossible((AerospikeException) e);
-            return translated == null ? e : translated;
+            return translateError((AerospikeException) e);
         }
         return e;
     }
