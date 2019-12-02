@@ -1,8 +1,5 @@
 package org.springframework.data.aerospike.core.reactive;
 
-import com.aerospike.client.Key;
-import com.aerospike.client.Record;
-import com.aerospike.client.policy.Policy;
 import com.aerospike.client.query.IndexType;
 import org.junit.Assert;
 import org.junit.Test;
@@ -216,16 +213,4 @@ public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveAeros
                 .containsExactlyInAnyOrderElementsOf(allUsers.subList(4, 10));
     }
 
-    @Test
-    public void findById_shouldSetVersionEqualToNumberOfModifications() throws Exception {
-        reactiveTemplate.insert(new SampleClasses.VersionedClass(id, "foobar")).block();
-        reactiveTemplate.update(new SampleClasses.VersionedClass(id, "foobar1")).block();
-        reactiveTemplate.update(new SampleClasses.VersionedClass(id, "foobar2")).block();
-
-        Record raw = client.get(new Policy(), new Key(getNameSpace(), "versioned-set", id));
-        assertThat(raw.generation).isEqualTo(3);
-        StepVerifier.create(reactiveTemplate.findById(id, SampleClasses.VersionedClass.class)).consumeNextWith(actual -> {
-            Assert.assertThat(actual.getVersion(), is(equalTo(3L)));
-        }).verifyComplete();
-    }
 }

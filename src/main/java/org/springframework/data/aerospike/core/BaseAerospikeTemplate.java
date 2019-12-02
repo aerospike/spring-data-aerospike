@@ -219,6 +219,14 @@ abstract class BaseAerospikeTemplate {
         return new ConvertingPropertyAccessor<T>(accessor, converter.getConversionService());
     }
 
+    <T> T updateVersion(T document, Record newRecord) {
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+        ConvertingPropertyAccessor<T> propertyAccessor = getPropertyAccessor(entity, document);
+        AerospikePersistentProperty versionProperty = entity.getRequiredVersionProperty();
+        propertyAccessor.setProperty(versionProperty, newRecord.generation);
+        return document;
+    }
+
     RuntimeException translateCasError(AerospikeException e) {
         int code = e.getResultCode();
         if (code == ResultCode.KEY_EXISTS_ERROR || code == ResultCode.GENERATION_ERROR) {
@@ -265,35 +273,10 @@ abstract class BaseAerospikeTemplate {
                 .build();
     }
 
-    WritePolicy getCasAwareWritePolicy(AerospikeWriteData data) {
-        RecordExistsAction recordExistsAction = data.getVersion()
-                .filter(v -> v > 0L)
-                .map(v -> RecordExistsAction.REPLACE_ONLY)//Updating existing document with generation
-                .orElse(RecordExistsAction.CREATE_ONLY);// create new document. if exists we should fail with optimistic locking
-        return expectGeneration(data, recordExistsAction);
-    }
-
     WritePolicy ignoreGenerationDeletePolicy() {
         return WritePolicyBuilder.builder(this.client.writePolicyDefault)
                 .generationPolicy(GenerationPolicy.NONE)
                 .build();
-    }
-
-    WritePolicy expectGeneration(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
-        return WritePolicyBuilder.builder(this.client.writePolicyDefault)
-                .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
-                .generation(data.getVersion().orElse(0))
-                .sendKey(true)
-                .expiration(data.getExpiration())
-                .recordExistsAction(recordExistsAction)
-                .build();
-    }
-
-    WritePolicyBuilder ignoreGeneration(RecordExistsAction recordExistsAction) {
-        return WritePolicyBuilder.builder(this.client.writePolicyDefault)
-                .generationPolicy(GenerationPolicy.NONE)
-                .sendKey(true)
-                .recordExistsAction(recordExistsAction);
     }
 
     Key getKey(Object id, AerospikePersistentEntity<?> entity) {

@@ -5,6 +5,7 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Operation;
+import com.aerospike.client.Record;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -18,7 +19,6 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -60,11 +60,15 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Mono<T> save(T document) {
         Assert.notNull(document, "Object to save must not be null!");
 
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
-        if (entity.hasVersionProperty()) {
-            return doPersistWithCas(document, entity);
+        AerospikeWriteData data = writeData(document);
+        if (data.hasVersion()) {
+            WritePolicy policy = expectGenerationCasAwareSavePolicy(data);
+
+            return doPersistWithVersionAndHandleCasError(document, data, policy);
         } else {
-            return doPersist(document, ignoreGeneration(RecordExistsAction.REPLACE));
+            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.REPLACE);
+
+            return doPersistAndHandleError(document, data, policy);
         }
     }
 
@@ -78,14 +82,33 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Mono<T> insert(T document) {
         Assert.notNull(document, "Document must not be null!");
 
-        return doPersist(document, ignoreGeneration(RecordExistsAction.CREATE_ONLY));
+        AerospikeWriteData data = writeData(document);
+        WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.CREATE_ONLY);
+
+        if(data.hasVersion()) {
+            // we are ignoring generation here as insert operation should fail with DuplicateKeyException if key already exists
+            // and we do not mind which initial version is set in the document, BUT we need to update the version value in the original document
+            // also we do not want to handle aerospike error codes as cas aware error codes as we are ignoring generation
+            return doPersistWithVersionAndHandleError(document, data, policy);
+        } else {
+            return doPersistAndHandleError(document, data, policy);
+        }
     }
 
     @Override
     public <T> Mono<T> update(T document) {
         Assert.notNull(document, "Document must not be null!");
 
-        return doPersist(document, ignoreGeneration(RecordExistsAction.UPDATE_ONLY));
+        AerospikeWriteData data = writeData(document);
+        if (data.hasVersion()) {
+            WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.REPLACE_ONLY);
+
+            return doPersistWithVersionAndHandleCasError(document, data, policy);
+        } else {
+            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.REPLACE_ONLY);
+
+            return doPersistAndHandleError(document, data, policy);
+        }
     }
 
     @Override
@@ -287,27 +310,30 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .onErrorMap(this::translateError);
     }
 
-    private <T> Mono<T> doPersist(T document, WritePolicyBuilder policyBuilder) {
-        AerospikeWriteData data = writeData(document);
-        WritePolicy policy = policyBuilder.expiration(data.getExpiration())
-                .build();
+    private <T> Mono<T> doPersistAndHandleError(T document, AerospikeWriteData data, WritePolicy policy) {
         return reactorClient
                 .put(policy, data.getKey(), data.getBinsAsArray())
                 .map(docKey -> document)
                 .onErrorMap(this::translateError);
     }
 
-    private <T> Mono<T> doPersistWithCas(T document, AerospikePersistentEntity<?> entity) {
-        AerospikeWriteData data = writeData(document);
-        ConvertingPropertyAccessor accessor = getPropertyAccessor(entity, document);
-        WritePolicy policy = getCasAwareWritePolicy(data);
-        Operation[] operations = OperationUtils.operations(data.getBinsAsArray(), Operation::put, Operation.getHeader());
-        return reactorClient.operate(policy, data.getKey(), operations)
-                .map(newKeyRecord -> {
-                    accessor.setProperty(entity.getVersionProperty(), newKeyRecord.record.generation);
-                    return document;
-                })
+    private <T> Mono<T> doPersistWithVersionAndHandleCasError(T document, AerospikeWriteData data, WritePolicy policy) {
+        return putAndGetHeader(data, policy)
+                .map(newRecord -> updateVersion(document, newRecord))
                 .onErrorMap(AerospikeException.class, this::translateCasError);
+    }
+
+    private <T> Mono<T> doPersistWithVersionAndHandleError(T document, AerospikeWriteData data, WritePolicy policy) {
+        return putAndGetHeader(data, policy)
+                .map(newRecord -> updateVersion(document, newRecord))
+                .onErrorMap(AerospikeException.class, this::translateError);
+    }
+
+    private <T> Mono<Record> putAndGetHeader(AerospikeWriteData data, WritePolicy policy) {
+        Operation[] operations = operations(data.getBinsAsArray(), Operation::put, Operation.getHeader());
+
+        return reactorClient.operate(policy, data.getKey(), operations)
+                .map(keyRecord -> keyRecord.record);
     }
 
     private Mono<KeyRecord> getAndTouch(Key key, int expiration) {

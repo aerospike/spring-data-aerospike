@@ -601,10 +601,4 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return client.operate(policy, key, operations);
 	}
 
-	private <T> void updateVersion(T document, Record newRecord) {
-		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
-		ConvertingPropertyAccessor<T> propertyAccessor = getPropertyAccessor(entity, document);
-		AerospikePersistentProperty versionProperty = entity.getRequiredVersionProperty();
-		propertyAccessor.setProperty(versionProperty, newRecord.generation);
-	}
 }
