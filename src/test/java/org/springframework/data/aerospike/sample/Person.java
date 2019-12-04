@@ -1,31 +1,33 @@
-/**
- * Copyright (c) 2015 the original author or authors.
- * <p>
+/*
+ * Copyright 2012-2018 the original author or authors
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- *
- */
 package org.springframework.data.aerospike.sample;
 
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.aerospike.mapping.Field;
+import org.springframework.data.annotation.Id;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -34,77 +36,49 @@ import org.springframework.data.aerospike.mapping.Field;
  * @author Jean Mercier
  *
  */
+@AllArgsConstructor
 @NoArgsConstructor
-@Data
-public class Person extends Contact implements Comparable<Person> {
+@Getter
+@Setter
+@EqualsAndHashCode
+@ToString
+@Builder
+public class Person {
 
 	public enum Sex {
 		MALE, FEMALE;
 	}
 
-	private String firstname;
-	private HashMap<?,?> myHashMap;
-	private String lastname;
-	private String email;
-	private Integer age;
+	private @Id String id;
+	private String firstName;
+	private String lastName;
+	private int age;
+	private int waist;
 	private Sex sex;
+	private Map<String, String> map;
+	private Person friend;
+	private boolean active;
+	private Date dateOfBirth;
+	private List<String> list;
 
-	private LocalDateTime createdAt;
+	@Field("email")
+	private String emailAddress;
 
-	List<String> skills;
-	private Address address;
-	@Field(value = "ShipAddresses")
-	private Set<Address> shippingAddresses;
-
-	User creator;
-
-	Credentials credentials;
-
-	/**
-	 * @param id
-	 * @param firstname
-	 * @param lastname
-	 */
-	public Person(String id, String firstname, String lastname) {
-
-		this(id, firstname, lastname, null);
-	}
-
-	/**
-	 * @param id
-	 * @param firstname
-	 * @param lastname
-	 * @param age
-	 */
-	public Person(String id, String firstname, String lastname, Integer age) {
-
-		this(id, firstname, lastname, age, Sex.MALE);
-	}
-
-	/**
-	 * @param id
-	 * @param firstname
-	 * @param lastname
-	 * @param age
-	 * @param sex
-	 */
-	public Person(String id, String firstname, String lastname, Integer age, Sex sex) {
-		super();
+	public Person(String id, String firstName) {
 		this.id = id;
-		this.firstname = firstname;
-		this.lastname = lastname;
-		this.age = age;
-		this.sex = sex;
-		this.email = (firstname == null ? "none" : firstname.toLowerCase()) + "@dmband.com";
-		this.createdAt = LocalDateTime.now();
+		this.firstName = firstName;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	@Override
-	public int compareTo(Person another) {
-		return this.lastname.compareTo(another.lastname);
+	public Person(String id, String firstName, String lastName) {
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
+	}
+
+	public Person(String id, String firstName, int age) {
+		this.id = id;
+		this.firstName = firstName;
+		this.age = age;
 	}
 
 }

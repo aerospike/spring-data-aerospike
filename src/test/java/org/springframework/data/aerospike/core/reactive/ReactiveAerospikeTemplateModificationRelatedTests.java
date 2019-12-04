@@ -1,9 +1,8 @@
 package org.springframework.data.aerospike.core.reactive;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -17,13 +16,6 @@ import java.util.Map;
  * @author Yevhen Tsyba
  */
 public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReactiveAerospikeTemplateTests {
-
-    private String id;
-
-    @Before
-    public void setUp() {
-        this.id = nextId();
-    }
 
     @Test
     public void shouldAdd() {

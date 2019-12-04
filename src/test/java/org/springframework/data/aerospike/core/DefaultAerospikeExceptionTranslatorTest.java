@@ -18,8 +18,12 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.ResultCode;
 import org.junit.Test;
-import org.springframework.dao.*;
-import org.springframework.data.keyvalue.core.UncategorizedKeyValueException;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.RecoverableDataAccessException;
+import org.springframework.dao.TransientDataAccessResourceException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

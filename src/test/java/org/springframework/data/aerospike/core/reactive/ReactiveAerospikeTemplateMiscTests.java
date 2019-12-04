@@ -7,10 +7,9 @@ import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.springframework.data.aerospike.sample.Person;
+import reactor.test.StepVerifier;
 
 /**
  * Tests for different methods in {@link ReactiveAerospikeTemplate}.
@@ -19,31 +18,37 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveAerospikeTemplateTests {
 
-    @Test(expected = DuplicateKeyException.class)
+    @Test
     public void execute_shouldTranslateException() {
         Key key = new Key(template.getNamespace(), "shouldTranslateException", "reactiveShouldTranslateException");
         Bin bin = new Bin("bin_name", "bin_value");
 
         AerospikeClient client = template.getAerospikeClient();
         client.add(null, key, bin);
-        reactiveTemplate.execute(() -> {
+        StepVerifier.create(reactiveTemplate.execute(() -> {
             WritePolicy writePolicy = new WritePolicy(client.getWritePolicyDefault());
             writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
             client.add(writePolicy, key, bin);
             return true;
-        }).block();
+        }))
+                .expectError(DuplicateKeyException.class)
+                .verify();
     }
 
     public void exists_shouldReturnTrueIfValueIsPresent() {
         Person one = Person.builder().id(id).firstName("tya").emailAddress("gmail.com").build();
         reactiveTemplate.insert(one).block();
 
-        assertThat(reactiveTemplate.exists(id, Person.class).block()).isTrue();
+        StepVerifier.create(reactiveTemplate.exists(id, Person.class))
+                .expectNext(true)
+                .verifyComplete();
     }
 
     @Test
     public void exists_shouldReturnFalseIfValueIsAbsent() {
-        assertThat(reactiveTemplate.exists(id, Person.class).block()).isFalse();
+        StepVerifier.create(reactiveTemplate.exists(id, Person.class))
+                .expectNext(false)
+                .verifyComplete();
     }
 
 }

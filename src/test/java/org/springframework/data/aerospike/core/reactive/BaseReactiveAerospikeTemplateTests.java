@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.core.reactive;
 
-import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -16,14 +15,6 @@ import java.io.Serializable;
 public abstract class BaseReactiveAerospikeTemplateTests extends BaseIntegrationTests {
     @Autowired
     protected ReactiveAerospikeTemplate reactiveTemplate;
-
-    String id;
-
-    @Before
-    public void setUp() {
-        this.id = nextId();
-        cleanDb();
-    }
 
     <T> T findById(Serializable id, Class<T> type) {
         return reactiveTemplate.findById(id, type).block();

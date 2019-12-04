@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-//import java.util.stream.Stream;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -38,27 +37,27 @@ import org.springframework.data.domain.Sort;
  */
 public interface PersonRepository extends AerospikeRepository<Person, String> {
 
-	List<Person> findByLastname(String lastname);
+	List<Person> findByLastName(String lastName);
 	
-	Page<Person> findByLastnameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
+	Page<Person> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 
-	List<Person> findByLastnameEndsWith(String postfix);
+	List<Person> findByLastNameEndsWith(String postfix);
 
-	List<Person> findByLastnameOrderByFirstnameAsc(String lastname);
+	List<Person> findByLastNameOrderByFirstNameAsc(String lastName);
 	
-	List<Person> findByLastnameOrderByFirstnameDesc(String lastname);
+	List<Person> findByLastNameOrderByFirstNameDesc(String lastName);
 
-	List<Person> findByFirstnameLike(String firstname);
+	List<Person> findByFirstNameLike(String firstName);
 
-	List<Person> findByFirstnameLikeOrderByLastnameAsc(String firstname, Sort sort);
+	List<Person> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
 
 	List<Person> findByAgeLessThan(int age, Sort sort);
 
-	Stream<Person> findByFirstnameIn(List<String> firstnames);
+	Stream<Person> findByFirstNameIn(List<String> firstNames);
 
-	Stream<Person> findByFirstnameNotIn(Collection<String> firstnames);
+	Stream<Person> findByFirstNameNotIn(Collection<String> firstNames);
 
-	List<Person> findByFirstnameAndLastname(String firstname, String lastname);
+	List<Person> findByFirstNameAndLastName(String firstName, String lastName);
 
 	List<Person> findByAgeBetween(int from, int to);
 
@@ -69,15 +68,11 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 
 	List<Person> findByAddressZipCode(String zipCode);
 
-	List<Person> findByLastnameLikeAndAgeBetween(String lastname, int from, int to);
+	List<Person> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
 
-	List<Person> findByAgeOrLastnameLikeAndFirstnameLike(int age, String lastname, String firstname);
+	List<Person> findByAgeOrLastNameLikeAndFirstNameLike(int age, String lastName, String firstName);
 
-	List<Person> findBySex(Person.Sex sex);
-
-	List<Person> findBySex(Person.Sex sex, Pageable pageable);
-
-//	List<Person> findByNamedQuery(String firstname);
+//	List<Person> findByNamedQuery(String firstName);
 
 	List<Person> findByCreator(User user);
 
@@ -91,7 +86,7 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 
 	List<Person> findByCreatedAtAfter(Date date);
 
-	Stream<Person> findByLastnameNot(String lastname);
+	Stream<Person> findByLastNameNot(String lastName);
 
 	List<Person> findByCredentials(Credentials credentials);
 	
@@ -99,44 +94,44 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 
 	List<Person> findByAgeIn(ArrayList<Integer> ages);
 
-	List<Person> findPersonByFirstname(String firstname);
+	List<Person> findPersonByFirstName(String firstName);
 
-	long countByLastname(String lastname);
+	long countByLastName(String lastName);
 
-	int countByFirstname(String firstname);
+	int countByFirstName(String firstName);
 
-	long someCountQuery(String lastname);
+	long someCountQuery(String lastName);
 
-	List<Person> findByFirstnameIgnoreCase(String firstName);
+	List<Person> findByFirstNameIgnoreCase(String firstName);
 
-	List<Person> findByFirstnameNotIgnoreCase(String firstName);
+	List<Person> findByFirstNameNotIgnoreCase(String firstName);
 
-	List<Person> findByFirstnameStartingWithIgnoreCase(String firstName);
+	List<Person> findByFirstNameStartingWithIgnoreCase(String firstName);
 
-	List<Person> findByFirstnameEndingWithIgnoreCase(String firstName);
+	List<Person> findByFirstNameEndingWithIgnoreCase(String firstName);
 
-	List<Person> findByFirstnameContainingIgnoreCase(String firstName);
+	List<Person> findByFirstNameContainingIgnoreCase(String firstName);
 
 	Slice<Person> findByAgeGreaterThan(int age, Pageable pageable);
 
-	List<Person> deleteByLastname(String lastname);
+	List<Person> deleteByLastName(String lastName);
 
-	Long deletePersonByLastname(String lastname);
+	Long deletePersonByLastName(String lastName);
 
 	Page<Person> findByAddressIn(List<Address> address, Pageable page);
 
-	List<Person> findTop3ByLastnameStartingWith(String lastname);
+	List<Person> findTop3ByLastNameStartingWith(String lastName);
 
-	Page<Person> findTop3ByLastnameStartingWith(String lastname, Pageable pageRequest);
+	Page<Person> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
-	List<Person> findByFirstname(String string);
+	List<Person> findByFirstName(String string);
 
-	List<Person> findByFirstnameAndAge(String string, int i);
+	List<Person> findByFirstNameAndAge(String string, int i);
 
-	Iterable<Person> findByAgeBetweenAndLastname(int from, int to, String lastname);
+	Iterable<Person> findByAgeBetweenAndLastName(int from, int to, String lastName);
 
-	List<Person> findByFirstnameStartsWith(String string);
+	List<Person> findByFirstNameStartsWith(String string);
 
-	Iterable<Person> findByAgeBetweenOrderByLastname(int i, int j);
+	Iterable<Person> findByAgeBetweenOrderByLastName(int i, int j);
 
 }

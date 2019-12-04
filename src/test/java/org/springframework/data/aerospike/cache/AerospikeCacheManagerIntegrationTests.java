@@ -23,7 +23,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseIntegrationTests 
     CachingComponent cachingComponent;
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         cachingComponent.reset();
         client.delete(null, new Key(getNameSpace(), AerospikeCacheManager.DEFAULT_SET_NAME, KEY));
     }

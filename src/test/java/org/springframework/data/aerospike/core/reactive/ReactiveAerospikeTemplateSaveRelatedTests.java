@@ -8,15 +8,13 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.AsyncUtils;
-import org.springframework.data.aerospike.SampleClasses;
+import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
-import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Arrays.asList;
@@ -165,23 +163,23 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveAeros
 
     @Test
     public void save_shouldSaveMultipleTimeDocumentWithoutVersion() {
-        SampleClasses.CustomCollectionClass one = new SampleClasses.CustomCollectionClass(id, "numbers");
+        CustomCollectionClass one = new CustomCollectionClass(id, "numbers");
 
         reactiveTemplate.save(one).block();
         reactiveTemplate.save(one).block();
 
-        assertThat(findById(id, SampleClasses.CustomCollectionClass.class)).isEqualTo(one);
+        assertThat(findById(id, CustomCollectionClass.class)).isEqualTo(one);
     }
 
     @Test
     public void save_shouldUpdateDocumentDataWithoutVersion() {
-        SampleClasses.CustomCollectionClass first = new SampleClasses.CustomCollectionClass(id, "numbers");
-        SampleClasses.CustomCollectionClass second = new SampleClasses.CustomCollectionClass(id, "hot dog");
+        CustomCollectionClass first = new CustomCollectionClass(id, "numbers");
+        CustomCollectionClass second = new CustomCollectionClass(id, "hot dog");
 
         reactiveTemplate.save(first).block();
         reactiveTemplate.save(second).block();
 
-        assertThat(findById(id, SampleClasses.CustomCollectionClass.class)).isEqualTo(second);
+        assertThat(findById(id, CustomCollectionClass.class)).isEqualTo(second);
     }
 
     @Test
@@ -205,18 +203,24 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveAeros
 
     @Test
     public void insertAll_shouldInsertAllDocuments() {
-        Person customer1 = new Person("dave-002", "Dave");
-        Person customer2 = new Person("james-007", "James");
+        Person customer1 = new Person(nextId(), "Dave");
+        Person customer2 = new Person(nextId(), "James");
+
         reactiveTemplate.insertAll(asList(customer1, customer2)).blockLast();
-        assertThat(findById("dave-002", Person.class)).isEqualTo(customer1);
-        assertThat(findById("james-007", Person.class)).isEqualTo(customer2);
+
+        assertThat(findById(customer1.getId(), Person.class)).isEqualTo(customer1);
+        assertThat(findById(customer2.getId(), Person.class)).isEqualTo(customer2);
     }
 
-    @Test(expected = DuplicateKeyException.class)
+    @Test
     public void insertAll_rejectsDuplicateId() {
         Person person = new Person(id, "Amol");
         person.setAge(28);
-        reactiveTemplate.insertAll(asList(person, person)).blockLast();
+
+        StepVerifier.create(reactiveTemplate.insertAll(asList(person, person)))
+                .expectNext(person)
+                .expectError(DuplicateKeyException.class)
+                .verify();
     }
 
 

@@ -1,13 +1,13 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import com.aerospike.client.policy.GenerationPolicy;
-import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.aerospike.SampleClasses;
-import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
 /**
  * Tests for delete related methods in {@link ReactiveAerospikeTemplate}.
@@ -15,21 +15,15 @@ import reactor.test.StepVerifier;
  * @author Yevhen Tsyba
  */
 public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveAerospikeTemplateTests {
-    private String id;
-
-    @Before
-    public void setUp() {
-        this.id = nextId();
-    }
 
     @Test
     public void deleteByObject_ignoresDocumentVersionEvenIfDefaultGenerationPolicyIsSet() {
         GenerationPolicy initialGenerationPolicy = client.writePolicyDefault.generationPolicy;
         client.writePolicyDefault.generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
         try {
-            SampleClasses.VersionedClass initialDocument = new SampleClasses.VersionedClass(id, "a");
+            VersionedClass initialDocument = new VersionedClass(id, "a");
             reactiveTemplate.insert(initialDocument).block();
-            reactiveTemplate.update(new SampleClasses.VersionedClass(id, "b", initialDocument.version)).block();
+            reactiveTemplate.update(new VersionedClass(id, "b", initialDocument.version)).block();
 
             Mono<Boolean> deleted = reactiveTemplate.delete(initialDocument);
             StepVerifier.create(deleted).expectNext(true).verifyComplete();
@@ -68,7 +62,8 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveAer
 
         // then
         Mono<Person> result = reactiveTemplate.findById(id, Person.class);
-        StepVerifier.create(result).expectComplete().verify();;
+        StepVerifier.create(result).expectComplete().verify();
+        ;
     }
 
     @Test

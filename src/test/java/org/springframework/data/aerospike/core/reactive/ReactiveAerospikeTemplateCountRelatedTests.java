@@ -1,10 +1,11 @@
 package org.springframework.data.aerospike.core.reactive;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.aerospike.core.Person;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.repository.query.Criteria;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.repository.query.parser.Part;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,6 +16,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Igor Ermolenko
  */
 public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveAerospikeTemplateTests {
+
+    @Override
+    @Before
+    public void setUp() {
+        super.setUp();
+        deleteAll(Person.class);
+    }
 
     @Test
     public void count_shouldFindAllItemsByGivenCriteria() {

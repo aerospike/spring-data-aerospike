@@ -1,16 +1,28 @@
+/*
+ * Copyright 2019 the original author or authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.springframework.data.aerospike.core;
 
-import static java.util.Collections.singletonMap;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.data.Offset.offset;
-import static org.springframework.data.aerospike.SampleClasses.*;
-
+import com.aerospike.client.Key;
+import com.aerospike.client.Record;
+import com.playtika.test.aerospike.AerospikeTestOperations;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Rule;
+import org.joda.time.Duration;
+import org.junit.After;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
@@ -19,23 +31,20 @@ import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAn
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationOneDay;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
 
-import com.aerospike.client.Key;
-import com.aerospike.client.Record;
+import static java.util.Collections.singletonMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
+import static org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
 
 //TODO: Potentially unstable tests. Instead of sleeping, we need somehow do time travel like in CouchbaseMock.
 public class AerospikeExpirationTests extends BaseIntegrationTests {
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
     @Autowired
-    private AerospikeTemplate template;
+    AerospikeTestOperations aerospikeTestOperations;
 
-    private String id;
-
-    @Before
-    public void setUp() throws Exception {
-        this.id = nextId();
+    @After
+    public void tearDown() {
+        aerospikeTestOperations.rollbackTime();
     }
 
     @Test
@@ -118,7 +127,6 @@ public class AerospikeExpirationTests extends BaseIntegrationTests {
 
     @Test
     public void shouldUpdateExpirationOnTouchOnRead() throws InterruptedException {
-        String id = nextId();
         template.insert(new DocumentWithExpirationOneDay(id));
 
         Key key = new Key(template.getNamespace(), template.getSetName(DocumentWithExpirationOneDay.class), id);
@@ -156,5 +164,15 @@ public class AerospikeExpirationTests extends BaseIntegrationTests {
         DocumentWithExpirationAnnotationAndPersistenceConstructor doc = template.findById(id, DocumentWithExpirationAnnotationAndPersistenceConstructor.class);
         assertThat(doc).isNotNull();
         assertThat(doc.getExpiration()).isCloseTo(60L, Offset.offset(10L));
+    }
+
+    @Test
+    public void save_expiresDocumentWithVersion() {
+        template.save(new DocumentWithExpirationOneDay(id));
+
+        aerospikeTestOperations.addDuration(Duration.standardHours(24).plus(Duration.standardMinutes(1)));
+
+        DocumentWithExpirationOneDay document = template.findById(id, DocumentWithExpirationOneDay.class);
+        assertThat(document).isNull();
     }
 }

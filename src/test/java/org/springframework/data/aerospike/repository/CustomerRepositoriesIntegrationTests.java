@@ -37,28 +37,28 @@ public class CustomerRepositoriesIntegrationTests extends BaseIntegrationTests {
 
 	@Test
 	public void testCreate() {
-		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
+		repository.save(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
 	}
 
 	@Test
 	public void testExists() {
-		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
+		repository.save(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
 
-		boolean exists = repository.existsById("dave-001");
+		boolean exists = repository.existsById(id);
 
 		assertThat(exists).isTrue();
 	}
 
 	@Test
 	public void testDelete() {
-		repository.delete(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
+		repository.delete(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
 	}
 
 	@Test
 	public void testReadById() {
-		Customer customer = repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("Matthews").build());
+		Customer customer = repository.save(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
 
-		Optional<Customer> findById = repository.findById("dave-001");
+		Optional<Customer> findById = repository.findById(id);
 
 		assertThat(findById).hasValueSatisfying(actual -> {
 			assertThat(actual.getLastname()).isEqualTo(customer.getLastname());
@@ -68,12 +68,12 @@ public class CustomerRepositoriesIntegrationTests extends BaseIntegrationTests {
 
 	@Test
 	public void testFindAllByIDs(){
-		repository.save(Customer.builder().id("dave-001").firstname("Dave").lastname("AMatthews").build());
-		repository.save(Customer.builder().id("dave-002").firstname("Dave").lastname("BMatthews").build());
-		repository.save(Customer.builder().id("dave-003").firstname("Dave").lastname("CMatthews").build());
-		repository.save(Customer.builder().id("dave-004").firstname("Dave").lastname("DMatthews").build());
+		Customer first = repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("AMatthews").build());
+		Customer second = repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("BMatthews").build());
+		repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("CMatthews").build());
+		repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("DMatthews").build());
 
-		Iterable<Customer> customers = repository.findAllById(Arrays.asList("dave-001", "dave-004"));
+		Iterable<Customer> customers = repository.findAllById(Arrays.asList(first.getId(), second.getId()));
 
 		assertThat(customers).hasSize(2);
 	}

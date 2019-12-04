@@ -24,7 +24,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.aerospike.core.AerospikeOperations;
-import org.springframework.data.aerospike.core.Person;
+import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
 import org.springframework.data.mapping.context.MappingContext;

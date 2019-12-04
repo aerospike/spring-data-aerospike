@@ -14,7 +14,7 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.aerospike.core.Person;
+import org.springframework.data.aerospike.sample.Person;
 
 /**
  *

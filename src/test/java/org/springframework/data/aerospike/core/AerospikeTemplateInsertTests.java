@@ -18,157 +18,176 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses;
+import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
+import org.springframework.data.aerospike.sample.Person;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
 public class AerospikeTemplateInsertTests extends BaseIntegrationTests {
 
-	private String id;
+    @Test
+    public void insertsAndFindsWithCustomCollectionSet() {
+        CustomCollectionClass initial = new CustomCollectionClass(id, "data0");
+        template.insert(initial);
 
-	@Before
-	public void setUp() {
-		this.id = nextId();
-	}
+        Record record = client.get(new Policy(), new Key(getNameSpace(), "custom-set", id));
 
-	@Test
-	public void insertsAndFindsWithCustomCollectionSet() {
-		SampleClasses.CustomCollectionClass initial = new SampleClasses.CustomCollectionClass(id, "data0");
-		template.insert(initial);
+        assertThat(record.getString("data")).isEqualTo("data0");
+        assertThat(template.findById(id, CustomCollectionClass.class)).isEqualTo(initial);
+    }
 
-		Record record = client.get(new Policy(), new Key(getNameSpace(), "custom-set", id));
+    @Test
+    public void insertsDocumentWithListMapDateStringLongValues() {
+        Person customer = Person.builder()
+                .id(id)
+                .firstName("Dave")
+                .lastName("Grohl")
+                .age(45)
+                .waist(90)
+                .emailAddress("dave@gmail.com")
+                .map(Collections.singletonMap("k", "v"))
+                .list(Arrays.asList("a", "b", "c"))
+                .friend(new Person(null, "Anna", 43))
+                .active(true)
+                .sex(Person.Sex.MALE)
+                .dateOfBirth(new Date())
+                .build();
 
-		assertThat(record.getString("data")).isEqualTo("data0");
-		assertThat(template.findById(id, SampleClasses.CustomCollectionClass.class)).isEqualTo(initial);
-	}
+        template.insert(customer);
 
-	@Test
-	public void insertsDocumentWithListMapDateStringLongValues() {
-		Map<String, String> map = Collections.singletonMap("k", "v");
-		Person friend = new Person(nextId(), "Anna", 43);
-		List<String> list = Arrays.asList("a", "b", "c");
-		String email = "dave@gmail.com";
-		Date dateOfBirth = new Date();
-		Person customer = new Person(id, "Dave", 45, map, friend, true, dateOfBirth, list, email);
+        Person actual = template.findById(id, Person.class);
+        assertThat(actual).isEqualTo(customer);
+    }
 
-		template.insert(customer);
+    @Test
+    public void insertsAndFindsDocumentWithByteArrayField() {
+        DocumentWithByteArray document = new DocumentWithByteArray(id, new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
 
-		Person actual = template.findById(id, Person.class);
-		assertThat(actual.getId()).isEqualTo(id);
-		assertThat(actual.getAge()).isEqualTo(45);
-		assertThat(actual.getFirstName()).isEqualTo("Dave");
-		assertThat(actual.getMap()).isEqualTo(map);
-		assertThat(actual.getFriend()).isEqualToIgnoringGivenFields(friend, "id");//metadata fields are not saved for internal structures
-		assertThat(actual.isActive()).isTrue();
-		assertThat(actual.getDateOfBirth()).isEqualTo(dateOfBirth);
-		assertThat(actual.getList()).isEqualTo(list);
-		assertThat(actual.getEmailAddress()).isEqualTo(email);
-	}
+        template.insert(document);
 
-	@Test
-	public void insertsAndFindsDocumentWithByteArrayField() {
-		SampleClasses.DocumentWithByteArray document = new SampleClasses.DocumentWithByteArray(id, new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
+        DocumentWithByteArray result = template.findById(id, DocumentWithByteArray.class);
+        assertThat(result).isEqualTo(document);
+    }
 
-		template.insert(document);
+    @Test
+    public void insertsDocumentWithNullFields() {
+        VersionedClass document = new VersionedClass(id, null);
 
-		SampleClasses.DocumentWithByteArray result = template.findById(id, SampleClasses.DocumentWithByteArray.class);
-		assertThat(result).isEqualTo(document);
-	}
+        template.insert(document);
 
-	@Test
-	public void insertsDocumentWithNullFields() {
-		SampleClasses.VersionedClass document = new SampleClasses.VersionedClass(id, null);
+        assertThat(document.getField()).isNull();
+    }
 
-		template.insert(document);
+    @Test
+    public void insertsDocumentWithZeroVersionIfThereIsNoDocumentWithSameKey() {
+        VersionedClass document = new VersionedClass(id, "any", 0);
 
-		assertThat(document.getField()).isNull();
-	}
+        template.insert(document);
 
-	@Test
-	public void insertsDocumentWithZeroVersionIfThereIsNoDocumentWithSameKey() {
-		SampleClasses.VersionedClass document = new SampleClasses.VersionedClass(id, "any", 0);
+        assertThat(document.getVersion()).isEqualTo(1);
+    }
 
-		template.insert(document);
+    @Test
+    public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKey() {
+        VersionedClass document = new VersionedClass(id, "any", 5);
 
-		assertThat(document.getVersion()).isEqualTo(1);
-	}
+        template.insert(document);
 
-	@Test
-	public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKey() {
-		SampleClasses.VersionedClass document = new SampleClasses.VersionedClass(id, "any", 5);
+        assertThat(document.getVersion()).isEqualTo(1);
+    }
 
-		template.insert(document);
+    @Test
+    public void throwsExceptionForDuplicateId() {
+        Person person = new Person(id, "Amol", 28);
 
-		assertThat(document.getVersion()).isEqualTo(1);
-	}
+        template.insert(person);
+        assertThatThrownBy(() -> template.insert(person))
+                .isInstanceOf(DuplicateKeyException.class);
+    }
 
-	@Test
-	public void throwsExceptionForDuplicateId() {
-		Person person = new Person(id, "Amol", 28);
+    @Test
+    public void throwsExceptionForDuplicateIdForVersionedDocument() {
+        VersionedClass document = new VersionedClass(id, "any", 5);
 
-		template.insert(person);
-		assertThatThrownBy(() -> template.insert(person))
-				.isInstanceOf(DuplicateKeyException.class);
-	}
+        template.insert(document);
+        assertThatThrownBy(() -> template.insert(document))
+                .isInstanceOf(DuplicateKeyException.class);
+    }
 
-	@Test
-	public void throwsExceptionForDuplicateIdForVersionedDocument() {
-		SampleClasses.VersionedClass document = new SampleClasses.VersionedClass(id, "any", 5);
+    @Test
+    public void insertsOnlyFirstDocumentAndNextAttemptsShouldFailWithDuplicateKeyExceptionForVersionedDocument() throws Exception {
+        AtomicLong counter = new AtomicLong();
+        AtomicLong duplicateKeyCounter = new AtomicLong();
+        int numberOfConcurrentSaves = 5;
 
-		template.insert(document);
-		assertThatThrownBy(() -> template.insert(document))
-				.isInstanceOf(DuplicateKeyException.class);
-	}
+        AsyncUtils.executeConcurrently(numberOfConcurrentSaves, () -> {
+            long counterValue = counter.incrementAndGet();
+            String data = "value-" + counterValue;
+            try {
+                template.insert(new VersionedClass(id, data));
+            } catch (DuplicateKeyException e) {
+                duplicateKeyCounter.incrementAndGet();
+            }
+        });
 
-	@Test
-	public void insertsOnlyFirstDocumentAndNextAttemptsShouldFailWithDuplicateKeyExceptionForVersionedDocument() throws Exception {
-		AtomicLong counter = new AtomicLong();
-		AtomicLong duplicateKeyCounter = new AtomicLong();
-		int numberOfConcurrentSaves = 5;
+        assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
+    }
 
-		AsyncUtils.executeConcurrently(numberOfConcurrentSaves, () -> {
-			long counterValue = counter.incrementAndGet();
-			String data = "value-" + counterValue;
-			try {
-				template.insert(new SampleClasses.VersionedClass(id, data));
-			} catch (DuplicateKeyException e) {
-				duplicateKeyCounter.incrementAndGet();
-			}
-		});
+    @Test
+    public void insertsOnlyFirstDocumentAndNextAttemptsShouldFailWithDuplicateKeyExceptionForNonVersionedDocument() throws Exception {
+        AtomicLong counter = new AtomicLong();
+        AtomicLong duplicateKeyCounter = new AtomicLong();
+        int numberOfConcurrentSaves = 5;
 
-		assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
-	}
+        AsyncUtils.executeConcurrently(numberOfConcurrentSaves, () -> {
+            long counterValue = counter.incrementAndGet();
+            String data = "value-" + counterValue;
+            try {
+                template.insert(new Person(id, data, 28));
+            } catch (DuplicateKeyException e) {
+                duplicateKeyCounter.incrementAndGet();
+            }
+        });
 
-	@Test
-	public void insertsOnlyFirstDocumentAndNextAttemptsShouldFailWithDuplicateKeyExceptionForNonVersionedDocument() throws Exception {
-		AtomicLong counter = new AtomicLong();
-		AtomicLong duplicateKeyCounter = new AtomicLong();
-		int numberOfConcurrentSaves = 5;
+        assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
 
-		AsyncUtils.executeConcurrently(numberOfConcurrentSaves, () -> {
-			long counterValue = counter.incrementAndGet();
-			String data = "value-" + counterValue;
-			try {
-				template.insert(new Person(id, data, 28));
-			} catch (DuplicateKeyException e) {
-				duplicateKeyCounter.incrementAndGet();
-			}
-		});
+    }
 
-		assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
+    @Test
+    public void insertAll_rejectsDuplicateIds() {
+        Person person = Person.builder().id(id).build();
+        List<Person> records = Arrays.asList(person, person);
 
-	}
+        assertThatThrownBy(() -> template.insertAll(records))
+                .isInstanceOf(DuplicateKeyException.class);
+    }
+
+    @Test
+    public void insertAll_insertsAllDocuments() {
+        List<Person> persons = IntStream.range(1, 10)
+                .mapToObj(age -> Person.builder().id(nextId())
+                        .firstName("Gregor")
+                        .age(age).build())
+                .collect(Collectors.toList());
+        template.insertAll(persons);
+
+        List<Person> result = template.findByIds(persons.stream().map(Person::getId).collect(Collectors.toList()), Person.class);
+
+        assertThat(result).containsOnlyElementsOf(persons);
+    }
 }
