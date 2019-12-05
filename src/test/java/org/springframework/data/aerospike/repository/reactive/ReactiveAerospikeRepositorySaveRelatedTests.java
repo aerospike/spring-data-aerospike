@@ -4,7 +4,7 @@ package org.springframework.data.aerospike.repository.reactive;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.CompositeObject;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.ReactiveCompositeObjectRepository;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseIntegrationTests {
+public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveIntegrationTests {
 
     @Autowired
     ReactiveCustomerRepository customerRepo;

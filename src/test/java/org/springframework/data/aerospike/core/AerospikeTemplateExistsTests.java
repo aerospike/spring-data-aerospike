@@ -16,12 +16,12 @@
 package org.springframework.data.aerospike.core;
 
 import org.junit.Test;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AerospikeTemplateExistsTests extends BaseIntegrationTests {
+public class AerospikeTemplateExistsTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void exists_shouldReturnTrueIfValueIsPresent() {

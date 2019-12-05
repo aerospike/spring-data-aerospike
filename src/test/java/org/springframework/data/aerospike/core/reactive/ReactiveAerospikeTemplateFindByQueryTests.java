@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.core.reactive;
 import com.aerospike.client.query.IndexType;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
@@ -16,13 +17,17 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveAerospikeTemplateTests {
+public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveIntegrationTests {
 
     @Override
     @Before
     public void setUp() {
         super.setUp();
-        deleteAll(Person.class);
+        blockingAerospikeTestOperations.deleteAll(Person.class);
+
+        blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "age_index", "age", IndexType.NUMERIC);
+        blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "last_name_index", "lastName", IndexType.STRING);
+        blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "first_name_index", "firstName", IndexType.STRING);
     }
 
     @Test
@@ -37,7 +42,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveAeros
     }
 
     @Test
-    public void findAll_findsNothing() throws Exception {
+    public void findAll_findsNothing() {
         List<Person> result = reactiveTemplate.findAll(Person.class).collectList().block();
 
         assertThat(result).isEmpty();
@@ -81,7 +86,6 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveAeros
 
     @Test
     public void find_shouldWorkWithFilterEqual() {
-        createIndexIfNotExists(Person.class, "first_name_index", "firstname", IndexType.STRING);
         List<Person> allUsers = IntStream.rangeClosed(1, 10)
                 .mapToObj(id -> new Person(nextId(), "Dave", "Matthews")).collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
@@ -96,9 +100,6 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveAeros
 
     @Test
     public void find_shouldWorkWithFilterEqualOrderBy() {
-        createIndexIfNotExists(Person.class, "age_index", "age", IndexType.NUMERIC);
-        createIndexIfNotExists(Person.class, "last_name_index", "lastname", IndexType.STRING);
-
         List<Person> allUsers = IntStream.rangeClosed(1, 10)
                 .mapToObj(id -> new Person(nextId(), "Dave" + id, "Matthews")).collect(Collectors.toList());
         Collections.shuffle(allUsers); // Shuffle user list
@@ -115,9 +116,6 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveAeros
 
     @Test
     public void find_shouldWorkWithFilterEqualOrderByDesc() {
-        createIndexIfNotExists(Person.class, "age_index", "age", IndexType.NUMERIC);
-        createIndexIfNotExists(Person.class, "last_name_index", "lastname", IndexType.STRING);
-
         List<Person> allUsers = IntStream.rangeClosed(1, 10)
                 .mapToObj(id -> new Person(nextId(), "Dave" + id, "Matthews")).collect(Collectors.toList());
         Collections.shuffle(allUsers); // Shuffle user list
@@ -134,8 +132,6 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveAeros
 
     @Test
     public void find_shouldWorkWithFilterRange() {
-        createIndexIfNotExists(Person.class, "age_index", "age", IndexType.NUMERIC);
-
         List<Person> allUsers = IntStream.rangeClosed(21, 30)
                 .mapToObj(age -> Person.builder().id(nextId()).firstName("Dave" + age).lastName("Matthews").age(age).build())
                 .collect(Collectors.toList());

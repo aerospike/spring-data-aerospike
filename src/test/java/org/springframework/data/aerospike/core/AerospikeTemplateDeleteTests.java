@@ -17,7 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.policy.GenerationPolicy;
 import org.junit.Test;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.TEN_SECONDS;
 
-public class AerospikeTemplateDeleteTests extends BaseIntegrationTests {
+public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByObject_ignoresDocumentVersionEvenIfDefaultGenerationPolicyIsSet() {

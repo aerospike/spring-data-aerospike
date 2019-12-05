@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.AsyncUtils;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
-public class AerospikeTemplateUpdateTests extends BaseIntegrationTests {
+public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldThrowExceptionOnUpdateForNonexistingKey() {

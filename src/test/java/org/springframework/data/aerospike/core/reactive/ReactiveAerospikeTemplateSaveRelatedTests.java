@@ -1,13 +1,13 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import com.aerospike.client.Key;
-import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import org.junit.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.AsyncUtils;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -19,13 +19,14 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 /**
  * Tests for save related methods in {@link ReactiveAerospikeTemplate}.
  *
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveAerospikeTemplateTests {
+public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveIntegrationTests {
 
     @Test
     public void save_shouldSaveAndSetVersion() {
@@ -187,13 +188,18 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveAeros
         Key key = new Key(getNameSpace(), "versioned-set", id);
         VersionedClass first = new VersionedClass(id, "foo");
         reactiveTemplate.save(first).block();
-        addNewFieldToSavedDataInAerospike(key);
+        blockingAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
 
         reactiveTemplate.save(new VersionedClass(id, "foo2", 2)).block();
 
-        Record record2 = client.get(new Policy(), key);
-        assertThat(record2.bins.get("notPresent")).isNull();
-        assertThat(record2.bins.get("field")).isEqualTo("foo2");
+        StepVerifier.create(reactorClient.get(new Policy(), key))
+                .assertNext(keyRecord -> {
+                    assertThat(keyRecord.record.bins)
+                            .doesNotContainKey("notPresent")
+                            .contains(entry("field", "foo2"));
+                })
+                .verifyComplete();
+
     }
 
     @Test(expected = IllegalArgumentException.class)

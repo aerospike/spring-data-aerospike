@@ -4,7 +4,7 @@ package org.springframework.data.aerospike.repository.reactive;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import reactor.core.publisher.Flux;
@@ -14,7 +14,7 @@ import reactor.test.StepVerifier;
 /**
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikeRepositoryExistRelatedTests extends BaseIntegrationTests {
+public class ReactiveAerospikeRepositoryExistRelatedTests extends BaseReactiveIntegrationTests {
 
     @Autowired
     ReactiveCustomerRepository customerRepo;

@@ -10,9 +10,11 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.cache.AerospikeCacheManager;
 import org.springframework.data.aerospike.cache.AerospikeCacheManagerIntegrationTests.CachingComponent;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 import org.springframework.data.aerospike.sample.ContactRepository;
@@ -66,4 +68,9 @@ public class TestConfig extends AbstractReactiveAerospikeDataConfiguration  {
     protected EventLoops eventLoops() {
         return new NioEventLoops();
     }
+
+    @Bean
+	BlockingAerospikeTestOperations blockingAerospikeTestOperations(AerospikeTemplate template, AerospikeClient client) {
+		return new BlockingAerospikeTestOperations(template, client);
+	}
 }

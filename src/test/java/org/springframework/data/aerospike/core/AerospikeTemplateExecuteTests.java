@@ -22,9 +22,9 @@ import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 
-public class AerospikeTemplateExecuteTests extends BaseIntegrationTests {
+public class AerospikeTemplateExecuteTests extends BaseBlockingIntegrationTests {
 
     @Test(expected = DuplicateKeyException.class)
     public void shouldTranslateException() {

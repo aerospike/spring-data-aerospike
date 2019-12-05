@@ -2,16 +2,24 @@ package org.springframework.data.aerospike.mapping;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.BaseIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.*;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAndExpression;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationExpression;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationUnit;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithExpressionInCollection;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithoutAnnotation;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithoutExpiration;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.SampleClasses.*;
+import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_SECOND;
 import static org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity.DEFAULT_EXPIRATION;
 
-public class AerospikePersistentEntityTest extends BaseIntegrationTests {
+public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests {
 
     @Autowired
     private AerospikeMappingContext context;

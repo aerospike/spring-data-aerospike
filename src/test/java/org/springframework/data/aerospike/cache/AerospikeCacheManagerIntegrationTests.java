@@ -7,12 +7,12 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class AerospikeCacheManagerIntegrationTests extends BaseIntegrationTests {
+public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
 
     private static final String KEY = "foo";
     private static final String VALUE = "bar";

@@ -23,7 +23,7 @@ import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.AsyncUtils;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,7 +35,7 @@ import static org.springframework.data.aerospike.SampleClasses.DocumentWithByteA
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
-public class AerospikeTemplateSaveTests extends BaseIntegrationTests {
+public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     //test for RecordExistsAction.REPLACE_ONLY policy
     @Test
@@ -43,7 +43,7 @@ public class AerospikeTemplateSaveTests extends BaseIntegrationTests {
         Key key = new Key(getNameSpace(), "versioned-set", id);
         VersionedClass first = new VersionedClass(id, "foo");
         template.save(first);
-        addNewFieldToSavedDataInAerospike(key);
+        blockingAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
 
         template.save(new VersionedClass(id, "foo2", 2));
 

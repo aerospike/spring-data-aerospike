@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import org.junit.Test;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Mono;
@@ -15,7 +16,7 @@ import java.util.Map;
  *
  * @author Yevhen Tsyba
  */
-public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReactiveAerospikeTemplateTests {
+public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReactiveIntegrationTests {
 
     @Test
     public void shouldAdd() {

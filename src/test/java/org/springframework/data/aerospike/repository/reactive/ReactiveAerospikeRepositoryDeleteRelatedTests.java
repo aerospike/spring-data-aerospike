@@ -4,7 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import reactor.core.publisher.Flux;
@@ -17,7 +17,7 @@ import static java.util.Arrays.asList;
 /**
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseIntegrationTests {
+public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveIntegrationTests {
 
     @Autowired
     ReactiveCustomerRepository customerRepo;

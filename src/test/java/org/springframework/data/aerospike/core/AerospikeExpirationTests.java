@@ -17,14 +17,12 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
-import com.playtika.test.aerospike.AerospikeTestOperations;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.After;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
@@ -37,10 +35,7 @@ import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
 
 //TODO: Potentially unstable tests. Instead of sleeping, we need somehow do time travel like in CouchbaseMock.
-public class AerospikeExpirationTests extends BaseIntegrationTests {
-
-    @Autowired
-    AerospikeTestOperations aerospikeTestOperations;
+public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
     @After
     public void tearDown() {

@@ -18,7 +18,7 @@ package org.springframework.data.aerospike.repository;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.CustomerRepository;
 
@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Oliver Gierke
  */
-public class CustomerRepositoriesIntegrationTests extends BaseIntegrationTests {
+public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegrationTests {
 
 	@Autowired CustomerRepository repository;
 

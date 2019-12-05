@@ -17,7 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.repository.query.Criteria;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
@@ -25,13 +25,13 @@ import org.springframework.data.repository.query.parser.Part;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AerospikeTemplateCountTests extends BaseIntegrationTests {
+public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
     @Override
     @Before
     public void setUp() {
         super.setUp();
-        deleteAll(Person.class);
+        blockingAerospikeTestOperations.deleteAll(Person.class);
     }
 
     @Test

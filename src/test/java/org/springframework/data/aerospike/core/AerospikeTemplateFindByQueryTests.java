@@ -22,7 +22,7 @@ import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 
-public class AerospikeTemplateFindByQueryTests extends BaseIntegrationTests {
+public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTests {
 
     Person jean = Person.builder().id(nextId()).firstName("Jean").lastName("Matthews").age(21).build();
     Person ashley = Person.builder().id(nextId()).firstName("Ashley").lastName("Matthews").age(22).build();
@@ -54,13 +54,13 @@ public class AerospikeTemplateFindByQueryTests extends BaseIntegrationTests {
     @Before
     public void setUp() {
         super.setUp();
-        deleteAll(Person.class);
+        blockingAerospikeTestOperations.deleteAll(Person.class);
 
         template.insertAll(all);
 
-        createIndexIfNotExists(Person.class, "age_index", "age", IndexType.NUMERIC);
-        createIndexIfNotExists(Person.class, "first_name_index", "firstName", IndexType.STRING);
-        createIndexIfNotExists(Person.class, "last_name_index", "lastName", IndexType.STRING);
+        blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "age_index", "age", IndexType.NUMERIC);
+        blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "first_name_index", "firstName", IndexType.STRING);
+        blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "last_name_index", "lastName", IndexType.STRING);
     }
 
     @Test
@@ -155,7 +155,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseIntegrationTests {
 
     @Test
     public void findAll_findsNothing() {
-        deleteAll(Person.class);
+        blockingAerospikeTestOperations.deleteAll(Person.class);
 
         Stream<Person> result = template.findAll(Person.class);
 

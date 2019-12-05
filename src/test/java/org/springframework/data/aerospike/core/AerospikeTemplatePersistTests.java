@@ -19,12 +19,12 @@ import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import org.junit.Test;
 import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 
-public class AerospikeTemplatePersistTests extends BaseIntegrationTests {
+public class AerospikeTemplatePersistTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldPersistWithCustomWritePolicy() {

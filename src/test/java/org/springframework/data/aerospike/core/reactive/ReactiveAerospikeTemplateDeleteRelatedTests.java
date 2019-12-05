@@ -1,7 +1,10 @@
 package org.springframework.data.aerospike.core.reactive;
 
+import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.policy.GenerationPolicy;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Mono;
@@ -14,7 +17,11 @@ import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
  *
  * @author Yevhen Tsyba
  */
-public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveAerospikeTemplateTests {
+public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveIntegrationTests {
+
+    //TODO: remove me as soon as reactorClient has writePolicyDefault
+    @Autowired
+    AerospikeClient client;
 
     @Test
     public void deleteByObject_ignoresDocumentVersionEvenIfDefaultGenerationPolicyIsSet() {

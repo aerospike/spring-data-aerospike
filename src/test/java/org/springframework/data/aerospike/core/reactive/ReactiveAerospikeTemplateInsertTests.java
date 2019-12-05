@@ -1,11 +1,11 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import com.aerospike.client.Key;
-import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.AsyncUtils;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
@@ -20,16 +20,16 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveAerospikeTemplateTests {
+public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegrationTests {
 
     @Test
     public void insertsAndFindsWithCustomCollectionSet() {
         CustomCollectionClass initial = new CustomCollectionClass(id, "data0");
         reactiveTemplate.insert(initial).block();
 
-        Record record = client.get(new Policy(), new Key(getNameSpace(), "custom-set", id));
-
-        assertThat(record.getString("data")).isEqualTo("data0");
+        StepVerifier.create(reactorClient.get(new Policy(), new Key(getNameSpace(), "custom-set", id)))
+                .assertNext(keyRecord -> assertThat(keyRecord.record.getString("data")).isEqualTo("data0"))
+                .verifyComplete();
         assertThat(findById(id, CustomCollectionClass.class)).isEqualTo(initial);
     }
 

@@ -1,22 +1,23 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import com.aerospike.client.Key;
-import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import org.junit.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.AsyncUtils;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static reactor.test.StepVerifier.create;
 
-public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveAerospikeTemplateTests {
+public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegrationTests {
 
     @Test
     public void shouldThrowExceptionOnUpdateForNonexistingKey() {
@@ -97,8 +98,9 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveAerospikeT
         reactiveTemplate.update(document).block();
         reactiveTemplate.update(document).block();
 
-        Record raw = client.get(new Policy(), new Key(getNameSpace(), "versioned-set", id));
-        assertThat(raw.generation).isEqualTo(3);
+        StepVerifier.create(reactorClient.get(new Policy(), new Key(getNameSpace(), "versioned-set", id)))
+                .assertNext(keyRecord -> assertThat(keyRecord.record.generation).isEqualTo(3))
+                .verifyComplete();
         VersionedClass actual = findById(id, VersionedClass.class);
         assertThat(actual.version).isEqualTo(3);
     }

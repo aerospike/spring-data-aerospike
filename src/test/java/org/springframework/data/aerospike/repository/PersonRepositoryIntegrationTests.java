@@ -20,7 +20,7 @@ import com.aerospike.client.query.IndexType;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Peter Milne
  * @author Jean Mercier
  */
-public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
+public class PersonRepositoryIntegrationTests extends BaseBlockingIntegrationTests {
 
 	@Autowired
 	PersonRepository repository;
@@ -57,7 +57,7 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 	@Before
 	public void setUp() {
 		super.setUp();
-		deleteAll(Person.class);
+		blockingAerospikeTestOperations.deleteAll(Person.class);
 
 		dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42).build();
 		donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39).build();
@@ -69,9 +69,9 @@ public class PersonRepositoryIntegrationTests extends BaseIntegrationTests {
 		leroi2 = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25).build();
 		alicia = Person.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30).build();
 
-		createIndexIfNotExists(Person.class, "last_name_index", "lastName", IndexType.STRING);
-		createIndexIfNotExists(Person.class, "first_name_index", "firstName", IndexType.STRING);
-		createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
+		blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "last_name_index", "lastName", IndexType.STRING);
+		blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "first_name_index", "firstName", IndexType.STRING);
+		blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
 
 		all = (List<Person>) repository.saveAll(Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi, leroi2, alicia));
 	}

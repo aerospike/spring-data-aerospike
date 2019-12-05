@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import org.junit.Test;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -19,7 +20,7 @@ import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MI
  *
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveAerospikeTemplateTests {
+public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveIntegrationTests {
     @Test
     public void findById_shouldReturnValueForExistingKey() {
         Person person = new Person(id, "Dave", "Matthews");

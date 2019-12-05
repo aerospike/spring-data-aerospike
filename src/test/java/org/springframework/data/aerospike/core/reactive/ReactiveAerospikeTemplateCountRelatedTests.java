@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.core.reactive;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.repository.query.Criteria;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -15,13 +16,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveAerospikeTemplateTests {
+public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegrationTests {
 
     @Override
     @Before
     public void setUp() {
         super.setUp();
-        deleteAll(Person.class);
+        blockingAerospikeTestOperations.deleteAll(Person.class);
     }
 
     @Test

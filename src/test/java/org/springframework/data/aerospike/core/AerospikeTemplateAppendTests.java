@@ -16,7 +16,7 @@
 package org.springframework.data.aerospike.core;
 
 import org.junit.Test;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 
 import java.util.HashMap;
@@ -24,7 +24,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AerospikeTemplateAppendTests extends BaseIntegrationTests {
+public class AerospikeTemplateAppendTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldAppend() {

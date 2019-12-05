@@ -21,7 +21,7 @@ import com.aerospike.client.policy.Policy;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.AsyncUtils;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.sample.Person;
@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
-public class AerospikeTemplateInsertTests extends BaseIntegrationTests {
+public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void insertsAndFindsWithCustomCollectionSet() {

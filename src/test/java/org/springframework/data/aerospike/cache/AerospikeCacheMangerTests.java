@@ -16,25 +16,24 @@
 
 package org.springframework.data.aerospike.cache;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-
+import com.aerospike.client.AerospikeClient;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 
-import com.aerospike.client.AerospikeClient;
+import java.util.Arrays;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * 
  * @author Venil Noronha
  */
-public class AerospikeCacheMangerTests extends BaseIntegrationTests {
+public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 
 	@Autowired AerospikeClient client;
 	@Autowired MappingAerospikeConverter converter;

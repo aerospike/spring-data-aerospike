@@ -18,7 +18,7 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import org.junit.Test;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import org.springframework.data.aerospike.SampleClasses.VersionedClassWithAllArgsConstructor;
 import org.springframework.data.aerospike.sample.Person;
@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
 
-public class AerospikeTemplateFindTests extends BaseIntegrationTests {
+public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findById_shouldReadVersionedClassWithAllArgsConstructor() {

@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.domain.Sort;
@@ -26,7 +26,7 @@ import static org.springframework.data.domain.Sort.Order.asc;
 /**
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseIntegrationTests {
+public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveIntegrationTests {
     @Autowired
     ReactiveCustomerRepository customerRepo;
 
@@ -42,9 +42,9 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseIntegration
         customer3 = Customer.builder().id(nextId()).firstname("Bart").lastname("Simpson").age(15).build();
         customer4 = Customer.builder().id(nextId()).firstname("Matt").lastname("Groening").age(65).build();
 
-        createIndexIfNotExists(Customer.class, "customer_first_name_index", "firstname", IndexType.STRING);
-        createIndexIfNotExists(Customer.class, "customer_last_name_index", "lastname", IndexType.STRING);
-        createIndexIfNotExists(Customer.class, "customer_age_index", "age", IndexType.NUMERIC);
+        blockingAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_first_name_index", "firstname", IndexType.STRING);
+        blockingAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_last_name_index", "lastname", IndexType.STRING);
+        blockingAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_age_index", "age", IndexType.NUMERIC);
 
         StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2, customer3, customer4))).expectNextCount(4).verifyComplete();
     }
