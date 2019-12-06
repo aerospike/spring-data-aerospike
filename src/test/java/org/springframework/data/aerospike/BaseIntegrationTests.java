@@ -23,8 +23,6 @@ import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(
         classes = TestConfig.class,
@@ -35,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 )
 public abstract class BaseIntegrationTests {
 
-    private static AtomicLong counter = new AtomicLong();
+    private static final AtomicLong counter = new AtomicLong();
 
     @Value("${embedded.aerospike.namespace}")
     protected String namespace;

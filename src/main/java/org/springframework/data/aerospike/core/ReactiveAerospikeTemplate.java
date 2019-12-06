@@ -9,9 +9,11 @@ import com.aerospike.client.Record;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
+import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.reactor.AerospikeReactorClient;
 import com.aerospike.helper.query.Qualifier;
+import com.aerospike.helper.query.QueryEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -19,15 +21,19 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
@@ -45,15 +51,21 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private final AerospikeReactorClient reactorClient;
 
+    //TODO temporary while ReactiveQueryEngine not implemented
+    private final QueryEngine queryEngine;
+
     public ReactiveAerospikeTemplate(AerospikeClient client,
                                      String namespace,
                                      MappingAerospikeConverter converter,
                                      AerospikeMappingContext mappingContext,
                                      AerospikeExceptionTranslator exceptionTranslator,
-                                     AerospikeReactorClient reactorClient) {
-        super(client, namespace, converter, mappingContext, exceptionTranslator);
+                                     AerospikeReactorClient reactorClient,
+                                     //TODO temporary while ReactiveQueryEngine not implemented
+                                     AerospikeClient aerospikeClient) {
+        super(namespace, converter, mappingContext, exceptionTranslator, client.writePolicyDefault);
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
         this.reactorClient = reactorClient;
+        this.queryEngine = new QueryEngine(aerospikeClient);
     }
 
     @Override
@@ -113,8 +125,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
-        Stream<T> results = findAllUsingQuery(entityClass, null, (Qualifier[]) null);
-        return Flux.fromStream(results);
+        return findAllUsingQuery(entityClass, null, (Qualifier[]) null);
     }
 
     @Override
@@ -132,7 +143,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
         operations[x] = Operation.get();
 
-        WritePolicy writePolicy = new WritePolicy(this.client.writePolicyDefault);
+        WritePolicy writePolicy = new WritePolicy(this.writePolicyDefault);
         writePolicy.expiration = data.getExpiration();
 
         return executeOperationsOnValue(objectToAddTo, data, operations, writePolicy);
@@ -146,7 +157,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         AerospikeWriteData data = writeData(objectToAddTo);
 
-        WritePolicy writePolicy = new WritePolicy(this.client.writePolicyDefault);
+        WritePolicy writePolicy = new WritePolicy(this.writePolicyDefault);
         writePolicy.expiration = data.getExpiration();
 
         Operation[] operations = {Operation.add(new Bin(binName, value)), Operation.get(binName)};
@@ -240,8 +251,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
 
-        Stream<T> results = findAllUsingQuery(entityClass, query);
-        return Flux.fromStream(results);
+        return findAllUsingQuery(entityClass, query);
     }
 
     @Override
@@ -249,10 +259,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(entityClass, "Type for count must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
 
-        Stream<T> results = findAllUsingQuery(entityClass, null, (Qualifier[]) null)
+        return findAllUsingQuery(entityClass, null, (Qualifier[]) null)
                 .skip(offset)
-                .limit(limit);
-        return Flux.fromStream(results);
+                .take(limit);
     }
 
     @Override
@@ -260,8 +269,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
 
-        Stream<KeyRecord> results = findAllRecordsUsingQuery(entityClass, query);
-        return Flux.fromStream(results).count();
+        return findAllRecordsUsingQuery(entityClass, query).count();
     }
 
     @Override
@@ -337,7 +345,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private Mono<KeyRecord> getAndTouch(Key key, int expiration) {
-        WritePolicy policy = new WritePolicy(client.writePolicyDefault);
+        WritePolicy policy = new WritePolicy(writePolicyDefault);
         policy.expiration = expiration;
         return reactorClient.operate(policy, key, Operation.touch(), Operation.get());
     }
@@ -347,6 +355,64 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return translateError((AerospikeException) e);
         }
         return e;
+    }
+
+    <T> Flux<T> findAllUsingQuery(Class<T> type, Query query) {
+        if ((query.getSort() == null || query.getSort().isUnsorted())
+                && query.getOffset() > 0) {
+            throw new IllegalArgumentException("Unsorted query must not have offset value. " +
+                    "For retrieving paged results use sorted query.");
+        }
+
+        Qualifier qualifier = query.getCriteria().getCriteriaObject();
+        Flux<T> results = findAllUsingQuery(type, null, qualifier);
+
+        if (query.getSort() != null && query.getSort().isSorted()) {
+            Comparator comparator = getComparator(query);
+            results = results.collectList()
+                    .map(list -> {
+                        List<T> sorted = new ArrayList<>(list);
+                        sorted.sort(comparator);
+                        return sorted;
+                    })
+                    .flatMapMany(list -> Flux.fromIterable((List<T>)list));
+        }
+
+        if(query.hasOffset()) {
+            results = results.skip(query.getOffset());
+        }
+        if(query.hasRows()) {
+            results = results.take(query.getRows());
+        }
+        return results;
+    }
+
+    <T> Flux<T> findAllUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(type, filter, qualifiers)
+                .map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record));
+    }
+
+    <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Query query) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(type, "Type must not be null!");
+
+        Qualifier qualifier = query.getCriteria().getCriteriaObject();
+        return findAllRecordsUsingQuery(type, null, qualifier);
+    }
+
+    //TODO temporary stub while reactive query engine not released
+    <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
+        String setName = getSetName(type);
+
+        return Flux.using(() -> this.queryEngine.select(this.namespace, setName, filter, qualifiers),
+                recordIterator -> Flux.fromStream(StreamUtils.createStreamFromIterator(recordIterator)),
+                recordIterator -> {
+                    try {
+                        recordIterator.close();
+                    } catch (IOException e) {
+                        log.error("Caught exception while closing query", e);
+                    }
+                });
     }
 
 }

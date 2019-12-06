@@ -159,7 +159,6 @@
                 <artifactId>aerospike-reactor-client</artifactId>
                 <version>${aerospike}</version>
             </dependency>
-
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
@@ -212,12 +211,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-core</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <optional>true</optional>
@@ -253,7 +246,6 @@
             <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
-
 
     </dependencies>
 

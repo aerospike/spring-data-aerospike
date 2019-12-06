@@ -33,21 +33,23 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
+import com.aerospike.helper.query.KeyRecordIterator;
 import com.aerospike.helper.query.Qualifier;
+import com.aerospike.helper.query.QueryEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
-import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
-import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
+import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -71,6 +73,9 @@ import static org.springframework.data.aerospike.core.OperationUtils.operations;
 @Slf4j
 public class AerospikeTemplate extends BaseAerospikeTemplate implements AerospikeOperations {
 
+	private final AerospikeClient client;
+	private final QueryEngine queryEngine;
+
 	/**
 	 * Creates a new {@link AerospikeTemplate} for the given
 	 * {@link AerospikeClient}.
@@ -86,7 +91,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 							 MappingAerospikeConverter converter,
 							 AerospikeMappingContext mappingContext,
 							 AerospikeExceptionTranslator exceptionTranslator) {
-        super(client, namespace, converter, mappingContext, exceptionTranslator);
+        super(namespace, converter, mappingContext, exceptionTranslator, client.writePolicyDefault);
+
+        this.client = client;
+		this.queryEngine = new QueryEngine(this.client);
 	}
 
 	/**
@@ -94,7 +102,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	 */
 	@Deprecated
 	public AerospikeTemplate(AerospikeClient client, String namespace) {
-	    super(client, namespace);
+	    super(namespace, client.writePolicyDefault);
+
+	    this.client = client;
+		this.queryEngine = new QueryEngine(this.client);
 	}
 
 	@Override
@@ -601,4 +612,56 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return client.operate(policy, key, operations);
 	}
 
+	<T> Stream<T> findAllUsingQuery(Class<T> type, Query query) {
+		if ((query.getSort() == null || query.getSort().isUnsorted())
+				&& query.getOffset() > 0) {
+			throw new IllegalArgumentException("Unsorted query must not have offset value. " +
+					"For retrieving paged results use sorted query.");
+		}
+
+		Qualifier qualifier = query.getCriteria().getCriteriaObject();
+		Stream<T> results = findAllUsingQuery(type, null, qualifier);
+
+		if (query.getSort() != null && query.getSort().isSorted()) {
+			Comparator comparator = getComparator(query);
+			results = results.sorted(comparator);
+		}
+
+		if(query.hasOffset()) {
+			results = results.skip(query.getOffset());
+		}
+		if(query.hasRows()) {
+			results = results.limit(query.getRows());
+		}
+		return results;
+	}
+
+	<T> Stream<T> findAllUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
+		return findAllRecordsUsingQuery(type, filter, qualifiers)
+				.map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record));
+	}
+
+	<T> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
+		String setName = getSetName(type);
+
+		KeyRecordIterator recIterator = this.queryEngine.select(
+				this.namespace, setName, filter, qualifiers);
+
+		return StreamUtils.createStreamFromIterator(recIterator)
+				.onClose(() -> {
+					try {
+						recIterator.close();
+					} catch (Exception e) {
+						log.error("Caught exception while closing query", e);
+					}
+				});
+	}
+
+	<T> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Query query) {
+		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(type, "Type must not be null!");
+
+		Qualifier qualifier = query.getCriteria().getCriteriaObject();
+		return findAllRecordsUsingQuery(type, null, qualifier);
+	}
 }

@@ -24,7 +24,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Abstrac
                                                                AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                                AerospikeReactorClient aerospikeReactorClient) {
-        return new ReactiveAerospikeTemplate(aerospikeClient, nameSpace(), mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, aerospikeReactorClient);
+        return new ReactiveAerospikeTemplate(aerospikeClient, nameSpace(), mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, aerospikeReactorClient, aerospikeClient);
     }
 
     @Bean(name = "aerospikeReactorClient")

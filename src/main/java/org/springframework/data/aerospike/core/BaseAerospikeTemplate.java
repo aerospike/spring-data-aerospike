@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Log;
@@ -9,11 +8,6 @@ import com.aerospike.client.ResultCode;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
-import com.aerospike.client.query.Filter;
-import com.aerospike.client.query.KeyRecord;
-import com.aerospike.helper.query.KeyRecordIterator;
-import com.aerospike.helper.query.Qualifier;
-import com.aerospike.helper.query.QueryEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,13 +29,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.comparator.CompoundComparator;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.stream.Stream;
 
 /**
  * Base class for creation Aerospike templates
@@ -53,33 +45,31 @@ import java.util.stream.Stream;
 abstract class BaseAerospikeTemplate {
 
     protected final MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext;
-    protected final AerospikeClient client;
     protected final MappingAerospikeConverter converter;
     protected final String namespace;
-    protected final QueryEngine queryEngine;
     protected final AerospikeExceptionTranslator exceptionTranslator;
+    protected final WritePolicy writePolicyDefault;
 
-    BaseAerospikeTemplate(AerospikeClient client,
-                          String namespace,
+    BaseAerospikeTemplate(String namespace,
                           MappingAerospikeConverter converter,
                           AerospikeMappingContext mappingContext,
-                          AerospikeExceptionTranslator exceptionTranslator) {
-        Assert.notNull(client, "Aerospike client must not be null!");
+                          AerospikeExceptionTranslator exceptionTranslator,
+                          WritePolicy writePolicyDefault) {
+        Assert.notNull(writePolicyDefault, "Write policy must not be null!");
         Assert.notNull(namespace, "Namespace cannot be null");
         Assert.hasLength(namespace, "Namespace cannot be empty");
 
-        this.client = client;
         this.converter = converter;
         this.exceptionTranslator = exceptionTranslator;
         this.namespace = namespace;
         this.mappingContext = mappingContext;
-        this.queryEngine = new QueryEngine(this.client);
+        this.writePolicyDefault = writePolicyDefault;
 
         loggerSetup();
     }
 
-    BaseAerospikeTemplate(AerospikeClient client, String namespace) {
-        Assert.notNull(client, "Aerospike client must not be null!");
+    BaseAerospikeTemplate(String namespace, WritePolicy writePolicyDefault) {
+        Assert.notNull(writePolicyDefault, "Write policy must not be null!");
         Assert.notNull(namespace, "Namespace cannot be null");
         Assert.hasLength(namespace, "Namespace cannot be empty");
 
@@ -87,12 +77,11 @@ abstract class BaseAerospikeTemplate {
         AerospikeMappingContext asContext = new AerospikeMappingContext();
         asContext.setDefaultNameSpace(namespace);
 
-        this.client = client;
         this.converter = new MappingAerospikeConverter(asContext, customConversions, new AerospikeTypeAliasAccessor());
         this.exceptionTranslator = new DefaultAerospikeExceptionTranslator();
         this.namespace = namespace;
         this.mappingContext = asContext;
-        this.queryEngine = new QueryEngine(this.client);
+        this.writePolicyDefault = writePolicyDefault;
 
         this.converter.afterPropertiesSet();
 
@@ -145,60 +134,7 @@ abstract class BaseAerospikeTemplate {
         return converter.read(type, data);
     }
 
-    <T> Stream<T> findAllUsingQuery(Class<T> type, Query query) {
-        if ((query.getSort() == null || query.getSort().isUnsorted())
-                && query.getOffset() > 0) {
-            throw new IllegalArgumentException("Unsorted query must not have offset value. " +
-                    "For retrieving paged results use sorted query.");
-        }
-
-        Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Stream<T> results = findAllUsingQuery(type, null, qualifier);
-
-        if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator comparator = getComparator(query);
-            results = results.sorted(comparator);
-        }
-
-        if(query.hasOffset()) {
-            results = results.skip(query.getOffset());
-        }
-        if(query.hasRows()) {
-            results = results.limit(query.getRows());
-        }
-        return results;
-    }
-
-    <T> Stream<T> findAllUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(type, filter, qualifiers)
-                .map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record));
-    }
-
-    <T> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
-        String setName = getSetName(type);
-
-        KeyRecordIterator recIterator = this.queryEngine.select(
-                this.namespace, setName, filter, qualifiers);
-
-        return StreamUtils.createStreamFromIterator(recIterator)
-                .onClose(() -> {
-                    try {
-                        recIterator.close();
-                    } catch (Exception e) {
-                        log.error("Caught exception while closing query", e);
-                    }
-                });
-    }
-
-    <T> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Query query) {
-        Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(type, "Type must not be null!");
-
-        Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        return findAllRecordsUsingQuery(type, null, qualifier);
-    }
-
-    private Comparator<?> getComparator(Query query) {
+    protected Comparator<?> getComparator(Query query) {
         //TODO replace with not deprecated one
         //TODO also see NullSafeComparator
         CompoundComparator<?> compoundComperator = new CompoundComparator();
@@ -255,7 +191,7 @@ abstract class BaseAerospikeTemplate {
     }
 
     WritePolicy expectGenerationSavePolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
-        return WritePolicyBuilder.builder(this.client.writePolicyDefault)
+        return WritePolicyBuilder.builder(this.writePolicyDefault)
                 .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
                 .generation(data.getVersion().orElse(0))
                 .sendKey(true)
@@ -265,7 +201,7 @@ abstract class BaseAerospikeTemplate {
     }
 
     WritePolicy ignoreGenerationSavePolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
-        return WritePolicyBuilder.builder(this.client.writePolicyDefault)
+        return WritePolicyBuilder.builder(this.writePolicyDefault)
                 .generationPolicy(GenerationPolicy.NONE)
                 .sendKey(true)
                 .expiration(data.getExpiration())
@@ -274,7 +210,7 @@ abstract class BaseAerospikeTemplate {
     }
 
     WritePolicy ignoreGenerationDeletePolicy() {
-        return WritePolicyBuilder.builder(this.client.writePolicyDefault)
+        return WritePolicyBuilder.builder(this.writePolicyDefault)
                 .generationPolicy(GenerationPolicy.NONE)
                 .build();
     }
