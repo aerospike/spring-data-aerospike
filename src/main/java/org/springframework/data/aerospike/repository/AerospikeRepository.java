@@ -17,7 +17,6 @@ package org.springframework.data.aerospike.repository;
 
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.IndexAlreadyExistsException;
-import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.Repository;
 
@@ -28,7 +27,6 @@ import org.springframework.data.repository.Repository;
  * @author Peter Milne
  * @author Jean Mercier
  */
-@NoRepositoryBean
 public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T, ID> {
 
 	<T> void createIndex(Class<T> domainType, String indexName, String binName, IndexType indexType);

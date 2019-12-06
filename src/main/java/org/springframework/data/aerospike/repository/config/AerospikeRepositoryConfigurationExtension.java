@@ -1,7 +1,14 @@
 package org.springframework.data.aerospike.repository.config;
 
+import org.springframework.data.aerospike.mapping.Document;
+import org.springframework.data.aerospike.repository.AerospikeRepository;
+import org.springframework.data.aerospike.repository.support.AerospikeRepositoryFactoryBean;
 import org.springframework.data.repository.config.RepositoryConfigurationExtension;
 import org.springframework.data.repository.core.RepositoryMetadata;
+
+import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * {@link RepositoryConfigurationExtension} for Aerospike.
@@ -10,31 +17,34 @@ import org.springframework.data.repository.core.RepositoryMetadata;
  */
 public class AerospikeRepositoryConfigurationExtension extends BaseAerospikeRepositoryConfigurationExtension {
 
-    /*
-     * (non-Javadoc)
-     * @see org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension#getModuleName()
-     */
     @Override
     public String getModuleName() {
         return "Aerospike";
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension#getModulePrefix()
-     */
     @Override
     protected String getModulePrefix() {
         return "aerospike";
     }
 
-    /*
-     * (non-Javadoc)
-     * @see org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension#getDefaultKeyValueTemplateRef()
-     */
     @Override
     protected String getDefaultKeyValueTemplateRef() {
         return "aerospikeTemplate";
+    }
+
+    @Override
+    public String getRepositoryFactoryBeanClassName() {
+        return AerospikeRepositoryFactoryBean.class.getName();
+    }
+
+    @Override
+    protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
+        return Collections.singleton(Document.class);
+    }
+
+    @Override
+    protected Collection<Class<?>> getIdentifyingTypes() {
+        return Collections.singleton(AerospikeRepository.class);
     }
 
     @Override
