@@ -1,5 +1,5 @@
 [[preface]]
-Preface
+== Preface
 
 The Spring Data Aerospike project applies core Spring concepts to the development of solutions using the Aerospike key-value style data store.  We provide a "template" as a high-level abstraction for storing and querying data. You will notice similarities to the JDBC support in the Spring Framework.
 
@@ -11,7 +11,7 @@ This section provides some basic introduction to Spring and the Aerospike databa
 == Knowing Spring
 Spring Data uses Spring framework's https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/spring-core.html[core] functionality, such as the https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/beans.html[IoC] container, https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/validation.html#core-convert[type conversion system], https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/expressions.html[expression language], https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/jmx.html[JMX integration], and portable https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy]. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar for whatever IoC container you choose to use.
 
-The core functionality of the Aerospike and CouchDB support can be used directly, with no need to invoke the IoC services of the Spring Container. This is much like `JdbcTemplate` which can be used 'standalone' without any other services of the Spring container. To leverage all the features of Spring Data document, such as the repository support, you will need to configure some parts of the library using Spring.
+The core functionality of the Aerospike support can be used directly, with no need to invoke the IoC services of the Spring Container. This is much like `JdbcTemplate` which can be used 'standalone' without any other services of the Spring container. To leverage all the features of Spring Data document, such as the repository support, you will need to configure some parts of the library using Spring.
 
 To learn more about Spring, you can refer to the comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework. There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework https://spring.io/docs[home page ] for more information.
 
@@ -23,12 +23,12 @@ The jumping off ground for learning about Aerospike is https://www.aerospike.com
 
 * The https://www.aerospike.com/docs/[docs] introduces Aerospike and contains links to getting started guides, reference documentation and tutorials.
 * The https://www.aerospike.com/docs/client/java/[java client] provides a convenient way to interact with a Aerospike instance in combination with the online https://www.aerospike.com:443/docs/client/java/start/index.html/[Getting started]
-* Aerospike community https://www.aerospike.com/community/[Aerospike Community]
+* https://www.aerospike.com/community/[Aerospike Community]
 
 [[requirements]]
 == Requirements
 
-Spring Data Aerospike 3.1.x binaries requires JDK level 6.0 and above, and https://spring.io/docs[Spring Framework] 4.0.x and above.
+Spring Data Aerospike 2.3.x binaries requires JDK level 8.0 and above, and https://spring.io/docs[Spring Framework] 5.x and above.
 
 In terms of servers, https://www.aerospike.com/download/server/[Aerospike] at least 3.5
 
@@ -49,16 +49,7 @@ Developers post questions and answers on Stack Overflow. The two key tags to sea
 * https://stackoverflow.com/questions/tagged/spring-data[spring-data]
 * https://stackoverflow.com/questions/tagged/spring-data-aerospike[spring-data-aerospike]
 
-[[get-started:help:professional]]
-==== Professional Support
-
-Professional, from-the-source support, with guaranteed response time, is available from https://pivotal.io/[Pivotal Sofware, Inc.], the company behind Spring Data and Spring.
-
 [[get-started:up-to-date]]
 ==== Following Development
 
-For information on the Spring Data Aerospike source code repository, nightly builds and snapshot artifacts please see the https://projects.spring.io/spring-data-aerospike/[Spring Data Aerospike homepage].
-
-To follow developer activity look for the mailing list information on the Spring Data Aerospike homepage.
-
-If you encounter a bug or want to suggest an improvement, please create a ticket on the Spring Data issue https://jira.spring.io/browse/DATAAEROSPIKE[tracker].
+If you encounter a bug or want to suggest an improvement, please create a [Github issue]https://github.com/aerospike-community/spring-data-aerospike/issues.

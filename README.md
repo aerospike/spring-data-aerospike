@@ -13,7 +13,7 @@ The Spring Data Aerospike project aims to provide a familiar and consistent Spri
 
 |`spring-data-aerospike` Version | Spring Boot Version
 | :----------- | :----: |
-|2.3.1.RELEASE |2.2.x
+|2.3.1.RELEASE | 2.2.x
 |2.1.1.RELEASE | 2.1.x, 2.0.x
 |1.2.1.RELEASE | 1.5.x
 
@@ -21,10 +21,8 @@ The Spring Data Aerospike project aims to provide a familiar and consistent Spri
 
 For a comprehensive treatment of all the Spring Data Aerospike features, please refer to:
 
-* the [User Guide](https://github.com/spring-projects/spring-data-aerospike/Aerospike/docs/current/reference/html/)
-* the [JavaDocs](https://github.com/spring-projects/spring-data-aerospike/Aerospike/docs/current/api/) have extensive comments in them as well.
-* the home page of [Spring Data Aerospike](https://github.com/spring-projects/spring-data-aerospike) contains links to articles and other resources.
-* for more detailed questions, use [Spring Data Aerospike on Stackoverflow](https://stackoverflow.com/questions/tagged/spring-data-Aerospike).
+* the [User Guide](https://github.com/aerospike-community/spring-data-aerospike/src/main/asciidoc/index.adoc)
+* for more detailed questions, use [Spring Data Aerospike on Stackoverflow](https://stackoverflow.com/questions/tagged/spring-data-aerospike).
 
 If you are new to Spring as well as to Spring Data, look for information about [Spring projects](https://projects.spring.io/).
 
@@ -42,7 +40,7 @@ Add the Maven dependency:
 </dependency>
 ```
 
-The Aerospike Spring Data connector depends on the Aerospike Client and the Aerospike Helper projects:
+The Aerospike Spring Data connector depends on the Aerospike Client and the Aerospike Query Engine projects:
 
 ```xml
 <dependency>
@@ -97,29 +95,13 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
     
     @Override
     protected String nameSpace() {
-    	return "bar";
+    	return "TEST";
     }
 	
 }
 ```
 
-This sets up a connection to a local Aerospike instance and enables the detection of Spring Data repositories (through `@EnableAerospikeRepositories`). The same configuration would look like this in XML:
-
-```xml
-
-<bean id="template" class="org.springframework.data.aerospike.core.AerospikeTemplate">
-  <constructor-arg>
-    <bean class="com.aerospike.client.AerospikeClient">
-       <constructor-arg value="policy" />
-       <constructor-arg value="localhost" />
-       <constructor-arg value="3000" />
-    </bean>
-  </constructor-arg>
-  <constructor-arg value="database" />
-</bean>
-
-<aerospike:repositories base-package="com.acme.repository" />
-```
+This sets up a connection to a local Aerospike instance and enables the detection of Spring Data repositories (through `@EnableAerospikeRepositories`).
 
 This will find the repository interface and register a proxy object in the container. You can use it as shown below:
 
@@ -153,10 +135,7 @@ public class MyService {
 
 Here are some ways for you to get involved in the community:
 
-* Get involved with the Spring community on Stackoverflow and help out on the [spring-data-Aerospike](https://stackoverflow.com/questions/tagged/spring-data-Aerospike) tag by responding to questions and joining the debate.
-* Create [JIRA](https://jira.springframework.org/browse/DATADOC) tickets for bugs and new features and comment and vote on the ones that you are interested in.  
-* Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](https://help.github.com/forking/). If you want to contribute code this way, please reference a JIRA ticket as well covering the specific issue you are addressing.
-* Watch for upcoming articles on Spring by [subscribing](https://spring.io/blog) to spring.io.
-
-Before we accept a non-trivial patch or pull request we will need you to sign the [contributor's agreement](https://support.springsource.com/spring_committer_signup).  Signing the contributor's agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do.  Active contributors might be asked to join the core team, and given the ability to merge pull requests.
-
+* Get involved with the Spring community on Stackoverflow and help out on the [spring-data-aerospike](https://stackoverflow.com/questions/tagged/spring-data-aerospike) tag by responding to questions and joining the debate.
+* Create [Github issue](https://github.com/aerospike-community/spring-data-aerospike/issues) for bugs and new features and comment and vote on the ones that you are interested in. 
+* Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](https://help.github.com/forking/). If you want to contribute code this way, please reference a Github ticket as well covering the specific issue you are addressing.
+* Watch for upcoming articles by [subscribing](https://dev.to/aerospike) to Aerospike Blog.

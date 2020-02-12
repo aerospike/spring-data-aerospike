@@ -116,8 +116,8 @@
 
     <scm>
         <connection>scm:git:git://github.com/spring-projects/spring-data-aerospike.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:spring-projects/spring-data-aerospike.git</developerConnection>
-        <url>https://github.com/spring-projects/spring-data-aerospike</url>
+        <developerConnection>scm:git:ssh://git@github.com:aerospike-community/spring-data-aerospike.git</developerConnection>
+        <url>https://github.com/aerospike-community/spring-data-aerospike</url>
     </scm>
 
     <distributionManagement>
