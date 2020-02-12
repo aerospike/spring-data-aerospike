@@ -178,4 +178,9 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
                 .expectError(DuplicateKeyException.class)
                 .verify();
     }
+
+    @Test
+    public void failTheTest() {
+        assertThat(true).isFalse();
+    }
 }
