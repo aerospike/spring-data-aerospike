@@ -95,7 +95,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void insertsDocumentWithZeroVersionIfThereIsNoDocumentWithSameKey() {
-        VersionedClass document = new VersionedClass(id, "any", 0);
+        VersionedClass document = new VersionedClass(id, "any");
 
         template.insert(document);
 
@@ -104,7 +104,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKey() {
-        VersionedClass document = new VersionedClass(id, "any", 5);
+        VersionedClass document = new VersionedClass(id, "any", 5L);
 
         template.insert(document);
 
@@ -122,7 +122,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void throwsExceptionForDuplicateIdForVersionedDocument() {
-        VersionedClass document = new VersionedClass(id, "any", 5);
+        VersionedClass document = new VersionedClass(id, "any", 5L);
 
         template.insert(document);
         assertThatThrownBy(() -> template.insert(document))

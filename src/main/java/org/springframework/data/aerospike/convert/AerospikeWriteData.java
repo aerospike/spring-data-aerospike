@@ -80,10 +80,6 @@ public class AerospikeWriteData {
 		return Optional.ofNullable(version);
 	}
 
-	public boolean hasVersion() {
-		return version != null;
-	}
-
 	public void setVersion(Integer version) {
 		this.version = version;
 	}
