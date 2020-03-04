@@ -1038,7 +1038,7 @@ public class MappingAerospikeConverterTest {
 	@Test
 	public void shouldNotWriteVersion() throws Exception {
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
-		converter.write(new VersionedClass("id", "data", 42), forWrite);
+		converter.write(new VersionedClass("id", "data", 42L), forWrite);
 
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("@user_key", "id"),

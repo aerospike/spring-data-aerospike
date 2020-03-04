@@ -45,7 +45,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         template.save(first);
         blockingAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
 
-        template.save(new VersionedClass(id, "foo2", 2));
+        template.save(new VersionedClass(id, "foo2", 2L));
 
         Record record2 = client.get(new Policy(), key);
         assertThat(record2.bins.get("notPresent")).isNull();
@@ -62,30 +62,30 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void shouldNotSaveDocumentIfItAlreadyExistsWithZeroVersion() {
-        template.save(new VersionedClass(id, "foo", 0));
+    public void shouldNotSaveDocumentIfItAlreadyExists() {
+        template.save(new VersionedClass(id, "foo"));
 
-        assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo", 0)))
+        assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo")))
                 .isInstanceOf(OptimisticLockingFailureException.class);
     }
 
     @Test
     public void shouldSaveDocumentWithEqualVersion() {
-        template.save(new VersionedClass(id, "foo", 0));
+        template.save(new VersionedClass(id, "foo", 0L));
 
-        template.save(new VersionedClass(id, "foo", 1));
-        template.save(new VersionedClass(id, "foo", 2));
+        template.save(new VersionedClass(id, "foo", 1L));
+        template.save(new VersionedClass(id, "foo", 2L));
     }
 
     @Test
     public void shouldFailSaveNewDocumentWithVersionGreaterThanZero() {
-        assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo", 5)))
+        assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo", 5L)))
                 .isInstanceOf(DataRetrievalFailureException.class);
     }
 
     @Test
     public void shouldUpdateNullField() {
-        VersionedClass versionedClass = new VersionedClass(id, null, 0);
+        VersionedClass versionedClass = new VersionedClass(id, null);
         template.save(versionedClass);
 
         VersionedClass saved = template.findById(id, VersionedClass.class);
@@ -94,7 +94,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldUpdateNullFieldForClassWithVersionField() {
-        VersionedClass versionedClass = new VersionedClass(id, "field", 0);
+        VersionedClass versionedClass = new VersionedClass(id, "field");
         template.save(versionedClass);
 
         VersionedClass byId = template.findById(id, VersionedClass.class);
@@ -123,7 +123,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldUpdateExistingDocument() {
-        VersionedClass one = new VersionedClass(id, "foo", 0);
+        VersionedClass one = new VersionedClass(id, "foo");
         template.save(one);
 
         template.save(new VersionedClass(id, "foo1", one.version));

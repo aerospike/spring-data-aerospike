@@ -19,12 +19,11 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 @Configuration
 public abstract class AbstractReactiveAerospikeDataConfiguration extends AbstractAerospikeDataConfiguration {
     @Bean(name = "reactiveAerospikeTemplate")
-    public ReactiveAerospikeTemplate reactiveAerospikeTemplate(AerospikeClient aerospikeClient,
-                                                               MappingAerospikeConverter mappingAerospikeConverter,
+    public ReactiveAerospikeTemplate reactiveAerospikeTemplate(MappingAerospikeConverter mappingAerospikeConverter,
                                                                AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                                AerospikeReactorClient aerospikeReactorClient) {
-        return new ReactiveAerospikeTemplate(aerospikeClient, nameSpace(), mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, aerospikeReactorClient);
+        return new ReactiveAerospikeTemplate(nameSpace(), mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, aerospikeReactorClient);
     }
 
     @Bean(name = "aerospikeReactorClient")

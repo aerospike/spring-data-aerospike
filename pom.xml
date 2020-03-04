@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>2.3.1.RELEASE</version>
+    <version>2.3.2.RELEASE</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
@@ -21,7 +21,7 @@
 
     <properties>
         <source.level>1.8</source.level>
-        <aerospike>4.4.7</aerospike>
+        <aerospike>4.4.9</aerospike>
 
         <springdata.commons>2.2.3.RELEASE</springdata.commons>
         <springdata.keyvalue>2.2.3.RELEASE</springdata.keyvalue>
@@ -151,7 +151,7 @@
             </dependency>
             <dependency>
                 <groupId>com.aerospike</groupId>
-                <artifactId>aerospike-query-engine</artifactId>
+                <artifactId>aerospike-reactor-query-engine</artifactId>
                 <version>${aerospike}</version>
             </dependency>
             <dependency>
@@ -207,7 +207,7 @@
 
         <dependency>
             <groupId>com.aerospike</groupId>
-            <artifactId>aerospike-query-engine</artifactId>
+            <artifactId>aerospike-reactor-query-engine</artifactId>
         </dependency>
 
         <dependency>

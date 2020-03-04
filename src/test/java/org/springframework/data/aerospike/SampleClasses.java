@@ -300,11 +300,11 @@ public class SampleClasses {
 		private String id;
 
 		@Version
-		public long version;
+		public Long version;// do not change to primitive type. See #72 issue
 
 		public String field;
 
-		public VersionedClass(String id, String field, long version) {
+		public VersionedClass(String id, String field, Long version) {
 			this.id = id;
 			this.field = field;
 			this.version = version;

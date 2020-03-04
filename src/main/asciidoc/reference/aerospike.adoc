@@ -33,7 +33,7 @@ Then add the following to `pom.xml` dependencies section.
   <dependency>
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>2.3.1.RELEASE</version>
+    <version>2.3.2.RELEASE</version>
   </dependency>
 
 </dependencies>
@@ -45,7 +45,7 @@ You can either setup Spring Boot or Spring application. Basic setup of Spring Bo
 |===
 |Spring-data-aerospike Version |Spring Boot Version
 
-|2.3.1.RELEASE
+|2.3.2.RELEASE
 |2.2.x
 
 |2.1.1.RELEASE
