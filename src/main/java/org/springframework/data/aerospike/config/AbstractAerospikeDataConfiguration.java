@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
-import org.springframework.data.aerospike.convert.CustomConversions;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -20,7 +20,6 @@ import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.model.FieldNamingStrategy;
 import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
-import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
@@ -49,8 +48,8 @@ public abstract class AbstractAerospikeDataConfiguration {
     }
 
     @Bean(name = "aerospikeCustomConversions")
-    public CustomConversions customConversions() {
-        return new CustomConversions(customConverters(), simpleTypeHolder());
+    public AerospikeCustomConversions customConversions() {
+        return new AerospikeCustomConversions(customConverters());
     }
 
     protected List<?> customConverters() {
@@ -61,7 +60,7 @@ public abstract class AbstractAerospikeDataConfiguration {
     public AerospikeMappingContext aerospikeMappingContext() throws Exception {
         AerospikeMappingContext context = new AerospikeMappingContext();
         context.setInitialEntitySet(getInitialEntitySet());
-        context.setSimpleTypeHolder(simpleTypeHolder());
+        context.setSimpleTypeHolder(AerospikeSimpleTypes.HOLDER);
         context.setFieldNamingStrategy(fieldNamingStrategy());
         context.setDefaultNameSpace(nameSpace());
         return context;
@@ -70,11 +69,6 @@ public abstract class AbstractAerospikeDataConfiguration {
     @Bean(name = "aerospikeExceptionTranslator")
     public AerospikeExceptionTranslator aerospikeExceptionTranslator() {
         return new DefaultAerospikeExceptionTranslator();
-    }
-
-    @Bean(name = "aerospikeSimpleTypeHolder")
-    protected SimpleTypeHolder simpleTypeHolder() {
-        return AerospikeSimpleTypes.HOLDER;
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")

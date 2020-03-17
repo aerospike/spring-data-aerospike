@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
-import org.springframework.data.aerospike.convert.CustomConversions;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
@@ -25,6 +25,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
@@ -73,7 +74,7 @@ abstract class BaseAerospikeTemplate {
         Assert.notNull(namespace, "Namespace cannot be null");
         Assert.hasLength(namespace, "Namespace cannot be empty");
 
-        CustomConversions customConversions = new CustomConversions(Collections.emptyList(), AerospikeSimpleTypes.HOLDER);
+        CustomConversions customConversions = new AerospikeCustomConversions(Collections.emptyList());
         AerospikeMappingContext asContext = new AerospikeMappingContext();
         asContext.setDefaultNameSpace(namespace);
 

@@ -1,11 +1,24 @@
-/**
+/*
+ * Copyright 2020 the original author or authors
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *        https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
+import lombok.Value;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.beans.HasProperty;
 import org.hamcrest.beans.SamePropertyValuesAs;
@@ -15,18 +28,41 @@ import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverterDeprecatedTest.ClassWithMapUsingEnumAsKey.FooBarEnum;
-import org.springframework.data.aerospike.mapping.*;
+import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.mapping.Document;
+import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.TypeAlias;
+import org.springframework.data.convert.CustomConversions;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Peter Milne
@@ -41,7 +77,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 	private static final String AEROSPIKE_KEY = "AerospikeKey";
 	private static final String AEROSPIKE_SET_NAME = "AerospikeSetName";
 	private static final String AEROSPIKE_NAME_SPACE = "AerospikeNameSpace";
-	private CustomConversions customConversions = new CustomConversions(Collections.emptyList(), AerospikeSimpleTypes.HOLDER);
+	private CustomConversions customConversions = new AerospikeCustomConversions(Collections.emptyList());
 	private AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor = new AerospikeTypeAliasAccessor();
 
 	@Before
@@ -401,6 +437,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		Date birthDate;
 	}
 
+	@Value
 	static class BigDecimalContainer {
 		BigDecimal value;
 		Map<String, BigDecimal> map;

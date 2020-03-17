@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2018 the original author or authors
+ * Copyright 2012-2020 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,7 +95,7 @@ import org.springframework.data.aerospike.SampleClasses.User;
 import org.springframework.data.aerospike.SampleClasses.UserToAerospikeWriteDataConverter;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
-import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
+import org.springframework.data.convert.CustomConversions;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
@@ -121,7 +121,7 @@ public class MappingAerospikeConverterTest {
 		AerospikeMappingContext mappingContext = new AerospikeMappingContext();
 		mappingContext.setApplicationContext(applicationContext);
 		mappingContext.setDefaultNameSpace(NAMESPACE);
-		CustomConversions customConversions = new CustomConversions(asList(customConverters), AerospikeSimpleTypes.HOLDER);
+		CustomConversions customConversions = new AerospikeCustomConversions(asList(customConverters));
 
 		MappingAerospikeConverter converter = new MappingAerospikeConverter(mappingContext, customConversions, typeAliasAccessor);
 		converter.afterPropertiesSet();

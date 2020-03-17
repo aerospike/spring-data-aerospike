@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2018 the original author or authors
+ * Copyright 2012-2020 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
+import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.mapping.MappingException;
@@ -35,6 +36,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.convert.AerospikeMetaData.USER_KEY;
@@ -132,11 +134,10 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 	}
 
 	private Object getSimpleValueToWrite(Object value) {
-		Class<?> customTarget = conversions.getCustomWriteTarget(value.getClass());
-		if (customTarget != null) {
-			return conversionService.convert(value, customTarget);
-		}
-		return value;
+		Optional<Class<?>> customTarget = conversions.getCustomWriteTarget(value.getClass());
+		return customTarget
+				.<Object>map(aClass -> conversionService.convert(value, aClass))
+				.orElse(value);
 	}
 
 	private Object getNonSimpleValueToWrite(Object value, TypeInformation<?> type) {
@@ -150,12 +151,11 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 			return convertMap(asMap(value), type);
 		}
 
-		Class<?> basicTargetType = conversions.getCustomWriteTarget(value.getClass());
-		if (basicTargetType != null) {
-			return conversionService.convert(value, basicTargetType);
-		}
+		Optional<Class<?>> basicTargetType = conversions.getCustomWriteTarget(value.getClass());
+		return basicTargetType
+				.<Object>map(aClass -> conversionService.convert(value, aClass))
+				.orElseGet(() -> convertCustomType(value, valueType));
 
-		return convertCustomType(value, valueType);
 	}
 
 	private List<Object> convertCollection(final Collection<?> source, final TypeInformation<?> type) {
