@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
 import org.joda.time.DateTime;
@@ -130,6 +131,8 @@ public class SampleClasses {
 	@Document
 	@Data
 	public static class CustomTypeWithListAndMap {
+		@Id
+		final String id;
 		final List<Object> listOfObjects;
 		final Map<String, Object> mapWithObjectValue;
 	}
@@ -137,12 +140,16 @@ public class SampleClasses {
 	@Document
 	@Data
 	public static class CustomTypeWithCustomType {
-		final CustomTypeWithListAndMap field;
+		@Id
+		final String id;
+		final ImmutableListAndMap field;
 	}
 
 	@Document
 	@Value
 	public static class CustomTypeWithListAndMapImmutable {
+		@Id
+		final String id;
 		final List<Object> listOfObjects;
 		final Map<String, Object> mapWithObjectValue;
 	}
@@ -150,7 +157,7 @@ public class SampleClasses {
 	@Document
 	@Value
 	public static class CustomTypeWithCustomTypeImmutable {
-		final CustomTypeWithListAndMapImmutable field;
+		final ImmutableListAndMap field;
 	}
 
 
@@ -158,42 +165,56 @@ public class SampleClasses {
 	@Document
 	@Data
 	public static class SortedMapWithSimpleValue {
+		@Id
+		final String id;
 		final SortedMap<String, String> map;
 	}
 
 	@Document
 	@Data
 	public static class NestedMapsWithSimpleValue {
+		@Id
+		final String id;
 		final Map<String, Map<String, Map<String, String>>> nestedMaps;
 	}
 
 	@Document
 	@Data
 	public static class GenericType<T> {
+		@Id
+		final String id;
 		final T content;
 	}
 
 	@Document
 	@Data
 	public static class CollectionOfObjects {
+		@Id
+		final String id;
 		final Collection<Object> collection;
 	}
 
 	@Document
 	@Data
 	public static class ListOfLists {
+		@Id
+		final String id;
 		final List<List<String>> listOfLists;
 	}
 
 	@Document
 	@Data
 	public static class ListOfMaps {
+		@Id
+		final String id;
 		final List<Map<String, Name>> listOfMaps;
 	}
 
 	@Document
 	@Data
 	public static class ContainerOfCustomFieldNames {
+		@Id
+		final String id;
 		@Field("property")
 		final String myField;
 		final CustomFieldNames customFieldNames;
@@ -257,6 +278,12 @@ public class SampleClasses {
 		final Address address;
 	}
 
+	@Value
+	public static class ImmutableListAndMap {
+		final List<Object> listOfObjects;
+		final Map<String, Object> mapWithObjectValue;
+	}
+
 	@Data
 	public static class Name {
 		final String firstName;
@@ -275,10 +302,19 @@ public class SampleClasses {
 		final int number;
 	}
 
-	@EqualsAndHashCode
-	public static class ClassWithIntId {
+	@Data
+	@AllArgsConstructor
+	public static class DocumentWithIntId {
 		@Id
 		public int id;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class DocumentWithStringId {
+		@Id
+		public String id;
 	}
 
 	public static interface Contact {
@@ -376,7 +412,8 @@ public class SampleClasses {
 	@Document
 	@Data
 	public static class EnumProperties {
-
+		@Id
+		String id;
 		TYPES type;
 		List<TYPES> list;
 		EnumSet<TYPES> set;
