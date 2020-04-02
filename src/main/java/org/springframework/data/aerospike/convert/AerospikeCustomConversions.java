@@ -43,8 +43,7 @@ public class AerospikeCustomConversions extends CustomConversions {
         List<Object> converters = new ArrayList<>();
 
         converters.addAll(DateConverters.getConvertersToRegister());
-        converters.add(new LongToBooleanConverter());
-        converters.add(new EnumToStringConverter());
+        converters.addAll(AerospikeConverters.getConvertersToRegister());
 
         STORE_CONVERTERS = Collections.unmodifiableList(converters);
         STORE_CONVERSIONS = StoreConversions.of(AerospikeSimpleTypes.HOLDER, STORE_CONVERTERS);

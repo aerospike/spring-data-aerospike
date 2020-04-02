@@ -437,13 +437,6 @@ public class MappingAerospikeConverterDeprecatedTest {
 		Date birthDate;
 	}
 
-	@Value
-	static class BigDecimalContainer {
-		BigDecimal value;
-		Map<String, BigDecimal> map;
-		List<BigDecimal> collection;
-	}
-
 	static class CollectionWrapper {
 		List<Contact> contacts;
 		List<List<String>> strings;

@@ -15,37 +15,11 @@
  */
 package org.springframework.data.aerospike.convert;
 
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.springframework.data.aerospike.AsCollections.list;
-import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.AsCollections.set;
-import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
-import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_SECOND;
-import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
-import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
-import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
-
-import java.time.Duration;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
-
+import com.aerospike.client.Bin;
+import com.aerospike.client.Key;
+import com.aerospike.client.Record;
+import com.aerospike.client.Value;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.Rule;
@@ -56,6 +30,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.SampleClasses.Address;
 import org.springframework.data.aerospike.SampleClasses.AerospikeReadDataToUserConverter;
+import org.springframework.data.aerospike.SampleClasses.BigDecimalContainer;
 import org.springframework.data.aerospike.SampleClasses.ClassWithComplexId;
 import org.springframework.data.aerospike.SampleClasses.ClassWithIdField;
 import org.springframework.data.aerospike.SampleClasses.ClassWithIntId;
@@ -65,10 +40,10 @@ import org.springframework.data.aerospike.SampleClasses.ComplexIdToStringConvert
 import org.springframework.data.aerospike.SampleClasses.Contact;
 import org.springframework.data.aerospike.SampleClasses.ContainerOfCustomFieldNames;
 import org.springframework.data.aerospike.SampleClasses.CustomFieldNames;
-import org.springframework.data.aerospike.SampleClasses.CustomTypeWithListAndMap;
-import org.springframework.data.aerospike.SampleClasses.CustomTypeWithListAndMapImmutable;
 import org.springframework.data.aerospike.SampleClasses.CustomTypeWithCustomType;
 import org.springframework.data.aerospike.SampleClasses.CustomTypeWithCustomTypeImmutable;
+import org.springframework.data.aerospike.SampleClasses.CustomTypeWithListAndMap;
+import org.springframework.data.aerospike.SampleClasses.CustomTypeWithListAndMapImmutable;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
@@ -96,12 +71,43 @@ import org.springframework.data.aerospike.SampleClasses.UserToAerospikeWriteData
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.convert.CustomConversions;
-
-import com.aerospike.client.Bin;
-import com.aerospike.client.Key;
-import com.aerospike.client.Record;
-import com.aerospike.client.Value;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
+
+import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.springframework.data.aerospike.AsCollections.list;
+import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.AsCollections.set;
+import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
+import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_SECOND;
+import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
+import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
+import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
+import static org.springframework.data.aerospike.assertions.KeyAssert.assertThat;
 
 public class MappingAerospikeConverterTest {
 
@@ -184,7 +190,7 @@ public class MappingAerospikeConverterTest {
 
 		converter.write(object, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, MapWithSimpleValue.class.getSimpleName(), 10L);
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, MapWithSimpleValue.class.getSimpleName(), 10L);
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("mapWithSimpleValue", of("key1", "value1", "key2", "value2", "key3", null)),
 				new Bin("@user_key", "10"),
@@ -215,7 +221,7 @@ public class MappingAerospikeConverterTest {
 
 		converter.write(object, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, MapWithCollectionValue.class.getSimpleName(), 10L);
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, MapWithCollectionValue.class.getSimpleName(), 10L);
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("mapWithCollectionValue", of("key1", list(), "key2", list("a", "b", "c"))),
 				new Bin("@user_key", "10"),
@@ -247,7 +253,7 @@ public class MappingAerospikeConverterTest {
 
 		converter.write(object, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, MapWithGenericValue.class.getSimpleName(), 10L);
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, MapWithGenericValue.class.getSimpleName(), 10L);
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("mapWithNonSimpleValue", of(
 						"key1", of("street", of("name", "Gogolya str.", "number", 15, "@_class", Street.class.getName()),
@@ -265,7 +271,7 @@ public class MappingAerospikeConverterTest {
 				"listOfObjects", ImmutableList.of("firstItem",
 						of("keyInList", "valueInList"),
 						of("street", of("name", "Gogolya str.", "number", 15, "@_class", Street.class.getName()),
-						"apartment", 567, "@_class", Address.class.getName())),
+								"apartment", 567, "@_class", Address.class.getName())),
 				"mapWithObjectValue", of("map", of("key", "value")),
 				"@_class", CustomTypeWithListAndMap.class.getName(),
 				"@user_key", "10"
@@ -281,59 +287,59 @@ public class MappingAerospikeConverterTest {
 		assertThat(actual).isEqualTo(expected);
 	}
 
-    @Test
-    public void shouldReadCustomTypeWithCustomType() throws Exception {
-        Map<String, Object> bins = of("field", of(
-                "listOfObjects", ImmutableList.of("firstItem", of("keyInList", "valueInList")),
-                "mapWithObjectValue", of("map", of("key", "value"),
+	@Test
+	public void shouldReadCustomTypeWithCustomType() throws Exception {
+		Map<String, Object> bins = of("field", of(
+				"listOfObjects", ImmutableList.of("firstItem", of("keyInList", "valueInList")),
+				"mapWithObjectValue", of("map", of("key", "value"),
 						"address", of("street", of("name", "Gogolya str.", "number", 15, "@_class", Street.class.getName()),
 								"apartment", 567, "@_class", Address.class.getName())),
-                "@_class", CustomTypeWithCustomType.class.getName(),
-                "@user_key", "10"
-        ));
-        AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 10L), record(bins));
+				"@_class", CustomTypeWithCustomType.class.getName(),
+				"@user_key", "10"
+		));
+		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 10L), record(bins));
 
-        CustomTypeWithCustomType actual = converter.read(CustomTypeWithCustomType.class, forRead);
+		CustomTypeWithCustomType actual = converter.read(CustomTypeWithCustomType.class, forRead);
 
-        CustomTypeWithCustomType expected = new CustomTypeWithCustomType(new CustomTypeWithListAndMap(ImmutableList.of("firstItem", of("keyInList", "valueInList")),
-                of("map", of("key", "value"),
+		CustomTypeWithCustomType expected = new CustomTypeWithCustomType(new CustomTypeWithListAndMap(ImmutableList.of("firstItem", of("keyInList", "valueInList")),
+				of("map", of("key", "value"),
 						"address", new Address(new Street("Gogolya str.", 15), 567))));
-        assertThat(actual).isEqualTo(expected);
-    }
+		assertThat(actual).isEqualTo(expected);
+	}
 
-    @Test
-    public void shouldReadListsAndMapsWithObjectImmutable() throws Exception {
-        Map<String, Object> bins = of(
-                "listOfObjects", ImmutableList.of("firstItem", of("keyInList", "valueInList")),
-                "mapWithObjectValue", of("map", of("key", "value")),
-                "@_class", CustomTypeWithListAndMapImmutable.class.getName(),
-                "@user_key", "10"
-        );
-        AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 10L), record(bins));
+	@Test
+	public void shouldReadListsAndMapsWithObjectImmutable() throws Exception {
+		Map<String, Object> bins = of(
+				"listOfObjects", ImmutableList.of("firstItem", of("keyInList", "valueInList")),
+				"mapWithObjectValue", of("map", of("key", "value")),
+				"@_class", CustomTypeWithListAndMapImmutable.class.getName(),
+				"@user_key", "10"
+		);
+		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 10L), record(bins));
 
-        CustomTypeWithListAndMapImmutable actual = converter.read(CustomTypeWithListAndMapImmutable.class, forRead);
+		CustomTypeWithListAndMapImmutable actual = converter.read(CustomTypeWithListAndMapImmutable.class, forRead);
 
-        CustomTypeWithListAndMapImmutable expected = new CustomTypeWithListAndMapImmutable(ImmutableList.of("firstItem", of("keyInList", "valueInList")),
-                of("map", of("key", "value")));
-        assertThat(actual).isEqualTo(expected);
-    }
+		CustomTypeWithListAndMapImmutable expected = new CustomTypeWithListAndMapImmutable(ImmutableList.of("firstItem", of("keyInList", "valueInList")),
+				of("map", of("key", "value")));
+		assertThat(actual).isEqualTo(expected);
+	}
 
-    @Test
-    public void shouldReadCustomTypeWithCustomTypeImmutable() throws Exception {
-        Map<String, Object> bins = of("field", of(
-                "listOfObjects", ImmutableList.of("firstItem", of("keyInList", "valueInList")),
-                "mapWithObjectValue", of("map", of("key", "value")),
-                "@_class", CustomTypeWithCustomTypeImmutable.class.getName(),
-                "@user_key", "10"
-        ));
-        AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 10L), record(bins));
+	@Test
+	public void shouldReadCustomTypeWithCustomTypeImmutable() throws Exception {
+		Map<String, Object> bins = of("field", of(
+				"listOfObjects", ImmutableList.of("firstItem", of("keyInList", "valueInList")),
+				"mapWithObjectValue", of("map", of("key", "value")),
+				"@_class", CustomTypeWithCustomTypeImmutable.class.getName(),
+				"@user_key", "10"
+		));
+		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 10L), record(bins));
 
-        CustomTypeWithCustomTypeImmutable actual = converter.read(CustomTypeWithCustomTypeImmutable.class, forRead);
+		CustomTypeWithCustomTypeImmutable actual = converter.read(CustomTypeWithCustomTypeImmutable.class, forRead);
 
-        CustomTypeWithCustomTypeImmutable expected = new CustomTypeWithCustomTypeImmutable(new CustomTypeWithListAndMapImmutable(ImmutableList.of("firstItem", of("keyInList", "valueInList")),
-                of("map", of("key", "value"))));
-        assertThat(actual).isEqualTo(expected);
-    }
+		CustomTypeWithCustomTypeImmutable expected = new CustomTypeWithCustomTypeImmutable(new CustomTypeWithListAndMapImmutable(ImmutableList.of("firstItem", of("keyInList", "valueInList")),
+				of("map", of("key", "value"))));
+		assertThat(actual).isEqualTo(expected);
+	}
 
 	@Test
 	public void shouldReadMapWithNonSimpleValue() throws Exception {
@@ -366,7 +372,7 @@ public class MappingAerospikeConverterTest {
 
 		converter.write(object, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, SIMPLESET, 0);
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, SIMPLESET, 0);
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("field1", "abyrvalg"),
 				new Bin("field2", 13),
@@ -378,7 +384,7 @@ public class MappingAerospikeConverterTest {
 				new Bin("field8", "SECOND"),
 				new Bin("field9", list("val2", "val1")),
 				new Bin("field10", list(list(), list("1", "2"), list("3", "4"))),
-				new Bin("field11", (byte)1),
+				new Bin("field11", (byte) 1),
 //				new Bin("field12", (byte)'d'),//TODO: chars not supported
 				new Bin("@_class", "simpleclass"),
 				new Bin("@user_key", "0")
@@ -398,15 +404,15 @@ public class MappingAerospikeConverterTest {
 		bins.put("field8", "SECOND");
 		bins.put("field9", list("val1", "val2"));
 		bins.put("field10", list(list(), list("1", "2"), list("3", "4")));
-		bins.put("field11", (byte)1);
-		bins.put("field12", (byte)'d');//TODO: chars not supported
+		bins.put("field11", (byte) 1);
+		bins.put("field12", (byte) 'd');//TODO: chars not supported
 		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 867), record(bins));
 
 		SimpleClass actual = converter.read(SimpleClass.class, forRead);
 
 		assertThat(actual).isEqualTo(new SimpleClass(867, "abyrvalg", 13, 14L, (float) 15, 16.0, true,
 				new Date(77777L), TYPES.SECOND, set("val1", "val2"), set(set("1", "2"), set("3", "4"), set()),
-				(byte)1));
+				(byte) 1));
 	}
 
 	@Test
@@ -416,7 +422,7 @@ public class MappingAerospikeConverterTest {
 
 		converter.write(object, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, SIMPLESET2, 17);
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, SIMPLESET2, 17);
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("@user_key", "17"),
 				new Bin("@_class", SimpleClassWithPersistenceConstructor.class.getName()),
@@ -465,7 +471,7 @@ public class MappingAerospikeConverterTest {
 
 		converter.write(object, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, SIMPLESET3, 10);
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, SIMPLESET3, 10);
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("@user_key", "10"),
 				new Bin("@_class", User.class.getName()),
@@ -486,7 +492,7 @@ public class MappingAerospikeConverterTest {
 
 		converter.write(value, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, "ClassWithIntId", 5);
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, "ClassWithIntId", 5);
 		assertThat(forWrite.getBins()).contains(new Bin("@user_key", "5"));
 	}
 
@@ -511,7 +517,7 @@ public class MappingAerospikeConverterTest {
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
 		converter.write(person, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, "Person", "kate-01");
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, "Person", "kate-01");
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("@_class", Person.class.getName()),
 				new Bin("@user_key", "kate-01"),
@@ -674,8 +680,8 @@ public class MappingAerospikeConverterTest {
 	@Test
 	public void shouldReadGenericType() throws Exception {
 		Map<String, Object> bins = of(
-				  "@_class", GenericType.class.getName(),
-				  "content", "string"
+				"@_class", GenericType.class.getName(),
+				"content", "string"
 		);
 		AerospikeReadData dbObject = AerospikeReadData.forRead(new Key(NAMESPACE, "GenericType", 10L), record(bins));
 
@@ -783,7 +789,7 @@ public class MappingAerospikeConverterTest {
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
 		converter.write(object, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, ClassWithComplexId.class.getSimpleName(), "id::10");
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, ClassWithComplexId.class.getSimpleName(), "id::10");
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("@_class", ClassWithComplexId.class.getName()),
 				new Bin("@user_key", "id::10")
@@ -851,7 +857,7 @@ public class MappingAerospikeConverterTest {
 		User user = new User(678, new Name("Nastya", "Smirnova"), null);
 		converter.write(user, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), "custom-namespace", "custom-set", 678L);
+		assertThat(forWrite.getKey()).consistsOf("custom-namespace", "custom-set", 678L);
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("fs", "Nastya"), new Bin("ls", "Smirnova")
 		);
@@ -871,7 +877,7 @@ public class MappingAerospikeConverterTest {
 		User user = new User(678L, null, null);
 		converter.write(user, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, SIMPLESET3, user.getId());
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, SIMPLESET3, user.getId());
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("@user_key", "678")
 		);
@@ -889,7 +895,7 @@ public class MappingAerospikeConverterTest {
 				of("key", new ClassWithIdField(45L, "v")));
 		converter.write(expected, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, MapWithGenericValue.class.getSimpleName(), 788L);
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, MapWithGenericValue.class.getSimpleName(), 788L);
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("@_class", MapWithGenericValue.class.getName()),
 				new Bin("@user_key", "788"),
@@ -1054,7 +1060,7 @@ public class MappingAerospikeConverterTest {
 
 		converter.write(object, forWrite);
 
-		assertThatKeyIsEqualTo(forWrite.getKey(), NAMESPACE, "DocumentWithByteArray", "user-id");
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, "DocumentWithByteArray", "user-id");
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("@user_key", "user-id"),
 				new Bin("@_class", DocumentWithByteArray.class.getName()),
@@ -1073,6 +1079,33 @@ public class MappingAerospikeConverterTest {
 	}
 
 	@Test
+	public void shouldReadAndWriteObjectWithBigDecimal() {
+		Map<String, BigDecimal> bigDecimalMap = new HashMap<>();
+		bigDecimalMap.put("big-decimal-val", new BigDecimal("767867678687678"));
+		List<BigDecimal> bigDecimalList = Arrays.asList(new BigDecimal("988687642340235"));
+		BigDecimal bigDecimal = new BigDecimal("999999999999999999999999998746");
+		BigDecimalContainer object = new BigDecimalContainer("my-id", bigDecimal, bigDecimalMap, bigDecimalList);
+		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
+
+		converter.write(object, forWrite);
+
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, "BigDecimalContainer", "my-id");
+		assertThat(forWrite.getBins()).containsOnly(
+				new Bin("@user_key", "my-id"),
+				new Bin("@_class", BigDecimalContainer.class.getName()),
+				new Bin("collection", list("988687642340235")),
+				new Bin("value", "999999999999999999999999998746"),
+				new Bin("map", of("big-decimal-val", "767867678687678"))
+		);
+
+		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), record(forWrite.getBins()));
+
+		BigDecimalContainer actual = converter.read(BigDecimalContainer.class, forRead);
+
+		assertThat(actual).isEqualTo(object);
+	}
+
+	@Test
 	public void shouldReadObjectWithByteArrayFieldWithOneValueInData() {
 		Map<String, Object> bins = new HashMap<>();
 		bins.put("array", 1);
@@ -1083,13 +1116,13 @@ public class MappingAerospikeConverterTest {
 		assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1}));
 	}
 
-	private void assertThatKeyIsEqualTo(Key key, String namespace, String myset, Object expected) {
-		assertThat(key.namespace).isEqualTo(namespace);
-		assertThat(key.setName).isEqualTo(myset);
-		assertThat(key.userKey.getObject()).isEqualTo(String.valueOf(expected));
+	private static Record record(Collection<Bin> bins) {
+		Map<String, Object> collect = bins.stream()
+				.collect(Collectors.toMap(bin -> bin.name, bin -> bin.value.getObject()));
+		return record(collect);
 	}
 
-	private Record record(Map<String, Object> bins) {
+	private static Record record(Map<String, Object> bins) {
 		return new Record(bins, 0, 0);
 	}
 }

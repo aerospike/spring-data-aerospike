@@ -15,6 +15,9 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -23,18 +26,76 @@ import org.springframework.core.convert.converter.Converter;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Value;
 import com.aerospike.client.Value.GeoJSONValue;
+import org.springframework.data.convert.ReadingConverter;
+import org.springframework.data.convert.WritingConverter;
+import org.springframework.util.StringUtils;
 
 /**
  * Wrapper class to contain useful converters 
  * 
  * @author Peter Milne
+ * @author Anastasiia Smirnova
  */
 abstract class AerospikeConverters {
 
-	/**
-	 * Private constructor to prevent instantiation.
-	 */
 	private AerospikeConverters() {}
+
+	static Collection<Object> getConvertersToRegister() {
+
+		List<Object> converters = new ArrayList<>();
+
+		converters.add(BigDecimalToStringConverter.INSTANCE);
+		converters.add(StringToBigDecimalConverter.INSTANCE);
+		converters.add(LongToBooleanConverter.INSTANCE);
+		converters.add(EnumToStringConverter.INSTANCE);
+
+		return converters;
+	}
+
+	public enum BigDecimalToStringConverter implements Converter<BigDecimal, String> {
+		INSTANCE;
+
+		public String convert(BigDecimal source) {
+			return source.toString();
+		}
+	}
+
+	public enum StringToBigDecimalConverter implements Converter<String, BigDecimal> {
+		INSTANCE;
+
+		public BigDecimal convert(String source) {
+			return StringUtils.hasText(source) ? new BigDecimal(source) : null;
+		}
+	}
+
+	/**
+	 * @author Peter Milne
+	 * @author Jean Mercier
+	 */
+	@ReadingConverter
+	public enum LongToBooleanConverter implements Converter<Long, Boolean> {
+		INSTANCE;
+
+		@Override
+		public Boolean convert(Long source) {
+			return source != 0L;
+		}
+
+	}
+
+	/**
+	 * @author Anastasiia Smirnova
+	 */
+	@WritingConverter
+	public enum EnumToStringConverter implements Converter<Enum<?>, String> {
+		INSTANCE;
+
+		@Override
+		public String convert(Enum<?> source) {
+			return source.name();
+		}
+
+	}
 
 	public static enum LongToValueConverter implements Converter<Long, Value> {
 		INSTANCE;

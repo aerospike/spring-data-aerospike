@@ -37,6 +37,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -114,6 +115,16 @@ public class SampleClasses {
 		@Id
 		final long id;
 		final Map<String, T> mapWithNonSimpleValue;
+	}
+
+	@Document
+	@Value
+	public static class BigDecimalContainer {
+		@Id
+		String id;
+		BigDecimal value;
+		Map<String, BigDecimal> map;
+		List<BigDecimal> collection;
 	}
 
 	@Document
