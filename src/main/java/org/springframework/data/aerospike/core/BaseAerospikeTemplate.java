@@ -31,7 +31,6 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.util.Assert;
-import org.springframework.util.comparator.CompoundComparator;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -135,20 +134,15 @@ abstract class BaseAerospikeTemplate {
         return converter.read(type, data);
     }
 
-    protected Comparator<?> getComparator(Query query) {
-        //TODO replace with not deprecated one
+    protected <T> Comparator<T> getComparator(Query query) {
         //TODO also see NullSafeComparator
-        CompoundComparator<?> compoundComperator = new CompoundComparator();
+        Comparator<T> comparator = (first, second) -> 0;
         for (Sort.Order order : query.getSort()) {
-
-            if (Sort.Direction.DESC.equals(order.getDirection())) {
-                compoundComperator.addComparator(new PropertyComparator<>(order.getProperty(), true, false));
-            }else {
-                compoundComperator.addComparator(new PropertyComparator<>(order.getProperty(), true, true));
-            }
+            boolean ascending = Sort.Direction.ASC.equals(order.getDirection());
+            comparator = comparator.thenComparing(new PropertyComparator<>(order.getProperty(), true, ascending));
         }
 
-        return compoundComperator;
+        return comparator;
     }
 
     <T> ConvertingPropertyAccessor<T> getPropertyAccessor(AerospikePersistentEntity<?> entity, T source) {
@@ -216,10 +210,14 @@ abstract class BaseAerospikeTemplate {
                 .build();
     }
 
+    protected String getSetName(Object id, AerospikePersistentEntity<?> entity) {
+        return entity.getSetName();
+    }
+
     Key getKey(Object id, AerospikePersistentEntity<?> entity) {
         Assert.notNull(id, "Id must not be null!");
         String userKey = convertIfNecessary(id, String.class);
-        return new Key(this.namespace, entity.getSetName(), userKey);
+        return new Key(this.namespace, getSetName(id, entity), userKey);
     }
 
     @SuppressWarnings("unchecked")
