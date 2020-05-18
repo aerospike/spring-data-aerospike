@@ -139,7 +139,11 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		} else if (propertyType.isMap()) {
 			return (T) convertMap((Map<String, Object>) source, propertyType);
 		} else if (source instanceof Map) { // custom type
-			return convertCustomType((Map<String, Object>) source, propertyType);
+			if (targetClass == Object.class) {
+				return (T) source;
+			} else {
+				return convertCustomType((Map<String, Object>) source, propertyType);
+			}
 		}
 		return (T) convertIfNeeded(source, targetClass);
 	}
