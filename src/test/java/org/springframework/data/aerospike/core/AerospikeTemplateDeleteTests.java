@@ -18,10 +18,14 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.policy.GenerationPolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
+import org.springframework.data.aerospike.SampleClasses.CustomCollectionClassToDelete;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.annotation.Id;
 
 import java.util.Arrays;
 
@@ -103,19 +107,18 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     public void deleteByType_ShouldDeleteAllDocumentsWithCustomSetName() {
         String id1 = nextId();
         String id2 = nextId();
-        template.save(new CustomCollectionClass(id1, "field-value"));
-        template.save(new CustomCollectionClass(id2, "field-value"));
+        template.save(new CustomCollectionClassToDelete(id1));
+        template.save(new CustomCollectionClassToDelete(id2));
 
-        assertThat(template.findByIds(Arrays.asList(id1, id2), CustomCollectionClass.class)).hasSize(2);
+        assertThat(template.findByIds(Arrays.asList(id1, id2), CustomCollectionClassToDelete.class)).hasSize(2);
 
-        template.delete(CustomCollectionClass.class);
+        template.delete(CustomCollectionClassToDelete.class);
 
         // truncate is async operation that is why we need to wait until
         // it completes
         await().atMost(TEN_SECONDS)
                 .untilAsserted(() -> {
-                    assertThat(template.findById(id1, CustomCollectionClass.class)).isNull();
-                    assertThat(template.findById(id2, CustomCollectionClass.class)).isNull();
+                    assertThat(template.findByIds(Arrays.asList(id1, id2), CustomCollectionClassToDelete.class)).hasSize(0);
                 });
     }
 
