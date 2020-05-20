@@ -399,6 +399,15 @@ public class SampleClasses {
 		}
 	}
 
+	@Value
+	@Document(collection = "set-to-delete")
+	public static class CustomCollectionClassToDelete {
+
+		@Id
+		private String id;
+
+	}
+
 	@Data
 	@AllArgsConstructor
 	@Document(expiration = EXPIRATION_ONE_SECOND)
