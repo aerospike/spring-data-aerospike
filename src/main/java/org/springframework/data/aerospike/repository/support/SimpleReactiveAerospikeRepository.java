@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository.support;
 
+import com.aerospike.client.query.IndexType;
 import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
@@ -120,4 +121,13 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     public Mono<Void> deleteAll() {
         throw new UnsupportedOperationException("Method not supported yet.");
     }
+
+    public void createIndex(Class<T> domainType, String indexName, String binName, IndexType indexType) {
+        operations.createIndex(domainType, indexName, binName, indexType);
+    }
+
+    public void deleteIndex(Class<T> domainType, String indexName) {
+        operations.deleteIndex(domainType, indexName);
+    }
+
 }

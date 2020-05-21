@@ -15,12 +15,12 @@
  */
 package org.springframework.data.aerospike.repository.support;
 
+import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.sample.Customer;
@@ -211,5 +211,19 @@ public class SimpleReactiveAerospikeRepositoryTest {
 
         repository.deleteAll(Flux.fromIterable(testCustomers)).block();
         verify(operations, times(testCustomers.size())).delete(any(Customer.class));
+    }
+
+    @Test
+    public void testCreateIndex() {
+        repository.createIndex(Customer.class, "index_first_name", "firstName", IndexType.STRING);
+
+        verify(operations).createIndex(Customer.class, "index_first_name", "firstName", IndexType.STRING);
+    }
+
+    @Test
+    public void testDeleteIndex() {
+        repository.deleteIndex(Customer.class, "index_first_name");
+
+        verify(operations).deleteIndex(Customer.class, "index_first_name");
     }
 }

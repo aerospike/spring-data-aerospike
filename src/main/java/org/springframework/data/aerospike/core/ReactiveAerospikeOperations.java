@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -58,4 +59,22 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> delete(T objectToDelete);
 
     MappingContext<?, ?> getMappingContext();
+
+    /**
+     * Creates index by specified name in Aerospike.
+     * @param entityClass
+     * @param indexName
+     * @param binName
+     * @param indexType
+     */
+    <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
+                                      String binName, IndexType indexType);
+
+    /**
+     * Deletes index by specified name from Aerospike.
+     * @param entityClass
+     * @param indexName
+     */
+    <T> Mono<Void> deleteIndex(Class<T> entityClass, String indexName);
+
 }

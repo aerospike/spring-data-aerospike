@@ -9,6 +9,8 @@ import com.aerospike.client.Value;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
+import com.aerospike.client.query.IndexCollectionType;
+import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.reactor.AerospikeReactorClient;
 import com.aerospike.helper.query.Qualifier;
@@ -311,6 +313,30 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return this.reactorClient
                 .delete(ignoreGenerationDeletePolicy(), data.getKey())
                 .map(key -> true)
+                .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
+                                String binName, IndexType indexType) {
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(indexName, "Index name must not be null!");
+
+        String setName = getSetName(entityClass);
+        return reactorClient.createIndex(null, this.namespace,
+                setName, indexName, binName, indexType, IndexCollectionType.DEFAULT)
+                .then(queryEngine.refreshIndexes())
+                .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public <T> Mono<Void> deleteIndex(Class<T> entityClass, String indexName) {
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(indexName, "Index name must not be null!");
+
+        String setName = getSetName(entityClass);
+        return reactorClient.dropIndex(null, this.namespace, setName, indexName)
+                .then(queryEngine.refreshIndexes())
                 .onErrorMap(this::translateError);
     }
 
