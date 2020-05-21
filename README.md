@@ -1,9 +1,9 @@
-# Spring Data Aerospike [![maven][maven-image]][maven-url] [![circle-ci][circle-ci-image]][circle-ci-url]
+# Spring Data Aerospike [![maven][maven-image]][maven-url] [![ci][ci-image]][ci-url]
 
 [maven-image]: https://img.shields.io/maven-central/v/com.aerospike/spring-data-aerospike.svg?maxAge=259200
 [maven-url]: https://search.maven.org/#search%7Cga%7C1%7Ca%3A%22spring-data-aerospike%22
-[circle-ci-image]: https://circleci.com/gh/aerospike-community/spring-data-aerospike.svg?style=shield
-[circle-ci-url]: https://circleci.com/gh/aerospike-community/spring-data-aerospike
+[ci-image]: https://github.com/aerospike-community/spring-data-aerospike/workflows/Build%20project/badge.svg
+[ci-url]: https://github.com/aerospike-community/spring-data-aerospike/actions?query=branch%3Amaster
 
 The primary goal of the [Spring Data](https://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
