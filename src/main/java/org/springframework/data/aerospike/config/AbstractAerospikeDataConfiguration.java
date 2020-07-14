@@ -17,6 +17,13 @@ import org.springframework.data.aerospike.core.DefaultAerospikeExceptionTranslat
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
 import org.springframework.data.aerospike.mapping.Document;
+import org.springframework.data.aerospike.query.QueryEngine;
+import org.springframework.data.aerospike.query.cache.IndexesCache;
+import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
+import org.springframework.data.aerospike.query.cache.IndexInfoParser;
+import org.springframework.data.aerospike.query.cache.IndexRefresher;
+import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
+import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.model.FieldNamingStrategy;
 import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
@@ -32,8 +39,27 @@ public abstract class AbstractAerospikeDataConfiguration {
     public AerospikeTemplate aerospikeTemplate(AerospikeClient aerospikeClient,
                                                MappingAerospikeConverter mappingAerospikeConverter,
                                                AerospikeMappingContext aerospikeMappingContext,
-                                               AerospikeExceptionTranslator aerospikeExceptionTranslator) {
-        return new AerospikeTemplate(aerospikeClient, nameSpace(), mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator);
+                                               AerospikeExceptionTranslator aerospikeExceptionTranslator,
+                                               QueryEngine queryEngine, IndexRefresher indexRefresher) {
+        return new AerospikeTemplate(aerospikeClient, nameSpace(), mappingAerospikeConverter,
+                aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine, indexRefresher);
+    }
+
+    @Bean(name = "aerospikeQueryEngine")
+    public QueryEngine queryEngine(AerospikeClient aerospikeClient, IndexesCache indexesCache) {
+        return new QueryEngine(aerospikeClient, aerospikeClient.getQueryPolicyDefault(), indexesCache);
+    }
+
+    @Bean(name = "aerospikeIndexCache")
+    public IndexesCacheHolder indexCache() {
+        return new IndexesCacheHolder();
+    }
+
+    @Bean(name = "aerospikeIndexRefresher")
+    public IndexRefresher indexRefresher(AerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater) {
+        IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(), new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater);
+        refresher.refreshIndexes();
+        return refresher;
     }
 
     @Bean(name = "mappingAerospikeConverter")

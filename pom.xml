@@ -152,11 +152,6 @@
             </dependency>
             <dependency>
                 <groupId>com.aerospike</groupId>
-                <artifactId>aerospike-reactor-query-engine</artifactId>
-                <version>${aerospike}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.aerospike</groupId>
                 <artifactId>aerospike-reactor-client</artifactId>
                 <version>${aerospike}</version>
             </dependency>
@@ -204,11 +199,6 @@
             <groupId>com.aerospike</groupId>
             <artifactId>aerospike-reactor-client</artifactId>
             <optional>true</optional>
-        </dependency>
-
-        <dependency>
-            <groupId>com.aerospike</groupId>
-            <artifactId>aerospike-reactor-query-engine</artifactId>
         </dependency>
 
         <dependency>

@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.springframework.data.repository.query;
+package org.springframework.data.aerospike.repository.query;
 
 
 import java.lang.reflect.Method;

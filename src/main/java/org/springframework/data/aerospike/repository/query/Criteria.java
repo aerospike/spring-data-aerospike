@@ -13,8 +13,8 @@ import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.util.CollectionUtils;
 
 import com.aerospike.client.Value;
-import com.aerospike.helper.query.Qualifier;
-import com.aerospike.helper.query.Qualifier.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.Qualifier.FilterOperation;
 
 /**
  *

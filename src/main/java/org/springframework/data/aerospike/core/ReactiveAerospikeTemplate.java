@@ -13,13 +13,14 @@ import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.reactor.AerospikeReactorClient;
-import com.aerospike.helper.query.Qualifier;
-import com.aerospike.helper.query.ReactorQueryEngine;
+import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
@@ -52,16 +53,19 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private final ReactorQueryEngine queryEngine;
 
-    public ReactiveAerospikeTemplate(String namespace,
+    private final ReactorIndexRefresher reactorIndexRefresher;
+
+    public ReactiveAerospikeTemplate(AerospikeReactorClient reactorClient,
+                                     String namespace,
                                      MappingAerospikeConverter converter,
                                      AerospikeMappingContext mappingContext,
                                      AerospikeExceptionTranslator exceptionTranslator,
-                                     AerospikeReactorClient reactorClient) {
+                                     ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher) {
         super(namespace, converter, mappingContext, exceptionTranslator, reactorClient.getWritePolicyDefault());
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
         this.reactorClient = reactorClient;
-        this.queryEngine = new ReactorQueryEngine(reactorClient);
-        this.queryEngine.refreshIndexes().block();
+        this.queryEngine = queryEngine;
+        this.reactorIndexRefresher = reactorIndexRefresher;
     }
 
     @Override
@@ -326,7 +330,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         String setName = getSetName(entityClass);
         return reactorClient.createIndex(null, this.namespace,
                 setName, indexName, binName, indexType, IndexCollectionType.DEFAULT)
-                .then(queryEngine.refreshIndexes())
+                .then(reactorIndexRefresher.refreshIndexes())
                 .onErrorMap(this::translateError);
     }
 
@@ -337,7 +341,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         String setName = getSetName(entityClass);
         return reactorClient.dropIndex(null, this.namespace, setName, indexName)
-                .then(queryEngine.refreshIndexes())
+                .then(reactorIndexRefresher.refreshIndexes())
                 .onErrorMap(this::translateError);
     }
 

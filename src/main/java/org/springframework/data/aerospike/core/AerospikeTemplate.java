@@ -33,14 +33,15 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
-import com.aerospike.helper.query.KeyRecordIterator;
-import com.aerospike.helper.query.Qualifier;
-import com.aerospike.helper.query.QueryEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.query.KeyRecordIterator;
+import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.QueryEngine;
+import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
@@ -75,37 +76,19 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 	private final AerospikeClient client;
 	private final QueryEngine queryEngine;
+	private final IndexRefresher indexRefresher;
 
-	/**
-	 * Creates a new {@link AerospikeTemplate} for the given
-	 * {@link AerospikeClient}.
-	 *
-	 * @param client must not be {@literal null}.
-	 * @param namespace must not be {@literal null} or empty.
-	 * @param converter
-	 * @param mappingContext
-	 * @param exceptionTranslator
-	 */
 	public AerospikeTemplate(AerospikeClient client,
 							 String namespace,
 							 MappingAerospikeConverter converter,
 							 AerospikeMappingContext mappingContext,
-							 AerospikeExceptionTranslator exceptionTranslator) {
-        super(namespace, converter, mappingContext, exceptionTranslator, client.writePolicyDefault);
-
-        this.client = client;
-		this.queryEngine = new QueryEngine(this.client);
-	}
-
-	/**
-	 * Instead use the other constructor.
-	 */
-	@Deprecated
-	public AerospikeTemplate(AerospikeClient client, String namespace) {
-	    super(namespace, client.writePolicyDefault);
-
-	    this.client = client;
-		this.queryEngine = new QueryEngine(this.client);
+							 AerospikeExceptionTranslator exceptionTranslator,
+							 QueryEngine queryEngine,
+							 IndexRefresher indexRefresher) {
+		super(namespace, converter, mappingContext, exceptionTranslator, client.writePolicyDefault);
+		this.client = client;
+		this.queryEngine = queryEngine;
+		this.indexRefresher = indexRefresher;
 	}
 
 	@Override
@@ -121,7 +104,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			if (task != null) {
 				task.waitTillComplete();
 			}
-			queryEngine.refreshIndexes();
+			indexRefresher.refreshIndexes();
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
@@ -138,7 +121,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			if (task != null) {
 				task.waitTillComplete();
 			}
-			queryEngine.refreshIndexes();
+			indexRefresher.refreshIndexes();
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}

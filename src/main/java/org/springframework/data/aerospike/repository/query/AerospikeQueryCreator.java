@@ -35,7 +35,7 @@ import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.PartTree;
 
 import com.aerospike.client.Value;
-import com.aerospike.helper.query.Qualifier.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier.FilterOperation;
 
 /**
  *

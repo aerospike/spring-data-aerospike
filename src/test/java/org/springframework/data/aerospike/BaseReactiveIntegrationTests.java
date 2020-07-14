@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.query.QueryEngine;
+import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import reactor.blockhound.BlockHound;
 import reactor.blockhound.BlockingOperationError;
 import reactor.core.publisher.Mono;
@@ -19,6 +21,8 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     protected ReactiveAerospikeTemplate reactiveTemplate;
     @Autowired
     protected AerospikeReactorClient reactorClient;
+    @Autowired
+    protected ReactorQueryEngine reactorQueryEngine;
 
     protected <T> T findById(Serializable id, Class<T> type) {
         return reactiveTemplate.findById(id, type).block();

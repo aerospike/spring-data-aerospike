@@ -17,7 +17,7 @@
 package org.springframework.data.aerospike.repository.query;
 
 import com.aerospike.client.Value;
-import com.aerospike.helper.query.Qualifier;
+import org.springframework.data.aerospike.query.Qualifier;
 
 /**
  * @author Michael Zhang
@@ -45,7 +45,7 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 	 * @param criteria
 	 */
 	public static AerospikeCriteria or(AerospikeCriteria... criteria) {
-		return new AerospikeCriteria (Qualifier.FilterOperation.OR, criteria);
+		return new AerospikeCriteria(Qualifier.FilterOperation.OR, criteria);
 	}
 	
 

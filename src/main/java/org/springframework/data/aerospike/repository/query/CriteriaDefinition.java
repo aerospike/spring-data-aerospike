@@ -4,7 +4,7 @@
 package org.springframework.data.aerospike.repository.query;
 
 import com.aerospike.client.query.Filter;
-import com.aerospike.helper.query.Qualifier;
+import org.springframework.data.aerospike.query.Qualifier;
 
 /**
  *

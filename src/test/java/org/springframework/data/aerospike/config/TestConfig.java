@@ -21,6 +21,7 @@ import org.springframework.data.aerospike.repository.config.EnableReactiveAerosp
 import org.springframework.data.aerospike.sample.ContactRepository;
 import org.springframework.data.aerospike.sample.CustomerRepository;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
+import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -82,7 +83,7 @@ public class TestConfig extends AbstractReactiveAerospikeDataConfiguration  {
     }
 
     @Bean
-	BlockingAerospikeTestOperations blockingAerospikeTestOperations(AerospikeTemplate template, AerospikeClient client) {
-		return new BlockingAerospikeTestOperations(template, client);
+	BlockingAerospikeTestOperations blockingAerospikeTestOperations(AerospikeTemplate template, AerospikeClient client, GenericContainer aerospike) {
+		return new BlockingAerospikeTestOperations(template, client, aerospike);
 	}
 }

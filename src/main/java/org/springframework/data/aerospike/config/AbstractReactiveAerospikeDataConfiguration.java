@@ -10,6 +10,13 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.query.ReactorQueryEngine;
+import org.springframework.data.aerospike.query.cache.IndexesCache;
+import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
+import org.springframework.data.aerospike.query.cache.IndexInfoParser;
+import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
+import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
+import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 
 /**
  * Configuration with beans needed for reactive stuff
@@ -18,12 +25,34 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
  */
 @Configuration
 public abstract class AbstractReactiveAerospikeDataConfiguration extends AbstractAerospikeDataConfiguration {
+
     @Bean(name = "reactiveAerospikeTemplate")
     public ReactiveAerospikeTemplate reactiveAerospikeTemplate(MappingAerospikeConverter mappingAerospikeConverter,
                                                                AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
-                                                               AerospikeReactorClient aerospikeReactorClient) {
-        return new ReactiveAerospikeTemplate(nameSpace(), mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, aerospikeReactorClient);
+                                                               AerospikeReactorClient aerospikeReactorClient,
+                                                               ReactorQueryEngine reactorQueryEngine, ReactorIndexRefresher reactorIndexRefresher) {
+        return new ReactiveAerospikeTemplate(aerospikeReactorClient, nameSpace(), mappingAerospikeConverter, aerospikeMappingContext,
+                aerospikeExceptionTranslator, reactorQueryEngine, reactorIndexRefresher);
+    }
+
+    @Bean(name = "reactiveAerospikeQueryEngine")
+    public ReactorQueryEngine reactorQueryEngine(AerospikeReactorClient aerospikeReactorClient,
+                                                 IndexesCache indexesCache) {
+        return new ReactorQueryEngine(aerospikeReactorClient, aerospikeReactorClient.getQueryPolicyDefault(), indexesCache);
+    }
+
+    @Bean(name = "aerospikeIndexCache")
+    public IndexesCacheHolder indexCache() {
+        return new IndexesCacheHolder();
+    }
+
+    @Bean(name = "reactiveAerospikeIndexRefresher")
+    public ReactorIndexRefresher reactorIndexRefresher(AerospikeReactorClient aerospikeReactorClient, IndexesCacheUpdater indexesCacheUpdater) {
+        ReactorIndexRefresher refresher = new ReactorIndexRefresher(aerospikeReactorClient, aerospikeReactorClient.getInfoPolicyDefault(),
+                new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater);
+        refresher.refreshIndexes().block();
+        return refresher;
     }
 
     @Bean(name = "aerospikeReactorClient")
