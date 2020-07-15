@@ -112,6 +112,7 @@ public class QueryEngine {
 		/*
 		 * singleton using primary key
 		 */
+		//TODO: if filter is provided together with KeyQualifier it is completely ignored (Anastasiia Smirnova)
 		if (qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier) {
 			KeyQualifier kq = (KeyQualifier) qualifiers[0];
 			Key key = kq.makeKey(stmt.getNamespace(), stmt.getSetName());

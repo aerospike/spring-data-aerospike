@@ -8,6 +8,7 @@ import org.springframework.data.aerospike.QueryUtils;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
+import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
@@ -165,4 +166,28 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
                 .hasSize(6)
                 .containsExactlyInAnyOrderElementsOf(allUsers.subList(4, 10));
     }
+
+    @Test
+    public void find_shouldWorkWithFilterRangeNonExisting() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 100, 150);
+
+        List<Person> actual = reactiveTemplate.find(query, Person.class)
+                .subscribeOn(Schedulers.parallel())
+                .collectList().block();
+
+        assertThat(actual).isEmpty();
+    }
+
+    @Test
+    public void findWithFilterEqualOrderByDescNonExisting() {
+        Object[] args = {"NonExistingSurname"};
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameDesc", args);
+
+        Flux<Person> result = reactiveTemplate.find(query, Person.class);
+
+        StepVerifier.create(result)
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
 }

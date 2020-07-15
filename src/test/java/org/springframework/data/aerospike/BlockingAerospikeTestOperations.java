@@ -66,7 +66,7 @@ public class BlockingAerospikeTestOperations {
 		if (stdout.isEmpty() || stdout.equals("\n")) {
 			return Collections.emptyList();
 		}
-		return Arrays.stream(stdout.split(";"))
+		return Arrays.stream(stdout.replaceAll("\n", "").split(";"))
 				.map(job -> {
 					String[] pairs = job.split(":");
 					Map<String, String> pairsMap = Arrays.stream(pairs)
@@ -78,6 +78,7 @@ public class BlockingAerospikeTestOperations {
 					return ScanJob.builder()
 							.module(pairsMap.get("module"))
 							.set(pairsMap.get("set"))
+							.udfFunction(pairsMap.get("udf-function"))
 							.status(pairsMap.get("status"))
 							.build();
 				}).collect(Collectors.toList());
@@ -145,6 +146,7 @@ public class BlockingAerospikeTestOperations {
 		@NonNull
 		String module;
 		String set;
+		String udfFunction;
 		@NonNull
 		String status;
 	}

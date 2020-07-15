@@ -19,6 +19,7 @@ package org.springframework.data.aerospike.query;
 import com.aerospike.client.Value;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.CollectionUtils;
 
@@ -42,6 +43,11 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
  */
 public class IndexedQualifierTests extends BaseQueryEngineTests {
 
+	@AfterEach
+	public void assertNoScans() {
+		blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
+	}
+
 	@Test
 	public void selectOnIndexedLTQualifier() {
 		withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
@@ -54,7 +60,6 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 					.isNotEmpty()
 					.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isLessThan(26))
 					.hasSize(AGE_COUNTS.get(25));
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 		});
 	}
 
@@ -73,7 +78,6 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 					.allSatisfy(age -> assertThat(age).isLessThanOrEqualTo(26));
 			assertThat(ageCount.get(25)).isEqualTo(AGE_COUNTS.get(25));
 			assertThat(ageCount.get(26)).isEqualTo(AGE_COUNTS.get(26));
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 		});
 	}
 
@@ -89,7 +93,6 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 					.isNotEmpty()
 					.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(26))
 					.hasSize(AGE_COUNTS.get(26));
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 		});
 	}
 
@@ -105,7 +108,6 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 					.isNotEmpty()
 					.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isBetween(25, 29))
 					.hasSize(COLOUR_COUNTS.get(BLUE));
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 		});
 	}
 
@@ -124,7 +126,6 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 					.allSatisfy(age -> assertThat(age).isGreaterThanOrEqualTo(28));
 			assertThat(ageCount.get(28)).isEqualTo(AGE_COUNTS.get(28));
 			assertThat(ageCount.get(29)).isEqualTo(AGE_COUNTS.get(29));
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 		});
 	}
 
@@ -139,7 +140,6 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 					.isNotEmpty()
 					.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(29))
 					.hasSize(AGE_COUNTS.get(29));
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 		});
 	}
 
@@ -154,7 +154,6 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 					.isNotEmpty()
 					.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(ORANGE))
 					.hasSize(COLOUR_COUNTS.get(ORANGE));
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 		});
 	}
 
@@ -192,7 +191,16 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 					.allSatisfy(age -> assertThat(age).isBetween(28, 29));
 			assertThat(ageCount.get(28)).isEqualTo(AGE_COUNTS.get(28));
 			assertThat(ageCount.get(29)).isEqualTo(AGE_COUNTS.get(29));
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
+		});
+	}
+
+	@Test
+	public void selectOnIndexFilterNonExistingKeys() {
+		withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
+			Filter filter = Filter.range("age", 30, 35);
+			KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter);
+
+			assertThat(it).toIterable().isEmpty();
 		});
 	}
 
@@ -207,7 +215,6 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 					.isNotEmpty()
 					.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(GREEN))
 					.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isBetween(28, 29));
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 		});
 	}
 
@@ -227,7 +234,6 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 						assertThat(rec.record.getInt("age")).isBetween(28, 29);
 						assertThat(rec.record.getString("color")).isEqualTo(GREEN);
 					});
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 		} finally {
 			tryDropIndex(namespace, INDEXED_SET_NAME, "age_index");
 			tryDropIndex(namespace, INDEXED_SET_NAME, "color_index");

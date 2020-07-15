@@ -1,6 +1,8 @@
 package org.springframework.data.aerospike;
 
+import com.aerospike.client.Record;
 import com.aerospike.client.query.KeyRecord;
+import com.aerospike.client.query.RecordSet;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,5 +30,13 @@ public class CollectionUtils {
 		List<KeyRecord> result = new ArrayList<>();
 		it.forEachRemaining(result::add);
 		return result;
+	}
+
+	public static List<Record> toList(RecordSet rs) {
+		List<Record> records = new ArrayList<>();
+		while (rs.next()) {
+			records.add(rs.getRecord());
+		}
+		return records;
 	}
 }

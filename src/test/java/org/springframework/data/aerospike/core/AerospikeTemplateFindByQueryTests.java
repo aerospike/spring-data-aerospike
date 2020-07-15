@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.Record;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.RecordSet;
@@ -23,12 +22,12 @@ import com.aerospike.client.query.Statement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.CollectionUtils;
 import org.springframework.data.aerospike.QueryUtils;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -97,6 +96,16 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
+    public void findWithFilterEqualOrderByDescNonExisting() {
+        Object[] args = {"NonExistingSurname"};
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameDesc", args);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     public void testFindWithFilterRange() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 30);
 
@@ -104,6 +113,15 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
         assertThat(result)
                 .hasSize(6);
+    }
+
+    @Test
+    public void testFindWithFilterRangeNonExisting() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 100, 150);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -117,11 +135,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
         RecordSet rs = client.query(null, aerospikeQuery);
 
-        List<Record> records = new ArrayList<>();
-        while (rs.next()) {
-            records.add(rs.getRecord());
-        }
-        assertThat(records)
+        assertThat(CollectionUtils.toList(rs))
                 .hasOnlyOneElementSatisfying(record ->
                         assertThat(record.bins)
                                 .containsOnly(entry("firstName", dave.getFirstName()), entry("lastName", dave.getLastName())));
