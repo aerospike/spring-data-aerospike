@@ -1,7 +1,6 @@
 package org.springframework.data.aerospike;
 
 import com.aerospike.client.query.KeyRecord;
-import org.springframework.data.aerospike.query.KeyRecordIterator;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,7 +14,7 @@ import java.util.stream.StreamSupport;
 
 public class CollectionUtils {
 
-	public static Collector<Integer, ?, Integer> countingInt() {
+	public static <Key> Collector<Key, ?, Integer> countingInt() {
 		return Collectors.reducing(0, e -> 1, Integer::sum);
 	}
 
@@ -25,7 +24,7 @@ public class CollectionUtils {
 				false);
 	}
 
-	public static List<KeyRecord> toList(KeyRecordIterator it) {
+	public static List<KeyRecord> toList(Iterator<KeyRecord> it) {
 		List<KeyRecord> result = new ArrayList<>();
 		it.forEachRemaining(result::add);
 		return result;

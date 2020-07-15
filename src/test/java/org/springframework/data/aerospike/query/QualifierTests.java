@@ -16,21 +16,23 @@
  */
 package org.springframework.data.aerospike.query;
 
-import com.aerospike.client.Bin;
-import com.aerospike.client.Key;
 import com.aerospike.client.Value;
+import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.data.aerospike.CollectionUtils;
 import org.springframework.data.aerospike.query.Qualifier.FilterOperation;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.CollectionUtils.countingInt;
 
 /*
  * Tests to ensure that Qualifiers are built successfully for non indexed bins.
@@ -42,592 +44,601 @@ public class QualifierTests extends BaseQueryEngineTests {
 	 */
 	@BeforeEach
 	public void dropIndexes() {
-		tryDropIndex(namespace, BaseQueryEngineTests.SET_NAME, "age_index");
-		tryDropIndex(namespace, BaseQueryEngineTests.SET_NAME, "color_index");
+		tryDropIndex(namespace, SET_NAME, "age_index");
+		tryDropIndex(namespace, SET_NAME, "color_index");
+	}
 
-		Key ewsKey = new Key(namespace, BaseQueryEngineTests.SET_NAME, "ends-with-star");
-		Bin ewsBin = new Bin(specialCharBin, "abcd.*");
-		this.client.put(null, ewsKey, ewsBin);
+	@Test
+	public void selectOneWitKey() {
+		KeyQualifier kq = new KeyQualifier(Value.get("selector-test:3"));
 
-		Key swsKey = new Key(namespace, BaseQueryEngineTests.SET_NAME, "starts-with-star");
-		Bin swsBin = new Bin(specialCharBin, ".*abcd");
-		this.client.put(null, swsKey, swsBin);
+		KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, kq);
 
-		Key starKey = new Key(namespace, BaseQueryEngineTests.SET_NAME, "mid-with-star");
-		Bin starBin = new Bin(specialCharBin, "a.*b");
-		this.client.put(null, starKey, starBin);
+		assertThat(iterator).toIterable().hasSize(1);
+	}
 
-		Key specialCharKey = new Key(namespace, BaseQueryEngineTests.SET_NAME, "special-chars");
-		Bin specialCharsBin = new Bin(specialCharBin, "a[$^\\ab");
-		this.client.put(null, specialCharKey, specialCharsBin);
+	@Test
+	public void selectOneWitKeyNonExisting() {
+		KeyQualifier kq = new KeyQualifier(Value.get("selector-test:unknown"));
+
+		KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, kq);
+
+		assertThat(iterator).toIterable().isEmpty();
+	}
+
+	@Test
+	public void selectAll() {
+		KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null);
+
+		assertThat(iterator).toIterable().hasSize(BaseQueryEngineTests.RECORD_COUNT);
 	}
 
 	@Test
 	public void testLTQualifier() {
-		int age25Count = 0;
 		// Ages range from 25 -> 29. We expected to only get back values with age < 26
-		Qualifier qualifier = new Qualifier("age", FilterOperation.LT, Value.get(26));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				int age = rec.record.getInt("age");
 
-				if (age == 25) {
-					age25Count++;
-				}
-				assertThat(age).isLessThan(26);
-			}
-		}
-		// Make sure that our query returned all of the records we expected.
-		assertThat(age25Count).isEqualTo(recordsWithAgeCounts.get(25));
+		Qualifier qualifier = new Qualifier("age", FilterOperation.LT, Value.get(26));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isLessThan(26))
+				.hasSize(recordsWithAgeCounts.get(25));
 	}
 
 	@Test
 	public void testNumericLTEQQualifier() {
-		int age25Count = 0;
-		int age26Count = 0;
-
 		// Ages range from 25 -> 29. We expected to only get back values with age <= 26
+
 		Qualifier qualifier = new Qualifier("age", FilterOperation.LTEQ, Value.get(26));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				int age = rec.record.getInt("age");
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
-				if (age == 25) {
-					age25Count++;
-				} else if (age == 26) {
-					age26Count++;
-				}
-				assertThat(age).isLessThanOrEqualTo(26);
-			}
-		}
-
-		// Make sure that our query returned all of the records we expected.
-		assertThat(age25Count).isEqualTo(recordsWithAgeCounts.get(25));
-		assertThat(age26Count).isEqualTo(recordsWithAgeCounts.get(26));
+		Map<Integer, Integer> ageCount = CollectionUtils.toStream(it)
+				.map(rec -> rec.record.getInt("age"))
+				.collect(Collectors.groupingBy(k -> k, countingInt()));
+		assertThat(ageCount.keySet())
+				.isNotEmpty()
+				.allSatisfy(age -> assertThat(age).isLessThanOrEqualTo(26));
+		assertThat(ageCount.get(25)).isEqualTo(recordsWithAgeCounts.get(25));
+		assertThat(ageCount.get(26)).isEqualTo(recordsWithAgeCounts.get(26));
 	}
 
 	@Test
 	public void testNumericEQQualifier() {
-		int age26Count = 0;
-
 		// Ages range from 25 -> 29. We expected to only get back values with age == 26
-		Qualifier qualifier = new Qualifier("age", FilterOperation.EQ, Value.get(26));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				int age = rec.record.getInt("age");
-				if (age == 26) {
-					age26Count++;
-				}
-				assertThat(age).isEqualTo(26);
-			}
-		}
 
-		// Make sure that our query returned all of the records we expected.
-		assertThat(age26Count).isEqualTo(recordsWithAgeCounts.get(26));
+		Qualifier qualifier = new Qualifier("age", FilterOperation.EQ, Value.get(26));
+		KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(iterator)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(26))
+				.hasSize(recordsWithAgeCounts.get(26));
 	}
 
 	@Test
 	public void testNumericGTEQQualifier() {
-		int age28Count = 0;
-		int age29Count = 0;
-
 		// Ages range from 25 -> 29. We expected to only get back values with age >= 28
+
 		Qualifier qualifier = new Qualifier("age", FilterOperation.GTEQ, Value.get(28));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				int age = rec.record.getInt("age");
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
-				if (age == 28) {
-					age28Count++;
-				} else if (age == 29) {
-					age29Count++;
-				}
-				assertThat(age).isGreaterThanOrEqualTo(28);
-			}
-		}
-
-		assertThat(age28Count).isEqualTo(recordsWithAgeCounts.get(28));
-		assertThat(age29Count).isEqualTo(recordsWithAgeCounts.get(29));
+		Map<Integer, Integer> ageCount = CollectionUtils.toStream(it)
+				.map(rec -> rec.record.getInt("age"))
+				.collect(Collectors.groupingBy(k -> k, countingInt()));
+		assertThat(ageCount.keySet())
+				.isNotEmpty()
+				.allSatisfy(age -> assertThat(age).isGreaterThanOrEqualTo(28));
+		assertThat(ageCount.get(28)).isEqualTo(recordsWithAgeCounts.get(28));
+		assertThat(ageCount.get(29)).isEqualTo(recordsWithAgeCounts.get(29));
 	}
 
 	@Test
 	public void testNumericGTQualifier() {
-		int age29Count = 0;
-
 		// Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
-		Qualifier qualifier = new Qualifier("age", FilterOperation.GT, Value.get(28));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				int age = rec.record.getInt("age");
-				assertThat(age).isEqualTo(29);
-				age29Count++;
-			}
-		}
 
-		assertThat(age29Count).isEqualTo(recordsWithAgeCounts.get(29));
+		Qualifier qualifier = new Qualifier("age", FilterOperation.GT, Value.get(28));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(29))
+				.hasSize(recordsWithAgeCounts.get(29));
 	}
 
 	@Test
 	public void testStringEQQualifier() {
-		int orangeCount = 0;
 
 		Qualifier qualifier = new Qualifier("color", FilterOperation.EQ, Value.get(ORANGE));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				String color = rec.record.getString("color");
-				if (ORANGE.equals(color)) {
-					orangeCount++;
-				}
-				assertThat(color).isEqualTo(ORANGE);
-			}
-		}
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
-		// Make sure that our query returned all of the records we expected.
-		assertThat(orangeCount).isEqualTo(recordsWithColourCounts.get(ORANGE));
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(ORANGE))
+				.hasSize(recordsWithColourCounts.get(ORANGE));
 	}
 
 	@Test
 	public void testStringEQIgnoreCaseQualifier() {
-		int orangeCount = 0;
 
 		Qualifier qualifier = new Qualifier("color", FilterOperation.EQ, true, Value.get(ORANGE.toUpperCase()));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				assertThat(rec.record.getString("color")).isEqualToIgnoringCase(ORANGE);
-				orangeCount++;
-			}
-		}
-		// Make sure that our query returned all of the records we expected.
-		assertThat(orangeCount).isEqualTo(recordsWithColourCounts.get(ORANGE));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(ORANGE))
+				.hasSize(recordsWithColourCounts.get(ORANGE));
 	}
 
 	@Test
-	public void testStringStartWithQualifier() {
-		int blueCount = 0;
-		String bluePrefix = "blu";
+	public void stringEqualIgnoreCaseWorksOnUnindexedBin() {
+		boolean ignoreCase = true;
+		Qualifier qualifier = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get("BlUe"));
+		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier);
 
-		Qualifier qualifier = new Qualifier("color", FilterOperation.START_WITH, Value.get("blu"));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				String color = rec.record.getString("color");
-				if (color.equals(BLUE)) {
-					blueCount++;
-				}
-				assertThat(color.startsWith(bluePrefix)).isTrue();
-			}
-		}
-		// Make sure that our query returned all of the records we expected.
-		assertThat(blueCount).isEqualTo(recordsWithColourCounts.get(BLUE));
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
+				.hasSize(recordsWithColourCounts.get(BLUE));
 	}
 
 	@Test
-	public void testStringStartWithEntireWordQualifier() {
-		int blueCount = 0;
+	public void stringEqualIgnoreCaseWorksOnIndexedBin() {
+		withIndex(namespace, SET_NAME, "color_index_selector", "color", IndexType.STRING, () -> {
+			boolean ignoreCase = true;
+			Qualifier qualifier = new Qualifier("color", Qualifier.FilterOperation.EQ, ignoreCase, Value.get("BlUe"));
+			KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
-		Qualifier qualifier = new Qualifier("color", FilterOperation.START_WITH, Value.get(BLUE));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				String color = rec.record.getString("color");
-				if (color.equals(BLUE)) {
-					blueCount++;
-				}
-				assertThat(color.startsWith(BLUE)).isTrue();
-			}
-		}
-		// Make sure that our query returned all of the records we expected.
-		assertThat(blueCount).isEqualTo(recordsWithColourCounts.get(BLUE));
+			assertThat(iterator)
+					.toIterable()
+					.isNotEmpty()
+					.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
+					.hasSize(recordsWithColourCounts.get(BLUE));
+			// scan will be run, since Aerospike filter does not support case-insensitive string comparison
+		});
 	}
 
 	@Test
-	public void testStringStartWithICASEQualifier() {
-		int blueCount = 0;
-		String blue = "blu";
-
-		Qualifier qualifier = new Qualifier("color", FilterOperation.START_WITH, true, Value.get("BLU"));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				String color = rec.record.getString("color");
-				if (color.equals(BLUE)) {
-					blueCount++;
-				}
-				assertThat(color.startsWith(blue)).isTrue();
-			}
-		}
-		// Make sure that our query returned all of the records we expected.
-		assertThat(blueCount).isEqualTo(recordsWithColourCounts.get(BLUE));
-	}
-
-	@Test
-	public void testStringEndsWithQualifier() {
-		int greenCount = 0;
-		String greenEnding = GREEN.substring(2);
-
-		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get(greenEnding));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				String color = rec.record.getString("color");
-				if (color.equals(GREEN)) {
-					greenCount++;
-				}
-				assertThat(color.endsWith(greenEnding)).isTrue();
-			}
-		}
-		// Make sure that our query returned all of the records we expected.
-		assertThat(greenCount).isEqualTo(recordsWithColourCounts.get(GREEN));
-	}
-
-	@Test
-	public void testStringEndsWithEntireWordQualifier() {
-		int greenCount = 0;
-
-		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get(QualifierTests.GREEN));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				String color = rec.record.getString("color");
-				if (color.equals(QualifierTests.GREEN)) {
-					greenCount++;
-				}
-				assertThat(color).isEqualTo(QualifierTests.GREEN);
-			}
-		}
-		// Make sure that our query returned all of the records we expected.
-		assertThat(greenCount).isEqualTo(recordsWithColourCounts.get(QualifierTests.GREEN));
-	}
-
-	@Test
-	public void testBetweenQualifier() {
-		int age26Count = 0;
-		int age27Count = 0;
-		int age28Count = 0;
-		// Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
-		Qualifier qualifier = new Qualifier("age", FilterOperation.BETWEEN, Value.get(26), Value.get(28));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				int age = rec.record.getInt("age");
-				assertThat(age).isBetween(26, 28);
-				if (age == 26) {
-					age26Count++;
-				} else if (age == 27) {
-					age27Count++;
-				} else {
-					age28Count++;
-				}
-			}
-		}
-
-		assertThat(age26Count).isEqualTo(recordsWithAgeCounts.get(26));
-		assertThat(age27Count).isEqualTo(recordsWithAgeCounts.get(27));
-		assertThat(age28Count).isEqualTo(recordsWithAgeCounts.get(28));
-	}
-
-	@Test
-	public void testContainingQualifier() {
-		String[] hasLColors = Arrays.stream(colours)
-				.filter(c -> c.contains("l")).toArray(String[]::new);
-
-		Map<String, Integer> lColorCounts = new HashMap<>();
-		for (String color : hasLColors) {
-			lColorCounts.put(color, 0);
-		}
-
-		Qualifier qualifier = new Qualifier("color", FilterOperation.CONTAINING, Value.get("l"));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				String color = rec.record.getString("color");
-				assertThat(lColorCounts).containsKey(color);
-				lColorCounts.put(color, lColorCounts.get(color) + 1);
-			}
-		}
-
-		for (Entry<String, Integer> colorCountEntry : lColorCounts.entrySet()) {
-			assertThat(colorCountEntry.getValue()).isEqualTo(recordsWithColourCounts.get(colorCountEntry.getKey()));
-		}
-	}
-
-	@Test
-	public void testInQualifier() {
-		String[] inColours = new String[]{colours[0], colours[2]};
-
-		Map<String, Integer> lColorCounts = new HashMap<>();
-		for (String color : inColours) {
-			lColorCounts.put(color, 0);
-		}
-
-		Qualifier qualifier = new Qualifier("color", FilterOperation.IN, Value.get(Arrays.asList(inColours)));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				String color = rec.record.getString("color");
-				assertThat(lColorCounts).containsKey(color);
-				lColorCounts.put(color, lColorCounts.get(color) + 1);
-			}
-		}
-
-		for (Entry<String, Integer> colorCountEntry : lColorCounts.entrySet()) {
-			assertThat(colorCountEntry.getValue()).isEqualTo(recordsWithColourCounts.get(colorCountEntry.getKey()));
-		}
-	}
-
-	@Test
-	public void testListContainsQualifier() {
-		String searchColor = colours[0];
-		int colorCount = 0;
-
-		String binName = "colorList";
-
-		Qualifier qualifier = new Qualifier(binName, FilterOperation.LIST_CONTAINS, Value.get(searchColor));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				@SuppressWarnings("unchecked")
-				List<String> colorList = (List<String>) rec.record.getList(binName);
-				String color = colorList.get(0);
-				assertThat(color).isEqualTo(searchColor);
-				colorCount++;
-			}
-		}
-
-		// Every Record with a color == "color" has a one element list ["color"]
-		// so there are an equal amount of records with the list == [lcolor"] as with a color == "color"
-		assertThat(colorCount).isEqualTo(recordsWithColourCounts.get(searchColor));
-	}
-
-	@Test
-	public void testListBetweenQualifier() {
-		long ageStart = ages[0]; // 25
-		long ageEnd = ages[2]; // 27
-
-		int age25Count = 0;
-		int age26Count = 0;
-		int age27Count = 0;
-		String binName = "longList";
-
-		Qualifier qualifier = new Qualifier(binName, FilterOperation.LIST_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				@SuppressWarnings("unchecked")
-				List<Long> ageList = (List<Long>) rec.record.getList(binName);
-				Long age = ageList.get(0);
-				assertThat(age).isBetween(ageStart, ageEnd);
-				if (age == 25) {
-					age25Count++;
-				} else if (age == 26) {
-					age26Count++;
-				} else {
-					age27Count++;
-				}
-			}
-		}
-
-		assertThat(age25Count).isEqualTo(recordsWithAgeCounts.get(25));
-		assertThat(age26Count).isEqualTo(recordsWithAgeCounts.get(26));
-		assertThat(age27Count).isEqualTo(recordsWithAgeCounts.get(27));
-	}
-
-	@Test
-	public void testMapKeysContainsQualifier() {
-		String searchColor = colours[0];
-		int colorCount = 0;
-
-		String binName = "colorAgeMap";
-
-		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_KEYS_CONTAINS, Value.get(searchColor));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				@SuppressWarnings("unchecked")
-				Map<String, ?> colorMap = (Map<String, ?>) rec.record.getMap(binName);
-				assertThat(colorMap).containsKey(searchColor);
-				colorCount++;
-			}
-		}
-
-		// Every Record with a color == "color" has a one element map {"color" => #}
-		// so there are an equal amount of records with the map {"color" => #} as with a color == "color"
-		assertThat(colorCount).isEqualTo(recordsWithColourCounts.get(searchColor));
-	}
-
-	@Test
-	public void testMapValuesContainsQualifier() {
-		String searchColor = colours[0];
-		int colorCount = 0;
-
-		String binName = "ageColorMap";
-
-		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_VALUES_CONTAINS, Value.get(searchColor));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				@SuppressWarnings("unchecked")
-				Map<?, String> colorMap = (Map<?, String>) rec.record.getMap(binName);
-				assertThat(colorMap).containsValue(searchColor);
-				colorCount++;
-			}
-		}
-
-		// Every Record with a color == "color" has a one element map {"color" => #}
-		// so there are an equal amount of records with the map {"color" => #} as with a color == "color"
-		assertThat(colorCount).isEqualTo(recordsWithColourCounts.get(searchColor));
-	}
-
-	@Test
-	public void testMapKeysBetweenQualifier() {
-		long ageStart = ages[0]; // 25
-		long ageEnd = ages[2]; // 27
-
-		int age25Count = 0;
-		int age26Count = 0;
-		int age27Count = 0;
-		String binName = "ageColorMap";
-
-		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_KEYS_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				@SuppressWarnings("unchecked")
-				Map<Long, ?> ageColorMap = (Map<Long, ?>) rec.record.getMap(binName);
-				// This is always a one item map
-				for (Long age : ageColorMap.keySet()) {
-					if (age == skipLongValue) {
-						continue;
-					}
-					assertThat(age).isBetween(ageStart, ageEnd);
-					if (age == 25) {
-						age25Count++;
-					} else if (age == 26) {
-						age26Count++;
-					} else {
-						age27Count++;
-					}
-				}
-			}
-		}
-
-		assertThat(age25Count).isEqualTo(recordsWithAgeCounts.get(25));
-		assertThat(age26Count).isEqualTo(recordsWithAgeCounts.get(26));
-		assertThat(age27Count).isEqualTo(recordsWithAgeCounts.get(27));
-	}
-
-	@Test
-	public void testMapValuesBetweenQualifier() {
-		long ageStart = ages[0]; // 25
-		long ageEnd = ages[2]; // 27
-
-		int age25Count = 0;
-		int age26Count = 0;
-		int age27Count = 0;
-		String binName = "colorAgeMap";
-
-		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_VALUES_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				KeyRecord rec = it.next();
-				@SuppressWarnings("unchecked")
-				Map<?, Long> colorAgeMap = (Map<?, Long>) rec.record.getMap(binName);
-				// This is always a one item map
-				for (Long age : colorAgeMap.values()) {
-					if (age == skipLongValue) {
-						continue;
-					}
-					assertThat(age).isBetween(ageStart, ageEnd);
-					if (age == 25) {
-						age25Count++;
-					} else if (age == 26) {
-						age26Count++;
-					} else {
-						age27Count++;
-					}
-				}
-			}
-		}
-
-		assertThat(age25Count).isEqualTo(recordsWithAgeCounts.get(25));
-		assertThat(age26Count).isEqualTo(recordsWithAgeCounts.get(26));
-		assertThat(age27Count).isEqualTo(recordsWithAgeCounts.get(27));
-	}
-
-	@Test
-	public void testContainingDoesNotUseSpecialCharacterQualifier() {
-		int matchedCount = 0;
-		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.CONTAINING, Value.get(".*"));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				String scBin = it.next().record.getString(specialCharBin);
-				assertThat(scBin).contains(".*");
-				matchedCount++;
-			}
-		}
-		assertThat(matchedCount).isEqualTo(3);
-	}
-
-	@Test
-	public void testStartWithDoesNotUseSpecialCharacterQualifier() {
-		int matchedCount = 0;
-		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.START_WITH, Value.get(".*"));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				String scBin = it.next().record.getString(specialCharBin);
-				assertThat(scBin).startsWith(".*");
-				matchedCount++;
-			}
-		}
-		assertThat(matchedCount).isEqualTo(1);
-	}
-
-	@Test
-	public void testEndWithDoesNotUseSpecialCharacterQualifier() {
-		int matchedCount = 0;
-		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.ENDS_WITH, Value.get(".*"));
-		try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-			while (it.hasNext()) {
-				String scBin = it.next().record.getString(specialCharBin);
-				assertThat(scBin).endsWith(".*");
-				matchedCount++;
-			}
-		}
-		assertThat(matchedCount).isEqualTo(1);
-	}
-
-	@Test
-	public void testEQIcaseDoesNotUseSpecialCharacter() {
-		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.EQ, true, Value.get(".*"));
-
+	public void stringEqualIgnoreCaseWorksRequiresFullMatch() {
+		boolean ignoreCase = true;
+		Qualifier qualifier = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get("lue"));
 		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier);
 
 		assertThat(it).toIterable().isEmpty();
 	}
 
 	@Test
-	public void testContainingFindsSquareBracket() {
-		int matchedCount = 0;
+	public void testStringStartWithQualifier() {
 
-		String[] specialStrings = new String[]{"[", "$", "\\", "^"};
-		for (String specialString : specialStrings) {
-			matchedCount = 0;
-			Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.CONTAINING, true, Value.get(specialString));
-			try (KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier)) {
-				while (it.hasNext()) {
-					matchedCount++;
-					String matchStr = it.next().record.getString(specialCharBin);
-					assertThat(matchStr).contains(specialString);
-				}
-			}
-			assertThat(matchedCount).isEqualTo(1);
-		}
+		Qualifier qualifier = new Qualifier("color", FilterOperation.START_WITH, Value.get(BLUE.substring(0, 2)));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
+				.hasSize(recordsWithColourCounts.get(BLUE));
 	}
+
+	@Test
+	public void testStringStartWithEntireWordQualifier() {
+
+		Qualifier qualifier = new Qualifier("color", FilterOperation.START_WITH, Value.get(BLUE));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
+				.hasSize(recordsWithColourCounts.get(BLUE));
+	}
+
+	@Test
+	public void testStringStartWithICASEQualifier() {
+
+		Qualifier qualifier = new Qualifier("color", FilterOperation.START_WITH, true, Value.get("BLU"));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
+				.hasSize(recordsWithColourCounts.get(BLUE));
+	}
+
+	@Test
+	public void testStringEndsWithQualifier() {
+
+		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get(GREEN.substring(2)));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(GREEN))
+				.hasSize(recordsWithColourCounts.get(GREEN));
+	}
+
+	@Test
+	public void selectEndsWith() {
+
+		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get("e"));
+		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier);
+
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isIn(BLUE, ORANGE))
+				.hasSize(recordsWithColourCounts.get(BLUE) + recordsWithColourCounts.get(ORANGE));
+	}
+
+	@Test
+	public void testStringEndsWithEntireWordQualifier() {
+
+		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get(QualifierTests.GREEN));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it)
+				.toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(GREEN))
+				.hasSize(recordsWithColourCounts.get(GREEN));
+	}
+
+	@Test
+	public void testBetweenQualifier() {
+		// Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
+
+		Qualifier qualifier = new Qualifier("age", FilterOperation.BETWEEN, Value.get(26), Value.get(28));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		Map<Integer, Integer> ageCount = CollectionUtils.toStream(it)
+				.map(rec -> rec.record.getInt("age"))
+				.collect(Collectors.groupingBy(k -> k, countingInt()));
+		assertThat(ageCount.keySet())
+				.isNotEmpty()
+				.allSatisfy(age -> assertThat(age).isBetween(26, 28));
+		assertThat(ageCount.get(26)).isEqualTo(recordsWithAgeCounts.get(26));
+		assertThat(ageCount.get(27)).isEqualTo(recordsWithAgeCounts.get(27));
+		assertThat(ageCount.get(28)).isEqualTo(recordsWithAgeCounts.get(28));
+	}
+
+	@Test
+	public void testContainingQualifier() {
+		Map<String, Integer> expectedCounts = Arrays.stream(colours)
+				.filter(c -> c.contains("l"))
+				.collect(Collectors.toMap(color -> color, color -> recordsWithColourCounts.get(color)));
+
+		Qualifier qualifier = new Qualifier("color", FilterOperation.CONTAINING, Value.get("l"));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		Map<String, Integer> colorCount = CollectionUtils.toStream(it)
+				.map(rec -> rec.record.getString("color"))
+				.collect(Collectors.groupingBy(k -> k, countingInt()));
+		assertThat(colorCount).isNotEmpty().isEqualTo(expectedCounts);
+	}
+
+	@Test
+	public void testInQualifier() {
+		List<String> inColors = Arrays.asList(colours[0], colours[2]);
+		Map<String, Integer> expectedCounts = inColors.stream()
+				.collect(Collectors.toMap(color -> color, color -> recordsWithColourCounts.get(color)));
+
+		Qualifier qualifier = new Qualifier("color", FilterOperation.IN, Value.get(inColors));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		Map<String, Integer> colorCount = CollectionUtils.toStream(it)
+				.map(rec -> rec.record.getString("color"))
+				.collect(Collectors.groupingBy(k -> k, countingInt()));
+		assertThat(colorCount).isNotEmpty().isEqualTo(expectedCounts);
+	}
+
+	@Test
+	public void testListContainsQualifier() {
+		String searchColor = colours[0];
+		String binName = "colorList";
+
+		Qualifier qualifier = new Qualifier(binName, FilterOperation.LIST_CONTAINS, Value.get(searchColor));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> {
+					@SuppressWarnings("unchecked")
+					List<String> colorList = (List<String>) rec.record.getList(binName);
+					String color = colorList.get(0);
+					assertThat(color).isEqualTo(searchColor);
+				})
+				.hasSize(recordsWithColourCounts.get(searchColor));
+	}
+
+	@Test
+	public void testListBetweenQualifier() {
+		long ageStart = ages[0]; // 25
+		long ageEnd = ages[2]; // 27
+		String binName = "longList";
+
+		Qualifier qualifier = new Qualifier(binName, FilterOperation.LIST_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
+				.map(rec -> {
+					List<Long> ageList = (List<Long>) rec.record.getList(binName);
+					Long age = ageList.get(0);
+					return age;
+				})
+				.collect(Collectors.groupingBy(k -> k, countingInt()));
+		assertThat(ageCount.keySet())
+				.isNotEmpty()
+				.allSatisfy(age -> assertThat(age).isBetween(ageStart, ageEnd));
+		assertThat(ageCount.get(25L)).isEqualTo(recordsWithAgeCounts.get(25));
+		assertThat(ageCount.get(26L)).isEqualTo(recordsWithAgeCounts.get(26));
+		assertThat(ageCount.get(27L)).isEqualTo(recordsWithAgeCounts.get(27));
+	}
+
+	@Test
+	public void testMapKeysContainsQualifier() {
+		String searchColor = colours[0];
+		String binName = "colorAgeMap";
+
+		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_KEYS_CONTAINS, Value.get(searchColor));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> {
+					@SuppressWarnings("unchecked")
+					Map<String, ?> colorMap = (Map<String, ?>) rec.record.getMap(binName);
+					assertThat(colorMap).containsKey(searchColor);
+				})
+				.hasSize(recordsWithColourCounts.get(searchColor));
+	}
+
+	@Test
+	public void testMapValuesContainsQualifier() {
+		String searchColor = colours[0];
+		String binName = "ageColorMap";
+
+		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_VALUES_CONTAINS, Value.get(searchColor));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> {
+					@SuppressWarnings("unchecked")
+					Map<?, String> colorMap = (Map<?, String>) rec.record.getMap(binName);
+					assertThat(colorMap).containsValue(searchColor);
+				})
+				.hasSize(recordsWithColourCounts.get(searchColor));
+	}
+
+	@Test
+	public void testMapKeysBetweenQualifier() {
+		long ageStart = ages[0]; // 25
+		long ageEnd = ages[2]; // 27
+		String binName = "ageColorMap";
+
+		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_KEYS_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
+				.map(rec -> {
+					@SuppressWarnings("unchecked")
+					Map<Long, ?> ageColorMap = (Map<Long, ?>) rec.record.getMap(binName);
+					// This is always a one item map
+					Long age = ageColorMap.keySet().stream().filter(val -> val != skipLongValue).findFirst().get();
+					return age;
+				})
+				.collect(Collectors.groupingBy(k -> k, countingInt()));
+		assertThat(ageCount.keySet())
+				.isNotEmpty()
+				.allSatisfy(age -> assertThat(age).isBetween(ageStart, ageEnd));
+		assertThat(ageCount.get(25L)).isEqualTo(recordsWithAgeCounts.get(25));
+		assertThat(ageCount.get(26L)).isEqualTo(recordsWithAgeCounts.get(26));
+		assertThat(ageCount.get(27L)).isEqualTo(recordsWithAgeCounts.get(27));
+	}
+
+	@Test
+	public void testMapValuesBetweenQualifier() {
+		long ageStart = ages[0]; // 25
+		long ageEnd = ages[2]; // 27
+		String binName = "colorAgeMap";
+
+		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_VALUES_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
+				.map(rec -> {
+					@SuppressWarnings("unchecked")
+					Map<?, Long> ageColorMap = (Map<?, Long>) rec.record.getMap(binName);
+					// This is always a one item map
+					Long age = ageColorMap.values().stream().filter(val -> val != skipLongValue).findFirst().get();
+					return age;
+				})
+				.collect(Collectors.groupingBy(k -> k, countingInt()));
+		assertThat(ageCount.keySet())
+				.isNotEmpty()
+				.allSatisfy(age -> assertThat(age).isBetween(ageStart, ageEnd));
+		assertThat(ageCount.get(25L)).isEqualTo(recordsWithAgeCounts.get(25));
+		assertThat(ageCount.get(26L)).isEqualTo(recordsWithAgeCounts.get(26));
+		assertThat(ageCount.get(27L)).isEqualTo(recordsWithAgeCounts.get(27));
+	}
+
+	@Test
+	public void testContainingDoesNotUseSpecialCharacterQualifier() {
+
+		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.CONTAINING, Value.get(".*"));
+		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+
+		assertThat(it).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString(specialCharBin)).contains(".*"))
+				.hasSize(3);
+	}
+
+	@Test
+	public void testStartWithDoesNotUseSpecialCharacterQualifier() {
+
+		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.START_WITH, Value.get(".*"));
+		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+
+		assertThat(it).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString(specialCharBin)).startsWith(".*"))
+				.hasSize(1);
+	}
+
+	@Test
+	public void testEndWithDoesNotUseSpecialCharacterQualifier() {
+
+		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.ENDS_WITH, Value.get(".*"));
+		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+
+		assertThat(it).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString(specialCharBin)).endsWith(".*"))
+				.hasSize(1);
+	}
+
+	@Test
+	public void testEQIcaseDoesNotUseSpecialCharacter() {
+
+		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.EQ, true, Value.get(".*"));
+		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+
+		assertThat(it).toIterable().isEmpty();
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"[", "$", "\\", "^"})
+	public void testContainingFindsSquareBracket(String specialString) {
+
+		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.CONTAINING, true, Value.get(specialString));
+		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+
+		assertThat(it).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString(specialCharBin)).contains(specialString))
+				.hasSize(1);
+	}
+
+	@Test
+	public void selectWithGeoWithin() {
+		double lon = -122.0;
+		double lat = 37.5;
+		double radius = 50000.0;
+		String rgnstr = String.format("{ \"type\": \"AeroCircle\", "
+						+ "\"coordinates\": [[%.8f, %.8f], %f] }",
+				lon, lat, radius);
+		Qualifier qualifier = new Qualifier(GEO_BIN_NAME, FilterOperation.GEO_WITHIN, Value.getAsGeoJSON(rgnstr));
+		KeyRecordIterator iterator = queryEngine.select(namespace, GEO_SET, null, qualifier);
+
+		assertThat(iterator).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.generation).isGreaterThanOrEqualTo(1));
+	}
+
+	@Test
+	public void startWithAndEqualIgnoreCaseReturnsAllItems() {
+
+		boolean ignoreCase = true;
+		Qualifier qual1 = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get(BLUE.toUpperCase()));
+		Qualifier qual2 = new Qualifier("name", FilterOperation.START_WITH, ignoreCase, Value.get("NA"));
+
+		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qual1, qual2);
+
+		assertThat(it).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
+				.hasSize(recordsWithColourCounts.get(BLUE));
+	}
+
+	@Test
+	public void equalIgnoreCaseReturnsNoItemsIfNoneMatched() {
+
+		boolean ignoreCase = false;
+		Qualifier qual1 = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get(BLUE.toUpperCase()));
+		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qual1);
+
+		assertThat(it).toIterable().isEmpty();
+	}
+
+	@Test
+	public void startWithIgnoreCaseReturnsNoItemsIfNoneMatched() {
+
+		boolean ignoreCase = false;
+		Qualifier qual1 = new Qualifier("name", FilterOperation.START_WITH, ignoreCase, Value.get("NA"));
+		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qual1);
+
+		assertThat(it).toIterable().isEmpty();
+	}
+
+	@Test
+	public void selectWithBetweenAndOrQualifiers() {
+
+		Qualifier colorIsGreen = new Qualifier("color", Qualifier.FilterOperation.EQ, Value.get(GREEN));
+		Qualifier ageBetween28And29 = new Qualifier("age", Qualifier.FilterOperation.BETWEEN, Value.get(28), Value.get(29));
+		Qualifier ageIs25 = new Qualifier("age", Qualifier.FilterOperation.EQ, Value.get(25));
+		Qualifier nameIs696 = new Qualifier("name", Qualifier.FilterOperation.EQ, Value.get("name:696"));
+		Qualifier or = new Qualifier(Qualifier.FilterOperation.OR, ageIs25, ageBetween28And29, nameIs696);
+		Qualifier or2 = new Qualifier(Qualifier.FilterOperation.OR, colorIsGreen, nameIs696);
+		Qualifier qualifier = new Qualifier(Qualifier.FilterOperation.AND, or, or2);
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+		assertThat(it).toIterable().isNotEmpty()
+				.allSatisfy(rec -> {
+					int age = rec.record.getInt("age");
+					String color = rec.record.getString("color");
+					String name = rec.record.getString("name");
+
+					assertThat(rec).satisfiesAnyOf(
+							r -> assertThat(age).isEqualTo(25),
+							r -> assertThat(age).isBetween(28, 29),
+							r -> assertThat(name).isEqualTo("name:696")
+					);
+					assertThat(rec).satisfiesAnyOf(
+							r -> assertThat(color).isEqualTo(GREEN),
+							r -> assertThat(name).isEqualTo("name:696")
+					);
+				});
+	}
+
+	@Test
+	public void selectWithOrQualifiers() {
+
+		// We are  expecting to get back all records where color == blue or (age == 28 || age == 29)
+		Qualifier colorIsBlue = new Qualifier("color", Qualifier.FilterOperation.EQ, Value.get(BLUE));
+		Qualifier ageBetween28And29 = new Qualifier("age", Qualifier.FilterOperation.BETWEEN, Value.get(28), Value.get(29));
+		Qualifier or = new Qualifier(Qualifier.FilterOperation.OR, colorIsBlue, ageBetween28And29);
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, or);
+
+		List<KeyRecord> result = CollectionUtils.toStream(it).collect(Collectors.toList());
+		assertThat(result)
+				.isNotEmpty()
+				.allSatisfy(rec -> {
+					int age = rec.record.getInt("age");
+					String color = rec.record.getString("color");
+
+					assertThat(rec).satisfiesAnyOf(
+							r -> assertThat(color).isEqualTo(BLUE),
+							r -> assertThat(age).isBetween(28, 29)
+					);
+				});
+		assertThat(result.stream().map(rec -> rec.record.getInt("age")))
+				.filteredOn(age -> age >= 28 && age <= 29)
+				.isNotEmpty()
+				.hasSize(recordsWithAgeCounts.get(28) + recordsWithAgeCounts.get(29));
+		assertThat(result.stream().map(rec -> rec.record.getString("color")))
+				.filteredOn(color -> color.equals(BLUE))
+				.isNotEmpty()
+				.hasSize(recordsWithColourCounts.get(BLUE));
+	}
+
+
 }

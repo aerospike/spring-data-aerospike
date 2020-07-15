@@ -5,7 +5,6 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.Value;
-import com.aerospike.client.query.Statement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -50,12 +49,9 @@ public class UsersTests extends BaseQueryEngineTests {
 
 	@Test
 	public void usersInNorthRegion() {
-		Statement stmt = new Statement();
-		stmt.setNamespace(namespace);
-		stmt.setSetName(USERS_SET);
 		Qualifier qualifier = new Qualifier("region", Qualifier.FilterOperation.EQ, Value.get("n"));
 
-		KeyRecordIterator it = queryEngine.select(stmt, qualifier);
+		KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, qualifier);
 
 		assertThat(it).toIterable()
 				.isNotEmpty()

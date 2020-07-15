@@ -38,6 +38,7 @@ public abstract class BaseQueryEngineTests extends BaseBlockingIntegrationTests 
 	protected static final String INDEXED_GEO_SET = "geo-set-indexed";
 	protected static final String GEO_BIN_NAME = "querygeobin";
 
+	protected static final String SPECIAL_CHAR_SET = "special-char-set";
 	protected static final String specialCharBin = "scBin";
 	private static final String keyPrefix = "querykey";
 
@@ -54,6 +55,7 @@ public abstract class BaseQueryEngineTests extends BaseBlockingIntegrationTests 
 
 		setupData();
 		setupGeoData();
+		setupSpecialCharsData();
 
 		dataPushed = true;
 	}
@@ -90,7 +92,9 @@ public abstract class BaseQueryEngineTests extends BaseBlockingIntegrationTests 
 			Bin longListBin = new Bin("longList", longList);
 
 			Bin[] bins = new Bin[]{name, age, colour, animal, modTen, ageColorMapBin, colorAgeMapBin, colorListBin, longListBin};
-			this.client.put(null, new Key(namespace, SET_NAME, "selector-test:" + x), bins);
+//			WritePolicy policy = new WritePolicy(client.writePolicyDefault);
+			client.writePolicyDefault.sendKey = true;
+			this.client.put(client.writePolicyDefault, new Key(namespace, SET_NAME, "selector-test:" + x), bins);
 			this.client.put(null, new Key(namespace, INDEXED_SET_NAME, "selector-test:" + x), bins);
 
 			// Add to our counts of records written for each bin value
@@ -120,6 +124,24 @@ public abstract class BaseQueryEngineTests extends BaseBlockingIntegrationTests 
 			client.put(null, new Key(namespace, GEO_SET, keyPrefix + i), bin);
 			client.put(null, new Key(namespace, INDEXED_GEO_SET, keyPrefix + i), bin);
 		}
+	}
+
+	private void setupSpecialCharsData() {
+		Key ewsKey = new Key(namespace, SPECIAL_CHAR_SET, "ends-with-star");
+		Bin ewsBin = new Bin(specialCharBin, "abcd.*");
+		this.client.put(null, ewsKey, ewsBin);
+
+		Key swsKey = new Key(namespace, SPECIAL_CHAR_SET, "starts-with-star");
+		Bin swsBin = new Bin(specialCharBin, ".*abcd");
+		this.client.put(null, swsKey, swsBin);
+
+		Key starKey = new Key(namespace, SPECIAL_CHAR_SET, "mid-with-star");
+		Bin starBin = new Bin(specialCharBin, "a.*b");
+		this.client.put(null, starKey, starBin);
+
+		Key specialCharKey = new Key(namespace, SPECIAL_CHAR_SET, "special-chars");
+		Bin specialCharsBin = new Bin(specialCharBin, "a[$^\\ab");
+		this.client.put(null, specialCharKey, specialCharsBin);
 	}
 
 	private static String buildGeoValue(double lg, double lat) {
