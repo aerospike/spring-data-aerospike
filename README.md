@@ -13,7 +13,7 @@ The Spring Data Aerospike project aims to provide a familiar and consistent Spri
 
 |`spring-data-aerospike` Version | Spring Boot Version
 | :----------- | :----: |
-|2.3.5.RELEASE |2.2.x
+|2.3.5.RELEASE | 2.2.x
 |2.1.1.RELEASE | 2.1.x, 2.0.x
 |1.2.1.RELEASE | 1.5.x
 
@@ -44,20 +44,15 @@ Add the Maven dependency:
 </dependency>
 ```
 
-The Aerospike Spring Data connector depends on the Aerospike Client and the Aerospike Query Engine projects:
+The Aerospike Spring Data connector depends on the Aerospike Client project:
 
 ```xml
 <dependency>
   <groupId>com.aerospike</groupId>
   <artifactId>aerospike-client</artifactId>
 </dependency>
-
-<dependency>
-  <groupId>com.aerospike</groupId>
-  <artifactId>aerospike-query-engine</artifactId>
-</dependency>
 ```
-Both dependencies will be provided for you by `spring-data-aerospike`, so no need to declare them additionally.
+Dependency will be provided for you by `spring-data-aerospike`, so no need to declare it additionally.
  
 ### AerospikeTemplate
 
