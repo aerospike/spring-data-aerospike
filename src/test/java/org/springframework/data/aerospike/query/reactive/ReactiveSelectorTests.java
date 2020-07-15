@@ -2,29 +2,26 @@ package org.springframework.data.aerospike.query.reactive;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.query.KeyRecord;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.KeyQualifier;
 import org.springframework.data.aerospike.query.Qualifier;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
-import java.util.Arrays;
-
-import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.ENDS_WITH;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.EQ;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.GEO_WITHIN;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.START_WITH;
-import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOURS;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOUR_COUNTS;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_SET;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.ORANGE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.RECORD_COUNT;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SET_NAME;
 
-public class SelectorTests extends BaseReactiveQueryEngineTests {
+public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void selectOneWithKey() {
@@ -57,19 +54,13 @@ public class SelectorTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void selectEndssWith() {
-		// Number of records containing a color ending with "e"
-		long expectedEndsWithECount = Arrays.stream(COLOURS)
-				.filter(c -> c.endsWith("e"))
-				.mapToLong(c -> COLOUR_COUNTS.get(c))
-				.sum();
-
 		Qualifier qual1 = new Qualifier("color", ENDS_WITH, Value.get("e"));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
-					results.forEach(keyRecord ->
-							Assert.assertTrue(keyRecord.record.getString("color").endsWith("e")));
-					assertThat((long) results.size()).isEqualTo(expectedEndsWithECount);
+					assertThat(results)
+							.allSatisfy(rec -> assertThat(rec.record.getString("color")).endsWith("e"))
+							.hasSize(COLOUR_COUNTS.get(ORANGE) + COLOUR_COUNTS.get(BLUE));
 					return true;
 				})
 				.verifyComplete();
@@ -81,9 +72,9 @@ public class SelectorTests extends BaseReactiveQueryEngineTests {
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, startsWithQual);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
-					results.forEach(keyRecord ->
-							Assert.assertTrue(keyRecord.record.getString("color").startsWith("bl")));
-					assertThat(results.size()).isEqualTo(COLOUR_COUNTS.get("blue").intValue());
+					assertThat(results)
+							.allSatisfy(rec -> assertThat(rec.record.getString("color")).startsWith("bl"))
+							.hasSize(COLOUR_COUNTS.get(BLUE));
 					return true;
 				})
 				.verifyComplete();
@@ -107,6 +98,7 @@ public class SelectorTests extends BaseReactiveQueryEngineTests {
 		Qualifier qual1 = new Qualifier("color", EQ, ignoreCase, Value.get("BLUE"));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
 		StepVerifier.create(flux)
+				.expectNextCount(0)
 				.verifyComplete();
 	}
 
@@ -116,6 +108,7 @@ public class SelectorTests extends BaseReactiveQueryEngineTests {
 		Qualifier qual1 = new Qualifier("name", START_WITH, ignoreCase, Value.get("NA"));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
 		StepVerifier.create(flux)
+				.expectNextCount(0)
 				.verifyComplete();
 	}
 
@@ -123,15 +116,14 @@ public class SelectorTests extends BaseReactiveQueryEngineTests {
 	public void stringEqualIgnoreCaseWorksOnUnindexedBin() {
 		boolean ignoreCase = true;
 		String expectedColor = "blue";
-		long blueRecordCount = 0;
 
 		Qualifier caseInsensitiveQual = new Qualifier("color", EQ, ignoreCase, Value.get("BlUe"));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, caseInsensitiveQual);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
-					results.forEach(keyRecord ->
-							assertThat(keyRecord.record.getString("color")).isEqualTo(expectedColor));
-					assertThat(results.size()).isEqualTo(COLOUR_COUNTS.get("blue").intValue());
+					assertThat(results)
+							.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(expectedColor))
+							.hasSize(COLOUR_COUNTS.get(BLUE));
 					return true;
 				})
 				.verifyComplete();
@@ -142,9 +134,10 @@ public class SelectorTests extends BaseReactiveQueryEngineTests {
 		boolean ignoreCase = true;
 		Qualifier caseInsensitiveQual = new Qualifier("color", EQ, ignoreCase, Value.get("lue"));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, caseInsensitiveQual);
-		StepVerifier.create(flux)
-				.verifyComplete();
 
+		StepVerifier.create(flux)
+				.expectNextCount(0)
+				.verifyComplete();
 	}
 
 	@Test
@@ -159,8 +152,9 @@ public class SelectorTests extends BaseReactiveQueryEngineTests {
 		Flux<KeyRecord> flux = queryEngine.select(namespace, GEO_SET, null, qual1);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
-					results.forEach(keyRecord ->
-							assertTrue(keyRecord.record.generation >= 1));
+					assertThat(results)
+							.allSatisfy(rec -> assertThat(rec.record.generation).isGreaterThanOrEqualTo(1))
+							.isNotEmpty();
 					return true;
 				})
 				.verifyComplete();

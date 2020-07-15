@@ -80,17 +80,11 @@ public class StatementBuilder {
 			}
 		}
 
-		try {
-			PredExp[] predexps;
-			predexps = buildPredExp(qualifiers).toArray(new PredExp[0]);
-			if (predexps.length > 0) {
-				stmt.setPredExp(predexps);
-				return;
-			} else {
-				throw new QualifierException("Failed to build Query");
-			}
-		} catch (PredExpException e) {
-			throw new QualifierException(e.getMessage());
+		PredExp[] predexps = buildPredExp(qualifiers).toArray(new PredExp[0]);
+		if (predexps.length > 0) {
+			stmt.setPredExp(predexps);
+		} else {
+			throw new QualifierException("Failed to build Query");
 		}
 	}
 

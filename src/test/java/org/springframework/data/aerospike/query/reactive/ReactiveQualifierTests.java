@@ -66,7 +66,7 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 /*
  * Tests to ensure that Qualifiers are built successfully for non indexed bins.
  */
-public class QualifierTests extends BaseReactiveQueryEngineTests {
+public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	/*
 	 * These bins should not be indexed.
@@ -75,6 +75,21 @@ public class QualifierTests extends BaseReactiveQueryEngineTests {
 	public void dropIndexes() {
 		super.tryDropIndex(namespace, SET_NAME, "age_index");
 		super.tryDropIndex(namespace, SET_NAME, "color_index");
+	}
+
+	@Test
+	void throwsExceptionWhenScansDisabled() {
+		queryEngine.setScansEnabled(false);
+		try {
+			Qualifier qualifier = new Qualifier("age", LT, Value.get(26));
+			StepVerifier.create(queryEngine.select(namespace, SET_NAME, null, qualifier))
+					.expectErrorSatisfies(e -> assertThat(e)
+							.isInstanceOf(IllegalStateException.class)
+							.hasMessageContaining("disabled by default"))
+					.verify();
+		} finally {
+			queryEngine.setScansEnabled(true);
+		}
 	}
 
 	@Test

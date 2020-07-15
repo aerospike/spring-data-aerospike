@@ -50,7 +50,7 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 /*
  * These tests generate qualifiers on indexed bins.
  */
-public class IndexedQualifierTests extends BaseReactiveQueryEngineTests {
+public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@AfterEach
 	public void assertNoScans() {

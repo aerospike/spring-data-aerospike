@@ -35,10 +35,14 @@ import java.util.Objects;
  */
 public class ReactorQueryEngine {
 
+	/**
+	 * Scans can potentially slow down Aerospike server, so we are disabling them by default.
+	 * If you still need to use scans, set this property to true.
+	 */
+	private boolean scansEnabled = false;
+
 	private final IAerospikeReactorClient client;
-
 	private final StatementBuilder statementBuilder;
-
 	private final QueryPolicy queryPolicy;
 
 	public ReactorQueryEngine(IAerospikeReactorClient client, StatementBuilder statementBuilder,
@@ -72,7 +76,14 @@ public class ReactorQueryEngine {
 		 *  query with filters
 		 */
 		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers);
+		if(!scansEnabled && statement.getFilter() == null) {
+			return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
+		}
 		return client.query(queryPolicy, statement);
+	}
+
+	public void setScansEnabled(boolean scansEnabled) {
+		this.scansEnabled = scansEnabled;
 	}
 
 }

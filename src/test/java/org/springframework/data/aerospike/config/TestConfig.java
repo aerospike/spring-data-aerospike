@@ -108,4 +108,9 @@ public class TestConfig extends AbstractReactiveAerospikeDataConfiguration  {
 	public QueryEngineTestDataPopulator queryEngineTestDataPopulator(AerospikeClient client) {
 		return new QueryEngineTestDataPopulator(nameSpace(), client);
 	}
+
+	@Override
+	protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
+		builder.scansEnabled(true);
+	}
 }

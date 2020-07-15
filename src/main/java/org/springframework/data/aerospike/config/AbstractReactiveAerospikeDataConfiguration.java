@@ -38,7 +38,9 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Abstrac
     @Bean(name = "reactiveAerospikeQueryEngine")
     public ReactorQueryEngine reactorQueryEngine(AerospikeReactorClient aerospikeReactorClient,
                                                  StatementBuilder statementBuilder) {
-        return new ReactorQueryEngine(aerospikeReactorClient, statementBuilder, aerospikeReactorClient.getQueryPolicyDefault());
+        ReactorQueryEngine queryEngine = new ReactorQueryEngine(aerospikeReactorClient, statementBuilder, aerospikeReactorClient.getQueryPolicyDefault());
+        queryEngine.setScansEnabled(aerospikeDataSettings().isScansEnabled());
+        return queryEngine;
     }
 
     @Bean(name = "reactiveAerospikeIndexRefresher")

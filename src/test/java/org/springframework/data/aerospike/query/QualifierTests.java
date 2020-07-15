@@ -32,7 +32,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.CollectionUtils.countingInt;
+import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.LT;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGE_COUNTS;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
@@ -60,6 +62,19 @@ public class QualifierTests extends BaseQueryEngineTests {
 	public void dropIndexes() {
 		tryDropIndex(namespace, SET_NAME, "age_index");
 		tryDropIndex(namespace, SET_NAME, "color_index");
+	}
+
+	@Test
+	void throwsExceptionWhenScansDisabled() {
+		queryEngine.setScansEnabled(false);
+		try {
+			Qualifier qualifier = new Qualifier("age", LT, Value.get(26));
+			assertThatThrownBy(() -> queryEngine.select(namespace, SET_NAME, null, qualifier))
+					.isInstanceOf(IllegalStateException.class)
+					.hasMessageContaining("disabled by default");
+		} finally {
+			queryEngine.setScansEnabled(true);
+		}
 	}
 
 	@Test

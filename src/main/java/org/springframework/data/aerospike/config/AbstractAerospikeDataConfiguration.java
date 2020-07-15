@@ -53,7 +53,9 @@ public abstract class AbstractAerospikeDataConfiguration {
     @Bean(name = "aerospikeQueryEngine")
     public QueryEngine queryEngine(AerospikeClient aerospikeClient,
                                    StatementBuilder statementBuilder) {
-        return new QueryEngine(aerospikeClient, statementBuilder, aerospikeClient.getQueryPolicyDefault());
+        QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, aerospikeClient.getQueryPolicyDefault());
+        queryEngine.setScansEnabled(aerospikeDataSettings().isScansEnabled());
+        return queryEngine;
     }
 
     @Bean(name = "aerospikeStatementBuilder")
@@ -141,6 +143,16 @@ public abstract class AbstractAerospikeDataConfiguration {
     protected abstract Collection<Host> getHosts();
 
     protected abstract String nameSpace();
+
+    protected AerospikeDataSettings aerospikeDataSettings() {
+        AerospikeDataSettings.AerospikeDataSettingsBuilder builder = AerospikeDataSettings.builder();
+        configureDataSettings(builder);
+        return builder.build();
+    }
+
+    protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
+        builder.scansEnabled(false);
+    }
 
     protected ClientPolicy getClientPolicy() {
         ClientPolicy clientPolicy = new ClientPolicy();

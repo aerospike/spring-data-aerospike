@@ -10,7 +10,7 @@ import reactor.test.StepVerifier;
 
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.USERS_SET;
 
-public class UsersTests extends BaseReactiveQueryEngineTests {
+public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void usersInNorthRegion() {

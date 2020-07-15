@@ -34,6 +34,16 @@ import com.aerospike.client.query.Statement;
  */
 public class QueryEngine {
 
+	public static final String SCANS_DISABLED_MESSAGE =
+			"Query without a filter will initiate a scan. Since scans are potentially dangerous operations, they are disabled by default in spring-data-aerospike. " +
+					"If you still need to use them, enable them via `scansEnabled` property in `org.springframework.data.aerospike.config.AerospikeDataSettings`.";
+
+	/**
+	 * Scans can potentially slow down Aerospike server, so we are disabling them by default.
+	 * If you still need to use scans, set this property to true.
+	 */
+	private boolean scansEnabled = false;
+
 	private final AerospikeClient client;
 	private final StatementBuilder statementBuilder;
 	private final QueryPolicy queryPolicy;
@@ -96,8 +106,14 @@ public class QueryEngine {
 		 *  query with filters
 		 */
 		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers);
+		if(!scansEnabled && statement.getFilter() == null) {
+			throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
+		}
 		RecordSet rs = client.query(queryPolicy, statement);
 		return new KeyRecordIterator(namespace, rs);
 	}
 
+	public void setScansEnabled(boolean scansEnabled) {
+		this.scansEnabled = scansEnabled;
+	}
 }
