@@ -22,34 +22,30 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
-import org.springframework.data.aerospike.query.cache.IndexesCache;
 import reactor.core.publisher.Flux;
 
 import java.util.Objects;
-
-import static org.springframework.data.aerospike.query.QueryEngine.updateStatement;
 
 /**
  * This class provides a multi-filter reactive query engine that
  * augments the query capability in Aerospike.
  *
  * @author Sergii Karpenko
+ * @author Anastasiia Smirnova
  */
 public class ReactorQueryEngine {
 
 	private final IAerospikeReactorClient client;
 
+	private final StatementBuilder statementBuilder;
+
 	private final QueryPolicy queryPolicy;
 
-	private final IndexesCache indexesCache;
-
-	public ReactorQueryEngine(IAerospikeReactorClient client,
-							  QueryPolicy queryPolicy,
-							  IndexesCache indexesCache) {
-
+	public ReactorQueryEngine(IAerospikeReactorClient client, StatementBuilder statementBuilder,
+							  QueryPolicy queryPolicy) {
 		this.client = client;
+		this.statementBuilder = statementBuilder;
 		this.queryPolicy = queryPolicy;
-		this.indexesCache = indexesCache;
 	}
 
 	/**
@@ -62,35 +58,21 @@ public class ReactorQueryEngine {
 	 * @return A Flux<KeyRecord> to iterate over the results
 	 */
 	public Flux<KeyRecord> select(String namespace, String set, Filter filter, Qualifier... qualifiers) {
-		Statement stmt = new Statement();
-		stmt.setNamespace(namespace);
-		stmt.setSetName(set);
-		if (filter != null)
-			stmt.setFilter(filter);
-
-		/*
-		 * no filters
-		 */
-		if (qualifiers == null || qualifiers.length == 0) {
-			return this.client.query(queryPolicy, stmt);
-
-		}
 		/*
 		 * singleton using primary key
 		 */
 		//TODO: if filter is provided together with KeyQualifier it is completely ignored (Anastasiia Smirnova)
-		if (qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier) {
+		if (qualifiers != null && qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier) {
 			KeyQualifier kq = (KeyQualifier) qualifiers[0];
-			Key key = kq.makeKey(stmt.getNamespace(), stmt.getSetName());
-			return Flux.from(this.client.get(null, key, stmt.getBinNames()))
+			Key key = kq.makeKey(namespace, set);
+			return Flux.from(this.client.get(null, key))
 					.filter(keyRecord -> Objects.nonNull(keyRecord.record));
 		}
 		/*
 		 *  query with filters
 		 */
-		updateStatement(stmt, qualifiers, indexesCache::hasIndexFor);
-
-		return client.query(queryPolicy, stmt);
+		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers);
+		return client.query(queryPolicy, statement);
 	}
 
 }

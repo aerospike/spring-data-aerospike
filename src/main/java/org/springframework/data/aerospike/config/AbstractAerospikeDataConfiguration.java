@@ -18,10 +18,11 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.QueryEngine;
-import org.springframework.data.aerospike.query.cache.IndexesCache;
-import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
+import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
+import org.springframework.data.aerospike.query.cache.IndexesCache;
+import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.annotation.Persistent;
@@ -30,7 +31,11 @@ import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Configuration
 public abstract class AbstractAerospikeDataConfiguration {
@@ -46,8 +51,14 @@ public abstract class AbstractAerospikeDataConfiguration {
     }
 
     @Bean(name = "aerospikeQueryEngine")
-    public QueryEngine queryEngine(AerospikeClient aerospikeClient, IndexesCache indexesCache) {
-        return new QueryEngine(aerospikeClient, aerospikeClient.getQueryPolicyDefault(), indexesCache);
+    public QueryEngine queryEngine(AerospikeClient aerospikeClient,
+                                   StatementBuilder statementBuilder) {
+        return new QueryEngine(aerospikeClient, statementBuilder, aerospikeClient.getQueryPolicyDefault());
+    }
+
+    @Bean(name = "aerospikeStatementBuilder")
+    public StatementBuilder statementBuilder(IndexesCache indexesCache) {
+        return new StatementBuilder(indexesCache);
     }
 
     @Bean(name = "aerospikeIndexCache")
