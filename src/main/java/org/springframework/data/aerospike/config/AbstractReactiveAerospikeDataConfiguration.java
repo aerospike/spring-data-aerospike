@@ -11,9 +11,8 @@ import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
-import org.springframework.data.aerospike.query.cache.IndexesCache;
-import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
+import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
@@ -40,11 +39,6 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Abstrac
     public ReactorQueryEngine reactorQueryEngine(AerospikeReactorClient aerospikeReactorClient,
                                                  IndexesCache indexesCache) {
         return new ReactorQueryEngine(aerospikeReactorClient, aerospikeReactorClient.getQueryPolicyDefault(), indexesCache);
-    }
-
-    @Bean(name = "aerospikeIndexCache")
-    public IndexesCacheHolder indexCache() {
-        return new IndexesCacheHolder();
     }
 
     @Bean(name = "reactiveAerospikeIndexRefresher")

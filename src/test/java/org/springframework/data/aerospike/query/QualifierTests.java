@@ -33,6 +33,20 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.CollectionUtils.countingInt;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGE_COUNTS;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOURS;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOUR_COUNTS;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_SET;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GREEN;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.ORANGE;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.RECORD_COUNT;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SET_NAME;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SKIP_LONG_VALUE;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SPECIAL_CHAR_BIN;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SPECIAL_CHAR_SET;
 
 /*
  * Tests to ensure that Qualifiers are built successfully for non indexed bins.
@@ -70,7 +84,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 	public void selectAll() {
 		KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null);
 
-		assertThat(iterator).toIterable().hasSize(BaseQueryEngineTests.RECORD_COUNT);
+		assertThat(iterator).toIterable().hasSize(RECORD_COUNT);
 	}
 
 	@Test
@@ -84,7 +98,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isLessThan(26))
-				.hasSize(recordsWithAgeCounts.get(25));
+				.hasSize(AGE_COUNTS.get(25));
 	}
 
 	@Test
@@ -100,8 +114,8 @@ public class QualifierTests extends BaseQueryEngineTests {
 		assertThat(ageCount.keySet())
 				.isNotEmpty()
 				.allSatisfy(age -> assertThat(age).isLessThanOrEqualTo(26));
-		assertThat(ageCount.get(25)).isEqualTo(recordsWithAgeCounts.get(25));
-		assertThat(ageCount.get(26)).isEqualTo(recordsWithAgeCounts.get(26));
+		assertThat(ageCount.get(25)).isEqualTo(AGE_COUNTS.get(25));
+		assertThat(ageCount.get(26)).isEqualTo(AGE_COUNTS.get(26));
 	}
 
 	@Test
@@ -115,7 +129,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(26))
-				.hasSize(recordsWithAgeCounts.get(26));
+				.hasSize(AGE_COUNTS.get(26));
 	}
 
 	@Test
@@ -131,8 +145,8 @@ public class QualifierTests extends BaseQueryEngineTests {
 		assertThat(ageCount.keySet())
 				.isNotEmpty()
 				.allSatisfy(age -> assertThat(age).isGreaterThanOrEqualTo(28));
-		assertThat(ageCount.get(28)).isEqualTo(recordsWithAgeCounts.get(28));
-		assertThat(ageCount.get(29)).isEqualTo(recordsWithAgeCounts.get(29));
+		assertThat(ageCount.get(28)).isEqualTo(AGE_COUNTS.get(28));
+		assertThat(ageCount.get(29)).isEqualTo(AGE_COUNTS.get(29));
 	}
 
 	@Test
@@ -146,7 +160,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(29))
-				.hasSize(recordsWithAgeCounts.get(29));
+				.hasSize(AGE_COUNTS.get(29));
 	}
 
 	@Test
@@ -159,7 +173,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(ORANGE))
-				.hasSize(recordsWithColourCounts.get(ORANGE));
+				.hasSize(COLOUR_COUNTS.get(ORANGE));
 	}
 
 	@Test
@@ -172,20 +186,20 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(ORANGE))
-				.hasSize(recordsWithColourCounts.get(ORANGE));
+				.hasSize(COLOUR_COUNTS.get(ORANGE));
 	}
 
 	@Test
 	public void stringEqualIgnoreCaseWorksOnUnindexedBin() {
 		boolean ignoreCase = true;
 		Qualifier qualifier = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get("BlUe"));
-		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier);
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
 		assertThat(it)
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
-				.hasSize(recordsWithColourCounts.get(BLUE));
+				.hasSize(COLOUR_COUNTS.get(BLUE));
 	}
 
 	@Test
@@ -199,7 +213,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 					.toIterable()
 					.isNotEmpty()
 					.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
-					.hasSize(recordsWithColourCounts.get(BLUE));
+					.hasSize(COLOUR_COUNTS.get(BLUE));
 			// scan will be run, since Aerospike filter does not support case-insensitive string comparison
 		});
 	}
@@ -208,7 +222,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 	public void stringEqualIgnoreCaseWorksRequiresFullMatch() {
 		boolean ignoreCase = true;
 		Qualifier qualifier = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get("lue"));
-		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier);
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
 		assertThat(it).toIterable().isEmpty();
 	}
@@ -223,7 +237,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
-				.hasSize(recordsWithColourCounts.get(BLUE));
+				.hasSize(COLOUR_COUNTS.get(BLUE));
 	}
 
 	@Test
@@ -236,7 +250,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
-				.hasSize(recordsWithColourCounts.get(BLUE));
+				.hasSize(COLOUR_COUNTS.get(BLUE));
 	}
 
 	@Test
@@ -249,7 +263,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
-				.hasSize(recordsWithColourCounts.get(BLUE));
+				.hasSize(COLOUR_COUNTS.get(BLUE));
 	}
 
 	@Test
@@ -262,33 +276,33 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(GREEN))
-				.hasSize(recordsWithColourCounts.get(GREEN));
+				.hasSize(COLOUR_COUNTS.get(GREEN));
 	}
 
 	@Test
 	public void selectEndsWith() {
 
 		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get("e"));
-		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qualifier);
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
 		assertThat(it)
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isIn(BLUE, ORANGE))
-				.hasSize(recordsWithColourCounts.get(BLUE) + recordsWithColourCounts.get(ORANGE));
+				.hasSize(COLOUR_COUNTS.get(BLUE) + COLOUR_COUNTS.get(ORANGE));
 	}
 
 	@Test
 	public void testStringEndsWithEntireWordQualifier() {
 
-		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get(QualifierTests.GREEN));
+		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get(GREEN));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
 		assertThat(it)
 				.toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(GREEN))
-				.hasSize(recordsWithColourCounts.get(GREEN));
+				.hasSize(COLOUR_COUNTS.get(GREEN));
 	}
 
 	@Test
@@ -304,16 +318,16 @@ public class QualifierTests extends BaseQueryEngineTests {
 		assertThat(ageCount.keySet())
 				.isNotEmpty()
 				.allSatisfy(age -> assertThat(age).isBetween(26, 28));
-		assertThat(ageCount.get(26)).isEqualTo(recordsWithAgeCounts.get(26));
-		assertThat(ageCount.get(27)).isEqualTo(recordsWithAgeCounts.get(27));
-		assertThat(ageCount.get(28)).isEqualTo(recordsWithAgeCounts.get(28));
+		assertThat(ageCount.get(26)).isEqualTo(AGE_COUNTS.get(26));
+		assertThat(ageCount.get(27)).isEqualTo(AGE_COUNTS.get(27));
+		assertThat(ageCount.get(28)).isEqualTo(AGE_COUNTS.get(28));
 	}
 
 	@Test
 	public void testContainingQualifier() {
-		Map<String, Integer> expectedCounts = Arrays.stream(colours)
+		Map<String, Integer> expectedCounts = Arrays.stream(COLOURS)
 				.filter(c -> c.contains("l"))
-				.collect(Collectors.toMap(color -> color, color -> recordsWithColourCounts.get(color)));
+				.collect(Collectors.toMap(color -> color, color -> COLOUR_COUNTS.get(color)));
 
 		Qualifier qualifier = new Qualifier("color", FilterOperation.CONTAINING, Value.get("l"));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -326,9 +340,9 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void testInQualifier() {
-		List<String> inColors = Arrays.asList(colours[0], colours[2]);
+		List<String> inColors = Arrays.asList(COLOURS[0], COLOURS[2]);
 		Map<String, Integer> expectedCounts = inColors.stream()
-				.collect(Collectors.toMap(color -> color, color -> recordsWithColourCounts.get(color)));
+				.collect(Collectors.toMap(color -> color, color -> COLOUR_COUNTS.get(color)));
 
 		Qualifier qualifier = new Qualifier("color", FilterOperation.IN, Value.get(inColors));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -341,7 +355,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void testListContainsQualifier() {
-		String searchColor = colours[0];
+		String searchColor = COLOURS[0];
 		String binName = "colorList";
 
 		Qualifier qualifier = new Qualifier(binName, FilterOperation.LIST_CONTAINS, Value.get(searchColor));
@@ -355,13 +369,13 @@ public class QualifierTests extends BaseQueryEngineTests {
 					String color = colorList.get(0);
 					assertThat(color).isEqualTo(searchColor);
 				})
-				.hasSize(recordsWithColourCounts.get(searchColor));
+				.hasSize(COLOUR_COUNTS.get(searchColor));
 	}
 
 	@Test
 	public void testListBetweenQualifier() {
-		long ageStart = ages[0]; // 25
-		long ageEnd = ages[2]; // 27
+		long ageStart = AGES[0]; // 25
+		long ageEnd = AGES[2]; // 27
 		String binName = "longList";
 
 		Qualifier qualifier = new Qualifier(binName, FilterOperation.LIST_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
@@ -377,14 +391,14 @@ public class QualifierTests extends BaseQueryEngineTests {
 		assertThat(ageCount.keySet())
 				.isNotEmpty()
 				.allSatisfy(age -> assertThat(age).isBetween(ageStart, ageEnd));
-		assertThat(ageCount.get(25L)).isEqualTo(recordsWithAgeCounts.get(25));
-		assertThat(ageCount.get(26L)).isEqualTo(recordsWithAgeCounts.get(26));
-		assertThat(ageCount.get(27L)).isEqualTo(recordsWithAgeCounts.get(27));
+		assertThat(ageCount.get(25L)).isEqualTo(AGE_COUNTS.get(25));
+		assertThat(ageCount.get(26L)).isEqualTo(AGE_COUNTS.get(26));
+		assertThat(ageCount.get(27L)).isEqualTo(AGE_COUNTS.get(27));
 	}
 
 	@Test
 	public void testMapKeysContainsQualifier() {
-		String searchColor = colours[0];
+		String searchColor = COLOURS[0];
 		String binName = "colorAgeMap";
 
 		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_KEYS_CONTAINS, Value.get(searchColor));
@@ -397,12 +411,12 @@ public class QualifierTests extends BaseQueryEngineTests {
 					Map<String, ?> colorMap = (Map<String, ?>) rec.record.getMap(binName);
 					assertThat(colorMap).containsKey(searchColor);
 				})
-				.hasSize(recordsWithColourCounts.get(searchColor));
+				.hasSize(COLOUR_COUNTS.get(searchColor));
 	}
 
 	@Test
 	public void testMapValuesContainsQualifier() {
-		String searchColor = colours[0];
+		String searchColor = COLOURS[0];
 		String binName = "ageColorMap";
 
 		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_VALUES_CONTAINS, Value.get(searchColor));
@@ -415,13 +429,13 @@ public class QualifierTests extends BaseQueryEngineTests {
 					Map<?, String> colorMap = (Map<?, String>) rec.record.getMap(binName);
 					assertThat(colorMap).containsValue(searchColor);
 				})
-				.hasSize(recordsWithColourCounts.get(searchColor));
+				.hasSize(COLOUR_COUNTS.get(searchColor));
 	}
 
 	@Test
 	public void testMapKeysBetweenQualifier() {
-		long ageStart = ages[0]; // 25
-		long ageEnd = ages[2]; // 27
+		long ageStart = AGES[0]; // 25
+		long ageEnd = AGES[2]; // 27
 		String binName = "ageColorMap";
 
 		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_KEYS_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
@@ -432,22 +446,22 @@ public class QualifierTests extends BaseQueryEngineTests {
 					@SuppressWarnings("unchecked")
 					Map<Long, ?> ageColorMap = (Map<Long, ?>) rec.record.getMap(binName);
 					// This is always a one item map
-					Long age = ageColorMap.keySet().stream().filter(val -> val != skipLongValue).findFirst().get();
+					Long age = ageColorMap.keySet().stream().filter(val -> val != SKIP_LONG_VALUE).findFirst().get();
 					return age;
 				})
 				.collect(Collectors.groupingBy(k -> k, countingInt()));
 		assertThat(ageCount.keySet())
 				.isNotEmpty()
 				.allSatisfy(age -> assertThat(age).isBetween(ageStart, ageEnd));
-		assertThat(ageCount.get(25L)).isEqualTo(recordsWithAgeCounts.get(25));
-		assertThat(ageCount.get(26L)).isEqualTo(recordsWithAgeCounts.get(26));
-		assertThat(ageCount.get(27L)).isEqualTo(recordsWithAgeCounts.get(27));
+		assertThat(ageCount.get(25L)).isEqualTo(AGE_COUNTS.get(25));
+		assertThat(ageCount.get(26L)).isEqualTo(AGE_COUNTS.get(26));
+		assertThat(ageCount.get(27L)).isEqualTo(AGE_COUNTS.get(27));
 	}
 
 	@Test
 	public void testMapValuesBetweenQualifier() {
-		long ageStart = ages[0]; // 25
-		long ageEnd = ages[2]; // 27
+		long ageStart = AGES[0]; // 25
+		long ageEnd = AGES[2]; // 27
 		String binName = "colorAgeMap";
 
 		Qualifier qualifier = new Qualifier(binName, FilterOperation.MAP_VALUES_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
@@ -458,58 +472,58 @@ public class QualifierTests extends BaseQueryEngineTests {
 					@SuppressWarnings("unchecked")
 					Map<?, Long> ageColorMap = (Map<?, Long>) rec.record.getMap(binName);
 					// This is always a one item map
-					Long age = ageColorMap.values().stream().filter(val -> val != skipLongValue).findFirst().get();
+					Long age = ageColorMap.values().stream().filter(val -> val != SKIP_LONG_VALUE).findFirst().get();
 					return age;
 				})
 				.collect(Collectors.groupingBy(k -> k, countingInt()));
 		assertThat(ageCount.keySet())
 				.isNotEmpty()
 				.allSatisfy(age -> assertThat(age).isBetween(ageStart, ageEnd));
-		assertThat(ageCount.get(25L)).isEqualTo(recordsWithAgeCounts.get(25));
-		assertThat(ageCount.get(26L)).isEqualTo(recordsWithAgeCounts.get(26));
-		assertThat(ageCount.get(27L)).isEqualTo(recordsWithAgeCounts.get(27));
+		assertThat(ageCount.get(25L)).isEqualTo(AGE_COUNTS.get(25));
+		assertThat(ageCount.get(26L)).isEqualTo(AGE_COUNTS.get(26));
+		assertThat(ageCount.get(27L)).isEqualTo(AGE_COUNTS.get(27));
 	}
 
 	@Test
 	public void testContainingDoesNotUseSpecialCharacterQualifier() {
 
-		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.CONTAINING, Value.get(".*"));
+		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.CONTAINING, Value.get(".*"));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
 		assertThat(it).toIterable()
 				.isNotEmpty()
-				.allSatisfy(rec -> assertThat(rec.record.getString(specialCharBin)).contains(".*"))
+				.allSatisfy(rec -> assertThat(rec.record.getString(SPECIAL_CHAR_BIN)).contains(".*"))
 				.hasSize(3);
 	}
 
 	@Test
 	public void testStartWithDoesNotUseSpecialCharacterQualifier() {
 
-		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.START_WITH, Value.get(".*"));
+		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.START_WITH, Value.get(".*"));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
 		assertThat(it).toIterable()
 				.isNotEmpty()
-				.allSatisfy(rec -> assertThat(rec.record.getString(specialCharBin)).startsWith(".*"))
+				.allSatisfy(rec -> assertThat(rec.record.getString(SPECIAL_CHAR_BIN)).startsWith(".*"))
 				.hasSize(1);
 	}
 
 	@Test
 	public void testEndWithDoesNotUseSpecialCharacterQualifier() {
 
-		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.ENDS_WITH, Value.get(".*"));
+		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.ENDS_WITH, Value.get(".*"));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
 		assertThat(it).toIterable()
 				.isNotEmpty()
-				.allSatisfy(rec -> assertThat(rec.record.getString(specialCharBin)).endsWith(".*"))
+				.allSatisfy(rec -> assertThat(rec.record.getString(SPECIAL_CHAR_BIN)).endsWith(".*"))
 				.hasSize(1);
 	}
 
 	@Test
 	public void testEQIcaseDoesNotUseSpecialCharacter() {
 
-		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.EQ, true, Value.get(".*"));
+		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.EQ, true, Value.get(".*"));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
 		assertThat(it).toIterable().isEmpty();
@@ -519,12 +533,12 @@ public class QualifierTests extends BaseQueryEngineTests {
 	@ValueSource(strings = {"[", "$", "\\", "^"})
 	public void testContainingFindsSquareBracket(String specialString) {
 
-		Qualifier qualifier = new Qualifier(specialCharBin, FilterOperation.CONTAINING, true, Value.get(specialString));
+		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.CONTAINING, true, Value.get(specialString));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
 		assertThat(it).toIterable()
 				.isNotEmpty()
-				.allSatisfy(rec -> assertThat(rec.record.getString(specialCharBin)).contains(specialString))
+				.allSatisfy(rec -> assertThat(rec.record.getString(SPECIAL_CHAR_BIN)).contains(specialString))
 				.hasSize(1);
 	}
 
@@ -551,12 +565,12 @@ public class QualifierTests extends BaseQueryEngineTests {
 		Qualifier qual1 = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get(BLUE.toUpperCase()));
 		Qualifier qual2 = new Qualifier("name", FilterOperation.START_WITH, ignoreCase, Value.get("NA"));
 
-		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qual1, qual2);
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qual1, qual2);
 
 		assertThat(it).toIterable()
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(BLUE))
-				.hasSize(recordsWithColourCounts.get(BLUE));
+				.hasSize(COLOUR_COUNTS.get(BLUE));
 	}
 
 	@Test
@@ -564,7 +578,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 		boolean ignoreCase = false;
 		Qualifier qual1 = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get(BLUE.toUpperCase()));
-		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qual1);
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qual1);
 
 		assertThat(it).toIterable().isEmpty();
 	}
@@ -574,7 +588,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 		boolean ignoreCase = false;
 		Qualifier qual1 = new Qualifier("name", FilterOperation.START_WITH, ignoreCase, Value.get("NA"));
-		KeyRecordIterator it = queryEngine.select(namespace, BaseQueryEngineTests.SET_NAME, null, qual1);
+		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qual1);
 
 		assertThat(it).toIterable().isEmpty();
 	}
@@ -633,11 +647,11 @@ public class QualifierTests extends BaseQueryEngineTests {
 		assertThat(result.stream().map(rec -> rec.record.getInt("age")))
 				.filteredOn(age -> age >= 28 && age <= 29)
 				.isNotEmpty()
-				.hasSize(recordsWithAgeCounts.get(28) + recordsWithAgeCounts.get(29));
+				.hasSize(AGE_COUNTS.get(28) + AGE_COUNTS.get(29));
 		assertThat(result.stream().map(rec -> rec.record.getString("color")))
 				.filteredOn(color -> color.equals(BLUE))
 				.isNotEmpty()
-				.hasSize(recordsWithColourCounts.get(BLUE));
+				.hasSize(COLOUR_COUNTS.get(BLUE));
 	}
 
 
