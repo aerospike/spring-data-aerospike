@@ -57,7 +57,7 @@ public class ReactorQueryEngine {
 	 * @param set        Set storing the data
 	 * @param filter     Aerospike Filter to be used
 	 * @param qualifiers Zero or more Qualifiers for the update query
-	 * @return A KeyRecordIterator to iterate over the results
+	 * @return A Flux<KeyRecord> to iterate over the results
 	 */
 	public Flux<KeyRecord> select(String namespace, String set, Filter filter, Qualifier... qualifiers) {
 		Statement stmt = new Statement();
@@ -65,29 +65,6 @@ public class ReactorQueryEngine {
 		stmt.setSetName(set);
 		if (filter != null)
 			stmt.setFilter(filter);
-		return select(stmt, qualifiers);
-	}
-
-	/**
-	 * Select records filtered by Qualifiers
-	 *
-	 * @param stmt       A Statement object containing Namespace, Set and the Bins to be returned.
-	 * @param qualifiers Zero or more Qualifiers for the update query
-	 * @return A KeyRecordIterator to iterate over the results
-	 */
-	public Flux<KeyRecord> select(Statement stmt, Qualifier... qualifiers) {
-		return select(stmt, false, qualifiers);
-	}
-
-	/**
-	 * Select records filtered by Qualifiers
-	 *
-	 * @param stmt       A Statement object containing Namespace, Set and the Bins to be returned.
-	 * @param metaOnly   Set to true to return only the record meta data
-	 * @param qualifiers Zero or more Qualifiers for the update query
-	 * @return A KeyRecordIterator to iterate over the results
-	 */
-	public Flux<KeyRecord> select(Statement stmt, boolean metaOnly, Qualifier... qualifiers) {
 
 		/*
 		 * no filters
@@ -102,10 +79,7 @@ public class ReactorQueryEngine {
 		if (qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier) {
 			KeyQualifier kq = (KeyQualifier) qualifiers[0];
 			Key key = kq.makeKey(stmt.getNamespace(), stmt.getSetName());
-			if (metaOnly)
-				return Flux.from(this.client.getHeader(null, key));
-			else
-				return Flux.from(this.client.get(null, key, stmt.getBinNames()));
+			return Flux.from(this.client.get(null, key, stmt.getBinNames()));
 		}
 		/*
 		 *  query with filters

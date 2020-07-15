@@ -19,7 +19,6 @@ package org.springframework.data.aerospike.query;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
-import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.QueryPolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.KeyRecord;
@@ -102,53 +101,21 @@ public class QueryEngine {
 		stmt.setSetName(set);
 		if (filter != null)
 			stmt.setFilter(filter);
-		return select(stmt, qualifiers);
-	}
-
-	/**
-	 * Select records filtered by Qualifiers
-	 *
-	 * @param stmt       A Statement object containing Namespace, Set and the Bins to be returned.
-	 * @param qualifiers Zero or more Qualifiers for the update query
-	 * @return A KeyRecordIterator to iterate over the results
-	 */
-	public KeyRecordIterator select(Statement stmt, Qualifier... qualifiers) {
-		return select(stmt, false, null, qualifiers);
-	}
-
-	/**
-	 * Select records filtered by Qualifiers
-	 *
-	 * @param stmt       A Statement object containing Namespace, Set and the Bins to be returned.
-	 * @param metaOnly   Set to true to return only the record meta data
-	 * @param node       Node to query.  Use null to query all nodes.
-	 * @param qualifiers Zero or more Qualifiers for the update query
-	 * @return A KeyRecordIterator to iterate over the results
-	 */
-	public KeyRecordIterator select(Statement stmt, boolean metaOnly, Node node, Qualifier... qualifiers) {
 
 		/*
 		 * no filters
 		 */
 		if (qualifiers == null || qualifiers.length == 0) {
-			RecordSet recordSet = null;
-			if (node != null)
-				recordSet = this.client.queryNode(queryPolicy, stmt, node);
-			else
-				recordSet = this.client.query(queryPolicy, stmt);
+			RecordSet recordSet = this.client.query(queryPolicy, stmt);
 			return new KeyRecordIterator(stmt.getNamespace(), recordSet);
 		}
 		/*
 		 * singleton using primary key
 		 */
-		if (qualifiers != null && qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier) {
+		if (qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier) {
 			KeyQualifier kq = (KeyQualifier) qualifiers[0];
 			Key key = kq.makeKey(stmt.getNamespace(), stmt.getSetName());
-			Record record = null;
-			if (metaOnly)
-				record = this.client.getHeader(null, key);
-			else
-				record = this.client.get(null, key, stmt.getBinNames());
+			Record record = this.client.get(null, key, stmt.getBinNames());
 			if (record == null) {
 				return new KeyRecordIterator(stmt.getNamespace());
 			} else {
@@ -161,12 +128,7 @@ public class QueryEngine {
 		 */
 		updateStatement(stmt, qualifiers, indexesCache::hasIndexFor);
 
-		RecordSet rs;
-		if (null == node) {
-			rs = client.query(queryPolicy, stmt);
-		} else {
-			rs = client.queryNode(queryPolicy, stmt, node);
-		}
+		RecordSet rs = client.query(queryPolicy, stmt);
 		return new KeyRecordIterator(stmt.getNamespace(), rs);
 
 	}
