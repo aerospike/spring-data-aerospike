@@ -15,20 +15,20 @@
  */
 package org.springframework.data.aerospike.convert;
 
-import static java.util.Arrays.asList;
-
-import java.util.Map;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.convert.CustomConversions;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.convert.DefaultTypeMapper;
-import org.springframework.data.convert.EntityInstantiators;
 import org.springframework.data.convert.SimpleTypeInformationMapper;
 import org.springframework.data.convert.TypeMapper;
+import org.springframework.data.mapping.model.EntityInstantiators;
+
+import java.util.Map;
+
+import static java.util.Arrays.asList;
 
 /**
  * An implementation of {@link AerospikeConverter} to read domain objects from {@link AerospikeReadData} and write domain

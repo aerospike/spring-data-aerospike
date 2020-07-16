@@ -22,7 +22,6 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
-import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.convert.CustomConversions;
@@ -31,7 +30,6 @@ import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.util.Assert;
-import org.springframework.util.comparator.CompoundComparator;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -135,20 +133,17 @@ abstract class BaseAerospikeTemplate {
         return converter.read(type, data);
     }
 
-    protected Comparator<?> getComparator(Query query) {
-        //TODO replace with not deprecated one
-        //TODO also see NullSafeComparator
-        CompoundComparator<?> compoundComperator = new CompoundComparator();
-        for (Sort.Order order : query.getSort()) {
+    protected <T> Comparator<T> getComparator(Query query) {
+        return query.getSort().stream()
+                .map(this::<T>getPropertyComparator)
+                .reduce(Comparator::thenComparing)
+                .orElseThrow(() -> new IllegalStateException("Comparator can not be created if sort orders are empty"));
+    }
 
-            if (Sort.Direction.DESC.equals(order.getDirection())) {
-                compoundComperator.addComparator(new PropertyComparator<>(order.getProperty(), true, false));
-            }else {
-                compoundComperator.addComparator(new PropertyComparator<>(order.getProperty(), true, true));
-            }
-        }
-
-        return compoundComperator;
+    private <T> Comparator<T> getPropertyComparator(Sort.Order order) {
+        boolean ignoreCase = true;
+        boolean ascending = order.getDirection().isAscending();
+        return new PropertyComparator<>(order.getProperty(), ignoreCase, ascending);
     }
 
     <T> ConvertingPropertyAccessor<T> getPropertyAccessor(AerospikePersistentEntity<?> entity, T source) {

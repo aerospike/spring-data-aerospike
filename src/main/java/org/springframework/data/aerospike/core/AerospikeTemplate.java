@@ -607,7 +607,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Stream<T> results = findAllUsingQuery(type, null, qualifier);
 
 		if (query.getSort() != null && query.getSort().isSorted()) {
-			Comparator comparator = getComparator(query);
+			Comparator<T> comparator = getComparator(query);
 			results = results.sorted(comparator);
 		}
 

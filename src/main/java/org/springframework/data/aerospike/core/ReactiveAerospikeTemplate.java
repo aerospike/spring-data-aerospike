@@ -13,13 +13,13 @@ import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.reactor.AerospikeReactorClient;
-import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
@@ -27,10 +27,8 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -395,14 +393,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Flux<T> results = findAllUsingQuery(type, null, qualifier);
 
         if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator comparator = getComparator(query);
-            results = results.collectList()
-                    .map(list -> {
-                        List<T> sorted = new ArrayList<>(list);
-                        sorted.sort(comparator);
-                        return sorted;
-                    })
-                    .flatMapMany(list -> Flux.fromIterable((List<T>)list));
+            Comparator<T> comparator = getComparator(query);
+            results = results.sort(comparator);
         }
 
         if(query.hasOffset()) {
