@@ -36,12 +36,12 @@ public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegratio
 	@Autowired CustomerRepository repository;
 
 	@Test
-	public void testCreate() {
+	public void create() {
 		repository.save(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
 	}
 
 	@Test
-	public void testExists() {
+	public void exists() {
 		repository.save(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
 
 		boolean exists = repository.existsById(id);
@@ -50,12 +50,12 @@ public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegratio
 	}
 
 	@Test
-	public void testDelete() {
+	public void delete() {
 		repository.delete(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
 	}
 
 	@Test
-	public void testReadById() {
+	public void readById() {
 		Customer customer = repository.save(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
 
 		Optional<Customer> findById = repository.findById(id);
@@ -67,7 +67,7 @@ public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegratio
 	}
 
 	@Test
-	public void testFindAllByIDs(){
+	public void findAllByIDs(){
 		Customer first = repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("AMatthews").build());
 		Customer second = repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("BMatthews").build());
 		repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("CMatthews").build());

@@ -44,7 +44,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         List<Person> result = reactiveTemplate.findAll(Person.class)
                 .subscribeOn(Schedulers.parallel())
                 .collectList().block();
-        assertThat(result).containsOnlyElementsOf(persons);
+        assertThat(result).hasSameElementsAs(persons);
     }
 
     @Test

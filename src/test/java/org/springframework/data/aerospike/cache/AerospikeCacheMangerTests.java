@@ -38,7 +38,7 @@ public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 	@Autowired MappingAerospikeConverter converter;
 
 	@Test
-	public void testMissingCache() {
+	public void missingCache() {
 		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter);
 		manager.afterPropertiesSet();
 		Cache cache = manager.getCache("missing-cache");
@@ -47,7 +47,7 @@ public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 	}
 
 	@Test
-	public void testDefaultCache() {
+	public void defaultCache() {
 		AerospikeCacheManager manager = new AerospikeCacheManager(client,
 				Arrays.asList("default-cache"), converter);
 		manager.afterPropertiesSet();
@@ -57,7 +57,7 @@ public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 	}
 
 	@Test
-	public void testDefaultCacheWithCustomizedSet() {
+	public void defaultCacheWithCustomizedSet() {
 		AerospikeCacheManager manager = new AerospikeCacheManager(client,
 				Arrays.asList("default-cache"), "custom-set", converter);
 		manager.afterPropertiesSet();
@@ -67,7 +67,7 @@ public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 	}
 
 	@Test
-	public void testTransactionAwareCache() {
+	public void transactionAwareCache() {
 		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter);
 		manager.setTransactionAware(true);
 		manager.afterPropertiesSet();

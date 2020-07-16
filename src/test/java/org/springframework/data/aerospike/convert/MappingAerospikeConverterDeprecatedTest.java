@@ -18,10 +18,6 @@ package org.springframework.data.aerospike.convert;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
-import lombok.Value;
-import org.hamcrest.MatcherAssert;
-import org.hamcrest.beans.HasProperty;
-import org.hamcrest.beans.SamePropertyValuesAs;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.ConversionNotSupportedException;
@@ -35,7 +31,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.convert.CustomConversions;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.Arrays;
@@ -53,13 +48,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 
 /**
  * @author Peter Milne
@@ -85,13 +73,13 @@ public class MappingAerospikeConverterDeprecatedTest {
 	}
 
 	@Test
-	public void testMappingAerospikeConverter() {
+	public void mappingAerospikeConverter() {
 		MappingAerospikeConverter mappingAerospikeConverter = new MappingAerospikeConverter(new AerospikeMappingContext(), customConversions, aerospikeTypeAliasAccessor);
 		assertThat(mappingAerospikeConverter.getConversionService()).isNotNull();
 	}
 
 	@Test
-	public void testGetConversionService() {
+	public void getConversionService() {
 		MappingAerospikeConverter mappingAerospikeConverter = new MappingAerospikeConverter(new AerospikeMappingContext(), customConversions, aerospikeTypeAliasAccessor);
 		assertThat(mappingAerospikeConverter.getConversionService()).isNotNull().isInstanceOf(DefaultConversionService.class);
 	}

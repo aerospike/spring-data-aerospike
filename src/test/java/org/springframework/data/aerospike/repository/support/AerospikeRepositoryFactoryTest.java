@@ -24,8 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.aerospike.core.AerospikeOperations;
-import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.core.EntityInformation;
@@ -36,8 +36,6 @@ import org.springframework.data.repository.core.support.PersistentEntityInformat
 import java.io.Serializable;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -68,7 +66,7 @@ public class AerospikeRepositoryFactoryTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testGetEntityInformationClassOfT() {
+	public void getEntityInformationClassOfT() {
 		when(context.getRequiredPersistentEntity(Person.class)).thenReturn(entity);
 
 		AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeOperations);
@@ -78,7 +76,7 @@ public class AerospikeRepositoryFactoryTest {
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void testGetTargetRepositoryRepositoryInformation() {
+	public void getTargetRepositoryRepositoryInformation() {
 		when(aerospikeRepositoryFactoryMock.getTargetRepository(repositoryInformation)).thenReturn(new Object());
 
 		Person.class.getDeclaredConstructors();

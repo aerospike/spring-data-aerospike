@@ -15,13 +15,12 @@
  */
 package org.springframework.data.aerospike.mapping;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.is;
-import static org.mockito.Mockito.mock;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.aerospike.sample.Person;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -33,7 +32,7 @@ import org.springframework.data.aerospike.sample.Person;
 public class AerospikeMappingContextTest {
 	
 	@Test
-	public void testSetFieldNamingStrategy() {
+	public void setFieldNamingStrategy() {
 		AerospikeMappingContext context = new AerospikeMappingContext();
 		context.setApplicationContext(mock(ApplicationContext.class));
 		context.setFieldNamingStrategy(null);
@@ -44,7 +43,7 @@ public class AerospikeMappingContextTest {
 	}
 
 	@Test
-	public void testCreatePersistentEntityTypeInformationOfT() {
+	public void createPersistentEntityTypeInformationOfT() {
 		AerospikeMappingContext context = new AerospikeMappingContext();
 		context.setApplicationContext(mock(ApplicationContext.class));
 		context.setFieldNamingStrategy(null);

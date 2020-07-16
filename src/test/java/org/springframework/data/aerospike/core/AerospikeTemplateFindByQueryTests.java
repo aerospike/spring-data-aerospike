@@ -64,7 +64,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void testFindWithFilterEqual() {
+    public void findWithFilterEqual() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findPersonByFirstName", "Dave");
 
         Stream<Person> result = template.find(query, Person.class);
@@ -73,7 +73,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void testFindWithFilterEqualOrderBy() {
+    public void findWithFilterEqualOrderByAsc() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameAsc", "Matthews");
 
         Stream<Person> result = template.find(query, Person.class);
@@ -84,7 +84,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void testFindWithFilterEqualOrderByDesc() {
+    public void findWithFilterEqualOrderByDesc() {
         Object[] args = {"Matthews"};
         Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameDesc", args);
 
@@ -106,7 +106,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void testFindWithFilterRange() {
+    public void findWithFilterRange() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 30);
 
         Stream<Person> result = template.find(query, Person.class);
@@ -116,7 +116,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void testFindWithFilterRangeNonExisting() {
+    public void findWithFilterRangeNonExisting() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 100, 150);
 
         Stream<Person> result = template.find(query, Person.class);
@@ -125,7 +125,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void testFindWithStatement() {
+    public void findWithStatement() {
         Statement aerospikeQuery = new Statement();
         String[] bins = {"firstName", "lastName"}; //fields we want retrieved
         aerospikeQuery.setNamespace(getNameSpace());

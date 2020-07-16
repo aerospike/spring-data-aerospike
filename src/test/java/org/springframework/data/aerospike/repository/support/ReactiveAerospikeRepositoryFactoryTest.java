@@ -23,9 +23,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.core.EntityInformation;
@@ -66,7 +66,7 @@ public class ReactiveAerospikeRepositoryFactoryTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetEntityInformationClassOfT() {
+    public void getEntityInformationClassOfT() {
         when(context.getRequiredPersistentEntity(Person.class)).thenReturn(entity);
 
         ReactiveAerospikeRepositoryFactory factory = new ReactiveAerospikeRepositoryFactory(aerospikeOperations);
@@ -76,7 +76,7 @@ public class ReactiveAerospikeRepositoryFactoryTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetTargetRepositoryRepositoryInformation() {
+    public void getTargetRepositoryRepositoryInformation() {
         when(aerospikeRepositoryFactoryMock.getTargetRepository(repositoryInformation)).thenReturn(new Object());
 
         Person.class.getDeclaredConstructors();
@@ -86,7 +86,7 @@ public class ReactiveAerospikeRepositoryFactoryTest {
     }
 
     @Test
-    public void testGetRepositoryBaseClassRepositoryMetadata() {
+    public void getRepositoryBaseClassRepositoryMetadata() {
         RepositoryMetadata metadata = mock(RepositoryMetadata.class);
         Mockito.<Class<?>>when(metadata.getRepositoryInterface()).thenReturn(SimpleKeyValueRepository.class);
 

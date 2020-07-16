@@ -40,7 +40,11 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Peter Milne
@@ -72,7 +76,7 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
-	public void testFindOne() {
+	public void findOne() {
 		when(operations.findById("21", Person.class)).thenReturn(testPerson);
 
 		Optional<Person> person = aerospikeRepository.findById("21");
@@ -82,7 +86,7 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
-	public void testSave() {
+	public void save() {
 		Person myPerson = aerospikeRepository.save(testPerson);
 
 		assertThat(testPerson).isEqualTo(myPerson);
@@ -90,7 +94,7 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
-	public void testSaveIterableOfS() {
+	public void saveIterableOfS() {
 		List<Person> result = aerospikeRepository.saveAll(testPersons);
 
 		assertThat(result).isEqualTo(testPersons);
@@ -98,14 +102,14 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
-	public void testDelete() {
+	public void delete() {
 		aerospikeRepository.delete(testPerson);
 
 		verify(operations).delete(testPerson);
 	}
 
 	@Test
-	public void testFindAllSort() {
+	public void findAllSort() {
 		when(operations.findAll(Sort.by(Sort.Direction.ASC, "biff"), Person.class)).thenReturn(testPersons);
 
 		Iterable<Person> fetchList = aerospikeRepository.findAll(Sort.by(Sort.Direction.ASC, "biff"));
@@ -113,7 +117,7 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
-	public void testFindAllPageable() {
+	public void findAllPageable() {
 		Page<Person> page = new PageImpl<>(IterableConverter.toList(testPersons), PageRequest.of(0, 2), 5);
 
 		doReturn(testPersons.stream()).when(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
@@ -127,7 +131,7 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
-	public void testExists() {
+	public void exists() {
 		when(operations.exists(testPerson.getId(), Person.class)).thenReturn(true);
 
 		boolean exists = aerospikeRepository.existsById(testPerson.getId());
@@ -135,16 +139,16 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
-	public void testFindAll() {
+	public void findAll() {
 		when(operations.findAll(Person.class)).thenReturn(testPersons.stream());
 
 		List<Person> fetchList = aerospikeRepository.findAll();
 
-		assertThat(fetchList).containsOnlyElementsOf(testPersons);
+		assertThat(fetchList).hasSameElementsAs(testPersons);
 	}
 
 	@Test
-	public void testFindAllIterableOfID() {
+	public void findAllIterableOfID() {
 		List<String> ids = testPersons.stream().map(Person::getId).collect(toList());
 		when(aerospikeRepository.findAllById(ids)).thenReturn(testPersons);
 
@@ -154,21 +158,21 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
-	public void testDeleteID() {
+	public void deleteID() {
 		aerospikeRepository.deleteById("one");
 
 		verify(operations).delete("one", Person.class);
 	}
 
 	@Test
-	public void testDeleteIterableOfQextendsT() {
+	public void deleteIterableOfQextendsT() {
 		aerospikeRepository.deleteAll(testPersons);
 
 		verify(operations, times(testPersons.size())).delete(any(Person.class));
 	}
 
 	@Test
-	public void testDeleteAll() {
+	public void deleteAll() {
 		aerospikeRepository.deleteAll();
 		try {
 			Thread.sleep(1000);
@@ -176,21 +180,21 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
-	public void testCreateIndex() {
+	public void createIndex() {
 		aerospikeRepository.createIndex(Person.class, "index_first_name", "firstName", IndexType.STRING);
 
 		verify(operations).createIndex(Person.class, "index_first_name", "firstName", IndexType.STRING);
 	}
 
 	@Test
-	public void testDeleteIndex() {
+	public void deleteIndex() {
 		aerospikeRepository.deleteIndex(Person.class, "index_first_name");
 
 		verify(operations).deleteIndex(Person.class, "index_first_name");
 	}
 
 	@Test
-	public void testIndexExists() {
+	public void indexExists() {
 		when(operations.indexExists(anyString())).thenReturn(true);
 
 		boolean exists = aerospikeRepository.indexExists("index_first_name");

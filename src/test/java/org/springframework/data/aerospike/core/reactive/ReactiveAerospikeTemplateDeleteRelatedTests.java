@@ -54,7 +54,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     }
 
     @Test
-    public void testSimpleDeleteById() {
+    public void simpleDeleteById() {
         // given
         Person person = new Person(id, "QLastName", 21);
 
@@ -72,7 +72,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     }
 
     @Test
-    public void testSimpleDeleteByObject() {
+    public void simpleDeleteByObject() {
         // given
         Person person = new Person(id, "QLastName", 21);
 

@@ -188,6 +188,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
         List<Person> result = template.findByIds(persons.stream().map(Person::getId).collect(Collectors.toList()), Person.class);
 
-        assertThat(result).containsOnlyElementsOf(persons);
+        assertThat(result).hasSameElementsAs(persons);
     }
 }

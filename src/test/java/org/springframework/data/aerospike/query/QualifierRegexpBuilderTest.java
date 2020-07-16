@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class QualifierRegexpBuilderTest {
 
 	@Test
-	public void testEscapesBackslash() {
+	public void escapesBackslash() {
 		String inputStr = "a\\b";
 		String expectedStr = "a\\\\b"; // a\\b
 
@@ -37,7 +37,7 @@ public class QualifierRegexpBuilderTest {
 	}
 
 	@Test
-	public void testEscapesDot() {
+	public void escapesDot() {
 		String inputStr = "a.b";
 		String expectedStr = "a\\.b"; // a\.b
 
@@ -47,7 +47,7 @@ public class QualifierRegexpBuilderTest {
 	}
 	
 	@Test
-	public void testEscapesSquareBracket() {
+	public void escapesSquareBracket() {
 		String inputStr = "a[b";
 		String expectedStr = "a\\[b"; // a\[b
 
@@ -57,7 +57,7 @@ public class QualifierRegexpBuilderTest {
 	}
 
 	@Test
-	public void testEscapesAsterisk() {
+	public void escapesAsterisk() {
 		String inputStr = "a*b";
 		String expectedStr = "a\\*b"; // a\*b
 
@@ -67,7 +67,7 @@ public class QualifierRegexpBuilderTest {
 	}
 
 	@Test
-	public void testEscapesCircumflex() {
+	public void escapesCircumflex() {
 		String inputStr = "a^b";
 		String expectedStr = "a\\^b"; // a\^b
 
@@ -77,7 +77,7 @@ public class QualifierRegexpBuilderTest {
 	}
 
 	@Test
-	public void testEscapesDollar() {
+	public void escapesDollar() {
 		String inputStr = "a$b";
 		String expectedStr = "a\\$b"; // a\$b
 
@@ -87,7 +87,7 @@ public class QualifierRegexpBuilderTest {
 	}
 
 	@Test
-	public void testDoesNotEscapeOtherCharacter() {
+	public void doesNotEscapeOtherCharacter() {
 		String inputStr = "abcdefghijklmnopqrstuvwxyz";
 
 		String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);

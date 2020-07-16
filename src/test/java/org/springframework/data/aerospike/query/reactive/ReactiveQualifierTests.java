@@ -93,7 +93,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testLTQualifier() {
+	public void lTQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age < 26
 		Qualifier AgeRangeQualifier = new Qualifier("age", LT, Value.get(26));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
@@ -112,7 +112,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testNumericLTEQQualifier() {
+	public void numericLTEQQualifier() {
 
 		// Ages range from 25 -> 29. We expected to only get back values with age <= 26
 		Qualifier AgeRangeQualifier = new Qualifier("age", LTEQ, Value.get(26));
@@ -139,7 +139,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testNumericEQQualifier() {
+	public void numericEQQualifier() {
 
 		// Ages range from 25 -> 29. We expected to only get back values with age == 26
 		Qualifier AgeRangeQualifier = new Qualifier("age", EQ, Value.get(26));
@@ -156,7 +156,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testNumericGTEQQualifier() {
+	public void numericGTEQQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age >= 28
 		Qualifier AgeRangeQualifier = new Qualifier("age", GTEQ, Value.get(28));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
@@ -182,7 +182,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testNumericGTQualifier() {
+	public void numericGTQualifier() {
 
 		// Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
 		Qualifier AgeRangeQualifier = new Qualifier("age", GT, Value.get(28));
@@ -198,7 +198,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testStringEQQualifier() {
+	public void stringEQQualifier() {
 		Qualifier stringEqQualifier = new Qualifier("color", EQ, Value.get(ORANGE));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
@@ -212,7 +212,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testStringEQQualifierCaseSensitive() {
+	public void stringEQQualifierCaseSensitive() {
 		Qualifier stringEqQualifier = new Qualifier("color", EQ, true, Value.get(ORANGE.toUpperCase()));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
@@ -226,7 +226,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testStringStartWithQualifier() {
+	public void stringStartWithQualifier() {
 		String bluePrefix = "blu";
 
 		Qualifier stringEqQualifier = new Qualifier("color", START_WITH, Value.get("blu"));
@@ -242,7 +242,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testStringStartWithEntireWordQualifier() {
+	public void stringStartWithEntireWordQualifier() {
 		Qualifier stringEqQualifier = new Qualifier("color", START_WITH, Value.get(BLUE));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
@@ -256,7 +256,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testStringStartWithICASEQualifier() {
+	public void stringStartWithICASEQualifier() {
 		String blue = "blu";
 
 		Qualifier stringEqQualifier = new Qualifier("color", START_WITH, true, Value.get("BLU"));
@@ -272,7 +272,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testStringEndsWithQualifier() {
+	public void stringEndsWithQualifier() {
 		String greenEnding = GREEN.substring(2);
 
 		Qualifier stringEqQualifier = new Qualifier("color", ENDS_WITH, Value.get(greenEnding));
@@ -288,7 +288,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testStringEndsWithEntireWordQualifier() {
+	public void stringEndsWithEntireWordQualifier() {
 		Qualifier stringEqQualifier = new Qualifier("color", ENDS_WITH, Value.get(GREEN));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
@@ -302,7 +302,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testBetweenQualifier() {
+	public void betweenQualifier() {
 		// Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
 		Qualifier AgeRangeQualifier = new Qualifier("age", BETWEEN, Value.get(26), Value.get(28));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
@@ -331,7 +331,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testContainingQualifier() {
+	public void containingQualifier() {
 		Map<String, Integer> expectedColorCounts = Arrays.stream(COLOURS)
 				.filter(c -> c.contains("l"))
 				.collect(Collectors.toMap(c -> c, color -> COLOUR_COUNTS.get(color)));
@@ -350,7 +350,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testInQualifier() {
+	public void inQualifier() {
 		List<String> inColours = Arrays.asList(COLOURS[0], COLOURS[2]);
 		Map<String, Integer> expectedColorCounts = inColours.stream()
 				.collect(Collectors.toMap(c -> c, color -> COLOUR_COUNTS.get(color)));
@@ -369,7 +369,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testListContainsQualifier() {
+	public void listContainsQualifier() {
 		String searchColor = COLOURS[0];
 
 		String binName = "colorList";
@@ -393,7 +393,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testListBetweenQualifier() {
+	public void listBetweenQualifier() {
 		int ageStart = AGES[0]; // 25
 		int ageEnd = AGES[2]; // 27
 
@@ -426,7 +426,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	}
 
 	@Test
-	public void testMapKeysContainsQualifier() {
+	public void mapKeysContainsQualifier() {
 		String searchColor = COLOURS[0];
 
 		String binName = "colorAgeMap";

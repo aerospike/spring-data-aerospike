@@ -67,7 +67,7 @@ public class SimpleReactiveAerospikeRepositoryTest {
     }
 
     @Test
-    public void testSave() {
+    public void save() {
         when(operations.save(testCustomer)).thenReturn(Mono.just(testCustomer));
 
         Customer result = repository.save(testCustomer).block();
@@ -76,27 +76,27 @@ public class SimpleReactiveAerospikeRepositoryTest {
     }
 
     @Test
-    public void testSaveAllIterable() {
+    public void saveAllIterable() {
         when(operations.save(any(Customer.class))).then(invocation -> Mono.just(invocation.getArgument(0)));
 
         List<Customer> result = repository.saveAll(testCustomers).collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testCustomers);
+        assertThat(result).hasSameElementsAs(testCustomers);
         verify(operations, times(testCustomers.size())).save(any(Customer.class));
     }
 
     @Test
-    public void testSaveAllPublisher() {
+    public void saveAllPublisher() {
         when(operations.save(any(Customer.class))).then(invocation -> Mono.just(invocation.getArgument(0)));
 
         List<Customer> result = repository.saveAll(Flux.fromIterable(testCustomers)).collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testCustomers);
+        assertThat(result).hasSameElementsAs(testCustomers);
         verify(operations, times(testCustomers.size())).save(any(Customer.class));
     }
 
     @Test
-    public void testFindById() {
+    public void findById() {
         when(metadata.getJavaType()).thenReturn(Customer.class);
         when(operations.findById("21", Customer.class)).thenReturn(Mono.just(testCustomer));
 
@@ -125,7 +125,7 @@ public class SimpleReactiveAerospikeRepositoryTest {
 
         List<Customer> result = repository.findAll().collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testCustomers);
+        assertThat(result).hasSameElementsAs(testCustomers);
     }
 
     @Test
@@ -136,7 +136,7 @@ public class SimpleReactiveAerospikeRepositoryTest {
 
         List<Customer> result = repository.findAllById(ids).collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testCustomers);
+        assertThat(result).hasSameElementsAs(testCustomers);
     }
 
     @Test
@@ -148,7 +148,7 @@ public class SimpleReactiveAerospikeRepositoryTest {
 
         List<Customer> result = repository.findAllById(Flux.fromIterable(id2person.keySet())).collectList().block();
 
-        assertThat(result).containsOnlyElementsOf(testCustomers);
+        assertThat(result).hasSameElementsAs(testCustomers);
     }
 
     @Test

@@ -2,12 +2,12 @@ package org.springframework.data.aerospike.query.reactive;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.query.KeyRecord;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.Qualifier;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.USERS_SET;
 
 public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
@@ -19,10 +19,9 @@ public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
 
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
-					results.forEach(keyRecord -> {
-						String region = keyRecord.record.getString("region");
-						Assert.assertEquals("n", region);
-					});
+					assertThat(results)
+							.isNotEmpty()
+							.allSatisfy(rec-> assertThat(rec.record.getString("region")).isEqualTo("n"));
 					return true;
 				})
 				.verifyComplete();
