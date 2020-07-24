@@ -12,7 +12,7 @@
     <root level="warn">
         <appender-ref ref="STDOUT"/>
     </root>
-    <logger name="com.playtika.test.aerospike.EmbeddedAerospikeBootstrapConfiguration" level="DEBUG">
+    <logger name="com.playtika.test.aerospike.EmbeddedAerospikeBootstrapConfiguration" level="DEBUG" additivity="false">
         <appender-ref ref="aerospike"/>
     </logger>
 </configuration>

@@ -98,7 +98,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void selectOnIndexWithQualifiers() {
-		withIndex(namespace, INDEXED_SET_NAME, "age_index_selector", "age", IndexType.NUMERIC, () -> {
+		withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
 			Filter filter = Filter.range("age", 25, 29);
 			Qualifier qual1 = new Qualifier("color", FilterOperation.EQ, Value.get(BLUE));
 			KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter, qual1);
