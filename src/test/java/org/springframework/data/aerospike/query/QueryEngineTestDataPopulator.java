@@ -47,12 +47,12 @@ public class QueryEngineTestDataPopulator {
 
 	public static final String USERS_SET = "users";
 
-	public static Map<Integer, Integer> AGE_COUNTS = putZeroCountFor(AGES);
-	public static Map<String, Integer> COLOUR_COUNTS = putZeroCountFor(COLOURS);
-	public static Map<String, Integer> ANIMAL_COUNTS = putZeroCountFor(ANIMALS);
-	public static Map<Long, Integer> MOD_TEN_COUNTS = putZeroCountFor(0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L);
+	public Map<Integer, Integer> ageCount = putZeroCountFor(AGES);
+	public Map<String, Integer> colourCounts = putZeroCountFor(COLOURS);
+	public Map<String, Integer> animalCounts = putZeroCountFor(ANIMALS);
+	public Map<Long, Integer> modTenCounts = putZeroCountFor(0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L);
 
-	private static boolean dataPushed = false;
+	private boolean dataPushed = false;
 
 	private final String namespace;
 	private final AerospikeClient client;
@@ -102,10 +102,10 @@ public class QueryEngineTestDataPopulator {
 			this.client.put(null, new Key(namespace, INDEXED_SET_NAME, "selector-test:" + x), bins);
 
 			// Add to our counts of records written for each bin value
-			AGE_COUNTS.put(AGES[i], AGE_COUNTS.get(AGES[i]) + 1);
-			COLOUR_COUNTS.put(COLOURS[i], COLOUR_COUNTS.get(COLOURS[i]) + 1);
-			ANIMAL_COUNTS.put(ANIMALS[i], ANIMAL_COUNTS.get(ANIMALS[i]) + 1);
-			MOD_TEN_COUNTS.put((long) (i % 10), MOD_TEN_COUNTS.get((long) (i % 10)) + 1);
+			ageCount.put(AGES[i], ageCount.get(AGES[i]) + 1);
+			colourCounts.put(COLOURS[i], colourCounts.get(COLOURS[i]) + 1);
+			animalCounts.put(ANIMALS[i], animalCounts.get(ANIMALS[i]) + 1);
+			modTenCounts.put((long) (i % 10), modTenCounts.get((long) (i % 10)) + 1);
 
 			i++;
 			if (i == SAMPLE_DATA_COUNT)

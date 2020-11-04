@@ -14,7 +14,6 @@ import static org.springframework.data.aerospike.query.Qualifier.FilterOperation
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.GEO_WITHIN;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.START_WITH;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
-import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOUR_COUNTS;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_SET;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.ORANGE;
@@ -60,7 +59,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).endsWith("e"))
-							.hasSize(COLOUR_COUNTS.get(ORANGE) + COLOUR_COUNTS.get(BLUE));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(ORANGE) + queryEngineTestDataPopulator.colourCounts.get(BLUE));
 					return true;
 				})
 				.verifyComplete();
@@ -74,7 +73,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).startsWith("bl"))
-							.hasSize(COLOUR_COUNTS.get(BLUE));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
 					return true;
 				})
 				.verifyComplete();
@@ -88,7 +87,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1, qual2);
 		StepVerifier.create(flux)
-				.expectNextCount(COLOUR_COUNTS.get("blue"))
+				.expectNextCount(queryEngineTestDataPopulator.colourCounts.get("blue"))
 				.verifyComplete();
 	}
 
@@ -123,7 +122,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(expectedColor))
-							.hasSize(COLOUR_COUNTS.get(BLUE));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
 					return true;
 				})
 				.verifyComplete();

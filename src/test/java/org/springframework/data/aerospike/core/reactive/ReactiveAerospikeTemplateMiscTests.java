@@ -36,6 +36,7 @@ public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveIntegrationT
                 .verify();
     }
 
+    @Test
     public void exists_shouldReturnTrueIfValueIsPresent() {
         Person one = Person.builder().id(id).firstName("tya").emailAddress("gmail.com").build();
         reactiveTemplate.insert(one).subscribeOn(Schedulers.parallel()).block();

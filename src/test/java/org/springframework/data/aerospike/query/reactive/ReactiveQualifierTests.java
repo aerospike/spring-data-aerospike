@@ -52,10 +52,8 @@ import static org.springframework.data.aerospike.query.Qualifier.FilterOperation
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.MAP_VALUES_CONTAINS;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.START_WITH;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
-import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGE_COUNTS;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOURS;
-import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOUR_COUNTS;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GREEN;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.ORANGE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SET_NAME;
@@ -105,7 +103,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 								assertThat(age).isLessThan(26);
 								return age == 25;
 							})
-							.hasSize(AGE_COUNTS.get(25));
+							.hasSize(queryEngineTestDataPopulator.ageCount.get(25));
 					return true;
 				})
 				.verifyComplete();
@@ -131,8 +129,8 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 							age26Count.incrementAndGet();
 						}
 					});
-					assertThat(age25Count.get()).isEqualTo(AGE_COUNTS.get(25));
-					assertThat(age26Count.get()).isEqualTo(AGE_COUNTS.get(26));
+					assertThat(age25Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
+					assertThat(age26Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
 					return true;
 				})
 				.verifyComplete();
@@ -149,7 +147,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(26))
-							.hasSize(AGE_COUNTS.get(26));
+							.hasSize(queryEngineTestDataPopulator.ageCount.get(26));
 					return true;
 				})
 				.verifyComplete();
@@ -174,8 +172,8 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 							age29Count.incrementAndGet();
 						}
 					});
-					assertThat(age28Count.get()).isEqualTo(AGE_COUNTS.get(25));
-					assertThat(age29Count.get()).isEqualTo(AGE_COUNTS.get(26));
+					assertThat(age28Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
+					assertThat(age29Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
 					return true;
 				})
 				.verifyComplete();
@@ -191,7 +189,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(29))
-							.hasSize(AGE_COUNTS.get(29));
+							.hasSize(queryEngineTestDataPopulator.ageCount.get(29));
 					return true;
 				})
 				.verifyComplete();
@@ -205,7 +203,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).endsWith(ORANGE))
-							.hasSize(COLOUR_COUNTS.get(ORANGE));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(ORANGE));
 					return true;
 				})
 				.verifyComplete();
@@ -219,7 +217,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(ORANGE))
-							.hasSize(COLOUR_COUNTS.get(ORANGE));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(ORANGE));
 					return true;
 				})
 				.verifyComplete();
@@ -235,7 +233,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).startsWith(bluePrefix))
-							.hasSize(COLOUR_COUNTS.get(BLUE));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
 					return true;
 				})
 				.verifyComplete();
@@ -249,7 +247,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).startsWith(BLUE))
-							.hasSize(COLOUR_COUNTS.get(BLUE));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
 					return true;
 				})
 				.verifyComplete();
@@ -265,7 +263,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).startsWith(blue))
-							.hasSize(COLOUR_COUNTS.get(BLUE));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
 					return true;
 				})
 				.verifyComplete();
@@ -281,7 +279,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).endsWith(greenEnding))
-							.hasSize(COLOUR_COUNTS.get(GREEN));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(GREEN));
 					return true;
 				})
 				.verifyComplete();
@@ -295,7 +293,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.expectNextMatches(results -> {
 					assertThat(results)
 							.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(GREEN))
-							.hasSize(COLOUR_COUNTS.get(GREEN));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(GREEN));
 					return true;
 				})
 				.verifyComplete();
@@ -322,9 +320,9 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 							age28Count.incrementAndGet();
 						}
 					});
-					assertThat(age26Count.get()).isEqualTo(AGE_COUNTS.get(26));
-					assertThat(age27Count.get()).isEqualTo(AGE_COUNTS.get(27));
-					assertThat(age28Count.get()).isEqualTo(AGE_COUNTS.get(28));
+					assertThat(age26Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
+					assertThat(age27Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(27));
+					assertThat(age28Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(28));
 					return true;
 				})
 				.verifyComplete();
@@ -334,7 +332,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	public void containingQualifier() {
 		Map<String, Integer> expectedColorCounts = Arrays.stream(COLOURS)
 				.filter(c -> c.contains("l"))
-				.collect(Collectors.toMap(c -> c, color -> COLOUR_COUNTS.get(color)));
+				.collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
 		Qualifier AgeRangeQualifier = new Qualifier("color", CONTAINING, Value.get("l"));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
@@ -353,7 +351,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	public void inQualifier() {
 		List<String> inColours = Arrays.asList(COLOURS[0], COLOURS[2]);
 		Map<String, Integer> expectedColorCounts = inColours.stream()
-				.collect(Collectors.toMap(c -> c, color -> COLOUR_COUNTS.get(color)));
+				.collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
 		Qualifier qualifier = new Qualifier("color", IN, Value.get(inColours));
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -386,7 +384,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 								String color = colorList.get(0);
 								assertThat(color).isEqualTo(searchColor);
 							})
-							.hasSize(COLOUR_COUNTS.get(searchColor));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(searchColor));
 					return true;
 				})
 				.verifyComplete();
@@ -417,9 +415,9 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 							age27Count.incrementAndGet();
 						}
 					});
-					assertThat(age25Count.get()).isEqualTo(AGE_COUNTS.get(25));
-					assertThat(age26Count.get()).isEqualTo(AGE_COUNTS.get(26));
-					assertThat(age27Count.get()).isEqualTo(AGE_COUNTS.get(27));
+					assertThat(age25Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
+					assertThat(age26Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
+					assertThat(age27Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(27));
 					return true;
 				})
 				.verifyComplete();
@@ -442,7 +440,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 								Map<String, ?> colorMap = (Map<String, ?>) rec.record.getMap(binName);
 								assertThat(colorMap).containsKey(searchColor);
 							})
-							.hasSize(COLOUR_COUNTS.get(searchColor));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(searchColor));
 					return true;
 				})
 				.verifyComplete();
@@ -465,7 +463,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 								Map<?, String> colorMap = (Map<?, String>) rec.record.getMap(binName);
 								assertThat(colorMap).containsValue(searchColor);
 							})
-							.hasSize(COLOUR_COUNTS.get(searchColor));
+							.hasSize(queryEngineTestDataPopulator.colourCounts.get(searchColor));
 					return true;
 				})
 				.verifyComplete();
@@ -502,9 +500,9 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 							}
 						}
 					});
-					assertThat(age25Count.get()).isEqualTo(AGE_COUNTS.get(25));
-					assertThat(age26Count.get()).isEqualTo(AGE_COUNTS.get(26));
-					assertThat(age27Count.get()).isEqualTo(AGE_COUNTS.get(27));
+					assertThat(age25Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
+					assertThat(age26Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
+					assertThat(age27Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(27));
 					return true;
 				})
 				.verifyComplete();
@@ -541,9 +539,9 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 							}
 						}
 					});
-					assertThat(age25Count.get()).isEqualTo(AGE_COUNTS.get(25));
-					assertThat(age26Count.get()).isEqualTo(AGE_COUNTS.get(26));
-					assertThat(age27Count.get()).isEqualTo(AGE_COUNTS.get(27));
+					assertThat(age25Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
+					assertThat(age26Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
+					assertThat(age27Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(27));
 					return true;
 				})
 				.verifyComplete();
@@ -639,7 +637,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 					.expectNextMatches(results -> {
 						assertThat(results)
 								.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(expectedColor))
-								.hasSize(COLOUR_COUNTS.get(BLUE));
+								.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
 						return true;
 					})
 					.verifyComplete();
@@ -675,8 +673,8 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 						}
 					});
 
-					assertThat(colorMatched.get()).isEqualTo(COLOUR_COUNTS.get(expectedColor));
-					assertThat(ageMatched.get()).isEqualTo(AGE_COUNTS.get(28) + AGE_COUNTS.get(29));
+					assertThat(colorMatched.get()).isEqualTo(queryEngineTestDataPopulator.colourCounts.get(expectedColor));
+					assertThat(ageMatched.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(28) + queryEngineTestDataPopulator.ageCount.get(29));
 
 					return true;
 				})

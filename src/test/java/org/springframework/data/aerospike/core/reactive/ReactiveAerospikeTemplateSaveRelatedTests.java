@@ -194,7 +194,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         Key key = new Key(getNameSpace(), "versioned-set", id);
         VersionedClass first = new VersionedClass(id, "foo");
         reactiveTemplate.save(first).subscribeOn(Schedulers.parallel()).block();
-        blockingAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
+        additionalAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
 
         reactiveTemplate.save(new VersionedClass(id, "foo2", 2L)).subscribeOn(Schedulers.parallel()).block();
 

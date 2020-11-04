@@ -43,6 +43,7 @@ public class AerospikeMappingContext extends
 	private FieldNamingStrategy fieldNamingStrategy = DEFAULT_NAMING_STRATEGY;
 	private ApplicationContext context;
 	private String defaultNameSpace;
+	private boolean createIndexesOnStartup;
 
 	/**
 	 * Configures the {@link FieldNamingStrategy} to be used to determine the field name if no manual mapping is applied.
@@ -88,5 +89,13 @@ public class AerospikeMappingContext extends
 
 	public void setDefaultNameSpace(String defaultNameSpace) {
 		this.defaultNameSpace = defaultNameSpace;
+	}
+
+	public void setCreateIndexesOnStartup(boolean createIndexesOnStartup) {
+		this.createIndexesOnStartup = createIndexesOnStartup;
+	}
+
+	public boolean isCreateIndexesOnStartup() {
+		return createIndexesOnStartup;
 	}
 }

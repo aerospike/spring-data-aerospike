@@ -43,9 +43,9 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
         customer3 = Customer.builder().id(nextId()).firstname("Bart").lastname("Simpson").age(15).build();
         customer4 = Customer.builder().id(nextId()).firstname("Matt").lastname("Groening").age(65).build();
 
-        blockingAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_first_name_index", "firstname", IndexType.STRING);
-        blockingAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_last_name_index", "lastname", IndexType.STRING);
-        blockingAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_age_index", "age", IndexType.NUMERIC);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_first_name_index", "firstname", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_last_name_index", "lastname", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_age_index", "age", IndexType.NUMERIC);
 
         StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2, customer3, customer4))).expectNextCount(4).verifyComplete();
     }

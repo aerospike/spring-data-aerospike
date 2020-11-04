@@ -23,7 +23,7 @@ import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
  * @author Igor Ermolenko
  */
 @Configuration
-public abstract class AbstractReactiveAerospikeDataConfiguration extends AbstractAerospikeDataConfiguration {
+public abstract class AbstractReactiveAerospikeDataConfiguration extends AerospikeDataConfigurationSupport {
 
     @Bean(name = "reactiveAerospikeTemplate")
     public ReactiveAerospikeTemplate reactiveAerospikeTemplate(MappingAerospikeConverter mappingAerospikeConverter,
