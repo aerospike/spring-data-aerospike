@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.index.ReactiveAerospikePersistenceEntityIndexCreator;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.StatementBuilder;
@@ -64,5 +65,12 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
         ClientPolicy clientPolicy = super.getClientPolicy();
         clientPolicy.eventLoops = eventLoops();
         return clientPolicy;
+    }
+
+    @Bean
+    public ReactiveAerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
+            AerospikeMappingContext aerospikeMappingContext,
+            ReactiveAerospikeTemplate template) {
+        return new ReactiveAerospikePersistenceEntityIndexCreator(aerospikeMappingContext, template);
     }
 }

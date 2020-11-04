@@ -96,6 +96,11 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         awaitTenSecondsUntil(() -> assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isFalse());
     }
 
+    @Test
+    void shouldCreatePersistenceEntitiesIndexes() {
+        PersistenceEntityIndexTestSet.verifyPersistenceEntityIndexesCreated(additionalAerospikeTestOperations);
+    }
+
     @Value
     @Document
     public static class IndexedDocument {

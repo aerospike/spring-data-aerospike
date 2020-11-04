@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
+import org.springframework.data.aerospike.index.AerospikePersistenceEntityIndexCreator;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.StatementBuilder;
@@ -33,6 +34,12 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, aerospikeClient.getQueryPolicyDefault());
         queryEngine.setScansEnabled(aerospikeDataSettings().isScansEnabled());
         return queryEngine;
+    }
+
+    @Bean
+    public AerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(AerospikeMappingContext aerospikeMappingContext,
+                                                                                         AerospikeTemplate template) {
+        return new AerospikePersistenceEntityIndexCreator(aerospikeMappingContext, template);
     }
 
     @Bean(name = "aerospikeIndexRefresher")

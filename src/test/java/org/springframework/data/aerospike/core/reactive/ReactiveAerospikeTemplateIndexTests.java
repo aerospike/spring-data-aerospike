@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.IndexNotFoundException;
+import org.springframework.data.aerospike.core.PersistenceEntityIndexTestSet;
 import org.springframework.data.aerospike.mapping.Document;
 import reactor.core.publisher.Mono;
 
@@ -65,6 +66,11 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
         reactiveTemplate.deleteIndex(IndexedDocument.class, INDEX_TEST_1).block();
 
         assertThat(indexExists(INDEX_TEST_1, "stringField")).isFalse();
+    }
+
+    @Test
+    void shouldCreatePersistenceEntitiesIndexes() {
+        PersistenceEntityIndexTestSet.verifyPersistenceEntityIndexesCreated(additionalAerospikeTestOperations);
     }
 
     private boolean indexExists(String indexName, String binName) {
