@@ -38,9 +38,7 @@ import static org.springframework.data.aerospike.query.Qualifier.FilterOperation
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.GTEQ;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.LT;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.LTEQ;
-import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGE_COUNTS;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
-import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOUR_COUNTS;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GREEN;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.INDEXED_GEO_SET;
@@ -54,7 +52,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 
 	@AfterEach
 	public void assertNoScans() {
-		blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
+		additionalAerospikeTestOperations.assertNoScansForSet(INDEXED_SET_NAME);
 	}
 
 	@Test
@@ -72,7 +70,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 									assertThat(age).isLessThan(26);
 									return age == 25;
 								})
-								.hasSize(AGE_COUNTS.get(25));
+								.hasSize(queryEngineTestDataPopulator.ageCount.get(25));
 						return true;
 					})
 					.verifyComplete();
@@ -104,8 +102,8 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 								age26Count.incrementAndGet();
 							}
 						});
-						assertThat(age25Count.get()).isEqualTo(AGE_COUNTS.get(25));
-						assertThat(age26Count.get()).isEqualTo(AGE_COUNTS.get(26));
+						assertThat(age25Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
+						assertThat(age26Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
 						return true;
 					})
 					.verifyComplete();
@@ -124,7 +122,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 						assertThat(results)
 								.isNotEmpty()
 								.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(26))
-								.hasSize(AGE_COUNTS.get(26));
+								.hasSize(queryEngineTestDataPopulator.ageCount.get(26));
 						return true;
 					})
 					.verifyComplete();
@@ -153,8 +151,8 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 								age29Count.incrementAndGet();
 							}
 						});
-						assertThat(age28Count.get()).isEqualTo(AGE_COUNTS.get(28));
-						assertThat(age29Count.get()).isEqualTo(AGE_COUNTS.get(29));
+						assertThat(age28Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(28));
+						assertThat(age29Count.get()).isEqualTo(queryEngineTestDataPopulator.ageCount.get(29));
 						return true;
 					})
 					.verifyComplete();
@@ -174,7 +172,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 						assertThat(results)
 								.isNotEmpty()
 								.allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(29))
-								.hasSize(AGE_COUNTS.get(29));
+								.hasSize(queryEngineTestDataPopulator.ageCount.get(29));
 						return true;
 					})
 					.verifyComplete();
@@ -192,7 +190,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 						assertThat(results)
 								.isNotEmpty()
 								.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(ORANGE))
-								.hasSize(COLOUR_COUNTS.get(ORANGE));
+								.hasSize(queryEngineTestDataPopulator.colourCounts.get(ORANGE));
 						return true;
 					})
 					.verifyComplete();
@@ -212,8 +210,8 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 						assertThat(ageCount.keySet())
 								.isNotEmpty()
 								.allSatisfy(age -> assertThat(age).isBetween(28, 29));
-						assertThat(ageCount.get(28)).isEqualTo(AGE_COUNTS.get(28));
-						assertThat(ageCount.get(29)).isEqualTo(AGE_COUNTS.get(29));
+						assertThat(ageCount.get(28)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(28));
+						assertThat(ageCount.get(29)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(29));
 						return true;
 					})
 					.verifyComplete();
@@ -244,7 +242,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 									assertThat(rec.record.getString("color")).isEqualTo(BLUE);
 									assertThat(rec.record.getInt("age")).isBetween(25, 29);
 								})
-								.hasSize(COLOUR_COUNTS.get(BLUE));
+								.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
 						return true;
 					})
 					.verifyComplete();
@@ -293,7 +291,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 						return true;
 					})
 					.verifyComplete();
-			blockingAerospikeTestOperations.assertNoScansForSet(INDEXED_GEO_SET);
+			additionalAerospikeTestOperations.assertNoScansForSet(INDEXED_GEO_SET);
 		});
 	}
 

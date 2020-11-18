@@ -23,7 +23,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     @Override
     @BeforeEach
     public void setUp() {
-        blockingAerospikeTestOperations.dropIndexIfExists(IndexedDocument.class, INDEX_TEST_1);
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedDocument.class, INDEX_TEST_1);
     }
 
     @Test
@@ -40,10 +40,10 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
 
         IntStream.range(0, 5)
                 .mapToObj(i -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING)
-                .onErrorResume(throwable -> {
-                    errorsCount.incrementAndGet();
-                    return Mono.empty();
-                }))
+                        .onErrorResume(throwable -> {
+                            errorsCount.incrementAndGet();
+                            return Mono.empty();
+                        }))
                 .forEach(Mono::block);
 
         assertThat(errorsCount.get()).isLessThanOrEqualTo(4);// depending on the timing all 5 requests can succeed on Aerospike Server

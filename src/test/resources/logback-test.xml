@@ -9,9 +9,12 @@
             <pattern>[AEROSPIKE] %msg</pattern>
         </encoder>
     </appender>
-    <root level="warn">
+    <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
+    <logger name="org.springframework.data.aerospike" level="DEBUG" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
     <logger name="com.playtika.test.aerospike.EmbeddedAerospikeBootstrapConfiguration" level="DEBUG" additivity="false">
         <appender-ref ref="aerospike"/>
     </logger>

@@ -54,13 +54,13 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @BeforeEach
     public void setUp() {
         super.setUp();
-        blockingAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAll(Person.class);
 
         template.insertAll(all);
 
-        blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
-        blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName", IndexType.STRING);
-        blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName", IndexType.STRING);
     }
 
     @Test
@@ -170,7 +170,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findAll_findsNothing() {
-        blockingAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAll(Person.class);
 
         Stream<Person> result = template.findAll(Person.class);
 

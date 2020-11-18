@@ -43,7 +43,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         Key key = new Key(getNameSpace(), "versioned-set", id);
         VersionedClass first = new VersionedClass(id, "foo");
         template.save(first);
-        blockingAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
+        additionalAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
 
         template.save(new VersionedClass(id, "foo2", 2L));
 

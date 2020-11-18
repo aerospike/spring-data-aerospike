@@ -61,7 +61,7 @@ public class PersonRepositoryIntegrationTests extends BaseBlockingIntegrationTes
 	@BeforeEach
 	public void setUp() {
 		super.setUp();
-		blockingAerospikeTestOperations.deleteAll(Person.class);
+		additionalAerospikeTestOperations.deleteAll(Person.class);
 
 		dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42).build();
 		donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39).build();
@@ -73,9 +73,9 @@ public class PersonRepositoryIntegrationTests extends BaseBlockingIntegrationTes
 		leroi2 = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25).build();
 		alicia = Person.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30).build();
 
-		blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName", IndexType.STRING);
-		blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName", IndexType.STRING);
-		blockingAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
+		additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName", IndexType.STRING);
+		additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName", IndexType.STRING);
+		additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
 
 		all = (List<Person>) repository.saveAll(Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi, leroi2, alicia));
 	}

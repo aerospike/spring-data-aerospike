@@ -23,7 +23,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     @Override
     @BeforeEach
     public void setUp() {
-        blockingAerospikeTestOperations.dropIndexIfExists(IndexedDocument.class, INDEX_TEST_1);
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedDocument.class, INDEX_TEST_1);
     }
 
     @Test
@@ -38,7 +38,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         });
 
         awaitTenSecondsUntil(() ->
-                assertThat(blockingAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
+                assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
         assertThat(errors.get()).isLessThanOrEqualTo(4);// depending on the timing all 5 requests can succeed on Aerospike Server
     }
 
@@ -47,7 +47,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
 
         awaitTenSecondsUntil(() ->
-                assertThat(blockingAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
+                assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
 
         AtomicInteger errors = new AtomicInteger();
         AsyncUtils.executeConcurrently(5, () -> {
@@ -66,14 +66,14 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
 
         awaitTenSecondsUntil(() ->
-                assertThat(blockingAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
+                assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
     }
 
     @Test
     public void createIndex_throwsExceptionIfIndexAlreadyExists() {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
 
-        awaitTenSecondsUntil(() -> assertThat(blockingAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
+        awaitTenSecondsUntil(() -> assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
 
         assertThatThrownBy(() -> template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING))
                 .isInstanceOf(IndexAlreadyExistsException.class);
@@ -89,11 +89,11 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     public void deleteIndex_deletesExistingIndex() {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
 
-        awaitTenSecondsUntil(() -> assertThat(blockingAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
+        awaitTenSecondsUntil(() -> assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
 
         template.deleteIndex(IndexedDocument.class, INDEX_TEST_1);
 
-        awaitTenSecondsUntil(() -> assertThat(blockingAerospikeTestOperations.indexExists(INDEX_TEST_1)).isFalse());
+        awaitTenSecondsUntil(() -> assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isFalse());
     }
 
     @Value
