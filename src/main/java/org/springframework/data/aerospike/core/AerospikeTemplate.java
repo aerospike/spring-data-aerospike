@@ -34,6 +34,7 @@ import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -43,17 +44,20 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.utility.InfoResponseUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -64,7 +68,7 @@ import static org.springframework.data.aerospike.core.OperationUtils.operations;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
- * 
+ *
  * @author Oliver Gierke
  * @author Peter Milne
  * @author Anastasiia Smirnova
@@ -74,6 +78,7 @@ import static org.springframework.data.aerospike.core.OperationUtils.operations;
 @Slf4j
 public class AerospikeTemplate extends BaseAerospikeTemplate implements AerospikeOperations {
 
+	private final Random random = new Random();
 	private final AerospikeClient client;
 	private final QueryEngine queryEngine;
 	private final IndexRefresher indexRefresher;
@@ -134,10 +139,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 		try {
 			Node[] nodes = client.getNodes();
-			if (nodes.length == 0) {
-				throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
-			}
-			Node node = nodes[0];
+			Node node = getRandomNode(nodes);
 			String response = Info.request(node, "sindex/" + namespace + '/' + indexName);
 			return !response.startsWith("FAIL:201");
 		} catch (AerospikeException e) {
@@ -417,9 +419,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	public <T> long count(Class<T> entityClass) {
 		Assert.notNull(entityClass, "Type for count must not be null!");
 
-		AerospikePersistentEntity<?> entity = mappingContext
-				.getRequiredPersistentEntity(entityClass);
-		return count(entityClass, entity.getSetName());
+		String setName = getSetName(entityClass);
+		return count(entityClass, setName);
 	}
 
 	@Override
@@ -430,21 +431,21 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	@Override
 	public <T> long count(Class<T> entityClass, String setName) {
 		Assert.notNull(entityClass, "Type for count must not be null!");
+		Assert.notNull(setName, "Set for count must not be null!");
 
-		//TODO: move to aerospike client
-		Node[] nodes = client.getNodes();
-		int replicationCount = 2;
-		int nodeCount = nodes.length;
-		int n_objects = 0;
-		for (Node node : nodes) {
-			String infoString = Info.request(node,
-					"sets/" + this.namespace + "/" + setName);
-			String n_objectsString = infoString.substring(
-					infoString.indexOf("=") + 1, infoString.indexOf(":"));
-			n_objects = Integer.parseInt(n_objectsString);
+		try {
+			Node[] nodes = client.getNodes();
+
+			int replicationFactor = getReplicationFactor(nodes);
+
+			long totalObjects = Arrays.stream(nodes)
+					.mapToLong(node -> getObjectsCount(setName, node))
+					.sum();
+
+			return (nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects;
+		} catch (AerospikeException e) {
+			throw translateError(e);
 		}
-
-		return (nodeCount > 1) ? n_objects / replicationCount : n_objects;
 	}
 
 	@Override
@@ -647,5 +648,38 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 		Qualifier qualifier = query.getCriteria().getCriteriaObject();
 		return findAllRecordsUsingQuery(type, null, qualifier);
+	}
+
+	private long getObjectsCount(String setName, Node node) {
+		String infoString = Info.request(node, "sets/" + this.namespace + "/" + setName);
+		if (infoString.isEmpty()) {// set is not present
+			return 0L;
+		}
+		return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);
+	}
+
+	private int getReplicationFactor(Node[] nodes) {
+		Node randomNode = getRandomNode(nodes);
+
+		String response = Info.request(randomNode, "get-config:context=namespace;id=" + this.namespace);
+		if (response.equalsIgnoreCase("ns_type=unknown")) {
+			throw new InvalidDataAccessResourceUsageException("Namespace: " + this.namespace + " does not exist");
+		}
+		return InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor", Integer::parseInt);
+	}
+
+	private Node getRandomNode(Node[] nodes) {
+		if (nodes.length == 0) {
+			throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
+		}
+		int offset = this.random.nextInt(nodes.length);
+		for (int i = 0; i < nodes.length; i++) {
+			int index = (offset + i) % nodes.length;
+			Node node = nodes[index];
+			if (node.isActive()) {
+				return node;
+			}
+		}
+		throw new AerospikeException.InvalidNode("Command failed because no active nodes found.");
 	}
 }
