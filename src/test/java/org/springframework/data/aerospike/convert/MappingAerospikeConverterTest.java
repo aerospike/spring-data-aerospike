@@ -58,6 +58,8 @@ import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_SE
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
 import static org.springframework.data.aerospike.assertions.KeyAssert.assertThat;
+import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
+import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
 
 public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverterTest {
 
@@ -194,28 +196,24 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 	}
 
 	@Test
-	public void shouldFailWriteUnixTimeExpirationFieldValue() {
-		DateTime unixTimeExpiration = DateTime.now().minusSeconds(EXPIRATION_ONE_MINUTE);
-		DocumentWithUnixTimeExpiration document = new DocumentWithUnixTimeExpiration("docId", unixTimeExpiration);
+	public void shouldFailWithExpirationFromThePast() {
+		DateTime expirationFromThePast = DateTime.now().minusSeconds(EXPIRATION_ONE_MINUTE);
+		DocumentWithUnixTimeExpiration document = new DocumentWithUnixTimeExpiration("docId", expirationFromThePast);
 
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
 
 		assertThatThrownBy(() -> converter.write(document, forWrite))
 				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("Expiration value must be greater than zero");
-	}
-
-	private int toRecordExpiration(int expiration) {
-		ZonedDateTime documentExpiration = ZonedDateTime.now(ZoneOffset.UTC).plus(expiration, ChronoUnit.SECONDS);
-		ZonedDateTime aerospikeExpirationOffset = ZonedDateTime.of(2010, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
-		return (int) Duration.between(aerospikeExpirationOffset, documentExpiration).getSeconds();
+				.hasMessageStartingWith("Expiration value must be greater than zero, but was: ");
 	}
 
 	@Test
 	public void shouldWriteExpirationFieldValue() {
 		DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId", EXPIRATION_ONE_SECOND);
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
+
 		converter.write(document, forWrite);
+
 		assertThat(forWrite.getExpiration()).isEqualTo(EXPIRATION_ONE_SECOND);
 	}
 
@@ -223,7 +221,9 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 	public void shouldNotSaveExpirationFieldAsBin() {
 		DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId", EXPIRATION_ONE_SECOND);
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
+
 		converter.write(document, forWrite);
+
 		assertThat(forWrite.getBins()).doesNotContain(new Bin("expiration", Value.get(EXPIRATION_ONE_SECOND)));
 	}
 
@@ -238,13 +238,23 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 	}
 
 	@Test
-	public void shouldFailWithIllegalExpirationFieldValue() {
-		DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId", -1);
+	public void shouldNotFailWithNeverExpirePolicy() {
+		DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId", NEVER_EXPIRE);
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
 
-		assertThatThrownBy(() -> converter.write(document, forWrite))
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("Expiration value must be greater than zero, but was: -1");
+		converter.write(document, forWrite);
+
+		assertThat(forWrite.getExpiration()).isEqualTo(NEVER_EXPIRE);
+	}
+
+	@Test
+	public void shouldNotFailWithDoNotUpdateExpirePolicy() {
+		DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId", DO_NOT_UPDATE_EXPIRATION);
+		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
+
+		converter.write(document, forWrite);
+
+		assertThat(forWrite.getExpiration()).isEqualTo(DO_NOT_UPDATE_EXPIRATION);
 	}
 
 	@Test
@@ -292,6 +302,12 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 		DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
 
 		assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1}));
+	}
+
+	private static int toRecordExpiration(int expiration) {
+		ZonedDateTime documentExpiration = ZonedDateTime.now(ZoneOffset.UTC).plus(expiration, ChronoUnit.SECONDS);
+		ZonedDateTime aerospikeExpirationOffset = ZonedDateTime.of(2010, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+		return (int) Duration.between(aerospikeExpirationOffset, documentExpiration).getSeconds();
 	}
 
 }
