@@ -15,9 +15,16 @@
  *******************************************************************************/
 package org.springframework.data.aerospike.mapping;
 
-import java.util.*;
-
+import org.springframework.data.aerospike.convert.AerospikeReadData;
+import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Simple constant holder for a {@link SimpleTypeHolder} enriched with Aerospike specific simple types.
@@ -68,6 +75,8 @@ public abstract class AerospikeSimpleTypes {
 		simpleTypes.add(Enum.class);
 		simpleTypes.add(Byte[].class);
 		simpleTypes.add(UUID.class);
+		simpleTypes.add(AerospikeReadData.class);
+		simpleTypes.add(AerospikeWriteData.class);
 		AEROSPIKE_SIMPLE_TYPES = Collections.unmodifiableSet(simpleTypes);
 	}
 
