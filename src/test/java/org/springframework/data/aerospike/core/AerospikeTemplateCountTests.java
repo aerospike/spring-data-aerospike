@@ -77,8 +77,27 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void countRejectsNullEntityClass() {
-        assertThatThrownBy(() ->template.count(null, (Class<?>) null))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> template.count(null, (Class<?>) null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Type must not be null!");
     }
 
+    @Test
+    void countForNotExistingSetIsZero() {
+        long count = template.count(Person.class, "not-existing-set-name");
+
+        assertThat(count).isZero();
+    }
+
+    @Test
+    void countForObjects() {
+        template.insert(new Person(id, "vasili", 50));
+        template.insert(new Person(nextId(), "vasili", 51));
+        template.insert(new Person(nextId(), "vasili", 52));
+        template.insert(new Person(nextId(), "petya", 52));
+
+        long count = template.count(Person.class);
+
+        assertThat(count).isEqualTo(4);
+    }
 }

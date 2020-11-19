@@ -20,6 +20,7 @@ import com.aerospike.client.ResultCode;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
@@ -55,6 +56,8 @@ public class DefaultAerospikeExceptionTranslator implements AerospikeExceptionTr
 			/*
 			 * Future enhancements will be more elaborate 
 			 */
+				case ResultCode.PARAMETER_ERROR:
+					return new InvalidDataAccessApiUsageException(msg, cause);
 				case ResultCode.KEY_EXISTS_ERROR:
 					return new DuplicateKeyException(msg, cause);
 				case ResultCode.KEY_NOT_FOUND_ERROR:

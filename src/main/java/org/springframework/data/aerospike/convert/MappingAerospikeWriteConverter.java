@@ -208,9 +208,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 	private int getExpiration(AerospikePersistentEntity<?> entity, ConvertingPropertyAccessor accessor) {
 		AerospikePersistentProperty expirationProperty = entity.getExpirationProperty();
 		if (expirationProperty != null) {
-			int expiration = getExpirationFromProperty(accessor, expirationProperty);
-			Assert.isTrue(expiration > 0, "Expiration value must be greater than zero, but was: " + expiration);
-			return expiration;
+			return getExpirationFromProperty(accessor, expirationProperty);
 		}
 
 		return entity.getExpiration();
@@ -220,8 +218,9 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 		if (expirationProperty.isExpirationSpecifiedAsUnixTime()) {
 			Long unixTime = accessor.getProperty(expirationProperty, Long.class);
 			Assert.notNull(unixTime, "Expiration must not be null!");
-
-			return unixTimeToOffsetInSeconds(unixTime);
+			int inSeconds = unixTimeToOffsetInSeconds(unixTime);
+			Assert.isTrue(inSeconds > 0, "Expiration value must be greater than zero, but was: " + inSeconds + " seconds (unix time: " + unixTime + ")");
+			return inSeconds;
         }
 
 		Integer expirationInSeconds = accessor.getProperty(expirationProperty, Integer.class);

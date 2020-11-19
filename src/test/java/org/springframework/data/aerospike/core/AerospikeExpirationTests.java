@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import org.assertj.core.data.Offset;
@@ -22,6 +23,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
@@ -31,8 +33,11 @@ import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpi
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
+import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
+import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
 
 //TODO: Potentially unstable tests. Instead of sleeping, we need somehow do time travel like in CouchbaseMock.
 public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
@@ -169,5 +174,40 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
         DocumentWithExpirationOneDay document = template.findById(id, DocumentWithExpirationOneDay.class);
         assertThat(document).isNull();
+    }
+
+    @Test
+    void shouldNeverExpire() {
+        DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation(id, NEVER_EXPIRE);
+
+        template.insert(document);
+
+        DocumentWithExpirationAnnotation byId = template.findById(id, DocumentWithExpirationAnnotation.class);
+        assertThat(byId).isNotNull();
+        Record record = client.get(null, new Key(namespace, "expiration-set", id));
+        assertThat(record.getTimeToLive()).isEqualTo(NEVER_EXPIRE);
+    }
+
+    @Test
+    void shouldNotUpdateExpirationWhenRecordIsUpdatedForNotUpdateExpirationPolicy() {
+        DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation(id, 10);
+
+        template.insert(document);
+        Record record = client.get(null, new Key(namespace, "expiration-set", document.getId()));
+
+        template.update(new DocumentWithExpirationAnnotation(id, DO_NOT_UPDATE_EXPIRATION));
+
+        Record recordAfterUpdate = client.get(null, new Key(namespace, "expiration-set", document.getId()));
+        assertThat(record.getTimeToLive()).isEqualTo(recordAfterUpdate.getTimeToLive());
+    }
+
+    @Test
+    void invalidExpirationValueThrowsException() {
+        DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation(id, -500);
+
+        assertThatThrownBy(() -> template.insert(document))
+                .isInstanceOf(InvalidDataAccessApiUsageException.class)
+                .hasCauseInstanceOf(AerospikeException.class)
+                .hasStackTraceContaining("Parameter error");
     }
 }
