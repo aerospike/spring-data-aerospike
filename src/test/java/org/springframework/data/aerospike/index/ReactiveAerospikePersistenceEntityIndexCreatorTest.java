@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.index;
 
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,16 +31,18 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
     String fieldName = "fieldName";
     Class<?> targetClass = AutoIndexedDocument.class;
     IndexType type = IndexType.STRING;
+    IndexCollectionType collectionType = IndexCollectionType.DEFAULT;
     AerospikeIndexDefinition definition = AerospikeIndexDefinition.builder()
             .name(name)
             .fieldName(fieldName)
             .entityClass(targetClass)
             .type(type)
+            .collectionType(collectionType)
             .build();
 
     @Test
     void shouldInstallIndex() {
-        when(template.createIndex(targetClass, name, fieldName, type)).thenReturn(Mono.empty());
+        when(template.createIndex(targetClass, name, fieldName, type, collectionType)).thenReturn(Mono.empty());
 
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
 
@@ -48,7 +51,7 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
 
     @Test
     void shouldSkipInstallIndexOnAlreadyExists() {
-        when(template.createIndex(targetClass, name, fieldName, type))
+        when(template.createIndex(targetClass, name, fieldName, type, collectionType))
                 .thenReturn(Mono.error(new IndexAlreadyExistsException("some message", new RuntimeException())));
 
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
@@ -58,7 +61,7 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
 
     @Test
     void shouldFailInstallIndexOnUnhandledException() {
-        when(template.createIndex(targetClass, name, fieldName, type))
+        when(template.createIndex(targetClass, name, fieldName, type, collectionType))
                 .thenReturn(Mono.error(new RuntimeException()));
 
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);

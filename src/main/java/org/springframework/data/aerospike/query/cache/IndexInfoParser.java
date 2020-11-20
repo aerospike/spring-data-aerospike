@@ -55,7 +55,14 @@ public class IndexInfoParser {
 		String bin = getRequiredBin(values);
 		IndexType indexType = getIndexTypeInternal(values);
 		IndexCollectionType collectionType = getIndexCollectionTypeInternal(values);
-		return new Index(values, name, namespace, set, bin, indexType, collectionType);
+		return Index.builder()
+				.name(name)
+				.namespace(namespace)
+				.set(set)
+				.bin(bin)
+				.indexType(indexType)
+				.indexCollectionType(collectionType)
+				.build();
 	}
 
 	/**

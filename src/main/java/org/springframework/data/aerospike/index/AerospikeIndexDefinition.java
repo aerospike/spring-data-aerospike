@@ -16,6 +16,7 @@
 
 package org.springframework.data.aerospike.index;
 
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.Builder;
 import lombok.NonNull;
@@ -33,6 +34,8 @@ public class AerospikeIndexDefinition {
     String fieldName;
     @NonNull
     IndexType type;
+    @NonNull
+    IndexCollectionType collectionType;
     @NonNull
     Class<?> entityClass;
 }

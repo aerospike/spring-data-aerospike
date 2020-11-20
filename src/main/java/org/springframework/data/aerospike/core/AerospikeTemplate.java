@@ -28,6 +28,7 @@ import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.ResultSet;
@@ -99,13 +100,21 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	@Override
 	public <T> void createIndex(Class<T> entityClass, String indexName,
 								String binName, IndexType indexType) {
+		createIndex(entityClass, indexName, binName, indexType, IndexCollectionType.DEFAULT);
+	}
+
+	public <T> void createIndex(Class<T> entityClass, String indexName,
+								String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
 		Assert.notNull(entityClass, "Type must not be null!");
 		Assert.notNull(indexName, "Index name must not be null!");
+		Assert.notNull(binName, "Bin name must not be null!");
+		Assert.notNull(indexType, "Index type must not be null!");
+		Assert.notNull(indexCollectionType, "Index collection type must not be null!");
 
 		try {
 			String setName = getSetName(entityClass);
 			IndexTask task = client.createIndex(null, this.namespace,
-					setName, indexName, binName, indexType);
+					setName, indexName, binName, indexType, indexCollectionType);
 			if (task != null) {
 				task.waitTillComplete();
 			}

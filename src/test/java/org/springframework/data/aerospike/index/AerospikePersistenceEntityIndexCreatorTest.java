@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.index;
 
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,11 +31,13 @@ class AerospikePersistenceEntityIndexCreatorTest {
     String fieldName = "fieldName";
     Class<?> targetClass = AutoIndexedDocument.class;
     IndexType type = IndexType.STRING;
+    IndexCollectionType collectionType = IndexCollectionType.LIST;
     AerospikeIndexDefinition definition = AerospikeIndexDefinition.builder()
             .name(name)
             .fieldName(fieldName)
             .entityClass(targetClass)
             .type(type)
+            .collectionType(collectionType)
             .build();
 
     @Test
@@ -43,30 +46,30 @@ class AerospikePersistenceEntityIndexCreatorTest {
 
         creator.installIndexes(indexes);
 
-        verify(template).createIndex(targetClass, name, fieldName, type);
+        verify(template).createIndex(targetClass, name, fieldName, type, collectionType);
     }
 
     @Test
     void shouldSkipInstallIndexOnAlreadyExists() {
         doThrow(new IndexAlreadyExistsException("some message", new RuntimeException()))
-                .when(template).createIndex(targetClass, name, fieldName, type);
+                .when(template).createIndex(targetClass, name, fieldName, type, collectionType);
 
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
 
         creator.installIndexes(indexes);
 
-        verify(template).createIndex(targetClass, name, fieldName, type);
+        verify(template).createIndex(targetClass, name, fieldName, type, collectionType);
     }
 
     @Test
     void shouldFailInstallIndexOnUnhandledException() {
         doThrow(new RuntimeException())
-                .when(template).createIndex(targetClass, name, fieldName, type);
+                .when(template).createIndex(targetClass, name, fieldName, type, collectionType);
 
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
 
         assertThrows(RuntimeException.class, () -> creator.installIndexes(indexes));
 
-        verify(template).createIndex(targetClass, name, fieldName, type);
+        verify(template).createIndex(targetClass, name, fieldName, type, collectionType);
     }
 }

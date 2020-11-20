@@ -8,8 +8,13 @@ import com.aerospike.client.cluster.Node;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.task.IndexTask;
+import org.springframework.data.aerospike.query.cache.IndexInfoParser;
+import org.springframework.data.aerospike.query.model.Index;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class IndexUtils {
 
@@ -25,12 +30,16 @@ public class IndexUtils {
 		ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName, indexName, binName, indexType, collectionType));
 	}
 
+	public static List<Index> getIndexes(AerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
+		Node node = getNode(client);
+		String response = Info.request(node, "sindex/" + namespace);
+		return Arrays.stream(response.split(";"))
+				.map(indexInfoParser::parse)
+				.collect(Collectors.toList());
+	}
+
 	public static boolean indexExists(AerospikeClient client, String namespace, String indexName) {
-		Node[] nodes = client.getNodes();
-		if (nodes.length == 0) {
-			throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
-		}
-		Node node = nodes[0];
+		Node node = getNode(client);
 		String response = Info.request(node, "sindex/" + namespace + '/' + indexName);
 		return !response.startsWith("FAIL:201");
 	}
@@ -47,5 +56,13 @@ public class IndexUtils {
 				throw e;
 			}
 		}
+	}
+
+	private static Node getNode(AerospikeClient client) {
+		Node[] nodes = client.getNodes();
+		if (nodes.length == 0) {
+			throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
+		}
+		return nodes[0];
 	}
 }

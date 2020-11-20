@@ -17,6 +17,7 @@
 
 package org.springframework.data.aerospike.annotation;
 
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 
 import java.lang.annotation.ElementType;
@@ -25,7 +26,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Mark a field to be indexed using Aerospike's indexing feature.
+ * Marks a field to be indexed using Aerospike's secondary index.
+ * This will make spring-data-aerospike create index on application's startup.
+ * <p>
+ * For more details on Secondary index feature please refer to
+ * <a href="https://www.aerospike.com/docs/architecture/secondary-index.html">Aerospike Secondary index</a>.
  *
  * @author Taras Danylchuk
  */
@@ -34,12 +39,17 @@ import java.lang.annotation.Target;
 public @interface Indexed {
 
     /**
-     * If not set, name will be automatically generated with pattern {setName}_{fieldName}.
+     * If not set, name will be automatically generated with pattern {setName}_{fieldName}_lowercase{type}_lowercase{collectionType}.
      */
     String name() default "";
 
     /**
-     * Underlying data type of index.
+     * Underlying data type of secondary index.
      */
     IndexType type();
+
+    /**
+     * Secondary index collection type.
+     */
+    IndexCollectionType collectionType() default IndexCollectionType.DEFAULT;
 }

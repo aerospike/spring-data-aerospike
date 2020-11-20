@@ -17,15 +17,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Value;
 import org.awaitility.Awaitility;
+import org.springframework.data.aerospike.query.cache.IndexInfoParser;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.utility.ResponseUtils;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 
 import java.time.Duration;
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RequiredArgsConstructor
 public abstract class AdditionalAerospikeTestOperations {
 
+    private final IndexInfoParser indexInfoParser;
     private final AerospikeClient client;
     private final GenericContainer<?> aerospike;
 
@@ -65,22 +67,13 @@ public abstract class AdditionalAerospikeTestOperations {
         if (stdout.isEmpty() || stdout.equals("\n")) {
             return Collections.emptyList();
         }
-        return Arrays.stream(stdout.replaceAll("\n", "").split(";"))
-                .map(job -> {
-                    String[] pairs = job.split(":");
-                    Map<String, String> pairsMap = Arrays.stream(pairs)
-                            .map(pair -> {
-                                String[] kv = pair.split("=");
-                                return new AbstractMap.SimpleEntry<>(kv[0], kv[1]);
-                            })
-                            .collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue));
-                    return ScanJob.builder()
-                            .module(pairsMap.get("module"))
-                            .set(pairsMap.get("set"))
-                            .udfFunction(pairsMap.get("udf-function"))
-                            .status(pairsMap.get("status"))
-                            .build();
-                }).collect(Collectors.toList());
+        String response = stdout.replaceAll("\n", "");
+        return ResponseUtils.parseResponse(response, pairsMap -> ScanJob.builder()
+                .module(pairsMap.get("module"))
+                .set(pairsMap.get("set"))
+                .udfFunction(pairsMap.get("udf-function"))
+                .status(pairsMap.get("status"))
+                .build());
     }
 
     @SneakyThrows
@@ -126,6 +119,16 @@ public abstract class AdditionalAerospikeTestOperations {
     // Also it requests index status only from one Aerospike node, which is OK for tests, and NOT OK for Production cluster.
     public boolean indexExists(String indexName) {
         return IndexUtils.indexExists(client, getNamespace(), indexName);
+    }
+
+    public List<Index> getIndexes(String setName) {
+        return getIndexes().stream()
+                .filter(index -> index.getSet().equalsIgnoreCase(setName))
+                .collect(Collectors.toList());
+    }
+
+    public List<Index> getIndexes() {
+        return IndexUtils.getIndexes(client, getNamespace(), indexInfoParser);
     }
 
     public void addNewFieldToSavedDataInAerospike(Key key) {

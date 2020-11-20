@@ -322,12 +322,21 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
                                 String binName, IndexType indexType) {
+        return createIndex(entityClass, indexName, binName, indexType, IndexCollectionType.DEFAULT);
+    }
+
+    @Override
+    public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
+                                      String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
         Assert.notNull(entityClass, "Type must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
+        Assert.notNull(binName, "Bin name must not be null!");
+        Assert.notNull(indexType, "Index type must not be null!");
+        Assert.notNull(indexCollectionType, "Index collection type must not be null!");
 
         String setName = getSetName(entityClass);
         return reactorClient.createIndex(null, this.namespace,
-                setName, indexName, binName, indexType, IndexCollectionType.DEFAULT)
+                setName, indexName, binName, indexType, indexCollectionType)
                 .then(reactorIndexRefresher.refreshIndexes())
                 .onErrorMap(this::translateError);
     }

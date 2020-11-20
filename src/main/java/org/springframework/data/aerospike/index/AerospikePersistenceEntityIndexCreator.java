@@ -43,16 +43,16 @@ public class AerospikePersistenceEntityIndexCreator extends BaseAerospikePersist
         indexes.forEach(this::installIndex);
     }
 
-    private void installIndex(AerospikeIndexDefinition indexDefinition) {
-        log.debug("Installing aerospike index: {}...", indexDefinition);
+    private void installIndex(AerospikeIndexDefinition index) {
+        log.debug("Installing aerospike index: {}...", index);
         try {
-            template.createIndex(indexDefinition.getEntityClass(), indexDefinition.getName(),
-                    indexDefinition.getFieldName(), indexDefinition.getType());
-            log.info("Installed aerospike index: {} successfully.", indexDefinition);
+            template.createIndex(index.getEntityClass(), index.getName(),
+                    index.getFieldName(), index.getType(), index.getCollectionType());
+            log.info("Installed aerospike index: {} successfully.", index);
         } catch (IndexAlreadyExistsException e) {
-            log.info("Skipping index [{}] creation. Index with the same name already exists. {}", indexDefinition, e.getMessage());
+            log.info("Skipping index [{}] creation. Index with the same name already exists. {}", index, e.getMessage());
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to install aerospike index: " + indexDefinition, e);
+            throw new IllegalStateException("Failed to install aerospike index: " + index, e);
         }
     }
 

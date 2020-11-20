@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
@@ -62,13 +63,15 @@ public interface ReactiveAerospikeOperations {
 
     /**
      * Creates index by specified name in Aerospike.
-     * @param entityClass
-     * @param indexName
-     * @param binName
-     * @param indexType
      */
     <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
                                       String binName, IndexType indexType);
+
+    /**
+     * Creates index by specified name in Aerospike.
+     */
+    <T> Mono<Void> createIndex(Class<T> entityClass, String indexName, String binName,
+                               IndexType indexType, IndexCollectionType indexCollectionType);
 
     /**
      * Deletes index by specified name from Aerospike.

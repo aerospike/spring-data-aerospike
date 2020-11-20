@@ -2,15 +2,17 @@ package org.springframework.data.aerospike;
 
 import com.aerospike.client.AerospikeClient;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.testcontainers.containers.GenericContainer;
 
 public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospikeTestOperations {
 
     private final ReactiveAerospikeTemplate template;
 
-    public ReactiveBlockingAerospikeTestOperations(AerospikeClient client, GenericContainer aerospike,
+    public ReactiveBlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
+                                                   AerospikeClient client, GenericContainer aerospike,
                                                    ReactiveAerospikeTemplate reactiveAerospikeTemplate) {
-        super(client, aerospike);
+        super(indexInfoParser, client, aerospike);
         this.template = reactiveAerospikeTemplate;
     }
 

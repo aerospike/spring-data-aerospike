@@ -42,13 +42,20 @@ public class AerospikeIndexResolver {
                                                     AerospikePersistentProperty property) {
         Indexed annotation = property.getRequiredAnnotation(Indexed.class);
         String indexName = StringUtils.isEmpty(annotation.name())
-                ? String.join("_", persistentEntity.getSetName(), property.getFieldName())
+                ? getIndexName(persistentEntity, property, annotation)
                 : annotation.name();
         return AerospikeIndexDefinition.builder()
                 .entityClass(persistentEntity.getType())
                 .fieldName(property.getFieldName())
                 .name(indexName)
                 .type(annotation.type())
+                .collectionType(annotation.collectionType())
                 .build();
+    }
+
+    private String getIndexName(BasicAerospikePersistentEntity<?> entity,
+                                AerospikePersistentProperty property, Indexed annotation) {
+        return String.join("_",
+                entity.getSetName(), property.getFieldName(), annotation.type().name().toLowerCase(), annotation.collectionType().name().toLowerCase());
     }
 }

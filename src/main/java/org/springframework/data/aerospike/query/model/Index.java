@@ -18,11 +18,9 @@ package org.springframework.data.aerospike.query.model;
 
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 /**
  * This class represents a Secondary Index
@@ -31,40 +29,17 @@ import java.util.stream.Collectors;
  * @author Peter Milne
  * @author Anastasiia Smirnova
  */
+@Value
+@Builder
+@RequiredArgsConstructor
 public class Index {
 
-	private final Map<String, String> values;
 	private final String name;
 	private final String namespace;
 	private final String set;
 	private final String bin;
 	private final IndexType indexType;
 	private final IndexCollectionType indexCollectionType;
-
-	public Index(Map<String, String> values, String name,
-				 String namespace, String set, String bin,
-				 IndexType indexType, IndexCollectionType indexCollectionType) {
-		this.values = values;
-		this.name = name;
-		this.namespace = namespace;
-		this.set = set;
-		this.bin = bin;
-		this.indexType = indexType;
-		this.indexCollectionType = indexCollectionType;
-	}
-
-	public List<NameValuePair> getValues() {
-		return this.values.entrySet().stream()
-				.map(entry -> new NameValuePair(entry.getKey(), entry.getValue()))
-				.collect(Collectors.collectingAndThen(
-						Collectors.toList(),
-						Collections::unmodifiableList));
-	}
-
-	@Override
-	public String toString() {
-		return this.getName();
-	}
 
 	public String getName() {
 		return this.name;

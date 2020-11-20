@@ -15,21 +15,21 @@
  */
 package org.springframework.data.aerospike.core;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
+import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.Value;
+import com.aerospike.client.policy.WritePolicy;
+import com.aerospike.client.query.Filter;
+import com.aerospike.client.query.IndexCollectionType;
+import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 
-import com.aerospike.client.AerospikeClient;
-import com.aerospike.client.Value;
-import com.aerospike.client.policy.WritePolicy;
-import com.aerospike.client.query.Filter;
-import com.aerospike.client.query.IndexType;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * Aerospike specific data access operations.
@@ -163,13 +163,15 @@ public interface AerospikeOperations {
 
 	/**
 	 * Creates index by specified name in Aerospike.
-	 * @param entityClass
-	 * @param indexName
-	 * @param binName
-	 * @param indexType
 	 */
 	<T> void createIndex(Class<T> entityClass, String indexName, String binName,
 			IndexType indexType);
+
+	/**
+	 * Creates index by specified name in Aerospike.
+	 */
+	<T> void createIndex(Class<T> entityClass, String indexName, String binName,
+						 IndexType indexType, IndexCollectionType indexCollectionType);
 
 	/**
 	 * Deletes index by specified name from Aerospike.
