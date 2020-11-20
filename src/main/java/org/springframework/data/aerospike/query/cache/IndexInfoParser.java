@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.query.cache;
 
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.query.model.Index;
 
@@ -41,6 +42,10 @@ public class IndexInfoParser {
 	private static final String STRING_TYPE = "STRING";
 	private static final String GEO_JSON_TYPE = "GEOJSON";
 	private static final String NUMERIC_TYPE = "NUMERIC";
+	private static final String NONE = "NONE";
+	private static final String LIST = "LIST";
+	private static final String MAPKEYS = "MAPKEYS";
+	private static final String MAPVALUES = "MAPVALUES";
 
 	public Index parse(String infoString) {
 		Map<String, String> values = getIndexInfo(infoString);
@@ -49,7 +54,8 @@ public class IndexInfoParser {
 		String set = getNullableSet(values);
 		String bin = getRequiredBin(values);
 		IndexType indexType = getIndexTypeInternal(values);
-		return new Index(values, name, namespace, set, bin, indexType);
+		IndexCollectionType collectionType = getIndexCollectionTypeInternal(values);
+		return new Index(values, name, namespace, set, bin, indexType, collectionType);
 	}
 
 	/**
@@ -99,6 +105,22 @@ public class IndexInfoParser {
 		return null;
 //        TODO: should we throw exception in case of unknown index type? (Anastasiia Smirnova)
 //        throw new IllegalStateException("Unknown index type: " + indexTypeString + " in info: " + values);
+	}
+
+	private IndexCollectionType getIndexCollectionTypeInternal(Map<String, String> values) {
+		String indexTypeString = values.get("indextype");
+		if (indexTypeString == null) {
+			throw new IllegalStateException("Index type not present in info: " + values);
+		}
+		if (indexTypeString.equalsIgnoreCase(NONE))
+			return IndexCollectionType.DEFAULT;
+		else if (indexTypeString.equalsIgnoreCase(LIST))
+			return IndexCollectionType.LIST;
+		else if (indexTypeString.equalsIgnoreCase(MAPKEYS))
+			return IndexCollectionType.MAPKEYS;
+		else if (indexTypeString.equalsIgnoreCase(MAPVALUES))
+			return IndexCollectionType.MAPVALUES;
+		return null;
 	}
 
 	private String getRequiredBin(Map<String, String> values) {

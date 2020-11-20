@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.query.model;
 
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 
 import java.util.Objects;
@@ -28,12 +29,14 @@ public class IndexKey {
 	private final String set;
 	private final String field;
 	private final IndexType type;
+	private final IndexCollectionType collectionType;
 
-	public IndexKey(String namespace, String set, String field, IndexType type) {
+	public IndexKey(String namespace, String set, String field, IndexType type, IndexCollectionType collectionType) {
 		this.namespace = namespace;
 		this.set = set;
 		this.field = field;
 		this.type = type;
+		this.collectionType = collectionType;
 	}
 
 	public String getNamespace() {
@@ -52,6 +55,10 @@ public class IndexKey {
 		return type;
 	}
 
+	public IndexCollectionType getCollectionType() {
+		return collectionType;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
@@ -60,12 +67,13 @@ public class IndexKey {
 		return Objects.equals(namespace, indexKey.namespace) &&
 				Objects.equals(set, indexKey.set) &&
 				Objects.equals(field, indexKey.field) &&
-				type == indexKey.type;
+				type == indexKey.type &&
+				collectionType == indexKey.collectionType;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(namespace, set, field, type);
+		return Objects.hash(namespace, set, field, type, collectionType);
 	}
 
 	@Override
@@ -75,6 +83,7 @@ public class IndexKey {
 				", set='" + set + '\'' +
 				", field='" + field + '\'' +
 				", type=" + type +
+				", collectionType=" + collectionType +
 				'}';
 	}
 }

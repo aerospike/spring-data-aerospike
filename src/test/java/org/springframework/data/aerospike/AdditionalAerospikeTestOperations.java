@@ -1,18 +1,31 @@
 package org.springframework.data.aerospike;
 
-import com.aerospike.client.*;
+import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.Bin;
+import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.Info;
+import com.aerospike.client.Key;
+import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
+import lombok.Builder;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.Value;
-import lombok.*;
 import org.awaitility.Awaitility;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -94,6 +107,10 @@ public abstract class AdditionalAerospikeTestOperations {
         String answer = Info.request(client.getNodes()[0], "sets/" + namespace + "/" + getSetName(entityClass));
         return answer.isEmpty()
                 || Stream.of(answer.split(";")).allMatch(s -> s.contains("objects=0"));
+    }
+
+    public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
+        IndexUtils.createIndex(client, getNamespace(), getSetName(entityClass), indexName, binName, indexType, indexCollectionType);
     }
 
     public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName, IndexType indexType) {

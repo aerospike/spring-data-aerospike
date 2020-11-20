@@ -16,6 +16,7 @@
  */
 package org.springframework.data.aerospike.query.model;
 
+import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 
 import java.util.Collections;
@@ -38,15 +39,18 @@ public class Index {
 	private final String set;
 	private final String bin;
 	private final IndexType indexType;
+	private final IndexCollectionType indexCollectionType;
 
 	public Index(Map<String, String> values, String name,
-				 String namespace, String set, String bin, IndexType indexType) {
+				 String namespace, String set, String bin,
+				 IndexType indexType, IndexCollectionType indexCollectionType) {
 		this.values = values;
 		this.name = name;
 		this.namespace = namespace;
 		this.set = set;
 		this.bin = bin;
 		this.indexType = indexType;
+		this.indexCollectionType = indexCollectionType;
 	}
 
 	public List<NameValuePair> getValues() {
@@ -80,5 +84,9 @@ public class Index {
 
 	public IndexType getType() {
 		return this.indexType;
+	}
+
+	public IndexCollectionType getCollectionType() {
+		return this.indexCollectionType;
 	}
 }

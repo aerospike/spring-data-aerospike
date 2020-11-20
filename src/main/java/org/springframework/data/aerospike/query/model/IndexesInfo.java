@@ -16,6 +16,7 @@ public class IndexesInfo {
 		this.indexes = Collections.unmodifiableMap(indexes);
 		this.indexedFields = indexes.keySet().stream()
 				.map(key -> new IndexedField(key.getNamespace(), key.getSet(), key.getField()))
+				.distinct() // TODO: since we skip check on index type and index collection type in StatementBuilder
 				.collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
 	}
 
