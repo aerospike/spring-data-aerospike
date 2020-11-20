@@ -15,7 +15,7 @@
  */
 
 
-package org.springframework.data.aerospike.index;
+package org.springframework.data.aerospike.annotation;
 
 import com.aerospike.client.query.IndexType;
 

@@ -16,6 +16,7 @@
 
 package org.springframework.data.aerospike.index;
 
+import org.springframework.data.aerospike.annotation.Indexed;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.util.StringUtils;
