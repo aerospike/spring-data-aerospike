@@ -7,25 +7,13 @@ import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.model.IndexedField;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.BETWEEN;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.EQ;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.GEO_WITHIN;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.GT;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.GTEQ;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.LT;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.LTEQ;
 
 /**
  * @author peter
  * @author Anastasiia Smirnova
  */
 public class StatementBuilder {
-
-	private static final EnumSet<Qualifier.FilterOperation> INDEXED_OPERATIONS = EnumSet.of(
-			EQ, BETWEEN, GT, GTEQ, LT, LTEQ, GEO_WITHIN);
 
 	private final IndexesCache indexesCache;
 
@@ -56,11 +44,13 @@ public class StatementBuilder {
 			if (qualifier == null) continue;
 			if (qualifier.getOperation() == Qualifier.FilterOperation.AND) {
 				for (Qualifier q : qualifier.getQualifiers()) {
-					Filter filter = q == null ? null : q.asFilter();
-					if (filter != null) {
-						stmt.setFilter(filter);
-						q.asFilter(true);
-						break;
+					if(q != null && isIndexedBin(stmt, q)) {
+						Filter filter = q.asFilter();
+						if (filter != null) {
+							stmt.setFilter(filter);
+							q.asFilter(true);
+							break;
+						}
 					}
 				}
 			} else if (isIndexedBin(stmt, qualifier)) {
@@ -89,10 +79,10 @@ public class StatementBuilder {
 	}
 
 	private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
-		if (null == qualifier.getField()) return false;
+		if (qualifier.getField() == null) return false;
 
-		return INDEXED_OPERATIONS.contains(qualifier.getOperation())
-				&& indexesCache.hasIndexFor(new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField()));
+		//TODO: skips check on index-type and index-collection-type
+		return indexesCache.hasIndexFor(new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField()));
 	}
 
 	private static List<PredExp> buildPredExp(Qualifier[] qualifiers) {

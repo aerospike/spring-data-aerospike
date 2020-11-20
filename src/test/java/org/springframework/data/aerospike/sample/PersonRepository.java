@@ -15,18 +15,18 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import org.springframework.data.aerospike.repository.AerospikeRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import org.springframework.data.aerospike.repository.AerospikeRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 
 /**
  *
@@ -35,66 +35,66 @@ import org.springframework.data.domain.Sort;
  * @author Jean Mercier
  *
  */
-public interface PersonRepository extends AerospikeRepository<Person, String> {
+public interface PersonRepository<P extends Person> extends AerospikeRepository<P, String> {
 
-	List<Person> findByLastName(String lastName);
+	List<P> findByLastName(String lastName);
 	
-	Page<Person> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
+	Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 
-	List<Person> findByLastNameEndsWith(String postfix);
+	List<P> findByLastNameEndsWith(String postfix);
 
-	List<Person> findByLastNameOrderByFirstNameAsc(String lastName);
+	List<P> findByLastNameOrderByFirstNameAsc(String lastName);
 	
-	List<Person> findByLastNameOrderByFirstNameDesc(String lastName);
+	List<P> findByLastNameOrderByFirstNameDesc(String lastName);
 
-	List<Person> findByFirstNameLike(String firstName);
+	List<P> findByFirstNameLike(String firstName);
 
-	List<Person> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
+	List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
 
-	List<Person> findByAgeLessThan(int age, Sort sort);
+	List<P> findByAgeLessThan(int age, Sort sort);
 
-	Stream<Person> findByFirstNameIn(List<String> firstNames);
+	Stream<P> findByFirstNameIn(List<String> firstNames);
 
-	Stream<Person> findByFirstNameNotIn(Collection<String> firstNames);
+	Stream<P> findByFirstNameNotIn(Collection<String> firstNames);
 
-	List<Person> findByFirstNameAndLastName(String firstName, String lastName);
+	List<P> findByFirstNameAndLastName(String firstName, String lastName);
 
-	List<Person> findByAgeBetween(int from, int to);
+	List<P> findByAgeBetween(int from, int to);
 
 	@SuppressWarnings("rawtypes")
 	Person findByShippingAddresses(Set address);
 
-	List<Person> findByAddress(Address address);
+	List<P> findByAddress(Address address);
 
-	List<Person> findByAddressZipCode(String zipCode);
+	List<P> findByAddressZipCode(String zipCode);
 
-	List<Person> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
+	List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
 
-	List<Person> findByAgeOrLastNameLikeAndFirstNameLike(int age, String lastName, String firstName);
+	List<P> findByAgeOrLastNameLikeAndFirstNameLike(int age, String lastName, String firstName);
 
-//	List<Person> findByNamedQuery(String firstName);
+//	List<P> findByNamedQuery(String firstName);
 
-	List<Person> findByCreator(User user);
+	List<P> findByCreator(User user);
 
-	List<Person> findByCreatedAtLessThan(Date date);
+	List<P> findByCreatedAtLessThan(Date date);
 
-	List<Person> findByCreatedAtGreaterThan(Date date);
+	List<P> findByCreatedAtGreaterThan(Date date);
 
-//	List<Person> findByCreatedAtLessThanManually(Date date);
+//	List<P> findByCreatedAtLessThanManually(Date date);
 
-	List<Person> findByCreatedAtBefore(Date date);
+	List<P> findByCreatedAtBefore(Date date);
 
-	List<Person> findByCreatedAtAfter(Date date);
+	List<P> findByCreatedAtAfter(Date date);
 
-	Stream<Person> findByLastNameNot(String lastName);
+	Stream<P> findByLastNameNot(String lastName);
 
-	List<Person> findByCredentials(Credentials credentials);
+	List<P> findByCredentials(Credentials credentials);
 	
-	List<Person> findCustomerByAgeBetween(Integer from, Integer to);
+	List<P> findCustomerByAgeBetween(Integer from, Integer to);
 
-	List<Person> findByAgeIn(ArrayList<Integer> ages);
+	List<P> findByAgeIn(ArrayList<Integer> ages);
 
-	List<Person> findPersonByFirstName(String firstName);
+	List<P> findPersonByFirstName(String firstName);
 
 	long countByLastName(String lastName);
 
@@ -102,36 +102,44 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 
 	long someCountQuery(String lastName);
 
-	List<Person> findByFirstNameIgnoreCase(String firstName);
+	List<P> findByFirstNameIgnoreCase(String firstName);
 
-	List<Person> findByFirstNameNotIgnoreCase(String firstName);
+	List<P> findByFirstNameNotIgnoreCase(String firstName);
 
-	List<Person> findByFirstNameStartingWithIgnoreCase(String firstName);
+	List<P> findByFirstNameStartingWithIgnoreCase(String firstName);
 
-	List<Person> findByFirstNameEndingWithIgnoreCase(String firstName);
+	List<P> findByFirstNameEndingWithIgnoreCase(String firstName);
 
-	List<Person> findByFirstNameContainingIgnoreCase(String firstName);
+	List<P> findByFirstNameContainingIgnoreCase(String firstName);
 
-	Slice<Person> findByAgeGreaterThan(int age, Pageable pageable);
+	Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
 
-	List<Person> deleteByLastName(String lastName);
+	List<P> deleteByLastName(String lastName);
 
 	Long deletePersonByLastName(String lastName);
 
-	Page<Person> findByAddressIn(List<Address> address, Pageable page);
+	Page<P> findByAddressIn(List<Address> address, Pageable page);
 
-	List<Person> findTop3ByLastNameStartingWith(String lastName);
+	List<P> findByMapKeysContaining(String key);
 
-	Page<Person> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
+	List<P> findByStringsContaining(String string);
 
-	List<Person> findByFirstName(String string);
+	List<P> findByIntsContaining(Integer integer);
 
-	List<Person> findByFirstNameAndAge(String string, int i);
+	List<P> findByIntsContaining(List integer);
 
-	Iterable<Person> findByAgeBetweenAndLastName(int from, int to, String lastName);
+	List<P> findTop3ByLastNameStartingWith(String lastName);
 
-	List<Person> findByFirstNameStartsWith(String string);
+	Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
-	Iterable<Person> findByAgeBetweenOrderByLastName(int i, int j);
+	List<P> findByFirstName(String string);
+
+	List<P> findByFirstNameAndAge(String string, int i);
+
+	Iterable<P> findByAgeBetweenAndLastName(int from, int to, String lastName);
+
+	List<P> findByFirstNameStartsWith(String string);
+
+	Iterable<P> findByAgeBetweenOrderByLastName(int i, int j);
 
 }

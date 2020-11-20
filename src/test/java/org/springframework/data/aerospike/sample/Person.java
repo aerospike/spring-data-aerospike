@@ -16,12 +16,12 @@
 package org.springframework.data.aerospike.sample;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.annotation.Id;
 
@@ -42,7 +42,7 @@ import java.util.Map;
 @Setter
 @EqualsAndHashCode
 @ToString
-@Builder
+@SuperBuilder
 public class Person {
 
 	public enum Sex {
@@ -59,7 +59,8 @@ public class Person {
 	private Person friend;
 	private boolean active;
 	private Date dateOfBirth;
-	private List<String> list;
+	private List<String> strings;
+	private List<Integer> ints;
 
 	@Field("email")
 	private String emailAddress;

@@ -15,27 +15,25 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-
+import com.aerospike.client.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.CachingAerospikePersistentProperty;
+import org.springframework.data.aerospike.query.Qualifier.FilterOperation;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.PersistentPropertyPath;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.PartTree;
+import org.springframework.data.util.TypeInformation;
 
-import com.aerospike.client.Value;
-import org.springframework.data.aerospike.query.Qualifier.FilterOperation;
+import java.util.Iterator;
 
 /**
  *
@@ -119,14 +117,26 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		}
 		
 		//customization for collection/map query
-		if(property instanceof Collection){
-			if(op==FilterOperation.CONTAINING) op = FilterOperation.LIST_CONTAINS;
-			else if(op == FilterOperation.BETWEEN) op = FilterOperation.LIST_BETWEEN;
-		}else if (property instanceof Map){
+		TypeInformation<?> propertyType = property.getTypeInformation();
+		if (propertyType.isCollectionLike()) {
+			if (op == FilterOperation.CONTAINING) {
+				op = FilterOperation.LIST_CONTAINS;
+			} else if (op == FilterOperation.BETWEEN) {
+				op = FilterOperation.LIST_BETWEEN;
+			}
+		} else if (propertyType.isMap()) {
 			AerospikeMapCriteria onMap = (AerospikeMapCriteria) parameters.next();
-			switch (onMap){
-			case KEY:  if(op==FilterOperation.CONTAINING) op = FilterOperation.MAP_KEYS_CONTAINS; break;
-			case VALUE: if(op==FilterOperation.CONTAINING) op = FilterOperation.MAP_VALUES_CONTAINS; break;
+			switch (onMap) {
+				case KEY:
+					if (op == FilterOperation.CONTAINING) {
+						op = FilterOperation.MAP_KEYS_CONTAINS;
+					}
+					break;
+				case VALUE:
+					if (op == FilterOperation.CONTAINING) {
+						op = FilterOperation.MAP_VALUES_CONTAINS;
+					}
+					break;
 			}
 		}
 		if(null == v2)return new AerospikeCriteria(fieldName, op,  ignoreCase==IgnoreCaseType.ALWAYS, Value.get(v1));
