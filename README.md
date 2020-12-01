@@ -9,6 +9,10 @@ The primary goal of the [Spring Data](https://projects.spring.io/spring-data) pr
 
 The Spring Data Aerospike project aims to provide a familiar and consistent Spring-based programming model for new datastores while retaining store-specific features and capabilities. The Spring Data Aerospike project provides integration with the Aerospike document database. Key functional areas of Spring Data Aerospike are a POJO centric model for interacting with a Aerospike DBCollection and easily writing a repository style data access layer.
 
+## :point_right: :point_right: :point_right: Demo project with guides
+
+Demo project with detailed guides is located [here](https://github.com/aerospike-community/spring-data-aerospike-demo).
+
 ## Spring Boot compatibility
 
 |`spring-data-aerospike` Version | Spring Boot Version
@@ -28,10 +32,6 @@ For a comprehensive treatment of all the Spring Data Aerospike features, please 
 If you are new to Spring as well as to Spring Data, look for information about [Spring projects](https://projects.spring.io/).
 
 ## Quick Start
-
-### Demo project
-
-Demo project with detailed guides is located [here](https://github.com/aerospike-community/spring-data-aerospike-demo).
 
 ### Maven configuration
 
