@@ -22,15 +22,6 @@ Demo project with detailed guides is located [here](https://github.com/aerospike
 |2.1.1.RELEASE | 2.1.x, 2.0.x
 |1.2.1.RELEASE | 1.5.x
 
-## Getting Help
-
-For a comprehensive treatment of all the Spring Data Aerospike features, please refer to:
-
-* the [User Guide](https://github.com/aerospike-community/spring-data-aerospike/blob/master/src/main/asciidoc/index.adoc)
-* for more detailed questions, use [Spring Data Aerospike on Stackoverflow](https://stackoverflow.com/questions/tagged/spring-data-aerospike).
-
-If you are new to Spring as well as to Spring Data, look for information about [Spring projects](https://projects.spring.io/).
-
 ## Quick Start
 
 ### Maven configuration
@@ -130,6 +121,15 @@ public class MyService {
  }
 }
 ```
+
+## Getting Help
+
+For a comprehensive treatment of all the Spring Data Aerospike features, please refer to:
+
+* the [User Guide](https://github.com/aerospike-community/spring-data-aerospike/blob/master/src/main/asciidoc/index.adoc)
+* for more detailed questions, use [Spring Data Aerospike on Stackoverflow](https://stackoverflow.com/questions/tagged/spring-data-aerospike).
+
+If you are new to Spring as well as to Spring Data, look for information about [Spring projects](https://projects.spring.io/).
 
 ## Contributing to Spring Data
 
