@@ -13,7 +13,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @UtilityClass
 public class AutoIndexedDocumentAssert {
 
-    public void assertIndexesCreated(AdditionalAerospikeTestOperations operations, String namespace, String setName) {
+    public void assertIndexesCreated(AdditionalAerospikeTestOperations operations, String namespace) {
+        assertAutoIndexedDocumentIndexesCreated(operations, namespace);
+        assertConfigPackageDocumentIndexesCreated(operations, namespace);
+    }
+
+    public void assertAutoIndexedDocumentIndexesCreated(AdditionalAerospikeTestOperations operations, String namespace) {
+        String setName = "auto-indexed-set";
         List<Index> indexes = operations.getIndexes(setName);
 
         assertThat(indexes).containsExactlyInAnyOrder(
@@ -27,6 +33,15 @@ public class AutoIndexedDocumentAssert {
                 index(namespace, setName, setName + "_mapOfStrVals_string_mapvalues", "mapOfStrVals", IndexType.STRING, IndexCollectionType.MAPVALUES),
                 index(namespace, setName, setName + "_mapOfIntKeys_numeric_mapkeys", "mapOfIntKeys", IndexType.NUMERIC, IndexCollectionType.MAPKEYS),
                 index(namespace, setName, setName + "_mapOfIntVals_numeric_mapvalues", "mapOfIntVals", IndexType.NUMERIC, IndexCollectionType.MAPVALUES)
+        );
+    }
+
+    public void assertConfigPackageDocumentIndexesCreated(AdditionalAerospikeTestOperations operations, String namespace) {
+        String setName = "config-package-document-set";
+        List<Index> indexes = operations.getIndexes(setName);
+
+        assertThat(indexes).containsExactlyInAnyOrder(
+                index(namespace, setName, "config-package-document-index", "indexedField", IndexType.STRING, IndexCollectionType.DEFAULT)
         );
     }
 

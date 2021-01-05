@@ -121,9 +121,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
 
     @Test
     void indexedAnnotation_createsIndexes() {
-        String setName = reactiveTemplate.getSetName(AutoIndexedDocument.class);
-
-        AutoIndexedDocumentAssert.assertIndexesCreated(additionalAerospikeTestOperations, namespace, setName);
+        AutoIndexedDocumentAssert.assertIndexesCreated(additionalAerospikeTestOperations, namespace);
     }
 
     private boolean indexExists(String indexName, String binName) {

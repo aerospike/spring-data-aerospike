@@ -11,7 +11,6 @@ import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.IndexNotFoundException;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
-import org.springframework.data.aerospike.sample.AutoIndexedDocument;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -139,9 +138,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
     @Test
     void indexedAnnotation_createsIndexes() {
-        String setName = template.getSetName(AutoIndexedDocument.class);
-
-        AutoIndexedDocumentAssert.assertIndexesCreated(additionalAerospikeTestOperations, namespace, setName);
+        AutoIndexedDocumentAssert.assertIndexesCreated(additionalAerospikeTestOperations, namespace);
     }
 
     @Value
