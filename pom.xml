@@ -31,7 +31,7 @@
 
         <spring-boot-starter-test.version>2.3.1.RELEASE</spring-boot-starter-test.version>
         <spring-cloud-starter.version>2.2.3.RELEASE</spring-cloud-starter.version>
-        <embedded-aerospike.version>1.85</embedded-aerospike.version>
+        <embedded-aerospike.version>2.0.0</embedded-aerospike.version>
         <awaitility.version>4.0.3</awaitility.version>
         <blockhound.version>1.0.4.RELEASE</blockhound.version>
     </properties>
