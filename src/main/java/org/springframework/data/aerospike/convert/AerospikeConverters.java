@@ -97,63 +97,70 @@ abstract class AerospikeConverters {
 
 	}
 
-	public static enum LongToValueConverter implements Converter<Long, Value> {
+	public enum LongToValueConverter implements Converter<Long, Value> {
 		INSTANCE;
 
+		@Override
 		public Value convert(Long source) {
-			return source == null ? null : Value.get(source);
+			return Value.get(source);
 		}
 	}
 
-	public static enum BinToLongConverter implements Converter<Bin, Long> {
+	public enum BinToLongConverter implements Converter<Bin, Long> {
 		INSTANCE;
 
+		@Override
 		public Long convert(Bin source) {
 			return source.value.toLong();
 		}
 	}
 
-	public static enum StringToValueConverter implements Converter<String, Value> {
+	public enum StringToValueConverter implements Converter<String, Value> {
 		INSTANCE;
 
+		@Override
 		public Value convert(String source) {
-			return source == null ? null : Value.get(source);
+			return Value.get(source);
 		}
 	}
 
-	public static enum BinToStringConverter implements Converter<Bin, String> {
+	public enum BinToStringConverter implements Converter<Bin, String> {
 		INSTANCE;
 
+		@Override
 		public String convert(Bin source) {
 			return source.value.toString();
 		}
 	}
 
-	public static enum ListToValueConverter implements Converter<List<?>, Value> {
+	public enum ListToValueConverter implements Converter<List<?>, Value> {
 		INSTANCE;
 
+		@Override
 		public Value convert(List<?> source) {
-			return source == null ? null : Value.get(source);
+			return Value.get(source);
 		}
 	}
 
-	public static enum MapToValueConverter implements Converter<Map<?, ?>, Value> {
+	public enum MapToValueConverter implements Converter<Map<?, ?>, Value> {
 		INSTANCE;
 
+		@Override
 		public Value convert(Map<?, ?> source) {
-			return source == null ? null : Value.get(source);
+			return Value.get(source);
 		}
 	}
 
-	public static enum BytesToValueConverter implements Converter<Byte[], Value> {
+	public enum BytesToValueConverter implements Converter<Byte[], Value> {
 		INSTANCE;
 
+		@Override
 		public Value convert(Byte[] source) {
-			return source == null ? null : Value.get(source);
+			return Value.get(source);
 		}
 	}
 	
-	public static enum StringToAerospikeGeoJSONValueConverter implements Converter<String, GeoJSONValue>{
+	public enum StringToAerospikeGeoJSONValueConverter implements Converter<String, GeoJSONValue> {
 		INSTANCE;
 		
 		/* (non-Javadoc)
