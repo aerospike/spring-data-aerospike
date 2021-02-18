@@ -56,7 +56,8 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
 				mappingContext, asList(new SimpleTypeInformationMapper()));
 
 		this.writeConverter = new MappingAerospikeWriteConverter(typeMapper, mappingContext, conversions, conversionService);
-		this.readConverter = new MappingAerospikeReadConverter(entityInstantiators, aerospikeTypeAliasAccessor, typeMapper, mappingContext, conversions, conversionService);
+		this.readConverter = new MappingAerospikeReadConverter(entityInstantiators, aerospikeTypeAliasAccessor,
+				typeMapper, mappingContext, conversions, conversionService);
 	}
 
 	@Override

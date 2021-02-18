@@ -51,14 +51,14 @@ import static org.springframework.data.aerospike.utility.TimeUtils.offsetInSecon
 public class MappingAerospikeReadConverter implements EntityReader<Object, AerospikeReadData> {
 
 	private final EntityInstantiators entityInstantiators;
-	private final TypeAliasAccessor typeAliasAccessor;
+	private final TypeAliasAccessor<Map<String, Object>> typeAliasAccessor;
 	private final TypeMapper<Map<String, Object>> typeMapper;
 	private final AerospikeMappingContext mappingContext;
 	private final CustomConversions conversions;
 	private final GenericConversionService conversionService;
 
 	public MappingAerospikeReadConverter(EntityInstantiators entityInstantiators,
-										 TypeAliasAccessor typeAliasAccessor,
+										 TypeAliasAccessor<Map<String, Object>> typeAliasAccessor,
 										 TypeMapper<Map<String, Object>> typeMapper,
                                          AerospikeMappingContext mappingContext, CustomConversions conversions,
                                          GenericConversionService conversionService) {
@@ -89,7 +89,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 
 		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(typeToUse);
 		RecordReadingPropertyValueProvider propertyValueProvider = new RecordReadingPropertyValueProvider(data);
-		ConvertingPropertyAccessor accessor = getConvertingPropertyAccessor(entity, propertyValueProvider);
+		ConvertingPropertyAccessor<?> accessor = getConvertingPropertyAccessor(entity, propertyValueProvider);
 
 		return convertProperties(entity, propertyValueProvider, accessor);
 	}
@@ -102,9 +102,10 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		return (T) convertIfNeeded(value, property.getType());
 	}
 
+	@SuppressWarnings("unchecked")
 	private <R> R convertProperties(AerospikePersistentEntity<?> entity,
 									RecordReadingPropertyValueProvider propertyValueProvider,
-									PersistentPropertyAccessor accessor) {
+									PersistentPropertyAccessor<?> accessor) {
 		entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) persistentProperty -> {
 
 			PreferredConstructor<?, AerospikePersistentProperty> constructor = entity.getPersistenceConstructor();
@@ -124,6 +125,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		return (R) accessor.getBean();
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> T readValue(Object source, TypeInformation<?> propertyType) {
 		Assert.notNull(propertyType, "Target type must not be null!");
 
@@ -150,6 +152,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		return source.getClass().isArray() ? CollectionUtils.arrayToList(source) : Collections.singleton(source);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> T convertCustomType(Map<String, Object> source, TypeInformation<?> propertyType) {
 		TypeInformation<?> typeToUse = typeMapper.readType(source, propertyType);
 		AerospikePersistentEntity<?> entity = mappingContext.getPersistentEntity(typeToUse);
@@ -157,14 +160,15 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 			return (T) source;
 		}
 		RecordReadingPropertyValueProvider propertyValueProvider = new RecordReadingPropertyValueProvider(source);
-		PersistentPropertyAccessor persistentPropertyAccessor = getConvertingPropertyAccessor(entity, propertyValueProvider);
-		return (T) convertProperties(entity, propertyValueProvider, persistentPropertyAccessor);
+		PersistentPropertyAccessor<?> persistentPropertyAccessor = getConvertingPropertyAccessor(entity, propertyValueProvider);
+		return convertProperties(entity, propertyValueProvider, persistentPropertyAccessor);
 	}
 
 	private boolean shouldDefaultToMap(Map<String, Object> source, AerospikePersistentEntity<?> entity) {
 		return entity == null && !typeAliasAccessor.readAliasFrom(source).isPresent();
 	}
 
+	@SuppressWarnings("unchecked")
 	private <R> R convertMap(Map<String, Object> source, TypeInformation<?> propertyType) {
 		Class<?> mapClass = propertyType.getType();
 		TypeInformation<?> keyType = propertyType.getComponentType();
@@ -183,7 +187,8 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		return (R) convertIfNeeded(converted, propertyType.getType());
 	}
 
-	private <R> R convertCollection(final Collection source, final TypeInformation<?> propertyType) {
+	@SuppressWarnings("unchecked")
+	private <R> R convertCollection(final Collection<?> source, final TypeInformation<?> propertyType) {
 		Class<?> collectionClass = propertyType.getType();
 		TypeInformation<?> elementType = propertyType.getComponentType();
 		Class<?> elementClass = elementType == null ? null : elementType.getType();
@@ -196,6 +201,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		return (R) convertIfNeeded(items, propertyType.getType());
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object convertIfNeeded(Object value, Class<?> targetClass) {
 		if (Enum.class.isAssignableFrom(targetClass)) {
 			return Enum.valueOf((Class<Enum>) targetClass, value.toString());
@@ -203,15 +209,16 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		return targetClass.isAssignableFrom(value.getClass()) ? value : conversionService.convert(value, targetClass);
 	}
 
-	private ConvertingPropertyAccessor getConvertingPropertyAccessor(AerospikePersistentEntity<?> entity,
+	private ConvertingPropertyAccessor<Object> getConvertingPropertyAccessor(AerospikePersistentEntity<?> entity,
 																	 RecordReadingPropertyValueProvider recordReadingPropertyValueProvider) {
 		EntityInstantiator instantiator = entityInstantiators.getInstantiatorFor(entity);
 		Object instance = instantiator.createInstance(entity, new PersistentEntityParameterValueProvider<>(entity,
 				recordReadingPropertyValueProvider, null));
 
-		return new ConvertingPropertyAccessor(entity.getPropertyAccessor(instance), conversionService);
+		return new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(instance), conversionService);
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> T getExpiration(int expiration, AerospikePersistentProperty property) {
 		if (property.isExpirationSpecifiedAsUnixTime()) {
 			return (T) convertIfNeeded(offsetInSecondsToUnixTime(expiration), property.getType());
@@ -219,6 +226,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		return (T) convertIfNeeded(expiration, property.getType());
 	}
 
+	@SuppressWarnings("unchecked")
 	private <T> T getVersion(int generation, AerospikePersistentProperty property) {
 		return (T) convertIfNeeded(generation, property.getType());
 	}
