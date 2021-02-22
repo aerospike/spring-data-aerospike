@@ -18,14 +18,10 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.policy.GenerationPolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses;
-import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClassToDelete;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
-import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.annotation.Id;
 
 import java.util.Arrays;
 
@@ -33,6 +29,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.TEN_SECONDS;
+import static org.springframework.data.aerospike.SampleClasses.*;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextIntId;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextLongId;
 
 public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
@@ -145,5 +144,41 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         assertThatThrownBy(() -> template.delete(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Type must not be null!");
+    }
+
+    @Test
+    public void delete_deletesDocumentWithIntId() {
+        DocumentWithIntId object = new DocumentWithIntId(nextIntId());
+        template.insert(object);
+
+        boolean deleted = template.delete(object.id, DocumentWithIntId.class);
+        assertThat(deleted).isTrue();
+
+        DocumentWithIntId result = template.findById(object.id, DocumentWithIntId.class);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void delete_deletesDocumentWithLongId() {
+        DocumentWithLongId object = new DocumentWithLongId(nextLongId());
+        template.insert(object);
+
+        boolean deleted = template.delete(object.id, DocumentWithLongId.class);
+        assertThat(deleted).isTrue();
+
+        DocumentWithLongId result = template.findById(object.id, DocumentWithLongId.class);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void delete_deletesDocumentWithByteArrayId() {
+        DocumentWithByteArrayId object = new DocumentWithByteArrayId(new byte[]{0,1});
+        template.insert(object);
+
+        boolean deleted = template.delete(object.id, DocumentWithByteArrayId.class);
+        assertThat(deleted).isTrue();
+
+        DocumentWithByteArrayId result = template.findById(object.id, DocumentWithByteArrayId.class);
+        assertThat(result).isNull();
     }
 }

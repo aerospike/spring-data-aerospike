@@ -10,7 +10,10 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
+import static org.springframework.data.aerospike.SampleClasses.*;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextIntId;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextLongId;
 
 /**
  * Tests for delete related methods in {@link ReactiveAerospikeTemplate}.
@@ -107,5 +110,37 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
 
         // then
         StepVerifier.create(deleted).expectComplete().verify();
+    }
+
+    @Test
+    public void simpleDeleteByIdForDocumentWithIntIdField() {
+        DocumentWithIntId document = new DocumentWithIntId(nextIntId());
+
+        assertThatDocumentIsInsertedAndDeleted(document, document.id);
+    }
+
+    @Test
+    public void simpleDeleteByIdForDocumentWithLongIdField() {
+        DocumentWithLongId document = new DocumentWithLongId(nextLongId());
+
+        assertThatDocumentIsInsertedAndDeleted(document, document.id);
+    }
+
+    @Test
+    public void simpleDeleteByIdForDocumentWithByteArrayIdField() {
+        DocumentWithByteArrayId document = new DocumentWithByteArrayId(new byte[]{0, 1, 2, 7});
+
+        assertThatDocumentIsInsertedAndDeleted(document, document.id);
+    }
+
+    private <T,ID> void assertThatDocumentIsInsertedAndDeleted(T document, ID id) {
+        Mono<T> created = reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel());
+        StepVerifier.create(created).expectNext(document).verifyComplete();
+
+        Mono<Boolean> deleted = reactiveTemplate.delete(id, document.getClass()).subscribeOn(Schedulers.parallel());
+        StepVerifier.create(deleted).expectNext(true).verifyComplete();
+
+        Mono<DocumentWithLongId> result = reactiveTemplate.findById(id, DocumentWithLongId.class).subscribeOn(Schedulers.parallel());
+        StepVerifier.create(result).expectComplete().verify();
     }
 }

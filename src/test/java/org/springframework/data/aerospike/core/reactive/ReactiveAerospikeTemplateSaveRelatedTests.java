@@ -7,6 +7,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
+import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.springframework.data.aerospike.SampleClasses.*;
 
 /**
  * Tests for save related methods in {@link ReactiveAerospikeTemplate}.
@@ -214,4 +216,33 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    public void save_shouldFindDocumentWithIntField() {
+        DocumentWithIntId document = new DocumentWithIntId(5);
+
+        reactiveTemplate.save(document).subscribeOn(Schedulers.parallel()).block();
+
+        DocumentWithIntId result = findById(document.id, DocumentWithIntId.class);
+        assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void save_shouldFindDocumentWithLongField() {
+        DocumentWithLongId document = new DocumentWithLongId(5);
+
+        reactiveTemplate.save(document).subscribeOn(Schedulers.parallel()).block();
+
+        DocumentWithLongId result = findById(document.id, DocumentWithLongId.class);
+        assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void save_shouldFindDocumentWithByteArrayIdField() {
+        DocumentWithByteArrayId document = new DocumentWithByteArrayId(new byte[]{1, 0});
+
+        reactiveTemplate.save(document).subscribeOn(Schedulers.parallel()).block();
+
+        DocumentWithByteArrayId result = findById(document.id, DocumentWithByteArrayId.class);
+        assertThat(result).isEqualTo(document);
+    }
 }

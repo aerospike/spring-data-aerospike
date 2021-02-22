@@ -17,7 +17,7 @@ public class KeyAssert extends AbstractAssert<KeyAssert, Key> {
     public KeyAssert consistsOf(String namespace, String setName, Object userKey) {
         Assertions.assertThat(actual.namespace).isEqualTo(namespace);
         Assertions.assertThat(actual.setName).isEqualTo(setName);
-        Assertions.assertThat(actual.userKey.getObject()).isEqualTo(String.valueOf(userKey));
+        Assertions.assertThat(actual.userKey).isEqualTo(userKey);
         return this;
     }
 }

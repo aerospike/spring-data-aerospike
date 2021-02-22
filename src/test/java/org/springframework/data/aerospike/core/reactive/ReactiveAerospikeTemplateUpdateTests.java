@@ -7,14 +7,19 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
+import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.SampleClasses.*;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextIntId;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextLongId;
 import static reactor.test.StepVerifier.create;
 
 public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegrationTests {
@@ -144,5 +149,53 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
 
         Person actual = findById(id, Person.class);
         assertThat(actual.getFirstName()).startsWith("value-");
+    }
+
+    @Test
+    public void shouldUpdateDocumentWithIntField() {
+        DocumentWithIntIdAndTestField document = new DocumentWithIntIdAndTestField(nextIntId());
+        reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
+        DocumentWithIntIdAndTestField saved = findById(document.id, DocumentWithIntIdAndTestField.class);
+        assertThat(saved).isEqualTo(document);
+
+        String expectedName = "testName";
+        saved.setName(expectedName);
+
+        reactiveTemplate.update(saved).subscribeOn(Schedulers.parallel()).block();
+
+        DocumentWithIntIdAndTestField result = findById(document.id, DocumentWithIntIdAndTestField.class);
+        assertThat(result.name).isEqualTo(expectedName);
+    }
+
+    @Test
+    public void shouldUpdateDocumentWithLongField() {
+        DocumentWithLongIdAndTestField document = new DocumentWithLongIdAndTestField(nextLongId());
+        reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
+        DocumentWithLongIdAndTestField saved = findById(document.id, DocumentWithLongIdAndTestField.class);
+        assertThat(saved).isEqualTo(document);
+
+        String expectedName = "testName";
+        saved.setName(expectedName);
+
+        reactiveTemplate.update(saved).subscribeOn(Schedulers.parallel()).block();
+
+        DocumentWithLongIdAndTestField result = findById(document.id, DocumentWithLongIdAndTestField.class);
+        assertThat(result.name).isEqualTo(expectedName);
+    }
+
+    @Test
+    public void shouldUpdateDocumentWithByteArrayIdField() {
+        DocumentWithByteArrayIdAndTestField document = new DocumentWithByteArrayIdAndTestField(new byte[]{1, 0, 2});
+        reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
+        DocumentWithByteArrayIdAndTestField saved = findById(document.id, DocumentWithByteArrayIdAndTestField.class);
+        assertThat(saved).isEqualTo(document);
+
+        String expectedName = "testName";
+        saved.setName(expectedName);
+
+        reactiveTemplate.update(saved).subscribeOn(Schedulers.parallel()).block();
+
+        DocumentWithByteArrayIdAndTestField result = findById(document.id, DocumentWithByteArrayIdAndTestField.class);
+        assertThat(result.name).isEqualTo(expectedName);
     }
 }

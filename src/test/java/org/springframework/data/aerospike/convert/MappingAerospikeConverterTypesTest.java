@@ -1,7 +1,10 @@
 package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.Bin;
+import com.aerospike.client.Key;
+import com.aerospike.client.Value;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.SampleClasses.Address;
 import org.springframework.data.aerospike.SampleClasses.BigDecimalContainer;
 import org.springframework.data.aerospike.SampleClasses.ClassWithComplexId;
@@ -55,9 +58,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.AsCollections.list;
 import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.AsCollections.set;
+import static org.springframework.data.aerospike.SampleClasses.*;
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
 import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextId;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextIntId;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextLongId;
 
 public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConverterTest {
 
@@ -72,9 +79,30 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void IntegerId() {
 		DocumentWithIntId object = new DocumentWithIntId(5);
 
-		assertWriteAndRead(object, "DocumentWithIntId", 5,
-				new Bin("@user_key", "5"),
+		assertWriteAndRead(object, "DocumentWithIntId", Value.get(5),
+				new Bin("@user_key", Value.get(5)),
 				new Bin("@_class", DocumentWithIntId.class.getName())
+		);
+	}
+
+	@Test
+	void LongId() {
+		DocumentWithLongId object = new DocumentWithLongId(5L);
+
+		assertWriteAndRead(object, "DocumentWithLongId", Value.get(5L),
+						   new Bin("@user_key", Value.get(5L)),
+						   new Bin("@_class", DocumentWithLongId.class.getName())
+		);
+	}
+
+	@Test
+	void ByteArrayId() {
+		byte[] id = {2, 4};
+		DocumentWithByteArrayId object = new DocumentWithByteArrayId(id);
+
+		assertWriteAndRead(object, "DocumentWithByteArrayId", Value.get(id),
+						   new Bin("@user_key", Value.get(id)),
+						   new Bin("@_class", DocumentWithByteArrayId.class.getName())
 		);
 	}
 
@@ -82,19 +110,49 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void StringId() {
 		DocumentWithStringId object = new DocumentWithStringId("my-amazing-string-id");
 
-		assertWriteAndRead(object, "DocumentWithStringId", "my-amazing-string-id",
-				new Bin("@user_key", "my-amazing-string-id"),
+		assertWriteAndRead(object, "DocumentWithStringId", Value.get("my-amazing-string-id"),
+				new Bin("@user_key", Value.get("my-amazing-string-id")),
 				new Bin("@_class", DocumentWithStringId.class.getName())
 		);
+	}
+
+	@Test
+	void IntegerIdFromStringKeyInAerospike(){
+		int id = nextIntId();
+		DocumentWithIntId object = new DocumentWithIntId(id);
+		String set = "DocumentWithIntId";
+		Key userKey = new Key(NAMESPACE, set, String.valueOf(id));
+
+		assertRead(object, set, userKey);
+	}
+
+	@Test
+	void LongIdFromStringKeyInAerospike(){
+		long id = nextLongId();
+		DocumentWithLongId object = new DocumentWithLongId(id);
+		String set = "DocumentWithLongId";
+		Key userKey = new Key(NAMESPACE, set, String.valueOf(id));
+
+		assertRead(object, set, userKey);
+	}
+
+	@Test
+	void StringIdFromStringKeyInAerospike(){
+		String id = nextId();
+		DocumentWithStringId object = new DocumentWithStringId(id);
+		String set = "DocumentWithStringId";
+		Key userKey = new Key(NAMESPACE, set, id);
+
+		assertRead(object, set, userKey);
 	}
 
 	@Test
 	void SetWithSimpleValue() {
 		SetWithSimpleValue object = new SetWithSimpleValue(1L, set("a", "b", "c", null));
 
-		assertWriteAndRead(object, "SetWithSimpleValue", 1L,
+		assertWriteAndRead(object, "SetWithSimpleValue", Value.get(1L),
 				new Bin("collectionWithSimpleValues", list(null, "a", "b", "c")),
-				new Bin("@user_key", "1"),
+				new Bin("@user_key", Value.get(1L)),
 				new Bin("@_class", SetWithSimpleValue.class.getName())
 		);
 	}
@@ -105,9 +163,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		MapWithSimpleValue object = new MapWithSimpleValue(10L, map);
 
 		assertWriteAndRead(object,
-				MapWithSimpleValue.class.getSimpleName(), 10L,
+				MapWithSimpleValue.class.getSimpleName(), Value.get(10L),
 				new Bin("mapWithSimpleValue", of("key1", "value1", "key2", "value2", "key3", null)),
-				new Bin("@user_key", "10"),
+				new Bin("@user_key", Value.get(10L)),
 				new Bin("@_class", MapWithSimpleValue.class.getName())
 		);
 	}
@@ -118,9 +176,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		MapWithCollectionValue object = new MapWithCollectionValue(10L, map);
 
 		assertWriteAndRead(object,
-				MapWithCollectionValue.class.getSimpleName(), 10L,
+				MapWithCollectionValue.class.getSimpleName(), Value.get(10L),
 				new Bin("mapWithCollectionValue", of("key1", list(), "key2", list("a", "b", "c"))),
-				new Bin("@user_key", "10"),
+				new Bin("@user_key", Value.get(10L)),
 				new Bin("@_class", MapWithCollectionValue.class.getName())
 		);
 	}
@@ -131,13 +189,13 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				"key2", new Address(new Street("Shakespeare str.", 40), 765));
 		MapWithGenericValue<Address> object = new MapWithGenericValue<>(10L, map);
 
-		assertWriteAndRead(object, MapWithGenericValue.class.getSimpleName(), 10L,
+		assertWriteAndRead(object, MapWithGenericValue.class.getSimpleName(), Value.get(10L),
 				new Bin("mapWithNonSimpleValue", of(
 						"key1", of("street", of("name", "Gogolya str.", "number", 15, "@_class", Street.class.getName()),
 								"apartment", 567, "@_class", Address.class.getName()),
 						"key2", of("street", of("name", "Shakespeare str.", "number", 40, "@_class", Street.class.getName()),
 								"apartment", 765, "@_class", Address.class.getName()))),
-				new Bin("@user_key", "10"),
+				new Bin("@user_key", Value.get(10L)),
 				new Bin("@_class", MapWithGenericValue.class.getName())
 		);
 	}
@@ -149,14 +207,14 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				new Address(new Street("Gogolya str.", 15), 567)),
 				of("map", of("key", "value")));
 
-		assertWriteAndRead(object, "CustomTypeWithListAndMap", "my-id",
+		assertWriteAndRead(object, "CustomTypeWithListAndMap", Value.get("my-id"),
 				new Bin("listOfObjects", list("firstItem",
 						of("keyInList", "valueInList"),
 						of("street", of("name", "Gogolya str.", "number", 15, "@_class", Street.class.getName()),
 								"apartment", 567, "@_class", Address.class.getName()))),
 				new Bin("mapWithObjectValue", of("map", of("key", "value"))),
 				new Bin("@_class", CustomTypeWithListAndMap.class.getName()),
-				new Bin("@user_key", "my-id")
+				new Bin("@user_key", Value.get("my-id"))
 		);
 	}
 
@@ -167,7 +225,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				of("map", of("key", "value"),
 						"address", new Address(new Street("Gogolya str.", 15), 567))));
 
-		assertWriteAndRead(object, "CustomTypeWithCustomType", "my-id",
+		assertWriteAndRead(object, "CustomTypeWithCustomType", Value.get("my-id"),
 				new Bin("field", of(
 						"@_class", ImmutableListAndMap.class.getName(),
 						"listOfObjects", list("firstItem", of("keyInList", "valueInList")),
@@ -176,7 +234,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 										"apartment", 567, "@_class", Address.class.getName()))
 				)),
 				new Bin("@_class", CustomTypeWithCustomType.class.getName()),
-				new Bin("@user_key", "my-id")
+				new Bin("@user_key", Value.get("my-id"))
 		);
 	}
 
@@ -186,11 +244,11 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				ImmutableList.of("firstItem", of("keyInList", "valueInList")),
 				of("map", of("key", "value")));
 
-		assertWriteAndRead(object, "CustomTypeWithListAndMapImmutable", "my-id",
+		assertWriteAndRead(object, "CustomTypeWithListAndMapImmutable", Value.get("my-id"),
 				new Bin("listOfObjects", list("firstItem", of("keyInList", "valueInList"))),
 				new Bin("mapWithObjectValue", of("map", of("key", "value"))),
 				new Bin("@_class", CustomTypeWithListAndMapImmutable.class.getName()),
-				new Bin("@user_key", "my-id")
+				new Bin("@user_key", Value.get("my-id"))
 		);
 	}
 
@@ -201,7 +259,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		SimpleClass object = new SimpleClass(777L, "abyrvalg", 13, 14L, (float) 15, 16.0, true, new Date(8878888),
 				TYPES.SECOND, field9, field10, (byte) 1);
 
-		assertWriteAndRead(object, SIMPLESET, 777L,
+		assertWriteAndRead(object, SIMPLESET, Value.get(777L),
 				new Bin("field1", "abyrvalg"),
 				new Bin("field2", 13),
 				new Bin("field3", 14L),
@@ -215,16 +273,16 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				new Bin("field11", (byte) 1),
 //				new Bin("field12", (byte)'d'),//TODO: chars not supported
 				new Bin("@_class", "simpleclass"),
-				new Bin("@user_key", "777")
+				new Bin("@user_key", Value.get(777L))
 		);
 	}
 
 	@Test
 	void ObjectWithPersistenceConstructor() {
-		SimpleClassWithPersistenceConstructor object = new SimpleClassWithPersistenceConstructor(17, "abyrvalg", 13);
+		SimpleClassWithPersistenceConstructor object = new SimpleClassWithPersistenceConstructor(17L, "abyrvalg", 13);
 
-		assertWriteAndRead(object, SIMPLESET2, 17,
-				new Bin("@user_key", "17"),
+		assertWriteAndRead(object, SIMPLESET2, Value.get(17L),
+				new Bin("@user_key", Value.get(17L)),
 				new Bin("@_class", SimpleClassWithPersistenceConstructor.class.getName()),
 				new Bin("field1", "abyrvalg"),
 				new Bin("field2", 13));
@@ -234,10 +292,10 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void ComplexClass() {
 		Name name = new Name("Vasya", "Pupkin");
 		Address address = new Address(new Street("Gogolya street", 24), 777);
-		User object = new User(10, name, address);
+		User object = new User(10L, name, address);
 
-		assertWriteAndRead(object, SIMPLESET3, 10,
-				new Bin("@user_key", "10"),
+		assertWriteAndRead(object, SIMPLESET3, Value.get(10L),
+				new Bin("@user_key", Value.get(10L)),
 				new Bin("@_class", User.class.getName()),
 				new Bin("name",
 						of("firstName", "Vasya", "lastName", "Pupkin", "@_class", Name.class.getName())),
@@ -255,9 +313,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				new Address(new Street("Finsbury Pavement", 125), 13));
 		Person object = new Person("kate-01", addresses);
 
-		assertWriteAndRead(object, "Person", "kate-01",
+		assertWriteAndRead(object, "Person", Value.get("kate-01"),
 				new Bin("@_class", Person.class.getName()),
-				new Bin("@user_key", "kate-01"),
+				new Bin("@user_key", Value.get("kate-01")),
 				new Bin("addresses", list(
 						of("street",
 								of("name", "Southwark Street", "number", 110, "@_class", Street.class.getName()),
@@ -275,9 +333,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		EnumMap<TYPES, String> map = new EnumMap<TYPES, String>(of(TYPES.FIRST, "a", TYPES.SECOND, "b"));
 		EnumProperties object = new EnumProperties("id", TYPES.SECOND, list, set, map);
 
-		assertWriteAndRead(object, "EnumProperties", "id",
+		assertWriteAndRead(object, "EnumProperties", Value.get("id"),
 				new Bin("@_class", EnumProperties.class.getName()),
-				new Bin("@user_key", "id"),
+				new Bin("@user_key", Value.get("id")),
 				new Bin("type", "SECOND"),
 				new Bin("list", list("FIRST", "SECOND")),
 				new Bin("set", list("FIRST", "SECOND", "THIRD")),
@@ -290,9 +348,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		SortedMap<String, String> map = new TreeMap<>(of("a", "b", "c", "d"));
 		SortedMapWithSimpleValue object = new SortedMapWithSimpleValue("my-id", map);
 
-		assertWriteAndRead(object, "SortedMapWithSimpleValue", "my-id",
+		assertWriteAndRead(object, "SortedMapWithSimpleValue", Value.get("my-id"),
 				new Bin("@_class", SortedMapWithSimpleValue.class.getName()),
-				new Bin("@user_key", "my-id"),
+				new Bin("@user_key", Value.get("my-id")),
 				new Bin("map", of("a", "b", "c", "d"))
 		);
 	}
@@ -304,9 +362,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				"level-2", of("level-2-2", of("1", "2")));
 		NestedMapsWithSimpleValue object = new NestedMapsWithSimpleValue("my-id", map);
 
-		assertWriteAndRead(object, "NestedMapsWithSimpleValue", "my-id",
+		assertWriteAndRead(object, "NestedMapsWithSimpleValue", Value.get("my-id"),
 				new Bin("@_class", NestedMapsWithSimpleValue.class.getName()),
-				new Bin("@user_key", "my-id"),
+				new Bin("@user_key", Value.get("my-id")),
 				new Bin("nestedMaps", of(
 						"level-1", of("level-1-1", of("1", "2")),
 						"level-2", of("level-2-2", of("1", "2"))))
@@ -317,9 +375,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void GenericType() {
 		GenericType<GenericType<String>> object = new GenericType("my-id", "string");
 
-		assertWriteAndRead(object, "GenericType", "my-id",
+		assertWriteAndRead(object, "GenericType", Value.get("my-id"),
 				new Bin("@_class", GenericType.class.getName()),
-				new Bin("@user_key", "my-id"),
+				new Bin("@user_key", Value.get("my-id")),
 				new Bin("content", "string")
 		);
 	}
@@ -328,9 +386,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void ListOfLists() {
 		ListOfLists object = new ListOfLists("my-id", list(list("a", "b", "c"), list("d", "e"), list()));
 
-		assertWriteAndRead(object, "ListOfLists", "my-id",
+		assertWriteAndRead(object, "ListOfLists", Value.get("my-id"),
 				new Bin("@_class", ListOfLists.class.getName()),
-				new Bin("@user_key", "my-id"),
+				new Bin("@user_key", Value.get("my-id")),
 				new Bin("listOfLists", list(list("a", "b", "c"), list("d", "e"), list()))
 		);
 	}
@@ -339,9 +397,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void ListOfMaps() {
 		ListOfMaps object = new ListOfMaps("my-id", list(of("vasya", new Name("Vasya", "Pukin")), of("nastya", new Name("Nastya", "Smirnova"))));
 
-		assertWriteAndRead(object, "ListOfMaps", "my-id",
+		assertWriteAndRead(object, "ListOfMaps", Value.get("my-id"),
 				new Bin("@_class", ListOfMaps.class.getName()),
-				new Bin("@user_key", "my-id"),
+				new Bin("@user_key", Value.get("my-id")),
 				new Bin("listOfMaps", list(
 						of("vasya", of("firstName", "Vasya", "lastName", "Pukin", "@_class", Name.class.getName())),
 						of("nastya", of("firstName", "Nastya", "lastName", "Smirnova", "@_class", Name.class.getName()))
@@ -352,8 +410,8 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void ContainerOfCustomFieldNames() {
 		ContainerOfCustomFieldNames object = new ContainerOfCustomFieldNames("my-id", "value", new CustomFieldNames(1, "2"));
 
-		assertWriteAndRead(object, "ContainerOfCustomFieldNames", "my-id",
-				new Bin("@user_key", "my-id"),
+		assertWriteAndRead(object, "ContainerOfCustomFieldNames", Value.get("my-id"),
+				new Bin("@user_key", Value.get("my-id")),
 				new Bin("@_class", ContainerOfCustomFieldNames.class.getName()),
 				new Bin("property", "value"),
 				new Bin("customFieldNames", of("property1", 1, "property2", "2", "@_class", CustomFieldNames.class.getName()))
@@ -364,9 +422,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void ClassWithComplexId() {
 		ClassWithComplexId object = new ClassWithComplexId(new ComplexId(10L));
 
-		assertWriteAndRead(object, ClassWithComplexId.class.getSimpleName(), "id::10",
+		assertWriteAndRead(object, ClassWithComplexId.class.getSimpleName(), Value.get("id::10"),
 				new Bin("@_class", ClassWithComplexId.class.getName()),
-				new Bin("@user_key", "id::10")
+				new Bin("@user_key", Value.get("id::10"))
 		);
 	}
 
@@ -375,9 +433,9 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		MapWithGenericValue<ClassWithIdField> object = new MapWithGenericValue<>(788L,
 				of("key", new ClassWithIdField(45L, "v")));
 
-		assertWriteAndRead(object, MapWithGenericValue.class.getSimpleName(), 788L,
+		assertWriteAndRead(object, MapWithGenericValue.class.getSimpleName(), Value.get(788L),
 				new Bin("@_class", MapWithGenericValue.class.getName()),
-				new Bin("@user_key", "788"),
+				new Bin("@user_key", Value.get(788L)),
 				new Bin("mapWithNonSimpleValue",
 						of("key", of("id", 45L, "field", "v", "@_class", ClassWithIdField.class.getName())))
 		);
@@ -388,8 +446,8 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		DocumentWithByteArray object = new DocumentWithByteArray("my-id", new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
 
 		assertWriteAndRead(object,
-				"DocumentWithByteArray", "my-id",
-				new Bin("@user_key", "my-id"),
+				"DocumentWithByteArray", Value.get("my-id"),
+				new Bin("@user_key", Value.get("my-id")),
 				new Bin("@_class", DocumentWithByteArray.class.getName()),
 				new Bin("array", new byte[]{1, 0, 0, 1, 1, 1, 0, 0}));
 	}
@@ -403,8 +461,8 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		BigDecimalContainer object = new BigDecimalContainer("my-id", bigDecimal, bigDecimalMap, bigDecimalList);
 
 		assertWriteAndRead(object,
-				"BigDecimalContainer", "my-id",
-				new Bin("@user_key", "my-id"),
+				"BigDecimalContainer", Value.get("my-id"),
+				new Bin("@user_key", Value.get("my-id")),
 				new Bin("@_class", BigDecimalContainer.class.getName()),
 				new Bin("collection", list("988687642340235")),
 				new Bin("value", "999999999999999999999999998746"),
@@ -416,8 +474,8 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void ObjectWithByteArrayFieldWithOneValueInData() {
 		DocumentWithByteArray object = new DocumentWithByteArray("my-id", new byte[]{1});
 
-		assertWriteAndRead(object, "DocumentWithByteArray", "my-id",
-				new Bin("@user_key", "my-id"),
+		assertWriteAndRead(object, "DocumentWithByteArray", Value.get("my-id"),
+				new Bin("@user_key", Value.get("my-id")),
 				new Bin("@_class", DocumentWithByteArray.class.getName()),
 				new Bin("array", new byte[]{1})
 		);
@@ -436,6 +494,18 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		assertThat(forWrite.getBins()).containsOnly(expectedBins);
 
 		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), record(forWrite.getBins()));
+
+		T actual = (T) converter.read(object.getClass(), forRead);
+
+		assertThat(actual).isEqualTo(object);
+	}
+
+	private <T> void assertRead(T object,
+								String set,
+								Key userKey,
+								Bin... bins) {
+
+		AerospikeReadData forRead = AerospikeReadData.forRead(userKey, record(Arrays.asList(bins)));
 
 		T actual = (T) converter.read(object.getClass(), forRead);
 

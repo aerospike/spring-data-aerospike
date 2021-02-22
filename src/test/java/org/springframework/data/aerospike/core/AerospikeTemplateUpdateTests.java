@@ -23,7 +23,9 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.sample.Person;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +35,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.SampleClasses.*;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextIntId;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextLongId;
 
 public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
 
@@ -205,5 +210,53 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         assertThat(personWithList2).isEqualTo(personWithList);
         assertThat(personWithList2.getMap()).hasSize(4);
         assertThat(personWithList2.getMap().get("key4")).isEqualTo("Added something new");
+    }
+
+    @Test
+    public void shouldUpdateDocumentWithIntField() {
+        DocumentWithIntIdAndTestField document = new DocumentWithIntIdAndTestField(nextIntId());
+        template.insert(document);
+        DocumentWithIntIdAndTestField saved = template.findById(document.id, DocumentWithIntIdAndTestField.class);
+        assertThat(saved).isEqualTo(document);
+
+        String expectedName = "testName";
+        saved.setName(expectedName);
+
+        template.update(saved);
+
+        DocumentWithIntIdAndTestField result = template.findById(document.id, DocumentWithIntIdAndTestField.class);
+        assertThat(result.name).isEqualTo(expectedName);
+    }
+
+    @Test
+    public void shouldUpdateDocumentWithLongField() {
+        DocumentWithLongIdAndTestField document = new DocumentWithLongIdAndTestField(nextLongId());
+        template.insert(document);
+        DocumentWithLongIdAndTestField saved = template.findById(document.id, DocumentWithLongIdAndTestField.class);
+        assertThat(saved).isEqualTo(document);
+
+        String expectedName = "testName";
+        saved.setName(expectedName);
+
+        template.update(saved);
+
+        DocumentWithLongIdAndTestField result = template.findById(document.id, DocumentWithLongIdAndTestField.class);
+        assertThat(result.name).isEqualTo(expectedName);
+    }
+
+    @Test
+    public void shouldUpdateDocumentWithByteArrayIdField() {
+        DocumentWithByteArrayIdAndTestField document = new DocumentWithByteArrayIdAndTestField(new byte[]{1, 0, 9});
+        template.insert(document);
+        DocumentWithByteArrayIdAndTestField saved = template.findById(document.id, DocumentWithByteArrayIdAndTestField.class);
+        assertThat(saved).isEqualTo(document);
+
+        String expectedName = "testName";
+        saved.setName(expectedName);
+
+        template.update(saved);
+
+        DocumentWithByteArrayIdAndTestField result = template.findById(document.id, DocumentWithByteArrayIdAndTestField.class);
+        assertThat(result.name).isEqualTo(expectedName);
     }
 }

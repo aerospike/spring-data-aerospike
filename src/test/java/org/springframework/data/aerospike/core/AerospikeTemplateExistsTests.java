@@ -20,6 +20,9 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.SampleClasses.*;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextIntId;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextLongId;
 
 public class AerospikeTemplateExistsTests extends BaseBlockingIntegrationTests {
 
@@ -34,6 +37,36 @@ public class AerospikeTemplateExistsTests extends BaseBlockingIntegrationTests {
     @Test
     public void exists_shouldReturnFalseIfValueIsAbsent() {
         assertThat(template.exists(id, Person.class)).isFalse();
+    }
+
+    @Test
+    public void exists_shouldReturnTrueIfDocumentWithIntIdFieldIsPresent() {
+        DocumentWithIntId document = new DocumentWithIntId(nextIntId());
+
+        template.insert(document);
+
+        boolean result = template.exists(document.id, DocumentWithIntId.class);
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void exists_shouldReturnTrueIfDocumentWithLongIdFieldIsPresent() {
+        DocumentWithLongId document = new DocumentWithLongId(nextLongId());
+
+        template.insert(document);
+
+        boolean result = template.exists(document.id, DocumentWithLongId.class);
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void exists_shouldReturnTrueIfDocumentWithByteArrayIdFieldIsPresent() {
+        DocumentWithByteArrayId document = new DocumentWithByteArrayId(new byte[]{1, 0, 11});
+
+        template.insert(document);
+
+        boolean result = template.exists(document.id, DocumentWithByteArrayId.class);
+        assertThat(result).isTrue();
     }
 
 }

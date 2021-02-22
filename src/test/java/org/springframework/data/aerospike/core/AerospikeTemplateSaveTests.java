@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.SampleClasses.*;
 import static org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
@@ -255,6 +256,36 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
         DocumentWithByteArray result = template.findById(id, DocumentWithByteArray.class);
 
+        assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void shouldSaveAndFindDocumentWithIntIdField() {
+        DocumentWithIntId document = new DocumentWithIntId(5);
+
+        template.save(document);
+
+        DocumentWithIntId result = template.findById(document.id, DocumentWithIntId.class);
+        assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void shouldSaveAndFindDocumentWithLongIdField() {
+        DocumentWithLongId document = new DocumentWithLongId(5);
+
+        template.save(document);
+
+        DocumentWithLongId result = template.findById(document.id, DocumentWithLongId.class);
+        assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void shouldSaveAndFindDocumentWithByteArrayIdField() {
+        DocumentWithByteArrayId document = new DocumentWithByteArrayId(new byte[]{1, 0});
+
+        template.save(document);
+
+        DocumentWithByteArrayId result = template.findById(document.id, DocumentWithByteArrayId.class);
         assertThat(result).isEqualTo(document);
     }
 

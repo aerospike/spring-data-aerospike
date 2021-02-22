@@ -22,6 +22,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
 import org.joda.time.DateTime;
@@ -307,6 +308,44 @@ public class SampleClasses {
 	public static class DocumentWithIntId {
 		@Id
 		public int id;
+	}
+
+	@Data
+	@AllArgsConstructor
+	public static class DocumentWithLongId {
+		@Id
+		public long id;
+	}
+
+	@Data
+	@AllArgsConstructor
+	public static class DocumentWithByteArrayId {
+		@Id
+		public byte[] id;
+	}
+
+	@Data
+	@RequiredArgsConstructor
+	public static class DocumentWithIntIdAndTestField {
+		@Id
+		public final int id;
+		public String name = "someName";
+	}
+
+	@Data
+	@RequiredArgsConstructor
+	public static class DocumentWithLongIdAndTestField {
+		@Id
+		public final long id;
+		public String name = "someName";
+	}
+
+	@Data
+	@RequiredArgsConstructor
+	public static class DocumentWithByteArrayIdAndTestField {
+		@Id
+		public final byte[] id;
+		public String name = "someName";
 	}
 
 	@Data

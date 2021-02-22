@@ -20,6 +20,7 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Log;
 import com.aerospike.client.Record;
 import com.aerospike.client.ResultCode;
+import com.aerospike.client.Value;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -48,6 +49,10 @@ import org.springframework.util.Assert;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.springframework.data.aerospike.convert.AerospikeMetaData.USER_KEY;
 
 /**
  * Base class for creation Aerospike templates
@@ -228,13 +233,27 @@ abstract class BaseAerospikeTemplate {
 
     Key getKey(Object id, AerospikePersistentEntity<?> entity) {
         Assert.notNull(id, "Id must not be null!");
-        String userKey = convertIfNecessary(id, String.class);
-        return new Key(this.namespace, entity.getSetName(), userKey);
+        Class<?> idClass = id.getClass();
+        Object key = convert(id, idClass);
+        Value value = Value.get(key);
+        if (isIdTypeSupported(value)) {
+            return new Key(entity.getNamespace(), entity.getSetName(), value);
+        } else {
+            String stringKey = convert(id, String.class);
+            return new Key(entity.getNamespace(), entity.getSetName(), stringKey);
+        }
     }
 
-    @SuppressWarnings("unchecked")
-    private <S> S convertIfNecessary(Object source, Class<S> type) {
-        return type.isAssignableFrom(source.getClass()) ? (S) source : converter.getConversionService().convert(source, type);
+    private boolean isIdTypeSupported(Value value) {
+        try {
+            value.validateKeyType();
+            return true;
+        } catch (AerospikeException e) {
+            return false;
+        }
     }
 
+    private <S> S convert(Object source, Class<S> type) {
+        return converter.getConversionService().convert(source, type);
+    }
 }

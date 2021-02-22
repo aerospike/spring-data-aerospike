@@ -36,6 +36,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.SampleClasses.*;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
 public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
@@ -189,5 +190,35 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         List<Person> result = template.findByIds(persons.stream().map(Person::getId).collect(Collectors.toList()), Person.class);
 
         assertThat(result).hasSameElementsAs(persons);
+    }
+
+    @Test
+    public void insertsAndFindsDocumentWithIntIdField() {
+        DocumentWithIntId document = new DocumentWithIntId(5);
+
+        template.insert(document);
+
+        DocumentWithIntId result = template.findById(document.id, DocumentWithIntId.class);
+        assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void insertsAndFindsDocumentWithLongIdField() {
+        DocumentWithLongId document = new DocumentWithLongId(5);
+
+        template.insert(document);
+
+        DocumentWithLongId result = template.findById(document.id, DocumentWithLongId.class);
+        assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void insertsAndFindsDocumentWithByteArrayIdField() {
+        DocumentWithByteArrayId document = new DocumentWithByteArrayId(new byte[]{1, 0});
+
+        template.insert(document);
+
+        DocumentWithByteArrayId result = template.findById(document.id, DocumentWithByteArrayId.class);
+        assertThat(result).isEqualTo(document);
     }
 }

@@ -15,7 +15,9 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
+import com.aerospike.client.Value;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
@@ -76,11 +78,17 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
 		AerospikePersistentProperty idProperty = entity.getIdProperty();
 		if (idProperty != null) {
-			String id = accessor.getProperty(idProperty, String.class);
-			Assert.notNull(id, "Id must not be null!");
-
-			data.setKey(new Key(entity.getNamespace(), entity.getSetName(), id));
-			data.addBin(USER_KEY, id);
+			Object id = accessor.getProperty(idProperty, idProperty.getType());
+			Value value = Value.get(id);
+			if (isIdTypeSupported(value)) {
+				data.setKey(new Key(entity.getNamespace(), entity.getSetName(), value));
+				data.addBin(USER_KEY, id);
+			} else {
+				String key = accessor.getProperty(idProperty, String.class);
+				Assert.notNull(id, "Id must not be null!");
+				data.setKey(new Key(entity.getNamespace(), entity.getSetName(), key));
+				data.addBin(USER_KEY, key);
+			}
 		}
 
 		AerospikePersistentProperty versionProperty = entity.getVersionProperty();
@@ -93,6 +101,15 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
 		Map<String, Object> convertedProperties = convertProperties(type, entity, accessor);
 		convertedProperties.forEach(data::addBin);
+	}
+
+	private boolean isIdTypeSupported(Value value) {
+		try {
+			value.validateKeyType();
+			return true;
+		} catch (AerospikeException e) {
+			return false;
+		}
 	}
 
 	private void convertToAerospikeWriteData(Object source, AerospikeWriteData data) {

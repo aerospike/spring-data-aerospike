@@ -114,7 +114,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 		User user = new User(678, new Name("Nastya", "Smirnova"), null);
 		converter.write(user, forWrite);
 
-		assertThat(forWrite.getKey()).consistsOf("custom-namespace", "custom-set", 678L);
+		assertThat(forWrite.getKey()).consistsOf("custom-namespace", "custom-set", Value.get("678"));
 		assertThat(forWrite.getBins()).containsOnly(
 				new Bin("fs", "Nastya"), new Bin("ls", "Smirnova")
 		);
@@ -134,12 +134,12 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 		User user = new User(678L, null, null);
 		converter.write(user, forWrite);
 
-		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, SIMPLESET3, user.getId());
+		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, SIMPLESET3, Value.get(678L));
 		assertThat(forWrite.getBins()).containsOnly(
-				new Bin("@user_key", "678")
+				new Bin("@user_key", Value.get(678L))
 		);
 
-		Map<String, Object> bins = of("@user_key", "678");
+		Map<String, Object> bins = of("@user_key", Value.get(678L));
 		User read = converter.read(User.class, AerospikeReadData.forRead(forWrite.getKey(), record(bins)));
 
 		assertThat(read).isEqualTo(user);

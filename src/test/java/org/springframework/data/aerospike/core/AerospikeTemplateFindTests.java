@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
+import com.aerospike.client.Value;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
@@ -26,11 +27,14 @@ import org.springframework.data.aerospike.sample.Person;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextIntId;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextLongId;
 
 public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
 
@@ -110,9 +114,15 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findByKey() {
-        client.put(null, new Key(getNameSpace(), "Person", id),
-                new Bin("firstName", "Dave"),
-                new Bin("age", 56));
+        Stream.of(id, nextIntId(), nextLongId(), "key".getBytes(), Value.get("key"))
+              .forEach(this::assertRecordIsFoundByKey);
+    }
+
+    private void assertRecordIsFoundByKey(Object id) {
+        Value value = Value.get(id);
+        client.put(null, new Key(getNameSpace(), "Person", value),
+                   new Bin("firstName", "Dave"),
+                   new Bin("age", 56));
 
         Person result = template.findById(id, Person.class);
 

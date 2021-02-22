@@ -21,6 +21,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.SampleClasses.*;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextIntId;
+import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextLongId;
 
 public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegrationTests {
 
@@ -181,5 +184,35 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         StepVerifier.create(reactiveTemplate.insertAll(asList(person)))
                 .expectError(DuplicateKeyException.class)
                 .verify();
+    }
+
+    @Test
+    public void insertsAndFindsDocumentWithIntField() {
+        DocumentWithIntId document = new DocumentWithIntId(nextIntId());
+
+        reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
+
+        DocumentWithIntId result = findById(document.id, DocumentWithIntId.class);
+        assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void insertsAndFindsDocumentWithLongField() {
+        DocumentWithLongId document = new DocumentWithLongId(nextLongId());
+
+        reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
+
+        DocumentWithLongId result = findById(document.id, DocumentWithLongId.class);
+        assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void insertsAndFindsDocumentWithByteArrayIdField() {
+        DocumentWithByteArrayId document = new DocumentWithByteArrayId(new byte[]{1, 0, 7});
+
+        reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
+
+        DocumentWithByteArrayId result = findById(document.id, DocumentWithByteArrayId.class);
+        assertThat(result).isEqualTo(document);
     }
 }
