@@ -117,10 +117,17 @@ public class QueryEngineTestDataPopulator {
 		for (int i = 0; i < RECORD_COUNT; i++) {
 			double lng = -122 + (0.1 * i);
 			double lat = 37.5 + (0.1 * i);
-			Bin bin = Bin.asGeoJSON(GEO_BIN_NAME, buildGeoValue(lng, lat));
-			client.put(null, new Key(namespace, GEO_SET, keyPrefix + i), bin);
-			client.put(null, new Key(namespace, INDEXED_GEO_SET, keyPrefix + i), bin);
+			if (isLatLngValidPair(lng, lat)) {
+				Bin bin = Bin.asGeoJSON(GEO_BIN_NAME, buildGeoValue(lng, lat));
+				client.put(null, new Key(namespace, GEO_SET, keyPrefix + i), bin);
+				client.put(null, new Key(namespace, INDEXED_GEO_SET, keyPrefix + i), bin);
+			}
 		}
+	}
+
+	private boolean isLatLngValidPair(double lng, double lat) {
+		return (-180 <= lng && lng <= 180
+				&& -90 <= lat && lat <= 90);
 	}
 
 	private void setupSpecialCharsData() {
