@@ -24,6 +24,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.aerospike.BaseIntegrationTests;
 import org.springframework.data.aerospike.cache.AerospikeCacheConfiguration;
 import org.springframework.data.aerospike.cache.AerospikeCacheManager;
 import org.springframework.data.aerospike.cache.AerospikeCacheManagerIntegrationTests.CachingComponent;
@@ -47,15 +48,16 @@ public class CommonTestConfig {
     @Bean
     @Primary
     public CacheManager cacheManager(AerospikeClient aerospikeClient, MappingAerospikeConverter aerospikeConverter) {
+        AerospikeCacheConfiguration defaultCacheConfiguration = new AerospikeCacheConfiguration(namespace, BaseIntegrationTests.DEFAULT_SET_NAME);
+        AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, "different-set");
         Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
-        AerospikeCacheConfiguration defaultCacheConfiguration = AerospikeCacheConfiguration.builder().namespace(namespace).build();
-        aerospikeCacheConfigurationMap.put("DIFFERENT-EXISTING-CACHE", AerospikeCacheConfiguration.builder().namespace(namespace).set("different-set").build());
+        aerospikeCacheConfigurationMap.put("DIFFERENT-EXISTING-CACHE", aerospikeCacheConfiguration);
         return new AerospikeCacheManager(aerospikeClient, aerospikeConverter, defaultCacheConfiguration, aerospikeCacheConfigurationMap);
     }
 
     @Bean
     public CacheManager cacheManagerWithTTL(AerospikeClient aerospikeClient, MappingAerospikeConverter aerospikeConverter) {
-        AerospikeCacheConfiguration aerospikeCacheConfiguration = AerospikeCacheConfiguration.builder().namespace(namespace).expirationInSeconds(2).build();
+        AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, BaseIntegrationTests.DEFAULT_SET_NAME,2);
         return new AerospikeCacheManager(aerospikeClient, aerospikeConverter, aerospikeCacheConfiguration);
     }
 

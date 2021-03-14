@@ -19,12 +19,12 @@ package org.springframework.data.aerospike.cache;
 import com.aerospike.client.AerospikeClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +36,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 
+	@Value("${embedded.aerospike.namespace}")
+	public String namespace;
+
 	@Autowired
 	AerospikeClient client;
 	@Autowired
@@ -43,7 +46,8 @@ public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 
 	@Test
 	public void missingCache() {
-		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter);
+		AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, DEFAULT_SET_NAME);
+		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration);
 		manager.afterPropertiesSet();
 		Cache cache = manager.getCache("missing-cache");
 
@@ -52,7 +56,10 @@ public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 
 	@Test
 	public void defaultCache() {
-		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, Arrays.asList("default-cache"));
+		AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, DEFAULT_SET_NAME);
+		Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
+		aerospikeCacheConfigurationMap.put("default-cache", aerospikeCacheConfiguration);
+		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration, aerospikeCacheConfigurationMap);
 		manager.afterPropertiesSet();
 		Cache cache = manager.getCache("default-cache");
 
@@ -62,10 +69,9 @@ public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 	@Test
 	public void defaultCacheWithCustomizedSet() {
 		Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
-		aerospikeCacheConfigurationMap.put("default-cache", AerospikeCacheConfiguration.builder()
-				.set("custom-set")
-				.build());
-		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfigurationMap);
+		AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, "custom-set");
+		aerospikeCacheConfigurationMap.put("default-cache",aerospikeCacheConfiguration);
+		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration, aerospikeCacheConfigurationMap);
 		manager.afterPropertiesSet();
 		Cache cache = manager.getCache("default-cache");
 
@@ -74,7 +80,8 @@ public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 
 	@Test
 	public void transactionAwareCache() {
-		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter);
+		AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, DEFAULT_SET_NAME);
+		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration);
 		manager.setTransactionAware(true);
 		manager.afterPropertiesSet();
 		Cache cache = manager.getCache("transaction-aware-cache");

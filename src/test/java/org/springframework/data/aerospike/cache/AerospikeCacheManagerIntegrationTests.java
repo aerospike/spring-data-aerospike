@@ -47,8 +47,8 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     @AfterEach
     public void tearDown() {
         cachingComponent.reset();
-        client.delete(null, new Key(getNameSpace(), AerospikeCacheConfiguration.DEFAULT_SET_NAME, KEY));
-        client.delete(null, new Key(getNameSpace(), AerospikeCacheConfiguration.DEFAULT_SET_NAME, KEY_THAT_MATCHES_CONDITION));
+        client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, KEY));
+        client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, KEY_THAT_MATCHES_CONDITION));
     }
 
     @Test
@@ -148,10 +148,10 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     @Test
     public void shouldNotClearCacheClearingDifferentCache() throws InterruptedException {
         CachedObject response1 = cachingComponent.cacheableMethod(KEY);
-        assertThat(aerospikeOperations.count(AerospikeCacheConfiguration.DEFAULT_SET_NAME)).isEqualTo(1);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
         aerospikeCacheManager.getCache("DIFFERENT-EXISTING-CACHE").clear();
         Thread.sleep(500);
-        assertThat(aerospikeOperations.count(AerospikeCacheConfiguration.DEFAULT_SET_NAME)).isEqualTo(1);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
     }
 
     public static class CachingComponent {
