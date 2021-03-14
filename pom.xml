@@ -29,7 +29,7 @@
         <dist.key>DATAAERO</dist.key>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <spring-boot-starter-test.version>2.3.1.RELEASE</spring-boot-starter-test.version>
+        <spring-boot-starter-test.version>2.4.3</spring-boot-starter-test.version>
         <spring-cloud-starter.version>2.2.3.RELEASE</spring-cloud-starter.version>
         <embedded-aerospike.version>2.0.3</embedded-aerospike.version>
         <awaitility.version>4.0.3</awaitility.version>
