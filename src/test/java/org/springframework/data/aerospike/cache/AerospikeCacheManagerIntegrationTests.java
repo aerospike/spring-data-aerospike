@@ -146,6 +146,18 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     @Test
+    public void shouldCacheUsingAnotherCacheManager() {
+        CachedObject response1 = cachingComponent.cacheableMethodWithAnotherCacheManager(KEY);
+        CachedObject response2 = cachingComponent.cacheableMethodWithAnotherCacheManager(KEY);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
     public void shouldNotClearCacheClearingDifferentCache() throws InterruptedException {
         CachedObject response1 = cachingComponent.cacheableMethod(KEY);
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
@@ -168,8 +180,14 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
             return new CachedObject(VALUE);
         }
 
-        @Cacheable(value = "TEST", cacheManager = "cacheManagerWithTTL")
+        @Cacheable(value = "CACHE-WITH-TTL")
         public CachedObject cacheableMethodWithTTL(String param) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable(value = "TEST", cacheManager = "anotherCacheManager")
+        public CachedObject cacheableMethodWithAnotherCacheManager(String param) {
             noOfCalls++;
             return new CachedObject(VALUE);
         }
