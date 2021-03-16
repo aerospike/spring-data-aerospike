@@ -30,7 +30,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <spring-boot-starter-test.version>2.4.3</spring-boot-starter-test.version>
-        <spring-cloud-starter.version>2.2.7.RELEASE</spring-cloud-starter.version>
+        <spring-cloud-starter-bootstrap.version>3.0.1</spring-cloud-starter-bootstrap.version>
         <embedded-aerospike.version>2.0.3</embedded-aerospike.version>
         <awaitility.version>4.0.3</awaitility.version>
         <blockhound.version>1.0.4.RELEASE</blockhound.version>
@@ -244,8 +244,8 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter</artifactId>
-            <version>${spring-cloud-starter.version}</version>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
+            <version>${spring-cloud-starter-bootstrap.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
