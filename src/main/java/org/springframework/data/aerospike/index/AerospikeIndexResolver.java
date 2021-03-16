@@ -41,9 +41,9 @@ public class AerospikeIndexResolver {
     private AerospikeIndexDefinition convertToIndex(BasicAerospikePersistentEntity<?> persistentEntity,
                                                     AerospikePersistentProperty property) {
         Indexed annotation = property.getRequiredAnnotation(Indexed.class);
-        String indexName = StringUtils.isEmpty(annotation.name())
-                ? getIndexName(persistentEntity, property, annotation)
-                : annotation.name();
+        String indexName = StringUtils.hasText(annotation.name())
+                ? annotation.name()
+                : getIndexName(persistentEntity, property, annotation);
         return AerospikeIndexDefinition.builder()
                 .entityClass(persistentEntity.getType())
                 .fieldName(property.getFieldName())
