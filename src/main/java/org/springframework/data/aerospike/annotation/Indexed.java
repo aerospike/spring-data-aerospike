@@ -40,6 +40,10 @@ public @interface Indexed {
 
     /**
      * If not set, name will be automatically generated with pattern {setName}_{fieldName}_lowercase{type}_lowercase{collectionType}.
+     *
+     * Allows the actual value to be set using standard Spring property sources mechanism.
+     * Syntax is the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}.
+     * SpEL is NOT supported.
      */
     String name() default "";
 

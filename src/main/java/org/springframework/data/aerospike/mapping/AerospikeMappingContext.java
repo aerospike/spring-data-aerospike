@@ -15,12 +15,10 @@
  */
 package org.springframework.data.aerospike.mapping;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.aerospike.index.AerospikeIndexResolver;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.FieldNamingStrategy;
@@ -61,7 +59,7 @@ public class AerospikeMappingContext extends
 	 */
 	@Override
 	protected <T> BasicAerospikePersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		BasicAerospikePersistentEntity<T> entity = new  BasicAerospikePersistentEntity<T>(typeInformation, defaultNameSpace);
+		BasicAerospikePersistentEntity<T> entity = new BasicAerospikePersistentEntity<>(typeInformation, defaultNameSpace);
 		if (context != null) {
 			entity.setEnvironment(context.getEnvironment());
 		}
@@ -97,5 +95,11 @@ public class AerospikeMappingContext extends
 
 	public boolean isCreateIndexesOnStartup() {
 		return createIndexesOnStartup;
+	}
+
+	public void setAerospikeIndexResolverEnvironment(AerospikeIndexResolver aerospikeIndexResolver) {
+		if (context != null) {
+			aerospikeIndexResolver.setEnvironment(context.getEnvironment());
+		}
 	}
 }
