@@ -33,6 +33,9 @@ public class AutoIndexedDocument {
 
     String nonIndexed;
 
+    @Indexed(type = IndexType.STRING, name = "placeholder_" + "${indexSuffix}")
+    String placeHolderIdx;
+
     @Indexed(type = IndexType.STRING, collectionType = IndexCollectionType.LIST)
     List<String> listOfStrings;
 

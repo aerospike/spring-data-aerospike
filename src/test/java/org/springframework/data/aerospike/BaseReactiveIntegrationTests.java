@@ -20,7 +20,8 @@ import java.time.Duration;
         classes = {ReactiveTestConfig.class, CommonTestConfig.class},
         properties = {
                 "expirationProperty: 1",
-                "setSuffix: service1"
+                "setSuffix: service1",
+                "indexSuffix: index1"
         }
 )
 public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests {

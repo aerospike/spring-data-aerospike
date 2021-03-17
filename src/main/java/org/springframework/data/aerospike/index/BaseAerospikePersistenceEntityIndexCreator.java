@@ -51,6 +51,7 @@ public abstract class BaseAerospikePersistenceEntityIndexCreator implements Appl
             return;
         }
 
+        aerospikeMappingContext.setAerospikeIndexResolverEnvironment(aerospikeIndexDetector);
         BasicAerospikePersistentEntity<?> persistentEntity = (BasicAerospikePersistentEntity<?>) event.getPersistentEntity();
         Set<AerospikeIndexDefinition> indexes = aerospikeIndexDetector.detectIndexes(persistentEntity);
         if (!indexes.isEmpty()) {
