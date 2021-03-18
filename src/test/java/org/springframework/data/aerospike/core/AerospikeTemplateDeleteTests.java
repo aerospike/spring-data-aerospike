@@ -34,8 +34,8 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByObject_ignoresDocumentVersionEvenIfDefaultGenerationPolicyIsSet() {
-        GenerationPolicy initialGenerationPolicy = client.writePolicyDefault.generationPolicy;
-        client.writePolicyDefault.generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
+        GenerationPolicy initialGenerationPolicy = client.getWritePolicyDefault().generationPolicy;
+        client.getWritePolicyDefault().generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
         try {
             VersionedClass initialDocument = new VersionedClass(id, "a");
             template.insert(initialDocument);
@@ -44,14 +44,14 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             boolean deleted = template.delete(initialDocument);
             assertThat(deleted).isTrue();
         } finally {
-            client.writePolicyDefault.generationPolicy = initialGenerationPolicy;
+            client.getWritePolicyDefault().generationPolicy = initialGenerationPolicy;
         }
     }
 
     @Test
     public void deleteByObject_ignoresVersionEvenIfDefaultGenerationPolicyIsSet() {
-        GenerationPolicy initialGenerationPolicy = client.writePolicyDefault.generationPolicy;
-        client.writePolicyDefault.generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
+        GenerationPolicy initialGenerationPolicy = client.getWritePolicyDefault().generationPolicy;
+        client.getWritePolicyDefault().generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
         try {
             Person initialDocument = new Person(id, "a");
             template.insert(initialDocument);
@@ -60,7 +60,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             boolean deleted = template.delete(initialDocument);
             assertThat(deleted).isTrue();
         } finally {
-            client.writePolicyDefault.generationPolicy = initialGenerationPolicy;
+            client.getWritePolicyDefault().generationPolicy = initialGenerationPolicy;
         }
     }
 
