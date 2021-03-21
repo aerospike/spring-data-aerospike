@@ -32,10 +32,9 @@ import java.util.Set;
 public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentProperty<AerospikePersistentProperty> implements
 		AerospikePersistentProperty {
 
-	private static final Set<Class<?>> SUPPORTED_ID_TYPES = new HashSet<Class<?>>();
+	private static final Set<Class<?>> SUPPORTED_ID_TYPES = new HashSet<>();
 
 	static {
-
 		SUPPORTED_ID_TYPES.add(String.class);
 		SUPPORTED_ID_TYPES.add(Integer.class);
 		SUPPORTED_ID_TYPES.add(Long.class);
@@ -48,11 +47,13 @@ public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentP
 
 	public BasicAerospikePersistentProperty(Property property,
 											PersistentEntity<?, AerospikePersistentProperty> owner,
-											SimpleTypeHolder simpleTypeHolder, FieldNamingStrategy fieldNamingStrategy) {
+											SimpleTypeHolder simpleTypeHolder,
+											FieldNamingStrategy fieldNamingStrategy) {
 		super(property, owner, simpleTypeHolder);
 
-		this.fieldNamingStrategy = fieldNamingStrategy == null ? PropertyNameFieldNamingStrategy.INSTANCE
-				: fieldNamingStrategy;
+		this.fieldNamingStrategy = (fieldNamingStrategy == null
+				? PropertyNameFieldNamingStrategy.INSTANCE
+				: fieldNamingStrategy);
 	}
 
 	@Override
@@ -97,7 +98,6 @@ public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentP
 
 	@Override
 	protected Association<AerospikePersistentProperty> createAssociation() {
-		return new Association<AerospikePersistentProperty>(this, null);
+		return new Association<>(this, null);
 	}
-
 }
