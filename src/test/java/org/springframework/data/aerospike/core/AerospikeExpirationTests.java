@@ -38,8 +38,9 @@ import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
+import static org.springframework.data.aerospike.AwaitilityUtils.awaitTwoSecondsUntil;
+import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
 
-//TODO: Potentially unstable tests. Instead of sleeping, we need somehow do time travel like in CouchbaseMock.
 public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
     @AfterEach
@@ -48,113 +49,103 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void shouldAddValuesMapAndExpire() throws InterruptedException {
+    public void shouldAddValuesMapAndExpire() {
         DocumentWithDefaultConstructor document = new DocumentWithDefaultConstructor();
         document.setId(id);
         document.setExpiration(DateTime.now().plusSeconds(1));
 
         template.add(document, singletonMap("intField", 10L));
-        Thread.sleep(500L);
 
-        DocumentWithDefaultConstructor shouldNotExpire = template.findById(id, DocumentWithDefaultConstructor.class);
-        assertThat(shouldNotExpire).isNotNull();
-        assertThat(shouldNotExpire.getIntField()).isEqualTo(10);
-
-        Thread.sleep(1500L);
-
-        DocumentWithDefaultConstructor shouldExpire = template.findById(id, DocumentWithDefaultConstructor.class);
-        assertThat(shouldExpire).isNull();
+        awaitTwoSecondsUntil(() -> {
+            DocumentWithDefaultConstructor shouldNotExpire = template.findById(id, DocumentWithDefaultConstructor.class);
+            assertThat(shouldNotExpire).isNotNull();
+            assertThat(shouldNotExpire.getIntField()).isEqualTo(10);
+        });
+        awaitTenSecondsUntil(() ->
+                assertThat(template.findById(id, DocumentWithDefaultConstructor.class)).isNull()
+        );
     }
 
     @Test
-    public void shouldAddValueAndExpire() throws InterruptedException {
+    public void shouldAddValueAndExpire() {
         DocumentWithDefaultConstructor document = new DocumentWithDefaultConstructor();
         document.setId(id);
         document.setExpiration(DateTime.now().plusSeconds(1));
 
         template.add(document, "intField", 10L);
-        Thread.sleep(500L);
 
-        DocumentWithDefaultConstructor shouldNotExpire = template.findById(id, DocumentWithDefaultConstructor.class);
-        assertThat(shouldNotExpire).isNotNull();
-        assertThat(shouldNotExpire.getIntField()).isEqualTo(10);
-
-        Thread.sleep(1500L);
-
-        DocumentWithDefaultConstructor shouldExpire = template.findById(id, DocumentWithDefaultConstructor.class);
-        assertThat(shouldExpire).isNull();
+        awaitTwoSecondsUntil(() -> {
+                DocumentWithDefaultConstructor shouldNotExpire = template.findById(id, DocumentWithDefaultConstructor.class);
+                assertThat(shouldNotExpire).isNotNull();
+                assertThat(shouldNotExpire.getIntField()).isEqualTo(10);
+        });
+        awaitTenSecondsUntil(() ->
+                assertThat(template.findById(id, DocumentWithDefaultConstructor.class)).isNull()
+        );
     }
 
     @Test
-    public void shouldExpireBasedOnUnixTimeValue() throws InterruptedException {
+    public void shouldExpireBasedOnUnixTimeValue() {
         template.insert(new DocumentWithUnixTimeExpiration(id, DateTime.now().plusSeconds(1)));
 
-        Thread.sleep(500L);
-
-        DocumentWithUnixTimeExpiration shouldNotExpire = template.findById(id, DocumentWithUnixTimeExpiration.class);
-        assertThat(shouldNotExpire).isNotNull();
-
-        Thread.sleep(1500L);
-
-        DocumentWithUnixTimeExpiration shouldExpire = template.findById(id, DocumentWithUnixTimeExpiration.class);
-        assertThat(shouldExpire).isNull();
+        awaitTwoSecondsUntil(() ->
+                assertThat(template.findById(id, DocumentWithUnixTimeExpiration.class)).isNotNull()
+        );
+        awaitTenSecondsUntil(() ->
+                assertThat(template.findById(id, DocumentWithUnixTimeExpiration.class)).isNull()
+        );
     }
 
     @Test
-    public void shouldExpireBasedOnFieldValue() throws InterruptedException {
+    public void shouldExpireBasedOnFieldValue() {
         template.insert(new DocumentWithExpirationAnnotation(id, 1));
 
-        Thread.sleep(500L);
+        awaitTwoSecondsUntil(() ->
+                assertThat(template.findById(id, DocumentWithExpirationAnnotation.class)).isNotNull()
+        );
 
-        DocumentWithExpirationAnnotation shouldNotExpire = template.findById(id, DocumentWithExpirationAnnotation.class);
-        assertThat(shouldNotExpire).isNotNull();
-
-        Thread.sleep(1500L);
-
-        DocumentWithExpirationAnnotation shouldExpire = template.findById(id, DocumentWithExpirationAnnotation.class);
-        assertThat(shouldExpire).isNull();
+        awaitTenSecondsUntil(() ->
+                assertThat(template.findById(id, DocumentWithExpirationAnnotation.class)).isNull()
+        );
     }
 
     @Test
-    public void shouldReturnExpirationValue() throws InterruptedException {
+    public void shouldReturnExpirationValue() {
         template.insert(new DocumentWithExpirationAnnotation(id, 5));
 
-        Thread.sleep(1500L);
-
-        DocumentWithExpirationAnnotation document = template.findById(id, DocumentWithExpirationAnnotation.class);
-        assertThat(document.getExpiration()).isGreaterThan(0).isLessThan(5);
+        awaitTenSecondsUntil(() -> {
+            DocumentWithExpirationAnnotation document = template.findById(id, DocumentWithExpirationAnnotation.class);
+            assertThat(document.getExpiration()).isGreaterThan(0).isLessThan(5);
+        });
     }
 
     @Test
-    public void shouldUpdateExpirationOnTouchOnRead() throws InterruptedException {
+    public void shouldUpdateExpirationOnTouchOnRead() {
         template.insert(new DocumentWithExpirationOneDay(id));
 
-        Key key = new Key(template.getNamespace(), template.getSetName(DocumentWithExpirationOneDay.class), id);
+        awaitTenSecondsUntil(() -> {
+            Key key = new Key(template.getNamespace(), template.getSetName(DocumentWithExpirationOneDay.class), id);
+            Record record = template.getAerospikeClient().get(null, key);
+            int initialExpiration = record.expiration;
 
-        Record record = template.getAerospikeClient().get(null, key);
-        int initialExpiration = record.expiration;
+            template.findById(id, DocumentWithExpirationOneDay.class);
 
-        Thread.sleep(2_000);
-        template.findById(id, DocumentWithExpirationOneDay.class);
+            record = template.getAerospikeClient().get(null, key);
 
-        record = template.getAerospikeClient().get(null, key);
-        assertThat(record.expiration - initialExpiration)
-                .isCloseTo(2, offset(1));
+            assertThat(record.expiration - initialExpiration).isCloseTo(2, offset(1));
+        });
     }
 
     @Test
-    public void shouldExpire() throws Exception {
+    public void shouldExpire() {
         template.insert(new DocumentWithExpiration(id));
 
-        Thread.sleep(500L);
-
-        DocumentWithExpiration shouldNotExpire = template.findById(id, DocumentWithExpiration.class);
-        assertThat(shouldNotExpire).isNotNull();
-
-        Thread.sleep(1500L);
-
-        DocumentWithExpiration shouldExpire = template.findById(id, DocumentWithExpiration.class);
-        assertThat(shouldExpire).isNull();
+        awaitTwoSecondsUntil(() ->
+                assertThat(template.findById(id, DocumentWithExpiration.class)).isNotNull()
+        );
+        awaitTenSecondsUntil(() ->
+                assertThat(template.findById(id, DocumentWithExpiration.class)).isNull()
+        );
     }
 
     @Test

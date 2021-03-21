@@ -177,6 +177,8 @@ public class SimpleAerospikeRepositoryTest {
 		try {
 			Thread.sleep(1000);
 		} catch (InterruptedException e) {}
+
+		verify(operations).delete(Person.class);
 	}
 
 	@Test
