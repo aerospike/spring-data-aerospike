@@ -15,9 +15,6 @@
  */
 package org.springframework.data.aerospike.mapping;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-
 import org.springframework.data.mapping.PersistentEntity;
 import org.springframework.data.mapping.model.FieldNamingStrategy;
 import org.springframework.data.mapping.model.Property;
@@ -41,10 +38,10 @@ public class CachingAerospikePersistentProperty extends BasicAerospikePersistent
 	/**
 	 * Creates a new {@link CachingAerospikePersistentProperty}.
 	 * 
-	 * @param property
-	 * @param owner
-	 * @param simpleTypeHolder
-	 * @param fieldNamingStrategy
+	 * @param property The {@link Property} to be persistent.
+	 * @param owner must not be {@literal null}.
+	 * @param simpleTypeHolder must not be {@literal null}.
+	 * @param fieldNamingStrategy a field naming strategy - in case of null default will be selected.
 	 */
 	public CachingAerospikePersistentProperty(Property property,
 											  PersistentEntity<?, AerospikePersistentProperty> owner,
@@ -55,11 +52,9 @@ public class CachingAerospikePersistentProperty extends BasicAerospikePersistent
 
 	@Override
 	public boolean isIdProperty() {
-
 		if (this.isIdProperty == null) {
 			this.isIdProperty = super.isIdProperty();
 		}
-
 		return this.isIdProperty;
 	}
 
@@ -73,31 +68,25 @@ public class CachingAerospikePersistentProperty extends BasicAerospikePersistent
 
 	@Override
 	public String getFieldName() {
-
 		if (this.fieldName == null) {
 			this.fieldName = super.getFieldName();
 		}
-
 		return this.fieldName;
 	}
 
 	@Override
 	public boolean usePropertyAccess() {
-
 		if (this.usePropertyAccess == null) {
 			this.usePropertyAccess = super.usePropertyAccess();
 		}
-
 		return this.usePropertyAccess;
 	}
 
 	@Override
 	public boolean isTransient() {
-
 		if (this.isTransient == null) {
 			this.isTransient = super.isTransient();
 		}
-
 		return this.isTransient;
 	}
 
@@ -114,7 +103,6 @@ public class CachingAerospikePersistentProperty extends BasicAerospikePersistent
 		if (this.isExpirationSpecifiedAsUnixTime == null) {
 			this.isExpirationSpecifiedAsUnixTime = super.isExpirationSpecifiedAsUnixTime();
 		}
-
 		return this.isExpirationSpecifiedAsUnixTime;
 	}
 }

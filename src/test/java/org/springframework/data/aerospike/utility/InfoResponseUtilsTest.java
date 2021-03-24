@@ -34,7 +34,6 @@ class InfoResponseUtilsTest {
         assertThat(stopWritesCount).isEqualTo(0);
         assertThat(InfoResponseUtils.getPropertyFromInfoResponse(response, "set-enable-xdr", Function.identity())).isEqualTo("use-default");
         assertThat(InfoResponseUtils.getPropertyFromInfoResponse(response, "disable-eviction", Boolean::parseBoolean)).isFalse();
-
     }
 
     @Test
@@ -47,7 +46,7 @@ class InfoResponseUtilsTest {
     }
 
     @Test
-    void propertyInvalidTypeInReponse() {
+    void propertyInvalidTypeInResponse() {
         String response = "memory-size=1073741824;default-ttl=2592000;replication-factor=factor;";
 
         assertThatThrownBy(() -> InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor", Integer::parseInt))
@@ -56,7 +55,7 @@ class InfoResponseUtilsTest {
     }
 
     @Test
-    void propertyInvalidFormatInReponse() {
+    void propertyInvalidFormatInResponse() {
         String response = "memory-size=1073741824;default-ttl=2592000;replication-factor;";
 
         assertThatThrownBy(() -> InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor", Integer::parseInt))
