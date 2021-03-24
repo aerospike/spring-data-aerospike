@@ -158,16 +158,6 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     @Test
-    public void shouldClearCache() {
-        cachingComponent.cacheableMethod(KEY);
-        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
-        aerospikeCacheManager.getCache("TEST").clear();
-        AwaitilityUtils.awaitTenSecondsUntil(() ->
-                assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0)
-        );
-    }
-
-    @Test
     public void shouldNotClearCacheClearingDifferentCache() {
         CachedObject response1 = cachingComponent.cacheableMethod(KEY);
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
