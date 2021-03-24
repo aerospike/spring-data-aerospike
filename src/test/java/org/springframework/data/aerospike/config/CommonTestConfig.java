@@ -16,7 +16,7 @@
 
 package org.springframework.data.aerospike.config;
 
-import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.IAerospikeClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cache.CacheManager;
@@ -47,7 +47,7 @@ public class CommonTestConfig {
 
     @Bean
     @Primary
-    public CacheManager cacheManager(AerospikeClient aerospikeClient, MappingAerospikeConverter aerospikeConverter) {
+    public CacheManager cacheManager(IAerospikeClient aerospikeClient, MappingAerospikeConverter aerospikeConverter) {
         AerospikeCacheConfiguration defaultCacheConfiguration = new AerospikeCacheConfiguration(namespace, BaseIntegrationTests.DEFAULT_SET_NAME);
         AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, "different-set");
         AerospikeCacheConfiguration configurationWithTTL = new AerospikeCacheConfiguration(namespace,BaseIntegrationTests.DEFAULT_SET_NAME, 2);
@@ -58,7 +58,7 @@ public class CommonTestConfig {
     }
 
     @Bean
-    public CacheManager anotherCacheManager(AerospikeClient aerospikeClient, MappingAerospikeConverter aerospikeConverter) {
+    public CacheManager anotherCacheManager(IAerospikeClient aerospikeClient, MappingAerospikeConverter aerospikeConverter) {
         AerospikeCacheConfiguration defaultCacheConfiguration = new AerospikeCacheConfiguration(namespace, BaseIntegrationTests.DEFAULT_SET_NAME);
         return new AerospikeCacheManager(aerospikeClient, aerospikeConverter, defaultCacheConfiguration);
     }
@@ -69,7 +69,7 @@ public class CommonTestConfig {
     }
 
     @Bean
-    public QueryEngineTestDataPopulator queryEngineTestDataPopulator(AerospikeClient client) {
+    public QueryEngineTestDataPopulator queryEngineTestDataPopulator(IAerospikeClient client) {
         return new QueryEngineTestDataPopulator(namespace, client);
     }
 }
