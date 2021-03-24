@@ -30,7 +30,7 @@ import lombok.experimental.UtilityClass;
 public class Utils {
 	/**
 	 * Issues an "Info" request to all nodes in the cluster.
-	 * @param client An AerospikeClient.
+	 * @param client An IAerospikeClient.
 	 * @param infoString The name of the variable to retrieve.
 	 * @return An "Info" value for the given variable from all the nodes in the cluster.
 	 */
