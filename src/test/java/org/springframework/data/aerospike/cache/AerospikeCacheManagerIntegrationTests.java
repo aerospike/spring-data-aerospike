@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.aerospike.cache;
 
 import com.aerospike.client.AerospikeClient;
@@ -24,10 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.aerospike.AwaitilityUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
 
@@ -126,23 +127,22 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     @Test
-    public void shouldCacheWithConfiguredTTL() throws InterruptedException {
+    public void shouldCacheWithConfiguredTTL() {
         CachedObject response1 = cachingComponent.cacheableMethodWithTTL(KEY);
         CachedObject response2 = cachingComponent.cacheableMethodWithTTL(KEY);
 
         assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
-
-        Thread.sleep(3000);
-
-        CachedObject response3 = cachingComponent.cacheableMethodWithTTL(KEY);
-
-        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(2);
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
         assertThat(response2).isNotNull();
         assertThat(response2.getValue()).isEqualTo(VALUE);
-        assertThat(response3).isNotNull();
-        assertThat(response3.getValue()).isEqualTo(VALUE);
+
+        awaitTenSecondsUntil(() -> {
+            CachedObject response3 = cachingComponent.cacheableMethodWithTTL(KEY);
+            assertThat(cachingComponent.getNoOfCalls()).isEqualTo(2);
+            assertThat(response3).isNotNull();
+            assertThat(response3.getValue()).isEqualTo(VALUE);
+        });
     }
 
     @Test
@@ -158,12 +158,25 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     @Test
-    public void shouldNotClearCacheClearingDifferentCache() throws InterruptedException {
+    public void shouldClearCache() {
+        cachingComponent.cacheableMethod(KEY);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
+        aerospikeCacheManager.getCache("TEST").clear();
+        AwaitilityUtils.awaitTenSecondsUntil(() ->
+                assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0)
+        );
+    }
+
+    @Test
+    public void shouldNotClearCacheClearingDifferentCache() {
         CachedObject response1 = cachingComponent.cacheableMethod(KEY);
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
         aerospikeCacheManager.getCache("DIFFERENT-EXISTING-CACHE").clear();
-        Thread.sleep(500);
-        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
+        AwaitilityUtils.awaitTwoSecondsUntil(() -> {
+            assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
+            assertThat(response1).isNotNull();
+            assertThat(response1.getValue()).isEqualTo(VALUE);
+        });
     }
 
     public static class CachingComponent {
