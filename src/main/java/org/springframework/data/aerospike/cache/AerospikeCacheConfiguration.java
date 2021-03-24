@@ -3,24 +3,26 @@ package org.springframework.data.aerospike.cache;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Default set is null meaning write directly to the namespace.
+ * Default expiration is 0 meaning use the server's default namespace configuration variable "default-ttl".
+ */
 @Getter
 @AllArgsConstructor
 public class AerospikeCacheConfiguration {
     private final String namespace;
-    private String set; // null: Default set is null meaning write directly to the namespace.
-    private int expirationInSeconds; // 0: Default to namespace configuration variable "default-ttl" on the server.
+    private final String set;
+    private final int expirationInSeconds;
 
     public AerospikeCacheConfiguration (String namespace) {
-        this.namespace = namespace;
+        this(namespace, null, 0);
     }
 
     public AerospikeCacheConfiguration (String namespace, String set) {
-        this.namespace = namespace;
-        this.set = set;
+        this(namespace, set, 0);
     }
 
     public AerospikeCacheConfiguration (String namespace, int expirationInSeconds) {
-        this.namespace = namespace;
-        this.expirationInSeconds = expirationInSeconds;
+        this(namespace, null, expirationInSeconds);
     }
 }
