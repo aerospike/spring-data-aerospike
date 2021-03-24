@@ -21,13 +21,10 @@ public interface AerospikePersistentProperty extends PersistentProperty<Aerospik
 	/**
 	 * Returns whether property access shall be used for reading the property value. This means it will use the getter
 	 * instead of field access.
-	 * 
-	 * @return
 	 */
 	boolean usePropertyAccess();
 	boolean isExplicitIdProperty();
 	boolean isExpirationProperty();
 	boolean isExpirationSpecifiedAsUnixTime();
 	String getFieldName();
-
 }

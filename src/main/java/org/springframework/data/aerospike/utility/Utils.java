@@ -25,24 +25,22 @@ import lombok.experimental.UtilityClass;
  * for interacting with Aerospike
  * across the entire implementation
  * @author peter
- *
  */
 @UtilityClass
 public class Utils {
 	/**
 	 * Issues an "Info" request to all nodes in the cluster.
-	 * @param client
-	 * @param infoString
-	 * @return
+	 * @param client An AerospikeClient.
+	 * @param infoString The name of the variable to retrieve.
+	 * @return An "Info" value for the given variable from all the nodes in the cluster.
 	 */
 	public static String[] infoAll(IAerospikeClient client,
 								   String infoString) {
 		String[] messages = new String[client.getNodes().length];
 		int index = 0;
-		for (Node node : client.getNodes()){
+		for (Node node : client.getNodes()) {
 			messages[index] = Info.request(node, infoString);
 		}
 		return messages;
 	}
-
 }

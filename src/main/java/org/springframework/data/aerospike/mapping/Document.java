@@ -53,7 +53,6 @@ public @interface Document {
 	 * Defines the default language to be used with this document.
 	 * 
 	 * @since 1.6
-	 * @return
 	 */
 	String language() default "";
 
@@ -63,14 +62,14 @@ public @interface Document {
 	 * Ignored if entity has field
 	 * annotated by {@link org.springframework.data.aerospike.annotation.Expiration}
 	 * <br/>
-	 * Only one of two might might be set at the same time: either {@link #expiration()} or {@link #expirationExpression()}
+	 * Only one of two might might be set at the same time: either expiration or {@link #expirationExpression()}
 	 * See {@link com.aerospike.client.policy.WritePolicy#expiration} for possible values.
 	 */
 	int expiration() default DEFAULT_EXPIRATION;
 
 	/**
 	 * Same as {@link #expiration} but allows the actual value to be set using standard Spring property sources mechanism.
-	 * Only one might be set at the same time: either {@link #expiration()} or {@link #expirationExpression()}. <br />
+	 * Only one might be set at the same time: either {@link #expiration()} or expirationExpression. <br />
 	 * Syntax is the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}.
 	 * <br /><br />
 	 * SpEL is NOT supported.

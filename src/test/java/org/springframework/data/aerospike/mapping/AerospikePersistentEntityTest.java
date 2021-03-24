@@ -18,27 +18,19 @@ package org.springframework.data.aerospike.mapping;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAndExpression;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationExpression;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationUnit;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpressionInCollection;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithoutAnnotation;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithoutExpiration;
+import org.springframework.data.aerospike.SampleClasses.*;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_SECOND;
+import static org.springframework.data.aerospike.SampleClasses.*;
 import static org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity.DEFAULT_EXPIRATION;
 
 public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests {
 
     @Autowired
-    private AerospikeMappingContext context;
+    protected AerospikeMappingContext context;
 
     @Test
     public void shouldReturnExpirationForDocumentWithExpiration() {
@@ -79,7 +71,7 @@ public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests 
     public void shouldFailForDocumentWithExpirationAndExpression() {
         BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithExpirationAndExpression.class);
 
-        assertThatThrownBy(() -> persistentEntity.getExpiration())
+        assertThatThrownBy(persistentEntity::getExpiration)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Both 'expiration' and 'expirationExpression' are set");
     }
@@ -109,7 +101,7 @@ public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests 
         BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithUnixTimeExpiration.class);
         AerospikePersistentProperty expirationProperty = persistentEntity.getIdProperty();
 
-        assertThatThrownBy(() -> expirationProperty.isExpirationSpecifiedAsUnixTime())
+        assertThatThrownBy(expirationProperty::isExpirationSpecifiedAsUnixTime)
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Property id is not expiration property");
     }
