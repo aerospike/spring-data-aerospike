@@ -12,7 +12,6 @@ import org.springframework.data.aerospike.core.AerospikeTemplateIndexTests;
 import org.springframework.data.aerospike.core.AutoIndexedDocumentAssert;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
-import org.springframework.data.aerospike.sample.AutoIndexedDocument;
 import reactor.core.publisher.Mono;
 
 import java.util.concurrent.atomic.AtomicInteger;

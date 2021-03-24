@@ -14,7 +14,8 @@ import org.springframework.data.aerospike.query.cache.IndexRefresher;
         classes = {BlockingTestConfig.class, CommonTestConfig.class},
         properties = {
                 "expirationProperty: 1",
-                "setSuffix: service1"
+                "setSuffix: service1",
+                "indexSuffix: index1"
         }
 )
 public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests {

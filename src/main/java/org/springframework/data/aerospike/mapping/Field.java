@@ -23,10 +23,8 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to define custom metadata for document fields.
- *
  * @author Peter Milne
  * @author Jean Mercier
- *
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
@@ -34,9 +32,6 @@ import java.lang.annotation.Target;
 public @interface Field {
 	/**
 	 * The key to be used to store the field inside the document.
-	 * 
-	 * @return
 	 */
 	String value() default "";
-
 }

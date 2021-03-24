@@ -15,12 +15,10 @@
  */
 package org.springframework.data.aerospike.mapping;
 
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
-
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.data.aerospike.index.AerospikeIndexResolver;
 import org.springframework.data.mapping.context.AbstractMappingContext;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.FieldNamingStrategy;
@@ -36,7 +34,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Peter Milne
  */
 public class AerospikeMappingContext extends
-		AbstractMappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> implements ApplicationContextAware{
+		AbstractMappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> implements ApplicationContextAware {
 
 	private static final FieldNamingStrategy DEFAULT_NAMING_STRATEGY = PropertyNameFieldNamingStrategy.INSTANCE;
 
@@ -55,13 +53,14 @@ public class AerospikeMappingContext extends
 	public void setFieldNamingStrategy(FieldNamingStrategy fieldNamingStrategy) {
 		this.fieldNamingStrategy = fieldNamingStrategy == null ? DEFAULT_NAMING_STRATEGY : fieldNamingStrategy;
 	}
+
 	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
 	 */
 	@Override
 	protected <T> BasicAerospikePersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		BasicAerospikePersistentEntity<T> entity = new  BasicAerospikePersistentEntity<T>(typeInformation, defaultNameSpace);
+		BasicAerospikePersistentEntity<T> entity = new BasicAerospikePersistentEntity<>(typeInformation, defaultNameSpace);
 		if (context != null) {
 			entity.setEnvironment(context.getEnvironment());
 		}
@@ -97,5 +96,11 @@ public class AerospikeMappingContext extends
 
 	public boolean isCreateIndexesOnStartup() {
 		return createIndexesOnStartup;
+	}
+
+	public void setAerospikeIndexResolverEnvironment(AerospikeIndexResolver aerospikeIndexResolver) {
+		if (context != null) {
+			aerospikeIndexResolver.setEnvironment(context.getEnvironment());
+		}
 	}
 }

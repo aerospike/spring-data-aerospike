@@ -16,9 +16,12 @@
 
 package org.springframework.data.aerospike.index;
 
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.annotation.Indexed;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.util.Set;
@@ -29,7 +32,9 @@ import static java.util.stream.Collectors.toSet;
 /**
  * @author Taras Danylchuk
  */
-public class AerospikeIndexResolver {
+public class AerospikeIndexResolver implements EnvironmentAware {
+
+    private Environment environment;
 
     public Set<AerospikeIndexDefinition> detectIndexes(BasicAerospikePersistentEntity<?> persistentEntity) {
         return StreamSupport.stream(persistentEntity.spliterator(), false)
@@ -41,9 +46,13 @@ public class AerospikeIndexResolver {
     private AerospikeIndexDefinition convertToIndex(BasicAerospikePersistentEntity<?> persistentEntity,
                                                     AerospikePersistentProperty property) {
         Indexed annotation = property.getRequiredAnnotation(Indexed.class);
-        String indexName = StringUtils.isEmpty(annotation.name())
-                ? getIndexName(persistentEntity, property, annotation)
-                : annotation.name();
+        String indexName;
+        if (StringUtils.hasText(annotation.name())) {
+            Assert.notNull(environment, "Environment must be set to use 'indexed'");
+            indexName = environment.resolveRequiredPlaceholders(annotation.name());
+        } else {
+            indexName = getIndexName(persistentEntity, property, annotation);
+        }
         return AerospikeIndexDefinition.builder()
                 .entityClass(persistentEntity.getType())
                 .fieldName(property.getFieldName())
@@ -57,5 +66,10 @@ public class AerospikeIndexResolver {
                                 AerospikePersistentProperty property, Indexed annotation) {
         return String.join("_",
                 entity.getSetName(), property.getFieldName(), annotation.type().name().toLowerCase(), annotation.collectionType().name().toLowerCase());
+    }
+
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
     }
 }
