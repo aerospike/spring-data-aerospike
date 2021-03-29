@@ -15,7 +15,7 @@
  */
 package org.springframework.data.aerospike.cache;
 
-import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.IAerospikeClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,7 +39,7 @@ public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 	public String namespace;
 
 	@Autowired
-	AerospikeClient client;
+	IAerospikeClient client;
 	@Autowired
 	MappingAerospikeConverter converter;
 

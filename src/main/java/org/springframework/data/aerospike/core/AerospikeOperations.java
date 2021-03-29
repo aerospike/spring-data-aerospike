@@ -15,7 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Value;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
@@ -183,5 +183,5 @@ public interface AerospikeOperations {
 	@Deprecated
 	boolean indexExists(String indexName);
 
-	AerospikeClient getAerospikeClient();
+	IAerospikeClient getAerospikeClient();
 }

@@ -1,21 +1,14 @@
 package org.springframework.data.aerospike;
 
-import com.aerospike.client.AerospikeClient;
-import com.aerospike.client.Bin;
-import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.Info;
-import com.aerospike.client.Key;
 import com.aerospike.client.Record;
+import com.aerospike.client.*;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
-import lombok.Builder;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.Value;
+import lombok.*;
 import org.awaitility.Awaitility;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.model.Index;
@@ -37,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public abstract class AdditionalAerospikeTestOperations {
 
     private final IndexInfoParser indexInfoParser;
-    private final AerospikeClient client;
+    private final IAerospikeClient client;
     private final GenericContainer<?> aerospike;
 
     public void assertScansForSet(String setName, Consumer<List<? extends ScanJob>> consumer) {

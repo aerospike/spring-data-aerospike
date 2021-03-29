@@ -1,9 +1,6 @@
 package org.springframework.data.aerospike.query;
 
-import com.aerospike.client.AerospikeClient;
-import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Bin;
-import com.aerospike.client.Key;
+import com.aerospike.client.*;
 import com.aerospike.client.Record;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -55,7 +52,7 @@ public class QueryEngineTestDataPopulator {
 	private boolean dataPushed = false;
 
 	private final String namespace;
-	private final AerospikeClient client;
+	private final IAerospikeClient client;
 
 	public void setupAllData() {
 		if (dataPushed) return;
@@ -154,8 +151,8 @@ public class QueryEngineTestDataPopulator {
 		String[] regions = {"n", "s", "e", "w"};
 		String[] randomInterests = {"Music", "Football", "Soccer", "Baseball", "Basketball", "Hockey", "Weekend Warrior", "Hiking", "Camping", "Travel", "Photography"};
 		String username;
-		ArrayList<Object> userInterests = null;
-		int totalInterests = 0;
+		ArrayList<Object> userInterests;
+		int totalInterests;
 		int start = 1;
 		/*
 		 * see if data is loaded
@@ -180,7 +177,7 @@ public class QueryEngineTestDataPopulator {
 				Bin bin6 = new Bin("tweetcount", 0);
 
 				totalInterests = rnd3.nextInt(7);
-				userInterests = new ArrayList<Object>();
+				userInterests = new ArrayList<>();
 				for (int i = 0; i < totalInterests; i++) {
 					userInterests.add(randomInterests[rnd3.nextInt(randomInterests.length)]);
 				}

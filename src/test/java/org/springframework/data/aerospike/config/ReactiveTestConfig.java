@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.config;
 
-import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Host;
+import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.async.NioEventLoops;
 import org.springframework.beans.factory.annotation.Value;
@@ -80,7 +80,7 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
 
     @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(ReactiveAerospikeTemplate template,
-                                                                 AerospikeClient client,
+                                                                 IAerospikeClient client,
                                                                  GenericContainer<?> aerospike) {
         return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, aerospike, template);
     }

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.aerospike.cache;
 
-import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     private static final String VALUE = "bar";
 
     @Autowired
-    AerospikeClient client;
+    IAerospikeClient client;
     @Autowired
     CachingComponent cachingComponent;
     @Autowired

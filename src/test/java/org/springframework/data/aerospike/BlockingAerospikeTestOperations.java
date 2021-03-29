@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike;
 
-import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.IAerospikeClient;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.testcontainers.containers.GenericContainer;
@@ -11,7 +11,7 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
 
     public BlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
                                            AerospikeTemplate template,
-                                           AerospikeClient client,
+                                           IAerospikeClient client,
                                            GenericContainer<?> aerospike) {
         super(indexInfoParser, client, aerospike);
         this.template = template;
