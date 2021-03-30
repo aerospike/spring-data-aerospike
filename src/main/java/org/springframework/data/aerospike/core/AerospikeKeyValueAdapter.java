@@ -15,10 +15,8 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeClient;
-import com.aerospike.client.Key;
+import com.aerospike.client.*;
 import com.aerospike.client.Record;
-import com.aerospike.client.Value;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import org.springframework.data.aerospike.convert.AerospikeConverter;
@@ -43,24 +41,24 @@ import java.util.Map.Entry;
 public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 
 	private final AerospikeConverter converter;
-	private final AerospikeClient client;
+	private final IAerospikeClient client;
 	private final String namespace;
 	private final WritePolicy insertPolicy;
 	private final WritePolicy updatePolicy;
 
 	/**
-	 * Creates a new {@link AerospikeKeyValueAdapter} using the given {@link AerospikeClient} and
+	 * Creates a new {@link AerospikeKeyValueAdapter} using the given {@link IAerospikeClient} and
 	 * {@link AerospikeConverter}.
 	 * 
 	 * @param client must not be {@literal null}.
 	 * @param converter must not be {@literal null}.
 	 */
-	public AerospikeKeyValueAdapter(AerospikeClient client, AerospikeConverter converter, String namespace) {
+	public AerospikeKeyValueAdapter(IAerospikeClient client, AerospikeConverter converter, String namespace) {
 		this.client = client;
 		this.converter = converter;
 		this.namespace = namespace;
-		this.insertPolicy = new WritePolicy(this.client.writePolicyDefault);
-		this.updatePolicy = new WritePolicy(this.client.writePolicyDefault);
+		this.insertPolicy = new WritePolicy(this.client.getWritePolicyDefault());
+		this.updatePolicy = new WritePolicy(this.client.getWritePolicyDefault());
 		this.insertPolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
 		this.updatePolicy.recordExistsAction = RecordExistsAction.UPDATE_ONLY;
 	}

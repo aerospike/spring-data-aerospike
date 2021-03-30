@@ -34,7 +34,7 @@ import org.springframework.data.util.TypeInformation;
  * @author Peter Milne
  */
 public class AerospikeMappingContext extends
-		AbstractMappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> implements ApplicationContextAware{
+		AbstractMappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> implements ApplicationContextAware {
 
 	private static final FieldNamingStrategy DEFAULT_NAMING_STRATEGY = PropertyNameFieldNamingStrategy.INSTANCE;
 
@@ -53,6 +53,7 @@ public class AerospikeMappingContext extends
 	public void setFieldNamingStrategy(FieldNamingStrategy fieldNamingStrategy) {
 		this.fieldNamingStrategy = fieldNamingStrategy == null ? DEFAULT_NAMING_STRATEGY : fieldNamingStrategy;
 	}
+
 	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)

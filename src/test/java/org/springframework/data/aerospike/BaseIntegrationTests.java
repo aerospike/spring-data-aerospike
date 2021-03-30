@@ -8,6 +8,8 @@ import org.springframework.data.aerospike.utility.AerospikeUniqueId;
 
 public abstract class BaseIntegrationTests {
 
+    public static final String DEFAULT_SET_NAME = "aerospike";
+
     @Value("${embedded.aerospike.namespace}")
     protected String namespace;
 

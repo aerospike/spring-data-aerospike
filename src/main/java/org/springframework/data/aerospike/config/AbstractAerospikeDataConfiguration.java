@@ -15,7 +15,7 @@
  */
 package org.springframework.data.aerospike.config;
 
-import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.IAerospikeClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -35,7 +35,7 @@ import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataConfigurationSupport {
 
     @Bean(name = "aerospikeTemplate")
-    public AerospikeTemplate aerospikeTemplate(AerospikeClient aerospikeClient,
+    public AerospikeTemplate aerospikeTemplate(IAerospikeClient aerospikeClient,
                                                MappingAerospikeConverter mappingAerospikeConverter,
                                                AerospikeMappingContext aerospikeMappingContext,
                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
@@ -45,7 +45,7 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     }
 
     @Bean(name = "aerospikeQueryEngine")
-    public QueryEngine queryEngine(AerospikeClient aerospikeClient,
+    public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
                                    StatementBuilder statementBuilder) {
         QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, aerospikeClient.getQueryPolicyDefault());
         queryEngine.setScansEnabled(aerospikeDataSettings().isScansEnabled());
@@ -59,7 +59,7 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     }
 
     @Bean(name = "aerospikeIndexRefresher")
-    public IndexRefresher indexRefresher(AerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater) {
+    public IndexRefresher indexRefresher(IAerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater) {
         IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(), new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater);
         refresher.refreshIndexes();
         return refresher;

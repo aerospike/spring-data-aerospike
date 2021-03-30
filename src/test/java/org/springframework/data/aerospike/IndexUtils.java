@@ -1,9 +1,6 @@
 package org.springframework.data.aerospike;
 
-import com.aerospike.client.AerospikeClient;
-import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Info;
-import com.aerospike.client.ResultCode;
+import com.aerospike.client.*;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
@@ -18,19 +15,19 @@ import java.util.stream.Collectors;
 
 public class IndexUtils {
 
-	public static void dropIndex(AerospikeClient client, String namespace, String setName, String indexName) {
+	public static void dropIndex(IAerospikeClient client, String namespace, String setName, String indexName) {
 		ignoreErrorAndWait(ResultCode.INDEX_NOTFOUND, () -> client.dropIndex(null, namespace, setName, indexName));
 	}
 
-	public static void createIndex(AerospikeClient client, String namespace, String setName, String indexName, String binName, IndexType indexType) {
+	public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName, String binName, IndexType indexType) {
 		ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName, indexName, binName, indexType));
 	}
 
-	public static void createIndex(AerospikeClient client, String namespace, String setName, String indexName, String binName, IndexType indexType, IndexCollectionType collectionType) {
+	public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName, String binName, IndexType indexType, IndexCollectionType collectionType) {
 		ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName, indexName, binName, indexType, collectionType));
 	}
 
-	public static List<Index> getIndexes(AerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
+	public static List<Index> getIndexes(IAerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
 		Node node = getNode(client);
 		String response = Info.request(node, "sindex/" + namespace);
 		return Arrays.stream(response.split(";"))
@@ -38,7 +35,7 @@ public class IndexUtils {
 				.collect(Collectors.toList());
 	}
 
-	public static boolean indexExists(AerospikeClient client, String namespace, String indexName) {
+	public static boolean indexExists(IAerospikeClient client, String namespace, String indexName) {
 		Node node = getNode(client);
 		String response = Info.request(node, "sindex/" + namespace + '/' + indexName);
 		return !response.startsWith("FAIL:201");
@@ -58,7 +55,7 @@ public class IndexUtils {
 		}
 	}
 
-	private static Node getNode(AerospikeClient client) {
+	private static Node getNode(IAerospikeClient client) {
 		Node[] nodes = client.getNodes();
 		if (nodes.length == 0) {
 			throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");

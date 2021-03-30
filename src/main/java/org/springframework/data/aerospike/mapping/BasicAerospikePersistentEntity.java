@@ -40,13 +40,13 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 	private Environment environment;
 
 	/**
-	 * Creates a new {@link BasicAerospikePersistentEntity} using the given {@link TypeInformation}.
+	 * Creates a new {@link BasicAerospikePersistentEntity}
+	 * using a given {@link TypeInformation} and a default namespace.
 	 *
 	 * @param information must not be {@literal null}.
-	 * @param defaultNameSpace
+	 * @param defaultNameSpace The default namespace.
 	 */
 	public BasicAerospikePersistentEntity(TypeInformation<T> information, String defaultNameSpace) {
-
 		super(information);
 		this.defaultNameSpace = defaultNameSpace;
 	}
@@ -72,9 +72,9 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 	}
 
 	/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.aerospike.mapping.AerospikePersistentEntity#getSetName()
-		 */
+	 * (non-Javadoc)
+	 * @see org.springframework.data.aerospike.mapping.AerospikePersistentEntity#getSetName()
+	 */
 	@Override
 	public String getSetName() {
 		Class<T> type = getType();

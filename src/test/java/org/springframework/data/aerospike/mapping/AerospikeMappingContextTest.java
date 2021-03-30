@@ -23,11 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
- *
- *
  * @author Peter Milne
  * @author Jean Mercier
- *
  */
 public class AerospikeMappingContextTest {
 	
@@ -52,5 +49,4 @@ public class AerospikeMappingContextTest {
 
 		assertThat(entity.getTypeInformation().getType().getSimpleName()).isEqualTo(Person.class.getSimpleName());
 	}
-
 }
