@@ -1,11 +1,11 @@
 /*
- * Copyright 2012-2018 the original author or authors
+ * Copyright 2012-2021 the original author or authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * 		https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,11 +29,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- *
- *
  * @author Peter Milne
  * @author Jean Mercier
- *
  */
 public interface PersonRepository<P extends Person> extends AerospikeRepository<P, String> {
 
@@ -126,7 +123,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	List<P> findByIntsContaining(Integer integer);
 
-	List<P> findByIntsContaining(List integer);
+	List<P> findByIntsContaining(List<Integer> integer);
 
 	List<P> findTop3ByLastNameStartingWith(String lastName);
 
@@ -141,5 +138,4 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 	List<P> findByFirstNameStartsWith(String string);
 
 	Iterable<P> findByAgeBetweenOrderByLastName(int i, int j);
-
 }

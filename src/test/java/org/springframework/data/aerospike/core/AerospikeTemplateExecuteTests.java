@@ -15,8 +15,8 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Bin;
+import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -35,7 +35,7 @@ public class AerospikeTemplateExecuteTests extends BaseBlockingIntegrationTests 
 
         template.getAerospikeClient().add(null, key, bin);
         assertThatThrownBy(() ->template.execute(() -> {
-            AerospikeClient client = template.getAerospikeClient();
+            IAerospikeClient client = template.getAerospikeClient();
             WritePolicy writePolicy = new WritePolicy(client.getWritePolicyDefault());
             writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
 

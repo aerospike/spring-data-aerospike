@@ -16,7 +16,7 @@
  */
 package org.springframework.data.aerospike.query;
 
-import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.QueryPolicy;
@@ -44,7 +44,7 @@ public class QueryEngine {
 	 */
 	private boolean scansEnabled = false;
 
-	private final AerospikeClient client;
+	private final IAerospikeClient client;
 	private final StatementBuilder statementBuilder;
 	private final QueryPolicy queryPolicy;
 
@@ -69,7 +69,7 @@ public class QueryEngine {
 		}
 	}
 
-	public QueryEngine(AerospikeClient client, StatementBuilder statementBuilder,
+	public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
 					   QueryPolicy queryPolicy) {
 		this.client = client;
 		this.statementBuilder = statementBuilder;

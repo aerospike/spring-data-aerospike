@@ -26,7 +26,7 @@ public class AutoIndexedDocumentAssert {
                 index(namespace, setName, setName + "_someField_string_default", "someField", IndexType.STRING, IndexCollectionType.DEFAULT),
                 index(namespace, setName, setName + "_shortName_string_default", "shortName", IndexType.STRING, IndexCollectionType.DEFAULT),
                 index(namespace, setName, "overridden_index_name", "customIndexName", IndexType.NUMERIC, IndexCollectionType.DEFAULT),
-                index(namespace, setName, "precreated_index", "preCreatedIndex", IndexType.NUMERIC, IndexCollectionType.DEFAULT),
+                index(namespace, setName, "pre_created_index", "preCreatedIndex", IndexType.NUMERIC, IndexCollectionType.DEFAULT),
                 index(namespace, setName, "placeholder_index1", "placeHolderIdx", IndexType.STRING, IndexCollectionType.DEFAULT),
                 index(namespace, setName, setName + "_listOfStrings_string_list", "listOfStrings", IndexType.STRING, IndexCollectionType.LIST),
                 index(namespace, setName, setName + "_listOfInts_numeric_list", "listOfInts", IndexType.NUMERIC, IndexCollectionType.LIST),

@@ -15,11 +15,11 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.AerospikeException;
+import com.aerospike.client.IAerospikeClient;
 
 /**
- * Callback to interact with the {@link AerospikeClient}.
+ * Callback to interact with the {@link IAerospikeClient}.
  * 
  * @author Oliver Gierke
  * @author Peter Milne
@@ -27,22 +27,22 @@ import com.aerospike.client.AerospikeException;
 public interface AerospikeClientCallback<T> {
 
 	/**
-	 * Interact with the native {@link AerospikeClient} and produce a records from it.
+	 * Interact with the native {@link IAerospikeClient} and produce a records from it.
 	 *
 	 * @param client will never be {@literal null}.
 	 * @return Record iterator
 	 * @throws AerospikeException in case of encountering an error while interacting
-	 * 		with AerospikeClient an AerospikeException will be thrown.
+	 * 		with IAerospikeClient an AerospikeException will be thrown.
 	 */
-	T recordIterator(AerospikeClient client) throws AerospikeException;
+	T recordIterator(IAerospikeClient client) throws AerospikeException;
 
 	/**
-	 * Interact with the native {@link AerospikeClient} and produce a result from it.
+	 * Interact with the native {@link IAerospikeClient} and produce a result from it.
 	 *
 	 * @param client will never be {@literal null}.
 	 * @return Result iterator
 	 * @throws AerospikeException in case of encountering an error while interacting
-	 * 		with AerospikeClient an AerospikeException will be thrown.
+	 * 		with IAerospikeClient an AerospikeException will be thrown.
 	 */
-	T resultIterator(AerospikeClient client) throws AerospikeException;
+	T resultIterator(IAerospikeClient client) throws AerospikeException;
 }

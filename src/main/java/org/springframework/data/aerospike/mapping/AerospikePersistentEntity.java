@@ -29,8 +29,6 @@ public interface AerospikePersistentEntity<T> extends PersistentEntity<T, Aerosp
 
 	/**
 	 * Returns the name of the set the {@link PersistentEntity} shall be stored in.
-	 * 
-	 * @return
 	 */
 	String getNamespace();
 
@@ -44,5 +42,6 @@ public interface AerospikePersistentEntity<T> extends PersistentEntity<T, Aerosp
 
 	AerospikePersistentProperty getExpirationProperty();
 
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	boolean hasExpirationProperty();
 }
