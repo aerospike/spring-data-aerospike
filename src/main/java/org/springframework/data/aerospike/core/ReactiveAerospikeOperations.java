@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
+import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -92,4 +93,6 @@ public interface ReactiveAerospikeOperations {
      * Deletes index by specified name from Aerospike.
      */
     <T> Mono<Void> deleteIndex(Class<T> entityClass, String indexName);
+
+    IAerospikeReactorClient getAerospikeReactorClient();
 }
