@@ -9,9 +9,16 @@ The primary goal of the [Spring Data](https://projects.spring.io/spring-data) pr
 
 The Spring Data Aerospike project aims to provide a familiar and consistent Spring-based programming model for new datastores while retaining store-specific features and capabilities. The Spring Data Aerospike project provides integration with the Aerospike document database. Key functional areas of Spring Data Aerospike are a POJO centric model for interacting with a Aerospike DBCollection and easily writing a repository style data access layer.
 
-## :point_right: :point_right: :point_right: Demo project with guides
+## :point_right: :point_right: :point_right: Demo Projects
 
-Demo project with detailed guides is located [here](https://github.com/aerospike-community/spring-data-aerospike-demo).
+1. Demo project with detailed guides is located [here](https://github.com/aerospike-community/spring-data-aerospike-demo).
+
+2. Demo project example with a step-by-step tutorial can be found [here](https://github.com/aerospike-examples/simple-springboot-aerospike-demo).
+
+## Getting Started blog posts
+
+1. [Simple Web Application Using Java, Spring Boot, Aerospike and Docker](https://medium.com/aerospike-developer-blog/simple-web-application-using-java-spring-boot-aerospike-database-and-docker-ad13795e0089).
+2. [How to setup spring-data-aerospike in Spring Boot application](https://medium.com/aerospike-developer-blog/how-to-setup-spring-data-aerospike-in-spring-boot-application-afa8bcb59224)
 
 ## Spring Boot compatibility
 
@@ -138,4 +145,4 @@ Here are some ways for you to get involved in the community:
 * Get involved with the Spring community on Stackoverflow and help out on the [spring-data-aerospike](https://stackoverflow.com/questions/tagged/spring-data-aerospike) tag by responding to questions and joining the debate.
 * Create [Github issue](https://github.com/aerospike-community/spring-data-aerospike/issues) for bugs and new features and comment and vote on the ones that you are interested in. 
 * Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](https://help.github.com/forking/). If you want to contribute code this way, please reference a Github ticket as well covering the specific issue you are addressing.
-* Watch for upcoming articles by [subscribing](https://dev.to/aerospike) to Aerospike Blog.
+* Watch for upcoming articles by [subscribing](https://www.aerospike.com/forms/subscribe-the-aerospike-standup/) to Aerospike Standup.

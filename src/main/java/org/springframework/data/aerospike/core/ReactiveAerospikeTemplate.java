@@ -24,6 +24,7 @@ import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.reactor.AerospikeReactorClient;
+import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -359,6 +360,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return reactorClient.dropIndex(null, this.namespace, setName, indexName)
                 .then(reactorIndexRefresher.refreshIndexes())
                 .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public IAerospikeReactorClient getAerospikeReactorClient() {
+        return reactorClient;
     }
 
     private <T> Mono<T> doPersistAndHandleError(T document, AerospikeWriteData data, WritePolicy policy) {
