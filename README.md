@@ -17,8 +17,10 @@ The Spring Data Aerospike project aims to provide a familiar and consistent Spri
 
 ## Getting Started blog posts
 
-1. [Simple Web Application Using Java, Spring Boot, Aerospike and Docker](https://medium.com/aerospike-developer-blog/simple-web-application-using-java-spring-boot-aerospike-database-and-docker-ad13795e0089).
-2. [How to setup spring-data-aerospike in Spring Boot application](https://medium.com/aerospike-developer-blog/how-to-setup-spring-data-aerospike-in-spring-boot-application-afa8bcb59224)
+1. [Simple Web Application Using Java, Spring Boot, Aerospike and Docker](https://medium.com/aerospike-developer-blog/simple-web-application-using-java-spring-boot-aerospike-database-and-docker-ad13795e0089?source=friends_link&sk=43d747f5f55e527248125eeb18748d92).
+2. [How to setup spring-data-aerospike in Spring Boot application](https://medium.com/aerospike-developer-blog/how-to-setup-spring-data-aerospike-in-spring-boot-application-afa8bcb59224?source=friends_link&sk=e16a3b69c814bfb22f200634c743e476)
+3. [Basic error handling in spring-data-aerospike](https://medium.com/aerospike-developer-blog/basic-error-handling-in-spring-data-aerospike-5edd580d77d9?source=friends_link&sk=cff71ea1539b36e5a89b2c3411b58a06)
+4. [How to create secondary index in Spring Data Aerospike](https://medium.com/aerospike-developer-blog/how-to-create-secondary-index-in-spring-data-aerospike-e19d7e343d7c?source=friends_link&sk=413619a568f9aac51ed2f2611ee70aba)
 
 ## Spring Boot compatibility
 
