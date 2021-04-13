@@ -15,11 +15,11 @@
  */
 package org.springframework.data.aerospike.mapping;
 
-import com.aerospike.client.Key;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
-import org.springframework.data.mapping.model.BasicPersistentEntity;
 import org.springframework.data.mapping.MappingException;
+import org.springframework.data.mapping.model.BasicPersistentEntity;
+import org.springframework.data.util.Lazy;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -38,6 +38,10 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 
 	private AerospikePersistentProperty expirationProperty;
 	private Environment environment;
+	private final Lazy<String> setName;
+	private final Lazy<Integer> expiration;
+	private final Lazy<Boolean> isTouchOnRead;
+
 
 	/**
 	 * Creates a new {@link BasicAerospikePersistentEntity}
@@ -49,6 +53,29 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 	public BasicAerospikePersistentEntity(TypeInformation<T> information, String defaultNameSpace) {
 		super(information);
 		this.defaultNameSpace = defaultNameSpace;
+		this.setName = Lazy.of(() -> {
+			Class<T> type = getType();
+			Document annotation = type.getAnnotation(Document.class);
+			if (annotation != null && !annotation.collection().isEmpty()) {
+				Assert.notNull(environment, "Environment must be set to use 'collection'");
+
+				return environment.resolveRequiredPlaceholders(annotation.collection());
+			}
+			return type.getSimpleName();
+		});
+		this.expiration = Lazy.of(() -> {
+			Document annotation = getType().getAnnotation(Document.class);
+			if (annotation == null) {
+				return DEFAULT_EXPIRATION;
+			}
+
+			int expirationValue = getExpirationValue(annotation);
+			return (int) annotation.expirationUnit().toSeconds(expirationValue);
+		});
+		this.isTouchOnRead = Lazy.of(() -> {
+			Document annotation = getType().getAnnotation(Document.class);
+			return annotation != null && annotation.touchOnRead();
+		});
 	}
 
 	@Override
@@ -77,37 +104,17 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 	 */
 	@Override
 	public String getSetName() {
-		Class<T> type = getType();
-		Document annotation = type.getAnnotation(Document.class);
-		if (annotation != null && !annotation.collection().isEmpty()) {
-			Assert.notNull(environment, "Environment must be set to use 'collection'");
-
-			return environment.resolveRequiredPlaceholders(annotation.collection());
-		}
-		return type.getSimpleName();
-	}
-
-	@Override
-	public Key getKey() {
-		// TODO Auto-generated method stub
-		return null;
+		return setName.get();
 	}
 
 	@Override
 	public int getExpiration() {
-		Document annotation = getType().getAnnotation(Document.class);
-		if (annotation == null) {
-			return DEFAULT_EXPIRATION;
-		}
-
-		int expirationValue = getExpirationValue(annotation);
-		return (int) annotation.expirationUnit().toSeconds(expirationValue);
+		return expiration.get();
 	}
 
 	@Override
 	public boolean isTouchOnRead() {
-		Document annotation = getType().getAnnotation(Document.class);
-		return annotation != null && annotation.touchOnRead();
+		return isTouchOnRead.get();
 	}
 
 	@Override

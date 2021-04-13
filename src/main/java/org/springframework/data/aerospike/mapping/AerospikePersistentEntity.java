@@ -17,8 +17,6 @@ package org.springframework.data.aerospike.mapping;
 
 import org.springframework.data.mapping.PersistentEntity;
 
-import com.aerospike.client.Key;
-
 /**
  * Aerospike-specific extensions of {@link PersistentEntity}.
  * 
@@ -33,8 +31,6 @@ public interface AerospikePersistentEntity<T> extends PersistentEntity<T, Aerosp
 	String getNamespace();
 
 	String getSetName();
-
-	Key getKey();
 
 	int getExpiration();
 

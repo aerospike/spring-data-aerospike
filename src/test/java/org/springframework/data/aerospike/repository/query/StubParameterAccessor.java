@@ -80,10 +80,13 @@ public class StubParameterAccessor implements AerospikeParameterAccessor {
 	public Object[] getValues() {
 		return this.values;
 	}
+
+	/**
+	 * @deprecated
+	 */
 	@Override
 	public Optional<Class<?>> getDynamicProjection() {
-		// TODO Auto-generated method stub
-		return null;
+		return Optional.empty();
 	}
 
 	@Override

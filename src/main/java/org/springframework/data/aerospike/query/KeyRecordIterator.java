@@ -41,12 +41,12 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 	private static final String DIGEST = "digest";
 	private static final String EXPIRY = "expiry";
 	private static final String GENERATION = "generation";
-	private static Logger log = LoggerFactory.getLogger(KeyRecordIterator.class);
+	private static final Logger log = LoggerFactory.getLogger(KeyRecordIterator.class);
 	private RecordSet recordSet;
 	private ResultSet resultSet;
 	private Iterator<KeyRecord> recordSetIterator;
 	private Iterator<Object> resultSetIterator;
-	private String namespace;
+	private final String namespace;
 	private KeyRecord singleRecord;
 	private Integer closeLock = new Integer(0);
 
@@ -70,7 +70,6 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 		this(namespace);
 		this.resultSet = resultSet;
 		this.resultSetIterator = resultSet.iterator();
-
 	}
 
 	@Override
@@ -91,10 +90,7 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 			return this.recordSetIterator.hasNext();
 		else if (this.resultSetIterator != null)
 			return this.resultSetIterator.hasNext();
-		else if (this.singleRecord != null)
-			return true;
-		else
-			return false;
+		else return this.singleRecord != null;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -108,7 +104,7 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 			Map<String, Object> map = (Map<String, Object>) this.resultSetIterator.next();
 			Map<String, Object> meta = (Map<String, Object>) map.get(META_DATA);
 			map.remove(META_DATA);
-			Map<String, Object> binMap = new HashMap<String, Object>(map);
+			Map<String, Object> binMap = new HashMap<>(map);
 			if (log.isDebugEnabled()) {
 				for (Map.Entry<String, Object> entry : map.entrySet()) {
 					log.debug(entry.getKey() + " = " + entry.getValue());
