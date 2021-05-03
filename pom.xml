@@ -21,7 +21,7 @@
 
     <properties>
         <source.level>1.8</source.level>
-        <aerospike>5.0.5</aerospike>
+        <aerospike>5.1.0</aerospike>
         <aerospike-reactor>5.0.3</aerospike-reactor>
 
         <springdata.commons>2.4.6</springdata.commons>
