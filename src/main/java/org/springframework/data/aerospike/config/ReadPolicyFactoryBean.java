@@ -18,7 +18,6 @@ package org.springframework.data.aerospike.config;
 import org.springframework.beans.factory.FactoryBean;
 
 import com.aerospike.client.policy.Policy;
-import com.aerospike.client.policy.Priority;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a read policy via XML.
@@ -71,15 +70,6 @@ public class ReadPolicyFactoryBean implements FactoryBean<Policy> {
 	 */
 	public void setSleepBetweenRetries(int sleepBetweenRetries){
 		this.policy.sleepBetweenRetries = sleepBetweenRetries;
-	}
-
-	/**
-	 * Configures the priority of request relative to other transactions.
-	 * Currently, only used for scans.
-	 * @param priority The priority configuration value.
-	 */
-	public void setPriority(Priority priority){
-		this.policy.priority = priority;
 	}
 
 	/* 
