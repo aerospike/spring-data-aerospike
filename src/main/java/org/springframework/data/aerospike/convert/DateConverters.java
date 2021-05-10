@@ -16,15 +16,6 @@
 
 package org.springframework.data.aerospike.convert;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
-import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -32,6 +23,10 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.util.ClassUtils;
+
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.*;
 
 /**
  * Out of the box conversions for java dates and calendars.
@@ -51,7 +46,7 @@ public final class DateConverters {
    * @return the list of converters to register.
    */
   public static Collection<Converter<?, ?>> getConvertersToRegister() {
-    List<Converter<?, ?>> converters = new ArrayList<Converter<?, ?>>();
+    List<Converter<?, ?>> converters = new ArrayList<>();
 
     converters.add(DateToLongConverter.INSTANCE);
     converters.add(CalendarToLongConverter.INSTANCE);
@@ -64,11 +59,9 @@ public final class DateConverters {
       converters.add(LocalDateToLongConverter.INSTANCE);
       converters.add(LocalDateTimeToLongConverter.INSTANCE);
       converters.add(DateTimeToLongConverter.INSTANCE);
-      converters.add(DateMidnightToLongConverter.INSTANCE);
       converters.add(NumberToLocalDateConverter.INSTANCE);
       converters.add(NumberToLocalDateTimeConverter.INSTANCE);
       converters.add(NumberToDateTimeConverter.INSTANCE);
-      converters.add(NumberToDateMidnightConverter.INSTANCE);
     }
 
     return converters;
@@ -180,16 +173,6 @@ public final class DateConverters {
     }
   }
 
-  @WritingConverter
-  public enum DateMidnightToLongConverter implements Converter<DateMidnight, Long> {
-    INSTANCE;
-
-    @Override
-    public Long convert(DateMidnight source) {
-      return source == null ? null : source.toDate().getTime();
-    }
-  }
-
   @ReadingConverter
   public enum NumberToLocalDateConverter implements Converter<Number, LocalDate> {
     INSTANCE;
@@ -219,15 +202,4 @@ public final class DateConverters {
       return source == null ? null : new DateTime(source.longValue());
     }
   }
-
-  @ReadingConverter
-  public enum NumberToDateMidnightConverter implements Converter<Number, DateMidnight> {
-    INSTANCE;
-
-    @Override
-    public DateMidnight convert(Number source) {
-      return source == null ? null : new DateMidnight(source.longValue());
-    }
-  }
-
 }
