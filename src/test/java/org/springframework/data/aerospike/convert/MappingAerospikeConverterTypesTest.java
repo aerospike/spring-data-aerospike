@@ -2,59 +2,17 @@ package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.Bin;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.SampleClasses.Address;
-import org.springframework.data.aerospike.SampleClasses.BigDecimalContainer;
-import org.springframework.data.aerospike.SampleClasses.ClassWithComplexId;
-import org.springframework.data.aerospike.SampleClasses.ClassWithIdField;
-import org.springframework.data.aerospike.SampleClasses.CollectionOfObjects;
-import org.springframework.data.aerospike.SampleClasses.ComplexId;
-import org.springframework.data.aerospike.SampleClasses.ContainerOfCustomFieldNames;
-import org.springframework.data.aerospike.SampleClasses.CustomFieldNames;
-import org.springframework.data.aerospike.SampleClasses.CustomTypeWithCustomType;
-import org.springframework.data.aerospike.SampleClasses.CustomTypeWithListAndMap;
-import org.springframework.data.aerospike.SampleClasses.CustomTypeWithListAndMapImmutable;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithIntId;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithStringId;
-import org.springframework.data.aerospike.SampleClasses.EnumProperties;
-import org.springframework.data.aerospike.SampleClasses.GenericType;
-import org.springframework.data.aerospike.SampleClasses.ImmutableListAndMap;
-import org.springframework.data.aerospike.SampleClasses.ListOfLists;
-import org.springframework.data.aerospike.SampleClasses.ListOfMaps;
-import org.springframework.data.aerospike.SampleClasses.MapWithCollectionValue;
-import org.springframework.data.aerospike.SampleClasses.MapWithGenericValue;
-import org.springframework.data.aerospike.SampleClasses.MapWithSimpleValue;
-import org.springframework.data.aerospike.SampleClasses.Name;
-import org.springframework.data.aerospike.SampleClasses.NestedMapsWithSimpleValue;
-import org.springframework.data.aerospike.SampleClasses.Person;
-import org.springframework.data.aerospike.SampleClasses.SetWithSimpleValue;
-import org.springframework.data.aerospike.SampleClasses.SimpleClass;
-import org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor;
-import org.springframework.data.aerospike.SampleClasses.SortedMapWithSimpleValue;
-import org.springframework.data.aerospike.SampleClasses.Street;
-import org.springframework.data.aerospike.SampleClasses.TYPES;
-import org.springframework.data.aerospike.SampleClasses.User;
+import org.springframework.data.aerospike.SampleClasses.*;
 import org.springframework.data.aerospike.assertions.KeyAssert;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.AsCollections.list;
-import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.AsCollections.set;
+import static org.springframework.data.aerospike.AsCollections.*;
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
 import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
@@ -198,7 +156,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void ObjectWithSimpleFields() {
 		Set<String> field9 = set("val1", "val2");
 		Set<Set<String>> field10 = set(set("1", "2"), set("3", "4"), set());
-		SimpleClass object = new SimpleClass(777L, "abyrvalg", 13, 14L, (float) 15, 16.0, true, new Date(8878888),
+		SimpleClass object = new SimpleClass(777L, "abyrvalg", 13, 14L, (float) 15, 16.0, true, Instant.ofEpochMilli(8878888L).atZone(ZoneId.systemDefault()).toLocalDate(),
 				TYPES.SECOND, field9, field10, (byte) 1);
 
 		assertWriteAndRead(object, SIMPLESET, 777L,
