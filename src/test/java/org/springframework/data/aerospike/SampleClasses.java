@@ -17,14 +17,7 @@ package org.springframework.data.aerospike;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.Value;
-import org.joda.time.DateTime;
+import lombok.*;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.aerospike.annotation.Expiration;
 import org.springframework.data.aerospike.convert.AerospikeReadData;
@@ -39,15 +32,8 @@ import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
@@ -59,10 +45,10 @@ public class SampleClasses {
 	public static final int EXPIRATION_ONE_SECOND = 1;
 	public static final int EXPIRATION_ONE_MINUTE = 60;
 
-	static interface SomeInterface {
+	interface SomeInterface {
 	}
 
-	public static enum TYPES {
+	public enum TYPES {
 		FIRST(1), SECOND(2), THIRD(3);
 		final int id;
 
@@ -317,7 +303,7 @@ public class SampleClasses {
 		public String id;
 	}
 
-	public static interface Contact {
+	public interface Contact {
 
 	}
 
@@ -534,7 +520,7 @@ public class SampleClasses {
 		private String id;
 
 		@Expiration(unixTime = true)
-		private DateTime expiration;
+		private LocalDateTime expiration;
 	}
 
 	@Document(expirationExpression = "${expirationProperty}")
@@ -569,7 +555,7 @@ public class SampleClasses {
 		private String id;
 
 		@Expiration(unixTime = true)
-		private DateTime expiration;
+		private LocalDateTime expiration;
 
 		private int intField;
 	}

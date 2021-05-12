@@ -20,7 +20,6 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.Value;
 import org.assertj.core.data.Offset;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.SampleClasses.AerospikeReadDataToUserConverter;
@@ -40,6 +39,7 @@ import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -179,14 +179,14 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 		AerospikeReadData readData = AerospikeReadData.forRead(key, record);
 		DocumentWithUnixTimeExpiration forRead = converter.read(DocumentWithUnixTimeExpiration.class, readData);
 
-		DateTime actual = forRead.getExpiration();
-		DateTime expected = DateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
-		assertThat(actual.getMillis()).isCloseTo(expected.getMillis(), Offset.offset(100L));
+		LocalDateTime actual = forRead.getExpiration();
+		LocalDateTime expected = LocalDateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
+		assertThat(actual.getNano()).isCloseTo(expected.getNano(), Offset.offset(100));
 	}
 
 	@Test
 	public void shouldWriteUnixTimeExpirationFieldValue() {
-		DateTime unixTimeExpiration = DateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
+		LocalDateTime unixTimeExpiration = LocalDateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
 		DocumentWithUnixTimeExpiration document = new DocumentWithUnixTimeExpiration("docId", unixTimeExpiration);
 
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
@@ -197,7 +197,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 
 	@Test
 	public void shouldFailWithExpirationFromThePast() {
-		DateTime expirationFromThePast = DateTime.now().minusSeconds(EXPIRATION_ONE_MINUTE);
+		LocalDateTime expirationFromThePast = LocalDateTime.now().minusSeconds(EXPIRATION_ONE_MINUTE);
 		DocumentWithUnixTimeExpiration document = new DocumentWithUnixTimeExpiration("docId", expirationFromThePast);
 
 		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
@@ -265,9 +265,9 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 		AerospikeReadData forRead = AerospikeReadData.forRead(key, record);
 
 		DocumentWithDefaultConstructor document = converter.read(DocumentWithDefaultConstructor.class, forRead);
-		DateTime actual = document.getExpiration();
-		DateTime expected = DateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
-		assertThat(actual.getMillis()).isCloseTo(expected.getMillis(), Offset.offset(100L));
+		LocalDateTime actual = document.getExpiration();
+		LocalDateTime expected = LocalDateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
+		assertThat(actual.getNano()).isCloseTo(expected.getNano(), Offset.offset(100));
 	}
 
 	@Test

@@ -19,27 +19,23 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import org.assertj.core.data.Offset;
-import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationOneDay;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
+import org.springframework.data.aerospike.SampleClasses.*;
+
+import java.time.LocalDateTime;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Offset.offset;
-import static org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
+import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
+import static org.springframework.data.aerospike.AwaitilityUtils.awaitTwoSecondsUntil;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
-import static org.springframework.data.aerospike.AwaitilityUtils.awaitTwoSecondsUntil;
-import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
@@ -52,7 +48,7 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
     public void shouldAddValuesMapAndExpire() {
         DocumentWithDefaultConstructor document = new DocumentWithDefaultConstructor();
         document.setId(id);
-        document.setExpiration(DateTime.now().plusSeconds(1));
+        document.setExpiration(LocalDateTime.now().plusSeconds(1));
 
         template.add(document, singletonMap("intField", 10L));
 
@@ -70,7 +66,7 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
     public void shouldAddValueAndExpire() {
         DocumentWithDefaultConstructor document = new DocumentWithDefaultConstructor();
         document.setId(id);
-        document.setExpiration(DateTime.now().plusSeconds(1));
+        document.setExpiration(LocalDateTime.now().plusSeconds(1));
 
         template.add(document, "intField", 10L);
 
@@ -86,7 +82,7 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldExpireBasedOnUnixTimeValue() {
-        template.insert(new DocumentWithUnixTimeExpiration(id, DateTime.now().plusSeconds(1)));
+        template.insert(new DocumentWithUnixTimeExpiration(id, LocalDateTime.now().plusSeconds(1)));
 
         awaitTwoSecondsUntil(() ->
                 assertThat(template.findById(id, DocumentWithUnixTimeExpiration.class)).isNotNull()
