@@ -156,7 +156,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 	void ObjectWithSimpleFields() {
 		Set<String> field9 = set("val1", "val2");
 		Set<Set<String>> field10 = set(set("1", "2"), set("3", "4"), set());
-		SimpleClass object = new SimpleClass(777L, "abyrvalg", 13, 14L, (float) 15, 16.0, true, Instant.ofEpochMilli(8878888L).atZone(ZoneId.systemDefault()).toLocalDate(),
+		SimpleClass object = new SimpleClass(777L, "abyrvalg", 13, 14L, (float) 15, 16.0, true, Instant.ofEpochMilli(8878888L).atZone(ZoneId.systemDefault()).toLocalDateTime(),
 				TYPES.SECOND, field9, field10, (byte) 1);
 
 		assertWriteAndRead(object, SIMPLESET, 777L,

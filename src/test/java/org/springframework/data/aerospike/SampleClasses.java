@@ -32,7 +32,6 @@ import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +71,7 @@ public class SampleClasses {
 		final float field4;
 		final double field5;
 		final boolean field6;
-		final LocalDate field7;
+		final LocalDateTime field7;
 		final TYPES field8;
 		final Set<String> field9;
 		final Set<Set<String>> field10;
