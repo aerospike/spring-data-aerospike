@@ -15,17 +15,31 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Bin;
+import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.Info;
+import com.aerospike.client.Key;
+import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
-import com.aerospike.client.*;
+import com.aerospike.client.ResultCode;
+import com.aerospike.client.Value;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
-import com.aerospike.client.query.*;
+import com.aerospike.client.query.Filter;
+import com.aerospike.client.query.IndexCollectionType;
+import com.aerospike.client.query.IndexType;
+import com.aerospike.client.query.KeyRecord;
+import com.aerospike.client.query.ResultSet;
+import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.core.model.GroupedEntities;
+import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.query.KeyRecordIterator;
@@ -39,7 +53,14 @@ import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -332,6 +353,35 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
+	}
+
+
+	/**
+	 * Executes a single batch request to get results for several entities.
+	 *
+	 * Aerospike provides functionality to get records from different sets in 1 batch
+	 * request. The methods allows to put grouped keys by entity type as parameter and
+	 * get result as spring data aerospike entities grouped by entity type.
+	 *
+	 * @param groupedKeys will never be {@literal null}.
+	 * @return GroupedEntities grouped entities
+	 */
+	@Override
+	public GroupedEntities findByIds(GroupedKeys groupedKeys) {
+		Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+
+		if (groupedKeys.getEntitiesKeys().isEmpty()) {
+			return GroupedEntities.builder().build();
+		}
+
+		return findEntitiesByIdsInternal(groupedKeys);
+	}
+
+	private GroupedEntities findEntitiesByIdsInternal(GroupedKeys groupedKeys) {
+		EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
+		Record[] records = client.get(null, entitiesKeys.getKeys());
+
+		return toGroupedEntities(entitiesKeys, records);
 	}
 
 	@SuppressWarnings("unchecked")

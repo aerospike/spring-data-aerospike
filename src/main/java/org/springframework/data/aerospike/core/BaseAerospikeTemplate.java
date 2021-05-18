@@ -34,6 +34,8 @@ import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.core.model.GroupedEntities;
+import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -41,13 +43,20 @@ import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.util.Assert;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Base class for creation Aerospike templates
@@ -230,6 +239,35 @@ abstract class BaseAerospikeTemplate {
         Assert.notNull(id, "Id must not be null!");
         String userKey = convertIfNecessary(id, String.class);
         return new Key(this.namespace, entity.getSetName(), userKey);
+    }
+
+    GroupedEntities toGroupedEntities(EntitiesKeys entitiesKeys, Record[] records) {
+        GroupedEntities.GroupedEntitiesBuilder builder = GroupedEntities.builder();
+
+        IntStream.range(0, entitiesKeys.getKeys().length)
+                .filter(index -> records[index] != null)
+                .mapToObj(index -> mapToEntity(entitiesKeys.getKeys()[index], entitiesKeys.getEntityClasses()[index], records[index]))
+                .filter(Objects::nonNull)
+                .forEach(entity -> builder.entity(getEntityClass(entity), entity));
+
+        return builder.build();
+    }
+
+    Map<Class<?>, List<Key>> toEntitiesKeyMap(GroupedKeys groupedKeys) {
+        return groupedKeys.getEntitiesKeys().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> toKeysList(entry.getKey(), entry.getValue())));
+    }
+
+    private <T> List<Key> toKeysList(Class<T> entityClass, Collection<?> ids) {
+        Assert.notNull(entityClass, "Entity class must not be null!");
+        Assert.notNull(ids, "List of ids must not be null!");
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+        List<?> idsList = IterableConverter.toList(ids);
+
+        return idsList.stream()
+                .map(id -> getKey(id, entity))
+                .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")

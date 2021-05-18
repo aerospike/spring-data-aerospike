@@ -18,6 +18,8 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import org.springframework.data.aerospike.core.model.GroupedEntities;
+import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -60,6 +62,8 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> findById(Object id, Class<T> entityClass);
 
     <T> Flux<T> findByIds(Iterable<?> ids, Class<T> entityClass);
+
+    Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys);
 
     <T> Flux<T> find(Query query, Class<T> entityClass);
 

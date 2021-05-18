@@ -15,8 +15,12 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Bin;
+import com.aerospike.client.Key;
+import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
-import com.aerospike.client.*;
+import com.aerospike.client.Value;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
@@ -28,6 +32,8 @@ import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.core.model.GroupedEntities;
+import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.query.Qualifier;
@@ -255,6 +261,35 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .flatMap(reactorClient::get)
                 .filter(keyRecord -> nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
+    }
+
+    /**
+     * Executes a single batch request to get results for several entities.
+     *
+     * Aerospike provides functionality to get records from different sets in 1 batch
+     * request. The methods allows to put grouped keys by entity type as parameter and
+     * get result as spring data aerospike entities grouped by entity type.
+     *
+     * @param groupedKeys
+     * @return Mono<GroupedEntities>
+     */
+    @Override
+    public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+
+        if (groupedKeys.getEntitiesKeys().isEmpty()) {
+            return Mono.just(GroupedEntities.builder().build());
+        }
+
+        return findEntitiesByIdsInternal(groupedKeys);
+    }
+
+    private Mono<GroupedEntities> findEntitiesByIdsInternal(GroupedKeys groupedKeys) {
+        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
+
+        return reactorClient.get(null, entitiesKeys.getKeys())
+                .map(item -> toGroupedEntities(entitiesKeys, item.records))
+                .onErrorMap(this::translateError);
     }
 
     @Override

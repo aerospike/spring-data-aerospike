@@ -22,6 +22,8 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.IndexAlreadyExistsException;
+import org.springframework.data.aerospike.core.model.GroupedEntities;
+import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -108,6 +110,8 @@ public interface AerospikeOperations {
 	<T> T findById(Object id, Class<T> entityClass);
 
 	<T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass);
+
+	GroupedEntities findByIds(GroupedKeys groupedKeys);
 
 	<T> T add(T objectToAddTo, Map<String, Long> values);
 	
