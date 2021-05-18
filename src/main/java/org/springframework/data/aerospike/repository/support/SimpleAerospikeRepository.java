@@ -72,6 +72,11 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
 	}
 
 	@Override
+	public void deleteAllById(Iterable<? extends ID> iterable) {
+		throw new UnsupportedOperationException("Method not supported yet.");
+	}
+
+	@Override
 	public Iterable<T> findAll(Sort sort) {
 		return operations.findAll(sort, entityInformation.getJavaType());
 	}
