@@ -120,7 +120,10 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
 
     @Override
     public Mono<Void> deleteAllById(Iterable<? extends ID> iterable) {
-        throw new UnsupportedOperationException("Method not supported yet.");
+        Assert.notNull(iterable, "The given Iterable must not be null!");
+        iterable.forEach(id ->
+                Assert.notNull(id, "The given Iterable of entities must not contain null!"));
+        return Flux.fromIterable(iterable).flatMap(this::deleteById).then();
     }
 
     @Override

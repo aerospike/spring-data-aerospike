@@ -145,4 +145,12 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
         StepVerifier.create(customerRepo.findById(customer1.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(customerRepo.findById(customer2.getId())).expectNextCount(0).verifyComplete();
     }
+
+    @Test
+    public void deleteAllById_ShouldDelete() {
+        customerRepo.deleteAllById(asList(customer1.getId(), customer2.getId())).subscribeOn(Schedulers.parallel()).block();
+
+        StepVerifier.create(customerRepo.findById(customer1.getId())).expectNextCount(0).verifyComplete();
+        StepVerifier.create(customerRepo.findById(customer2.getId())).expectNextCount(0).verifyComplete();
+    }
 }

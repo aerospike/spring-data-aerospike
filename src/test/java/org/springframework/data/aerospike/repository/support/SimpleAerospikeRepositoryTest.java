@@ -165,6 +165,18 @@ public class SimpleAerospikeRepositoryTest {
 	}
 
 	@Test
+	public void deleteAllById() {
+		List<String> personIds = testPersons.stream()
+				.map(Person::getId)
+				.collect(toList());
+		aerospikeRepository.deleteAllById(personIds);
+
+		verify(operations).delete("one", Person.class);
+		verify(operations).delete("two", Person.class);
+		verify(operations).delete("three", Person.class);
+	}
+
+	@Test
 	public void deleteIterableOfQExtendsT() {
 		aerospikeRepository.deleteAll(testPersons);
 

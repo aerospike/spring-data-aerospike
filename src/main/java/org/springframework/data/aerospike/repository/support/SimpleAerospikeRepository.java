@@ -73,7 +73,8 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
 
 	@Override
 	public void deleteAllById(Iterable<? extends ID> iterable) {
-		throw new UnsupportedOperationException("Method not supported yet.");
+		Assert.notNull(iterable, "The given Iterable must not be null!");
+		iterable.forEach(this::deleteById);
 	}
 
 	@Override
