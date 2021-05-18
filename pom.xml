@@ -33,7 +33,7 @@
         <spring-cloud-starter-bootstrap.version>3.0.2</spring-cloud-starter-bootstrap.version>
         <embedded-aerospike.version>2.0.3</embedded-aerospike.version>
         <awaitility.version>4.0.3</awaitility.version>
-        <blockhound.version>1.0.4.RELEASE</blockhound.version>
+        <blockhound.version>1.0.6.RELEASE</blockhound.version>
         <lombok.version>1.18.18</lombok.version>
     </properties>
 
