@@ -34,7 +34,7 @@
         <embedded-aerospike.version>2.0.3</embedded-aerospike.version>
         <awaitility.version>4.0.3</awaitility.version>
         <blockhound.version>1.0.4.RELEASE</blockhound.version>
-        <lombok.version>1.18.18</lombok.version>
+        <lombok.version>1.18.20</lombok.version>
     </properties>
 
     <licenses>
