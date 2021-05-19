@@ -22,14 +22,16 @@ The Spring Data Aerospike project aims to provide a familiar and consistent Spri
 3. [Basic error handling in spring-data-aerospike](https://medium.com/aerospike-developer-blog/basic-error-handling-in-spring-data-aerospike-5edd580d77d9?source=friends_link&sk=cff71ea1539b36e5a89b2c3411b58a06)
 4. [How to create secondary index in Spring Data Aerospike](https://medium.com/aerospike-developer-blog/how-to-create-secondary-index-in-spring-data-aerospike-e19d7e343d7c?source=friends_link&sk=413619a568f9aac51ed2f2611ee70aba)
 
-## Spring Boot compatibility
+## Spring Data Aerospike compatibility
 
-|`spring-data-aerospike` Version | Spring Boot Version
-| :----------- | :----: |
-|2.4.2.RELEASE | 2.3.x
-|2.3.5.RELEASE | 2.2.x
-|2.1.1.RELEASE | 2.1.x, 2.0.x
-|1.2.1.RELEASE | 1.5.x
+|`spring-data-aerospike` Version | Spring Boot Version | Aerospike Client | Aerospike Reactor Client
+| :----------- | :----: | :----------- | :-----------
+|3.0.0 | 2.5.X | 5.1.x | 5.0.x
+|2.5.0 | 2.5.X | 4.4.x | 4.4.x 
+|2.4.2.RELEASE | 2.3.x | 4.4.x | 4.4.x
+|2.3.5.RELEASE | 2.2.x | 4.4.x | 4.4.x
+|2.1.1.RELEASE | 2.1.x, 2.0.x | 4.4.x | 3.2.x
+|1.2.1.RELEASE | 1.5.x | 4.1.x | 
 
 ## Quick Start
 
@@ -41,7 +43,7 @@ Add the Maven dependency:
 <dependency>
   <groupId>com.aerospike</groupId>
   <artifactId>spring-data-aerospike</artifactId>
-  <version>2.4.2.RELEASE</version>
+  <version>3.0.0</version>
 </dependency>
 ```
 
