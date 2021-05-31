@@ -318,15 +318,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set for count must not be null!");
 
         try {
-            Node[] nodes = reactorClient.getAerospikeClient().getNodes();
-
-            int replicationFactor = Utils.getReplicationFactor(nodes, this.namespace);
-
-            long totalObjects = Arrays.stream(nodes)
-                    .mapToLong(node -> Utils.getObjectsCount(node, this.namespace, setName))
-                    .sum();
-
-            return Mono.just((nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects);
+             return Mono.just(countSet(setName));
         } catch (AerospikeException e) {
             throw translateError(e);
         }
@@ -337,6 +329,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(entityClass, "Type must not be null!");
         String setName = getSetName(entityClass);
         return count(setName);
+    }
+
+    private long countSet(String setName) {
+        Node[] nodes = reactorClient.getAerospikeClient().getNodes();
+
+        int replicationFactor = Utils.getReplicationFactor(nodes, this.namespace);
+
+        long totalObjects = Arrays.stream(nodes)
+                .mapToLong(node -> Utils.getObjectsCount(node, this.namespace, setName))
+                .sum();
+
+        return (nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects;
     }
 
     @Override
