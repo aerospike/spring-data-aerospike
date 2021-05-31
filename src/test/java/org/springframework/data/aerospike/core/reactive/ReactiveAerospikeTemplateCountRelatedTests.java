@@ -87,7 +87,7 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
         reactiveTemplate.insert(new Person(nextId(), "vasili", 52)).subscribeOn(Schedulers.parallel()).block();
         reactiveTemplate.insert(new Person(nextId(), "petya", 52)).subscribeOn(Schedulers.parallel()).block();
 
-        Long count = reactiveTemplate.count(Person.class).subscribeOn(Schedulers.parallel()).block();
+        Long count = reactiveTemplate.count(Person.class).block();
         assertThat(count).isEqualTo(4);
     }
 }
