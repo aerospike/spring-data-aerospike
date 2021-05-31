@@ -318,7 +318,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set for count must not be null!");
 
         try {
-             return Mono.just(countSet(setName));
+             return Mono.fromCallable(() -> countSet(setName));
         } catch (AerospikeException e) {
             throw translateError(e);
         }
