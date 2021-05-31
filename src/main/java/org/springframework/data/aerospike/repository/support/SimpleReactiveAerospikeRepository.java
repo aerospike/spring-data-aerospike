@@ -97,7 +97,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
 
     @Override
     public Mono<Long> count() {
-        throw new UnsupportedOperationException("Method not supported yet.");
+        return operations.count(entityInformation.getJavaType());
     }
 
     @Override
@@ -142,7 +142,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
 
     @Override
     public Mono<Void> deleteAll() {
-        throw new UnsupportedOperationException("Method not supported yet.");
+        return operations.delete(entityInformation.getJavaType());
     }
 
     public void createIndex(Class<T> domainType, String indexName, String binName, IndexType indexType) {

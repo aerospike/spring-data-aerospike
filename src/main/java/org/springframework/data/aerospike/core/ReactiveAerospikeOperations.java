@@ -71,9 +71,15 @@ public interface ReactiveAerospikeOperations {
 
     <T> Mono<Long> count(Query query, Class<T> entityClass);
 
+    Mono<Long> count(String setName);
+
+    <T> Mono<Long> count(Class<T> entityClass);
+
     <T> Mono<T> execute(Supplier<T> supplier);
 
     <T> Mono<Boolean> exists(Object id, Class<T> entityClass);
+
+    <T> Mono<Void> delete(Class<T> entityClass);
 
     <T> Mono<Boolean> delete(Object id, Class<T> entityClass);
 

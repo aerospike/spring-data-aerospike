@@ -15,10 +15,15 @@
  */
 package org.springframework.data.aerospike.utility;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Info;
+import com.aerospike.client.ResultCode;
 import com.aerospike.client.cluster.Node;
 import lombok.experimental.UtilityClass;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
+
+import java.util.Random;
 
 /**
  * Utility class containing useful methods
@@ -42,5 +47,40 @@ public class Utils {
 			messages[index] = Info.request(node, infoString);
 		}
 		return messages;
+	}
+
+	public static int getReplicationFactor(Node[] nodes, String namespace) {
+		Node randomNode = getRandomNode(nodes);
+
+		String response = Info.request(randomNode, "get-config:context=namespace;id=" + namespace);
+		if (response.equalsIgnoreCase("ns_type=unknown")) {
+			throw new InvalidDataAccessResourceUsageException("Namespace: " + namespace + " does not exist");
+		}
+		return InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor", Integer::parseInt);
+	}
+
+	public static Node getRandomNode(Node[] nodes) {
+		Random random = new Random();
+
+		if (nodes.length == 0) {
+			throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
+		}
+		int offset = random.nextInt(nodes.length);
+		for (int i = 0; i < nodes.length; i++) {
+			int index = (offset + i) % nodes.length;
+			Node node = nodes[index];
+			if (node.isActive()) {
+				return node;
+			}
+		}
+		throw new AerospikeException.InvalidNode("Command failed because no active nodes found.");
+	}
+
+	public static long getObjectsCount(Node node, String namespace, String setName) {
+		String infoString = Info.request(node, "sets/" + namespace + "/" + setName);
+		if (infoString.isEmpty()) {// set is not present
+			return 0L;
+		}
+		return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);
 	}
 }

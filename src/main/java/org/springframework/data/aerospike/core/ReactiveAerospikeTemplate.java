@@ -15,12 +15,9 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Bin;
-import com.aerospike.client.Key;
-import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
-import com.aerospike.client.Value;
+import com.aerospike.client.*;
+import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
@@ -40,15 +37,13 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
@@ -319,6 +314,32 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public Mono<Long> count(String setName) {
+        Assert.notNull(setName, "Set for count must not be null!");
+
+        try {
+            Node[] nodes = reactorClient.getAerospikeClient().getNodes();
+
+            int replicationFactor = Utils.getReplicationFactor(nodes, this.namespace);
+
+            long totalObjects = Arrays.stream(nodes)
+                    .mapToLong(node -> Utils.getObjectsCount(node, this.namespace, setName))
+                    .sum();
+
+            return Mono.just((nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
+    @Override
+    public <T> Mono<Long> count(Class<T> entityClass) {
+        Assert.notNull(entityClass, "Type must not be null!");
+        String setName = getSetName(entityClass);
+        return count(setName);
+    }
+
+    @Override
     public <T> Mono<T> execute(Supplier<T> supplier) {
         Assert.notNull(supplier, "Supplier must not be null!");
 
@@ -337,6 +358,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .map(Objects::nonNull)
                 .defaultIfEmpty(false)
                 .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public <T> Mono<Void> delete(Class<T> entityClass) {
+        Assert.notNull(entityClass, "Type must not be null!");
+
+        try {
+            String set = getSetName(entityClass);
+            return Mono.fromRunnable(() -> reactorClient.getAerospikeClient().truncate(null, this.namespace, set, null));
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
     }
 
     @Override

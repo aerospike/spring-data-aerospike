@@ -80,5 +80,14 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    public void count_shouldCountAllByPassingEntityClass() {
+        reactiveTemplate.insert(new Person(nextId(), "vasili", 50)).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.insert(new Person(nextId(), "vasili", 51)).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.insert(new Person(nextId(), "vasili", 52)).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.insert(new Person(nextId(), "petya", 52)).subscribeOn(Schedulers.parallel()).block();
 
+        Long count = reactiveTemplate.count(Person.class).subscribeOn(Schedulers.parallel()).block();
+        assertThat(count).isEqualTo(4);
+    }
 }
