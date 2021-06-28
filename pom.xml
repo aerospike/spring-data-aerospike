@@ -280,14 +280,6 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.asciidoctor</groupId>
-                <artifactId>asciidoctor-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <failOnError>false</failOnError>
@@ -342,10 +334,6 @@
         <pluginRepository>
             <id>spring-plugins-release</id>
             <url>https://repo.spring.io/plugins-release</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>jcenter</id>
-            <url>https://dl.bintray.com/asciidoctor/maven</url>
         </pluginRepository>
     </pluginRepositories>
 </project>
