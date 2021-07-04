@@ -24,8 +24,8 @@
         <aerospike>5.1.5</aerospike>
         <aerospike-reactor>5.0.7</aerospike-reactor>
 
-        <springdata.commons>2.5.1</springdata.commons>
-        <springdata.keyvalue>2.5.1</springdata.keyvalue>
+        <springdata.commons>2.5.2</springdata.commons>
+        <springdata.keyvalue>2.5.2</springdata.keyvalue>
         <dist.key>DATAAERO</dist.key>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
