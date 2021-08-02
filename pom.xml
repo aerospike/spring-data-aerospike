@@ -38,7 +38,7 @@
         <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
 
-        <spring-boot-starter-test.version>2.5.2</spring-boot-starter-test.version>
+        <spring-boot-starter-test.version>2.5.3</spring-boot-starter-test.version>
         <spring-cloud-starter-bootstrap.version>3.0.3</spring-cloud-starter-bootstrap.version>
         <embedded-aerospike.version>2.0.10</embedded-aerospike.version>
         <awaitility.version>4.1.0</awaitility.version>
