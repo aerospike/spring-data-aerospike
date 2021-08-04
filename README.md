@@ -26,7 +26,7 @@ The Spring Data Aerospike project aims to provide a familiar and consistent Spri
 
 |`spring-data-aerospike` Version | Spring Boot Version | Aerospike Client | Aerospike Reactor Client
 | :----------- | :----: | :----------- | :-----------
-|3.0.0 | 2.5.X | 5.1.x | 5.0.x
+|3.0.0, 3.0.1 | 2.5.X | 5.1.x | 5.0.x
 |2.5.0 | 2.5.X | 4.4.x | 4.4.x 
 |2.4.2.RELEASE | 2.3.x | 4.4.x | 4.4.x
 |2.3.5.RELEASE | 2.2.x | 4.4.x | 4.4.x
@@ -43,7 +43,7 @@ Add the Maven dependency:
 <dependency>
   <groupId>com.aerospike</groupId>
   <artifactId>spring-data-aerospike</artifactId>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
 </dependency>
 ```
 
