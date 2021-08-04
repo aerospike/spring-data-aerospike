@@ -154,7 +154,6 @@
     </distributionManagement>
 
     <dependencyManagement>
-
         <dependencies>
             <dependency>
                 <groupId>org.springframework.data</groupId>
@@ -190,7 +189,6 @@
     </dependencyManagement>
 
     <dependencies>
-
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
@@ -277,7 +275,6 @@
             <version>${blockhound.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -354,7 +351,6 @@
                 <configuration combine.self="override"/>
             </plugin>
         </plugins>
-
     </build>
 
     <repositories>
