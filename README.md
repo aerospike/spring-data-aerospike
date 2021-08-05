@@ -1,15 +1,21 @@
-# Spring Data Aerospike [![maven][maven-image]][maven-url] [![ci][ci-image]][ci-url]
+# Spring Data Aerospike [![maven][maven-image]][maven-url] [![ci][ci-image]][ci-url] [![javadoc][javadoc-image]][javadoc-url]
 
 [maven-image]: https://img.shields.io/maven-central/v/com.aerospike/spring-data-aerospike.svg?maxAge=259200
 [maven-url]: https://search.maven.org/#search%7Cga%7C1%7Ca%3A%22spring-data-aerospike%22
 [ci-image]: https://github.com/aerospike-community/spring-data-aerospike/workflows/Build%20project/badge.svg
 [ci-url]: https://github.com/aerospike-community/spring-data-aerospike/actions?query=branch%3Amaster
+[javadoc-image]: https://javadoc.io/badge2/com.aerospike/spring-data-aerospike/javadoc.svg 
+[javadoc-url]: https://javadoc.io/doc/com.aerospike/spring-data-aerospike
 
 The primary goal of the [Spring Data](https://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
 The Spring Data Aerospike project aims to provide a familiar and consistent Spring-based programming model for new datastores while retaining store-specific features and capabilities. The Spring Data Aerospike project provides integration with the Aerospike document database. Key functional areas of Spring Data Aerospike are a POJO centric model for interacting with a Aerospike DBCollection and easily writing a repository style data access layer.
 
-## :point_right: :point_right: :point_right: Demo Projects
+## Documentation
+
+The documentation for this project can be found on [javadoc.io](https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike).
+
+## Demo Projects
 
 1. Demo project with detailed guides is located [here](https://github.com/aerospike-community/spring-data-aerospike-demo).
 
