@@ -1,12 +1,17 @@
 name: Publish package to the Maven Central Repository
 on:
   release:
-    types: [created]
+    types: [published]
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Import GPG Key
+        uses: crazy-max/ghaction-import-gpg@v3
+        with:
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
       - name: Set up Maven Central Repository
         uses: actions/setup-java@v1
         with:

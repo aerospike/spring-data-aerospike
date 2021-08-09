@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
@@ -16,20 +16,29 @@
  	<parent>
 		<groupId>org.springframework.data.build</groupId>
 		<artifactId>spring-data-parent</artifactId>
-		<version>2.5.2</version>
+		<version>2.5.3</version>
 	</parent>
 
     <properties>
         <source.level>1.8</source.level>
-        <aerospike>5.1.5</aerospike>
+        <aerospike>5.1.6</aerospike>
         <aerospike-reactor>5.0.7</aerospike-reactor>
 
-        <springdata.commons>2.5.2</springdata.commons>
-        <springdata.keyvalue>2.5.2</springdata.keyvalue>
+        <springdata.commons>2.5.3</springdata.commons>
+        <springdata.keyvalue>2.5.3</springdata.keyvalue>
         <dist.key>DATAAERO</dist.key>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <spring-boot-starter-test.version>2.5.2</spring-boot-starter-test.version>
+        <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
+        <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
+        <maven.javadoc.plugin.version>3.3.0</maven.javadoc.plugin.version>
+        <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
+        <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
+
+        <spring-boot-starter-test.version>2.5.3</spring-boot-starter-test.version>
         <spring-cloud-starter-bootstrap.version>3.0.3</spring-cloud-starter-bootstrap.version>
         <embedded-aerospike.version>2.0.10</embedded-aerospike.version>
         <awaitility.version>4.1.0</awaitility.version>
@@ -145,7 +154,6 @@
     </distributionManagement>
 
     <dependencyManagement>
-
         <dependencies>
             <dependency>
                 <groupId>org.springframework.data</groupId>
@@ -181,7 +189,6 @@
     </dependencyManagement>
 
     <dependencies>
-
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
@@ -268,7 +275,6 @@
             <version>${blockhound.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -276,20 +282,44 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
                 <configuration combine.self="override"/>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven.compiler.plugin.version}</version>
                 <configuration>
-                    <failOnError>false</failOnError>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven.source.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven.javadoc.plugin.version}</version>
+                <configuration>
                     <doclint>none</doclint>
                     <reportOutputDirectory>${basedir}</reportOutputDirectory>
                     <doctitle>Spring Data Aerospike</doctitle>
                     <show>public</show>
                     <splitindex>true</splitindex>
                     <bottom>Copyright &#169; 2020&#x2013;{currentYear} Aerospike, Inc. All rights reserved.</bottom>
-                    <sourcepath>${basedir}/src/main</sourcepath>
+                    <sourcepath>${basedir}/src/main/java</sourcepath>
+                    <source>1.8</source>
                 </configuration>
                 <executions>
                     <execution>
@@ -303,7 +333,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.6</version>
+                <version>${maven.gpg.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
@@ -317,10 +347,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
                 <configuration combine.self="override"/>
             </plugin>
         </plugins>
-
     </build>
 
     <repositories>
