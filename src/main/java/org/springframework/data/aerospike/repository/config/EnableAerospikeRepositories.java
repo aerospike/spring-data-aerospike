@@ -20,7 +20,7 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.aerospike.repository.support.AerospikeRepositoryFactoryBean;
 import org.springframework.data.aerospike.repository.support.SimpleAerospikeRepository;
-import org.springframework.data.keyvalue.core.KeyValueOperations;
+import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 
@@ -101,9 +101,9 @@ public @interface EnableAerospikeRepositories {
 	Class<?> repositoryBaseClass() default SimpleAerospikeRepository.class;
 
 	/**
-	 * Configures the name of the {@link KeyValueOperations} bean to be used with the repositories detected.
+	 * Configures the name of the {@link AerospikeOperations} bean to be used with the repositories detected.
 	 */
-	String keyValueTemplateRef() default "aerospikeTemplate";
+	String aerospikeTemplateRef() default "aerospikeTemplate";
 
 	/**
 	 * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be discovered by the
