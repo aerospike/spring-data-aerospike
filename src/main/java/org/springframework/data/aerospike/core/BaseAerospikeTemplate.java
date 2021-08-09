@@ -199,6 +199,12 @@ abstract class BaseAerospikeTemplate {
     <T> AerospikeWriteData writeData(T document) {
         AerospikeWriteData data = AerospikeWriteData.forWrite();
         converter.write(document, data);
+
+        // Override the namespace, the aerospike template's namespace should be used in case its different from the persistent entity's namespace (default)
+        if (!data.getKey().namespace.equals(getNamespace())) {
+            Key newKey = new Key(getNamespace(), data.getKey().setName, data.getKey().userKey);
+            data.setKey(newKey);
+        }
         return data;
     }
 
