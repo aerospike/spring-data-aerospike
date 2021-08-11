@@ -69,7 +69,7 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 	 */
 	@Override
 	public Object put(Object id, Object item, String keyspace) {
-		AerospikeWriteData data = AerospikeWriteData.forWrite();
+		AerospikeWriteData data = AerospikeWriteData.forWrite(namespace);
 		converter.write(item, data);
 		client.put(null, data.getKey(), data.getBinsAsArray());
 		return item;

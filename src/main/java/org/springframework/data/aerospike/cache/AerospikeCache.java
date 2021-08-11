@@ -184,7 +184,7 @@ public class AerospikeCache implements Cache {
 	}
 
 	private void serializeAndPut(WritePolicy writePolicy, Object key, Object value) {
-		AerospikeWriteData data = AerospikeWriteData.forWrite();
+		AerospikeWriteData data = AerospikeWriteData.forWrite(getKey(key).namespace);
 		aerospikeConverter.write(value, data);
 		client.put(writePolicy, getKey(key), data.getBinsAsArray());
 	}

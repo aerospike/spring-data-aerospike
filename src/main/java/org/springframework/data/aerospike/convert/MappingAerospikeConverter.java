@@ -84,5 +84,4 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
 	public void write(Object source, AerospikeWriteData sink) {
 		writeConverter.write(source, sink);
 	}
-
 }

@@ -428,7 +428,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 										Object expectedUserKey,
 										Bin... expectedBins) {
 
-		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
+		AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
 		converter.write(object, forWrite);
 

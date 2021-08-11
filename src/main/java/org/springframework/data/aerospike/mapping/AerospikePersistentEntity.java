@@ -25,11 +25,6 @@ import org.springframework.data.mapping.PersistentEntity;
  */
 public interface AerospikePersistentEntity<T> extends PersistentEntity<T, AerospikePersistentProperty> {
 
-	/**
-	 * Returns the name of the set the {@link PersistentEntity} shall be stored in.
-	 */
-	String getNamespace();
-
 	String getSetName();
 
 	int getExpiration();
