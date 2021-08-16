@@ -214,6 +214,7 @@ abstract class BaseAerospikeTemplate {
         return WritePolicyBuilder.builder(this.writePolicyDefault)
                 .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
                 .generation(data.getVersion().orElse(0))
+                .sendKey(true)
                 .expiration(data.getExpiration())
                 .recordExistsAction(recordExistsAction)
                 .build();
@@ -222,6 +223,7 @@ abstract class BaseAerospikeTemplate {
     WritePolicy ignoreGenerationSavePolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
         return WritePolicyBuilder.builder(this.writePolicyDefault)
                 .generationPolicy(GenerationPolicy.NONE)
+                .sendKey(true)
                 .expiration(data.getExpiration())
                 .recordExistsAction(recordExistsAction)
                 .build();
