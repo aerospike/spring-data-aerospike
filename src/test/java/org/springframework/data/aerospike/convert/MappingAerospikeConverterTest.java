@@ -136,10 +136,10 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 
 		assertThat(forWrite.getKey()).consistsOf(NAMESPACE, SIMPLESET3, user.getId());
 		assertThat(forWrite.getBins()).containsOnly(
-				new Bin("@user_key", "678")
+				new Bin("PK", "678")
 		);
 
-		Map<String, Object> bins = of("@user_key", "678");
+		Map<String, Object> bins = of("PK", "678");
 		User read = converter.read(User.class, AerospikeReadData.forRead(forWrite.getKey(), record(bins)));
 
 		assertThat(read).isEqualTo(user);
@@ -287,7 +287,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 		converter.write(new VersionedClass("id", "data", 42L), forWrite);
 
 		assertThat(forWrite.getBins()).containsOnly(
-				new Bin("@user_key", "id"),
+				new Bin("PK", "id"),
 				new Bin("@_class", VersionedClass.class.getName()),
 				new Bin("field", "data")
 		);
