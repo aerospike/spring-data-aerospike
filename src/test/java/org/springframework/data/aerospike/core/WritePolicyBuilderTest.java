@@ -89,4 +89,12 @@ public class WritePolicyBuilderTest {
         assertThat(source.sendKey).isFalse();
         assertThat(policy.sendKey).isTrue();
     }
+
+    @Test
+    public void sendKeyDefaultShouldBeTrueUsingWritePolicyBuilder() {
+        WritePolicy writePolicy = WritePolicyBuilder.builder(new WritePolicy())
+                .build();
+
+        assertThat(writePolicy.sendKey).isTrue();
+    }
 }

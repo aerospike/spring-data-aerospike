@@ -293,8 +293,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	private Record getAndTouch(Key key, int expiration) {
-		WritePolicy writePolicy = new WritePolicy(client.getWritePolicyDefault());
-		writePolicy.expiration = expiration;
+		WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+				.expiration(expiration)
+				.build();
 
 		if (this.client.exists(null, key)) {
 			return this.client.operate(writePolicy, key, Operation.touch(), Operation.get());
@@ -542,8 +543,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			AerospikeWriteData data = writeData(objectToAddTo);
 			Operation[] ops = operations(values, Operation.Type.ADD, Operation.get());
 
-			WritePolicy writePolicy = new WritePolicy(this.client.getWritePolicyDefault());
-			writePolicy.expiration = data.getExpiration();
+			WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+					.expiration(data.getExpiration())
+					.build();
 
 			Record record = this.client.operate(writePolicy, data.getKey(), ops);
 
@@ -561,8 +563,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		try {
 			AerospikeWriteData data = writeData(objectToAddTo);
 
-			WritePolicy writePolicy = new WritePolicy(this.client.getWritePolicyDefault());
-			writePolicy.expiration = data.getExpiration();
+			WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+					.expiration(data.getExpiration())
+					.build();
 
 			Record record = this.client.operate(writePolicy, data.getKey(),
 					Operation.add(new Bin(binName, value)), Operation.get());

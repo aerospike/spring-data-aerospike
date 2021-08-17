@@ -155,8 +155,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
         operations[x] = Operation.get();
 
-        WritePolicy writePolicy = new WritePolicy(this.writePolicyDefault);
-        writePolicy.expiration = data.getExpiration();
+        WritePolicy writePolicy = WritePolicyBuilder.builder(this.writePolicyDefault)
+                .expiration(data.getExpiration())
+                .build();
 
         return executeOperationsOnValue(objectToAddTo, data, operations, writePolicy);
     }
@@ -169,8 +170,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         AerospikeWriteData data = writeData(objectToAddTo);
 
-        WritePolicy writePolicy = new WritePolicy(this.writePolicyDefault);
-        writePolicy.expiration = data.getExpiration();
+        WritePolicy writePolicy = WritePolicyBuilder.builder(this.writePolicyDefault)
+                .expiration(data.getExpiration())
+                .build();
 
         Operation[] operations = {Operation.add(new Bin(binName, value)), Operation.get(binName)};
         return executeOperationsOnValue(objectToAddTo, data, operations, writePolicy);
@@ -466,9 +468,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private Mono<KeyRecord> getAndTouch(Key key, int expiration) {
-        WritePolicy policy = new WritePolicy(writePolicyDefault);
-        policy.expiration = expiration;
-        return reactorClient.operate(policy, key, Operation.touch(), Operation.get());
+        WritePolicy writePolicy = WritePolicyBuilder.builder(this.writePolicyDefault)
+                .expiration(expiration)
+                .build();
+        return reactorClient.operate(writePolicy, key, Operation.touch(), Operation.get());
     }
 
     private Throwable translateError(Throwable e) {

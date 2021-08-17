@@ -31,8 +31,9 @@ public class AerospikeTemplatePersistTests extends BaseBlockingIntegrationTests 
     public void shouldPersistWithCustomWritePolicy() {
         CustomCollectionClass initial = new CustomCollectionClass(id, "data");
 
-        WritePolicy writePolicy = new WritePolicy();
-        writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
+        WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+                .recordExistsAction(RecordExistsAction.CREATE_ONLY)
+                .build();
 
         template.persist(initial, writePolicy);
 
@@ -44,8 +45,9 @@ public class AerospikeTemplatePersistTests extends BaseBlockingIntegrationTests 
     public void shouldNotPersistWithCustomWritePolicy() {
         CustomCollectionClass initial = new CustomCollectionClass(id, "data");
 
-        WritePolicy writePolicy = new WritePolicy();
-        writePolicy.recordExistsAction = RecordExistsAction.UPDATE_ONLY;
+        WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+                .recordExistsAction(RecordExistsAction.UPDATE_ONLY)
+                .build();
 
         assertThatThrownBy(() -> template.persist(initial, writePolicy))
                 .isInstanceOf(DataRetrievalFailureException.class);

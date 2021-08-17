@@ -25,6 +25,7 @@ import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
+import org.springframework.data.aerospike.core.WritePolicyBuilder;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -54,11 +55,13 @@ public class AerospikeCache implements Cache {
 		this.client = client;
 		this.aerospikeConverter = aerospikeConverter;
 		this.cacheConfiguration = cacheConfiguration;
-		this.createOnly = new WritePolicy(client.getWritePolicyDefault());
-		this.createOnly.recordExistsAction = RecordExistsAction.CREATE_ONLY;
-		this.createOnly.expiration = cacheConfiguration.getExpirationInSeconds();
-		this.writePolicyForPut = new WritePolicy(client.getWritePolicyDefault());
-		this.writePolicyForPut.expiration = cacheConfiguration.getExpirationInSeconds();
+		this.createOnly = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+				.recordExistsAction(RecordExistsAction.CREATE_ONLY)
+				.expiration(cacheConfiguration.getExpirationInSeconds())
+				.build();
+		this.writePolicyForPut = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+				.expiration(cacheConfiguration.getExpirationInSeconds())
+				.build();
 	}
 
 	/**

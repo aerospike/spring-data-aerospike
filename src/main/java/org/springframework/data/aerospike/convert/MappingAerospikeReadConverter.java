@@ -45,7 +45,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.springframework.data.aerospike.convert.AerospikeMetaData.USER_KEY;
 import static org.springframework.data.aerospike.utility.TimeUtils.offsetInSecondsToUnixTime;
 
 public class MappingAerospikeReadConverter implements EntityReader<Object, AerospikeReadData> {
@@ -97,7 +96,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 	@SuppressWarnings("unchecked")
 	private <T> T getIdValue(Key key, Map<String, Object> data, AerospikePersistentProperty property) {
 		Value userKey = key.userKey;
-		Object value = userKey == null ? data.get(USER_KEY) : userKey.getObject();
+		Object value = userKey == null ? data.get("PK") : userKey.getObject();
 		Assert.notNull(value, "Id must not be null!");
 		return (T) convertIfNeeded(value, property.getType());
 	}

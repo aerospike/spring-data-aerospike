@@ -57,12 +57,14 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 		this.client = client;
 		this.converter = converter;
 		this.namespace = namespace;
-		this.insertPolicy = new WritePolicy(this.client.getWritePolicyDefault());
-		this.updatePolicy = new WritePolicy(this.client.getWritePolicyDefault());
-		this.insertPolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
-		this.updatePolicy.recordExistsAction = RecordExistsAction.UPDATE_ONLY;
+		this.insertPolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+				.recordExistsAction(RecordExistsAction.CREATE_ONLY)
+				.build();
+		this.updatePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+				.recordExistsAction(RecordExistsAction.UPDATE_ONLY)
+				.build();
 	}
-	
+
 	/* 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.keyvalue.core.KeyValueAdapter#put(java.io.Serializable, java.lang.Object, java.io.Serializable)
@@ -108,9 +110,10 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 		Key key = new Key(namespace, keyspace, id.toString());
 		Object object = get(id, keyspace);
 		if (object != null) {
-			WritePolicy wp = new WritePolicy();
-			wp.recordExistsAction = RecordExistsAction.UPDATE_ONLY;
-			client.delete(wp, key);
+			WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+					.recordExistsAction(RecordExistsAction.UPDATE_ONLY)
+					.build();
+			client.delete(writePolicy, key);
 		}
 		return object;
 	}

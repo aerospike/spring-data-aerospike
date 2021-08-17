@@ -28,6 +28,8 @@ public class WritePolicyBuilder {
 
     private WritePolicyBuilder(WritePolicy policy) {
         this.policy = policy;
+        // sendKey(true) should be the default behaviour
+        this.sendKey(true);
     }
 
     public static WritePolicyBuilder builder(WritePolicy policy) {

@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.springframework.data.aerospike.convert.AerospikeMetaData.USER_KEY;
 import static org.springframework.data.aerospike.utility.TimeUtils.unixTimeToOffsetInSeconds;
 
 public class MappingAerospikeWriteConverter implements EntityWriter<Object, AerospikeWriteData> {
@@ -80,7 +79,6 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 			Assert.notNull(id, "Id must not be null!");
 
 			data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
-			data.addBin(USER_KEY, id);
 		}
 
 		AerospikePersistentProperty versionProperty = entity.getVersionProperty();

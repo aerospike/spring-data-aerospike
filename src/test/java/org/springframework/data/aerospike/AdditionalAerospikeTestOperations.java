@@ -10,6 +10,7 @@ import com.aerospike.client.query.IndexType;
 import lombok.Value;
 import lombok.*;
 import org.awaitility.Awaitility;
+import org.springframework.data.aerospike.core.WritePolicyBuilder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.utility.ResponseUtils;
@@ -129,8 +130,10 @@ public abstract class AdditionalAerospikeTestOperations {
         Bin[] bins = Stream.concat(
                 initial.bins.entrySet().stream().map(e -> new Bin(e.getKey(), e.getValue())),
                 Stream.of(new Bin("notPresent", "cats"))).toArray(Bin[]::new);
-        WritePolicy policy = new WritePolicy();
-        policy.recordExistsAction = RecordExistsAction.REPLACE;
+
+        WritePolicy policy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+                .recordExistsAction(RecordExistsAction.REPLACE)
+                .build();
 
         client.put(policy, key, bins);
 
@@ -155,5 +158,4 @@ public abstract class AdditionalAerospikeTestOperations {
         @NonNull
         String status;
     }
-
 }

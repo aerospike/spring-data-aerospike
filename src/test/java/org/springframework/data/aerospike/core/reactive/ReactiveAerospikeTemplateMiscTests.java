@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.core.WritePolicyBuilder;
 import org.springframework.data.aerospike.sample.Person;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -28,8 +29,9 @@ public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveIntegrationT
                 .verifyComplete();
 
         StepVerifier.create(reactiveTemplate.execute(() -> {
-            WritePolicy writePolicy = new WritePolicy();
-            writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
+            WritePolicy writePolicy = WritePolicyBuilder.builder(reactorClient.getWritePolicyDefault())
+                    .recordExistsAction(RecordExistsAction.CREATE_ONLY)
+                    .build();
             return reactorClient.add(writePolicy, key, bin).subscribeOn(Schedulers.parallel()).block();
         }))
                 .expectError(DuplicateKeyException.class)
