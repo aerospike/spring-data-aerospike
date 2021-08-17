@@ -51,8 +51,8 @@ public class AerospikeWriteData {
 		this.version = version;
 	}
 
-	public static AerospikeWriteData forWrite() {
-		return new AerospikeWriteData(null, new ArrayList<>(), 0, null);
+	public static AerospikeWriteData forWrite(String namespace) {
+		return new AerospikeWriteData(new Key(namespace, "", ""), new ArrayList<>(), 0, null);
 	}
 
 	public void setKey(Key key) {

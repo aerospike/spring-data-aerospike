@@ -79,7 +79,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 			String id = accessor.getProperty(idProperty, String.class);
 			Assert.notNull(id, "Id must not be null!");
 
-			data.setKey(new Key(entity.getNamespace(), entity.getSetName(), id));
+			data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
 			data.addBin(USER_KEY, id);
 		}
 

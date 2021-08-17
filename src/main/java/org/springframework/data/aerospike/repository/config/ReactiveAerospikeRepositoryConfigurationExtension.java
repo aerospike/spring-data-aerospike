@@ -43,11 +43,6 @@ public class ReactiveAerospikeRepositoryConfigurationExtension extends BaseAeros
     }
 
     @Override
-    protected String getDefaultKeyValueTemplateRef() {
-        return "reactiveAerospikeTemplate";
-    }
-
-    @Override
     public String getRepositoryFactoryBeanClassName() {
         return ReactiveAerospikeRepositoryFactoryBean.class.getName();
     }

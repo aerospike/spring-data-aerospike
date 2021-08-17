@@ -19,10 +19,10 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
-import org.springframework.data.keyvalue.repository.config.KeyValueRepositoryConfigurationExtension;
 import org.springframework.data.keyvalue.repository.config.QueryCreatorType;
 import org.springframework.data.keyvalue.repository.query.SpelQueryCreator;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
+import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
 
 import java.util.Map;
 
@@ -30,14 +30,17 @@ import java.util.Map;
  * @author Oliver Gierke
  * @author Igor Ermolenko
  */
-public abstract class BaseAerospikeRepositoryConfigurationExtension extends KeyValueRepositoryConfigurationExtension {
+public abstract class BaseAerospikeRepositoryConfigurationExtension extends RepositoryConfigurationExtensionSupport {
+
+    protected static final String MAPPING_CONTEXT_BEAN_NAME = "aerospikeMappingContext";
+    protected static final String AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE = "aerospikeTemplateRef";
 
     @Override
     public void postProcess(BeanDefinitionBuilder builder, AnnotationRepositoryConfigurationSource config) {
 
         AnnotationAttributes attributes = config.getAttributes();
 
-        builder.addPropertyReference("operations", attributes.getString(KEY_VALUE_TEMPLATE_BEAN_REF_ATTRIBUTE));
+        builder.addPropertyReference("operations", attributes.getString(AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE));
         builder.addPropertyValue("queryCreator", getQueryCreatorType(config));
         builder.addPropertyReference("mappingContext", MAPPING_CONTEXT_BEAN_NAME);
     }

@@ -34,25 +34,20 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 
 	static final int DEFAULT_EXPIRATION = 0;
 
-	private final String defaultNameSpace;
-
 	private AerospikePersistentProperty expirationProperty;
 	private Environment environment;
 	private final Lazy<String> setName;
 	private final Lazy<Integer> expiration;
 	private final Lazy<Boolean> isTouchOnRead;
 
-
 	/**
 	 * Creates a new {@link BasicAerospikePersistentEntity}
-	 * using a given {@link TypeInformation} and a default namespace.
+	 * using a given {@link TypeInformation}.
 	 *
 	 * @param information must not be {@literal null}.
-	 * @param defaultNameSpace The default namespace.
 	 */
-	public BasicAerospikePersistentEntity(TypeInformation<T> information, String defaultNameSpace) {
+	public BasicAerospikePersistentEntity(TypeInformation<T> information) {
 		super(information);
-		this.defaultNameSpace = defaultNameSpace;
 		this.setName = Lazy.of(() -> {
 			Class<T> type = getType();
 			Document annotation = type.getAnnotation(Document.class);
@@ -91,11 +86,6 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 
 			expirationProperty = property;
 		}
-	}
-
-	@Override
-	public String getNamespace() {
-		return defaultNameSpace;
 	}
 
 	/*

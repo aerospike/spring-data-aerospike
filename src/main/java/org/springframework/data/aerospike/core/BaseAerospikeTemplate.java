@@ -197,7 +197,7 @@ abstract class BaseAerospikeTemplate {
     }
 
     <T> AerospikeWriteData writeData(T document) {
-        AerospikeWriteData data = AerospikeWriteData.forWrite();
+        AerospikeWriteData data = AerospikeWriteData.forWrite(getNamespace());
         converter.write(document, data);
         return data;
     }

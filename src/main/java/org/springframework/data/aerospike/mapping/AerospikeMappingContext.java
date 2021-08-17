@@ -60,7 +60,7 @@ public class AerospikeMappingContext extends
 	 */
 	@Override
 	protected <T> BasicAerospikePersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		BasicAerospikePersistentEntity<T> entity = new BasicAerospikePersistentEntity<>(typeInformation, defaultNameSpace);
+		BasicAerospikePersistentEntity<T> entity = new BasicAerospikePersistentEntity<>(typeInformation);
 		if (context != null) {
 			entity.setEnvironment(context.getEnvironment());
 		}

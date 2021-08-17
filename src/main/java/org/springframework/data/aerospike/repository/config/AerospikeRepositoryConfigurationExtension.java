@@ -43,11 +43,6 @@ public class AerospikeRepositoryConfigurationExtension extends BaseAerospikeRepo
     }
 
     @Override
-    protected String getDefaultKeyValueTemplateRef() {
-        return "aerospikeTemplate";
-    }
-
-    @Override
     public String getRepositoryFactoryBeanClassName() {
         return AerospikeRepositoryFactoryBean.class.getName();
     }

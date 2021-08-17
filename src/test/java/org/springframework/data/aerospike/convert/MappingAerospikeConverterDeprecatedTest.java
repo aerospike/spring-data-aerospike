@@ -90,7 +90,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		address.city = "New York";
 		address.street = "Broadway";
 
-		AerospikeWriteData dbObject = AerospikeWriteData.forWrite();
+		AerospikeWriteData dbObject = AerospikeWriteData.forWrite(key.namespace);
 		converter.write(address, dbObject);
 
 		Collection<Bin> bins = dbObject.getBins();
@@ -126,7 +126,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 
 		foo.map = Collections.singletonMap(Locale.US, "Biff");
 
-		AerospikeWriteData dbObject = AerospikeWriteData.forWrite();
+		AerospikeWriteData dbObject = AerospikeWriteData.forWrite(key.namespace);
 		converter.write(foo, dbObject);
 
 		Object object = getBinValue("map", dbObject.getBins());
@@ -138,7 +138,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		ClassWithEnumProperty value = new ClassWithEnumProperty();
 		value.sampleEnum = SampleEnum.FIRST;
 
-		AerospikeWriteData result = AerospikeWriteData.forWrite();
+		AerospikeWriteData result = AerospikeWriteData.forWrite(key.namespace);
 		converter.write(value, result);
 
 		Object object = getBinValue("sampleEnum", result.getBins());
@@ -153,7 +153,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		ClassWithEnumProperty value = new ClassWithEnumProperty();
 		value.enums = Arrays.asList(SampleEnum.FIRST);
 
-		AerospikeWriteData result = AerospikeWriteData.forWrite();
+		AerospikeWriteData result = AerospikeWriteData.forWrite(key.namespace);
 		converter.write(value, result);
 
 		Object object = getBinValue("enums", result.getBins());
@@ -203,7 +203,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		person.id = "oliver-01";
 		person.firstname = "Oliver";
 
-		AerospikeWriteData dbObject = AerospikeWriteData.forWrite();
+		AerospikeWriteData dbObject = AerospikeWriteData.forWrite(key.namespace);
 		converter.write(person, dbObject);
 
 
@@ -239,7 +239,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		person.id = "oliver-02";
 		person.addresses = Collections.emptySet();
 
-		AerospikeWriteData forWrite = AerospikeWriteData.forWrite();
+		AerospikeWriteData forWrite = AerospikeWriteData.forWrite(key.namespace);
 
 		converter.write(person, forWrite);
 
