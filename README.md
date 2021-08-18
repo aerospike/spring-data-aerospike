@@ -30,10 +30,10 @@ The documentation for this project can be found on [javadoc.io](https://www.java
 
 ## Spring Data Aerospike compatibility
 
-|`spring-data-aerospike` Version | Spring Boot Version | Aerospike Client | Aerospike Reactor Client
-| :----------- | :----: | :----------- | :-----------
-|3.0.0, 3.0.1 | 2.5.X | 5.1.x | 5.0.x
-|2.5.0 | 2.5.X | 4.4.x | 4.4.x 
+|Spring Data Aerospike | Spring Boot | Aerospike Client | Aerospike Reactor Client
+| :----------- | :---- | :----------- | :-----------
+|3.0.x | 2.5.X | 5.1.x | 5.0.x
+|2.5.x | 2.5.X | 4.4.x | 4.4.x 
 |2.4.2.RELEASE | 2.3.x | 4.4.x | 4.4.x
 |2.3.5.RELEASE | 2.2.x | 4.4.x | 4.4.x
 |2.1.1.RELEASE | 2.1.x, 2.0.x | 4.4.x | 3.2.x
