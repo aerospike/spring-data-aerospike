@@ -24,6 +24,8 @@ public class AerospikeDataSettings {
 
 	@Builder.Default
 	boolean scansEnabled = false;
+	@Builder.Default
+	boolean sendKey = true;
 
 	/*
 	 * (non-Javadoc)

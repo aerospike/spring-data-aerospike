@@ -21,7 +21,6 @@ import com.aerospike.client.policy.CommitLevel;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
-import org.springframework.data.aerospike.core.WritePolicyBuilder;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a read policy via XML.
@@ -36,8 +35,7 @@ public class WritePolicyFactoryBean extends ReadPolicyFactoryBean {
 	 * Creates a new {@link WritePolicyFactoryBean}.
 	 */
 	public WritePolicyFactoryBean() {
-		this.policy = WritePolicyBuilder.builder(new WritePolicy())
-				.build();
+		this.policy = new WritePolicy();
 	}
 
 	/**

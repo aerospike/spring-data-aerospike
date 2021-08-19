@@ -141,12 +141,14 @@ public abstract class AerospikeDataConfigurationSupport {
 
     protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
         builder.scansEnabled(false);
+        builder.sendKey(true);
     }
 
     protected ClientPolicy getClientPolicy() {
         ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.failIfNotConnected = true;
         clientPolicy.timeout = 10_000;
+        clientPolicy.writePolicyDefault.sendKey = aerospikeDataSettings().isSendKey();
         return clientPolicy;
     }
 }
