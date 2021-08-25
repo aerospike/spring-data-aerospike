@@ -32,7 +32,7 @@ The documentation for this project can be found on [javadoc.io](https://www.java
 
 |Spring Data Aerospike | Spring Boot | Aerospike Client | Aerospike Reactor Client
 | :----------- | :---- | :----------- | :-----------
-|3.0.x | 2.5.X | 5.1.x | 5.0.x
+|3.0.x, 3.1.x | 2.5.X | 5.1.x | 5.0.x
 |2.5.x | 2.5.X | 4.4.x | 4.4.x 
 |2.4.2.RELEASE | 2.3.x | 4.4.x | 4.4.x
 |2.3.5.RELEASE | 2.2.x | 4.4.x | 4.4.x
@@ -49,7 +49,7 @@ Add the Maven dependency:
 <dependency>
   <groupId>com.aerospike</groupId>
   <artifactId>spring-data-aerospike</artifactId>
-  <version>3.0.1</version>
+  <version>3.1.0</version>
 </dependency>
 ```
 
