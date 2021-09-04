@@ -24,7 +24,7 @@ import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.index.AerospikePersistenceEntityIndexCreator;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
-import org.springframework.data.aerospike.query.FilterExpressionBuilder;
+import org.springframework.data.aerospike.query.ScanFilters;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
@@ -48,8 +48,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     @Bean(name = "aerospikeQueryEngine")
     public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
                                    StatementBuilder statementBuilder,
-                                   FilterExpressionBuilder filterExpressionBuilder) {
-        QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, aerospikeClient.getQueryPolicyDefault(), filterExpressionBuilder);
+                                   ScanFilters scanFilters) {
+        QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, aerospikeClient.getQueryPolicyDefault(), scanFilters);
         queryEngine.setScansEnabled(aerospikeDataSettings().isScansEnabled());
         return queryEngine;
     }

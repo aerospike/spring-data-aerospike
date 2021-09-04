@@ -19,13 +19,11 @@ package org.springframework.data.aerospike.query;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
-import com.aerospike.client.exp.Expression;
 import com.aerospike.client.policy.QueryPolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * This class provides a multi-filter query engine that
@@ -49,7 +47,7 @@ public class QueryEngine {
 	private final IAerospikeClient client;
 	private final StatementBuilder statementBuilder;
 	private final QueryPolicy queryPolicy;
-	private final FilterExpressionBuilder filterExpressionBuilder;
+	private final ScanFilters scanFilters;
 
 	public enum Meta {
 		KEY,
@@ -73,11 +71,11 @@ public class QueryEngine {
 	}
 
 	public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
-					   QueryPolicy queryPolicy, FilterExpressionBuilder filterExpressionBuilder) {
+					   QueryPolicy queryPolicy, ScanFilters scanFilters) {
 		this.client = client;
 		this.statementBuilder = statementBuilder;
 		this.queryPolicy = queryPolicy;
-		this.filterExpressionBuilder = filterExpressionBuilder;
+		this.scanFilters = scanFilters;
 	}
 
 	/**
@@ -110,7 +108,7 @@ public class QueryEngine {
 		 *  query with filters
 		 */
 		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers);
-		queryPolicy.filterExp = filterExpressionBuilder.buildFilterExp(qualifiers);
+		scanFilters.setScanFilters(client, queryPolicy, qualifiers);
 		if (!scansEnabled && statement.getFilter() == null) {
 			throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
 		}
@@ -120,5 +118,9 @@ public class QueryEngine {
 
 	public void setScansEnabled(boolean scansEnabled) {
 		this.scansEnabled = scansEnabled;
+	}
+
+	public QueryPolicy getQueryPolicy() {
+		return queryPolicy;
 	}
 }

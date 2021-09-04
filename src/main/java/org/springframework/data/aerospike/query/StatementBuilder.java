@@ -15,18 +15,10 @@
  */
 package org.springframework.data.aerospike.query;
 
-import com.aerospike.client.exp.Exp;
-import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
-import com.aerospike.client.query.PredExp;
 import com.aerospike.client.query.Statement;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.model.IndexedField;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author peter
@@ -88,15 +80,6 @@ public class StatementBuilder {
 				}
 			}
 		}
-
-		/*
-		PredExp[] predexps = buildPredExp(qualifiers).toArray(new PredExp[0]);
-		if (predexps.length > 0) {
-			stmt.setPredExp(predexps);
-		} else {
-			throw new QualifierException("Failed to build Query");
-		}
-		*/
 	}
 
 	private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
@@ -104,23 +87,5 @@ public class StatementBuilder {
 
 		//TODO: skips check on index-type and index-collection-type
 		return indexesCache.hasIndexFor(new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField()));
-	}
-
-	private static List<PredExp> buildPredExp(Qualifier[] qualifiers) {
-		List<PredExp> pes = new ArrayList<>();
-		int qCount = 0;
-		for (Qualifier q : qualifiers) {
-			if (null != q && !q.queryAsFilter()) {
-				List<PredExp> tpes = q.toPredExp();
-				if (tpes.size() > 0) {
-					pes.addAll(tpes);
-					qCount++;
-					q = null;
-				}
-			}
-		}
-
-		if (qCount > 1) pes.add(PredExp.and(qCount));
-		return pes;
 	}
 }

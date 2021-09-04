@@ -31,7 +31,7 @@ import org.springframework.data.aerospike.core.DefaultAerospikeExceptionTranslat
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
 import org.springframework.data.aerospike.mapping.Document;
-import org.springframework.data.aerospike.query.FilterExpressionBuilder;
+import org.springframework.data.aerospike.query.ScanFilters;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
@@ -102,9 +102,9 @@ public abstract class AerospikeDataConfigurationSupport {
         return new AerospikeClient(getClientPolicy(), hosts.toArray(new Host[0]));
     }
 
-    @Bean(name = "filterExpressionBuilder")
-    public FilterExpressionBuilder filterExpressionBuilder() {
-        return new FilterExpressionBuilder();
+    @Bean(name = "scanFilters")
+    public ScanFilters scanFilters() {
+        return new ScanFilters();
     }
 
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
