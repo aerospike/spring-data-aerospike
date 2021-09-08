@@ -18,7 +18,6 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
-import com.aerospike.client.query.PredExp;
 
 /**
  * Qualifier used to query by latest update time
@@ -33,10 +32,5 @@ public class LatestUpdateQualifier extends Qualifier {
 		if (value.getType() != ParticleType.INTEGER) {
 			throw new QualifierException("LatestUpdateQualifer value must be an integer or long");
 		}
-	}
-
-	@Override
-	public PredExp getFieldExpr(int valType) {
-		return PredExp.recLastUpdate();
 	}
 }

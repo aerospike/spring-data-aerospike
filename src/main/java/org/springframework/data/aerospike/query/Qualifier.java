@@ -26,12 +26,9 @@ import com.aerospike.client.exp.ListExp;
 import com.aerospike.client.exp.MapExp;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
-import com.aerospike.client.query.PredExp;
 import com.aerospike.client.query.RegexFlag;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -69,12 +66,12 @@ public class Qualifier implements Map<String, Object>, Serializable {
 	protected Map<String, Object> internalMap;
 
 	public static class QualifierRegexpBuilder {
-		private static Character BACKSLASH = '\\';
-		private static Character DOT = '.';
-		private static Character ASTERISK = '*';
-		private static Character DOLLAR = '$';
-		private static Character OPEN_BRACKET = '[';
-		private static Character CIRCUMFLEX = '^';
+		private static final Character BACKSLASH = '\\';
+		private static final Character DOT = '.';
+		private static final Character ASTERISK = '*';
+		private static final Character DOLLAR = '$';
+		private static final Character OPEN_BRACKET = '[';
+		private static final Character CIRCUMFLEX = '^';
 
 		public static String escapeBRERegexp(String base) {
 			StringBuilder builder = new StringBuilder();
@@ -136,7 +133,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
 	public Qualifier() {
 		super();
-		internalMap = new HashMap<String, Object>();
+		internalMap = new HashMap<>();
 	}
 
 	public Qualifier(FilterOperation operation, Qualifier... qualifiers) {
@@ -168,19 +165,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
 	public String getField() {
 		return (String) internalMap.get(FIELD);
-	}
-
-	public PredExp getFieldExpr(int valType) {
-		switch (valType) {
-			case ParticleType.INTEGER:
-				return PredExp.integerBin(getField());
-			case ParticleType.STRING:
-				return PredExp.stringBin(getField());
-			case ParticleType.GEOJSON:
-				return PredExp.geoJSONBin(getField());
-			default:
-				throw new PredExpException("PredExp Unsupported Particle Type: " + valType);
-		}
 	}
 
 	public void asFilter(Boolean queryAsFilter) {
@@ -262,206 +246,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
 	private Filter collectionRange(IndexCollectionType collectionType) {
 		return Filter.range(getField(), collectionType, getValue1().toLong(), getValue2().toLong());
-	}
-
-	public List<PredExp> toPredExp() {
-		int regexFlags = ignoreCase() ? RegexFlag.ICASE : RegexFlag.NONE;
-		List<PredExp> rs = new ArrayList<>();
-		switch (getOperation()) {
-			case AND:
-				Qualifier[] qs = (Qualifier[]) get(QUALIFIERS);
-				for (Qualifier q : qs) rs.addAll(q.toPredExp());
-				rs.add(PredExp.and(qs.length));
-				break;
-			case OR:
-				qs = (Qualifier[]) get(QUALIFIERS);
-				for (Qualifier q : qs) rs.addAll(q.toPredExp());
-				rs.add(PredExp.or(qs.length));
-				break;
-			case IN: // Convert IN to a collection of or as Aerospike has not support for IN query
-				Value val = getValue1();
-				int valType = val.getType();
-				if (valType != ParticleType.LIST)
-					throw new IllegalArgumentException("FilterOperation.IN expects List argument with type: " + ParticleType.LIST + ", but got: " + valType);
-				List<?> inList = (List<?>) val.getObject();
-				for (Object value : inList)
-					rs.addAll(new Qualifier(this.getField(), FilterOperation.EQ, Value.get(value)).toPredExp());
-				rs.add(PredExp.or(inList.size()));
-				break;
-			case EQ:
-				val = getValue1();
-				valType = val.getType();
-				switch (valType) {
-					case ParticleType.INTEGER:
-						rs.add(getFieldExpr(valType));
-						rs.add(PredExp.integerValue(val.toLong()));
-						rs.add(PredExp.integerEqual());
-						break;
-					case ParticleType.STRING:
-						if (ignoreCase()) {
-							String equalsRegexp = QualifierRegexpBuilder.getStringEquals(getValue1().toString());
-							rs.add(getFieldExpr(getValue1().getType()));
-							rs.add(PredExp.stringValue(equalsRegexp));
-							rs.add(PredExp.stringRegex(RegexFlag.ICASE));
-						} else {
-							rs.add(getFieldExpr(valType));
-							rs.add(PredExp.stringValue(val.toString()));
-							rs.add(PredExp.stringEqual());
-						}
-						break;
-					default:
-						throw new PredExpException("PredExp Unsupported Particle Type: " + valType);
-				}
-				break;
-			case NOTEQ:
-				rs.addAll(Arrays.asList(valToPredExp(getValue1())));
-				rs.add(getValue1().getType() == ParticleType.INTEGER ? PredExp.integerUnequal() : PredExp.stringUnequal());
-				break;
-			case GT:
-				rs.addAll(Arrays.asList(valToPredExp(getValue1())));
-				rs.add(PredExp.integerGreater());
-				break;
-			case GTEQ:
-				rs.addAll(Arrays.asList(valToPredExp(getValue1())));
-				rs.add(PredExp.integerGreaterEq());
-				break;
-			case LT:
-				rs.addAll(Arrays.asList(valToPredExp(getValue1())));
-				rs.add(PredExp.integerLess());
-				break;
-			case LTEQ:
-				rs.addAll(Arrays.asList(valToPredExp(getValue1())));
-				rs.add(PredExp.integerLessEq());
-				break;
-			case BETWEEN:
-				return new Qualifier(FilterOperation.AND, new Qualifier(getField(), FilterOperation.GTEQ, getValue1()), new Qualifier(getField(), FilterOperation.LTEQ, getValue2())).toPredExp();
-			case GEO_WITHIN:
-				rs.addAll(Arrays.asList(valToPredExp(getValue1())));
-				rs.add(PredExp.geoJSONWithin());
-				break;
-			case START_WITH:
-				String startWithRegexp = QualifierRegexpBuilder.getStartsWith(getValue1().toString());
-				rs.add(getFieldExpr(getValue1().getType()));
-				rs.add(PredExp.stringValue(startWithRegexp));
-				rs.add(PredExp.stringRegex(regexFlags));
-				break;
-			case ENDS_WITH:
-				String endWithRegexp = QualifierRegexpBuilder.getEndsWith(getValue1().toString());
-				rs.add(getFieldExpr(getValue1().getType()));
-				rs.add(PredExp.stringValue(endWithRegexp));
-				rs.add(PredExp.stringRegex(regexFlags));
-				break;
-			case CONTAINING:
-				String containingRegexp = QualifierRegexpBuilder.getContaining(getValue1().toString());
-				rs.add(getFieldExpr(getValue1().getType()));
-				rs.add(PredExp.stringValue(containingRegexp));
-				rs.add(PredExp.stringRegex(regexFlags));
-				break;
-			case LIST_CONTAINS:
-				if (getValue1().getType() == ParticleType.STRING) {
-					rs.add(PredExp.stringVar(listIterVar));
-					rs.add(PredExp.stringValue(getValue1().toString()));
-					rs.add(PredExp.stringEqual());
-				} else {
-					rs.add(PredExp.integerVar(listIterVar));
-					rs.add(PredExp.integerValue(getValue1().toLong()));
-					rs.add(PredExp.integerEqual());
-				}
-				rs.add(PredExp.listBin(getField()));
-				rs.add(PredExp.listIterateOr(listIterVar));
-				break;
-			case MAP_KEYS_CONTAINS:
-				if (getValue1().getType() == ParticleType.STRING) {
-					rs.add(PredExp.stringVar(mapIterVar));
-					rs.add(PredExp.stringValue(getValue1().toString()));
-					rs.add(PredExp.stringEqual());
-				} else {
-					rs.add(PredExp.integerVar(mapIterVar));
-					rs.add(PredExp.integerValue(getValue1().toLong()));
-					rs.add(PredExp.integerEqual());
-				}
-				rs.add(PredExp.mapBin(getField()));
-				rs.add(PredExp.mapKeyIterateOr(mapIterVar));
-				break;
-			case MAP_VALUES_CONTAINS:
-				if (getValue1().getType() == ParticleType.STRING) {
-					rs.add(PredExp.stringVar(mapIterVar));
-					rs.add(PredExp.stringValue(getValue1().toString()));
-					rs.add(PredExp.stringEqual());
-				} else {
-					rs.add(PredExp.integerVar(mapIterVar));
-					rs.add(PredExp.integerValue(getValue1().toLong()));
-					rs.add(PredExp.integerEqual());
-				}
-				rs.add(PredExp.mapBin(getField()));
-				rs.add(PredExp.mapValIterateOr(mapIterVar));
-				break;
-			case LIST_BETWEEN:
-				rs.add(PredExp.integerVar(listIterVar));
-				rs.add(PredExp.integerValue(getValue1().toLong()));
-				rs.add(PredExp.integerGreaterEq());
-
-				rs.add(PredExp.integerVar(listIterVar));
-				rs.add(PredExp.integerValue(getValue2().toLong()));
-				rs.add(PredExp.integerLessEq());
-
-				rs.add(PredExp.and(2));
-
-				rs.add(PredExp.listBin(getField()));
-				rs.add(PredExp.listIterateOr(listIterVar));
-				break;
-			case MAP_KEYS_BETWEEN:
-				rs.add(PredExp.integerVar(mapIterVar));
-				rs.add(PredExp.integerValue(getValue1().toLong()));
-				rs.add(PredExp.integerGreaterEq());
-
-				rs.add(PredExp.integerVar(mapIterVar));
-				rs.add(PredExp.integerValue(getValue2().toLong()));
-				rs.add(PredExp.integerLessEq());
-
-				rs.add(PredExp.and(2));
-
-				rs.add(PredExp.mapBin(getField()));
-				rs.add(PredExp.mapKeyIterateOr(mapIterVar));
-				break;
-			case MAP_VALUES_BETWEEN:
-				rs.add(PredExp.integerVar(mapIterVar));
-				rs.add(PredExp.integerValue(getValue1().toLong()));
-				rs.add(PredExp.integerGreaterEq());
-
-				rs.add(PredExp.integerVar(mapIterVar));
-				rs.add(PredExp.integerValue(getValue2().toLong()));
-				rs.add(PredExp.integerLessEq());
-
-				rs.add(PredExp.and(2));
-
-				rs.add(PredExp.mapBin(getField()));
-				rs.add(PredExp.mapValIterateOr(mapIterVar));
-				break;
-			default:
-				throw new PredExpException("PredExp Unsupported Operation: " + getOperation());
-		}
-		return rs;
-	}
-
-	private PredExp[] valToPredExp(Value val) {
-		int valType = val.getType();
-		switch (valType) {
-			case ParticleType.INTEGER:
-				return new PredExp[]{
-						getFieldExpr(valType),
-						PredExp.integerValue(val.toLong())};
-			case ParticleType.STRING:
-				return new PredExp[]{
-						getFieldExpr(valType),
-						PredExp.stringValue(val.toString())};
-			case ParticleType.GEOJSON:
-				return new PredExp[]{
-						getFieldExpr(valType),
-						PredExp.geoJSONValue(val.toString())};
-			default:
-				throw new PredExpException("PredExp Unsupported Particle Type: " + val.getType());
-		}
 	}
 
 	public Exp toFilterExp() {
@@ -759,7 +543,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
 	@Override
 	public String toString() {
-		String output = String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
-		return output;
+		return String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
 	}
 }

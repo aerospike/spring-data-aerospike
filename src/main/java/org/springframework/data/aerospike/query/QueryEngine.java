@@ -46,8 +46,8 @@ public class QueryEngine {
 
 	private final IAerospikeClient client;
 	private final StatementBuilder statementBuilder;
+	private final FilterExpressionsBuilder filterExpressionsBuilder;
 	private final QueryPolicy queryPolicy;
-	private final ScanFilters scanFilters;
 
 	public enum Meta {
 		KEY,
@@ -71,11 +71,11 @@ public class QueryEngine {
 	}
 
 	public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
-					   QueryPolicy queryPolicy, ScanFilters scanFilters) {
+					   FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
 		this.client = client;
 		this.statementBuilder = statementBuilder;
+		this.filterExpressionsBuilder = filterExpressionsBuilder;
 		this.queryPolicy = queryPolicy;
-		this.scanFilters = scanFilters;
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class QueryEngine {
 		 *  query with filters
 		 */
 		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers);
-		scanFilters.setScanFilters(client, queryPolicy, qualifiers);
+		queryPolicy.filterExp = filterExpressionsBuilder.buildFilterExpressions(qualifiers);
 		if (!scansEnabled && statement.getFilter() == null) {
 			throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
 		}
