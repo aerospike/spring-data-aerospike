@@ -2,13 +2,19 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.Expression;
+import com.aerospike.client.policy.QueryPolicy;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FilterExpressionsBuilder {
-    public Expression buildFilterExpressions(Qualifier[] qualifiers) {
+public class FilterExpressions {
+
+    public void setFilterExpressions(QueryPolicy queryPolicy, Qualifier[] qualifiers) {
+        queryPolicy.filterExp = buildFilterExpressions(qualifiers);
+    }
+
+    private Expression buildFilterExpressions(Qualifier[] qualifiers) {
         if (qualifiers != null && qualifiers.length != 0) {
             List<Qualifier> relevantQualifiers = Arrays.stream(qualifiers)
                     .filter(q -> q != null && !q.queryAsFilter())

@@ -43,14 +43,14 @@ public class ReactorQueryEngine {
 
 	private final IAerospikeReactorClient client;
 	private final StatementBuilder statementBuilder;
-	private final FilterExpressionsBuilder filterExpressionsBuilder;
+	private final FilterExpressions filterExpressions;
 	private final QueryPolicy queryPolicy;
 
 	public ReactorQueryEngine(IAerospikeReactorClient client, StatementBuilder statementBuilder,
-							  FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
+							  FilterExpressions filterExpressions, QueryPolicy queryPolicy) {
 		this.client = client;
 		this.statementBuilder = statementBuilder;
-		this.filterExpressionsBuilder = filterExpressionsBuilder;
+		this.filterExpressions = filterExpressions;
 		this.queryPolicy = queryPolicy;
 	}
 
@@ -79,7 +79,7 @@ public class ReactorQueryEngine {
 		 *  query with filters
 		 */
 		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers);
-		queryPolicy.filterExp = filterExpressionsBuilder.buildFilterExpressions(qualifiers);
+		filterExpressions.setFilterExpressions(queryPolicy, qualifiers);
 		if(!scansEnabled && statement.getFilter() == null) {
 			return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
 		}
