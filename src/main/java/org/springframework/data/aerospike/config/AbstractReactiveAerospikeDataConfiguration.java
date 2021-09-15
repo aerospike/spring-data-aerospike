@@ -71,8 +71,8 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     }
 
     @Bean(name = "aerospikeReactorClient")
-    public AerospikeReactorClient aerospikeReactorClient(IAerospikeClient aerospikeClient, EventLoops eventLoops) {
-        return new AerospikeReactorClient(aerospikeClient, eventLoops);
+    public AerospikeReactorClient aerospikeReactorClient(IAerospikeClient aerospikeClient) {
+        return new AerospikeReactorClient(aerospikeClient);
     }
 
     @Bean
