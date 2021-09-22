@@ -35,6 +35,7 @@ public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T
 
 	/**
 	 * Checks whether index by specified name exists in Aerospike.
+	 *
 	 * @param indexName The Aerospike index name.
 	 * @return true if exists
 	 * @deprecated This operation is deprecated due to complications that are required for guaranteed index existence response.

@@ -31,8 +31,8 @@ import org.springframework.data.convert.WritingConverter;
 import org.springframework.util.StringUtils;
 
 /**
- * Wrapper class to contain useful converters 
- * 
+ * Wrapper class to contain useful converters
+ *
  * @author Peter Milne
  * @author Anastasiia Smirnova
  */
@@ -162,14 +162,10 @@ abstract class AerospikeConverters {
 	
 	public enum StringToAerospikeGeoJSONValueConverter implements Converter<String, GeoJSONValue> {
 		INSTANCE;
-		
-		/* (non-Javadoc)
-		 * @see org.springframework.core.convert.converter.Converter#convert(java.lang.Object)
-		 */
+
 		@Override
 		public GeoJSONValue convert(String source) {
 			return new GeoJSONValue(source);
 		}
 	}
-
 }

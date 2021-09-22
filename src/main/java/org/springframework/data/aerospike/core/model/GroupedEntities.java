@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.core.model;
 
-
 import lombok.Builder;
 
 import java.util.ArrayList;

@@ -51,5 +51,4 @@ public class ReactorIndexRefresher {
 					log.debug("Loaded indexes: {}", cache.indexes);
 				}).then();
 	}
-
 }

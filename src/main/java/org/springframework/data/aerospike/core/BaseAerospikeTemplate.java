@@ -98,7 +98,6 @@ abstract class BaseAerospikeTemplate {
 
         CustomConversions customConversions = new AerospikeCustomConversions(Collections.emptyList());
         AerospikeMappingContext asContext = new AerospikeMappingContext();
-        asContext.setDefaultNameSpace(namespace);
 
         this.converter = new MappingAerospikeConverter(asContext, customConversions, new AerospikeTypeAliasAccessor());
         this.exceptionTranslator = new DefaultAerospikeExceptionTranslator();
@@ -172,7 +171,7 @@ abstract class BaseAerospikeTemplate {
 
     <T> ConvertingPropertyAccessor<T> getPropertyAccessor(AerospikePersistentEntity<?> entity, T source) {
         PersistentPropertyAccessor<T> accessor = entity.getPropertyAccessor(source);
-        return new ConvertingPropertyAccessor<T>(accessor, converter.getConversionService());
+        return new ConvertingPropertyAccessor<>(accessor, converter.getConversionService());
     }
 
     <T> T updateVersion(T document, Record newRecord) {

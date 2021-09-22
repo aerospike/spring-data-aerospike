@@ -20,7 +20,7 @@ import com.aerospike.client.IAerospikeClient;
 
 /**
  * Callback to interact with the {@link IAerospikeClient}.
- * 
+ *
  * @author Oliver Gierke
  * @author Peter Milne
  */
@@ -32,7 +32,7 @@ public interface AerospikeClientCallback<T> {
 	 * @param client will never be {@literal null}.
 	 * @return Record iterator
 	 * @throws AerospikeException in case of encountering an error while interacting
-	 * 		with IAerospikeClient an AerospikeException will be thrown.
+	 *                            with IAerospikeClient an AerospikeException will be thrown.
 	 */
 	T recordIterator(IAerospikeClient client) throws AerospikeException;
 
@@ -42,7 +42,7 @@ public interface AerospikeClientCallback<T> {
 	 * @param client will never be {@literal null}.
 	 * @return Result iterator
 	 * @throws AerospikeException in case of encountering an error while interacting
-	 * 		with IAerospikeClient an AerospikeException will be thrown.
+	 *                            with IAerospikeClient an AerospikeException will be thrown.
 	 */
 	T resultIterator(IAerospikeClient client) throws AerospikeException;
 }

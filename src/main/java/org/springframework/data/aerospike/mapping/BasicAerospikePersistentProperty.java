@@ -74,9 +74,6 @@ public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentP
 		return expiration.unixTime();
 	}
 
-	/**
-	 * @return the key to be used to store the value of the property
-	 */
 	@Override
 	public String getFieldName() {
 		org.springframework.data.aerospike.mapping.Field annotation =

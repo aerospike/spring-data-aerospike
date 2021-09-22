@@ -35,10 +35,8 @@ import org.springframework.data.util.TypeInformation;
 import java.util.Iterator;
 
 /**
- *
  * @author Peter Milne
  * @author Jean Mercier
- *
  */
 public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, AerospikeCriteria> {
 
@@ -56,9 +54,6 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		this.context = context;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#create(org.springframework.data.repository.query.parser.Part, java.util.Iterator)
-	 */
 	@Override
 	protected AerospikeCriteria create(Part part, Iterator<Object> iterator) {
 		PersistentPropertyPath<AerospikePersistentProperty> path = context.getPersistentPropertyPath(part.getProperty());
@@ -138,9 +133,6 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#and(org.springframework.data.repository.query.parser.Part, java.lang.Object, java.util.Iterator)
-	 */
 	@Override
 	protected AerospikeCriteria and(Part part, AerospikeCriteria base, Iterator<Object> iterator) {
 		if (base == null) {
@@ -153,17 +145,11 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		return new AerospikeCriteria(FilterOperation.AND, base, create(part, property, iterator));
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#or(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	protected AerospikeCriteria or(AerospikeCriteria base, AerospikeCriteria criteria) {
 		return new AerospikeCriteria(FilterOperation.OR, base, criteria);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.parser.AbstractQueryCreator#complete(java.lang.Object, org.springframework.data.domain.Sort)
-	 */
 	@Override
 	protected Query complete(AerospikeCriteria criteria, Sort sort) {
 		Query query = criteria == null ? null : new Query(criteria).with(sort);

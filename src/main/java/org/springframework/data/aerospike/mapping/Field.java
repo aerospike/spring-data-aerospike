@@ -23,6 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to define custom metadata for document fields.
+ *
  * @author Peter Milne
  * @author Jean Mercier
  */

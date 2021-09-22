@@ -71,9 +71,6 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 		this.context = (MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty>) aerospikeOperations.getMappingContext();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getEntityInformation(java.lang.Class)
-	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
@@ -81,18 +78,12 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 		return new PersistentEntityInformation<>((AerospikePersistentEntity<T>) entity);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getTargetRepository(org.springframework.data.repository.core.RepositoryInformation)
-	 */
 	@Override
 	protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
 		EntityInformation<?, Object> entityInformation = getEntityInformation(repositoryInformation.getDomainType());
 		return super.getTargetRepositoryViaReflection(repositoryInformation, entityInformation, aerospikeOperations);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getRepositoryBaseClass(org.springframework.data.repository.core.RepositoryMetadata)
-	 */
 	@Override
 	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
 		return isQueryDslRepository(metadata.getRepositoryInterface()) ? QuerydslKeyValueRepository.class
@@ -109,10 +100,6 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 		return QUERY_DSL_PRESENT && QuerydslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactorySupport#getQueryLookupStrategy(org.springframework.data.repository.query.QueryLookupStrategy.Key, org.springframework.data.repository.query.QueryMethodEvaluationContextProvider)
-	 */
 	@Override
 	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key, QueryMethodEvaluationContextProvider evaluationContextProvider) {
 		return Optional.of(new ReactiveAerospikeQueryLookupStrategy(key, evaluationContextProvider, this.aerospikeOperations, this.queryCreator));
@@ -133,10 +120,10 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 		 * {@link KeyValueOperations} and query creator type.
 		 * <p>
 		 *
-		 * @param key Currently unused, same behaviour in the built in spring's KeyValueQueryLookupStrategy implementation.
+		 * @param key                       Currently unused, same behaviour in the built in spring's KeyValueQueryLookupStrategy implementation.
 		 * @param evaluationContextProvider must not be {@literal null}.
-		 * @param aerospikeOperations	   must not be {@literal null}.
-		 * @param queryCreator			  must not be {@literal null}.
+		 * @param aerospikeOperations       must not be {@literal null}.
+		 * @param queryCreator              must not be {@literal null}.
 		 */
 		public ReactiveAerospikeQueryLookupStrategy(@Nullable Key key, QueryMethodEvaluationContextProvider evaluationContextProvider,
 													ReactiveAerospikeOperations aerospikeOperations, Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
@@ -148,10 +135,6 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 			this.queryCreator = queryCreator;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.repository.query.QueryLookupStrategy#resolveQuery(java.lang.reflect.Method, org.springframework.data.repository.core.RepositoryMetadata, org.springframework.data.repository.core.NamedQueries)
-		 */
 		@Override
 		public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory projectionFactory,
 				NamedQueries namedQueries) {

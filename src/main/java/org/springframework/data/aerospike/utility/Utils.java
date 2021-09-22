@@ -29,13 +29,16 @@ import java.util.Random;
  * Utility class containing useful methods
  * for interacting with Aerospike
  * across the entire implementation
+ *
  * @author peter
  */
 @UtilityClass
 public class Utils {
+
 	/**
 	 * Issues an "Info" request to all nodes in the cluster.
-	 * @param client An IAerospikeClient.
+	 *
+	 * @param client     An IAerospikeClient.
 	 * @param infoString The name of the variable to retrieve.
 	 * @return An "Info" value for the given variable from all the nodes in the cluster.
 	 */

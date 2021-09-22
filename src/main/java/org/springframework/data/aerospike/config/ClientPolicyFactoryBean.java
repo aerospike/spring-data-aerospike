@@ -26,7 +26,7 @@ import com.aerospike.client.policy.WritePolicy;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a {@link ClientPolicy} via XML.
- * 
+ *
  * @author Peter Milne
  */
 public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
@@ -43,6 +43,7 @@ public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
 	/**
 	 * Configures the maximum number of connections for operation processing.
 	 * This value is used to size the synchronous connection pool for each server node.
+	 *
 	 * @param maxConnsPerNode The maxConnsPerNode configuration value.
 	 */
 	public void setMaxConnsPerNode(int maxConnsPerNode) {
@@ -50,43 +51,48 @@ public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
 	}
 
 	/**
-	 * Configures the timeout for a client connection when opening a connection 
+	 * Configures the timeout for a client connection when opening a connection
 	 * to the server host for the first time.
+	 *
 	 * @param timeout The timeout configuration value.
 	 */
 	public void setTimeout(int timeout){
 		this.policy.timeout = timeout;
 	}
-	
+
 	/**
 	 * Configures the maximum socket idle time for the client.
 	 * Socket connection pools will discard sockets
 	 * that have been idle longer than the maximum
+	 *
 	 * @param maxSocketIdle The maxSocketIdle configuration value.
 	 */
 	public void setMaxSocketIdle(int maxSocketIdle){
 		this.policy.maxSocketIdle = maxSocketIdle;
 	}
-	
+
 	/**
 	 * Configures the action if the client cannot connect to a host.
 	 * If true the client will throw exception if host connection fails during connection.
+	 *
 	 * @param failIfNotConnected The failIfNotConnected configuration value.
 	 */
 	public void failIfNotConnected(boolean failIfNotConnected){
 		this.policy.failIfNotConnected = failIfNotConnected;
 	}
-	
+
 	/**
 	 * Configures the tend interval, in milliseconds, between cluster tends, by maintenance thread.
+	 *
 	 * @param tendInterval The tendInterval configuration value.
 	 */
 	public void setTendInterval(int tendInterval){
 		this.policy.tendInterval = tendInterval;
 	}
-	
+
 	/**
 	 * Configures the default read policy
+	 *
 	 * @param readPolicy The readPolicy configuration value.
 	 */
 	public void setReadPolicyDefault(Policy readPolicy){
@@ -95,14 +101,16 @@ public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
 
 	/**
 	 * Configures the default write policy
+	 *
 	 * @param writePolicy The writePolicy configuration value.
 	 */
 	public void setWritePolicyDefault(WritePolicy writePolicy){
 		this.policy.writePolicyDefault = writePolicy;
 	}
-	
+
 	/**
 	 * Configures the default scan policy
+	 *
 	 * @param scanPolicy The scanPolicy configuration value.
 	 */
 	public void setScanPolicyDefault(ScanPolicy scanPolicy){
@@ -111,6 +119,7 @@ public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
 
 	/**
 	 * Configures the default batch policy
+	 *
 	 * @param batchPolicy The batchPolicy configuration value.
 	 */
 	public void setBatchPolicyDefault(BatchPolicy batchPolicy){
@@ -119,6 +128,7 @@ public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
 
 	/**
 	 * Configures the default query policy
+	 *
 	 * @param queryPolicy The queryPolicy configuration value.
 	 */
 	public void setQueryPolicyDefault(QueryPolicy queryPolicy){
@@ -128,6 +138,7 @@ public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
 	/**
 	 * Configures the User name for authentication to cluster.
 	 * Only used for clusters running with security enabled.
+	 *
 	 * @param user The user configuration value.
 	 */
 	public void setUser(String user){
@@ -137,34 +148,23 @@ public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
 	/**
 	 * Configures the User password for authentication to cluster.
 	 * Only used for clusters running with security enabled.
+	 *
 	 * @param password The password configuration value.
 	 */
 	public void setPassword(String password){
 		this.policy.password = password;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#getObject()
-	 */
 	@Override
 	public ClientPolicy getObject() throws Exception {
 		return policy;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#isSingleton()
-	 */
 	@Override
 	public boolean isSingleton() {
 		return false;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#getObjectType()
-	 */
 	@Override
 	public Class<?> getObjectType() {
 		return ClientPolicy.class;

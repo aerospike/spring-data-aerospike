@@ -40,24 +40,19 @@ public class AerospikeMappingContext extends
 
 	private FieldNamingStrategy fieldNamingStrategy = DEFAULT_NAMING_STRATEGY;
 	private ApplicationContext context;
-	private String defaultNameSpace;
 	private boolean createIndexesOnStartup;
 
 	/**
 	 * Configures the {@link FieldNamingStrategy} to be used to determine the field name if no manual mapping is applied.
 	 * Defaults to a strategy using the plain property name.
-	 * 
+	 *
 	 * @param fieldNamingStrategy the {@link FieldNamingStrategy} to be used to determine the field name if no manual
-	 *          mapping is applied.
+	 *                            mapping is applied.
 	 */
 	public void setFieldNamingStrategy(FieldNamingStrategy fieldNamingStrategy) {
 		this.fieldNamingStrategy = fieldNamingStrategy == null ? DEFAULT_NAMING_STRATEGY : fieldNamingStrategy;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentEntity(org.springframework.data.util.TypeInformation)
-	 */
 	@Override
 	protected <T> BasicAerospikePersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
 		BasicAerospikePersistentEntity<T> entity = new BasicAerospikePersistentEntity<>(typeInformation);
@@ -67,27 +62,15 @@ public class AerospikeMappingContext extends
 		return entity;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.data.mapping.context.AbstractMappingContext#createPersistentProperty(java.lang.reflect.Field, java.beans.PropertyDescriptor, org.springframework.data.mapping.model.MutablePersistentEntity, org.springframework.data.mapping.model.SimpleTypeHolder)
-	 */
 	@Override
 	protected AerospikePersistentProperty createPersistentProperty(Property property,
 		BasicAerospikePersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
 		return new CachingAerospikePersistentProperty(property, owner, simpleTypeHolder, fieldNamingStrategy);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.context.ApplicationContextAware#setApplicationContext(org.springframework.context.ApplicationContext)
-	 */
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.context = applicationContext;
-	}
-
-	public void setDefaultNameSpace(String defaultNameSpace) {
-		this.defaultNameSpace = defaultNameSpace;
 	}
 
 	public void setCreateIndexesOnStartup(boolean createIndexesOnStartup) {

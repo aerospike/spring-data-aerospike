@@ -65,15 +65,10 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
 		conversions.registerConvertersIn(conversionService);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.convert.EntityConverter#getConversionService()
-	 */
 	@Override
 	public ConversionService getConversionService() {
 		return conversionService;
 	}
-
 
 	@Override
 	public <R> R read(Class<R> type, final AerospikeReadData data) {

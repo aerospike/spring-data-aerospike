@@ -79,7 +79,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<T> save(T document) {
-        Assert.notNull(document, "Object to save must not be null!");
+        Assert.notNull(document, "Document must not be null!");
 
         AerospikeWriteData data = writeData(document);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
@@ -141,11 +141,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<T> add(T objectToAddTo, Map<String, Long> values) {
-        Assert.notNull(objectToAddTo, "Object to add to must not be null!");
+    public <T> Mono<T> add(T document, Map<String, Long> values) {
+        Assert.notNull(document, "Document must not be null!");
         Assert.notNull(values, "Values must not be null!");
 
-        AerospikeWriteData data = writeData(objectToAddTo);
+        AerospikeWriteData data = writeData(document);
 
         Operation[] operations = new Operation[values.size() + 1];
         int x = 0;
@@ -159,67 +159,66 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .expiration(data.getExpiration())
                 .build();
 
-        return executeOperationsOnValue(objectToAddTo, data, operations, writePolicy);
+        return executeOperationsOnValue(document, data, operations, writePolicy);
     }
 
-
     @Override
-    public <T> Mono<T> add(T objectToAddTo, String binName, long value) {
-        Assert.notNull(objectToAddTo, "Object to add to must not be null!");
+    public <T> Mono<T> add(T document, String binName, long value) {
+        Assert.notNull(document, "Document must not be null!");
         Assert.notNull(binName, "Bin name must not be null!");
 
-        AerospikeWriteData data = writeData(objectToAddTo);
+        AerospikeWriteData data = writeData(document);
 
         WritePolicy writePolicy = WritePolicyBuilder.builder(this.writePolicyDefault)
                 .expiration(data.getExpiration())
                 .build();
 
         Operation[] operations = {Operation.add(new Bin(binName, value)), Operation.get(binName)};
-        return executeOperationsOnValue(objectToAddTo, data, operations, writePolicy);
+        return executeOperationsOnValue(document, data, operations, writePolicy);
     }
 
     @Override
-    public <T> Mono<T> append(T objectToAppendTo, Map<String, String> values) {
-        Assert.notNull(objectToAppendTo, "Object to append to must not be null!");
+    public <T> Mono<T> append(T document, Map<String, String> values) {
+        Assert.notNull(document, "Document must not be null!");
         Assert.notNull(values, "Values must not be null!");
 
-        AerospikeWriteData data = writeData(objectToAppendTo);
+        AerospikeWriteData data = writeData(document);
         Operation[] operations = operations(values, Operation.Type.APPEND, Operation.get());
-        return executeOperationsOnValue(objectToAppendTo, data, operations, null);
+        return executeOperationsOnValue(document, data, operations, null);
     }
 
     @Override
-    public <T> Mono<T> append(T objectToAppendTo, String binName, String value) {
-        Assert.notNull(objectToAppendTo, "Object to append to must not be null!");
+    public <T> Mono<T> append(T document, String binName, String value) {
+        Assert.notNull(document, "Document must not be null!");
 
-        AerospikeWriteData data = writeData(objectToAppendTo);
+        AerospikeWriteData data = writeData(document);
         Operation[] operations = {Operation.append(new Bin(binName, value)), Operation.get(binName)};
-        return executeOperationsOnValue(objectToAppendTo, data, operations, null);
+        return executeOperationsOnValue(document, data, operations, null);
     }
 
     @Override
-    public <T> Mono<T> prepend(T objectToPrependTo, Map<String, String> values) {
-        Assert.notNull(objectToPrependTo, "Object to prepend to must not be null!");
+    public <T> Mono<T> prepend(T document, Map<String, String> values) {
+        Assert.notNull(document, "Document must not be null!");
         Assert.notNull(values, "Values must not be null!");
 
-        AerospikeWriteData data = writeData(objectToPrependTo);
+        AerospikeWriteData data = writeData(document);
         Operation[] operations = operations(values, Operation.Type.PREPEND, Operation.get());
-        return executeOperationsOnValue(objectToPrependTo, data, operations, null);
+        return executeOperationsOnValue(document, data, operations, null);
     }
 
     @Override
-    public <T> Mono<T> prepend(T objectToPrependTo, String binName, String value) {
-        Assert.notNull(objectToPrependTo, "Object to prepend to must not be null!");
+    public <T> Mono<T> prepend(T document, String binName, String value) {
+        Assert.notNull(document, "Document must not be null!");
 
-        AerospikeWriteData data = writeData(objectToPrependTo);
+        AerospikeWriteData data = writeData(document);
         Operation[] operations = {Operation.prepend(new Bin(binName, value)), Operation.get(binName)};
-        return executeOperationsOnValue(objectToPrependTo, data, operations, null);
+        return executeOperationsOnValue(document, data, operations, null);
     }
 
-    private <T> Mono<T> executeOperationsOnValue(T entity, AerospikeWriteData data, Operation[] operations, WritePolicy writePolicy) {
+    private <T> Mono<T> executeOperationsOnValue(T document, AerospikeWriteData data, Operation[] operations, WritePolicy writePolicy) {
         return reactorClient.operate(writePolicy, data.getKey(), operations)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
-                .map(keyRecord -> mapToEntity(keyRecord.key, getEntityClass(entity), keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, getEntityClass(document), keyRecord.record))
                 .onErrorMap(this::translateError);
     }
 
@@ -260,16 +259,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }
 
-    /**
-     * Executes a single batch request to get results for several entities.
-     *
-     * Aerospike provides functionality to get records from different sets in 1 batch
-     * request. The methods allows to put grouped keys by entity type as parameter and
-     * get result as spring data aerospike entities grouped by entity type.
-     *
-     * @param groupedKeys
-     * @return Mono<GroupedEntities>
-     */
     @Override
     public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
@@ -392,10 +381,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Boolean> delete(T objectToDelete) {
-        Assert.notNull(objectToDelete, "Object to delete must not be null!");
+    public <T> Mono<Boolean> delete(T document) {
+        Assert.notNull(document, "Document must not be null!");
 
-        AerospikeWriteData data = writeData(objectToDelete);
+        AerospikeWriteData data = writeData(document);
 
         return this.reactorClient
                 .delete(ignoreGenerationDeletePolicy(), data.getKey())
@@ -460,7 +449,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .onErrorMap(AerospikeException.class, this::translateError);
     }
 
-    private <T> Mono<Record> putAndGetHeader(AerospikeWriteData data, WritePolicy policy) {
+    private Mono<Record> putAndGetHeader(AerospikeWriteData data, WritePolicy policy) {
         Operation[] operations = operations(data.getBinsAsArray(), Operation::put, Operation.getHeader());
 
         return reactorClient.operate(policy, data.getKey(), operations)

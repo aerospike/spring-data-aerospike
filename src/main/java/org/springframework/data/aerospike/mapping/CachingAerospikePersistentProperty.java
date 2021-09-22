@@ -21,11 +21,9 @@ import org.springframework.data.mapping.model.Property;
 import org.springframework.data.mapping.model.SimpleTypeHolder;
 
 /**
- * 
  * @author Peter Milne
- *
  */
-public class CachingAerospikePersistentProperty extends BasicAerospikePersistentProperty{
+public class CachingAerospikePersistentProperty extends BasicAerospikePersistentProperty {
 
 	private Boolean isIdProperty;
 	private Boolean isAssociation;
@@ -37,10 +35,10 @@ public class CachingAerospikePersistentProperty extends BasicAerospikePersistent
 
 	/**
 	 * Creates a new {@link CachingAerospikePersistentProperty}.
-	 * 
-	 * @param property The {@link Property} to be persistent.
-	 * @param owner must not be {@literal null}.
-	 * @param simpleTypeHolder must not be {@literal null}.
+	 *
+	 * @param property            The {@link Property} to be persistent.
+	 * @param owner               must not be {@literal null}.
+	 * @param simpleTypeHolder    must not be {@literal null}.
 	 * @param fieldNamingStrategy a field naming strategy - in case of null default will be selected.
 	 */
 	public CachingAerospikePersistentProperty(Property property,

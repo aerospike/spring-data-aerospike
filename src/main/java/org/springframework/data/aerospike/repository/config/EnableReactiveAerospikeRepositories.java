@@ -92,10 +92,11 @@ public @interface EnableReactiveAerospikeRepositories {
 	 * {@link ReactiveAerospikeRepositoryFactoryBean}.
 	 */
 	Class<?> repositoryFactoryBeanClass() default ReactiveAerospikeRepositoryFactoryBean.class;
-	
+
 	/**
 	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
 	 * Defaults to {@link SimpleReactiveAerospikeRepository}.
+	 *
 	 * @since 1.8
 	 */
 	Class<?> repositoryBaseClass() default SimpleReactiveAerospikeRepository.class;

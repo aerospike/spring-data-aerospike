@@ -18,13 +18,21 @@ package org.springframework.data.aerospike.mapping;
 import org.springframework.data.mapping.PersistentProperty;
 
 public interface AerospikePersistentProperty extends PersistentProperty<AerospikePersistentProperty> {
-	/**
-	 * Returns whether property access shall be used for reading the property value. This means it will use the getter
-	 * instead of field access.
-	 */
-	boolean usePropertyAccess();
-	boolean isExplicitIdProperty();
-	boolean isExpirationProperty();
-	boolean isExpirationSpecifiedAsUnixTime();
-	String getFieldName();
+
+    /**
+     * @return whether property access shall be used for reading the property value. This means it will use the getter
+     * instead of field access.
+     */
+    boolean usePropertyAccess();
+
+    boolean isExplicitIdProperty();
+
+    boolean isExpirationProperty();
+
+    boolean isExpirationSpecifiedAsUnixTime();
+
+    /**
+     * @return the key to be used to store the value of the property
+     */
+    String getFieldName();
 }

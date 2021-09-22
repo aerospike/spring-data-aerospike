@@ -74,6 +74,7 @@ public class AerospikeCache implements Cache {
 
 	/**
 	 * Deletes the key from Aerospike database.
+	 *
 	 * @param key The key to delete.
 	 */
 	@Override
@@ -83,6 +84,7 @@ public class AerospikeCache implements Cache {
 
 	/**
 	 * Get cache's name.
+	 *
 	 * @return The cache's name.
 	 */
 	@Override
@@ -92,6 +94,7 @@ public class AerospikeCache implements Cache {
 
 	/**
 	 * Get the underlying native cache provider - the Aerospike client.
+	 *
 	 * @return The aerospike client.
 	 */
 	@Override
@@ -102,7 +105,8 @@ public class AerospikeCache implements Cache {
 	/**
 	 * Return the value (bins) from the Aerospike database to which this cache maps the specified key, obtaining that value from valueLoader if necessary.
 	 * This method provides a simple substitute for the conventional "if cached, return; otherwise create, cache and return" pattern.
-	 * @param key The key whose associated value is to be returned.
+	 *
+	 * @param key         The key whose associated value is to be returned.
 	 * @param valueLoader The value loader that might contain the value (bins).
 	 * @return The value (bins) to which this cache maps the specified key.
 	 */
@@ -126,7 +130,8 @@ public class AerospikeCache implements Cache {
 	/**
 	 * Return the value (bins) from the Aerospike database to which this cache maps the specified key.
 	 * Generically specifying a type that return value will be cast to.
-	 * @param key The key whose associated value (bins) is to be returned.
+	 *
+	 * @param key  The key whose associated value (bins) is to be returned.
 	 * @param type The required type of the returned value (may be null to bypass a type check; in case of a null value found in the cache, the specified type is irrelevant).
 	 * @return The value (bins) to which this cache maps the specified key (which may be null itself), or also null if the cache contains no mapping for this key.
 	 */
@@ -144,9 +149,10 @@ public class AerospikeCache implements Cache {
 	/**
 	 * Returns the value (bins) from the Aerospike database to which this cache maps the specified key.
 	 * Returns null if the cache contains no mapping for this key; otherwise, the cached value (which may be null itself) will be returned in a Cache.ValueWrapper.
+	 *
 	 * @param key The key whose associated value (bins) is to be returned.
 	 * @return The value (bins) to which this cache maps the specified key, contained within a Cache.ValueWrapper which may also hold a cached null value.
-	 * 	A straight null being returned means that the cache contains no mapping for this key.
+	 * A straight null being returned means that the cache contains no mapping for this key.
 	 */
 	@Override
 	public ValueWrapper get(Object key) {
@@ -156,7 +162,8 @@ public class AerospikeCache implements Cache {
 
 	/**
 	 * Write the key-value pair to Aerospike database.
-	 * @param key The key to write.
+	 *
+	 * @param key   The key to write.
 	 * @param value The value to write.
 	 */
 	@Override
@@ -166,7 +173,8 @@ public class AerospikeCache implements Cache {
 
 	/**
 	 * Write the key-value pair to Aerospike database if the key doesn't already exists.
-	 * @param key The key to write.
+	 *
+	 * @param key   The key to write.
 	 * @param value The value (bins) to write.
 	 * @return In case the key already exists return the existing value, else return null.
 	 */

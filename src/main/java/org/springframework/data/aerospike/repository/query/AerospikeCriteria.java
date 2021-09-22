@@ -40,24 +40,18 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 	/**
 	 * Creates an 'or' criteria using the $or operator for all of the provided criteria.
 	 *
-	 * @throws IllegalArgumentException if follows a not() call directly.
 	 * @param criteria the AerospikeCriteria instance.
+	 * @throws IllegalArgumentException if follows a not() call directly.
 	 */
 	public static AerospikeCriteria or(AerospikeCriteria... criteria) {
 		return new AerospikeCriteria(Qualifier.FilterOperation.OR, criteria);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.aerospike.repository.query.CriteriaDefinition#getCriteriaObject()
-	 */
 	@Override
 	public Qualifier getCriteriaObject() {
 		return this;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.aerospike.repository.query.CriteriaDefinition#getKey()
-	 */
 	@Override
 	public String getKey() {
 		return this.getField();

@@ -70,10 +70,6 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		this.conversionService = conversionService;
 	}
 
-	/*
-	* (non-Javadoc)
-	* @see org.springframework.data.convert.EntityReader#read(java.lang.Class, S)
-	*/
 	@Override
 	public <R> R read(Class<R> targetClass, final AerospikeReadData data) {
 		if (data == null) {
@@ -138,7 +134,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		} else if (propertyType.isCollectionLike()) {
 			return convertCollection(asCollection(source), propertyType);
 		} else if (propertyType.isMap()) {
-			return (T) convertMap((Map<String, Object>) source, propertyType);
+			return convertMap((Map<String, Object>) source, propertyType);
 		} else if (source instanceof Map) { // custom type
 			return convertCustomType((Map<String, Object>) source, propertyType);
 		}
@@ -274,6 +270,5 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 
 			return readValue(value, property.getTypeInformation());
 		}
-
 	}
 }

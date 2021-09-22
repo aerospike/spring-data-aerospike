@@ -39,7 +39,6 @@ public class AerospikeCustomConversions extends CustomConversions {
     private static final List<Object> STORE_CONVERTERS;
 
     static {
-
         List<Object> converters = new ArrayList<>();
 
         converters.addAll(DateConverters.getConvertersToRegister());

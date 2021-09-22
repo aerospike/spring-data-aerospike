@@ -44,9 +44,6 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         this.queryCreator = queryCreator;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.data.repository.query.RepositoryQuery#getQueryMethod()
-     */
     @Override
     public QueryMethod getQueryMethod() {
         return queryMethod;

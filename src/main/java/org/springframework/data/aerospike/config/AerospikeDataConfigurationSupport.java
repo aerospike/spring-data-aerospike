@@ -86,7 +86,6 @@ public abstract class AerospikeDataConfigurationSupport {
         context.setInitialEntitySet(getInitialEntitySet());
         context.setSimpleTypeHolder(AerospikeSimpleTypes.HOLDER);
         context.setFieldNamingStrategy(fieldNamingStrategy());
-        context.setDefaultNameSpace(nameSpace());
         context.setCreateIndexesOnStartup(isCreateIndexesOnStartup());
         return context;
     }

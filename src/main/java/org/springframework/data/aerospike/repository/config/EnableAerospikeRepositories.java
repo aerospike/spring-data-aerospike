@@ -29,7 +29,7 @@ import java.lang.annotation.*;
 /**
  * Annotation to activate Aerospike repositories. If no base package is configured through either {@link #value()},
  * {@link #basePackages()} or {@link #basePackageClasses()} it will trigger scanning of the package of annotated class.
- * 
+ *
  * @author Oliver Gierke
  */
 @Target(ElementType.TYPE)
@@ -92,10 +92,11 @@ public @interface EnableAerospikeRepositories {
 	 * Defaults to {@link AerospikeRepositoryFactoryBean}.
 	 */
 	Class<?> repositoryFactoryBeanClass() default AerospikeRepositoryFactoryBean.class;
-	
+
 	/**
 	 * Configure the repository base class to be used to create repository proxies for this particular configuration.
 	 * Defaults to {@link SimpleAerospikeRepository}.
+	 *
 	 * @since 1.8
 	 */
 	Class<?> repositoryBaseClass() default SimpleAerospikeRepository.class;

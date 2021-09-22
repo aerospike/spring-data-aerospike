@@ -35,10 +35,6 @@ import org.springframework.data.aerospike.IndexNotFoundException;
  */
 public class DefaultAerospikeExceptionTranslator implements AerospikeExceptionTranslator {
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.dao.support.PersistenceExceptionTranslator#translateExceptionIfPossible(java.lang.RuntimeException)
-	 */
 	@Override
 	public DataAccessException translateExceptionIfPossible(RuntimeException cause) {
 		if (cause instanceof AerospikeException){

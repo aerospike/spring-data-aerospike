@@ -40,12 +40,9 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 		super(queryMethod, evalContextProvider, queryCreator);
 		this.aerospikeOperations = aerospikeOperations;
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.RepositoryQuery#execute(java.lang.Object[])
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object execute(Object[] parameters) {
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
 		Query query = prepareQuery(parameters, accessor);

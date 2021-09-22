@@ -432,110 +432,61 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		return res;
 	}
 
-
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#size()
-	 */
 	@Override
 	public int size() {
 		return internalMap.size();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#isEmpty()
-	 */
 	@Override
 	public boolean isEmpty() {
 		return internalMap.isEmpty();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#containsKey(java.lang.Object)
-	 */
 	@Override
 	public boolean containsKey(Object key) {
 		return internalMap.containsKey(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#containsValue(java.lang.Object)
-	 */
 	@Override
 	public boolean containsValue(Object value) {
 		return internalMap.containsValue(value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#get(java.lang.Object)
-	 */
 	@Override
 	public Object get(Object key) {
 		return internalMap.get(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#put(java.lang.Object, java.lang.Object)
-	 */
 	@Override
 	public Object put(String key, Object value) {
 		return internalMap.put(key, value);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#remove(java.lang.Object)
-	 */
 	@Override
 	public Object remove(Object key) {
 		return internalMap.remove(key);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#putAll(java.util.Map)
-	 */
 	@Override
 	public void putAll(Map<? extends String, ? extends Object> m) {
 		internalMap.putAll(m);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#clear()
-	 */
 	@Override
 	public void clear() {
 		internalMap.clear();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#keySet()
-	 */
 	@Override
 	public Set<String> keySet() {
 		return internalMap.keySet();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#values()
-	 */
 	@Override
 	public Collection<Object> values() {
 		return internalMap.values();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see java.util.Map#entrySet()
-	 */
 	@Override
 	public Set<Entry<String, Object>> entrySet() {
 		return internalMap.entrySet();

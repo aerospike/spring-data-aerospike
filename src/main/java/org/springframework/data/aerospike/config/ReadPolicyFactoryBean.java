@@ -21,7 +21,7 @@ import com.aerospike.client.policy.Policy;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a read policy via XML.
- * 
+ *
  * @author Peter Milne
  */
 public class ReadPolicyFactoryBean implements FactoryBean<Policy> {
@@ -37,6 +37,7 @@ public class ReadPolicyFactoryBean implements FactoryBean<Policy> {
 
 	/**
 	 * Configures the timeout for each transaction attempt of an operation.
+	 *
 	 * @param socketTimeout The socketTimeout configuration value.
 	 */
 	public void setSocketTimeout(int socketTimeout){
@@ -45,6 +46,7 @@ public class ReadPolicyFactoryBean implements FactoryBean<Policy> {
 
 	/**
 	 * Configures the timeout for an operation.
+	 *
 	 * @param totalTimeout The totalTimeout configuration value.
 	 */
 	public void setTotalTimeout(int totalTimeout){
@@ -53,9 +55,10 @@ public class ReadPolicyFactoryBean implements FactoryBean<Policy> {
 
 	/**
 	 * Configures the maximum number of retries before aborting the current transaction.
-	 * A retry is attempted when there is a network error other than timeout.  
-	 * If maxRetries is exceeded, the abort will occur even if the timeout 
+	 * A retry is attempted when there is a network error other than timeout.
+	 * If maxRetries is exceeded, the abort will occur even if the timeout
 	 * has not yet been exceeded.  The default number of retries is 1.
+	 *
 	 * @param maxRetries The maxRetries configuration value.
 	 */
 	public void setMaxRetries(int maxRetries){
@@ -63,37 +66,26 @@ public class ReadPolicyFactoryBean implements FactoryBean<Policy> {
 	}
 
 	/**
-	 * Configures the sleep between retries if a transaction fails and the 
+	 * Configures the sleep between retries if a transaction fails and the
 	 * timeout was not exceeded.  Enter zero to skip sleep.
 	 * The default sleep between retries is 500 ms.
+	 *
 	 * @param sleepBetweenRetries The sleepBetweenRetries configuration value.
 	 */
 	public void setSleepBetweenRetries(int sleepBetweenRetries){
 		this.policy.sleepBetweenRetries = sleepBetweenRetries;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#getObject()
-	 */
 	@Override
 	public Policy getObject() throws Exception {
 		return policy;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#isSingleton()
-	 */
 	@Override
 	public boolean isSingleton() {
 		return false;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#getObjectType()
-	 */
 	@Override
 	public Class<?> getObjectType() {
 		return Policy.class;

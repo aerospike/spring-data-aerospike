@@ -28,7 +28,7 @@ import java.util.UUID;
 
 /**
  * Simple constant holder for a {@link SimpleTypeHolder} enriched with Aerospike specific simple types.
- * 
+ *
  * @author Oliver Gierke
  * @author Peter Milne
  */

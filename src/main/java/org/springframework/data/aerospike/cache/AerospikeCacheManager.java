@@ -47,8 +47,8 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
 	 * Create a new {@link AerospikeCacheManager} instance -
 	 * Specifying a default cache configuration.
 	 *
-	 * @param aerospikeClient the instance that implements {@link IAerospikeClient}.
-	 * @param aerospikeConverter the instance that implements {@link AerospikeConverter}.
+	 * @param aerospikeClient           the instance that implements {@link IAerospikeClient}.
+	 * @param aerospikeConverter        the instance that implements {@link AerospikeConverter}.
 	 * @param defaultCacheConfiguration the default cache configuration.
 	 */
 	public AerospikeCacheManager(IAerospikeClient aerospikeClient,
@@ -61,9 +61,9 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
 	 * Create a new {@link AerospikeCacheManager} instance -
 	 * Specifying a default cache configuration and a map of caches (cache names) and matching configurations.
 	 *
-	 * @param aerospikeClient the instance that implements {@link IAerospikeClient}.
-	 * @param aerospikeConverter the instance that implements {@link AerospikeConverter}.
-	 * @param defaultCacheConfiguration the default aerospike cache configuration.
+	 * @param aerospikeClient              the instance that implements {@link IAerospikeClient}.
+	 * @param aerospikeConverter           the instance that implements {@link AerospikeConverter}.
+	 * @param defaultCacheConfiguration    the default aerospike cache configuration.
 	 * @param initialPerCacheConfiguration a map of caches (cache names) and matching configurations.
 	 */
 	public AerospikeCacheManager(IAerospikeClient aerospikeClient,

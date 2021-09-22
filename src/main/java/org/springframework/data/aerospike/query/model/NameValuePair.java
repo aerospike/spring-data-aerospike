@@ -38,5 +38,4 @@ public class NameValuePair {
 	public String toString() {
 		return name + "|" + value.toString();
 	}
-
 }

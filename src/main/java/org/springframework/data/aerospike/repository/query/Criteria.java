@@ -55,13 +55,6 @@ public class Criteria implements CriteriaDefinition {
 		this.criteriaChain = new ArrayList<>();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.aerospike.repository.query.CriteriaDefinition#
-	 * getCriteriaObject()
-	 */
 	@Override
 	public Qualifier getCriteriaObject() {
 		if (this.criteriaChain.size() == 1) {
@@ -87,13 +80,6 @@ public class Criteria implements CriteriaDefinition {
 		return qualifier;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.springframework.data.aerospike.repository.query.CriteriaDefinition#
-	 * getKey()
-	 */
 	@Override
 	public String getKey() {
 		return this.key;
@@ -101,7 +87,7 @@ public class Criteria implements CriteriaDefinition {
 
 	/**
 	 * Static factory method to create a Criteria using the provided key.
-	 * 
+	 *
 	 * @param key the provided key
 	 * @return the Criteria instance
 	 */
@@ -253,7 +239,7 @@ public class Criteria implements CriteriaDefinition {
 		return this;
 	}
 
-	/***
+	/**
 	 * GEO Query with distance from a geo location given longitude/latitude
 	 */
 	public Criteria geo_within(Object lng, Object lat, Object radius, String propertyName) {

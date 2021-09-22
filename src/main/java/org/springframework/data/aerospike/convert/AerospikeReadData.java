@@ -23,6 +23,7 @@ import java.util.Map;
 
 /**
  * Value object to carry data to be read in object conversion.
+ *
  * @author Oliver Gierke
  * @author Anastasiia Smirnova
  */

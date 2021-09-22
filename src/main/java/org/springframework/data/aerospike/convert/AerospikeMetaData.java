@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.convert;
 
 /**
  * Carries metadata keys of an aerospike read or written object.
+ *
  * @author Anastasiia Smirnova
  */
 public interface AerospikeMetaData {

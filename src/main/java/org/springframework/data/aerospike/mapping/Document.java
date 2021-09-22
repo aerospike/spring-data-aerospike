@@ -31,7 +31,6 @@ import static org.springframework.data.aerospike.mapping.BasicAerospikePersisten
  *
  * @author Peter Milne
  * @author Jean Mercier
- *
  */
 @Persistent
 @Inherited
@@ -51,7 +50,7 @@ public @interface Document {
 
 	/**
 	 * Defines the default language to be used with this document.
-	 * 
+	 *
 	 * @since 1.6
 	 */
 	String language() default "";
@@ -81,8 +80,8 @@ public @interface Document {
 	 */
 	TimeUnit expirationUnit() default TimeUnit.SECONDS;
 
-	/**
-	 * An optional flag associated indicating whether the expiration timer should be reset whenever the document is directly read
-	 */
+    /**
+     * An optional flag associated indicating whether the expiration timer should be reset whenever the document is directly read
+     */
 	boolean touchOnRead() default false;
 }

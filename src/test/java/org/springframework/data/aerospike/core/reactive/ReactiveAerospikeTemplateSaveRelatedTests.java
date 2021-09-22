@@ -213,5 +213,4 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         assertThatThrownBy(() -> reactiveTemplate.save(null).block())
                 .isInstanceOf(IllegalArgumentException.class);
     }
-
 }

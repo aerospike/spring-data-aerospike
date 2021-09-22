@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Default implementation of {@link AerospikePersistentEntity}.
- * 
+ *
  * @author Oliver Gierke
  */
 public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, AerospikePersistentProperty> implements
@@ -88,10 +88,6 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.aerospike.mapping.AerospikePersistentEntity#getSetName()
-	 */
 	@Override
 	public String getSetName() {
 		return setName.get();

@@ -21,7 +21,7 @@ import com.aerospike.client.policy.BatchPolicy;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a {@link BatchPolicy} via XML.
- * 
+ *
  * @author Peter Milne
  */
 public class BatchPolicyFactoryBean extends ReadPolicyFactoryBean {
@@ -37,34 +37,23 @@ public class BatchPolicyFactoryBean extends ReadPolicyFactoryBean {
 
 	/**
 	 * Configures the maximum number of concurrent batch request threads to server nodes at any point in time
+	 *
 	 * @param maxConcurrentThreads The maxConcurrentThreads configuration value.
 	 */
 	public void setMaxConcurrentThreads(int maxConcurrentThreads){
 		this.policy.maxConcurrentThreads = maxConcurrentThreads;
 	}
-	
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#getObject()
-	 */
+
 	@Override
 	public BatchPolicy getObject() throws Exception {
 		return policy;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#isSingleton()
-	 */
 	@Override
 	public boolean isSingleton() {
 		return false;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.FactoryBean#getObjectType()
-	 */
 	@Override
 	public Class<?> getObjectType() {
 		return BatchPolicy.class;

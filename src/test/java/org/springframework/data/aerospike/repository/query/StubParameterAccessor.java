@@ -33,49 +33,32 @@ public class StubParameterAccessor implements AerospikeParameterAccessor {
 	public StubParameterAccessor(Object... values) {
 		this.values = values;
 	}
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.ParameterAccessor#getPageable()
-	 */
+
 	@Override
 	public Pageable getPageable() {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.ParameterAccessor#getSort()
-	 */
 	@Override
 	public Sort getSort() {
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.ParameterAccessor#getBindableValue(int)
-	 */
 	@Override
 	public Object getBindableValue(int index) {
 		return values[index];
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.ParameterAccessor#hasBindableNullValue()
-	 */
 	@Override
 	public boolean hasBindableNullValue() {
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.query.ParameterAccessor#iterator()
-	 */
 	@Override
 	public Iterator<Object> iterator() {
 		return Arrays.asList(values).iterator();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.aerospike.repository.query.AerospikeParameterAccessor#getValues()
-	 */
 	@Override
 	public Object[] getValues() {
 		return this.values;

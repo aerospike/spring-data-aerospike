@@ -24,24 +24,16 @@ import org.w3c.dom.Element;
 
 /**
  * {@link BeanDefinitionParser} to create a {@link BeanDefinition} for a {@link QueryPolicyFactoryBean}.
- * 
+ *
  * @author Peter Milne
  */
 public class ScanPolicyBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser#getBeanClass(org.w3c.dom.Element)
-	 */
 	@Override
 	protected Class<?> getBeanClass(Element element) {
 		return QueryPolicyFactoryBean.class;
 	}
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser#doParse(org.w3c.dom.Element, org.springframework.beans.factory.support.BeanDefinitionBuilder)
-	 */
 	@Override
 	protected void doParse(Element element, BeanDefinitionBuilder builder) {
 		ParsingUtils.setPropertyValue(builder, element, "max-concurrent-threads");

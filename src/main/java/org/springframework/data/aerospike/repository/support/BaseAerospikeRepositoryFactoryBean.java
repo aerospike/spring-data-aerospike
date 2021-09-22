@@ -43,10 +43,6 @@ public abstract class BaseAerospikeRepositoryFactoryBean<T extends Repository <S
 		this.queryCreator = queryCreator;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport#afterPropertiesSet()
-	 */
 	@Override
 	public void afterPropertiesSet() {
 		super.afterPropertiesSet();

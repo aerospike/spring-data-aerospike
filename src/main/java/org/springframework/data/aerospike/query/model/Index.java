@@ -34,12 +34,12 @@ import lombok.Value;
 @RequiredArgsConstructor
 public class Index {
 
-	private final String name;
-	private final String namespace;
-	private final String set;
-	private final String bin;
-	private final IndexType indexType;
-	private final IndexCollectionType indexCollectionType;
+	String name;
+	String namespace;
+	String set;
+	String bin;
+	IndexType indexType;
+	IndexCollectionType indexCollectionType;
 
 	public String getName() {
 		return this.name;

@@ -51,7 +51,7 @@ public final class DateConverters {
    * @return the list of converters to register.
    */
   public static Collection<Converter<?, ?>> getConvertersToRegister() {
-    List<Converter<?, ?>> converters = new ArrayList<Converter<?, ?>>();
+    List<Converter<?, ?>> converters = new ArrayList<>();
 
     converters.add(DateToLongConverter.INSTANCE);
     converters.add(CalendarToLongConverter.INSTANCE);
@@ -229,5 +229,4 @@ public final class DateConverters {
       return source == null ? null : new DateMidnight(source.longValue());
     }
   }
-
 }

@@ -25,7 +25,7 @@ public interface AerospikeParameterAccessor extends ParameterAccessor {
 
 	/**
 	 * Returns the raw parameter values of the underlying query method.
-	 * 
+	 *
 	 * @return the raw parameter values of the underlying query method.
 	 * @since 1.8
 	 */

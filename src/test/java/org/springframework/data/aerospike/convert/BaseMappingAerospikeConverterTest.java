@@ -33,7 +33,6 @@ public abstract class BaseMappingAerospikeConverterTest {
 	protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeTypeAliasAccessor typeAliasAccessor, Converter<?, ?>... customConverters) {
 		AerospikeMappingContext mappingContext = new AerospikeMappingContext();
 		mappingContext.setApplicationContext(getApplicationContext());
-		mappingContext.setDefaultNameSpace(NAMESPACE);
 		CustomConversions customConversions = new AerospikeCustomConversions(asList(customConverters));
 
 		MappingAerospikeConverter converter = new MappingAerospikeConverter(mappingContext, customConversions, typeAliasAccessor);

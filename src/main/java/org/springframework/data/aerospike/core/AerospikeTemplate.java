@@ -48,7 +48,6 @@ import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.OperationUtils.operations;
 
-
 /**
  * Primary implementation of {@link AerospikeOperations}.
  *
@@ -84,6 +83,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		createIndex(entityClass, indexName, binName, indexType, IndexCollectionType.DEFAULT);
 	}
 
+	@Override
 	public <T> void createIndex(Class<T> entityClass, String indexName,
 								String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
 		Assert.notNull(entityClass, "Type must not be null!");
@@ -139,7 +139,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 	@Override
 	public <T> void save(T document) {
-		Assert.notNull(document, "Object to insert must not be null!");
+		Assert.notNull(document, "Document must not be null!");
 
 		AerospikeWriteData data = writeData(document);
 
@@ -165,6 +165,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		doPersistAndHandleError(data, policy);
 	}
 
+	@Override
 	public <T> void insertAll(Collection<? extends T> documents) {
 		Assert.notNull(documents, "Documents must not be null!");
 
@@ -233,11 +234,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
-	public <T> boolean delete(T objectToDelete) {
-		Assert.notNull(objectToDelete, "Object to delete must not be null!");
+	public <T> boolean delete(T document) {
+		Assert.notNull(document, "Document must not be null!");
 
 		try {
-			AerospikeWriteData data = writeData(objectToDelete);
+			AerospikeWriteData data = writeData(document);
 
 			return this.client.delete(ignoreGenerationDeletePolicy(), data.getKey());
 		} catch (AerospikeException e) {
@@ -335,17 +336,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		}
 	}
 
-
-	/**
-	 * Executes a single batch request to get results for several entities.
-	 *
-	 * Aerospike provides functionality to get records from different sets in 1 batch
-	 * request. The methods allows to put grouped keys by entity type as parameter and
-	 * get result as spring data aerospike entities grouped by entity type.
-	 *
-	 * @param groupedKeys will never be {@literal null}.
-	 * @return GroupedEntities grouped entities
-	 */
 	@Override
 	public GroupedEntities findByIds(GroupedKeys groupedKeys) {
 		Assert.notNull(groupedKeys, "Grouped keys must not be null!");
@@ -449,7 +439,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
-	public <T> long count(String setName) {
+	public long count(String setName) {
 		Assert.notNull(setName, "Set for count must not be null!");
 
 		try {
@@ -468,32 +458,32 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
-	public <T> T prepend(T objectToPrependTo, String fieldName, String value) {
-		Assert.notNull(objectToPrependTo, "Object to prepend to must not be null!");
+	public <T> T prepend(T document, String fieldName, String value) {
+		Assert.notNull(document, "Document must not be null!");
 
 		try {
-			AerospikeWriteData data = writeData(objectToPrependTo);
+			AerospikeWriteData data = writeData(document);
 			Record record = this.client.operate(null, data.getKey(),
 					Operation.prepend(new Bin(fieldName, value)),
 					Operation.get(fieldName));
 
-			return mapToEntity(data.getKey(), getEntityClass(objectToPrependTo), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), record);
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
 	}
 
 	@Override
-	public <T> T prepend(T objectToPrependTo, Map<String, String> values) {
-		Assert.notNull(objectToPrependTo, "Object to prepend to must not be null!");
+	public <T> T prepend(T document, Map<String, String> values) {
+		Assert.notNull(document, "Document must not be null!");
 		Assert.notNull(values, "Values must not be null!");
 
 		try {
-			AerospikeWriteData data = writeData(objectToPrependTo);
+			AerospikeWriteData data = writeData(document);
 			Operation[] ops = operations(values, Operation.Type.PREPEND, Operation.get());
 			Record record = this.client.operate(null, data.getKey(), ops);
 
-			return mapToEntity(data.getKey(), getEntityClass(objectToPrependTo), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), record);
 		}
 		catch (AerospikeException e) {
 			throw translateError(e);
@@ -501,16 +491,16 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
-	public <T> T append(T objectToAppendTo, Map<String, String> values) {
-		Assert.notNull(objectToAppendTo, "Object to append to must not be null!");
+	public <T> T append(T document, Map<String, String> values) {
+		Assert.notNull(document, "Document must not be null!");
 		Assert.notNull(values, "Values must not be null!");
 
 		try {
-			AerospikeWriteData data = writeData(objectToAppendTo);
+			AerospikeWriteData data = writeData(document);
 			Operation[] ops = operations(values, Operation.Type.APPEND, Operation.get());
 			Record record = this.client.operate(null, data.getKey(), ops);
 
-			return mapToEntity(data.getKey(), getEntityClass(objectToAppendTo), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), record);
 		}
 		catch (AerospikeException e) {
 			throw translateError(e);
@@ -518,29 +508,29 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
-	public <T> T append(T objectToAppendTo, String binName, String value) {
-		Assert.notNull(objectToAppendTo, "Object to append to must not be null!");
+	public <T> T append(T document, String binName, String value) {
+		Assert.notNull(document, "Document must not be null!");
 
 		try {
 
-			AerospikeWriteData data = writeData(objectToAppendTo);
+			AerospikeWriteData data = writeData(document);
 			Record record = this.client.operate(null, data.getKey(),
 					Operation.append(new Bin(binName, value)),
 					Operation.get(binName));
 
-			return mapToEntity(data.getKey(), getEntityClass(objectToAppendTo), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), record);
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
 	}
 
 	@Override
-	public <T> T add(T objectToAddTo, Map<String, Long> values) {
-		Assert.notNull(objectToAddTo, "Object to add to must not be null!");
+	public <T> T add(T document, Map<String, Long> values) {
+		Assert.notNull(document, "Document must not be null!");
 		Assert.notNull(values, "Values must not be null!");
 
 		try {
-			AerospikeWriteData data = writeData(objectToAddTo);
+			AerospikeWriteData data = writeData(document);
 			Operation[] ops = operations(values, Operation.Type.ADD, Operation.get());
 
 			WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
@@ -549,19 +539,19 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 			Record record = this.client.operate(writePolicy, data.getKey(), ops);
 
-			return mapToEntity(data.getKey(), getEntityClass(objectToAddTo), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), record);
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
 	}
 
 	@Override
-	public <T> T add(T objectToAddTo, String binName, long value) {
-		Assert.notNull(objectToAddTo, "Object to add to must not be null!");
+	public <T> T add(T document, String binName, long value) {
+		Assert.notNull(document, "Document must not be null!");
 		Assert.notNull(binName, "Bin name must not be null!");
 
 		try {
-			AerospikeWriteData data = writeData(objectToAddTo);
+			AerospikeWriteData data = writeData(document);
 
 			WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
 					.expiration(data.getExpiration())
@@ -570,7 +560,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			Record record = this.client.operate(writePolicy, data.getKey(),
 					Operation.add(new Bin(binName, value)), Operation.get());
 
-			return mapToEntity(data.getKey(), getEntityClass(objectToAddTo), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), record);
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}

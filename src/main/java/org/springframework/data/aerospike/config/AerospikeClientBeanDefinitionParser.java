@@ -32,10 +32,6 @@ public class AerospikeClientBeanDefinitionParser implements BeanDefinitionParser
 
 	private final ClientPolicyBeanDefinitionParser clientPolicyParser = new ClientPolicyBeanDefinitionParser();
 
-	/* 
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.xml.BeanDefinitionParser#parse(org.w3c.dom.Element, org.springframework.beans.factory.xml.ParserContext)
-	 */
 	@Override
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AerospikeClient.class);
@@ -53,10 +49,10 @@ public class AerospikeClientBeanDefinitionParser implements BeanDefinitionParser
 
 	/**
 	 * Looks up a nested {@code client-policy} element within the given one and passes a {@link BeanDefinition} from it.
-	 * 
-	 * @param element the current {@code client} element, must not be {@literal null}.
+	 *
+	 * @param element       the current {@code client} element, must not be {@literal null}.
 	 * @param parserContext must not be {@literal null}.
-	 * @param builder must not be {@literal null}.
+	 * @param builder       must not be {@literal null}.
 	 */
 	private void parseNestedClientPolicy(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
 		Element clientPolicyElement = DomUtils.getChildElementByTagName(element, "client-policy");

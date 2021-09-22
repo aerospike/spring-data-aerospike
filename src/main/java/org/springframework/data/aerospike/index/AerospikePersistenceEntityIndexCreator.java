@@ -55,5 +55,4 @@ public class AerospikePersistenceEntityIndexCreator extends BaseAerospikePersist
             throw new IllegalStateException("Failed to install aerospike index: " + index, e);
         }
     }
-
 }

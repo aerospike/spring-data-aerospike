@@ -36,9 +36,6 @@ public class AerospikeRepositoryFactoryBean<T extends Repository <S, ID>, S, ID>
 		this.operations = operations;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport#createRepositoryFactory()
-	 */
 	@Override
 	protected RepositoryFactorySupport createRepositoryFactory() {
 		return new AerospikeRepositoryFactory(this.operations, this.queryCreator);
