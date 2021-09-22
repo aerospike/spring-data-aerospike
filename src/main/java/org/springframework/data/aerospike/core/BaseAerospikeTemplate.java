@@ -29,9 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeReadData;
-import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
@@ -41,7 +39,6 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -50,7 +47,6 @@ import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -87,25 +83,6 @@ abstract class BaseAerospikeTemplate {
         this.namespace = namespace;
         this.mappingContext = mappingContext;
         this.writePolicyDefault = writePolicyDefault;
-
-        loggerSetup();
-    }
-
-    BaseAerospikeTemplate(String namespace, WritePolicy writePolicyDefault) {
-        Assert.notNull(writePolicyDefault, "Write policy must not be null!");
-        Assert.notNull(namespace, "Namespace cannot be null");
-        Assert.hasLength(namespace, "Namespace cannot be empty");
-
-        CustomConversions customConversions = new AerospikeCustomConversions(Collections.emptyList());
-        AerospikeMappingContext asContext = new AerospikeMappingContext();
-
-        this.converter = new MappingAerospikeConverter(asContext, customConversions, new AerospikeTypeAliasAccessor());
-        this.exceptionTranslator = new DefaultAerospikeExceptionTranslator();
-        this.namespace = namespace;
-        this.mappingContext = asContext;
-        this.writePolicyDefault = writePolicyDefault;
-
-        this.converter.afterPropertiesSet();
 
         loggerSetup();
     }
