@@ -6,44 +6,36 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>3.1.0</version>
+    <version>3.2.0</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
         <url>https://www.aerospike.com</url>
     </organization>
 
- 	<parent>
-		<groupId>org.springframework.data.build</groupId>
-		<artifactId>spring-data-parent</artifactId>
-		<version>2.5.4</version>
-	</parent>
+    <parent>
+        <groupId>org.springframework.data.build</groupId>
+        <artifactId>spring-data-parent</artifactId>
+        <version>2.5.5</version>
+    </parent>
 
     <properties>
         <source.level>1.8</source.level>
-        <aerospike>5.1.7</aerospike>
-        <aerospike-reactor>5.0.7</aerospike-reactor>
-
-        <springdata.commons>2.5.4</springdata.commons>
-        <springdata.keyvalue>2.5.4</springdata.keyvalue>
-        <dist.key>DATAAERO</dist.key>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
-        <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
-        <maven.javadoc.plugin.version>3.3.0</maven.javadoc.plugin.version>
-        <maven.gpg.plugin.version>1.6</maven.gpg.plugin.version>
-        <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
-
-        <spring-boot-starter-test.version>2.5.4</spring-boot-starter-test.version>
-        <spring-cloud-starter-bootstrap.version>3.0.3</spring-cloud-starter-bootstrap.version>
-        <embedded-aerospike.version>2.0.11</embedded-aerospike.version>
-        <awaitility.version>4.1.0</awaitility.version>
-        <blockhound.version>1.0.6.RELEASE</blockhound.version>
-        <lombok.version>1.18.20</lombok.version>
+        <springdata.commons>2.5.5</springdata.commons>
+        <springdata.keyvalue>2.5.5</springdata.keyvalue>
+        <spring-cloud-starter-bootstrap>3.0.3</spring-cloud-starter-bootstrap>
+        <spring-boot-starter-test>2.5.4</spring-boot-starter-test>
+        <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
+        <maven.gpg.plugin>1.6</maven.gpg.plugin>
+        <aerospike>5.1.8</aerospike>
+        <aerospike-reactor>5.0.7</aerospike-reactor>
+        <embedded-aerospike>2.0.14</embedded-aerospike>
+        <awaitility>4.1.0</awaitility>
+        <blockhound>1.0.6.RELEASE</blockhound>
+        <lombok>1.18.20</lombok>
     </properties>
 
     <licenses>
@@ -134,6 +126,28 @@
             </roles>
             <timezone>+3</timezone>
         </developer>
+        <developer>
+            <id>Eugene Rizhkov</id>
+            <name>Eugene Rizhkov</name>
+            <email>yrizhkov@aerospike.com</email>
+            <url>https://www.aerospike.com</url>
+            <organization>Aerospike</organization>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+3</timezone>
+        </developer>
+        <developer>
+            <id>Roi Menashe</id>
+            <name>Roi Menashe</name>
+            <email>rmenashe@aerospike.com</email>
+            <url>https://www.aerospike.com</url>
+            <organization>Aerospike</organization>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+3</timezone>
+        </developer>
     </developers>
 
     <scm>
@@ -183,7 +197,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>${lombok.version}</version>
+                <version>${lombok}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -193,50 +207,41 @@
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-keyvalue</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.aerospike</groupId>
             <artifactId>aerospike-client</artifactId>
         </dependency>
-
         <dependency>
             <groupId>com.aerospike</groupId>
             <artifactId>aerospike-reactor-client</artifactId>
             <optional>true</optional>
         </dependency>
-
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <optional>true</optional>
         </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-
         <!--TEST dependencies-->
         <dependency>
             <groupId>io.projectreactor</groupId>
@@ -246,33 +251,32 @@
         <dependency>
             <groupId>com.playtika.testcontainers</groupId>
             <artifactId>embedded-aerospike</artifactId>
-            <version>${embedded-aerospike.version}</version>
+            <version>${embedded-aerospike}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
-            <version>${spring-cloud-starter-bootstrap.version}</version>
+            <version>${spring-cloud-starter-bootstrap}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring-boot-starter-test.version}</version>
+            <version>${spring-boot-starter-test}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>${awaitility.version}</version>
+            <version>${awaitility}</version>
             <scope>test</scope>
         </dependency>
-
         <!--Needed for tracking blocking calls in reactive application https://github.com/reactor/BlockHound -->
         <dependency>
             <groupId>io.projectreactor.tools</groupId>
             <artifactId>blockhound</artifactId>
-            <version>${blockhound.version}</version>
+            <version>${blockhound}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -282,22 +286,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin.version}</version>
                 <configuration combine.self="override"/>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${maven.compiler.plugin.version}</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>${maven.source.plugin.version}</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -310,7 +303,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven.javadoc.plugin.version}</version>
+                <version>${maven.javadoc.plugin}</version>
                 <configuration>
                     <doclint>none</doclint>
                     <reportOutputDirectory>${basedir}</reportOutputDirectory>
@@ -333,7 +326,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>${maven.gpg.plugin.version}</version>
+                <version>${maven.gpg.plugin}</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
@@ -347,7 +340,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>${maven-surefire-plugin.version}</version>
                 <configuration combine.self="override"/>
             </plugin>
         </plugins>

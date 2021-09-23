@@ -66,7 +66,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> save(T document);
 
     /**
-     * Reactively insert each document of the given documents using single insert operations {@link #insert(Object).
+     * Reactively insert each document of the given documents using single insert operations.
      *
      * @param documents The documents to insert. Must not be {@literal null}.
      * @return A Flux of the new inserted documents.

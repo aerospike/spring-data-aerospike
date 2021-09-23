@@ -97,7 +97,7 @@ public interface AerospikeOperations {
     <T> void persist(T document, WritePolicy writePolicy);
 
     /**
-     * Insert each document of the given documents using single insert operations {@link #insert(Object).
+     * Insert each document of the given documents using single insert operations.
      *
      * @param documents The documents to insert. Must not be {@literal null}.
      */
