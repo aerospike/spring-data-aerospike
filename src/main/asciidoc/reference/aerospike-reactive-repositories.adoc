@@ -84,7 +84,7 @@ public class TestRepositoryConfig extends AbstractReactiveAerospikeDataConfigura
 ----
 ====
 
-As our domain repository extends `ReactiveCrudRepository` it provides you with CRUD operations. Working with the repository instance is a matter of dependency injecting it into a client, as the following example shows:
+As our domain repository extends `ReactiveAerospikeRepository` it provides you with CRUD operations. Working with the repository instance is a matter of dependency injecting it into a client, as the following example shows:
 
 .Access to Person entities
 ====

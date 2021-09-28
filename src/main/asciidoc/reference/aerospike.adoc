@@ -101,15 +101,15 @@ public class Person {
 }
 ----
 
-In the simplest case, your repository will extend the CrudRepository<T, String>, where T is the entity that you want to expose.
+In the simplest case, your repository will extend the AerospikeRepository<T, String>, where T is the entity that you want to expose.
 
 [source,java]
 ----
 package org.springframework.data.aerospike.example.repo;
 
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.aerospike.repository.AerospikeRepository;
 
-public interface PersonRepository extends CrudRepository<Person, String> {
+public interface PersonRepository extends AerospikeRepository<Person, String> {
 }
 ----
 Please note that this is just an interface and not an actual class. In the background, when your context gets initialized, actual implementations for your repository descriptions get created and you can access them through regular beans.

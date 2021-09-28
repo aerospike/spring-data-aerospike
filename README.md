@@ -81,7 +81,7 @@ To simplify the creation of data repositories Spring Data Aerospike provides a g
 For example, given a `Person` class with first and last name properties, a `PersonRepository` interface that can query for `Person` by last name and when the first name matches a like expression is shown below:
 
 ```java
-public interface PersonRepository extends CrudRepository<Person, Long> {
+public interface PersonRepository extends AerospikeRepository<Person, Long> {
 
   List<Person> findByLastname(String lastname);
 
@@ -89,7 +89,7 @@ public interface PersonRepository extends CrudRepository<Person, Long> {
 }
 ```
 
-The queries issued on execution will be derived from the method name. Extending `CrudRepository` causes CRUD methods being pulled into the interface so that you can easily save and find single entities and collections of them.
+The queries issued on execution will be derived from the method name. Extending `AerospikeRepository` causes CRUD methods being pulled into the interface so that you can easily save and find single entities and collections of them.
 
 You can have Spring automatically create a proxy for the interface by using the following JavaConfig:
 
