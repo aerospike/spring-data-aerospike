@@ -25,8 +25,8 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <springdata.commons>2.5.5</springdata.commons>
         <springdata.keyvalue>2.5.5</springdata.keyvalue>
-        <spring-cloud-starter-bootstrap>3.0.3</spring-cloud-starter-bootstrap>
-        <spring-boot-starter-test>2.5.4</spring-boot-starter-test>
+        <spring-cloud-starter-bootstrap>3.0.4</spring-cloud-starter-bootstrap>
+        <spring-boot-starter-test>2.5.5</spring-boot-starter-test>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike>5.1.8</aerospike>
