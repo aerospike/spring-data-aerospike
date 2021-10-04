@@ -30,7 +30,7 @@
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike>5.1.8</aerospike>
-        <aerospike-reactor>5.0.7</aerospike-reactor>
+        <aerospike-reactor>5.1.8</aerospike-reactor>
         <embedded-aerospike>2.0.14</embedded-aerospike>
         <awaitility>4.1.0</awaitility>
         <blockhound>1.0.6.RELEASE</blockhound>
