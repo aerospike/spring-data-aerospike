@@ -3,13 +3,13 @@
 [maven-image]: https://img.shields.io/maven-central/v/com.aerospike/spring-data-aerospike.svg?maxAge=259200
 [maven-url]: https://search.maven.org/#search%7Cga%7C1%7Ca%3A%22spring-data-aerospike%22
 [ci-image]: https://github.com/aerospike-community/spring-data-aerospike/workflows/Build%20project/badge.svg
-[ci-url]: https://github.com/aerospike-community/spring-data-aerospike/actions?query=branch%3Amaster
+[ci-url]: https://github.com/aerospike-community/spring-data-aerospike/actions?query=branch%3Amain
 [javadoc-image]: https://javadoc.io/badge2/com.aerospike/spring-data-aerospike/javadoc.svg 
 [javadoc-url]: https://javadoc.io/doc/com.aerospike/spring-data-aerospike
 
 The primary goal of the [Spring Data](https://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
-The Spring Data Aerospike project aims to provide a familiar and consistent Spring-based programming model for new datastores while retaining store-specific features and capabilities. The Spring Data Aerospike project provides integration with the Aerospike document database. Key functional areas of Spring Data Aerospike are a POJO centric model for interacting with a Aerospike DBCollection and easily writing a repository style data access layer.
+The Spring Data Aerospike project aims to provide a familiar and consistent Spring-based programming model for new datastores while retaining store-specific features and capabilities. The Spring Data Aerospike project provides integration with the Aerospike document database. Key functional areas of Spring Data Aerospike are a POJO centric model for interacting with an Aerospike DBCollection and easily writing a repository style data access layer.
 
 ## Documentation
 
@@ -145,7 +145,7 @@ public class MyService {
 
 For a comprehensive treatment of all the Spring Data Aerospike features, please refer to:
 
-* the [User Guide](https://github.com/aerospike-community/spring-data-aerospike/blob/master/src/main/asciidoc/index.adoc)
+* the [User Guide](https://github.com/aerospike-community/spring-data-aerospike/blob/main/src/main/asciidoc/index.adoc)
 * for more detailed questions, use [Spring Data Aerospike on Stackoverflow](https://stackoverflow.com/questions/tagged/spring-data-aerospike).
 
 If you are new to Spring as well as to Spring Data, look for information about [Spring projects](https://projects.spring.io/).
