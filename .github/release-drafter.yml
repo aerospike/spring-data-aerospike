@@ -19,6 +19,8 @@ categories:
       - 'chore'
       - 'cleanup'
       - 'polish'
+  - title: '📁 Dependencies updates'
+    label: 'dependencies'
   - title: '📖 Documentation'
     label: 'documentation'
 
