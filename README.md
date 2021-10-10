@@ -9,7 +9,7 @@
 
 The primary goal of the [Spring Data](https://projects.spring.io/spring-data) project is to make it easier to build Spring-powered applications that use new data access technologies such as non-relational databases, map-reduce frameworks, and cloud based data services.
 
-The Spring Data Aerospike project aims to provide a familiar and consistent Spring-based programming model for new datastores while retaining store-specific features and capabilities. The Spring Data Aerospike project provides integration with the Aerospike document database. Key functional areas of Spring Data Aerospike are a POJO centric model for interacting with an Aerospike DBCollection and easily writing a repository style data access layer.
+The Spring Data Aerospike project aims to provide a familiar and consistent Spring-based programming model for new data stores while retaining store-specific features and capabilities. The Spring Data Aerospike project provides integration with the Aerospike document database. Key functional areas of Spring Data Aerospike are a POJO centric model for interacting with an Aerospike DBCollection and easily writing a repository style data access layer.
 
 ## Documentation
 
@@ -84,9 +84,9 @@ For example, given a `Person` class with first and last name properties, a `Pers
 ```java
 public interface PersonRepository extends AerospikeRepository<Person, Long> {
 
-  List<Person> findByLastname(String lastname);
+    List<Person> findByLastname(String lastname);
 
-  List<Person> findByFirstnameLike(String firstname);
+    List<Person> findByFirstnameLike(String firstname);
 }
 ```
 
@@ -98,17 +98,16 @@ You can have Spring automatically create a proxy for the interface by using the 
 @Configuration
 @EnableAerospikeRepositories(basePackageClasses = PersonRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
-	
-	@Override
+
+    @Override
     protected Collection<Host> getHosts() {
-    	return Collections.singleton(new Host("localhost", 3000));
+        return Collections.singleton(new Host("localhost", 3000));
     }
-    
+
     @Override
     protected String nameSpace() {
-    	return "TEST";
+        return "TEST";
     }
-	
 }
 ```
 
@@ -120,25 +119,24 @@ This will find the repository interface and register a proxy object in the conta
 @Service
 public class MyService {
 
-  private final PersonRepository repository;
+    private final PersonRepository repository;
 
-  @Autowired
-  public MyService(PersonRepository repository) {
-    this.repository = repository;
-  }
+    @Autowired
+    public MyService(PersonRepository repository) {
+        this.repository = repository;
+    }
 
-  public void doWork() {
+    public void doWork() {
+        repository.deleteAll();
 
-     repository.deleteAll();
+        Person person = new Person();
+        person.setFirstname("Oliver");
+        person.setLastname("Gierke");
+        repository.save(person);
 
-     Person person = new Person();
-     person.setFirstname("Oliver");
-     person.setLastname("Gierke");
-     person = repository.save(person);
-
-     List<Person> lastNameResults = repository.findByLastname("Gierke");
-     List<Person> firstNameResults = repository.findByFirstnameLike("Oli*");
- }
+        List<Person> lastNameResults = repository.findByLastname("Gierke");
+        List<Person> firstNameResults = repository.findByFirstnameLike("Oli*");
+    }
 }
 ```
 
