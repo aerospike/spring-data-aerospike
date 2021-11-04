@@ -21,6 +21,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
@@ -51,6 +52,8 @@ public class DefaultAerospikeExceptionTranslator implements AerospikeExceptionTr
 			/*
 			 * Future enhancements will be more elaborate 
 			 */
+				case ResultCode.GENERATION_ERROR:
+					return new OptimisticLockingFailureException(msg, cause);
 				case ResultCode.PARAMETER_ERROR:
 					return new InvalidDataAccessApiUsageException(msg, cause);
 				case ResultCode.KEY_EXISTS_ERROR:

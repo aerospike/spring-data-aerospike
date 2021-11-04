@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
@@ -32,6 +33,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class DefaultAerospikeExceptionTranslatorTest {
 
     private final DefaultAerospikeExceptionTranslator translator = new DefaultAerospikeExceptionTranslator();
+
+    @Test
+    public void shouldTranslateGenerationError() {
+        AerospikeException cause = new AerospikeException(ResultCode.GENERATION_ERROR);
+        DataAccessException actual = translator.translateExceptionIfPossible(cause);
+        assertThat(actual).isExactlyInstanceOf(OptimisticLockingFailureException.class);
+    }
 
     @Test
     public void shouldTranslateKeyExistError() {
