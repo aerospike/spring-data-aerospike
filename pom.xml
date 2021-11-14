@@ -16,25 +16,25 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>2.5.5</version>
+        <version>2.5.6</version>
     </parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <springdata.commons>2.5.5</springdata.commons>
-        <springdata.keyvalue>2.5.5</springdata.keyvalue>
+        <springdata.commons>2.5.6</springdata.commons>
+        <springdata.keyvalue>2.5.6</springdata.keyvalue>
         <spring-cloud-starter-bootstrap>3.0.4</spring-cloud-starter-bootstrap>
-        <spring-boot-starter-test>2.5.5</spring-boot-starter-test>
+        <spring-boot-starter-test>2.5.6</spring-boot-starter-test>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike>5.1.8</aerospike>
-        <aerospike-reactor>5.0.7</aerospike-reactor>
-        <embedded-aerospike>2.0.14</embedded-aerospike>
-        <awaitility>4.1.0</awaitility>
+        <aerospike>5.1.9</aerospike>
+        <aerospike-reactor>5.1.8</aerospike-reactor>
+        <embedded-aerospike>2.0.16</embedded-aerospike>
+        <awaitility>4.1.1</awaitility>
         <blockhound>1.0.6.RELEASE</blockhound>
-        <lombok>1.18.20</lombok>
+        <lombok>1.18.22</lombok>
     </properties>
 
     <licenses>
