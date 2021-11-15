@@ -37,6 +37,7 @@ import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -116,6 +117,29 @@ public class SampleClasses {
 		@Id
 		final long id;
 		final Map<String, T> mapWithNonSimpleValue;
+	}
+
+	@Data
+	@Document
+	@AllArgsConstructor
+	public static class DocumentExample {
+		@Id
+		String id;
+		Map<SomeId, SomeEntity> entityMap;
+	}
+
+	@Value
+	public static class SomeId {
+		String partA;
+		String partB;
+	}
+
+	@Value
+	@AllArgsConstructor
+	public static class SomeEntity {
+		SomeId id;
+		String fieldA;
+		Long fieldB;
 	}
 
 	@Document
@@ -469,6 +493,26 @@ public class SampleClasses {
 			String fs = (String) source.getValue("fs");
 			String ls = (String) source.getValue("ls");
 			return new User(id, new Name(fs, ls), null);
+		}
+	}
+
+	@WritingConverter
+	public static class SomeIdToStringConverter implements Converter<SomeId, String> {
+
+		@Override
+		public String convert(SomeId id) {
+			return id.getPartA() + "-" + id.getPartB();
+		}
+	}
+
+	@ReadingConverter
+	public static class StringToSomeIdConverter implements Converter<String, SomeId> {
+
+		@Override
+		public SomeId convert(String id) {
+			String[] parts = StringUtils.split(id, "-");
+			assert parts != null;
+			return new SomeId(parts[0], parts[1]);
 		}
 	}
 

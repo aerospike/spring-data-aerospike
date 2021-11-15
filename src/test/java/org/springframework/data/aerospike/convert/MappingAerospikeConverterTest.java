@@ -126,6 +126,45 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 	}
 
 	@Test
+	public void shouldWriteAndReadUsingCustomConverterOnNestedMapKeyObject() {
+		MappingAerospikeConverter converter =
+				getMappingAerospikeConverter(new SampleClasses.SomeIdToStringConverter(), new SampleClasses.StringToSomeIdConverter());
+
+		AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
+
+		SampleClasses.SomeId someId1 = new SampleClasses.SomeId("partA", "partB1");
+		SampleClasses.SomeId someId2 = new SampleClasses.SomeId("partA", "partB2");
+		SampleClasses.SomeEntity someEntity1 = new SampleClasses.SomeEntity(someId1, "fieldA", 42L);
+		SampleClasses.SomeEntity someEntity2 = new SampleClasses.SomeEntity(someId2, "fieldA", 42L);
+		Map<SampleClasses.SomeId, SampleClasses.SomeEntity> entityMap = new HashMap<>();
+		entityMap.put(someId1, someEntity1);
+		entityMap.put(someId2, someEntity2);
+
+		SampleClasses.DocumentExample documentExample = new SampleClasses.DocumentExample("someKey1", entityMap);
+		converter.write(documentExample, forWrite);
+
+		Map<String, Object> entityMapExpectedAfterConversion = new HashMap<>();
+
+		for (Map.Entry<SampleClasses.SomeId, SampleClasses.SomeEntity> entry : entityMap.entrySet()) {
+			String newSomeIdAsStringKey = entry.getKey().getPartA() + "-" + entry.getKey().getPartB();
+			HashMap<String, Object> newEntityMap = new HashMap<>();
+			newEntityMap.put("id", entry.getValue().getId().getPartA() + "-" + entry.getValue().getId().getPartB());
+			newEntityMap.put("fieldA", entry.getValue().getFieldA());
+			newEntityMap.put("fieldB", entry.getValue().getFieldB());
+			newEntityMap.put("@_class", "org.springframework.data.aerospike.SampleClasses$SomeEntity");
+			entityMapExpectedAfterConversion.put(newSomeIdAsStringKey, newEntityMap);
+		}
+
+		assertThat(forWrite.getKey()).consistsOf("namespace", "DocumentExample", "someKey1");
+		assertThat(forWrite.getBins().stream().filter(x -> !x.name.equals("@_class"))).containsOnly(new Bin("entityMap", entityMapExpectedAfterConversion));
+
+		Map<String, Object> bins = of("entityMap", entityMapExpectedAfterConversion);
+		SampleClasses.DocumentExample read = converter.read(SampleClasses.DocumentExample.class, AerospikeReadData.forRead(forWrite.getKey(), record(bins)));
+
+		assertThat(read).isEqualTo(documentExample);
+	}
+
+	@Test
 	public void shouldWriteAndReadIfTypeKeyIsNull() {
 		MappingAerospikeConverter converter =
 				getMappingAerospikeConverter(new AerospikeTypeAliasAccessor(null));
