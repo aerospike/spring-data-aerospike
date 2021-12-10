@@ -34,7 +34,7 @@ public class AerospikeMappingContextTest {
 		context.setApplicationContext(mock(ApplicationContext.class));
 		context.setFieldNamingStrategy(null);
 		
-		AerospikePersistentEntity<?> entity = context.getPersistentEntity(Person.class);
+		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
 
 		assertThat(entity.getPersistentProperty("firstName").getField().getName()).isEqualTo("firstName");
 	}
@@ -45,7 +45,7 @@ public class AerospikeMappingContextTest {
 		context.setApplicationContext(mock(ApplicationContext.class));
 		context.setFieldNamingStrategy(null);
 		
-		AerospikePersistentEntity<?> entity = context.getPersistentEntity(Person.class);
+		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
 
 		assertThat(entity.getTypeInformation().getType().getSimpleName()).isEqualTo(Person.class.getSimpleName());
 	}

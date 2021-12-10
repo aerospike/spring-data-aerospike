@@ -70,7 +70,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 		}
 
 		TypeInformation<?> type = ClassTypeInformation.from(source.getClass());
-		AerospikePersistentEntity<?> entity = mappingContext.getPersistentEntity(source.getClass());
+		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
 		ConvertingPropertyAccessor<?> accessor = new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
 		AerospikePersistentProperty idProperty = entity.getIdProperty();
@@ -193,7 +193,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 		Assert.notNull(source, "Given map must not be null!");
 		Assert.notNull(type, "Given type must not be null!");
 
-		AerospikePersistentEntity<?> entity = mappingContext.getPersistentEntity(source.getClass());
+		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
 		ConvertingPropertyAccessor<?> accessor = new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
 		return convertProperties(type, entity, accessor);

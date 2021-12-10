@@ -34,42 +34,42 @@ public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests 
 
     @Test
     public void shouldReturnExpirationForDocumentWithExpiration() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithExpiration.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithExpiration.class);
 
         assertThat(persistentEntity.getExpiration()).isEqualTo(EXPIRATION_ONE_SECOND);
     }
 
     @Test
     public void shouldReturnExpirationForDocumentWithExpirationExpression() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithExpirationExpression.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithExpirationExpression.class);
 
         assertThat(persistentEntity.getExpiration()).isEqualTo(EXPIRATION_ONE_SECOND);
     }
 
     @Test
     public void shouldReturnExpirationForDocumentWithExpirationUnit() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithExpirationUnit.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithExpirationUnit.class);
 
         assertThat(persistentEntity.getExpiration()).isEqualTo((int) TimeUnit.MINUTES.toSeconds(1));
     }
 
     @Test
     public void shouldReturnZeroForDocumentWithoutExpiration() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithoutExpiration.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithoutExpiration.class);
 
         assertThat(persistentEntity.getExpiration()).isEqualTo(DEFAULT_EXPIRATION);
     }
 
     @Test
     public void shouldReturnZeroForDocumentWithoutAnnotation() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithoutAnnotation.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithoutAnnotation.class);
 
         assertThat(persistentEntity.getExpiration()).isEqualTo(DEFAULT_EXPIRATION);
     }
 
     @Test
     public void shouldFailForDocumentWithExpirationAndExpression() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithExpirationAndExpression.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithExpirationAndExpression.class);
 
         assertThatThrownBy(persistentEntity::getExpiration)
                 .isInstanceOf(IllegalStateException.class)
@@ -78,7 +78,7 @@ public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests 
 
     @Test
     public void shouldGetExpirationProperty() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithExpirationAnnotation.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithExpirationAnnotation.class);
         AerospikePersistentProperty expirationProperty = persistentEntity.getExpirationProperty();
 
         assertThat(expirationProperty).isNotNull();
@@ -88,7 +88,7 @@ public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests 
 
     @Test
     public void shouldGetExpirationPropertySpecifiedAsUnixTime() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithUnixTimeExpiration.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithUnixTimeExpiration.class);
         AerospikePersistentProperty expirationProperty = persistentEntity.getExpirationProperty();
 
         assertThat(expirationProperty).isNotNull();
@@ -98,7 +98,7 @@ public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests 
 
     @Test
     public void shouldFailForNonExpirationProperty() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithUnixTimeExpiration.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithUnixTimeExpiration.class);
         AerospikePersistentProperty expirationProperty = persistentEntity.getIdProperty();
 
         assertThatThrownBy(expirationProperty::isExpirationSpecifiedAsUnixTime)
@@ -108,7 +108,7 @@ public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests 
 
     @Test
     public void shouldResolvePlaceholdersInCollection() {
-        BasicAerospikePersistentEntity<?> persistentEntity = context.getPersistentEntity(DocumentWithExpressionInCollection.class);
+        BasicAerospikePersistentEntity<?> persistentEntity = context.getRequiredPersistentEntity(DocumentWithExpressionInCollection.class);
 
         assertThat(persistentEntity.getSetName()).isEqualTo(DocumentWithExpressionInCollection.COLLECTION_PREFIX + "service1");
     }

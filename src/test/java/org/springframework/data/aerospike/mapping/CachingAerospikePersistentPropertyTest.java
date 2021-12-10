@@ -39,35 +39,35 @@ public class CachingAerospikePersistentPropertyTest {
 
 	@Test
 	public void isTransient() {
-		AerospikePersistentEntity<?> entity = context.getPersistentEntity(Person.class);
+		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
 
 		assertThat(entity.getIdProperty().isTransient()).isFalse();
 	}
 
 	@Test
 	public void isAssociation() {
-		AerospikePersistentEntity<?> entity = context.getPersistentEntity(Person.class);
+		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
 
 		assertThat(entity.getIdProperty().isAssociation()).isFalse();
 	}
 
 	@Test
 	public void usePropertyAccess() {
-		AerospikePersistentEntity<?> entity = context.getPersistentEntity(Person.class);
+		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
 
 		assertThat(entity.getIdProperty().usePropertyAccess()).isFalse();
 	}
 
 	@Test
 	public void isIdProperty() {
-		AerospikePersistentEntity<?> entity = context.getPersistentEntity(Person.class);
+		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
 
 		assertThat(entity.getIdProperty().isIdProperty()).isTrue();
 	}
 
 	@Test
 	public void getFieldName() {
-		AerospikePersistentEntity<?> entity = context.getPersistentEntity(Person.class);
+		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
 
 		assertThat(entity.getIdProperty().getName()).isEqualTo("id");
 	}

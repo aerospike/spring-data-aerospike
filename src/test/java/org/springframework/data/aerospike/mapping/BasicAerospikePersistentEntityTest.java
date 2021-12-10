@@ -31,14 +31,14 @@ public class BasicAerospikePersistentEntityTest {
 
     @Test
     public void shouldReturnSimpleClassNameIfCollectionNotSpecified() {
-        BasicAerospikePersistentEntity<?> entity = context.getPersistentEntity(DocumentWithoutCollection.class);
+        BasicAerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(DocumentWithoutCollection.class);
 
         assertThat(entity.getSetName()).isEqualTo(DocumentWithoutCollection.class.getSimpleName());
     }
 
     @Test
     public void shouldFailIfEnvironmentNull() {
-        BasicAerospikePersistentEntity<?> entity = context.getPersistentEntity(DocumentWithExpressionInCollection.class);
+        BasicAerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(DocumentWithExpressionInCollection.class);
 
         assertThatThrownBy(entity::getSetName)
                 .isInstanceOf(IllegalArgumentException.class)
