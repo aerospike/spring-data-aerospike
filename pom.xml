@@ -32,7 +32,7 @@
         <aerospike>5.1.11</aerospike>
         <aerospike-reactor>5.1.11</aerospike-reactor>
         <embedded-aerospike>2.0.16</embedded-aerospike>
-        <awaitility>4.1.1</awaitility>
+        <awaitility>4.2.0</awaitility>
         <blockhound>1.0.6.RELEASE</blockhound>
         <lombok>1.18.22</lombok>
     </properties>
