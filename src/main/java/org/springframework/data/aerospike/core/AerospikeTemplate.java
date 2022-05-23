@@ -603,6 +603,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Key key = data.getKey();
 		Bin[] bins = data.getBinsAsArray();
 
+		if (bins.length == 0) {
+			throw new AerospikeException("Cannot put and get header on a document with no bins and \"@_class\" bin disabled.");
+		}
+
 		Operation[] operations = operations(bins, Operation::put, Operation.getHeader());
 
 		return client.operate(policy, key, operations);
