@@ -15,20 +15,15 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.convert.ReadingConverter;
+import org.springframework.data.convert.WritingConverter;
+import org.springframework.util.StringUtils;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-
-import org.springframework.core.convert.converter.Converter;
-
-import com.aerospike.client.Bin;
-import com.aerospike.client.Value;
-import com.aerospike.client.Value.GeoJSONValue;
-import org.springframework.data.convert.ReadingConverter;
-import org.springframework.data.convert.WritingConverter;
-import org.springframework.util.StringUtils;
 
 /**
  * Wrapper class to contain useful converters
@@ -38,134 +33,56 @@ import org.springframework.util.StringUtils;
  */
 abstract class AerospikeConverters {
 
-	private AerospikeConverters() {}
+    private AerospikeConverters() {
+    }
 
-	static Collection<Object> getConvertersToRegister() {
+    static Collection<Object> getConvertersToRegister() {
 
-		List<Object> converters = new ArrayList<>();
+        List<Object> converters = new ArrayList<>();
 
-		converters.add(BigDecimalToStringConverter.INSTANCE);
-		converters.add(StringToBigDecimalConverter.INSTANCE);
-		converters.add(LongToBooleanConverter.INSTANCE);
-		converters.add(EnumToStringConverter.INSTANCE);
+        converters.add(BigDecimalToStringConverter.INSTANCE);
+        converters.add(StringToBigDecimalConverter.INSTANCE);
+        converters.add(LongToBooleanConverter.INSTANCE);
+        converters.add(EnumToStringConverter.INSTANCE);
 
-		return converters;
-	}
+        return converters;
+    }
 
-	public enum BigDecimalToStringConverter implements Converter<BigDecimal, String> {
-		INSTANCE;
+    public enum BigDecimalToStringConverter implements Converter<BigDecimal, String> {
+        INSTANCE;
 
-		public String convert(BigDecimal source) {
-			return source.toString();
-		}
-	}
+        @Override
+        public String convert(BigDecimal source) {
+            return source.toString();
+        }
+    }
 
-	public enum StringToBigDecimalConverter implements Converter<String, BigDecimal> {
-		INSTANCE;
+    public enum StringToBigDecimalConverter implements Converter<String, BigDecimal> {
+        INSTANCE;
 
-		public BigDecimal convert(String source) {
-			return StringUtils.hasText(source) ? new BigDecimal(source) : null;
-		}
-	}
+        @Override
+        public BigDecimal convert(String source) {
+            return StringUtils.hasText(source) ? new BigDecimal(source) : null;
+        }
+    }
 
-	/**
-	 * @author Peter Milne
-	 * @author Jean Mercier
-	 */
-	@ReadingConverter
-	public enum LongToBooleanConverter implements Converter<Long, Boolean> {
-		INSTANCE;
+    @ReadingConverter
+    public enum LongToBooleanConverter implements Converter<Long, Boolean> {
+        INSTANCE;
 
-		@Override
-		public Boolean convert(Long source) {
-			return source != 0L;
-		}
+        @Override
+        public Boolean convert(Long source) {
+            return source != 0L;
+        }
+    }
 
-	}
+    @WritingConverter
+    public enum EnumToStringConverter implements Converter<Enum<?>, String> {
+        INSTANCE;
 
-	/**
-	 * @author Anastasiia Smirnova
-	 */
-	@WritingConverter
-	public enum EnumToStringConverter implements Converter<Enum<?>, String> {
-		INSTANCE;
-
-		@Override
-		public String convert(Enum<?> source) {
-			return source.name();
-		}
-
-	}
-
-	public enum LongToValueConverter implements Converter<Long, Value> {
-		INSTANCE;
-
-		@Override
-		public Value convert(Long source) {
-			return Value.get(source);
-		}
-	}
-
-	public enum BinToLongConverter implements Converter<Bin, Long> {
-		INSTANCE;
-
-		@Override
-		public Long convert(Bin source) {
-			return source.value.toLong();
-		}
-	}
-
-	public enum StringToValueConverter implements Converter<String, Value> {
-		INSTANCE;
-
-		@Override
-		public Value convert(String source) {
-			return Value.get(source);
-		}
-	}
-
-	public enum BinToStringConverter implements Converter<Bin, String> {
-		INSTANCE;
-
-		@Override
-		public String convert(Bin source) {
-			return source.value.toString();
-		}
-	}
-
-	public enum ListToValueConverter implements Converter<List<?>, Value> {
-		INSTANCE;
-
-		@Override
-		public Value convert(List<?> source) {
-			return Value.get(source);
-		}
-	}
-
-	public enum MapToValueConverter implements Converter<Map<?, ?>, Value> {
-		INSTANCE;
-
-		@Override
-		public Value convert(Map<?, ?> source) {
-			return Value.get(source);
-		}
-	}
-
-	public enum BytesToValueConverter implements Converter<Byte[], Value> {
-		INSTANCE;
-
-		@Override
-		public Value convert(Byte[] source) {
-			return Value.get(source);
-		}
-	}
-	
-	public enum StringToAerospikeGeoJSONValueConverter implements Converter<String, GeoJSONValue> {
-		INSTANCE;
-
-		@Override
-		public GeoJSONValue convert(String source) {
-			return new GeoJSONValue(source);
-		}
-	}
+        @Override
+        public String convert(Enum<?> source) {
+            return source.name();
+        }
+    }
 }
