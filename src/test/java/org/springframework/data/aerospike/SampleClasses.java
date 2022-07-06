@@ -671,7 +671,16 @@ public class SampleClasses {
 		private String id;
 		@Field
 		private byte[] array;
+	}
 
+	@Data
+	@AllArgsConstructor
+	@Document
+	public static class DocumentWithByteArrayList {
+		@Id
+		private String id;
+		@Field
+		private List<Byte> array;
 	}
 
 	@Data
