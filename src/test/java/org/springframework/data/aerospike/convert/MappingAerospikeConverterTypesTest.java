@@ -13,6 +13,7 @@ import org.springframework.data.aerospike.SampleClasses.CustomTypeWithCustomType
 import org.springframework.data.aerospike.SampleClasses.CustomTypeWithListAndMap;
 import org.springframework.data.aerospike.SampleClasses.CustomTypeWithListAndMapImmutable;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
+import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArrayList;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithIntId;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithStringId;
 import org.springframework.data.aerospike.SampleClasses.EnumProperties;
@@ -393,6 +394,44 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				new Bin("@_class", DocumentWithByteArray.class.getName()),
 				new Bin("array", new byte[]{1})
 		);
+	}
+
+	@Test
+	void shouldWriteAsArrayListAndReadAsByteArray() {
+		MappingAerospikeConverter converter =
+				getMappingAerospikeConverter(new AerospikeTypeAliasAccessor(null));
+
+		AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
+		DocumentWithByteArrayList docToWrite = new DocumentWithByteArrayList("user-id", Arrays.asList((byte) 1, (byte) 2, (byte) 3));
+		converter.write(docToWrite, forWrite);
+
+		assertThat(forWrite.getBins()).containsOnly(
+				new Bin("array", Arrays.asList((byte) 1, (byte) 2, (byte) 3))
+		);
+
+		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), record(forWrite.getBins()));
+		DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
+
+		assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1, 2, 3}));
+	}
+
+	@Test
+	void shouldWriteAsByteArrayAndReadAsArrayList() {
+		MappingAerospikeConverter converter =
+				getMappingAerospikeConverter(new AerospikeTypeAliasAccessor(null));
+
+		AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
+		DocumentWithByteArray docToWrite = new DocumentWithByteArray("user-id", new byte[]{1, 2, 3});
+		converter.write(docToWrite, forWrite);
+
+		assertThat(forWrite.getBins()).containsOnly(
+				new Bin("array", new byte[]{1, 2, 3})
+		);
+
+		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), record(forWrite.getBins()));
+		DocumentWithByteArrayList actual = converter.read(DocumentWithByteArrayList.class, forRead);
+
+		assertThat(actual).isEqualTo(new DocumentWithByteArrayList("user-id", Arrays.asList((byte) 1, (byte) 2, (byte) 3)));
 	}
 
 	private <T> void assertWriteAndRead(T object,
