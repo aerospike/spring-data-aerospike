@@ -91,8 +91,8 @@ public class SampleClasses {
 		final Set<String> field9;
 		final Set<Set<String>> field10;
 		final byte field11;
-//		final char field12;
-
+		final char field12;
+		final char field13;
 	}
 
 	@Document

@@ -188,7 +188,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		Set<String> field9 = set("val1", "val2");
 		Set<Set<String>> field10 = set(set("1", "2"), set("3", "4"), set());
 		SimpleClass object = new SimpleClass(777L, "abyrvalg", 13, 14L, (float) 15, 16.0, true, new Date(8878888),
-				TYPES.SECOND, field9, field10, (byte) 1);
+				TYPES.SECOND, field9, field10, (byte) 1, '3', 'd');
 
 		assertWriteAndRead(object, SIMPLESET, 777L,
 				new Bin("field1", "abyrvalg"),
@@ -202,7 +202,8 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				new Bin("field9", list("val2", "val1")),
 				new Bin("field10", list(list(), list("1", "2"), list("3", "4"))),
 				new Bin("field11", (byte) 1),
-//				new Bin("field12", (byte)'d'),//TODO: chars not supported
+				new Bin("field12", '3'),
+				new Bin("field13", 'd'),
 				new Bin("@_class", "simpleclass")
 		);
 	}
