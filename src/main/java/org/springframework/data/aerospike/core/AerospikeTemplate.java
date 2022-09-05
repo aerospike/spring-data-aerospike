@@ -29,6 +29,7 @@ import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.KeyRecordIterator;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryEngine;
@@ -37,6 +38,7 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
@@ -281,7 +283,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			Record record;
 			if (entity.isTouchOnRead()) {
 				Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-				record = getAndTouch(key, entity.getExpiration());
+				record = getAndTouch(key, entity.getExpiration(), null);
 			} else {
 				record = this.client.get(null, key);
 			}
@@ -293,16 +295,63 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		}
 	}
 
-	private Record getAndTouch(Key key, int expiration) {
+	@Override
+	public <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass) {
+		Assert.notNull(id, "Id must not be null!");
+		Assert.notNull(entityClass, "Type must not be null!");
+		Assert.notNull(targetClass, "Target type must not be null!");
+
+		try {
+			AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+			Key key = getKey(id, entity);
+
+			Record record;
+			String[] binNames = getBinNamesFromTargetClass(targetClass);
+
+			if (entity.isTouchOnRead()) {
+				Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
+				record = getAndTouch(key, entity.getExpiration(), binNames);
+			} else {
+				record = this.client.get(null, key, binNames);
+			}
+
+			return mapToEntity(key, targetClass, record);
+		}
+		catch (AerospikeException e) {
+			throw translateError(e);
+		}
+	}
+
+	private Record getAndTouch(Key key, int expiration, String[] binNames) {
 		WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
 				.expiration(expiration)
 				.build();
 
 		if (this.client.exists(null, key)) {
-			return this.client.operate(writePolicy, key, Operation.touch(), Operation.get());
-		}
+			if (binNames == null || binNames.length == 0) {
+				return this.client.operate(writePolicy, key, Operation.touch(), Operation.get());
+			} else {
+				Operation[] operations = new Operation[binNames.length + 1];
+				operations[0] = Operation.touch();
 
+				for (int i = 1; i < operations.length; i++) {
+					operations[i] = Operation.get(binNames[i - 1]);
+				}
+				return this.client.operate(writePolicy, key, operations);
+			}
+		}
 		return null;
+	}
+
+	private String[] getBinNamesFromTargetClass(Class<?> targetClass) {
+		AerospikePersistentEntity<?> targetEntity = mappingContext.getRequiredPersistentEntity(targetClass);
+
+		List<String> binNamesList = new ArrayList<>();
+
+		targetEntity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property
+				-> binNamesList.add(property.getFieldName()));
+
+		return binNamesList.toArray(new String[0]);
 	}
 
 	@Override

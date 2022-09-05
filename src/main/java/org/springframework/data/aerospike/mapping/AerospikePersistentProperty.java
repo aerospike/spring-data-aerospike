@@ -32,7 +32,7 @@ public interface AerospikePersistentProperty extends PersistentProperty<Aerospik
     boolean isExpirationSpecifiedAsUnixTime();
 
     /**
-     * @return the key to be used to store the value of the property
+     * @return the field name to be used to store the value of the property.
      */
     String getFieldName();
 }

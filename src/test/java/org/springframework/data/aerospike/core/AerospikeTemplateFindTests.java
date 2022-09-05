@@ -22,6 +22,9 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import org.springframework.data.aerospike.SampleClasses.VersionedClassWithAllArgsConstructor;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.PersonMissingFields;
+import org.springframework.data.aerospike.sample.PersonSomeFields;
+import org.springframework.data.aerospike.sample.PersonTouchOnRead;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -118,5 +121,77 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
 
         assertThat(result.getFirstName()).isEqualTo("Dave");
         assertThat(result.getAge()).isEqualTo(56);
+    }
+
+    @Test
+    public void findByIdWithProjection() {
+        Person firstPerson = Person.builder()
+                .id(nextId())
+                .firstName("first")
+                .lastName("lastName1")
+                .emailAddress("gmail.com")
+                .build();
+        Person secondPerson = Person.builder()
+                .id(nextId())
+                .firstName("second")
+                .lastName("lastName2")
+                .emailAddress("gmail.com")
+                .build();
+        template.save(firstPerson);
+        template.save(secondPerson);
+
+        PersonSomeFields result = template.findById(firstPerson.getId(), Person.class, PersonSomeFields.class);
+
+        assertThat(result.getFirstName()).isEqualTo("first");
+        assertThat(result.getLastName()).isEqualTo("lastName1");
+        assertThat(result.getEmailAddress()).isEqualTo("gmail.com");
+    }
+
+    @Test
+    public void findByIdWithProjectionPersonWithMissingFields() {
+        Person firstPerson = Person.builder()
+                .id(nextId())
+                .firstName("first")
+                .lastName("lastName1")
+                .emailAddress("gmail.com")
+                .build();
+        Person secondPerson = Person.builder()
+                .id(nextId())
+                .firstName("second")
+                .lastName("lastName2")
+                .emailAddress("gmail.com")
+                .build();
+        template.save(firstPerson);
+        template.save(secondPerson);
+
+        PersonMissingFields result = template.findById(firstPerson.getId(), Person.class, PersonMissingFields.class);
+
+        assertThat(result.getFirstName()).isEqualTo("first");
+        assertThat(result.getLastName()).isEqualTo("lastName1");
+        assertThat(result.getMissingField()).isNull();
+    }
+
+    @Test
+    public void findByIdWithProjectionPersonWithMissingFieldsIncludingTouchOnRead() {
+        PersonTouchOnRead firstPerson = PersonTouchOnRead.builder()
+                .id(nextId())
+                .firstName("first")
+                .lastName("lastName1")
+                .emailAddress("gmail.com")
+                .build();
+        PersonTouchOnRead secondPerson = PersonTouchOnRead.builder()
+                .id(nextId())
+                .firstName("second")
+                .lastName("lastName2")
+                .emailAddress("gmail.com")
+                .build();
+        template.save(firstPerson);
+        template.save(secondPerson);
+
+        PersonMissingFields result = template.findById(firstPerson.getId(), PersonTouchOnRead.class, PersonMissingFields.class);
+
+        assertThat(result.getFirstName()).isEqualTo("first");
+        assertThat(result.getLastName()).isEqualTo("lastName1");
+        assertThat(result.getMissingField()).isNull();
     }
 }
