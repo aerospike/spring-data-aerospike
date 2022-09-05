@@ -33,12 +33,14 @@ import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -229,7 +231,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for entity without expiration property");
-            return getAndTouch(key, entity.getExpiration())
+            return getAndTouch(key, entity.getExpiration(), null)
                     .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                     .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record))
                     .onErrorResume(
@@ -241,6 +243,31 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return reactorClient.get(key)
                     .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                     .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record))
+                    .onErrorMap(this::translateError);
+        }
+    }
+
+    @Override
+    public <T, S> Mono<S> findById(Object id, Class<T> entityClass, Class<S> targetClass) {
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+        Key key = getKey(id, entity);
+
+        String[] binNames = getBinNamesFromTargetClass(targetClass);
+
+        if (entity.isTouchOnRead()) {
+            Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for entity without expiration property");
+            return getAndTouch(key, entity.getExpiration(), binNames)
+                    .filter(keyRecord -> Objects.nonNull(keyRecord.record))
+                    .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
+                    .onErrorResume(
+                            th -> th instanceof AerospikeException && ((AerospikeException) th).getResultCode() == KEY_NOT_FOUND_ERROR,
+                            th -> Mono.empty()
+                    )
+                    .onErrorMap(this::translateError);
+        } else {
+            return reactorClient.get(null, key, binNames)
+                    .filter(keyRecord -> Objects.nonNull(keyRecord.record))
+                    .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
                     .onErrorMap(this::translateError);
         }
     }
@@ -456,11 +483,31 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .map(keyRecord -> keyRecord.record);
     }
 
-    private Mono<KeyRecord> getAndTouch(Key key, int expiration) {
+    private Mono<KeyRecord> getAndTouch(Key key, int expiration, String[] binNames) {
         WritePolicy writePolicy = WritePolicyBuilder.builder(this.writePolicyDefault)
                 .expiration(expiration)
                 .build();
-        return reactorClient.operate(writePolicy, key, Operation.touch(), Operation.get());
+        if (binNames == null || binNames.length == 0) {
+            return reactorClient.operate(writePolicy, key, Operation.touch(), Operation.get());
+        }
+        Operation[] operations = new Operation[binNames.length + 1];
+        operations[0] = Operation.touch();
+
+        for (int i = 1; i < operations.length; i++) {
+            operations[i] = Operation.get(binNames[i - 1]);
+        }
+        return reactorClient.operate(writePolicy, key, operations);
+    }
+
+    private String[] getBinNamesFromTargetClass(Class<?> targetClass) {
+        AerospikePersistentEntity<?> targetEntity = mappingContext.getRequiredPersistentEntity(targetClass);
+
+        List<String> binNamesList = new ArrayList<>();
+
+        targetEntity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property
+                -> binNamesList.add(property.getFieldName()));
+
+        return binNamesList.toArray(new String[0]);
     }
 
     private Throwable translateError(Throwable e) {

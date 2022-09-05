@@ -6,6 +6,9 @@ import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.PersonMissingAndRedundantFields;
+import org.springframework.data.aerospike.sample.PersonSomeFields;
+import org.springframework.data.aerospike.sample.PersonTouchOnRead;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
@@ -23,6 +26,7 @@ import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MI
  * @author Igor Ermolenko
  */
 public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveIntegrationTests {
+
     @Test
     public void findById_shouldReturnValueForExistingKey() {
         Person person = new Person(id, "Dave", "Matthews");
@@ -39,17 +43,16 @@ public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveInteg
     @Test
     public void findById_shouldReturnNullForNonExistingKey() {
         StepVerifier.create(reactiveTemplate.findById("dave-is-absent", Person.class)
-                .subscribeOn(Schedulers.parallel())
-        )
+                        .subscribeOn(Schedulers.parallel())
+                )
                 .expectNextCount(0).verifyComplete();
     }
 
     @Test
     public void findById_shouldReturnNullForNonExistingKeyIfTouchOnReadSetToTrue() {
         StepVerifier.create(reactiveTemplate.findById("foo-is-absent", DocumentWithTouchOnRead.class)
-                .subscribeOn(Schedulers.parallel()))
+                        .subscribeOn(Schedulers.parallel()))
                 .expectNextCount(0).verifyComplete();
-
     }
 
     @Test
@@ -58,7 +61,7 @@ public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveInteg
         StepVerifier.create(reactiveTemplate.save(document)).expectNext(document).verifyComplete();
 
         StepVerifier.create(reactiveTemplate.findById(document.getId(), DocumentWithTouchOnRead.class)
-                .subscribeOn(Schedulers.parallel()))
+                        .subscribeOn(Schedulers.parallel()))
                 .consumeNextWith(actual -> assertThat(actual.getVersion()).isEqualTo(document.getVersion() + 1)).verifyComplete();
     }
 
@@ -68,7 +71,7 @@ public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveInteg
         reactiveTemplate.insert(document).block();
 
         assertThatThrownBy(() -> reactiveTemplate.findById(document.getId(), DocumentWithTouchOnReadAndExpirationProperty.class)
-          .subscribeOn(Schedulers.parallel()))
+                .subscribeOn(Schedulers.parallel()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Touch on read is not supported for entity without expiration property");
     }
@@ -76,7 +79,7 @@ public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveInteg
     @Test
     public void findByIds_shouldReturnEmptyList() {
         StepVerifier.create(reactiveTemplate.findByIds(Collections.emptyList(), Person.class)
-                .subscribeOn(Schedulers.parallel()))
+                        .subscribeOn(Schedulers.parallel()))
                 .expectNextCount(0)
                 .verifyComplete();
     }
@@ -96,4 +99,83 @@ public class ReactiveAerospikeTemplateFindRelatedTests extends BaseReactiveInteg
         assertThat(actual).containsExactlyInAnyOrder(customer1, customer2);
     }
 
+    @Test
+    public void findByIdWithProjection() {
+        Person firstPerson = Person.builder()
+                .id(nextId())
+                .firstName("first")
+                .lastName("lastName1")
+                .emailAddress("gmail.com")
+                .build();
+        Person secondPerson = Person.builder()
+                .id(nextId())
+                .firstName("second")
+                .lastName("lastName2")
+                .emailAddress("gmail.com")
+                .build();
+        reactiveTemplate.save(firstPerson).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.save(secondPerson).subscribeOn(Schedulers.parallel()).block();
+
+        PersonSomeFields result = reactiveTemplate.findById(firstPerson.getId(), Person.class, PersonSomeFields.class)
+                .subscribeOn(Schedulers.parallel()).block();
+
+        assert result != null;
+        assertThat(result.getFirstName()).isEqualTo("first");
+        assertThat(result.getLastName()).isEqualTo("lastName1");
+        assertThat(result.getEmailAddress()).isEqualTo("gmail.com");
+    }
+
+    @Test
+    public void findByIdWithProjectionPersonWithMissingFields() {
+        Person firstPerson = Person.builder()
+                .id(nextId())
+                .firstName("first")
+                .lastName("lastName1")
+                .emailAddress("gmail.com")
+                .build();
+        Person secondPerson = Person.builder()
+                .id(nextId())
+                .firstName("second")
+                .lastName("lastName2")
+                .emailAddress("gmail.com")
+                .build();
+        reactiveTemplate.save(firstPerson).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.save(secondPerson).subscribeOn(Schedulers.parallel()).block();
+
+        PersonMissingAndRedundantFields result = reactiveTemplate.findById(firstPerson.getId(), Person.class,
+                PersonMissingAndRedundantFields.class).subscribeOn(Schedulers.parallel()).block();
+
+        assert result != null;
+        assertThat(result.getFirstName()).isEqualTo("first");
+        assertThat(result.getLastName()).isEqualTo("lastName1");
+        assertThat(result.getMissingField()).isNull();
+        assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
+    }
+
+    @Test
+    public void findByIdWithProjectionPersonWithMissingFieldsIncludingTouchOnRead() {
+        PersonTouchOnRead firstPerson = PersonTouchOnRead.builder()
+                .id(nextId())
+                .firstName("first")
+                .lastName("lastName1")
+                .emailAddress("gmail.com")
+                .build();
+        PersonTouchOnRead secondPerson = PersonTouchOnRead.builder()
+                .id(nextId())
+                .firstName("second")
+                .lastName("lastName2")
+                .emailAddress("gmail.com")
+                .build();
+        reactiveTemplate.save(firstPerson).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.save(secondPerson).subscribeOn(Schedulers.parallel()).block();
+
+        PersonMissingAndRedundantFields result = reactiveTemplate.findById(firstPerson.getId(), PersonTouchOnRead.class,
+                PersonMissingAndRedundantFields.class).subscribeOn(Schedulers.parallel()).block();
+
+        assert result != null;
+        assertThat(result.getFirstName()).isEqualTo("first");
+        assertThat(result.getLastName()).isEqualTo("lastName1");
+        assertThat(result.getMissingField()).isNull();
+        assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
+    }
 }

@@ -177,6 +177,18 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> findById(Object id, Class<T> entityClass);
 
     /**
+     * Reactively find a document by id, set name will be determined by the given entityClass.
+     * <p>
+     * Document will be mapped to the given targetClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Mono of the matching document, returned document will be mapped to targetClass's type.
+     */
+    <T, S> Mono<S> findById(Object id, Class<T> entityClass, Class<S> targetClass);
+
+    /**
      * Reactively find documents by providing multiple ids using a single batch read operation, set name will be determined by the given entityClass.
      * <p>
      * Documents will be mapped to the given entityClass.
