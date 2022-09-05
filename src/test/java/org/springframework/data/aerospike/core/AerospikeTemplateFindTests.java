@@ -22,7 +22,7 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import org.springframework.data.aerospike.SampleClasses.VersionedClassWithAllArgsConstructor;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.sample.PersonMissingFields;
+import org.springframework.data.aerospike.sample.PersonMissingAndRedundantFields;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.aerospike.sample.PersonTouchOnRead;
 
@@ -164,11 +164,12 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
         template.save(firstPerson);
         template.save(secondPerson);
 
-        PersonMissingFields result = template.findById(firstPerson.getId(), Person.class, PersonMissingFields.class);
+        PersonMissingAndRedundantFields result = template.findById(firstPerson.getId(), Person.class, PersonMissingAndRedundantFields.class);
 
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getMissingField()).isNull();
+        assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
     }
 
     @Test
@@ -188,10 +189,11 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
         template.save(firstPerson);
         template.save(secondPerson);
 
-        PersonMissingFields result = template.findById(firstPerson.getId(), PersonTouchOnRead.class, PersonMissingFields.class);
+        PersonMissingAndRedundantFields result = template.findById(firstPerson.getId(), PersonTouchOnRead.class, PersonMissingAndRedundantFields.class);
 
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getMissingField()).isNull();
+        assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
     }
 }

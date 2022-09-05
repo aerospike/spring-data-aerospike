@@ -182,7 +182,7 @@ public interface AerospikeOperations {
      * @param id          The id of the document to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @return The document from Aerospike, returned document will be mapped to entityClass's type, if document doesn't exist return null.
+     * @return The document from Aerospike, returned document will be mapped to targetClass's type, if document doesn't exist return null.
      */
     <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass);
 
