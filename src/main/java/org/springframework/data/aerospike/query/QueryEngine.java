@@ -79,10 +79,6 @@ public class QueryEngine {
 		this.queryPolicy = queryPolicy;
 	}
 
-	public KeyRecordIterator select(String namespace, String set, Filter filter, Qualifier... qualifiers) {
-		return select(namespace, set, filter, null, qualifiers);
-	}
-
 	/**
 	 * Select records filtered by a Filter and Qualifiers
 	 *
@@ -92,7 +88,21 @@ public class QueryEngine {
 	 * @param qualifiers Zero or more Qualifiers for the update query
 	 * @return A KeyRecordIterator to iterate over the results
 	 */
-	public KeyRecordIterator select(String namespace, String set, Filter filter, String[] binNames, Qualifier... qualifiers) {
+	public KeyRecordIterator select(String namespace, String set, Filter filter, Qualifier... qualifiers) {
+		return select(namespace, set, null, filter, qualifiers);
+	}
+
+	/**
+	 * Select records filtered by a Filter and Qualifiers
+	 *
+	 * @param namespace  Namespace to storing the data
+	 * @param set        Set storing the data
+	 * @param binNames   Bin names to return from the query
+	 * @param filter     Aerospike Filter to be used
+	 * @param qualifiers Zero or more Qualifiers for the update query
+	 * @return A KeyRecordIterator to iterate over the results
+	 */
+	public KeyRecordIterator select(String namespace, String set, String[] binNames, Filter filter, Qualifier... qualifiers) {
 		/*
 		 * singleton using primary key
 		 */

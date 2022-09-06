@@ -780,7 +780,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 		if (targetClass != null) {
 			String[] binNames = getBinNamesFromTargetClass(targetClass);
-			recIterator = queryEngine.select(namespace, setName, filter, binNames, qualifiers);
+			recIterator = queryEngine.select(namespace, setName, binNames, filter, qualifiers);
 		} else {
 			recIterator = queryEngine.select(namespace, setName, filter, qualifiers);
 		}
