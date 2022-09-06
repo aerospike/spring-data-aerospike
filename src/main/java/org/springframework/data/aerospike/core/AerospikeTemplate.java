@@ -740,7 +740,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return results;
 	}
 
-	<T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
+	private <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
 		if (query.getSort() != null && query.getSort().isSorted()) {
 			Comparator<T> comparator = getComparator(query);
 			results = results.sorted(comparator);
