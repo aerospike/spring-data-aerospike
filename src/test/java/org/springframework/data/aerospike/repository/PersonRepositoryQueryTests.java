@@ -111,7 +111,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findsPersonsByLastnameProjection() {
+    public void findsPersonsSomeFieldsByLastnameProjection() {
         List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
 
         assertThat(result)

@@ -31,6 +31,8 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByLastname(String lastname);
 
+    Flux<CustomerSomeFields> findCustomerSomeFieldsByLastname(String lastname);
+
     Flux<Customer> findByLastnameNot(String lastname);
 
     Mono<Customer> findOneByLastname(String lastname);

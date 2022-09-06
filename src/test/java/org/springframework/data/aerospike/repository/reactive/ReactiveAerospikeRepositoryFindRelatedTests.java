@@ -7,6 +7,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
+import org.springframework.data.aerospike.sample.CustomerSomeFields;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
@@ -116,6 +117,15 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
                 StepVerifier.create(customerRepo.findByLastname("Simpson")
                         .subscribeOn(Schedulers.parallel())),
                 customers -> assertThat(customers).containsOnly(customer1, customer2, customer3));
+    }
+
+    @Test
+    public void findCustomerSomeFieldsByLastname_ShouldWorkProperlyProjection() {
+        assertConsumedCustomersSomeFields(
+                StepVerifier.create(customerRepo.findCustomerSomeFieldsByLastname("Simpson")
+                        .subscribeOn(Schedulers.parallel())),
+                customers -> assertThat(customers).containsOnly(customer1.toCustomerSomeFields(),
+                        customer2.toCustomerSomeFields(), customer3.toCustomerSomeFields()));
     }
 
     @Test
@@ -254,9 +264,15 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
                 .verifyComplete();
     }
 
+    private void assertConsumedCustomersSomeFields(StepVerifier.FirstStep<CustomerSomeFields> step,
+                                                   Consumer<Collection<CustomerSomeFields>> assertion) {
+        step.recordWith(ArrayList::new)
+                .thenConsumeWhile(customerSomeFields -> true)
+                .consumeRecordedWith(assertion)
+                .verifyComplete();
+    }
+
     private Mono<Void> deleteAll() {
         return customerRepo.findAll().flatMap(a -> customerRepo.delete(a)).then();
     }
 }
-
-      

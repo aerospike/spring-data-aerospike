@@ -29,4 +29,11 @@ public class Customer {
     private @Id String id;
     private String firstname, lastname;
     private long age;
+
+    public CustomerSomeFields toCustomerSomeFields() {
+        return CustomerSomeFields.builder()
+                .firstname(getFirstname())
+                .lastname(getLastname())
+                .build();
+    }
 }

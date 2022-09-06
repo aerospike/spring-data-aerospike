@@ -20,6 +20,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
+import reactor.core.publisher.Flux;
 
 /**
  * @author Igor Ermolenko
@@ -40,6 +41,16 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 	public Object execute(Object[] parameters) {
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
 		Query query = prepareQuery(parameters, accessor);
+		return findByQuery(query);
+	}
+
+	private Flux<?> findByQuery(Query query) {
+		// Run query with projection (custom target type with specific fields).
+		if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
+			return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(),
+					queryMethod.getReturnedObjectType());
+		}
+		// Run query and map to entity class type.
 		return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
 	}
 }
