@@ -304,9 +304,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			Key key = getKey(id, entity);
 
 			Record record;
-			String[] binNames = getBinNamesFromTargetClass(targetClass);
 
 			if (targetClass != null) {
+				String[] binNames = getBinNamesFromTargetClass(targetClass);
 				if (entity.isTouchOnRead()) {
 					Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
 					record = getAndTouch(key, entity.getExpiration(), binNames);
