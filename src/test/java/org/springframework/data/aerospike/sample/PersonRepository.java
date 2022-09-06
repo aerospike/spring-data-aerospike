@@ -35,6 +35,8 @@ import java.util.stream.Stream;
 public interface PersonRepository<P extends Person> extends AerospikeRepository<P, String> {
 
 	List<P> findByLastName(String lastName);
+
+	List<PersonSomeFields> findPersonSomeFieldsByLastName(String lastName);
 	
 	Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 

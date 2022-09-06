@@ -64,6 +64,12 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 	}
 
 	private Stream<?> findByQuery(Query query) {
-		return this.aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
+		// Run query with projection (custom target type with specific fields).
+		if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
+			return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(),
+					queryMethod.getReturnedObjectType());
+		}
+		// Run query and map to entity class type.
+		return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
 	}
 }
