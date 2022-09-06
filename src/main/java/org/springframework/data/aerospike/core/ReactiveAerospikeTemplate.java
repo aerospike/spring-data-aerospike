@@ -287,6 +287,23 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public <T, S> Flux<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(targetClass, "Target type must not be null!");
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+        String[] binNames = getBinNamesFromTargetClass(targetClass);
+
+        return Flux.fromIterable(ids)
+                .map(id -> getKey(id, entity))
+                .flatMap(key -> reactorClient.get(null, key, binNames))
+                .filter(keyRecord -> nonNull(keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+    }
+
+    @Override
     public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
 

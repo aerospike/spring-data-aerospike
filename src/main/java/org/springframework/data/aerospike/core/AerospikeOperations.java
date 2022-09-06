@@ -198,10 +198,22 @@ public interface AerospikeOperations {
     <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
+     * Find documents by providing multiple ids using a single batch read operation, set name will be determined by the given entityClass.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document exists return an empty list.
+     */
+    <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass);
+
+    /**
      * Executes a single batch request to get results for several entities.
      * <p>
      * Aerospike provides functionality to get documents from different sets in 1 batch
-     * request. The methods allows to put grouped keys by entity type as parameter and
+     * request. The methods allow to put grouped keys by entity type as parameter and
      * get result as spring data aerospike entities grouped by entity type.
      *
      * @param groupedKeys Must not be {@literal null}.

@@ -200,6 +200,18 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> findByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
+     * Reactively find documents by providing multiple ids using a single batch read operation, set name will be determined by the given entityClass.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Flux<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass);
+
+    /**
      * Reactively executes a single batch request to get results for several entities.
      * <p>
      * Aerospike provides functionality to get documents from different sets in 1 batch

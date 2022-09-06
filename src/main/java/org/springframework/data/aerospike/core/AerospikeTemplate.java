@@ -386,6 +386,39 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
+	public <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass) {
+		Assert.notNull(ids, "List of ids must not be null!");
+		Assert.notNull(entityClass, "Type must not be null!");
+		Assert.notNull(targetClass, "Target type must not be null!");
+
+		return findByIdsInternal(IterableConverter.toList(ids), entityClass, targetClass);
+	}
+
+	private <T, S> List<S> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass) {
+		if (ids.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		try {
+			AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+			Key[] keys = ids.stream()
+					.map(id -> getKey(id, entity))
+					.toArray(Key[]::new);
+
+			String[] binNames = getBinNamesFromTargetClass(targetClass);
+			Record[] records = client.get(null, keys, binNames);
+
+			return IntStream.range(0, keys.length)
+					.filter(index -> records[index] != null)
+					.mapToObj(index -> mapToEntity(keys[index], targetClass, records[index]))
+					.collect(Collectors.toList());
+		} catch (AerospikeException e) {
+			throw translateError(e);
+		}
+	}
+
+	@Override
 	public GroupedEntities findByIds(GroupedKeys groupedKeys) {
 		Assert.notNull(groupedKeys, "Grouped keys must not be null!");
 
