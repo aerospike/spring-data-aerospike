@@ -166,6 +166,15 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> findAll(Class<T> entityClass);
 
     /**
+     * Reactively find all documents in the given entityClass's set and map them to the given target class type.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass);
+
+    /**
      * Reactively find a document by id, set name will be determined by the given entityClass.
      * <p>
      * Document will be mapped to the given entityClass.
@@ -233,6 +242,16 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> find(Query query, Class<T> entityClass);
 
     /**
+     * Reactively find documents in the given entityClass's set using a query and map them to the given target class type.
+     *
+     * @param query       The query to filter results. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass);
+
+    /**
      * Reactively find documents in the given entityClass's set using a range (offset, limit) and a sort
      * and map them to the given class type.
      *
@@ -243,6 +262,19 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
      */
     <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass);
+
+    /**
+     * Reactively find documents in the given entityClass's set using a range (offset, limit) and a sort
+     * and map them to the given target class type.
+     *
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
+     * @param sort        The sort to affect the returned Stream of documents order.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Flux<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass);
 
     /**
      * Reactively return the amount of documents in a query results. set name will be determined by the given entityClass.

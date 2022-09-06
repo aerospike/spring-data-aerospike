@@ -47,6 +47,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
@@ -140,6 +141,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
         return findAllUsingQuery(entityClass, null, (Qualifier[]) null);
+    }
+
+    @Override
+    public <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass) {
+        return findAllUsingQuery(entityClass, targetClass, null, (Qualifier[]) null);
     }
 
     @Override
@@ -331,11 +337,31 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(targetClass, "Target type must not be null!");
+
+        return findAllUsingQuery(entityClass, targetClass, query);
+    }
+
+    @Override
     public <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass) {
         Assert.notNull(entityClass, "Type for count must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
 
         return findAllUsingQuery(entityClass, null, (Qualifier[]) null)
+                .skip(offset)
+                .take(limit);
+    }
+
+    @Override
+    public <T, S> Flux<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Type for count must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(targetClass, "Target type must not be null!");
+
+        return findAllUsingQuery(entityClass, targetClass, null, (Qualifier[]) null)
                 .skip(offset)
                 .take(limit);
     }
@@ -534,7 +560,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return e;
     }
 
-    <T> Flux<T> findAllUsingQuery(Class<T> type, Query query) {
+    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Query query) {
         if ((query.getSort() == null || query.getSort().isUnsorted())
                 && query.getOffset() > 0) {
             throw new IllegalArgumentException("Unsorted query must not have offset value. " +
@@ -542,8 +568,27 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
 
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Flux<T> results = findAllUsingQuery(type, null, qualifier);
+        Flux<T> results = findAllUsingQuery(entityClass, null, qualifier);
 
+        results = applyPostProcessingOnResults(results, query);
+        return results;
+    }
+
+    <T, S> Flux<S> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Query query) {
+        if ((query.getSort() == null || query.getSort().isUnsorted())
+                && query.getOffset() > 0) {
+            throw new IllegalArgumentException("Unsorted query must not have offset value. " +
+                    "For retrieving paged results use sorted query.");
+        }
+
+        Qualifier qualifier = query.getCriteria().getCriteriaObject();
+        Flux<S> results = findAllUsingQuery(entityClass, targetClass, null, qualifier);
+
+        results = applyPostProcessingOnResults(results, query);
+        return results;
+    }
+
+    private <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, Query query) {
         if (query.getSort() != null && query.getSort().isSorted()) {
             Comparator<T> comparator = getComparator(query);
             results = results.sort(comparator);
@@ -558,21 +603,32 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
-    <T> Flux<T> findAllUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(type, filter, qualifiers)
-                .map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record));
+    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+                .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }
 
-    <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Query query) {
+    <T, S> Flux<S> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
+                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+    }
+
+    <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(type, "Type must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
 
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        return findAllRecordsUsingQuery(type, null, qualifier);
+        return findAllRecordsUsingQuery(entityClass, null, null, qualifier);
     }
 
-    <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
-        String setName = getSetName(type);
-        return this.queryEngine.select(this.namespace, setName, filter, qualifiers);
+    <T, S> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
+        String setName = getSetName(entityClass);
+
+        if (targetClass != null) {
+            String[] binNames = getBinNamesFromTargetClass(targetClass);
+            return this.queryEngine.select(this.namespace, setName, binNames, filter, qualifiers);
+        } else {
+            return this.queryEngine.select(this.namespace, setName, filter, qualifiers);
+        }
     }
 }
