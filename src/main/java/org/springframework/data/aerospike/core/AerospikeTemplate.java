@@ -272,35 +272,33 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
+	public <T, S> Stream<S> findAll(Class<T> entityClass, Class<S> targetClass) {
+		Assert.notNull(entityClass, "Type must not be null!");
+		Assert.notNull(targetClass, "Target type must not be null!");
+
+		return findAllUsingQuery(entityClass, targetClass, null, (Qualifier[])null);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
 	public <T> T findById(Object id, Class<T> entityClass) {
 		Assert.notNull(id, "Id must not be null!");
 		Assert.notNull(entityClass, "Type must not be null!");
 
-		try {
-			AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-			Key key = getKey(id, entity);
-
-			Record record;
-			if (entity.isTouchOnRead()) {
-				Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-				record = getAndTouch(key, entity.getExpiration(), null);
-			} else {
-				record = this.client.get(null, key);
-			}
-
-			return mapToEntity(key, entityClass, record);
-		}
-		catch (AerospikeException e) {
-			throw translateError(e);
-		}
+		return (T) findByIdInternal(id, entityClass, null);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass) {
 		Assert.notNull(id, "Id must not be null!");
 		Assert.notNull(entityClass, "Type must not be null!");
 		Assert.notNull(targetClass, "Target type must not be null!");
 
+		return (S) findByIdInternal(id, entityClass, targetClass);
+	}
+
+	private <T, S> Object findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass) {
 		try {
 			AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 			Key key = getKey(id, entity);
@@ -308,14 +306,23 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			Record record;
 			String[] binNames = getBinNamesFromTargetClass(targetClass);
 
-			if (entity.isTouchOnRead()) {
-				Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-				record = getAndTouch(key, entity.getExpiration(), binNames);
+			if (targetClass != null) {
+				if (entity.isTouchOnRead()) {
+					Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
+					record = getAndTouch(key, entity.getExpiration(), binNames);
+				} else {
+					record = this.client.get(null, key, binNames);
+				}
+				return mapToEntity(key, targetClass, record);
 			} else {
-				record = this.client.get(null, key, binNames);
+				if (entity.isTouchOnRead()) {
+					Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
+					record = getAndTouch(key, entity.getExpiration(), null);
+				} else {
+					record = this.client.get(null, key);
+				}
+				return mapToEntity(key, entityClass, record);
 			}
-
-			return mapToEntity(key, targetClass, record);
 		}
 		catch (AerospikeException e) {
 			throw translateError(e);
@@ -354,47 +361,26 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return binNamesList.toArray(new String[0]);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass) {
 		Assert.notNull(ids, "List of ids must not be null!");
 		Assert.notNull(entityClass, "Type must not be null!");
 
-		return findByIdsInternal(IterableConverter.toList(ids), entityClass);
+		return (List<T>) findByIdsInternal(IterableConverter.toList(ids), entityClass, null);
 	}
 
-	private <T> List<T> findByIdsInternal(Collection<?> ids, Class<T> entityClass) {
-		if (ids.isEmpty()) {
-			return Collections.emptyList();
-		}
-
-		try {
-			AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-
-			Key[] keys = ids.stream()
-					.map(id -> getKey(id, entity))
-					.toArray(Key[]::new);
-
-			Record[] records = client.get(null, keys);
-
-			return IntStream.range(0, keys.length)
-					.filter(index -> records[index] != null)
-					.mapToObj(index -> mapToEntity(keys[index], entityClass, records[index]))
-					.collect(Collectors.toList());
-		} catch (AerospikeException e) {
-			throw translateError(e);
-		}
-	}
-
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass) {
 		Assert.notNull(ids, "List of ids must not be null!");
 		Assert.notNull(entityClass, "Type must not be null!");
 		Assert.notNull(targetClass, "Target type must not be null!");
 
-		return findByIdsInternal(IterableConverter.toList(ids), entityClass, targetClass);
+		return (List<S>) findByIdsInternal(IterableConverter.toList(ids), entityClass, targetClass);
 	}
 
-	private <T, S> List<S> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass) {
+	private <T, S> List<?> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass) {
 		if (ids.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -406,13 +392,22 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 					.map(id -> getKey(id, entity))
 					.toArray(Key[]::new);
 
-			String[] binNames = getBinNamesFromTargetClass(targetClass);
-			Record[] records = client.get(null, keys, binNames);
+			if (targetClass != null) {
+				String[] binNames = getBinNamesFromTargetClass(targetClass);
+				Record[] records = client.get(null, keys, binNames);
 
-			return IntStream.range(0, keys.length)
-					.filter(index -> records[index] != null)
-					.mapToObj(index -> mapToEntity(keys[index], targetClass, records[index]))
-					.collect(Collectors.toList());
+				return IntStream.range(0, keys.length)
+						.filter(index -> records[index] != null)
+						.mapToObj(index -> mapToEntity(keys[index], targetClass, records[index]))
+						.collect(Collectors.toList());
+			} else {
+				Record[] records = client.get(null, keys);
+
+				return IntStream.range(0, keys.length)
+						.filter(index -> records[index] != null)
+						.mapToObj(index -> mapToEntity(keys[index], entityClass, records[index]))
+						.collect(Collectors.toList());
+			}
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
@@ -463,6 +458,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		throw new UnsupportedOperationException("not implemented");
 	}
 
+	@Override
+	public <T, S> Iterable<S> findAll(Sort sort, Class<T> entityClass, Class<S> targetClass) {
+		throw new UnsupportedOperationException("not implemented");
+	}
+
 	public <T> boolean exists(Query query, Class<T> entityClass) {
 		Assert.notNull(query, "Query passed in to exist can't be null");
 		Assert.notNull(entityClass, "Type must not be null!");
@@ -498,11 +498,31 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
+	public <T, S> Stream<S> find(Query query, Class<T> entityClass, Class<S> targetClass) {
+		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(entityClass, "Type must not be null!");
+		Assert.notNull(targetClass, "Target type must not be null!");
+
+		return findAllUsingQuery(entityClass, targetClass, query);
+	}
+
+	@Override
 	public <T> Stream<T> findInRange(long offset, long limit, Sort sort,
 									 Class<T> entityClass) {
 		Assert.notNull(entityClass, "Type for count must not be null!");
 
 		Stream<T> results = findAllUsingQuery(entityClass, null, (Qualifier[])null);
+		//TODO:create a sort
+		return results.skip(offset).limit(limit);
+	}
+
+	@Override
+	public <T, S> Stream<S> findInRange(long offset, long limit, Sort sort,
+									 Class<T> entityClass, Class<S> targetClass) {
+		Assert.notNull(entityClass, "Type for count must not be null!");
+		Assert.notNull(targetClass, "Target type must not be null!");
+
+		Stream<S> results = findAllUsingQuery(entityClass, targetClass, null, (Qualifier[])null);
 		//TODO:create a sort
 		return results.skip(offset).limit(limit);
 	}
@@ -694,7 +714,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return client.operate(policy, key, operations);
 	}
 
-	<T> Stream<T> findAllUsingQuery(Class<T> type, Query query) {
+	<T> Stream<T> findAllUsingQuery(Class<T> entityClass, Query query) {
 		if ((query.getSort() == null || query.getSort().isUnsorted())
 				&& query.getOffset() > 0) {
 			throw new IllegalArgumentException("Unsorted query must not have offset value. " +
@@ -702,8 +722,25 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		}
 
 		Qualifier qualifier = query.getCriteria().getCriteriaObject();
-		Stream<T> results = findAllUsingQuery(type, null, qualifier);
+		Stream<T> results = findAllUsingQuery(entityClass, null, qualifier);
+		results = applyPostProcessingOnResults(results, query);
+		return results;
+	}
 
+	<T, S> Stream<S> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Query query) {
+		if ((query.getSort() == null || query.getSort().isUnsorted())
+				&& query.getOffset() > 0) {
+			throw new IllegalArgumentException("Unsorted query must not have offset value. " +
+					"For retrieving paged results use sorted query.");
+		}
+
+		Qualifier qualifier = query.getCriteria().getCriteriaObject();
+		Stream<S> results = findAllUsingQuery(entityClass, targetClass, null, qualifier);
+		results = applyPostProcessingOnResults(results, query);
+		return results;
+	}
+
+	<T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
 		if (query.getSort() != null && query.getSort().isSorted()) {
 			Comparator<T> comparator = getComparator(query);
 			results = results.sorted(comparator);
@@ -714,19 +751,39 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		if (query.hasRows()) {
 			results = results.limit(query.getRows());
 		}
+
 		return results;
 	}
 
-	<T> Stream<T> findAllUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
-		return findAllRecordsUsingQuery(type, filter, qualifiers)
-				.map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record));
+	<T> Stream<T> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers) {
+		return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+				.map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
 	}
 
-	<T> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
-		String setName = getSetName(type);
+	<T, S> Stream<S> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
+		return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
+				.map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+	}
 
-		KeyRecordIterator recIterator = this.queryEngine.select(
-				this.namespace, setName, filter, qualifiers);
+	<T> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {
+		Assert.notNull(query, "Query must not be null!");
+		Assert.notNull(entityClass, "Type must not be null!");
+
+		Qualifier qualifier = query.getCriteria().getCriteriaObject();
+		return findAllRecordsUsingQuery(entityClass, null, null, qualifier);
+	}
+
+	<T, S> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
+		String setName = getSetName(entityClass);
+
+		KeyRecordIterator recIterator;
+
+		if (targetClass != null) {
+			String[] binNames = getBinNamesFromTargetClass(targetClass);
+			recIterator = queryEngine.select(namespace, setName, filter, binNames, qualifiers);
+		} else {
+			recIterator = queryEngine.select(namespace, setName, filter, qualifiers);
+		}
 
 		return StreamUtils.createStreamFromIterator(recIterator)
 				.onClose(() -> {
@@ -736,13 +793,5 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 						log.error("Caught exception while closing query", e);
 					}
 				});
-	}
-
-	<T> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Query query) {
-		Assert.notNull(query, "Query must not be null!");
-		Assert.notNull(type, "Type must not be null!");
-
-		Qualifier qualifier = query.getCriteria().getCriteriaObject();
-		return findAllRecordsUsingQuery(type, null, qualifier);
 	}
 }

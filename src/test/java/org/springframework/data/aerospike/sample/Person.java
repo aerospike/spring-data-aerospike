@@ -78,4 +78,12 @@ public class Person {
 		this.firstName = firstName;
 		this.age = age;
 	}
+
+	public PersonSomeFields toPersonSomeFields() {
+		return PersonSomeFields.builder()
+				.firstName(getFirstName())
+				.lastName(getLastName())
+				.emailAddress(getEmailAddress())
+				.build();
+	}
 }

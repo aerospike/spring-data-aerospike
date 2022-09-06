@@ -103,8 +103,8 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
         List<PersonSomeFields> actual = template.findByIds(ids, Person.class, PersonSomeFields.class);
 
         assertThat(actual).containsExactly(
-                PersonSomeFields.builder().firstName("first").emailAddress("gmail.com").build(),
-                PersonSomeFields.builder().firstName("second").emailAddress("gmail.com").build());
+                firstPerson.toPersonSomeFields(),
+                secondPerson.toPersonSomeFields());
     }
 
     @Test

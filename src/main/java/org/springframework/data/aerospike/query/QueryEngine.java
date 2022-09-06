@@ -19,6 +19,7 @@ package org.springframework.data.aerospike.query;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
+import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.QueryPolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.KeyRecord;
@@ -78,6 +79,10 @@ public class QueryEngine {
 		this.queryPolicy = queryPolicy;
 	}
 
+	public KeyRecordIterator select(String namespace, String set, Filter filter, Qualifier... qualifiers) {
+		return select(namespace, set, filter, null, qualifiers);
+	}
+
 	/**
 	 * Select records filtered by a Filter and Qualifiers
 	 *
@@ -87,7 +92,7 @@ public class QueryEngine {
 	 * @param qualifiers Zero or more Qualifiers for the update query
 	 * @return A KeyRecordIterator to iterate over the results
 	 */
-	public KeyRecordIterator select(String namespace, String set, Filter filter, Qualifier... qualifiers) {
+	public KeyRecordIterator select(String namespace, String set, Filter filter, String[] binNames, Qualifier... qualifiers) {
 		/*
 		 * singleton using primary key
 		 */
@@ -95,7 +100,7 @@ public class QueryEngine {
 		if (qualifiers != null && qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier) {
 			KeyQualifier kq = (KeyQualifier) qualifiers[0];
 			Key key = kq.makeKey(namespace, set);
-			Record record = this.client.get(null, key);
+			Record record = getRecord(null, key, binNames);
 			if (record == null) {
 				return new KeyRecordIterator(namespace);
 			} else {
@@ -107,7 +112,7 @@ public class QueryEngine {
 		/*
 		 *  query with filters
 		 */
-		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers);
+		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers, binNames);
 		QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
 		localQueryPolicy.filterExp = filterExpressionsBuilder.build(qualifiers);
 		if (!scansEnabled && statement.getFilter() == null) {
@@ -115,6 +120,13 @@ public class QueryEngine {
 		}
 		RecordSet rs = client.query(localQueryPolicy, statement);
 		return new KeyRecordIterator(namespace, rs);
+	}
+
+	private Record getRecord(Policy policy, Key key, String[] binNames) {
+		if (binNames == null || binNames.length == 0) {
+			return client.get(null, key);
+		}
+		return client.get(null, key, binNames);
 	}
 
 	public void setScansEnabled(boolean scansEnabled) {

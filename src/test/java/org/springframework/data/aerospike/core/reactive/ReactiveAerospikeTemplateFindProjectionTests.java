@@ -111,9 +111,9 @@ public class ReactiveAerospikeTemplateFindProjectionTests extends BaseReactiveIn
                 .subscribeOn(Schedulers.parallel())
                 .collectList().block();
 
-        assertThat(actual).containsExactly(
-                PersonSomeFields.builder().firstName("first").emailAddress("gmail.com").build(),
-                PersonSomeFields.builder().firstName("second").emailAddress("gmail.com").build());
+        assertThat(actual).containsExactlyInAnyOrder(
+                firstPerson.toPersonSomeFields(),
+                secondPerson.toPersonSomeFields());
     }
 
     @Test
