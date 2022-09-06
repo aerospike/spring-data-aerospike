@@ -110,7 +110,7 @@ public class QueryEngine {
 		if (qualifiers != null && qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier) {
 			KeyQualifier kq = (KeyQualifier) qualifiers[0];
 			Key key = kq.makeKey(namespace, set);
-			Record record = getRecord(key, binNames);
+			Record record = getRecord(null, key, binNames);
 			if (record == null) {
 				return new KeyRecordIterator(namespace);
 			} else {
@@ -132,11 +132,11 @@ public class QueryEngine {
 		return new KeyRecordIterator(namespace, rs);
 	}
 
-	private Record getRecord(Key key, String[] binNames) {
+	private Record getRecord(Policy policy, Key key, String[] binNames) {
 		if (binNames == null || binNames.length == 0) {
-			return client.get(null, key);
+			return client.get(policy, key);
 		}
-		return client.get(null, key, binNames);
+		return client.get(policy, key, binNames);
 	}
 
 	public void setScansEnabled(boolean scansEnabled) {
