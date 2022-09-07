@@ -45,7 +45,7 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByFirstnameStartsWithOrderByAgeAsc(String prefix);
 
-    Flux<CustomerSomeFields> findCustomerSomeFieldsByFirstnameStartsWithOrderByAgeAsc(String prefix);
+    Flux<CustomerSomeFields> findCustomerSomeFieldsByFirstnameStartsWithOrderByFirstnameAsc(String prefix);
 
     Flux<Customer> findByAgeLessThan(long age, Sort sort);
 

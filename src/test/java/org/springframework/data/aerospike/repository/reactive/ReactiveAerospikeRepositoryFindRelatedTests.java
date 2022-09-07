@@ -179,7 +179,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findCustomerSomeFieldsByFirstnameStartsWithOrderByAgeAsc_ShouldWorkProperly() {
         assertConsumedCustomersSomeFields(
-                StepVerifier.create(customerRepo.findCustomerSomeFieldsByFirstnameStartsWithOrderByAgeAsc("Ma")
+                StepVerifier.create(customerRepo.findCustomerSomeFieldsByFirstnameStartsWithOrderByFirstnameAsc("Ma")
                         .subscribeOn(Schedulers.parallel())),
                 customers -> assertThat(customers).containsExactly(customer2.toCustomerSomeFields(),
                         customer4.toCustomerSomeFields()));
