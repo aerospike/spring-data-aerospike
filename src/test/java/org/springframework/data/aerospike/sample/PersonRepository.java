@@ -113,6 +113,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
 
+	Slice<PersonSomeFields> findPersonSomeFieldsByAgeGreaterThan(int age, Pageable pageable);
+
 	List<P> deleteByLastName(String lastName);
 
 	Long deletePersonByLastName(String lastName);

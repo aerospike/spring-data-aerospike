@@ -228,6 +228,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findPersonsSomeFieldsByAgeGreaterThan_forExistingResultProjection() {
+        Slice<PersonSomeFields> slice = repository.findPersonSomeFieldsByAgeGreaterThan(40, PageRequest.of(0, 10));
+
+        assertThat(slice.hasContent()).isTrue();
+        assertThat(slice.hasNext()).isFalse();
+        assertThat(slice.getContent()).hasSize(4).contains(dave.toPersonSomeFields(),
+                carter.toPersonSomeFields(), boyd.toPersonSomeFields(), leroi.toPersonSomeFields());
+    }
+
+    @Test
     public void findByAgeGreaterThan_respectsLimit() {
         Slice<Person> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1));
 
