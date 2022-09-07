@@ -47,7 +47,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
 	private Class<?> getTargetClass(ParametersParameterAccessor accessor) {
 		// Dynamic projection
-		if (accessor.findDynamicProjection() != null) {
+		if (accessor.getParameters().hasDynamicProjection()) {
 			return accessor.findDynamicProjection();
 		}
 		// DTO projection
