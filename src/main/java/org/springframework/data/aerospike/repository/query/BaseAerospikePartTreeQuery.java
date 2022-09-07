@@ -85,4 +85,12 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
                 .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class);
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
     }
+
+    protected void convertCharParamsToInt(Object[] parameters) {
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i] instanceof Character) {
+                parameters[i] = (int) (Character) parameters[i];
+            }
+        }
+    }
 }

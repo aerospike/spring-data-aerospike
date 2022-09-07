@@ -44,6 +44,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object execute(Object[] parameters) {
+		convertCharParamsToInt(parameters);
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
 		Query query = prepareQuery(parameters, accessor);
 

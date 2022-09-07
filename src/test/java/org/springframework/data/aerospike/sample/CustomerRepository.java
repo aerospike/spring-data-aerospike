@@ -36,5 +36,5 @@ public interface CustomerRepository extends AerospikeRepository<Customer, String
 
     List<Customer> findCustomerByLastnameOrderByFirstnameAsc(String lastname);
 
-    List<Customer> findByGroup(int group);
+    List<Customer> findByGroup(char group);
 }

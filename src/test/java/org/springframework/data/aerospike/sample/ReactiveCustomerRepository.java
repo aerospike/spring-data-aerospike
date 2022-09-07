@@ -63,5 +63,5 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByAgeBetweenOrderByFirstnameDesc(long i, long j);
 
-    Flux<Customer> findByGroup(int group);
+    Flux<Customer> findByGroup(char group);
 }
