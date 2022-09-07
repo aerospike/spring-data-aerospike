@@ -31,7 +31,11 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByLastname(String lastname);
 
+    // DTO Projection
     Flux<CustomerSomeFields> findCustomerSomeFieldsByLastname(String lastname);
+
+    // Dynamic Projection
+    <T> Flux<T> findByLastname(String lastname, Class<T> type);
 
     Flux<Customer> findByLastnameNot(String lastname);
 

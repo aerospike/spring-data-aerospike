@@ -120,6 +120,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findsDynamicTypeByLastnameDynamicProjection() {
+        List<PersonSomeFields> result = repository.findByLastName("Beauford", PersonSomeFields.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsOnly(carter.toPersonSomeFields());
+    }
+
+    @Test
     public void findAll_doesNotFindDeletedPersonByEntity() {
         try {
             repository.delete(dave);

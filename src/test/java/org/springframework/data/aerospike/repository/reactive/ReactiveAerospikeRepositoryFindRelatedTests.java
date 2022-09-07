@@ -129,6 +129,15 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     }
 
     @Test
+    public void findDynamicTypeByLastname_ShouldWorkProperlyDynamicProjection() {
+        assertConsumedCustomersSomeFields(
+                StepVerifier.create(customerRepo.findByLastname("Simpson", CustomerSomeFields.class)
+                        .subscribeOn(Schedulers.parallel())),
+                customers -> assertThat(customers).containsOnly(customer1.toCustomerSomeFields(),
+                        customer2.toCustomerSomeFields(), customer3.toCustomerSomeFields()));
+    }
+
+    @Test
     public void findByLastnameName_ShouldWorkProperly() {
         assertConsumedCustomers(
                 StepVerifier.create(customerRepo.findByLastnameNot("Simpson")
