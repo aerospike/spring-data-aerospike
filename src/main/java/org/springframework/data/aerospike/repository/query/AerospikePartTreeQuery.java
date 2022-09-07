@@ -65,21 +65,6 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 		throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " not supported.");
 	}
 
-	private Stream<?> findByQuery(Query query, ParametersParameterAccessor accessor) {
-		// Run query with dynamic projection
-		if (accessor.findDynamicProjection() != null) {
-			return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(),
-					accessor.findDynamicProjection());
-		}
-		// Run query with DTO projection (custom target type with specific fields).
-		if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
-			return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(),
-					queryMethod.getReturnedObjectType());
-		}
-		// Run query and map to entity class type.
-		return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
-	}
-
 	private Class<?> getTargetClass(ParametersParameterAccessor accessor) {
 		// Dynamic projection
 		if (accessor.findDynamicProjection() != null) {
