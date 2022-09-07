@@ -15,12 +15,9 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import lombok.Data;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.annotation.Id;
@@ -33,12 +30,9 @@ import java.util.Map;
  * @author Peter Milne
  * @author Jean Mercier
  */
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
 @SuperBuilder
 public class Person {
 
@@ -58,7 +52,6 @@ public class Person {
 	private Date dateOfBirth;
 	private List<String> strings;
 	private List<Integer> ints;
-
 	@Field("email")
 	private String emailAddress;
 
