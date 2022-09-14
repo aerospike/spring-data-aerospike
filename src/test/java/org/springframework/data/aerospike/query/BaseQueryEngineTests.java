@@ -42,7 +42,7 @@ public abstract class BaseQueryEngineTests extends BaseBlockingIntegrationTests 
 		AwaitilityUtils.awaitTenSecondsUntil(() -> {
 			IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType);
 			indexRefresher.refreshIndexes();
-			IndexKey indexKey = new IndexKey(namespace, setName, binName, indexType, IndexCollectionType.DEFAULT);
+			IndexKey indexKey = new IndexKey(namespace, setName, binName, indexType, null);
 			Optional<Index> index = indexesCache.getIndex(indexKey);
 			assertThat(index).as("Index for: " + indexKey + " not created").isPresent();
 		});
@@ -53,5 +53,4 @@ public abstract class BaseQueryEngineTests extends BaseBlockingIntegrationTests 
 		IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType, collectionType);
 		indexRefresher.refreshIndexes();
 	}
-
 }

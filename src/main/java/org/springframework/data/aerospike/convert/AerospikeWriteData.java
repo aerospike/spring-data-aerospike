@@ -72,11 +72,7 @@ public class AerospikeWriteData {
 	}
 
 	public void addBin(String key, Object value) {
-		if (value instanceof Character) {
-			add(new Bin(key, ((Character) value).charValue()));
-		} else {
-			add(new Bin(key, value));
-		}
+		add(new Bin(key, value));
 	}
 
 	public void add(Bin bin) {

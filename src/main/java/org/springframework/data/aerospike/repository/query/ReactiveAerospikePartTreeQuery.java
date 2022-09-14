@@ -38,7 +38,6 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
 	@Override
 	public Object execute(Object[] parameters) {
-		convertCharParamsToInt(parameters);
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
 		Query query = prepareQuery(parameters, accessor);
 		return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
