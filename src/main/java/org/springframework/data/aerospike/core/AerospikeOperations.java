@@ -82,7 +82,7 @@ public interface AerospikeOperations {
      * Version property will be updated with the server's version after successful operation.
      * <p>
      * If document does not have version property - record is updated with {@link com.aerospike.client.policy.RecordExistsAction#REPLACE} policy.
-     * This means that when such record does not exist it will be created, otherwise updated.
+     * This means that when such record does not exist it will be created, otherwise updated or in one word - an "upsert".
      *
      * @param document The document to save. Must not be {@literal null}.
      */
@@ -112,6 +112,18 @@ public interface AerospikeOperations {
      * @param document The document to update. Must not be {@literal null}.
      */
     <T> void update(T document);
+
+    /**
+     * Update document with a given list of bins to update
+     * using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy -
+     * You can instantiate the document with only relevant fields and specify the list of bins that you want to update.
+     * taking into consideration the version property of the document if it is present.
+     * <p>
+     * If document has version property it will be updated with the server's version after successful operation.
+     *
+     * @param document The document to update. Must not be {@literal null}.
+     */
+    <T> void update(T document, List<String> bins);
 
     /**
      * Truncate/Delete all the documents in the given entity's set.
@@ -189,7 +201,7 @@ public interface AerospikeOperations {
      * Executes a single batch request to get results for several entities.
      * <p>
      * Aerospike provides functionality to get documents from different sets in 1 batch
-     * request. The methods allows to put grouped keys by entity type as parameter and
+     * request. The methods allow to put grouped keys by entity type as parameter and
      * get result as spring data aerospike entities grouped by entity type.
      *
      * @param groupedKeys Must not be {@literal null}.
@@ -198,7 +210,7 @@ public interface AerospikeOperations {
     GroupedEntities findByIds(GroupedKeys groupedKeys);
 
     /**
-     * Add integer/double bin values to existing document bin values, read the new modified document and map it back the the
+     * Add integer/double bin values to existing document bin values, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -208,7 +220,7 @@ public interface AerospikeOperations {
     <T> T add(T document, Map<String, Long> values);
 
     /**
-     * Add integer/double bin value to existing document bin value, read the new modified document and map it back the the
+     * Add integer/double bin value to existing document bin value, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -219,7 +231,7 @@ public interface AerospikeOperations {
     <T> T add(T document, String binName, long value);
 
     /**
-     * Append bin string values to existing document bin values, read the new modified document and map it back the the
+     * Append bin string values to existing document bin values, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -229,7 +241,7 @@ public interface AerospikeOperations {
     <T> T append(T document, Map<String, String> values);
 
     /**
-     * Append bin string value to existing document bin value, read the new modified document and map it back the the
+     * Append bin string value to existing document bin value, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -240,7 +252,7 @@ public interface AerospikeOperations {
     <T> T append(T document, String binName, String value);
 
     /**
-     * Prepend bin string values to existing document bin values, read the new modified document and map it back the the
+     * Prepend bin string values to existing document bin values, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -250,7 +262,7 @@ public interface AerospikeOperations {
     <T> T prepend(T document, Map<String, String> values);
 
     /**
-     * Prepend bin string value to existing document bin value, read the new modified document and map it back the the
+     * Prepend bin string value to existing document bin value, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -295,7 +307,7 @@ public interface AerospikeOperations {
      *
      * @param offset      The offset to start the range from.
      * @param limit       The limit of the range.
-     * @param sort        The sort to affect the returned Stream of documents order.
+     * @param sort        The sort to affect the order of the returned Stream of documents.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
      * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
      */

@@ -69,6 +69,22 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void updateSpecificFieldsByProvidingBins() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20).build();
+        template.insert(person);
+
+        List<String> bins = new ArrayList<>();
+        bins.add("age");
+        template.update(Person.builder().id(id).age(41).build(), bins);
+
+        assertThat(template.findById(id, Person.class)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+        });
+    }
+
+    @Test
     public void updatesFieldValueAndDocumentVersion() {
         VersionedClass document = new VersionedClass(id, "foobar");
         template.insert(document);
@@ -83,6 +99,29 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
 
         document = new VersionedClass(id, "foobar2", document.version);
         template.update(document);
+        assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
+            assertThat(doc.field).isEqualTo("foobar2");
+            assertThat(doc.version).isEqualTo(3);
+        });
+    }
+
+    @Test
+    public void updateSpecificFieldsByProvidingBinsWithDocumentVersion() {
+        VersionedClass document = new VersionedClass(id, "foobar");
+        template.insert(document);
+        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+
+        document = new VersionedClass(id, "foobar1", document.version);
+        List<String> bins = new ArrayList<>();
+        bins.add("field");
+        template.update(document, bins);
+        assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
+            assertThat(doc.field).isEqualTo("foobar1");
+            assertThat(doc.version).isEqualTo(2);
+        });
+
+        document = new VersionedClass(id, "foobar2", document.version);
+        template.update(document, bins);
         assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
             assertThat(doc.field).isEqualTo("foobar2");
             assertThat(doc.version).isEqualTo(3);

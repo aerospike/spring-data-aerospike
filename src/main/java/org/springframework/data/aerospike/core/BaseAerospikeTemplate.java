@@ -178,6 +178,13 @@ abstract class BaseAerospikeTemplate {
         return data;
     }
 
+    <T> AerospikeWriteData writeDataWithSpecificBins(T document, List<String> bins) {
+        AerospikeWriteData data = AerospikeWriteData.forWrite(getNamespace());
+        data.setRequestedBins(bins);
+        converter.write(document, data);
+        return data;
+    }
+
     WritePolicy expectGenerationCasAwareSavePolicy(AerospikeWriteData data) {
         RecordExistsAction recordExistsAction = data.getVersion()
                 .filter(v -> v > 0L)

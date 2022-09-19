@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.List;
 
 /**
  * Value object to carry data to be written in object conversion.
@@ -35,6 +36,7 @@ public class AerospikeWriteData {
 	private Collection<Bin> bins;
 	private int expiration;
 	private Integer version;
+	private List<String> requestedBins;
 
 	/**
 	 * Use the other constructor.
@@ -49,10 +51,19 @@ public class AerospikeWriteData {
 		this.bins = bins;
 		this.expiration = expiration;
 		this.version = version;
+		this.requestedBins = new ArrayList<>();
+	}
+
+	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version, List<String> requestedBins) {
+		this.key = key;
+		this.bins = bins;
+		this.expiration = expiration;
+		this.version = version;
+		this.requestedBins = requestedBins;
 	}
 
 	public static AerospikeWriteData forWrite(String namespace) {
-		return new AerospikeWriteData(new Key(namespace, "", ""), new ArrayList<>(), 0, null);
+		return new AerospikeWriteData(new Key(namespace, "", ""), new ArrayList<>(), 0, null, new ArrayList<>());
 	}
 
 	public void setKey(Key key) {
@@ -97,5 +108,13 @@ public class AerospikeWriteData {
 
 	public void setVersion(Integer version) {
 		this.version = version;
+	}
+
+	public List<String> getRequestedBins() {
+		return requestedBins;
+	}
+
+	public void setRequestedBins(List<String> requestedBins) {
+		this.requestedBins = requestedBins;
 	}
 }
