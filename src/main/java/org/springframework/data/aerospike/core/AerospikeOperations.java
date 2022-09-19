@@ -114,16 +114,16 @@ public interface AerospikeOperations {
     <T> void update(T document);
 
     /**
-     * Update document with a given list of bins to update
+     * Update document specific fields based on a given list of fields.
      * using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy -
-     * You can instantiate the document with only relevant fields and specify the list of bins that you want to update.
+     * You can instantiate the document with only relevant fields and specify the list of fields that you want to update.
      * taking into consideration the version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
      * @param document The document to update. Must not be {@literal null}.
      */
-    <T> void update(T document, List<String> bins);
+    <T> void update(T document, List<String> fields);
 
     /**
      * Truncate/Delete all the documents in the given entity's set.

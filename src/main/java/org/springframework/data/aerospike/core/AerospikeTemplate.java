@@ -207,10 +207,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
-	public <T> void update(T document, List<String> bins) {
+	public <T> void update(T document, List<String> fields) {
 		Assert.notNull(document, "Document must not be null!");
 
-		AerospikeWriteData data = writeDataWithSpecificBins(document, bins);
+		AerospikeWriteData data = writeDataWithSpecificFields(document, fields);
 		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
 		if (entity.hasVersionProperty()) {
 			WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);

@@ -69,18 +69,56 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void updateSpecificFieldsByProvidingBins() {
+    public void updateSpecificFields() {
         Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20).build();
         template.insert(person);
 
-        List<String> bins = new ArrayList<>();
-        bins.add("age");
-        template.update(Person.builder().id(id).age(41).build(), bins);
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        template.update(Person.builder().id(id).age(41).build(), fields);
 
         assertThat(template.findById(id, Person.class)).satisfies(doc -> {
             assertThat(doc.getFirstName()).isEqualTo("Andrew");
             assertThat(doc.getAge()).isEqualTo(41);
             assertThat(doc.getWaist()).isEqualTo(20);
+        });
+    }
+
+    @Test
+    public void updateSpecificFieldsWithFieldAnnotatedProperty() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
+                .emailAddress("andrew@gmail.com").build();
+        template.insert(person);
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("emailAddress");
+        template.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields);
+
+        assertThat(template.findById(id, Person.class)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+            assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
+        });
+    }
+
+    @Test
+    public void updateSpecificFieldsWithFieldAnnotatedPropertyActualValue() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
+                .emailAddress("andrew@gmail.com").build();
+        template.insert(person);
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("email");
+        template.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields);
+
+        assertThat(template.findById(id, Person.class)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+            assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
         });
     }
 
@@ -106,22 +144,22 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void updateSpecificFieldsByProvidingBinsWithDocumentVersion() {
+    public void updateSpecificFieldsWithDocumentVersion() {
         VersionedClass document = new VersionedClass(id, "foobar");
         template.insert(document);
         assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
 
         document = new VersionedClass(id, "foobar1", document.version);
-        List<String> bins = new ArrayList<>();
-        bins.add("field");
-        template.update(document, bins);
+        List<String> fields = new ArrayList<>();
+        fields.add("field");
+        template.update(document, fields);
         assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
             assertThat(doc.field).isEqualTo("foobar1");
             assertThat(doc.version).isEqualTo(2);
         });
 
         document = new VersionedClass(id, "foobar2", document.version);
-        template.update(document, bins);
+        template.update(document, fields);
         assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
             assertThat(doc.field).isEqualTo("foobar2");
             assertThat(doc.version).isEqualTo(3);
