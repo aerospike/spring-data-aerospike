@@ -21,6 +21,7 @@ import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
@@ -82,6 +83,20 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             assertThat(doc.getAge()).isEqualTo(41);
             assertThat(doc.getWaist()).isEqualTo(20);
         });
+    }
+
+    @Test
+    public void shouldFailUpdateNonExistingSpecificField() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20).build();
+        template.insert(person);
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("non-existing-field");
+
+        assertThatThrownBy(() -> template.update(Person.builder().id(id).age(41).build(), fields))
+                .isInstanceOf(RecoverableDataAccessException.class)
+                .hasMessageContaining("field doesn't exists");
     }
 
     @Test

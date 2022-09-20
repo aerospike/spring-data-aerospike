@@ -5,6 +5,7 @@ import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static reactor.test.StepVerifier.create;
 
 public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegrationTests {
@@ -69,6 +71,20 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.getAge()).isEqualTo(41);
             assertThat(doc.getWaist()).isEqualTo(20);
         });
+    }
+
+    @Test
+    public void shouldFailUpdateNonExistingSpecificField() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20).build();
+        reactiveTemplate.insert(person).block();
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("non-existing-field");
+
+        assertThatThrownBy(() -> reactiveTemplate.update(Person.builder().id(id).age(41).build(), fields).block())
+                .isInstanceOf(RecoverableDataAccessException.class)
+                .hasMessageContaining("field doesn't exists");
     }
 
     @Test
