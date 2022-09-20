@@ -13,7 +13,9 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -225,5 +227,69 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
 
         Person actual = findById(id, Person.class);
         assertThat(actual.getFirstName()).startsWith("value-");
+    }
+
+    @Test
+    public void TestAddToListSpecifyingListFieldOnly() {
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        map.put("key3", "value3");
+        List<String> list = new ArrayList<>();
+        list.add("string1");
+        list.add("string2");
+        list.add("string3");
+        Person person = Person.builder().id(id).firstName("QLastName").age(50)
+                .map(map)
+                .strings(list)
+                .build();
+
+        reactiveTemplate.insert(person).block();
+
+        Person personWithList = Person.builder().id(id).firstName("QLastName").age(50)
+                .map(map)
+                .strings(list)
+                .build();
+        personWithList.getStrings().add("Added something new");
+
+        List<String> fields = new ArrayList<>();
+        fields.add("strings");
+        reactiveTemplate.update(personWithList, fields).block();
+
+        Person personWithList2 = findById(id, Person.class);
+        assertThat(personWithList2).isEqualTo(personWithList);
+        assertThat(personWithList2.getStrings()).hasSize(4);
+    }
+
+    @Test
+    public void TestAddToMapSpecifyingMapFieldOnly() {
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        map.put("key3", "value3");
+        List<String> list = new ArrayList<>();
+        list.add("string1");
+        list.add("string2");
+        list.add("string3");
+        Person person = Person.builder().id(id).firstName("QLastName").age(50)
+                .map(map)
+                .strings(list)
+                .build();
+        reactiveTemplate.insert(person).block();
+
+        Person personWithList = Person.builder().id(id).firstName("QLastName").age(50)
+                .map(map)
+                .strings(list)
+                .build();
+        personWithList.getMap().put("key4", "Added something new");
+
+        List<String> fields = new ArrayList<>();
+        fields.add("map");
+        reactiveTemplate.update(personWithList, fields).block();
+
+        Person personWithList2 = findById(id, Person.class);
+        assertThat(personWithList2).isEqualTo(personWithList);
+        assertThat(personWithList2.getMap()).hasSize(4);
+        assertThat(personWithList2.getMap().get("key4")).isEqualTo("Added something new");
     }
 }
