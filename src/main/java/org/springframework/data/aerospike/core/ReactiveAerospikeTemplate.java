@@ -136,6 +136,23 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public <T> Mono<T> update(T document, List<String> fields) {
+        Assert.notNull(document, "Document must not be null!");
+
+        AerospikeWriteData data = writeDataWithSpecificFields(document, fields);
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+        if (entity.hasVersionProperty()) {
+            WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+            return doPersistWithVersionAndHandleCasError(document, data, policy);
+        } else {
+            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+            return doPersistAndHandleError(document, data, policy);
+        }
+    }
+
+    @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
         return findAllUsingQuery(entityClass, null, (Qualifier[]) null);
     }

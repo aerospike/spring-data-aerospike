@@ -12,6 +12,8 @@ import org.springframework.data.aerospike.sample.Person;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,6 +54,62 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     }
 
     @Test
+    public void updateSpecificFields() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20).build();
+        reactiveTemplate.insert(person).block();
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        reactiveTemplate.update(Person.builder().id(id).age(41).build(), fields).block();
+
+        assertThat(findById(id, Person.class)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+        });
+    }
+
+    @Test
+    public void updateSpecificFieldsWithFieldAnnotatedProperty() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
+                .emailAddress("andrew@gmail.com").build();
+        reactiveTemplate.insert(person).block();
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("emailAddress");
+        reactiveTemplate.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields)
+                .block();
+
+        assertThat(findById(id, Person.class)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+            assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
+        });
+    }
+
+    @Test
+    public void updateSpecificFieldsWithFieldAnnotatedPropertyActualValue() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
+                .emailAddress("andrew@gmail.com").build();
+        reactiveTemplate.insert(person).block();
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("email");
+        reactiveTemplate.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields)
+                .block();
+
+        assertThat(findById(id, Person.class)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+            assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
+        });
+    }
+
+    @Test
     public void updatesFieldValueAndDocumentVersion() {
         VersionedClass document = new VersionedClass(id, "foobar");
         create(reactiveTemplate.insert(document))
@@ -72,6 +130,29 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         create(reactiveTemplate.update(document))
                 .assertNext(updated -> assertThat(updated.version).isEqualTo(3))
                 .verifyComplete();
+        assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
+            assertThat(doc.field).isEqualTo("foobar2");
+            assertThat(doc.version).isEqualTo(3);
+        });
+    }
+
+    @Test
+    public void updateSpecificFieldsWithDocumentVersion() {
+        VersionedClass document = new VersionedClass(id, "foobar");
+        reactiveTemplate.insert(document).block();
+        assertThat(findById(id, VersionedClass.class).version).isEqualTo(1);
+
+        document = new VersionedClass(id, "foobar1", document.version);
+        List<String> fields = new ArrayList<>();
+        fields.add("field");
+        reactiveTemplate.update(document, fields).block();
+        assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
+            assertThat(doc.field).isEqualTo("foobar1");
+            assertThat(doc.version).isEqualTo(2);
+        });
+
+        document = new VersionedClass(id, "foobar2", document.version);
+        reactiveTemplate.update(document, fields).block();
         assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
             assertThat(doc.field).isEqualTo("foobar2");
             assertThat(doc.version).isEqualTo(3);
