@@ -82,7 +82,7 @@ public interface AerospikeOperations {
      * Version property will be updated with the server's version after successful operation.
      * <p>
      * If document does not have version property - record is updated with {@link com.aerospike.client.policy.RecordExistsAction#REPLACE} policy.
-     * This means that when such record does not exist it will be created, otherwise updated or in one word - an "upsert".
+     * This means that when such record does not exist it will be created - an "upsert".
      *
      * @param document The document to save. Must not be {@literal null}.
      */

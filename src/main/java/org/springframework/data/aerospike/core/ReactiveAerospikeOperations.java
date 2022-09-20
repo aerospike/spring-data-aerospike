@@ -59,7 +59,7 @@ public interface ReactiveAerospikeOperations {
      * Version property will be updated with the server's version after successful operation.
      * <p>
      * If document does not have version property - record is updated with {@link com.aerospike.client.policy.RecordExistsAction#REPLACE} policy.
-     * This means that when such record does not exist it will be created, otherwise updated.
+     * This means that when such record does not exist it will be created, otherwise updated - an "upsert".
      *
      * @param document The document to save. Must not be {@literal null}.
      * @return A Mono of the new saved document.
