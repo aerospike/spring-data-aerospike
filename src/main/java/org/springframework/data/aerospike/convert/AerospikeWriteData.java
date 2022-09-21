@@ -46,7 +46,7 @@ public class AerospikeWriteData {
 	}
 
 	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version) {
-		new AerospikeWriteData(key, bins, expiration, version, Collections.emptyList());
+		this(key, bins, expiration, version, Collections.emptyList());
 	}
 
 	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version, Collection<String> requestedBins) {
@@ -58,7 +58,7 @@ public class AerospikeWriteData {
 	}
 
 	public static AerospikeWriteData forWrite(String namespace) {
-		return new AerospikeWriteData(new Key(namespace, "", ""), new ArrayList<>(), 0, null, Collections.emptyList());
+		return new AerospikeWriteData(new Key(namespace, "", ""), new ArrayList<>(), 0, null);
 	}
 
 	public void setKey(Key key) {
