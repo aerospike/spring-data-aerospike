@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
 import org.springframework.data.domain.Page;
@@ -107,6 +108,37 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(result)
                 .hasSize(1)
                 .containsOnly(carter);
+    }
+
+    @Test
+    public void findPersonsByFriendLastName() {
+        carter.setFriend(dave);
+        repository.save(carter);
+        dave.setFriend(oliver);
+        repository.save(dave);
+        oliver.setFriend(alicia);
+        repository.save(oliver);
+
+        List<Person> result = repository.findByFriendLastName("Matthews");
+
+        assertThat(result)
+                .hasSize(2)
+                .extracting(Person::getFirstName)
+                .containsExactlyInAnyOrder(carter.getFirstName(), dave.getFirstName()); // not comparing Persons because friend id comes as null
+    }
+
+    @Test
+    public void findPersonsByAddressZipCode() {
+        carter.setAddress(new Address("Foo Street 2", "C0124", "Bar"));
+        repository.save(carter);
+        dave.setAddress(new Address("Foo Street 1", "C0123", "Bar"));
+        repository.save(dave);
+
+        List<Person> result = repository.findByAddressZipCode("C0123");
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactly(dave);
     }
 
     @Test

@@ -32,6 +32,7 @@ import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.TypeInformation;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -111,19 +112,22 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			} else if (op == FilterOperation.BETWEEN) {
 				op = FilterOperation.LIST_BETWEEN;
 			}
-		} else if (propertyType.isMap()) {
-			AerospikeMapCriteria onMap = (AerospikeMapCriteria) parameters.next();
-			switch (onMap) {
-				case KEY:
-					if (op == FilterOperation.CONTAINING) {
+		} else {
+			if (propertyType.isMap() && op == FilterOperation.CONTAINING) {
+				AerospikeMapCriteria onMap = (AerospikeMapCriteria) parameters.next();
+				switch (onMap) {
+					case KEY:
 						op = FilterOperation.MAP_KEYS_CONTAINS;
-					}
-					break;
-				case VALUE:
-					if (op == FilterOperation.CONTAINING) {
+						break;
+					case VALUE:
 						op = FilterOperation.MAP_VALUES_CONTAINS;
-					}
-					break;
+						break;
+				}
+			}
+
+			if (op == FilterOperation.EQ && isNestedPojoField(part, property)) { // find by POJO field
+				op = FilterOperation.MAP_VALUES_CONTAINS;
+				fieldName = part.getProperty().getSegment(); // parent POJO name, later passed to Exp.mapBin()
 			}
 		}
 
@@ -131,6 +135,11 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			return new AerospikeCriteria(fieldName, op, ignoreCase == IgnoreCaseType.ALWAYS, Value.get(v1));
 		}
 		return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2));
+	}
+
+	private boolean isNestedPojoField(Part part, AerospikePersistentProperty property) {
+		return Arrays.stream(part.getProperty().getType().getDeclaredFields())
+				.anyMatch(f -> f.getName().equals(property.getName()));
 	}
 
 	@Override

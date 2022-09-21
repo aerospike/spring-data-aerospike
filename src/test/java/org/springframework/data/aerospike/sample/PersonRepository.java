@@ -119,6 +119,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	List<P> findByMapKeysContaining(String key);
 
+	List<P> findByFriendLastName(String value);
+
 	List<P> findByStringsContaining(String string);
 
 	List<P> findByIntsContaining(Integer integer);
