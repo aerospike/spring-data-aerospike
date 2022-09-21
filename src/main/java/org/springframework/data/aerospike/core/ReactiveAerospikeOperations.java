@@ -96,7 +96,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> update(T document);
 
     /**
-     * Reactively update document specific fields based on a given list of fields.
+     * Reactively update document specific fields based on a given collection of fields.
      * using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy -
      * You can instantiate the document with only relevant fields and specify the list of fields that you want to update.
      * taking into consideration the version property of the document if it is present.
@@ -106,7 +106,7 @@ public interface ReactiveAerospikeOperations {
      * @param document The document to update. Must not be {@literal null}.
      * @return A Mono of the new updated document.
      */
-    <T> Mono<T> update(T document, List<String> fields);
+    <T> Mono<T> update(T document, Collection<String> fields);
 
     /**
      * Reactively add integer/double bin values to existing document bin values, read the new modified document and map it back the

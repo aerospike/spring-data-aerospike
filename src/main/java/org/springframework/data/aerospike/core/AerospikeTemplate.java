@@ -207,7 +207,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	@Override
-	public <T> void update(T document, List<String> fields) {
+	public <T> void update(T document, Collection<String> fields) {
 		Assert.notNull(document, "Document must not be null!");
 
 		AerospikeWriteData data = writeDataWithSpecificFields(document, fields);

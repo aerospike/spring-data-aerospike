@@ -175,7 +175,7 @@ abstract class BaseAerospikeTemplate {
         return data;
     }
 
-    <T> AerospikeWriteData writeDataWithSpecificFields(T document, List<String> fields) {
+    <T> AerospikeWriteData writeDataWithSpecificFields(T document, Collection<String> fields) {
         AerospikeWriteData data = AerospikeWriteData.forWrite(getNamespace());
         data.setRequestedBins(fieldsToBinNames(document, fields));
         converter.write(document, data);
@@ -236,7 +236,7 @@ abstract class BaseAerospikeTemplate {
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> toKeysList(entry.getKey(), entry.getValue())));
     }
 
-    private <T> List<String> fieldsToBinNames(T document, List<String> fields) {
+    private <T> List<String> fieldsToBinNames(T document, Collection<String> fields) {
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
 
         return fields.stream()

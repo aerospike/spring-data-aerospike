@@ -136,7 +136,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<T> update(T document, List<String> fields) {
+    public <T> Mono<T> update(T document, Collection<String> fields) {
         Assert.notNull(document, "Document must not be null!");
 
         AerospikeWriteData data = writeDataWithSpecificFields(document, fields);

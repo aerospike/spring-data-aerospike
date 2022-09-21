@@ -114,7 +114,7 @@ public interface AerospikeOperations {
     <T> void update(T document);
 
     /**
-     * Update document specific fields based on a given list of fields.
+     * Update document specific fields based on a given collection of fields.
      * using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy -
      * You can instantiate the document with only relevant fields and specify the list of fields that you want to update.
      * taking into consideration the version property of the document if it is present.
@@ -123,7 +123,7 @@ public interface AerospikeOperations {
      *
      * @param document The document to update. Must not be {@literal null}.
      */
-    <T> void update(T document, List<String> fields);
+    <T> void update(T document, Collection<String> fields);
 
     /**
      * Truncate/Delete all the documents in the given entity's set.
