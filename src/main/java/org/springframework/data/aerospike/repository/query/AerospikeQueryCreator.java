@@ -126,8 +126,9 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			}
 
 			if (op == FilterOperation.EQ && isNestedPojoField(part, property)) { // find by POJO field
-				op = FilterOperation.MAP_VALUES_CONTAINS;
+				op = FilterOperation.MAP_KEY_VALUE_EQ;
 				fieldName = part.getProperty().getSegment(); // parent POJO name, later passed to Exp.mapBin()
+				v2 = property.getFieldName();
 			}
 		}
 

@@ -111,7 +111,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFriendLastName() {
+    public void findPersonsByFriendAge() {
         carter.setFriend(dave);
         repository.save(carter);
         dave.setFriend(oliver);
@@ -119,20 +119,22 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         oliver.setFriend(alicia);
         repository.save(oliver);
 
-        List<Person> result = repository.findByFriendLastName("Matthews");
+        List<Person> result = repository.findByFriendAge(42);
 
         assertThat(result)
-                .hasSize(2)
+                .hasSize(1)
                 .extracting(Person::getFirstName)
-                .containsExactlyInAnyOrder(carter.getFirstName(), dave.getFirstName()); // not comparing Persons because friend id comes as null
+                .containsExactly(carter.getFirstName()); // not comparing Persons because friend id comes as null
     }
 
     @Test
     public void findPersonsByAddressZipCode() {
-        carter.setAddress(new Address("Foo Street 2", "C0124", "Bar"));
+        carter.setAddress(new Address("Foo Street 2", "C0124", "C0123"));
         repository.save(carter);
         dave.setAddress(new Address("Foo Street 1", "C0123", "Bar"));
         repository.save(dave);
+        boyd.setAddress(new Address(null, null, null));
+        repository.save(boyd);
 
         List<Person> result = repository.findByAddressZipCode("C0123");
 

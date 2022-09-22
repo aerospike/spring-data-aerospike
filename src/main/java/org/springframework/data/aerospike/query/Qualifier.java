@@ -126,7 +126,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
 	public enum FilterOperation {
 		EQ, GT, GTEQ, LT, LTEQ, NOTEQ, BETWEEN, START_WITH, ENDS_WITH, CONTAINING, IN,
-		LIST_CONTAINS, MAP_KEYS_CONTAINS, MAP_VALUES_CONTAINS,
+		LIST_CONTAINS, MAP_KEYS_CONTAINS, MAP_VALUES_CONTAINS, MAP_KEY_VALUE_EQ,
 		LIST_BETWEEN, MAP_KEYS_BETWEEN, MAP_VALUES_BETWEEN, GEO_WITHIN,
 		OR, AND
 	}
@@ -320,6 +320,18 @@ public class Qualifier implements Map<String, Object>, Serializable {
 				break;
 			case LTEQ:
 				exp = Exp.le(Exp.intBin(getField()), Exp.val(getValue1().toLong()));
+				break;
+			case MAP_KEY_VALUE_EQ:
+				// VALUE2 contains key (field name) in this case
+				if (getValue1().getType() == ParticleType.STRING) {
+					exp = Exp.eq(
+							MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
+							Exp.val(getValue1().toString()));
+				} else {
+					exp = Exp.eq(
+							MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
+							Exp.val(getValue1().toLong()));
+				}
 				break;
 			case BETWEEN:
 				exp = Exp.and(Exp.ge(Exp.intBin(getField()), Exp.val(getValue1().toLong())), Exp.le(Exp.intBin(getField()), Exp.val(getValue2().toLong())));
