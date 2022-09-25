@@ -144,6 +144,51 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findPersonsByFriendAgeGreaterThan() {
+        carter.setFriend(dave);
+        repository.save(carter);
+        dave.setFriend(oliver);
+        repository.save(dave);
+        alicia.setFriend(boyd);
+        repository.save(alicia);
+        leroi.setFriend(carter);
+        repository.save(leroi);
+
+        assertThat(alicia.getFriend().getAge()).isGreaterThan(42);
+        assertThat(leroi.getFriend().getAge()).isGreaterThan(42);
+
+        List<Person> result = repository.findByFriendAgeGreaterThan(42);
+
+        assertThat(result)
+                .hasSize(2)
+                .extracting(Person::getFirstName)
+                .containsExactlyInAnyOrder(alicia.getFirstName(), leroi.getFirstName()); // not comparing Persons because friend id comes as null
+    }
+
+    @Test
+    public void findPersonsByFriendAgeGreaterOrEqual () {
+        carter.setFriend(dave);
+        repository.save(carter);
+        dave.setFriend(oliver);
+        repository.save(dave);
+        alicia.setFriend(boyd);
+        repository.save(alicia);
+        leroi.setFriend(carter);
+        repository.save(leroi);
+
+        assertThat(carter.getFriend().getAge()).isGreaterThanOrEqualTo(42);
+        assertThat(alicia.getFriend().getAge()).isGreaterThanOrEqualTo(42);
+        assertThat(leroi.getFriend().getAge()).isGreaterThanOrEqualTo(42);
+
+        List<Person> result = repository.findByFriendAgeGreaterThanEqual(42);
+
+        assertThat(result)
+                .hasSize(3)
+                .extracting(Person::getFirstName)
+                .containsExactlyInAnyOrder(carter.getFirstName(), alicia.getFirstName(), leroi.getFirstName()); // not comparing Persons because friend id comes as null
+    }
+
+    @Test
     public void findAll_doesNotFindDeletedPersonByEntity() {
         try {
             repository.delete(dave);

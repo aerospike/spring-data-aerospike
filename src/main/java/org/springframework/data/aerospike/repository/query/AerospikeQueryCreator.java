@@ -113,7 +113,7 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 				op = FilterOperation.LIST_BETWEEN;
 			}
 		} else {
-			if (propertyType.isMap() && op == FilterOperation.CONTAINING) {
+			if (op == FilterOperation.CONTAINING && propertyType.isMap()) {
 				AerospikeMapCriteria onMap = (AerospikeMapCriteria) parameters.next();
 				switch (onMap) {
 					case KEY:
@@ -125,8 +125,27 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 				}
 			}
 
-			if (op == FilterOperation.EQ && isNestedPojoField(part, property)) { // find by POJO field
-				op = FilterOperation.MAP_KEY_VALUE_EQ;
+			if (part.getProperty().hasNext() && isNestedPojoField(part, property)) { // find by POJO field
+				switch (op) {
+					case EQ:
+						op = FilterOperation.MAP_KEY_VALUE_EQ;
+						break;
+					case GT:
+						op = FilterOperation.MAP_KEY_VALUE_GT;
+						break;
+					case GTEQ:
+						op = FilterOperation.MAP_KEY_VALUE_GTEQ;
+						break;
+					case LT:
+						op = FilterOperation.MAP_KEY_VALUE_LT;
+						break;
+					case LTEQ:
+						op = FilterOperation.MAP_KEY_VALUE_LTEQ;
+						break;
+					default:
+						break;
+				}
+
 				fieldName = part.getProperty().getSegment(); // parent POJO name, later passed to Exp.mapBin()
 				v2 = property.getFieldName();
 			}

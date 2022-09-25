@@ -126,7 +126,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
 	public enum FilterOperation {
 		EQ, GT, GTEQ, LT, LTEQ, NOTEQ, BETWEEN, START_WITH, ENDS_WITH, CONTAINING, IN,
-		LIST_CONTAINS, MAP_KEYS_CONTAINS, MAP_VALUES_CONTAINS, MAP_KEY_VALUE_EQ,
+		LIST_CONTAINS, MAP_KEYS_CONTAINS, MAP_VALUES_CONTAINS,
+		MAP_KEY_VALUE_EQ, MAP_KEY_VALUE_GT, MAP_KEY_VALUE_GTEQ, MAP_KEY_VALUE_LT, MAP_KEY_VALUE_LTEQ,
 		LIST_BETWEEN, MAP_KEYS_BETWEEN, MAP_VALUES_BETWEEN, GEO_WITHIN,
 		OR, AND
 	}
@@ -322,13 +323,53 @@ public class Qualifier implements Map<String, Object>, Serializable {
 				exp = Exp.le(Exp.intBin(getField()), Exp.val(getValue1().toLong()));
 				break;
 			case MAP_KEY_VALUE_EQ:
-				// VALUE2 contains key (field name) in this case
+				// VALUE2 contains key (field name)
 				if (getValue1().getType() == ParticleType.STRING) {
 					exp = Exp.eq(
 							MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
 							Exp.val(getValue1().toString()));
 				} else {
 					exp = Exp.eq(
+							MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
+							Exp.val(getValue1().toLong()));
+				}
+				break;
+			case MAP_KEY_VALUE_GT:
+				// VALUE2 contains key (field name)
+				if (getValue1().getType() == ParticleType.STRING) {
+					throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + "(String)");
+				} else {
+					exp = Exp.gt(
+							MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
+							Exp.val(getValue1().toLong()));
+				}
+				break;
+			case MAP_KEY_VALUE_GTEQ:
+				// VALUE2 contains key (field name)
+				if (getValue1().getType() == ParticleType.STRING) {
+					throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + "(String)");
+				} else {
+					exp = Exp.ge(
+							MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
+							Exp.val(getValue1().toLong()));
+				}
+				break;
+			case MAP_KEY_VALUE_LT:
+				// VALUE2 contains key (field name)
+				if (getValue1().getType() == ParticleType.STRING) {
+					throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + "(String)");
+				} else {
+					exp = Exp.lt(
+							MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
+							Exp.val(getValue1().toLong()));
+				}
+				break;
+			case MAP_KEY_VALUE_LTEQ:
+				// VALUE2 contains key (field name)
+				if (getValue1().getType() == ParticleType.STRING) {
+					throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + "(String)");
+				} else {
+					exp = Exp.le(
 							MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
 							Exp.val(getValue1().toLong()));
 				}
