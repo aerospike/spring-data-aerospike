@@ -68,7 +68,6 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         // then
         Mono<Person> result = reactiveTemplate.findById(id, Person.class).subscribeOn(Schedulers.parallel());
         StepVerifier.create(result).expectComplete().verify();
-        ;
     }
 
     @Test
