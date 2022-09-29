@@ -125,7 +125,7 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 				}
 			}
 
-			if (part.getProperty().hasNext() && isNestedPojoField(part, property)) { // find by POJO field
+			if (part.getProperty().hasNext() && isPojoField(part, property)) { // find by POJO field
 				switch (op) {
 					case EQ:
 						op = FilterOperation.MAP_KEY_VALUE_EQ;
@@ -144,13 +144,13 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 						break;
 					case BETWEEN:
 						op = FilterOperation.MAP_KEY_VALUE_BETWEEN;
-						v3 = v2;
+						v3 = v2; // upper limit
 						break;
 					default:
 						break;
 				}
 
-				fieldName = part.getProperty().getSegment(); // parent POJO name, later passed to Exp.mapBin()
+				fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
 				v2 = property.getFieldName(); // VALUE2 contains key (field name)
 			}
 		}
@@ -158,13 +158,13 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		if (null == v2) {
 			return new AerospikeCriteria(fieldName, op, ignoreCase == IgnoreCaseType.ALWAYS, Value.get(v1));
 		}
-		if (null != v3) {
-			return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2), Value.get(v3));
+		if (null == v3) {
+			return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2));
 		}
-		return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2));
+		return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2), Value.get(v3));
 	}
 
-	private boolean isNestedPojoField(Part part, AerospikePersistentProperty property) {
+	private boolean isPojoField(Part part, AerospikePersistentProperty property) {
 		return Arrays.stream(part.getProperty().getType().getDeclaredFields())
 				.anyMatch(f -> f.getName().equals(property.getName()));
 	}

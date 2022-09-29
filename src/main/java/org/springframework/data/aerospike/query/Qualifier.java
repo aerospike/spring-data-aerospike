@@ -390,7 +390,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 				}
 				break;
 			case MAP_KEY_VALUE_BETWEEN:
-				// VALUE2 contains key (field name)
+				// VALUE2 contains key (field name), VALUE3 contains upper limit
 				if (getValue1().getType() == ParticleType.STRING) {
 					throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + "(String)");
 				} else {
