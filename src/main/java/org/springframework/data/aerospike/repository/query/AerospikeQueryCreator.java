@@ -66,7 +66,7 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		String fieldName = property.getFieldName();
 		IgnoreCaseType ignoreCase = part.shouldIgnoreCase();
 		FilterOperation op;
-		Object v1 = parameters.next(), v2 = null;
+		Object v1 = parameters.next(), v2 = null, v3 = null;
 		switch (part.getType()) {
 		case AFTER:
 		case GREATER_THAN:
@@ -142,17 +142,24 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 					case LTEQ:
 						op = FilterOperation.MAP_KEY_VALUE_LTEQ;
 						break;
+					case BETWEEN:
+						op = FilterOperation.MAP_KEY_VALUE_BETWEEN;
+						v3 = v2;
+						break;
 					default:
 						break;
 				}
 
 				fieldName = part.getProperty().getSegment(); // parent POJO name, later passed to Exp.mapBin()
-				v2 = property.getFieldName();
+				v2 = property.getFieldName(); // VALUE2 contains key (field name)
 			}
 		}
 
 		if (null == v2) {
 			return new AerospikeCriteria(fieldName, op, ignoreCase == IgnoreCaseType.ALWAYS, Value.get(v1));
+		}
+		if (null != v3) {
+			return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2), Value.get(v3));
 		}
 		return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2));
 	}

@@ -58,6 +58,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	List<P> findByAgeBetween(int from, int to);
 
+	List<P> findByFriendAgeBetween(int from, int to);
+
 	@SuppressWarnings("rawtypes")
 	Person findByShippingAddresses(Set address);
 

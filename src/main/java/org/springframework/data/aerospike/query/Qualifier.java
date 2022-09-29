@@ -58,8 +58,9 @@ public class Qualifier implements Map<String, Object>, Serializable {
 	private static final String mapIterVar = "mapIterVar";
 	private static final String FIELD = "field";
 	private static final String IGNORE_CASE = "ignoreCase";
-	private static final String VALUE2 = "value2";
 	private static final String VALUE1 = "value1";
+	private static final String VALUE2 = "value2";
+	private static final String VALUE3 = "value3";
 	private static final String QUALIFIERS = "qualifiers";
 	private static final String OPERATION = "operation";
 	private static final String AS_FILTER = "queryAsFilter";
@@ -127,7 +128,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
 	public enum FilterOperation {
 		EQ, GT, GTEQ, LT, LTEQ, NOTEQ, BETWEEN, START_WITH, ENDS_WITH, CONTAINING, IN,
 		LIST_CONTAINS, MAP_KEYS_CONTAINS, MAP_VALUES_CONTAINS,
-		MAP_KEY_VALUE_EQ, MAP_KEY_VALUE_GT, MAP_KEY_VALUE_GTEQ, MAP_KEY_VALUE_LT, MAP_KEY_VALUE_LTEQ,
+		MAP_KEY_VALUE_EQ, MAP_KEY_VALUE_GT, MAP_KEY_VALUE_GTEQ,
+		MAP_KEY_VALUE_LT, MAP_KEY_VALUE_LTEQ, MAP_KEY_VALUE_BETWEEN,
 		LIST_BETWEEN, MAP_KEYS_BETWEEN, MAP_VALUES_BETWEEN, GEO_WITHIN,
 		OR, AND
 	}
@@ -160,6 +162,12 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		internalMap.put(VALUE2, value2);
 	}
 
+	public Qualifier(String field, FilterOperation operation, Value value1, Value value2, Value value3) {
+		this(field, operation, Boolean.FALSE, value1);
+		internalMap.put(VALUE2, value2);
+		internalMap.put(VALUE3, value3);
+	}
+
 	public FilterOperation getOperation() {
 		return (FilterOperation) internalMap.get(OPERATION);
 	}
@@ -186,6 +194,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
 	public Value getValue2() {
 		return (Value) internalMap.get(VALUE2);
+	}
+
+	public Value getValue3() {
+		return (Value) internalMap.get(VALUE3);
 	}
 
 	public Filter asFilter() {
@@ -322,6 +334,9 @@ public class Qualifier implements Map<String, Object>, Serializable {
 			case LTEQ:
 				exp = Exp.le(Exp.intBin(getField()), Exp.val(getValue1().toLong()));
 				break;
+			case BETWEEN:
+				exp = Exp.and(Exp.ge(Exp.intBin(getField()), Exp.val(getValue1().toLong())), Exp.le(Exp.intBin(getField()), Exp.val(getValue2().toLong())));
+				break;
 			case MAP_KEY_VALUE_EQ:
 				// VALUE2 contains key (field name)
 				if (getValue1().getType() == ParticleType.STRING) {
@@ -374,8 +389,20 @@ public class Qualifier implements Map<String, Object>, Serializable {
 							Exp.val(getValue1().toLong()));
 				}
 				break;
-			case BETWEEN:
-				exp = Exp.and(Exp.ge(Exp.intBin(getField()), Exp.val(getValue1().toLong())), Exp.le(Exp.intBin(getField()), Exp.val(getValue2().toLong())));
+			case MAP_KEY_VALUE_BETWEEN:
+				// VALUE2 contains key (field name)
+				if (getValue1().getType() == ParticleType.STRING) {
+					throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + "(String)");
+				} else {
+					exp = Exp.and(
+							Exp.ge(
+									MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
+									Exp.val(getValue1().toLong())),
+							Exp.le(
+							MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
+							Exp.val(getValue3().toLong()))
+					);
+				}
 				break;
 			case GEO_WITHIN:
 				exp = Exp.geoCompare(Exp.geoBin(getField()), Exp.geo(getValue1().toString()));
