@@ -178,8 +178,10 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             repository.save(carter);
             dave.setFriend(null);
             repository.save(dave);
-            oliver.setFriend(null);
-            repository.save(oliver);
+            alicia.setFriend(null);
+            repository.save(alicia);
+            leroi.setFriend(null);
+            repository.save(leroi);
         }
     }
 
@@ -194,16 +196,23 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         leroi.setFriend(carter);
         repository.save(leroi);
 
-        assertThat(carter.getFriend().getAge()).isGreaterThanOrEqualTo(42);
-        assertThat(alicia.getFriend().getAge()).isGreaterThanOrEqualTo(42);
-        assertThat(leroi.getFriend().getAge()).isGreaterThanOrEqualTo(42);
+        try {
+            List<Person> result = repository.findByFriendAgeGreaterThanEqual(42);
 
-        List<Person> result = repository.findByFriendAgeGreaterThanEqual(42);
-
-        assertThat(result)
-                .hasSize(3)
-                .extracting(Person::getFirstName)
-                .containsExactlyInAnyOrder(carter.getFirstName(), alicia.getFirstName(), leroi.getFirstName()); // not comparing Persons because friend id comes as null
+            assertThat(result)
+                    .hasSize(3)
+                    .extracting(Person::getFirstName)
+                    .containsExactlyInAnyOrder(carter.getFirstName(), alicia.getFirstName(), leroi.getFirstName()); // not comparing Persons because friend id comes as null
+        } finally {
+            carter.setFriend(null);
+            repository.save(carter);
+            dave.setFriend(null);
+            repository.save(dave);
+            alicia.setFriend(null);
+            repository.save(alicia);
+            leroi.setFriend(null);
+            repository.save(leroi);
+        }
     }
 
     @Test
