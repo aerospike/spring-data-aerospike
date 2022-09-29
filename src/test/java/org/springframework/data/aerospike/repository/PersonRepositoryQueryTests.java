@@ -111,23 +111,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFriendAge() {
-        carter.setFriend(dave);
-        repository.save(carter);
-        dave.setFriend(oliver);
-        repository.save(dave);
-        oliver.setFriend(alicia);
-        repository.save(oliver);
-
-        List<Person> result = repository.findByFriendAge(42);
-
-        assertThat(result)
-                .hasSize(1)
-                .extracting(Person::getFirstName)
-                .containsExactly(carter.getFirstName()); // not comparing Persons because friend id comes as null
-    }
-
-    @Test
     public void findPersonsByAddressZipCode() {
         carter.setAddress(new Address("Foo Street 2", "C0124", "C0123"));
         repository.save(carter);
