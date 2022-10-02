@@ -81,11 +81,11 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 	@Override
 	public Object get(Object id, String keyspace) {
 		Key key = makeKey(keyspace, id.toString());
-		Record record = client.get(null, key);
-		if(record == null){
+		Record aeroRecord = client.get(null, key);
+		if(aeroRecord == null){
 			return null;
 		}
-		AerospikeReadData data = AerospikeReadData.forRead(key, record);
+		AerospikeReadData data = AerospikeReadData.forRead(key, aeroRecord);
 		return converter.read(Object.class,  data);
 	}
 
