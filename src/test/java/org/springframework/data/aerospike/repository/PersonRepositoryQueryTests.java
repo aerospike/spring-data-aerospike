@@ -218,7 +218,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
                     .extracting(Person::getFirstName)
                     .containsExactlyInAnyOrder(carter.getFirstName(), alicia.getFirstName(), leroi.getFirstName()); // not comparing Persons because friend id comes as null
         } finally {
-            carter.setFriend(null);
+            carter.setFriend(null); // temporarily until bringing friend id is fixed
             repository.save(carter);
             dave.setFriend(null);
             repository.save(dave);
@@ -474,7 +474,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findsFriendInAgeRangeCorrectly() {
+    public void findPersonsByFriendsInAgeRangeCorrectly() {
         carter.setFriend(dave);
         repository.save(carter);
         dave.setFriend(oliver);
