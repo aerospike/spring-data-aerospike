@@ -130,6 +130,9 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 					case EQ:
 						op = FilterOperation.MAP_KEY_VALUE_EQ;
 						break;
+					case NOTEQ:
+						op = FilterOperation.MAP_KEY_VALUE_NOTEQ;
+						break;
 					case GT:
 						op = FilterOperation.MAP_KEY_VALUE_GT;
 						break;
@@ -144,7 +147,16 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 						break;
 					case BETWEEN:
 						op = FilterOperation.MAP_KEY_VALUE_BETWEEN;
-						v3 = v2; // upper limit
+						v3 = v2; // contains upper limit value
+						break;
+					case START_WITH:
+						op = FilterOperation.MAP_KEY_VALUE_START_WITH;
+						break;
+					case ENDS_WITH:
+						op = FilterOperation.MAP_KEY_VALUE_ENDS_WITH;
+						break;
+					case CONTAINING:
+						op = FilterOperation.MAP_KEY_VALUE_CONTAINING;
 						break;
 					default:
 						break;
