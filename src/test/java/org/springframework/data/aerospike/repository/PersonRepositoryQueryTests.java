@@ -74,6 +74,20 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByAddressZipCodeContaining() {
+        carter.setAddress(new Address("Foo Street 2", "C0124", "C0123"));
+        repository.save(carter);
+        dave.setAddress(new Address("Foo Street 1", "C0123", "Bar"));
+        repository.save(dave);
+        boyd.setAddress(new Address(null, null, null));
+        repository.save(boyd);
+
+        List<Person> persons = repository.findByAddressZipCodeContaining("C0");
+
+        assertThat(persons).containsExactlyInAnyOrder(carter, dave);
+    }
+
+    @Test
     public void findsPersonById() {
         Optional<Person> person = repository.findById(dave.getId());
 
@@ -405,6 +419,28 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFirstNameStartsWith("D");
 
         assertThat(result).containsOnly(dave, donny);
+    }
+
+    @Test
+    public void findsPersonsByFriendFirstnameStartsWith() {
+        carter.setFriend(dave);
+        repository.save(carter);
+        dave.setFriend(oliver);
+        repository.save(dave);
+
+        try {
+            List<Person> result = repository.findByFriendFirstNameStartsWith("D");
+
+            assertThat(result)
+                    .hasSize(1)
+                    .extracting(Person::getFirstName)
+                    .containsExactly(carter.getFirstName()); // not comparing Persons because friend id comes as null
+        } finally {
+            carter.setFriend(null);   // temporarily until bringing friend id is fixed
+            repository.save(carter);
+            dave.setFriend(null);
+            repository.save(dave);
+        }
     }
 
     @Test

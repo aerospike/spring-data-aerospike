@@ -130,6 +130,9 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 					case EQ:
 						op = FilterOperation.MAP_KEY_VALUE_EQ;
 						break;
+					case NOTEQ:
+						op = FilterOperation.MAP_KEY_VALUE_NOTEQ;
+						break;
 					case GT:
 						op = FilterOperation.MAP_KEY_VALUE_GT;
 						break;
@@ -144,7 +147,16 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 						break;
 					case BETWEEN:
 						op = FilterOperation.MAP_KEY_VALUE_BETWEEN;
-						v3 = v2; // upper limit
+						v3 = v2; // contains upper limit value
+						break;
+					case START_WITH:
+						op = FilterOperation.MAP_KEY_VALUE_START_WITH;
+						break;
+					case ENDS_WITH:
+						op = FilterOperation.MAP_KEY_VALUE_ENDS_WITH;
+						break;
+					case CONTAINING:
+						op = FilterOperation.MAP_KEY_VALUE_CONTAINING;
 						break;
 					default:
 						break;
@@ -155,13 +167,15 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			}
 		}
 
-		if (null == v2) {
-			return new AerospikeCriteria(fieldName, op, ignoreCase == IgnoreCaseType.ALWAYS, Value.get(v1));
-		}
-		if (null == v3) {
-			return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2));
-		}
-		return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2), Value.get(v3));
+		AerospikeCriteria.AerospikeCriteriaBuilder criteriaBuilder = new AerospikeCriteria.AerospikeCriteriaBuilder();
+		criteriaBuilder.setField(fieldName)
+				.setIgnoreCase(true)
+				.setFilterOperation(op)
+				.setValue1(Value.get(v1))
+				.setValue2(Value.get(v2))
+				.setValue3(Value.get(v3));
+
+		return new AerospikeCriteria(criteriaBuilder);
 	}
 
 	private boolean isPojoField(Part part, AerospikePersistentProperty property) {
@@ -178,12 +192,18 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		PersistentPropertyPath<AerospikePersistentProperty> path = context.getPersistentPropertyPath(part.getProperty());
 		AerospikePersistentProperty property = path.getLeafProperty();
 
-		return new AerospikeCriteria(FilterOperation.AND, base, create(part, property, iterator));
+		return new AerospikeCriteria(new AerospikeCriteria.AerospikeCriteriaBuilder()
+				.setFilterOperation(FilterOperation.AND)
+				.setQualifiers(base, create(part, property, iterator))
+		);
 	}
 
 	@Override
 	protected AerospikeCriteria or(AerospikeCriteria base, AerospikeCriteria criteria) {
-		return new AerospikeCriteria(FilterOperation.OR, base, criteria);
+		return new AerospikeCriteria(new AerospikeCriteria.AerospikeCriteriaBuilder()
+				.setFilterOperation(FilterOperation.OR)
+				.setQualifiers(base, criteria)
+		);
 	}
 
 	@Override

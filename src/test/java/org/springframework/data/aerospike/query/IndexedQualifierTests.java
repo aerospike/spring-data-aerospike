@@ -22,6 +22,7 @@ import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.CollectionUtils;
+import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -204,9 +205,15 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void selectWithQualifiersOnly() {
+		AerospikeCriteria.AerospikeCriteriaBuilder criteriaBuilder1, criteriaBuilder2;
+		criteriaBuilder1 = new AerospikeCriteria.AerospikeCriteriaBuilder();
+		criteriaBuilder2 = new AerospikeCriteria.AerospikeCriteriaBuilder();
+		criteriaBuilder1.setField("color").setFilterOperation(FilterOperation.EQ).setValue1(Value.get(GREEN));
+		criteriaBuilder2.setField("age").setFilterOperation(FilterOperation.BETWEEN).setValue1(Value.get(28)).setValue2(Value.get(29));
+
 		withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-			Qualifier qual1 = new Qualifier("color", FilterOperation.EQ, Value.get(GREEN));
-			Qualifier qual2 = new Qualifier("age", FilterOperation.BETWEEN, Value.get(28), Value.get(29));
+			Qualifier qual1 = new Qualifier(criteriaBuilder1);
+			Qualifier qual2 = new Qualifier(criteriaBuilder2);
 			KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, qual1, qual2);
 
 			assertThat(it).toIterable()

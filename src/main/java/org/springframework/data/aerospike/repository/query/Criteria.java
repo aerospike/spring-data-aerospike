@@ -67,7 +67,11 @@ public class Criteria implements CriteriaDefinition {
 			for (Criteria c : this.criteriaChain) {
 				qualifiers.add(c.getCriteriaObject());
 			}
-			return new Qualifier(op, qualifiers.toArray(new Qualifier[0]));
+//			return new Qualifier(op, qualifiers.toArray(new Qualifier[0]));
+			return new Qualifier(new AerospikeCriteria.AerospikeCriteriaBuilder()
+					.setFilterOperation(op)
+					.setQualifiers(qualifiers.toArray(new Qualifier[0]))
+			);
 		}
 	}
 
@@ -216,9 +220,12 @@ public class Criteria implements CriteriaDefinition {
 	}
 
 	public Criteria between(Object o1, Object o2,String propertyName) {
-		Qualifier qualifier = new Qualifier(propertyName,
-				Qualifier.FilterOperation.BETWEEN, Value.get(o1),
-				Value.get(o2));
+		Qualifier qualifier = new Qualifier(new AerospikeCriteria.AerospikeCriteriaBuilder()
+				.setField(propertyName)
+				.setFilterOperation(Qualifier.FilterOperation.BETWEEN)
+				.setValue1(Value.get(o1))
+				.setValue2(Value.get(o2))
+		);
 		this.criteria.put(Qualifier.FilterOperation.BETWEEN.name(), qualifier);
 		return this;
 	}
