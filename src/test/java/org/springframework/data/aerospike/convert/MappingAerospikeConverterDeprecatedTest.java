@@ -112,7 +112,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 			}
 		};
 
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		Address convertedAddress = converter.read(Address.class, dbObject);
 
@@ -171,7 +171,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 			}
 		};
 
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		ClassWithEnumProperty result = converter.read(ClassWithEnumProperty.class, dbObject);
 
@@ -188,7 +188,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 			}
 		};
 
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		ClassWithEnumProperty result = converter.read(ClassWithEnumProperty.class, dbObject);
 
@@ -226,7 +226,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 			}
 		};
 
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		Person result = converter.read(Person.class, dbObject);
 
@@ -244,7 +244,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		converter.write(person, forWrite);
 
 		Map<String, Object> bins = listToMap(forWrite.getBins());
-		AerospikeReadData forRead = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData forRead = AerospikeReadData.forRead(key, aeroRecord(bins));
 		Person result = converter.read(Person.class, forRead);
 
 		assertThat(result.addresses).isEmpty();
@@ -265,7 +265,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 				put("map", map);
 			}
 		};
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		ClassWithSortedMap result = converter.read(ClassWithSortedMap.class, dbObject);
 
@@ -297,7 +297,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 				.findFirst().orElse(null);
 	}
 
-	private Record record(Map<String, Object> bins) {
+	private Record aeroRecord(Map<String, Object> bins) {
 		return new Record(bins, 0, 0);
 	}
 
