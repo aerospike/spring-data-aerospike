@@ -131,7 +131,7 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 						op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
 						break;
 					case NOTEQ:
-						op = FilterOperation.MAP_VALUE_NOT_EQ_BY_KEY;
+						op = FilterOperation.MAP_VALUE_NOTEQ_BY_KEY;
 						break;
 					case GT:
 						op = FilterOperation.MAP_VALUE_GT_BY_KEY;

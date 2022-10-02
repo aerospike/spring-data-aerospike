@@ -45,7 +45,7 @@ import java.util.Set;
  */
 public class Qualifier implements Map<String, Object>, Serializable {
 	private static final long serialVersionUID = -2689196529952712849L;
-	//	private static final String listIterVar = "listIterVar";
+//	private static final String listIterVar = "listIterVar";
 //	private static final String mapIterVar = "mapIterVar";
 	protected static final String FIELD = "field";
 	protected static final String IGNORE_CASE = "ignoreCase";
@@ -119,7 +119,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 	public enum FilterOperation {
 		EQ, GT, GTEQ, LT, LTEQ, NOTEQ, BETWEEN, START_WITH, ENDS_WITH, CONTAINING, IN,
 		LIST_CONTAINS, MAP_KEYS_CONTAINS, MAP_VALUES_CONTAINS,
-		MAP_VALUE_EQ_BY_KEY, MAP_VALUE_NOT_EQ_BY_KEY, MAP_VALUE_GT_BY_KEY, MAP_VALUE_GTEQ_BY_KEY,
+		MAP_VALUE_EQ_BY_KEY, MAP_VALUE_NOTEQ_BY_KEY, MAP_VALUE_GT_BY_KEY, MAP_VALUE_GTEQ_BY_KEY,
 		MAP_VALUE_LT_BY_KEY, MAP_VALUE_LTEQ_BY_KEY, MAP_VALUES_BETWEEN_BY_KEY,
 		MAP_VALUE_START_WITH_BY_KEY, MAP_VALUE_ENDS_WITH_BY_KEY, MAP_VALUE_CONTAINING_BY_KEY,
 		LIST_BETWEEN, MAP_KEYS_BETWEEN, MAP_VALUES_BETWEEN, GEO_WITHIN,
@@ -362,28 +362,32 @@ public class Qualifier implements Map<String, Object>, Serializable {
 					case ParticleType.STRING:
 						exp = Exp.eq(
 								MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
-								Exp.val(getValue1().toString()));
+								Exp.val(getValue1().toString())
+						);
 						break;
 					case ParticleType.INTEGER:
 						exp = Exp.eq(
 								MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
-								Exp.val(getValue1().toLong()));
+								Exp.val(getValue1().toLong())
+						);
 						break;
 					default:
 						throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + " (expected String or Long)");
 				}
 				break;
-			case MAP_VALUE_NOT_EQ_BY_KEY:
+			case MAP_VALUE_NOTEQ_BY_KEY:
 				switch (getValue1().getType()) {
 					case ParticleType.STRING:
 						exp = Exp.ne(
 								MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
-								Exp.val(getValue1().toString()));
+								Exp.val(getValue1().toString())
+						);
 						break;
 					case ParticleType.INTEGER:
 						exp = Exp.ne(
 								MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
-								Exp.val(getValue1().toLong()));
+								Exp.val(getValue1().toLong())
+						);
 						break;
 					default:
 						throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + " (expected String or Long)");
