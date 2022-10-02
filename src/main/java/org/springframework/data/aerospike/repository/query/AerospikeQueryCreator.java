@@ -128,35 +128,35 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			if (part.getProperty().hasNext() && isPojoField(part, property)) { // find by POJO field
 				switch (op) {
 					case EQ:
-						op = FilterOperation.MAP_KEY_VALUE_EQ;
+						op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
 						break;
 					case NOTEQ:
-						op = FilterOperation.MAP_KEY_VALUE_NOTEQ;
+						op = FilterOperation.MAP_VALUE_NOTEQ_BY_KEY;
 						break;
 					case GT:
-						op = FilterOperation.MAP_KEY_VALUE_GT;
+						op = FilterOperation.MAP_VALUE_GT_BY_KEY;
 						break;
 					case GTEQ:
-						op = FilterOperation.MAP_KEY_VALUE_GTEQ;
+						op = FilterOperation.MAP_VALUE_GTEQ_BY_KEY;
 						break;
 					case LT:
-						op = FilterOperation.MAP_KEY_VALUE_LT;
+						op = FilterOperation.MAP_VALUE_LT_BY_KEY;
 						break;
 					case LTEQ:
-						op = FilterOperation.MAP_KEY_VALUE_LTEQ;
+						op = FilterOperation.MAP_VALUE_LTEQ_BY_KEY;
 						break;
 					case BETWEEN:
-						op = FilterOperation.MAP_KEY_VALUE_BETWEEN;
+						op = FilterOperation.MAP_VALUES_BETWEEN_BY_KEY;
 						v3 = v2; // contains upper limit value
 						break;
 					case START_WITH:
-						op = FilterOperation.MAP_KEY_VALUE_START_WITH;
+						op = FilterOperation.MAP_VALUE_START_WITH_BY_KEY;
 						break;
 					case ENDS_WITH:
-						op = FilterOperation.MAP_KEY_VALUE_ENDS_WITH;
+						op = FilterOperation.MAP_VALUE_ENDS_WITH_BY_KEY;
 						break;
 					case CONTAINING:
-						op = FilterOperation.MAP_KEY_VALUE_CONTAINING;
+						op = FilterOperation.MAP_VALUE_CONTAINING_BY_KEY;
 						break;
 					default:
 						break;

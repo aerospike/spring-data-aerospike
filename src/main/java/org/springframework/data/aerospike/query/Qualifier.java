@@ -38,56 +38,9 @@ import java.util.Set;
 
 /**
  * Generic Bin qualifier. It acts as a filter to exclude records that do not meet the given criteria.
- * Supported operations for building a Filter:
- * <ul>
- * <li>EQ - Equals</li>
- * <li>NOTEQ - Not equal</li>
- * <li>GT - Greater than</li>
- * <li>GTEQ - Greater than or equal to</li>
- * <li>LT - Less than</li>
- * <li>LTEQ - Less than or equal to</li>
- * <li>BETWEEN - Between two value (inclusive)</li>
- * <li>LIST_CONTAINS - Find string in List</li>
- * <li>MAP_KEYS_CONTAINS - Find string in Map keys</li>
- * <li>MAP_VALUES_CONTAINS - Find string in Map values</li>
- * <li>LIST_BETWEEN - Between two List elements</li>
- * <li>MAP_KEYS_BETWEEN - Between two Map keys</li>
- * <li>MAP_VALUES_BETWEEN - Between two Map values</li>
- * <li>GEO_WITHIN - Geo within radius</li>
- * </ul>
- * Supported operations for building an Expression:
- * <ul>
- * <li>AND - And</li>
- * <li>OR - Or</li>
- * <li>IN - In a List</li>
- * <li>EQ - Equals</li>
- * <li>NOTEQ - Not equal</li>
- * <li>GT - Greater than</li>
- * <li>GTEQ - Greater than or equal to</li>
- * <li>LT - Less than</li>
- * <li>LTEQ - Less than or equal to</li>
- * <li>BETWEEN - Between two value (inclusive)</li>
- * <li>START_WITH - A string that starts with</li>
- * <li>ENDS_WITH - A string that ends with</li>
- * <li>CONTAINING - If Map contains the given value</li>
- * <li>MAP_KEY_VALUE_EQ - Equals for Map value</li>
- * <li>MAP_KEY_VALUE_NOTEQ - Not equal for Map value</li>
- * <li>MAP_KEY_VALUE_GT - Greater than for Map value</li>
- * <li>MAP_KEY_VALUE_GTEQ - Greater than or equal to for Map value</li>
- * <li>MAP_KEY_VALUE_LT - Less than for Map value</li>
- * <li>MAP_KEY_VALUE_LTEQ - Less than or equal to for Map value</li>
- * <li>MAP_KEY_VALUE_BETWEEN - Between two Map values (inclusive)</li>
- * <li>MAP_KEY_VALUE_START_WITH - A Map value string that starts with</li>
- * <li>MAP_KEY_VALUE_ENDS_WITH - A Map value string that ends with</li>
- * <li>MAP_KEY_VALUE_CONTAINING - A Map value string that contains the given string</li>
- * <li>LIST_CONTAINS - Find string in List</li>
- * <li>MAP_KEYS_CONTAINS - Find string in Map keys</li>
- * <li>MAP_VALUES_CONTAINS - Find string in Map values</li>
- * <li>LIST_BETWEEN - Between two List elements</li>
- * <li>MAP_KEYS_BETWEEN - Between two Map keys</li>
- * <li>MAP_VALUES_BETWEEN - Between two Map values</li>
- * <li>GEO_WITHIN - Geo within radius</li>
- * </ul><p>
+ * <p>
+ * For the list of the supported operations see
+ * {@link FilterOperation}
  *
  * @author Peter Milne
  */
@@ -167,9 +120,9 @@ public class Qualifier implements Map<String, Object>, Serializable {
 	public enum FilterOperation {
 		EQ, GT, GTEQ, LT, LTEQ, NOTEQ, BETWEEN, START_WITH, ENDS_WITH, CONTAINING, IN,
 		LIST_CONTAINS, MAP_KEYS_CONTAINS, MAP_VALUES_CONTAINS,
-		MAP_KEY_VALUE_EQ, MAP_KEY_VALUE_NOTEQ, MAP_KEY_VALUE_GT, MAP_KEY_VALUE_GTEQ,
-		MAP_KEY_VALUE_LT, MAP_KEY_VALUE_LTEQ, MAP_KEY_VALUE_BETWEEN,
-		MAP_KEY_VALUE_START_WITH, MAP_KEY_VALUE_ENDS_WITH, MAP_KEY_VALUE_CONTAINING,
+		MAP_VALUE_EQ_BY_KEY, MAP_VALUE_NOTEQ_BY_KEY, MAP_VALUE_GT_BY_KEY, MAP_VALUE_GTEQ_BY_KEY,
+		MAP_VALUE_LT_BY_KEY, MAP_VALUE_LTEQ_BY_KEY, MAP_VALUES_BETWEEN_BY_KEY,
+		MAP_VALUE_START_WITH_BY_KEY, MAP_VALUE_ENDS_WITH_BY_KEY, MAP_VALUE_CONTAINING_BY_KEY,
 		LIST_BETWEEN, MAP_KEYS_BETWEEN, MAP_VALUES_BETWEEN, GEO_WITHIN,
 		OR, AND
 	}
@@ -414,13 +367,13 @@ public class Qualifier implements Map<String, Object>, Serializable {
 				String containingRegexp = QualifierRegexpBuilder.getContaining(getValue1().toString());
 				exp = Exp.regexCompare(containingRegexp, regexFlags, Exp.stringBin(getField()));
 				break;
-			case MAP_KEY_VALUE_EQ:
+			case MAP_VALUE_EQ_BY_KEY:
 				// VALUE2 contains key (field name)
 				switch (getValue1().getType()) {
 					case ParticleType.STRING:
 						exp = Exp.eq(
-									MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
-									Exp.val(getValue1().toString()));
+								MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2().toString()), Exp.mapBin(getField())),
+								Exp.val(getValue1().toString()));
 						break;
 					case ParticleType.INTEGER:
 						exp = Exp.eq(
@@ -431,7 +384,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 						throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + " (expected String or Long)");
 				}
 				break;
-			case MAP_KEY_VALUE_NOTEQ:
+			case MAP_VALUE_NOTEQ_BY_KEY:
 				switch (getValue1().getType()) {
 					case ParticleType.STRING:
 						exp = Exp.ne(
@@ -447,7 +400,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 						throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + " (expected String or Long)");
 				}
 				break;
-			case MAP_KEY_VALUE_GT:
+			case MAP_VALUE_GT_BY_KEY:
 				// VALUE2 contains key (field name)
 				if (getValue1().getType() == ParticleType.INTEGER) {
 					exp = Exp.gt(
@@ -457,7 +410,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 					break;
 				}
 				throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + " (expected Long)");
-			case MAP_KEY_VALUE_GTEQ:
+			case MAP_VALUE_GTEQ_BY_KEY:
 				// VALUE2 contains key (field name)
 				if (getValue1().getType() == ParticleType.INTEGER) {
 					exp = Exp.ge(
@@ -467,7 +420,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 					break;
 				}
 				throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + " (expected Long)");
-			case MAP_KEY_VALUE_LT:
+			case MAP_VALUE_LT_BY_KEY:
 				// VALUE2 contains key (field name)
 				if (getValue1().getType() == ParticleType.INTEGER) {
 					exp = Exp.lt(
@@ -477,7 +430,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 					break;
 				}
 				throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + " (expected Long)");
-			case MAP_KEY_VALUE_LTEQ:
+			case MAP_VALUE_LTEQ_BY_KEY:
 				// VALUE2 contains key (field name)
 				if (getValue1().getType() == ParticleType.INTEGER) {
 					exp = Exp.le(
@@ -487,7 +440,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 					break;
 				}
 				throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + " (expected Long)");
-			case MAP_KEY_VALUE_BETWEEN:
+			case MAP_VALUES_BETWEEN_BY_KEY:
 				// VALUE2 contains key (field name), VALUE3 contains upper limit
 				if (getValue1().getType() == ParticleType.INTEGER && getValue3().getType() == ParticleType.INTEGER) {
 					exp = Exp.and(
@@ -503,19 +456,19 @@ public class Qualifier implements Map<String, Object>, Serializable {
 					break;
 				}
 				throw new AerospikeException("FilterExpression unsupported operation: " + getOperation() + " (expected Long)");
-			case MAP_KEY_VALUE_START_WITH:
+			case MAP_VALUE_START_WITH_BY_KEY:
 				startWithRegexp = QualifierRegexpBuilder.getStartsWith(getValue1().toString());
 				exp = Exp.regexCompare(startWithRegexp, regexFlags,
 						MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2().toString()), Exp.mapBin(getField()))
 				);
 				break;
-			case MAP_KEY_VALUE_ENDS_WITH:
+			case MAP_VALUE_ENDS_WITH_BY_KEY:
 				endWithRegexp = QualifierRegexpBuilder.getEndsWith(getValue1().toString());
 				exp = Exp.regexCompare(endWithRegexp, regexFlags,
 						MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2().toString()), Exp.mapBin(getField()))
 				);
 				break;
-			case MAP_KEY_VALUE_CONTAINING:
+			case MAP_VALUE_CONTAINING_BY_KEY:
 				containingRegexp = QualifierRegexpBuilder.getContaining(getValue1().toString());
 				exp = Exp.regexCompare(containingRegexp, regexFlags,
 						MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2().toString()), Exp.mapBin(getField()))
