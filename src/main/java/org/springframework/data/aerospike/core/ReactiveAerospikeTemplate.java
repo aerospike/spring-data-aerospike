@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.Record;
 import com.aerospike.client.*;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -401,15 +402,23 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
                                       String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
+        return createIndex(entityClass, indexName, binName, indexType, indexCollectionType, new CTX[0]);
+    }
+
+    @Override
+    public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
+                                      String binName, IndexType indexType, IndexCollectionType indexCollectionType,
+                                      CTX... ctx) {
         Assert.notNull(entityClass, "Type must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
         Assert.notNull(binName, "Bin name must not be null!");
         Assert.notNull(indexType, "Index type must not be null!");
         Assert.notNull(indexCollectionType, "Index collection type must not be null!");
+        Assert.notNull(ctx, "Ctx must not be null!");
 
         String setName = getSetName(entityClass);
         return reactorClient.createIndex(null, this.namespace,
-                setName, indexName, binName, indexType, indexCollectionType)
+                        setName, indexName, binName, indexType, indexCollectionType, ctx)
                 .then(reactorIndexRefresher.refreshIndexes())
                 .onErrorMap(this::translateError);
     }

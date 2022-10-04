@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.Record;
 import com.aerospike.client.*;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -86,16 +87,23 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	@Override
 	public <T> void createIndex(Class<T> entityClass, String indexName,
 								String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
+		createIndex(entityClass, indexName, binName, indexType, indexCollectionType, new CTX[0]);
+	}
+
+	@Override
+	public <T> void createIndex(Class<T> entityClass, String indexName,
+								String binName, IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
 		Assert.notNull(entityClass, "Type must not be null!");
 		Assert.notNull(indexName, "Index name must not be null!");
 		Assert.notNull(binName, "Bin name must not be null!");
 		Assert.notNull(indexType, "Index type must not be null!");
 		Assert.notNull(indexCollectionType, "Index collection type must not be null!");
+		Assert.notNull(ctx, "Ctx must not be null!");
 
 		try {
 			String setName = getSetName(entityClass);
 			IndexTask task = client.createIndex(null, this.namespace,
-					setName, indexName, binName, indexType, indexCollectionType);
+					setName, indexName, binName, indexType, indexCollectionType, ctx);
 			if (task != null) {
 				task.waitTillComplete();
 			}

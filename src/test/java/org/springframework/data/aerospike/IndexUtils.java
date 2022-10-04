@@ -32,7 +32,7 @@ public class IndexUtils {
 
 	public static List<Index> getIndexes(IAerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
 		Node node = getNode(client);
-		String response = Info.request(node, "sindex/" + namespace);
+		String response = Info.request(node, "sindex-list:ns=" + namespace + ";b64=true");
 		return Arrays.stream(response.split(";"))
 				.map(indexInfoParser::parse)
 				.collect(Collectors.toList());

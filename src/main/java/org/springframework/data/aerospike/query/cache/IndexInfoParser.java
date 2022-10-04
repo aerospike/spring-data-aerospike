@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.query.cache;
 
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.query.model.Index;
@@ -46,6 +47,7 @@ public class IndexInfoParser {
 	private static final String LIST = "LIST";
 	private static final String MAPKEYS = "MAPKEYS";
 	private static final String MAPVALUES = "MAPVALUES";
+	private static final String CONTEXT = "context";
 
 	public Index parse(String infoString) {
 		Map<String, String> values = getIndexInfo(infoString);
@@ -55,6 +57,7 @@ public class IndexInfoParser {
 		String bin = getRequiredBin(values);
 		IndexType indexType = getIndexTypeInternal(values);
 		IndexCollectionType collectionType = getIndexCollectionTypeInternal(values);
+		CTX[] context = getIndexContext(values);
 		return Index.builder()
 				.name(name)
 				.namespace(namespace)
@@ -62,6 +65,7 @@ public class IndexInfoParser {
 				.bin(bin)
 				.indexType(indexType)
 				.indexCollectionType(collectionType)
+				.ctx(context)
 				.build();
 	}
 
@@ -156,5 +160,14 @@ public class IndexInfoParser {
 		if (namespace != null)
 			return namespace;
 		throw new IllegalStateException("Namespace not present in info: " + values);
+	}
+
+	private CTX[] getIndexContext(Map<String, String> values) {
+		String contextString = values.get(CONTEXT);
+
+		if (contextString != null && !contextString.equals("null")) {
+			return CTX.fromBase64(contextString);
+		}
+		return null;
 	}
 }

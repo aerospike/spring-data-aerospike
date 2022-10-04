@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Value;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
@@ -348,6 +349,19 @@ public interface AerospikeOperations {
      */
     <T> void createIndex(Class<T> entityClass, String indexName, String binName,
                          IndexType indexType, IndexCollectionType indexCollectionType);
+
+    /**
+     * Create index by specified name in Aerospike.
+     *
+     * @param entityClass         The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param indexName           The index name. Must not be {@literal null}.
+     * @param binName             The bin name to create the index on. Must not be {@literal null}.
+     * @param indexType           The type of the index. Must not be {@literal null}.
+     * @param indexCollectionType The collection type of the index. Must not be {@literal null}.
+     * @param ctx                 optional context to index on elements within a CDT.
+     */
+    <T> void createIndex(Class<T> entityClass, String indexName, String binName,
+                         IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
 
     /**
      * Delete index by specified name from Aerospike.

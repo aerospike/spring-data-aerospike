@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.Value;
@@ -11,10 +12,11 @@ import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
@@ -71,7 +73,8 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
         awaitTenSecondsUntil(() ->
                 assertThat(additionalAerospikeTestOperations.getIndexes(setName))
-                        .contains(new Index(INDEX_TEST_1, namespace, setName, "stringField", IndexType.STRING, null))
+                        .contains(Index.builder().name(INDEX_TEST_1).namespace(namespace).set(setName).bin("stringField")
+                                .indexType(IndexType.STRING).build())
         );
     }
 
@@ -92,7 +95,8 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
         awaitTenSecondsUntil(() ->
                 assertThat(additionalAerospikeTestOperations.getIndexes(setName))
-                        .contains(new Index(INDEX_TEST_1, namespace, setName, "listField", IndexType.STRING, IndexCollectionType.LIST))
+                        .contains(Index.builder().name(INDEX_TEST_1).namespace(namespace).set(setName).bin("listField")
+                                .indexType(IndexType.STRING).indexCollectionType(IndexCollectionType.LIST).build())
         );
     }
 
@@ -116,6 +120,22 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
             assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
             assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_2)).isTrue();
         });
+    }
+
+    @Test
+    public void createIndex_createsIndexOnNestedList() {
+        String setName = template.getSetName(IndexedDocument.class);
+        template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING, IndexCollectionType.LIST, CTX.listIndex(1));
+
+        awaitTenSecondsUntil(() -> {
+                    CTX ctx = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
+                            .filter(o -> o.getName().equals(INDEX_TEST_1))
+                            .findFirst().orElse(null)).getCTX()[0];
+
+                    assertThat(ctx.id).isEqualTo(CTX.listIndex(1).id);
+                    assertThat(ctx.value.toLong()).isEqualTo(CTX.listIndex(1).value.toLong());
+                }
+        );
     }
 
     @Test
@@ -143,8 +163,8 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     @Value
     @Document
     public static class IndexedDocument {
-
         String stringField;
         int intField;
+        List<List<String>> nestedList;
     }
 }
