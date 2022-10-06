@@ -43,6 +43,16 @@ public class Index {
 	IndexCollectionType indexCollectionType;
 	CTX[] ctx;
 
+	public Index(String name, String namespace, String set, String bin, IndexType indexType, IndexCollectionType indexCollectionType) {
+		this.name = name;
+		this.namespace = namespace;
+		this.set = set;
+		this.bin = bin;
+		this.indexType = indexType;
+		this.indexCollectionType = indexCollectionType;
+		this.ctx = null;
+	}
+
 	public String getName() {
 		return this.name;
 	}
