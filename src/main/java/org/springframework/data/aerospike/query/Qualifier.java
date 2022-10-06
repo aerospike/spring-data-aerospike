@@ -118,14 +118,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
 	}
 
 	public Qualifier(QualifierBuilder builder) {
-		this(builder.buildMap());
-	}
-
-	public Qualifier(Map<String, Object> builderMap) {
 		internalMap = new HashMap<>();
 
-		if (! builderMap.isEmpty()) {
-			internalMap.putAll(builderMap);
+		if (! builder.buildMap().isEmpty()) {
+			internalMap.putAll(builder.buildMap());
 		}
 	}
 

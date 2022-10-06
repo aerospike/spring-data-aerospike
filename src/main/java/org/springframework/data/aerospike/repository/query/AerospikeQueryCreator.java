@@ -168,15 +168,14 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			}
 		}
 
-		Qualifier.QualifierBuilder qualifierBuilder = new Qualifier.QualifierBuilder();
-		qualifierBuilder.setField(fieldName)
+		return new AerospikeCriteria(new Qualifier.QualifierBuilder()
+				.setField(fieldName)
 				.setIgnoreCase(true)
 				.setFilterOperation(op)
 				.setValue1(Value.get(v1))
 				.setValue2(Value.get(v2))
-				.setValue3(Value.get(v3));
-
-		return new AerospikeCriteria(qualifierBuilder);
+				.setValue3(Value.get(v3))
+		);
 	}
 
 	private boolean isPojoField(Part part, AerospikePersistentProperty property) {
