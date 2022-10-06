@@ -16,11 +16,8 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.client.Value;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Michael Zhang
@@ -28,7 +25,7 @@ import java.util.Map;
  */
 public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 	
-	public AerospikeCriteria(AerospikeCriteriaBuilder builder) {
+	public AerospikeCriteria(QualifierBuilder builder) {
 		super(builder);
 	}
 
@@ -39,8 +36,8 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 	 * @throws IllegalArgumentException if follows a not() call directly.
 	 */
 	public static AerospikeCriteria or(AerospikeCriteria... criteria) {
-		return new AerospikeCriteria(new AerospikeCriteriaBuilder()
-				.setFilterOperation(Qualifier.FilterOperation.OR)
+		return new AerospikeCriteria(new QualifierBuilder()
+				.setFilterOperation(FilterOperation.OR)
 				.setQualifiers(criteria));
 	}
 
@@ -54,53 +51,4 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 		return this.getField();
 	}
 
-	public static class AerospikeCriteriaBuilder {
-		private final Map<String, Object> map = new HashMap<>();
-
-		public AerospikeCriteriaBuilder() {
-		}
-
-		public AerospikeCriteriaBuilder setField(String field) {
-			this.map.put(FIELD, field);
-			return this;
-		}
-
-		public AerospikeCriteriaBuilder setIgnoreCase(boolean ignoreCase) {
-			this.map.put(IGNORE_CASE, ignoreCase);
-			return this;
-		}
-
-		public AerospikeCriteriaBuilder setFilterOperation(FilterOperation filterOperation) {
-			this.map.put(OPERATION, filterOperation);
-			return this;
-		}
-
-		public AerospikeCriteriaBuilder setQualifiers(Qualifier... qualifiers) {
-			this.map.put(QUALIFIERS, qualifiers);
-			return this;
-		}
-
-		public AerospikeCriteriaBuilder setValue1(Value value1) {
-			this.map.put(VALUE1, value1);
-			return this;
-		}
-
-		public AerospikeCriteriaBuilder setValue2(Value value2) {
-			this.map.put(VALUE2, value2);
-			return this;
-		}
-
-		public AerospikeCriteriaBuilder setValue3(Value value3) {
-			this.map.put(VALUE3, value3);
-			return this;
-		}
-
-		public AerospikeCriteria build() {
-			return new AerospikeCriteria(this);
-		}
-
-		public Map<String, Object> buildMap() {
-			return this.map;
-		}
-	}
 }

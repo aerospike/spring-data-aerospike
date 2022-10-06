@@ -117,57 +117,65 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		}
 	}
 
-	public enum FilterOperation {
-		EQ, GT, GTEQ, LT, LTEQ, NOTEQ, BETWEEN, START_WITH, ENDS_WITH, CONTAINING, IN,
-		LIST_CONTAINS, MAP_KEYS_CONTAINS, MAP_VALUES_CONTAINS,
-		MAP_VALUE_EQ_BY_KEY, MAP_VALUE_NOTEQ_BY_KEY, MAP_VALUE_GT_BY_KEY, MAP_VALUE_GTEQ_BY_KEY,
-		MAP_VALUE_LT_BY_KEY, MAP_VALUE_LTEQ_BY_KEY, MAP_VALUES_BETWEEN_BY_KEY,
-		MAP_VALUE_START_WITH_BY_KEY, MAP_VALUE_ENDS_WITH_BY_KEY, MAP_VALUE_CONTAINING_BY_KEY,
-		LIST_BETWEEN, MAP_KEYS_BETWEEN, MAP_VALUES_BETWEEN, GEO_WITHIN,
-		OR, AND
-	}
-
-	public Qualifier() {
-		super();
-		internalMap = new HashMap<>();
-	}
-
-	public Qualifier(FilterOperation operation, Qualifier... qualifiers) {
-		this();
-		internalMap.put(QUALIFIERS, qualifiers);
-		internalMap.put(OPERATION, operation);
-	}
-
-	public Qualifier(String field, FilterOperation operation, Value value1) {
-		this(field, operation, Boolean.FALSE, value1);
-	}
-
-	public Qualifier(String field, FilterOperation operation, Boolean ignoreCase, Value value1) {
-		this();
-		internalMap.put(FIELD, field);
-		internalMap.put(OPERATION, operation);
-		internalMap.put(VALUE1, value1);
-		internalMap.put(IGNORE_CASE, ignoreCase);
-	}
-
-	public Qualifier(String field, FilterOperation operation, Value value1, Value value2) {
-		this(field, operation, Boolean.FALSE, value1);
-		internalMap.put(VALUE2, value2);
-	}
-
-	public Qualifier(AerospikeCriteria.AerospikeCriteriaBuilder builder) {
+	public Qualifier(QualifierBuilder builder) {
 		this(builder.buildMap());
 	}
 
 	public Qualifier(Map<String, Object> builderMap) {
-		this();
+		internalMap = new HashMap<>();
 
 		if (! builderMap.isEmpty()) {
 			internalMap.putAll(builderMap);
+		}
+	}
 
-			if (! builderMap.containsKey(IGNORE_CASE) || builderMap.get(IGNORE_CASE) == null ) {
-				internalMap.put(IGNORE_CASE, true);
-			}
+	public static class QualifierBuilder {
+		private final Map<String, Object> map = new HashMap<>();
+
+		public QualifierBuilder() {
+		}
+
+		public QualifierBuilder setField(String field) {
+			this.map.put(FIELD, field);
+			return this;
+		}
+
+		public QualifierBuilder setIgnoreCase(boolean ignoreCase) {
+			this.map.put(IGNORE_CASE, ignoreCase);
+			return this;
+		}
+
+		public QualifierBuilder setFilterOperation(FilterOperation filterOperation) {
+			this.map.put(OPERATION, filterOperation);
+			return this;
+		}
+
+		public QualifierBuilder setQualifiers(Qualifier... qualifiers) {
+			this.map.put(QUALIFIERS, qualifiers);
+			return this;
+		}
+
+		public QualifierBuilder setValue1(Value value1) {
+			this.map.put(VALUE1, value1);
+			return this;
+		}
+
+		public QualifierBuilder setValue2(Value value2) {
+			this.map.put(VALUE2, value2);
+			return this;
+		}
+
+		public QualifierBuilder setValue3(Value value3) {
+			this.map.put(VALUE3, value3);
+			return this;
+		}
+
+		public AerospikeCriteria build() {
+			return new AerospikeCriteria(this);
+		}
+
+		public Map<String, Object> buildMap() {
+			return this.map;
 		}
 	}
 
@@ -293,7 +301,11 @@ public class Qualifier implements Map<String, Object>, Serializable {
 				Exp[] listElementsExp = new Exp[inList.size()];
 
 				for (int i = 0; i < inList.size(); i++) {
-					listElementsExp[i] = new Qualifier(this.getField(), FilterOperation.EQ, Value.get(inList.get(i))).toFilterExp();
+					listElementsExp[i] = new Qualifier(new QualifierBuilder()
+							.setField(this.getField())
+							.setFilterOperation(FilterOperation.EQ)
+							.setValue1(Value.get(inList.get(i)))
+					).toFilterExp();
 				}
 				exp = Exp.or(listElementsExp);
 				break;
@@ -559,8 +571,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 	}
 
 	private Boolean ignoreCase() {
-		Boolean ignoreCase = (Boolean) internalMap.get(IGNORE_CASE);
-		return (ignoreCase == null) ? false : ignoreCase;
+		return (Boolean) internalMap.getOrDefault(IGNORE_CASE, false);
 	}
 
 	protected String luaFieldString(String field) {

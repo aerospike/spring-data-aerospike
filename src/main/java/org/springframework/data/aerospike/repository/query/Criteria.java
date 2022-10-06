@@ -18,7 +18,7 @@ package org.springframework.data.aerospike.repository.query;
 import com.aerospike.client.Value;
 import org.springframework.data.aerospike.InvalidAerospikeDataAccessApiUsageException;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.query.Qualifier.FilterOperation;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.util.CollectionUtils;
 
@@ -68,7 +68,7 @@ public class Criteria implements CriteriaDefinition {
 				qualifiers.add(c.getCriteriaObject());
 			}
 //			return new Qualifier(op, qualifiers.toArray(new Qualifier[0]));
-			return new Qualifier(new AerospikeCriteria.AerospikeCriteriaBuilder()
+			return new Qualifier(new Qualifier.QualifierBuilder()
 					.setFilterOperation(op)
 					.setQualifiers(qualifiers.toArray(new Qualifier[0]))
 			);
@@ -104,34 +104,46 @@ public class Criteria implements CriteriaDefinition {
 	}
 
 	public Criteria gt(Object o, String propertyName) {
-		Qualifier qualifier = new Qualifier(propertyName,
-				Qualifier.FilterOperation.GT, Value.get(o));
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(propertyName)
+				.setFilterOperation(FilterOperation.GT)
+				.setValue1(Value.get(o))
+		);
 		this.isValue = o;
-		this.criteria.put(Qualifier.FilterOperation.GT.name(), qualifier);
+		this.criteria.put(FilterOperation.GT.name(), qualifier);
 		return this;
 	}
 
 	public Criteria gte(Object o,String propertyName) {
-		Qualifier qualifier = new Qualifier(propertyName,
-				Qualifier.FilterOperation.GTEQ, Value.get(o));
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(propertyName)
+				.setFilterOperation(FilterOperation.GTEQ)
+				.setValue1(Value.get(o))
+		);
 		this.isValue = o;
-		this.criteria.put(Qualifier.FilterOperation.GTEQ.name(), qualifier);
+		this.criteria.put(FilterOperation.GTEQ.name(), qualifier);
 		return this;
 	}
 
 	public Criteria lt(Object o,String propertyName) {
-		Qualifier qualifier = new Qualifier(propertyName,
-				Qualifier.FilterOperation.LT, Value.get(o));
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(propertyName)
+				.setFilterOperation(FilterOperation.LT)
+				.setValue1(Value.get(o))
+		);
 		this.isValue = o;
-		this.criteria.put(Qualifier.FilterOperation.LT.name(), qualifier);
+		this.criteria.put(FilterOperation.LT.name(), qualifier);
 		return this;
 	}
 
 	public Criteria lte(Object o,String propertyName) {
-		Qualifier qualifier = new Qualifier(propertyName,
-				Qualifier.FilterOperation.LTEQ, Value.get(o));
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(propertyName)
+				.setFilterOperation(FilterOperation.LTEQ)
+				.setValue1(Value.get(o))
+		);
 		this.isValue = o;
-		this.criteria.put(Qualifier.FilterOperation.LTEQ.name(), qualifier);
+		this.criteria.put(FilterOperation.LTEQ.name(), qualifier);
 		return this;
 	}
 
@@ -148,13 +160,13 @@ public class Criteria implements CriteriaDefinition {
 	@SuppressWarnings("unused")
 	private boolean lastOperatorWasNotEqual() {
 		return this.criteria.size() > 0
-				&& Qualifier.FilterOperation.EQ.name().equals(this.criteria
+				&& FilterOperation.EQ.name().equals(this.criteria
 						.keySet().toArray()[this.criteria.size() - 1]);
 	}
 
 	private boolean lastOperatorWasNotRange() {
 		return this.criteria.size() > 0
-				&& Qualifier.FilterOperation.BETWEEN.name().equals(this.criteria
+				&& FilterOperation.BETWEEN.name().equals(this.criteria
 						.keySet().toArray()[this.criteria.size() - 1]);
 	}
 
@@ -172,7 +184,7 @@ public class Criteria implements CriteriaDefinition {
 	 * Creates an 'or' criteria using the $or operator for all of the provided criteria
 	 */
 	public Criteria orOperator(Criteria... criteria) {
-		this.key = Qualifier.FilterOperation.OR.name();
+		this.key = FilterOperation.OR.name();
 		return registerCriteriaChainElement(criteria);
 	}
 	
@@ -211,37 +223,50 @@ public class Criteria implements CriteriaDefinition {
 					"Invalid query: cannot combine range with is");
 		}
 
-		Qualifier qualifier = new Qualifier(propertyName,
-				Qualifier.FilterOperation.EQ, Value.get(o));
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(propertyName)
+				.setFilterOperation(FilterOperation.EQ)
+				.setValue1(Value.get(o))
+		);
 
 		this.isValue = o;
-		this.criteria.put(Qualifier.FilterOperation.EQ.name(), qualifier);
+		this.criteria.put(FilterOperation.EQ.name(), qualifier);
 		return this;
 	}
 
 	public Criteria between(Object o1, Object o2,String propertyName) {
-		Qualifier qualifier = new Qualifier(new AerospikeCriteria.AerospikeCriteriaBuilder()
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField(propertyName)
-				.setFilterOperation(Qualifier.FilterOperation.BETWEEN)
+				.setFilterOperation(FilterOperation.BETWEEN)
 				.setValue1(Value.get(o1))
 				.setValue2(Value.get(o2))
 		);
-		this.criteria.put(Qualifier.FilterOperation.BETWEEN.name(), qualifier);
+		this.criteria.put(FilterOperation.BETWEEN.name(), qualifier);
 		return this;
 	}
 
 	public Criteria startingWith(Object o,String propertyName, IgnoreCaseType ignoreCase) {
-		Qualifier qualifier = new Qualifier(propertyName,
-				Qualifier.FilterOperation.START_WITH, ignoreCase==IgnoreCaseType.ALWAYS, Value.get(o));
-		this.criteria.put(Qualifier.FilterOperation.START_WITH.name(),
+		Qualifier qualifier = new Qualifier(
+				new Qualifier.QualifierBuilder()
+				.setField(propertyName)
+				.setFilterOperation(FilterOperation.START_WITH)
+				.setIgnoreCase(ignoreCase==IgnoreCaseType.ALWAYS)
+				.setValue1(Value.get(o))
+		);
+		this.criteria.put(FilterOperation.START_WITH.name(),
 				qualifier);
 		return this;
 	}
 
 	public Criteria containing(Object o,String propertyName, IgnoreCaseType ignoreCase) {
-		Qualifier qualifier = new Qualifier(propertyName,
-				Qualifier.FilterOperation.CONTAINING, ignoreCase==IgnoreCaseType.ALWAYS, Value.get(o));
-		this.criteria.put(Qualifier.FilterOperation.CONTAINING.name(),
+		Qualifier qualifier = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField(propertyName)
+						.setFilterOperation(FilterOperation.CONTAINING)
+						.setIgnoreCase(ignoreCase==IgnoreCaseType.ALWAYS)
+						.setValue1(Value.get(o))
+		);
+		this.criteria.put(FilterOperation.CONTAINING.name(),
 				qualifier);
 		return this;
 	}
@@ -250,11 +275,14 @@ public class Criteria implements CriteriaDefinition {
 	 * GEO Query with distance from a geo location given longitude/latitude
 	 */
 	public Criteria geo_within(Object lng, Object lat, Object radius, String propertyName) {
-		Qualifier qualifier = new Qualifier(propertyName,
-				Qualifier.FilterOperation.GEO_WITHIN, Value.get(String.format("{ \"type\": \"AeroCircle\", "
-						  + "\"coordinates\": [[%.8f, %.8f], %f] }",
-						  lng, lat, radius)));
-		this.criteria.put(Qualifier.FilterOperation.GEO_WITHIN.name(), qualifier);
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(propertyName)
+				.setFilterOperation(FilterOperation.GEO_WITHIN)
+				.setValue1(Value.get(String.format("{ \"type\": \"AeroCircle\", "
+								+ "\"coordinates\": [[%.8f, %.8f], %f] }",
+						lng, lat, radius)))
+		);
+		this.criteria.put(FilterOperation.GEO_WITHIN.name(), qualifier);
 		return this;
 	}
 }

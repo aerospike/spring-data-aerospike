@@ -20,7 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
-import org.springframework.data.aerospike.query.Qualifier.FilterOperation;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyPath;
@@ -167,15 +168,15 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			}
 		}
 
-		AerospikeCriteria.AerospikeCriteriaBuilder criteriaBuilder = new AerospikeCriteria.AerospikeCriteriaBuilder();
-		criteriaBuilder.setField(fieldName)
+		Qualifier.QualifierBuilder qualifierBuilder = new Qualifier.QualifierBuilder();
+		qualifierBuilder.setField(fieldName)
 				.setIgnoreCase(true)
 				.setFilterOperation(op)
 				.setValue1(Value.get(v1))
 				.setValue2(Value.get(v2))
 				.setValue3(Value.get(v3));
 
-		return new AerospikeCriteria(criteriaBuilder);
+		return new AerospikeCriteria(qualifierBuilder);
 	}
 
 	private boolean isPojoField(Part part, AerospikePersistentProperty property) {
@@ -192,7 +193,7 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		PersistentPropertyPath<AerospikePersistentProperty> path = context.getPersistentPropertyPath(part.getProperty());
 		AerospikePersistentProperty property = path.getLeafProperty();
 
-		return new AerospikeCriteria(new AerospikeCriteria.AerospikeCriteriaBuilder()
+		return new AerospikeCriteria(new Qualifier.QualifierBuilder()
 				.setFilterOperation(FilterOperation.AND)
 				.setQualifiers(base, create(part, property, iterator))
 		);
@@ -200,7 +201,7 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 
 	@Override
 	protected AerospikeCriteria or(AerospikeCriteria base, AerospikeCriteria criteria) {
-		return new AerospikeCriteria(new AerospikeCriteria.AerospikeCriteriaBuilder()
+		return new AerospikeCriteria(new Qualifier.QualifierBuilder()
 				.setFilterOperation(FilterOperation.OR)
 				.setQualifiers(base, criteria)
 		);
