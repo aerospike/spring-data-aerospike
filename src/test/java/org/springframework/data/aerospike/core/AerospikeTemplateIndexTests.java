@@ -139,6 +139,22 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void createIndex_createsIndexOnNestedListContextRank() {
+        String setName = template.getSetName(IndexedDocument.class);
+        template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING, IndexCollectionType.LIST, CTX.listRank(-1));
+
+        awaitTenSecondsUntil(() -> {
+                    CTX ctx = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
+                            .filter(o -> o.getName().equals(INDEX_TEST_1))
+                            .findFirst().orElse(null)).getCTX()[0];
+
+                    assertThat(ctx.id).isEqualTo(CTX.listRank(-1).id);
+                    assertThat(ctx.value.toLong()).isEqualTo(CTX.listRank(-1).value.toLong());
+                }
+        );
+    }
+
+    @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
         assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
                 .doesNotThrowAnyException();
