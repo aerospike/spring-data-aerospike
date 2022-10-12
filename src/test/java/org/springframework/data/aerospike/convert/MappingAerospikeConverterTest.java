@@ -71,7 +71,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 
 		converter.write(object, forWrite);
 
-		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), record(forWrite.getBins()));
+		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
 		CollectionOfObjects actual = converter.read(CollectionOfObjects.class, forRead);
 
 		assertThat(actual).isEqualTo(
@@ -84,7 +84,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 				"listOfObjects", ImmutableList.of("firstItem", of("keyInList", "valueInList")),
 				"mapWithObjectValue", of("map", of("key", "value"))
 		));
-		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 10L), record(bins));
+		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 10L), aeroRecord(bins));
 
 		CustomTypeWithCustomTypeImmutable actual = converter.read(CustomTypeWithCustomTypeImmutable.class, forRead);
 
@@ -99,7 +99,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 				"@_class", Person.class.getName(),
 				"addresses", list()
 		);
-		AerospikeReadData dbObject = AerospikeReadData.forRead(new Key(NAMESPACE, "Person", "kate-01"), record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(new Key(NAMESPACE, "Person", "kate-01"), aeroRecord(bins));
 
 		Contact result = converter.read(Contact.class, dbObject);
 		assertThat(result).isInstanceOf(Person.class);
@@ -120,7 +120,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 		);
 
 		Map<String, Object> bins = of("fs", "Nastya", "ls", "Smirnova");
-		User read = converter.read(User.class, AerospikeReadData.forRead(forWrite.getKey(), record(bins)));
+		User read = converter.read(User.class, AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(bins)));
 
 		assertThat(read).isEqualTo(user);
 	}
@@ -159,7 +159,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 		assertThat(forWrite.getBins().stream().filter(x -> !x.name.equals("@_class"))).containsOnly(new Bin("entityMap", entityMapExpectedAfterConversion));
 
 		Map<String, Object> bins = of("entityMap", entityMapExpectedAfterConversion);
-		SampleClasses.DocumentExample read = converter.read(SampleClasses.DocumentExample.class, AerospikeReadData.forRead(forWrite.getKey(), record(bins)));
+		SampleClasses.DocumentExample read = converter.read(SampleClasses.DocumentExample.class, AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(bins)));
 
 		assertThat(read).isEqualTo(documentExample);
 	}
@@ -327,7 +327,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 	public void shouldReadObjectWithByteArrayFieldWithOneValueInData() {
 		Map<String, Object> bins = new HashMap<>();
 		bins.put("array", 1);
-		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, "DocumentWithByteArray", "user-id"), record(bins));
+		AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, "DocumentWithByteArray", "user-id"), aeroRecord(bins));
 
 		DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
 

@@ -125,6 +125,12 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
+        assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
     public void createIndex_createsIndexOnNestedList() {
         String setName = template.getSetName(IndexedDocument.class);
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING, IndexCollectionType.LIST, CTX.listIndex(1));

@@ -410,7 +410,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				new Bin("array", Arrays.asList((byte) 1, (byte) 2, (byte) 3))
 		);
 
-		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), record(forWrite.getBins()));
+		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
 		DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
 
 		assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1, 2, 3}));
@@ -429,7 +429,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 				new Bin("array", new byte[]{1, 2, 3})
 		);
 
-		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), record(forWrite.getBins()));
+		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
 		DocumentWithByteArrayList actual = converter.read(DocumentWithByteArrayList.class, forRead);
 
 		assertThat(actual).isEqualTo(new DocumentWithByteArrayList("user-id", Arrays.asList((byte) 1, (byte) 2, (byte) 3)));
@@ -447,7 +447,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 		KeyAssert.assertThat(forWrite.getKey()).consistsOf(NAMESPACE, expectedSet, expectedUserKey);
 		assertThat(forWrite.getBins()).containsOnly(expectedBins);
 
-		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), record(forWrite.getBins()));
+		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
 
 		T actual = (T) converter.read(object.getClass(), forRead);
 

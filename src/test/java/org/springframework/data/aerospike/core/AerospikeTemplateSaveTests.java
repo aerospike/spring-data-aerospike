@@ -47,9 +47,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
         template.save(new VersionedClass(id, "foo2", 2L));
 
-        Record record2 = client.get(new Policy(), key);
-        assertThat(record2.bins.get("notPresent")).isNull();
-        assertThat(record2.bins.get("field")).isEqualTo("foo2");
+        Record aeroRecord = client.get(new Policy(), key);
+        assertThat(aeroRecord.bins.get("notPresent")).isNull();
+        assertThat(aeroRecord.bins.get("field")).isEqualTo("foo2");
     }
 
     @Test

@@ -60,10 +60,10 @@ public class SampleClasses {
 	public static final int EXPIRATION_ONE_SECOND = 1;
 	public static final int EXPIRATION_ONE_MINUTE = 60;
 
-	static interface SomeInterface {
+	interface SomeInterface {
 	}
 
-	public static enum TYPES {
+	public enum TYPES {
 		FIRST(1), SECOND(2), THIRD(3);
 		final int id;
 
@@ -341,7 +341,7 @@ public class SampleClasses {
 		public String id;
 	}
 
-	public static interface Contact {
+	public interface Contact {
 
 	}
 
