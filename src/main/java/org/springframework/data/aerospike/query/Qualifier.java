@@ -18,20 +18,14 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
-import com.aerospike.client.cdt.ListReturnType;
-import com.aerospike.client.cdt.MapReturnType;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
-import com.aerospike.client.exp.ListExp;
-import com.aerospike.client.exp.MapExp;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
-import com.aerospike.client.query.RegexFlag;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
