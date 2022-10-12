@@ -84,7 +84,7 @@ public class IndexInfoParser {
 				.map(part -> {
 					String[] kvParts;
 					// Context base64 can contain "=".
-					if (part.contains("context")) {
+					if (part.contains(CONTEXT)) {
 						kvParts = part.split("=", 2);
 					} else {
 						kvParts = part.split("=");
