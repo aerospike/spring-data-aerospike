@@ -123,6 +123,31 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     }
 
     @Test
+    public void createIndex_createsIndexOnMapOfMapsContext() {
+        String setName = reactiveTemplate.getSetName(AerospikeTemplateIndexTests.IndexedDocument.class);
+
+        CTX[] ctx = new CTX[]{
+                CTX.mapKey(com.aerospike.client.Value.get("key1")),
+                CTX.mapKey(com.aerospike.client.Value.get("innerKey2"))
+        };
+        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1,
+                "mapOfLists", IndexType.STRING, IndexCollectionType.MAPKEYS, ctx).block();
+
+        awaitTenSecondsUntil(() -> {
+                    CTX[] ctxResponse = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
+                            .filter(o -> o.getName().equals(INDEX_TEST_1))
+                            .findFirst().orElse(null)).getCTX();
+
+                    assertThat(ctx.length).isEqualTo(ctxResponse.length);
+                    assertThat(ctx[0].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
+                    assertThat(ctx[1].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
+                    assertThat(ctx[0].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
+                    assertThat(ctx[1].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
+                }
+        );
+    }
+
+    @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
         assertThatCode(() -> reactiveTemplate.deleteIndex(IndexedDocument.class, "not-existing-index")
                 .block())
