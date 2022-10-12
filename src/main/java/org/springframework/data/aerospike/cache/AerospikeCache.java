@@ -138,9 +138,9 @@ public class AerospikeCache implements Cache {
 	@Override
 	public <T> T get(Object key, Class<T> type) {
 		Key dbKey = getKey(key);
-		Record record =  client.get(null, dbKey);
-		if (record != null) {
-			AerospikeReadData data = AerospikeReadData.forRead(dbKey, record);
+		Record aeroRecord =  client.get(null, dbKey);
+		if (aeroRecord != null) {
+			AerospikeReadData data = AerospikeReadData.forRead(dbKey, aeroRecord);
 			return aerospikeConverter.read(type, data);
 		}
 		return null;

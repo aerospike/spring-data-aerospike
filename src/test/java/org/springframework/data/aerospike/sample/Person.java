@@ -15,13 +15,11 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import lombok.Data;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.annotation.Id;
 
@@ -33,13 +31,11 @@ import java.util.Map;
  * @author Peter Milne
  * @author Jean Mercier
  */
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
 @SuperBuilder
+@Document
 public class Person {
 
 	public enum Sex {
@@ -60,7 +56,6 @@ public class Person {
 	private List<String> strings;
 	private List<Integer> ints;
 	private Address address;
-
 	@Field("email")
 	private String emailAddress;
 
@@ -79,5 +74,13 @@ public class Person {
 		this.id = id;
 		this.firstName = firstName;
 		this.age = age;
+	}
+
+	public PersonSomeFields toPersonSomeFields() {
+		return PersonSomeFields.builder()
+				.firstName(getFirstName())
+				.lastName(getLastName())
+				.emailAddress(getEmailAddress())
+				.build();
 	}
 }

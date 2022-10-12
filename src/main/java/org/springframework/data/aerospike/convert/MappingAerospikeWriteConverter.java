@@ -90,7 +90,16 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 		data.setExpiration(getExpiration(entity, accessor));
 
 		Map<String, Object> convertedProperties = convertProperties(type, entity, accessor);
-		convertedProperties.forEach(data::addBin);
+
+		if (data.getRequestedBins().isEmpty()) {
+			convertedProperties.forEach(data::addBin);
+		} else {
+			convertedProperties.forEach((key, value) -> {
+				if (data.getRequestedBins().contains(key)) {
+					data.addBin(key, value);
+				}
+			});
+		}
 	}
 
 	private void convertToAerospikeWriteData(Object source, AerospikeWriteData data) {

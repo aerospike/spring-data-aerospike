@@ -15,10 +15,10 @@ public class AsyncUtils {
 
 		try {
 			CountDownLatch countDownLatch = new CountDownLatch(1);
-			CompletableFuture future = nCopies(numThreads, withCountDownLatch(task, countDownLatch))
+			CompletableFuture<Void> future = nCopies(numThreads, withCountDownLatch(task, countDownLatch))
 					.stream()
 					.map(runnable -> runAsync(runnable, pool))
-					.reduce((l, r) -> CompletableFuture.allOf(l, r))
+					.reduce(CompletableFuture::allOf)
 					.get();
 
 			countDownLatch.countDown();

@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
+import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -287,9 +287,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         try {
             assertThat(result)
-                .hasSize(2)
-                .extracting(Person::getFirstName)
-                .containsExactlyInAnyOrder(alicia.getFirstName(), leroi.getFirstName());
+                    .hasSize(2)
+                    .extracting(Person::getFirstName)
+                    .containsExactlyInAnyOrder(alicia.getFirstName(), leroi.getFirstName());
         } finally {
             carter.setFriend(null); // temporarily until bringing friend id is fixed
             repository.save(carter);
@@ -330,6 +330,24 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             leroi.setFriend(null);
             repository.save(leroi);
         }
+    }
+
+    @Test
+    public void findsPersonsSomeFieldsByLastnameProjection() {
+        List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
+
+        assertThat(result)
+                .hasSize(1)
+                .containsOnly(carter.toPersonSomeFields());
+    }
+
+    @Test
+    public void findsDynamicTypeByLastnameDynamicProjection() {
+        List<PersonSomeFields> result = repository.findByLastName("Beauford", PersonSomeFields.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
@@ -438,6 +456,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(slice.hasContent()).isTrue();
         assertThat(slice.hasNext()).isFalse();
         assertThat(slice.getContent()).hasSize(4).contains(dave, carter, boyd, leroi);
+    }
+
+    @Test
+    public void findPersonsSomeFieldsByAgeGreaterThan_forExistingResultProjection() {
+        Slice<PersonSomeFields> slice = repository.findPersonSomeFieldsByAgeGreaterThan(40, PageRequest.of(0, 10));
+
+        assertThat(slice.hasContent()).isTrue();
+        assertThat(slice.hasNext()).isFalse();
+        assertThat(slice.getContent()).hasSize(4).contains(dave.toPersonSomeFields(),
+                carter.toPersonSomeFields(), boyd.toPersonSomeFields(), leroi.toPersonSomeFields());
     }
 
     @Test

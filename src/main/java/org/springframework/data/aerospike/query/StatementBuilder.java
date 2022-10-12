@@ -33,9 +33,16 @@ public class StatementBuilder {
 	}
 
 	public Statement build(String namespace, String set, Filter filter, Qualifier[] qualifiers) {
+		return build(namespace, set, filter, qualifiers, null);
+	}
+
+	public Statement build(String namespace, String set, Filter filter, Qualifier[] qualifiers, String[] binNames) {
 		Statement stmt = new Statement();
 		stmt.setNamespace(namespace);
 		stmt.setSetName(set);
+		if (binNames != null && binNames.length != 0) {
+			stmt.setBinNames(binNames);
+		}
 		if (filter != null) {
 			stmt.setFilter(filter);
 		}

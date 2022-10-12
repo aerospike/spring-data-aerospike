@@ -35,6 +35,7 @@ public class AerospikeWriteData {
 	private Collection<Bin> bins;
 	private int expiration;
 	private Integer version;
+	private Collection<String> requestedBins;
 
 	/**
 	 * Use the other constructor.
@@ -45,10 +46,15 @@ public class AerospikeWriteData {
 	}
 
 	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version) {
+		this(key, bins, expiration, version, Collections.emptyList());
+	}
+
+	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version, Collection<String> requestedBins) {
 		this.key = key;
 		this.bins = bins;
 		this.expiration = expiration;
 		this.version = version;
+		this.requestedBins = requestedBins;
 	}
 
 	public static AerospikeWriteData forWrite(String namespace) {
@@ -68,7 +74,7 @@ public class AerospikeWriteData {
 	}
 
 	public Bin[] getBinsAsArray() {
-		return bins.toArray(new Bin[bins.size()]);
+		return bins.toArray(new Bin[0]);
 	}
 
 	public void addBin(String key, Object value) {
@@ -97,5 +103,13 @@ public class AerospikeWriteData {
 
 	public void setVersion(Integer version) {
 		this.version = version;
+	}
+
+	public Collection<String> getRequestedBins() {
+		return requestedBins;
+	}
+
+	public void setRequestedBins(Collection<String> requestedBins) {
+		this.requestedBins = requestedBins;
 	}
 }

@@ -37,6 +37,12 @@ import java.util.stream.Stream;
 public interface PersonRepository<P extends Person> extends AerospikeRepository<P, String> {
 
 	List<P> findByLastName(String lastName);
+
+	// DTO Projection
+	List<PersonSomeFields> findPersonSomeFieldsByLastName(String lastName);
+
+	// Dynamic Projection
+	<T> List<T> findByLastName(String lastName, Class<T> type);
 	
 	Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 
@@ -116,6 +122,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 	List<P> findByFirstNameContainingIgnoreCase(String firstName);
 
 	Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
+
+	// DTO Projection
+	Slice<PersonSomeFields> findPersonSomeFieldsByAgeGreaterThan(int age, Pageable pageable);
 
 	List<P> deleteByLastName(String lastName);
 

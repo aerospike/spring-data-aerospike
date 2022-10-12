@@ -96,7 +96,6 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
                 .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
     }
 
-
     @Test
     public void find_shouldWorkWithFilterEqual() {
         List<Person> allUsers = IntStream.rangeClosed(1, 10)
@@ -189,5 +188,4 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
                 .expectNextCount(0)
                 .verifyComplete();
     }
-
 }

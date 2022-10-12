@@ -18,15 +18,20 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
+import com.aerospike.client.cdt.ListReturnType;
+import com.aerospike.client.cdt.MapReturnType;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.ListExp;
+import com.aerospike.client.exp.MapExp;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
-import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
+import com.aerospike.client.query.RegexFlag;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -80,7 +85,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		 */
 		private static String getRegexp(String base, FilterOperation op) {
 			String escapedBase = escapeBRERegexp(base);
-			if (op == FilterOperation.STARTS_WITH) {
+			if (op == FilterOperation.START_WITH) {
 				return "^" + escapedBase;
 			}
 			if (op == FilterOperation.ENDS_WITH) {
@@ -93,7 +98,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		}
 
 		public static String getStartsWith(String base) {
-			return getRegexp(base, FilterOperation.STARTS_WITH);
+			return getRegexp(base, FilterOperation.START_WITH);
 		}
 
 		public static String getEndsWith(String base) {
