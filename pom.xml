@@ -34,7 +34,7 @@
         <embedded-aerospike>2.2.9</embedded-aerospike>
         <awaitility>4.2.0</awaitility>
         <blockhound>1.0.6.RELEASE</blockhound>
-        <lombok>1.18.22</lombok>
+        <lombok>1.18.24</lombok>
     </properties>
 
     <licenses>
