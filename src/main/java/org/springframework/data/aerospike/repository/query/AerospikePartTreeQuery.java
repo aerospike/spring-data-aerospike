@@ -44,7 +44,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object execute(Object[] parameters) {
-		ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
+	ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
 		Query query = prepareQuery(parameters, accessor);
 
 		if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {

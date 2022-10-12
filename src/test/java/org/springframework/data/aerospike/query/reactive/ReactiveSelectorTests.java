@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.FilterOperation.ENDS_WITH;
 import static org.springframework.data.aerospike.query.FilterOperation.EQ;
 import static org.springframework.data.aerospike.query.FilterOperation.GEO_WITHIN;
-import static org.springframework.data.aerospike.query.FilterOperation.START_WITH;
+import static org.springframework.data.aerospike.query.FilterOperation.STARTS_WITH;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_SET;
@@ -73,7 +73,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 	public void selectStartsWith() {
 		Qualifier startsWithQual = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField("color")
-				.setFilterOperation(START_WITH)
+				.setFilterOperation(STARTS_WITH)
 				.setValue1(Value.get("bl"))
 		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, startsWithQual);
@@ -100,7 +100,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 		Qualifier qual2 = new Qualifier(
 				new Qualifier.QualifierBuilder()
 						.setField("name")
-						.setFilterOperation(START_WITH)
+						.setFilterOperation(STARTS_WITH)
 						.setIgnoreCase(ignoreCase)
 						.setValue1(Value.get("NA"))
 		);
@@ -133,7 +133,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 		Qualifier qual1 = new Qualifier(
 				new Qualifier.QualifierBuilder()
 						.setField("name")
-						.setFilterOperation(START_WITH)
+						.setFilterOperation(STARTS_WITH)
 						.setIgnoreCase(ignoreCase)
 						.setValue1(Value.get("NA"))
 		);

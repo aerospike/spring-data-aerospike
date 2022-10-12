@@ -51,7 +51,7 @@ import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_CONTAINS;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_BETWEEN;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_CONTAINS;
-import static org.springframework.data.aerospike.query.FilterOperation.START_WITH;
+import static org.springframework.data.aerospike.query.FilterOperation.STARTS_WITH;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOURS;
@@ -264,7 +264,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField("color")
-				.setFilterOperation(START_WITH)
+				.setFilterOperation(STARTS_WITH)
 				.setValue1(Value.get("blu"))
 		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
@@ -282,7 +282,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	public void stringStartWithEntireWordQualifier() {
 		Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField("color")
-				.setFilterOperation(START_WITH)
+				.setFilterOperation(STARTS_WITH)
 				.setValue1(Value.get(BLUE))
 		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
@@ -303,7 +303,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 		Qualifier stringEqQualifier = new Qualifier(
 				new Qualifier.QualifierBuilder()
 						.setField("color")
-						.setFilterOperation(START_WITH)
+						.setFilterOperation(STARTS_WITH)
 						.setIgnoreCase(true)
 						.setValue1(Value.get("BLU"))
 		);
@@ -666,7 +666,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	public void testStartWithDoesNotUseSpecialCharacterQualifier() {
 		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField(SPECIAL_CHAR_BIN)
-				.setFilterOperation(START_WITH)
+				.setFilterOperation(STARTS_WITH)
 				.setValue1(Value.get(".*"))
 		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, AgeRangeQualifier);

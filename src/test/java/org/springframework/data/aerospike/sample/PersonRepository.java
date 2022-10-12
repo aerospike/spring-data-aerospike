@@ -15,7 +15,9 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -121,7 +123,55 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	Page<P> findByAddressIn(List<Address> address, Pageable page);
 
-	List<P> findByMapKeysContaining(String key);
+	/**
+	 * Find all entities containing the given map element (key or value depending on the given criteria)
+	 * @param element  map element
+	 * @param criteria  KEY or VALUE
+	 */
+	List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
+
+	/**
+	 * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+	 * @param key Map key
+	 * @param value Value of the key
+	 */
+	List<P> findByStringMapEquals(String key, String value);
+
+	/**
+	 * Find all entities that satisfy the condition "have the given map key and NOT the given value"
+	 * @param key Map key
+	 * @param value Value of the key
+	 */
+	List<P> findByIntMapIsNot(String key, Integer value);
+
+	/**
+	 * Find all entities that satisfy the condition "have the given map key and a value that starts with the given string"
+	 * @param key Map key
+	 * @param valueStartsWith String to check if value starts with it
+	 */
+	List<P> findByStringMapStartsWith(String key, String valueStartsWith);
+
+	/**
+	 * Find all entities that satisfy the condition "have the given map key and a value that contains the given string"
+	 * @param key Map key
+	 * @param valuePart String to check if value contains it
+	 */
+	List<P> findByStringMapContaining(String key, String valuePart);
+
+	/**
+	 * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given integer"
+	 * @param key Map key
+	 * @param greaterThan Integer to check if value is greater than it
+	 */
+	List<P> findByIntMapGreaterThan(String key, Integer greaterThan);
+
+	/**
+	 * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
+	 * @param key Map key
+	 * @param from the lower limit for the map value, inclusive
+	 * @param to the upper limit for the map value, inclusive
+	 */
+	List<P> findByIntMapBetween(String key, Integer from, Integer to);
 
 	List<P> findByFriendLastName(String value);
 

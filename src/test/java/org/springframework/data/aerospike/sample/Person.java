@@ -52,7 +52,8 @@ public class Person {
 	private int age;
 	private int waist;
 	private Sex sex;
-	private Map<String, String> map;
+	private Map<String, String> stringMap;
+	private Map<String, Integer> intMap;
 	private Person friend;
 	private boolean active;
 	private Date dateOfBirth;

@@ -296,7 +296,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField("color")
-				.setFilterOperation(FilterOperation.START_WITH)
+				.setFilterOperation(FilterOperation.STARTS_WITH)
 				.setValue1(Value.get(BLUE.substring(0, 2)))
 		);
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -313,7 +313,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField("color")
-				.setFilterOperation(FilterOperation.START_WITH)
+				.setFilterOperation(FilterOperation.STARTS_WITH)
 				.setValue1(Value.get(BLUE))
 		);
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -331,7 +331,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 		Qualifier qualifier = new Qualifier(
 				new Qualifier.QualifierBuilder()
 						.setField("color")
-						.setFilterOperation(FilterOperation.START_WITH)
+						.setFilterOperation(FilterOperation.STARTS_WITH)
 						.setIgnoreCase(true)
 						.setValue1(Value.get("BLU"))
 		);
@@ -637,7 +637,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField(SPECIAL_CHAR_BIN)
-				.setFilterOperation(FilterOperation.START_WITH)
+				.setFilterOperation(FilterOperation.STARTS_WITH)
 				.setValue1(Value.get(".*"))
 		);
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
@@ -732,7 +732,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 		Qualifier qual2 = new Qualifier(
 				new Qualifier.QualifierBuilder()
 						.setField("name")
-						.setFilterOperation(FilterOperation.START_WITH)
+						.setFilterOperation(FilterOperation.STARTS_WITH)
 						.setIgnoreCase(ignoreCase)
 						.setValue1(Value.get("NA"))
 		);
@@ -768,7 +768,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 		Qualifier qual1 = new Qualifier(
 				new Qualifier.QualifierBuilder()
 						.setField("name")
-						.setFilterOperation(FilterOperation.START_WITH)
+						.setFilterOperation(FilterOperation.STARTS_WITH)
 						.setIgnoreCase(ignoreCase)
 						.setValue1(Value.get("NA"))
 		);
@@ -802,19 +802,19 @@ public class QualifierTests extends BaseQueryEngineTests {
 		Qualifier ageIs25 = new Qualifier(qbAgeIs25);
 		Qualifier nameIs696 = new Qualifier(qbNameIs696);
 
-		Qualifier.QualifierBuilder cbOr = new Qualifier.QualifierBuilder()
+		Qualifier.QualifierBuilder qbOr = new Qualifier.QualifierBuilder()
 				.setFilterOperation(FilterOperation.OR)
 				.setQualifiers(ageIs25, ageBetween28And29, nameIs696);
-		Qualifier.QualifierBuilder cbOr2 = new Qualifier.QualifierBuilder()
+		Qualifier.QualifierBuilder qbOr2 = new Qualifier.QualifierBuilder()
 				.setFilterOperation(FilterOperation.OR)
 				.setQualifiers(colorIsGreen, nameIs696);
-		Qualifier or = new Qualifier(cbOr);
-		Qualifier or2 = new Qualifier(cbOr2);
+		Qualifier or = new Qualifier(qbOr);
+		Qualifier or2 = new Qualifier(qbOr2);
 
-		Qualifier.QualifierBuilder cbAnd = new Qualifier.QualifierBuilder()
+		Qualifier.QualifierBuilder qbAnd = new Qualifier.QualifierBuilder()
 				.setFilterOperation(FilterOperation.AND)
 				.setQualifiers(or, or2);
-		Qualifier qualifier = new Qualifier(cbAnd);
+		Qualifier qualifier = new Qualifier(qbAnd);
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
 		assertThat(it).toIterable().isNotEmpty()

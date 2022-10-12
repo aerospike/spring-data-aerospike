@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
@@ -74,6 +75,94 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByMapKeysContaining() {
+        assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
+        assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
+
+        List<Person> persons = repository.findByStringMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY);
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
+    void findByMapValuesContaining() {
+        assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
+        assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
+
+        List<Person> persons = repository.findByStringMapContaining("val1", CriteriaDefinition.AerospikeMapCriteria.VALUE);
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
+    void findByMapKeyValueEquals() {
+        assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
+        assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
+        assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
+        assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
+
+        List<Person> persons = repository.findByStringMapEquals("key1", "val1");
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
+    void findByMapKeyValueNotEquals() {
+        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
+        assertThat(! leroi.getIntMap().containsValue(22)).isTrue();
+
+        List<Person> persons = repository.findByIntMapIsNot("key1", 22);
+
+        assertThat(persons).contains(leroi);
+    }
+
+    @Test
+    void findByMapKeyValueContains() {
+        assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
+        assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
+        assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
+        assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
+
+        List<Person> persons = repository.findByStringMapContaining("key1", "al");
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
+    void findByMapKeyValueStartsWith() {
+        assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
+        assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
+        assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
+        assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
+
+        List<Person> persons = repository.findByStringMapStartsWith("key1", "val");
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
+    void findByMapKeyValueGreaterThan() {
+        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
+        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+
+        List<Person> persons = repository.findByIntMapGreaterThan("key2", 0);
+
+        assertThat(persons).contains(leroi);
+    }
+
+    @Test
+    void findByMapKeyValueBetween() {
+        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
+        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
+        assertThat(leroi.getIntMap().get("key1") >= 0).isTrue();
+        assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
+
+        List<Person> persons = repository.findByIntMapBetween("key2", 0, 1);
+
+        assertThat(persons).contains(leroi);
+    }
+
+    @Test
     void findByAddressZipCodeContaining() {
         carter.setAddress(new Address("Foo Street 2", "C0124", "C0123"));
         repository.save(carter);
@@ -139,7 +228,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             assertThat(result)
                     .hasSize(1)
                     .extracting(Person::getFirstName)
-                    .containsExactly(carter.getFirstName()); // not comparing Persons because friend id comes as null
+                    .containsExactly(carter.getFirstName());
         } finally {
             carter.setFriend(null); // temporarily until bringing friend id is fixed
             repository.save(carter);
@@ -186,7 +275,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             assertThat(result)
                 .hasSize(2)
                 .extracting(Person::getFirstName)
-                .containsExactlyInAnyOrder(alicia.getFirstName(), leroi.getFirstName()); // not comparing Persons because friend id comes as null
+                .containsExactlyInAnyOrder(alicia.getFirstName(), leroi.getFirstName());
         } finally {
             carter.setFriend(null); // temporarily until bringing friend id is fixed
             repository.save(carter);
@@ -216,7 +305,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             assertThat(result)
                     .hasSize(3)
                     .extracting(Person::getFirstName)
-                    .containsExactlyInAnyOrder(carter.getFirstName(), alicia.getFirstName(), leroi.getFirstName()); // not comparing Persons because friend id comes as null
+                    .containsExactlyInAnyOrder(carter.getFirstName(), alicia.getFirstName(), leroi.getFirstName());
         } finally {
             carter.setFriend(null);
             repository.save(carter);
@@ -434,7 +523,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             assertThat(result)
                     .hasSize(1)
                     .extracting(Person::getFirstName)
-                    .containsExactly(carter.getFirstName()); // not comparing Persons because friend id comes as null
+                    .containsExactly(carter.getFirstName());
         } finally {
             carter.setFriend(null);   // temporarily until bringing friend id is fixed
             repository.save(carter);
@@ -488,7 +577,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             assertThat(result)
                     .hasSize(1)
                     .extracting(Person::getFirstName)
-                    .containsExactly(carter.getFirstName()); // not comparing Persons because friend id comes as null
+                    .containsExactly(carter.getFirstName());
         } finally {
             carter.setFriend(null);  // temporarily until bringing friend id is fixed
             repository.save(carter);

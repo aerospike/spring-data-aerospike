@@ -249,11 +249,11 @@ public class Criteria implements CriteriaDefinition {
 		Qualifier qualifier = new Qualifier(
 				new Qualifier.QualifierBuilder()
 				.setField(propertyName)
-				.setFilterOperation(FilterOperation.START_WITH)
+				.setFilterOperation(FilterOperation.STARTS_WITH)
 				.setIgnoreCase(ignoreCase==IgnoreCaseType.ALWAYS)
 				.setValue1(Value.get(o))
 		);
-		this.criteria.put(FilterOperation.START_WITH.name(),
+		this.criteria.put(FilterOperation.STARTS_WITH.name(),
 				qualifier);
 		return this;
 	}

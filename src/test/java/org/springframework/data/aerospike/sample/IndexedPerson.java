@@ -35,7 +35,7 @@ public class IndexedPerson extends Person {
                 .age(person.getAge())
                 .waist(person.getWaist())
                 .sex(person.getSex())
-                .map(person.getMap())
+                .stringMap(person.getStringMap())
                 .friend(person.getFriend())
                 .active(person.isActive())
                 .dateOfBirth(person.getDateOfBirth())

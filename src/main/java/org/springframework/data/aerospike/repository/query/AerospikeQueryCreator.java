@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +86,8 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			break;
 		case LIKE:
 		case STARTING_WITH:
-			op = FilterOperation.START_WITH; break;
+			op = FilterOperation.STARTS_WITH;
+			break;
 		case ENDING_WITH:
 			op = FilterOperation.ENDS_WITH; break;
 		case CONTAINING:
@@ -105,6 +107,7 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			throw new IllegalArgumentException("Unsupported keyword!");
 		}
 
+		// TODO: further refactoring
 		// Customization for collection/map query
 		TypeInformation<?> propertyType = property.getTypeInformation();
 		if (propertyType.isCollectionLike()) {
@@ -114,57 +117,107 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 				op = FilterOperation.LIST_BETWEEN;
 			}
 		} else {
-			if (op == FilterOperation.CONTAINING && propertyType.isMap()) {
-				AerospikeMapCriteria onMap = (AerospikeMapCriteria) parameters.next();
-				switch (onMap) {
-					case KEY:
-						op = FilterOperation.MAP_KEYS_CONTAINS;
-						break;
-					case VALUE:
-						op = FilterOperation.MAP_VALUES_CONTAINS;
-						break;
-				}
-			}
+			if (propertyType.isMap()) {
+				if (parameters.hasNext()) {
+					Object next = parameters.next();
 
-			if (part.getProperty().hasNext() && isPojoField(part, property)) { // find by POJO field
-				switch (op) {
-					case EQ:
-						op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
-						break;
-					case NOTEQ:
-						op = FilterOperation.MAP_VALUE_NOTEQ_BY_KEY;
-						break;
-					case GT:
-						op = FilterOperation.MAP_VALUE_GT_BY_KEY;
-						break;
-					case GTEQ:
-						op = FilterOperation.MAP_VALUE_GTEQ_BY_KEY;
-						break;
-					case LT:
-						op = FilterOperation.MAP_VALUE_LT_BY_KEY;
-						break;
-					case LTEQ:
-						op = FilterOperation.MAP_VALUE_LTEQ_BY_KEY;
-						break;
-					case BETWEEN:
+					switch (op) {
+						case EQ:
+							op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
+							break;
+						case NOTEQ:
+							op = FilterOperation.MAP_VALUE_NOTEQ_BY_KEY;
+							break;
+						case GT:
+							op = FilterOperation.MAP_VALUE_GT_BY_KEY;
+							break;
+						case GTEQ:
+							op = FilterOperation.MAP_VALUE_GTEQ_BY_KEY;
+							break;
+						case LT:
+							op = FilterOperation.MAP_VALUE_LT_BY_KEY;
+							break;
+						case LTEQ:
+							op = FilterOperation.MAP_VALUE_LTEQ_BY_KEY;
+							break;
+						case STARTS_WITH:
+							op = FilterOperation.MAP_VALUE_STARTS_WITH_BY_KEY;
+							break;
+						case ENDS_WITH:
+							op = FilterOperation.MAP_VALUE_ENDS_WITH_BY_KEY;
+							break;
+						case CONTAINING:
+							if (next instanceof AerospikeMapCriteria) {
+								AerospikeMapCriteria onMap = (AerospikeMapCriteria) next;
+								switch (onMap) {
+									case KEY:
+										op = FilterOperation.MAP_KEYS_CONTAINS;
+										break;
+									case VALUE:
+										op = FilterOperation.MAP_VALUES_CONTAINS;
+										break;
+								}
+							} else {
+								op = FilterOperation.MAP_VALUE_CONTAINING_BY_KEY;
+							}
+							break;
+					}
+
+					if (op.equals(FilterOperation.BETWEEN)) {
 						op = FilterOperation.MAP_VALUES_BETWEEN_BY_KEY;
-						v3 = v2; // contains upper limit value
-						break;
-					case START_WITH:
-						op = FilterOperation.MAP_VALUE_START_WITH_BY_KEY;
-						break;
-					case ENDS_WITH:
-						op = FilterOperation.MAP_VALUE_ENDS_WITH_BY_KEY;
-						break;
-					case CONTAINING:
-						op = FilterOperation.MAP_VALUE_CONTAINING_BY_KEY;
-						break;
-					default:
-						break;
-				}
+						v3 = v2;
+						v2 = v1; // contains key
+						v1 = v3; // contains lower limit (inclusive)
+						v3 = next; // contains upper limit (inclusive)
+					} else {
+						v2 = v1; // contains key
+						v1 = next; // contains value
+					}
 
-				fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
-				v2 = property.getFieldName(); // VALUE2 contains key (field name)
+				} else {
+					throw new AerospikeException("Not enough parameters (propertyType: Map, filterOperation: " + op + ")");
+				}
+			} else { // if it is neither a collection nor a map
+				if (part.getProperty().hasNext() && isPojoField(part, property)) { // if it is a POJO field
+					switch (op) {
+						case EQ:
+							op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
+							break;
+						case NOTEQ:
+							op = FilterOperation.MAP_VALUE_NOTEQ_BY_KEY;
+							break;
+						case GT:
+							op = FilterOperation.MAP_VALUE_GT_BY_KEY;
+							break;
+						case GTEQ:
+							op = FilterOperation.MAP_VALUE_GTEQ_BY_KEY;
+							break;
+						case LT:
+							op = FilterOperation.MAP_VALUE_LT_BY_KEY;
+							break;
+						case LTEQ:
+							op = FilterOperation.MAP_VALUE_LTEQ_BY_KEY;
+							break;
+						case BETWEEN:
+							op = FilterOperation.MAP_VALUES_BETWEEN_BY_KEY;
+							v3 = v2; // contains upper limit value
+							break;
+						case STARTS_WITH:
+							op = FilterOperation.MAP_VALUE_STARTS_WITH_BY_KEY;
+							break;
+						case ENDS_WITH:
+							op = FilterOperation.MAP_VALUE_ENDS_WITH_BY_KEY;
+							break;
+						case CONTAINING:
+							op = FilterOperation.MAP_VALUE_CONTAINING_BY_KEY;
+							break;
+						default:
+							break;
+					}
+
+					fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
+					v2 = property.getFieldName(); // VALUE2 contains key (field name)
+				}
 			}
 		}
 

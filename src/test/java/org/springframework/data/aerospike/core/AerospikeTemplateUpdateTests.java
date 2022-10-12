@@ -166,7 +166,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         list.add("string2");
         list.add("string3");
         Person person = Person.builder().id(id).firstName("QLastName").age(50)
-                .map(map)
+                .stringMap(map)
                 .strings(list)
                 .build();
 
@@ -192,18 +192,18 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         list.add("string2");
         list.add("string3");
         Person person = Person.builder().id(id).firstName("QLastName").age(50)
-                .map(map)
+                .stringMap(map)
                 .strings(list)
                 .build();
         template.insert(person);
 
         Person personWithList = template.findById(id, Person.class);
-        personWithList.getMap().put("key4", "Added something new");
+        personWithList.getStringMap().put("key4", "Added something new");
         template.update(personWithList);
 
         Person personWithList2 = template.findById(id, Person.class);
         assertThat(personWithList2).isEqualTo(personWithList);
-        assertThat(personWithList2.getMap()).hasSize(4);
-        assertThat(personWithList2.getMap().get("key4")).isEqualTo("Added something new");
+        assertThat(personWithList2.getStringMap()).hasSize(4);
+        assertThat(personWithList2.getStringMap().get("key4")).isEqualTo("Added something new");
     }
 }
