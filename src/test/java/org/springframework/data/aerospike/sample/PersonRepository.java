@@ -190,6 +190,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	List<P> findByFriendAgeGreaterThanEqual(int value);
 
+	List<P> findByFriendLastName(String value);
+
+	List<P> findByFriendAge(int value);
+
+	List<P> findByFriendAgeGreaterThan(int value);
+
+	List<P> findByFriendAgeGreaterThanEqual(int value);
+
 	List<P> findByStringsContaining(String string);
 
 	List<P> findByIntsContaining(Integer integer);
