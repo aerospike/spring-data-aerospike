@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.repository;
 
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +39,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         additionalAerospikeTestOperations.deleteAll(Person.class);
     }
 
-    @BeforeEach
-    public void beforeEach() {
+    @BeforeAll
+    public void beforeAll() {
         additionalAerospikeTestOperations.deleteAll(Person.class);
         repository.saveAll(all);
     }
