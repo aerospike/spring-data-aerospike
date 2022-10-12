@@ -187,12 +187,6 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
-        assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
-                .doesNotThrowAnyException();
-    }
-
-    @Test
     public void deleteIndex_deletesExistingIndex() {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
 
