@@ -189,7 +189,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
 		if (entity.hasVersionProperty()) {
 			// we are ignoring generation here as insert operation should fail with DuplicateKeyException if key already exists
-			// and we do not mind which initial version is set in the document, BUT we need to update the version value in the original document
+			// we do not mind which initial version is set in the document, BUT we need to update the version value in the original document
 			// also we do not want to handle aerospike error codes as cas aware error codes as we are ignoring generation
 			doPersistWithVersionAndHandleError(document, data, policy);
 		} else {
@@ -209,6 +209,23 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			doPersistWithVersionAndHandleCasError(document, data, policy);
 		} else {
 			WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.REPLACE_ONLY);
+
+			doPersistAndHandleError(data, policy);
+		}
+	}
+
+	@Override
+	public <T> void update(T document, Collection<String> fields) {
+		Assert.notNull(document, "Document must not be null!");
+
+		AerospikeWriteData data = writeDataWithSpecificFields(document, fields);
+		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+		if (entity.hasVersionProperty()) {
+			WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+			doPersistWithVersionAndHandleCasError(document, data, policy);
+		} else {
+			WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
 			doPersistAndHandleError(data, policy);
 		}

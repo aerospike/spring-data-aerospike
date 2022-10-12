@@ -21,6 +21,7 @@ import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
@@ -69,6 +70,74 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void updateSpecificFields() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20).build();
+        template.insert(person);
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        template.update(Person.builder().id(id).age(41).build(), fields);
+
+        assertThat(template.findById(id, Person.class)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+        });
+    }
+
+    @Test
+    public void shouldFailUpdateNonExistingSpecificField() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20).build();
+        template.insert(person);
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("non-existing-field");
+
+        assertThatThrownBy(() -> template.update(Person.builder().id(id).age(41).build(), fields))
+                .isInstanceOf(RecoverableDataAccessException.class)
+                .hasMessageContaining("field doesn't exists");
+    }
+
+    @Test
+    public void updateSpecificFieldsWithFieldAnnotatedProperty() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
+                .emailAddress("andrew@gmail.com").build();
+        template.insert(person);
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("emailAddress");
+        template.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields);
+
+        assertThat(template.findById(id, Person.class)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+            assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
+        });
+    }
+
+    @Test
+    public void updateSpecificFieldsWithFieldAnnotatedPropertyActualValue() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
+                .emailAddress("andrew@gmail.com").build();
+        template.insert(person);
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("email");
+        template.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields);
+
+        assertThat(template.findById(id, Person.class)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+            assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
+        });
+    }
+
+    @Test
     public void updatesFieldValueAndDocumentVersion() {
         VersionedClass document = new VersionedClass(id, "foobar");
         template.insert(document);
@@ -83,6 +152,29 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
 
         document = new VersionedClass(id, "foobar2", document.version);
         template.update(document);
+        assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
+            assertThat(doc.field).isEqualTo("foobar2");
+            assertThat(doc.version).isEqualTo(3);
+        });
+    }
+
+    @Test
+    public void updateSpecificFieldsWithDocumentVersion() {
+        VersionedClass document = new VersionedClass(id, "foobar");
+        template.insert(document);
+        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+
+        document = new VersionedClass(id, "foobar1", document.version);
+        List<String> fields = new ArrayList<>();
+        fields.add("field");
+        template.update(document, fields);
+        assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
+            assertThat(doc.field).isEqualTo("foobar1");
+            assertThat(doc.version).isEqualTo(2);
+        });
+
+        document = new VersionedClass(id, "foobar2", document.version);
+        template.update(document, fields);
         assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
             assertThat(doc.field).isEqualTo("foobar2");
             assertThat(doc.version).isEqualTo(3);
@@ -182,6 +274,38 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void TestAddToListSpecifyingListFieldOnly() {
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        map.put("key3", "value3");
+        List<String> list = new ArrayList<>();
+        list.add("string1");
+        list.add("string2");
+        list.add("string3");
+        Person person = Person.builder().id(id).firstName("QLastName").age(50)
+                .map(map)
+                .strings(list)
+                .build();
+
+        template.insert(person);
+
+        Person personWithList = Person.builder().id(id).firstName("QLastName").age(50)
+                .map(map)
+                .strings(list)
+                .build();
+        personWithList.getStrings().add("Added something new");
+
+        List<String> fields = new ArrayList<>();
+        fields.add("strings");
+        template.update(personWithList, fields);
+
+        Person personWithList2 = template.findById(id, Person.class);
+        assertThat(personWithList2).isEqualTo(personWithList);
+        assertThat(personWithList2.getStrings()).hasSize(4);
+    }
+
+    @Test
     public void TestAddToMap() {
         Map<String, String> map = new HashMap<>();
         map.put("key1", "value1");
@@ -200,6 +324,38 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         Person personWithList = template.findById(id, Person.class);
         personWithList.getMap().put("key4", "Added something new");
         template.update(personWithList);
+
+        Person personWithList2 = template.findById(id, Person.class);
+        assertThat(personWithList2).isEqualTo(personWithList);
+        assertThat(personWithList2.getMap()).hasSize(4);
+        assertThat(personWithList2.getMap().get("key4")).isEqualTo("Added something new");
+    }
+
+    @Test
+    public void TestAddToMapSpecifyingMapFieldOnly() {
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        map.put("key3", "value3");
+        List<String> list = new ArrayList<>();
+        list.add("string1");
+        list.add("string2");
+        list.add("string3");
+        Person person = Person.builder().id(id).firstName("QLastName").age(50)
+                .map(map)
+                .strings(list)
+                .build();
+        template.insert(person);
+
+        Person personWithList = Person.builder().id(id).firstName("QLastName").age(50)
+                .map(map)
+                .strings(list)
+                .build();
+        personWithList.getMap().put("key4", "Added something new");
+
+        List<String> fields = new ArrayList<>();
+        fields.add("map");
+        template.update(personWithList, fields);
 
         Person personWithList2 = template.findById(id, Person.class);
         assertThat(personWithList2).isEqualTo(personWithList);
