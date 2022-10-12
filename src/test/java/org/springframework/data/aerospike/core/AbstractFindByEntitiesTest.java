@@ -135,7 +135,7 @@ public interface AbstractFindByEntitiesTest {
 
         assertThatThrownBy(() -> findByIds(groupedKeys))
                 .isInstanceOf(MappingException.class)
-                .hasMessage("Couldn't find PersistentEntity for type class java.lang.String!");
+                .hasMessage("Couldn't find PersistentEntity for type class java.lang.String");
     }
 
     @Test
