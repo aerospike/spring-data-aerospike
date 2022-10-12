@@ -85,7 +85,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		 */
 		private static String getRegexp(String base, FilterOperation op) {
 			String escapedBase = escapeBRERegexp(base);
-			if (op == FilterOperation.START_WITH) {
+			if (op == FilterOperation.STARTS_WITH) {
 				return "^" + escapedBase;
 			}
 			if (op == FilterOperation.ENDS_WITH) {
@@ -98,7 +98,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		}
 
 		public static String getStartsWith(String base) {
-			return getRegexp(base, FilterOperation.START_WITH);
+			return getRegexp(base, FilterOperation.STARTS_WITH);
 		}
 
 		public static String getEndsWith(String base) {
@@ -163,8 +163,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
 			return this;
 		}
 
-		public AerospikeCriteria build() {
-			return new AerospikeCriteria(this);
+		public Qualifier build() {
+			return new Qualifier(this);
 		}
 
 		public Map<String, Object> buildMap() {
