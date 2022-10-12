@@ -75,6 +75,20 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByListValueGreaterThan() {
+        List<Person> persons = repository.findByIntsGreaterThan(549);
+
+        assertThat(persons).containsOnly(leroi2, alicia);
+    }
+
+    @Test
+    void findByListValueLessThanOrEquals() {
+        List<Person> persons = repository.findByIntsLessThanEqual(500);
+
+        assertThat(persons).containsOnly(leroi2);
+    }
+
+    @Test
     void findByMapKeysContaining() {
         assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
         assertThat(boyd.getStringMap().containsKey("key1")).isTrue();

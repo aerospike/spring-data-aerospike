@@ -488,7 +488,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 		Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
 				.setField(binName)
-				.setFilterOperation(FilterOperation.LIST_BETWEEN)
+				.setFilterOperation(FilterOperation.LIST_VALUE_BETWEEN)
 				.setValue1(Value.get(ageStart))
 				.setValue2(Value.get(ageEnd));
 		Qualifier qualifier = new Qualifier(qb);

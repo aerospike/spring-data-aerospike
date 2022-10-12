@@ -185,6 +185,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	List<P> findByIntsContaining(Integer integer);
 
+	List<P> findByIntsGreaterThan(Integer integer);
+
+	List<P> findByIntsLessThanEqual(Integer integer);
+
 	List<P> findByIntsContaining(List<Integer> integer);
 
 	List<P> findTop3ByLastNameStartingWith(String lastName);

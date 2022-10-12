@@ -20,7 +20,7 @@ public class PersonTestData {
     public static Person boyd = Person.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45).stringMap(of("key1", "val1", "key2", "val2")).build();
     public static Person stefan = Person.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34).stringMap(of("key1", "val1", "key2", "val2", "key3", "val3")).build();
     public static Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(41).intMap(of("key1", 0, "key2", 1)).build();
-    public static Person leroi2 = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25).ints(Arrays.asList(550, 990)).build();
+    public static Person leroi2 = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25).ints(Arrays.asList(450, 500, 550, 990)).build();
     public static Person alicia = Person.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30).ints(Arrays.asList(550, 600, 990)).build();
 
     public static List<Person> all = Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi, leroi2, alicia);

@@ -358,6 +358,32 @@ public enum FilterOperation {
             return exp;
         }
     },
+    MAP_KEYS_BETWEEN {
+        @Override
+        public Exp process(Map<String, Object> map) {
+            if (getValue1(map).getType() == ParticleType.INTEGER) {
+                return Exp.gt(
+                        // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
+                        MapExp.getByKeyRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(getValue2(map).toLong() + 1L), Exp.mapBin(getField(map))),
+                        Exp.val(0)
+                );
+            }
+            throw new AerospikeException("FilterExpression unsupported type: expected String or Long (FilterOperation MAP_KEYS_BETWEEN)");
+        }
+    },
+    MAP_VALUES_BETWEEN {
+        @Override
+        public Exp process(Map<String, Object> map) {
+            if (getValue1(map).getType() == ParticleType.INTEGER) {
+                return Exp.gt(
+                        // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
+                        MapExp.getByValueRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(getValue2(map).toLong() + 1L), Exp.mapBin(getField(map))),
+                        Exp.val(0)
+                );
+            }
+            throw new AerospikeException("FilterExpression unsupported type: expected String or Long (FilterOperation MAP_VALUES_BETWEEN)");
+        }
+    },
     GEO_WITHIN {
         @Override
         public Exp process(Map<String, Object> map) {
@@ -388,36 +414,80 @@ public enum FilterOperation {
             return exp;
         }
     },
-    LIST_BETWEEN {
+    LIST_VALUE_BETWEEN {
         @Override
         public Exp process(Map<String, Object> map) {
-            return Exp.gt(
-                    // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
-                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(getValue2(map).toLong() + 1L), Exp.listBin(getField(map))),
-                    Exp.val(0)
-            );
+            if (getValue1(map).getType() == ParticleType.INTEGER) {
+                return Exp.gt(
+                        // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(getValue2(map).toLong() + 1L), Exp.listBin(getField(map))),
+                        Exp.val(0)
+                );
+            }
+            throw new AerospikeException("FilterExpression unsupported type: expected String or Long (FilterOperation LIST_BETWEEN)");
         }
     },
-    MAP_KEYS_BETWEEN {
+    LIST_VALUE_GT {
         @Override
         public Exp process(Map<String, Object> map) {
-            return Exp.gt(
-                    // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
-                    MapExp.getByKeyRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(getValue2(map).toLong() + 1L), Exp.mapBin(getField(map))),
-                    Exp.val(0)
-            );
+            Exp exp;
+            switch (getValue1(map).getType()) {
+                case ParticleType.INTEGER:
+                    exp = Exp.gt(
+                            ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong() + 1L), Exp.val(Long.MAX_VALUE), Exp.listBin(getField(map))),
+                            Exp.val(0)
+                            );
+                    break;
+                default:
+                    throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_GT)");
+            };
+
+            return exp;
         }
     },
-    MAP_VALUES_BETWEEN {
+    LIST_VALUE_GTEQ {
         @Override
         public Exp process(Map<String, Object> map) {
-            return Exp.gt(
-                    // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
-                    MapExp.getByValueRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(getValue2(map).toLong() + 1L), Exp.mapBin(getField(map))),
-                    Exp.val(0)
-            );
+            Exp exp;
+            switch (getValue1(map).getType()) {
+                case ParticleType.INTEGER:
+                    exp = Exp.gt(
+                            ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(Long.MAX_VALUE), Exp.listBin(getField(map))),
+                            Exp.val(0)
+                    );
+                    break;
+                default:
+                    throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_GT)");
+            };
+
+            return exp;
         }
-    };
+    },
+    LIST_VALUE_LT {
+        @Override
+        public Exp process(Map<String, Object> map) {
+            if (getValue1(map).getType() == ParticleType.INTEGER) {
+                return Exp.gt(
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong() - 1L), Exp.listBin(getField(map))),
+                        Exp.val(0)
+                );
+            }
+            throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_LT)");
+        }
+    },
+    LIST_VALUE_LTEQ {
+        @Override
+        public Exp process(Map<String, Object> map) {
+            if (getValue1(map).getType() == ParticleType.INTEGER) {
+                return Exp.gt(
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong()), Exp.listBin(getField(map))),
+                        Exp.val(0)
+                );
+            }
+            throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_LTEQ)");
+        }
+    }
+    ;
 
     public abstract Exp process(Map<String, Object> map);
 

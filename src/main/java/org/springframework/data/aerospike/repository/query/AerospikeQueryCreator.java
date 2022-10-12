@@ -111,10 +111,25 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		// Customization for collection/map query
 		TypeInformation<?> propertyType = property.getTypeInformation();
 		if (propertyType.isCollectionLike()) {
-			if (op == FilterOperation.CONTAINING) {
-				op = FilterOperation.LIST_CONTAINS;
-			} else if (op == FilterOperation.BETWEEN) {
-				op = FilterOperation.LIST_BETWEEN;
+			switch (op) {
+				case CONTAINING:
+					op = FilterOperation.LIST_CONTAINS;
+					break;
+				case BETWEEN:
+					op = FilterOperation.LIST_VALUE_BETWEEN;
+					break;
+				case GT:
+					op = FilterOperation.LIST_VALUE_GT;
+					break;
+				case GTEQ:
+					op = FilterOperation.LIST_VALUE_GTEQ;
+					break;
+				case LT:
+					op = FilterOperation.LIST_VALUE_LT;
+					break;
+				case LTEQ:
+					op = FilterOperation.LIST_VALUE_LTEQ;
+					break;
 			}
 		} else {
 			if (propertyType.isMap()) {

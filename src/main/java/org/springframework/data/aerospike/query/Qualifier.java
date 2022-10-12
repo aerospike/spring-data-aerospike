@@ -18,15 +18,10 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
-import com.aerospike.client.cdt.ListReturnType;
-import com.aerospike.client.cdt.MapReturnType;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
-import com.aerospike.client.exp.ListExp;
-import com.aerospike.client.exp.MapExp;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
-import com.aerospike.client.query.RegexFlag;
 import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
 
 import java.io.Serializable;
@@ -45,8 +40,6 @@ import java.util.Set;
  */
 public class Qualifier implements Map<String, Object>, Serializable {
 	private static final long serialVersionUID = -2689196529952712849L;
-//	private static final String listIterVar = "listIterVar";
-//	private static final String mapIterVar = "mapIterVar";
 	protected static final String FIELD = "field";
 	protected static final String IGNORE_CASE = "ignoreCase";
 	protected static final String VALUE1 = "value1";
@@ -234,7 +227,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 				return collectionContains(IndexCollectionType.MAPKEYS);
 			case MAP_VALUES_CONTAINS:
 				return collectionContains(IndexCollectionType.MAPVALUES);
-			case LIST_BETWEEN:
+			case LIST_VALUE_BETWEEN:
 				return collectionRange(IndexCollectionType.LIST);
 			case MAP_KEYS_BETWEEN:
 				return collectionRange(IndexCollectionType.MAPKEYS);

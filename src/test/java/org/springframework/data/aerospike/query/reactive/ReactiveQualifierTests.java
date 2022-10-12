@@ -43,7 +43,7 @@ import static org.springframework.data.aerospike.query.FilterOperation.EQ;
 import static org.springframework.data.aerospike.query.FilterOperation.GT;
 import static org.springframework.data.aerospike.query.FilterOperation.GTEQ;
 import static org.springframework.data.aerospike.query.FilterOperation.IN;
-import static org.springframework.data.aerospike.query.FilterOperation.LIST_BETWEEN;
+import static org.springframework.data.aerospike.query.FilterOperation.LIST_VALUE_BETWEEN;
 import static org.springframework.data.aerospike.query.FilterOperation.LIST_CONTAINS;
 import static org.springframework.data.aerospike.query.FilterOperation.LT;
 import static org.springframework.data.aerospike.query.FilterOperation.LTEQ;
@@ -473,7 +473,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
 				.setField(binName)
-				.setFilterOperation(LIST_BETWEEN)
+				.setFilterOperation(LIST_VALUE_BETWEEN)
 				.setValue1(Value.get(ageStart))
 				.setValue2(Value.get(ageEnd));
 		Qualifier AgeRangeQualifier = new Qualifier(qb);
