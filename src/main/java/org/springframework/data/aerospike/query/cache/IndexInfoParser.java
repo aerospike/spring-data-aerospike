@@ -82,7 +82,13 @@ public class IndexInfoParser {
 		}
 		return Arrays.stream(info.split(":"))
 				.map(part -> {
-					String[] kvParts = part.split("=");
+					String[] kvParts;
+					// Context base64 can contain "=".
+					if (part.contains("context")) {
+						kvParts = part.split("=", 2);
+					} else {
+						kvParts = part.split("=");
+					}
 					if (kvParts.length == 0) {
 						throw new IllegalStateException("Failed to parse info string part: " + part);
 					}

@@ -13,10 +13,12 @@ import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
@@ -155,6 +157,30 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void createIndex_createsIndexOnMapOfMapsContext() {
+        String setName = template.getSetName(IndexedDocument.class);
+
+        CTX[] ctx = new CTX[]{
+                CTX.mapKey(com.aerospike.client.Value.get("key1")),
+                CTX.mapKey(com.aerospike.client.Value.get("innerKey2"))
+        };
+        template.createIndex(IndexedDocument.class, INDEX_TEST_1, "mapOfLists", IndexType.STRING, IndexCollectionType.MAPKEYS, ctx);
+
+        awaitTenSecondsUntil(() -> {
+                    CTX[] ctxResponse = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
+                            .filter(o -> o.getName().equals(INDEX_TEST_1))
+                            .findFirst().orElse(null)).getCTX();
+
+                    assertThat(ctx.length).isEqualTo(ctxResponse.length);
+                    assertThat(ctx[0].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
+                    assertThat(ctx[1].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
+                    assertThat(ctx[0].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
+                    assertThat(ctx[1].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
+                }
+        );
+    }
+
+    @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
         assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
                 .doesNotThrowAnyException();
@@ -182,5 +208,6 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         String stringField;
         int intField;
         List<List<String>> nestedList;
+        Map<String, Map<String, String>> mapOfMaps;
     }
 }
