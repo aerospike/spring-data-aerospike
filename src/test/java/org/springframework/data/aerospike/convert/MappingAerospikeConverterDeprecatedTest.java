@@ -112,7 +112,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 			}
 		};
 
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		Address convertedAddress = converter.read(Address.class, dbObject);
 
@@ -171,7 +171,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 			}
 		};
 
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		ClassWithEnumProperty result = converter.read(ClassWithEnumProperty.class, dbObject);
 
@@ -188,7 +188,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 			}
 		};
 
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		ClassWithEnumProperty result = converter.read(ClassWithEnumProperty.class, dbObject);
 
@@ -226,7 +226,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 			}
 		};
 
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		Person result = converter.read(Person.class, dbObject);
 
@@ -244,7 +244,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		converter.write(person, forWrite);
 
 		Map<String, Object> bins = listToMap(forWrite.getBins());
-		AerospikeReadData forRead = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData forRead = AerospikeReadData.forRead(key, aeroRecord(bins));
 		Person result = converter.read(Person.class, forRead);
 
 		assertThat(result.addresses).isEmpty();
@@ -265,7 +265,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 				put("map", map);
 			}
 		};
-		AerospikeReadData dbObject = AerospikeReadData.forRead(key, record(bins));
+		AerospikeReadData dbObject = AerospikeReadData.forRead(key, aeroRecord(bins));
 
 		ClassWithSortedMap result = converter.read(ClassWithSortedMap.class, dbObject);
 
@@ -280,7 +280,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 	 * @return
 	 */
 	private Map<String, Object> listToMap(Collection<Bin> bins) {
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		if (bins != null && bins.size() > 0) {
 			for (Bin bin : bins) map.put(bin.name, bin.value.getObject());
 		}
@@ -297,7 +297,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 				.findFirst().orElse(null);
 	}
 
-	private Record record(Map<String, Object> bins) {
+	private Record aeroRecord(Map<String, Object> bins) {
 		return new Record(bins, 0, 0);
 	}
 
@@ -313,7 +313,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		EnumMap<SampleEnum, String> enumMap;
 	}
 
-	static enum SampleEnum {
+	enum SampleEnum {
 		FIRST {
 			@Override
 			void method() {
@@ -329,7 +329,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 		abstract void method();
 	}
 
-	static interface InterfaceType {
+	interface InterfaceType {
 
 	}
 
@@ -367,11 +367,8 @@ public class MappingAerospikeConverterDeprecatedTest {
 			} else if (!city.equals(other.city))
 				return false;
 			if (street == null) {
-				if (other.street != null)
-					return false;
-			} else if (!street.equals(other.street))
-				return false;
-			return true;
+				return other.street == null;
+			} else return street.equals(other.street);
 		}
 	}
 
@@ -469,7 +466,7 @@ public class MappingAerospikeConverterDeprecatedTest {
 	}
 
 	static class Outer {
-		class Inner {
+		static class Inner {
 			String value;
 		}
 
@@ -560,8 +557,8 @@ public class MappingAerospikeConverterDeprecatedTest {
 	}
 
 	static class ClassWithMapUsingEnumAsKey {
-		static enum FooBarEnum {
-			FOO, BAR;
+		enum FooBarEnum {
+			FOO, BAR
 		}
 
 		Map<FooBarEnum, String> map;

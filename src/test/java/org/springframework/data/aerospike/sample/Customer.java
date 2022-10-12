@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.sample;
 
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
 /**
@@ -24,9 +25,11 @@ import org.springframework.data.annotation.Id;
  */
 @Data
 @Builder
+@Document
 public class Customer {
-
-    private @Id String id;
+    @Id
+    private String id;
     private String firstname, lastname;
     private long age;
+    private char group;
 }

@@ -136,7 +136,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         RecordSet rs = client.query(null, aerospikeQuery);
 
         assertThat(CollectionUtils.toList(rs))
-                .hasOnlyOneElementSatisfying(record ->
+                .singleElement()
+                .satisfies(record ->
                         assertThat(record.bins)
                                 .containsOnly(entry("firstName", dave.getFirstName()), entry("lastName", dave.getLastName())));
     }

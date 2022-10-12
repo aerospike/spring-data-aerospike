@@ -74,7 +74,7 @@ public class AerospikeWriteData {
 	}
 
 	public Bin[] getBinsAsArray() {
-		return bins.toArray(new Bin[bins.size()]);
+		return bins.toArray(new Bin[0]);
 	}
 
 	public void addBin(String key, Object value) {

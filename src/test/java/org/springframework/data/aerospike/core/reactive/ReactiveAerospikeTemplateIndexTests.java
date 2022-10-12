@@ -6,8 +6,6 @@ import lombok.Value;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.IndexAlreadyExistsException;
-import org.springframework.data.aerospike.IndexNotFoundException;
 import org.springframework.data.aerospike.core.AerospikeTemplateIndexTests;
 import org.springframework.data.aerospike.core.AutoIndexedDocumentAssert;
 import org.springframework.data.aerospike.mapping.Document;
@@ -18,7 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegrationTests {
@@ -34,11 +32,12 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     }
 
     @Test
-    public void createIndex_throwsExceptionIfIndexAlreadyExists() {
+    public void createIndex_shouldNoThrowExceptionIfIndexAlreadyExists() {
         reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING).block();
 
-        assertThatThrownBy(() -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING)
-                .block()).isInstanceOf(IndexAlreadyExistsException.class);
+        assertThatCode(() -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING)
+                .block())
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -55,7 +54,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
 
         assertThat(errorsCount.get()).isLessThanOrEqualTo(4);// depending on the timing all 5 requests can succeed on Aerospike Server
 
-        assertThat(indexExists(INDEX_TEST_1, "stringField")).isTrue();
+        assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
     }
 
     @Test
@@ -65,7 +64,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
 
         awaitTenSecondsUntil(() ->
                 assertThat(additionalAerospikeTestOperations.getIndexes(setName))
-                        .contains(new Index(INDEX_TEST_1, namespace, setName, "stringField", IndexType.STRING, IndexCollectionType.DEFAULT))
+                        .contains(new Index(INDEX_TEST_1, namespace, setName, "stringField", IndexType.STRING, null))
         );
     }
 
@@ -102,11 +101,11 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
         });
     }
 
-
     @Test
-    public void deleteIndex_throwsExceptionIfIndexDoesNotExist() {
-        assertThatThrownBy(() -> reactiveTemplate.deleteIndex(IndexedDocument.class, "not-existing-index").block())
-                .isInstanceOf(IndexNotFoundException.class);
+    public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
+        assertThatCode(() -> reactiveTemplate.deleteIndex(IndexedDocument.class, "not-existing-index")
+                .block())
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -115,7 +114,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
 
         reactiveTemplate.deleteIndex(IndexedDocument.class, INDEX_TEST_1).block();
 
-        assertThat(indexExists(INDEX_TEST_1, "stringField")).isFalse();
+        assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isFalse();
     }
 
     @Test
@@ -123,20 +122,9 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
         AutoIndexedDocumentAssert.assertIndexesCreated(additionalAerospikeTestOperations, namespace);
     }
 
-    private boolean indexExists(String indexName, String binName) {
-        try {
-            reactiveTemplate.createIndex(IndexedDocument.class, indexName, binName, IndexType.STRING).block();
-            reactiveTemplate.deleteIndex(IndexedDocument.class, indexName).block();
-            return false;
-        } catch (IndexAlreadyExistsException ex) {
-            return true;
-        }
-    }
-
     @Value
     @Document
     public static class IndexedDocument {
-
         String stringField;
         int intField;
     }

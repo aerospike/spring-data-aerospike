@@ -51,13 +51,13 @@ public abstract class BaseMappingAerospikeConverterTest {
 		return applicationContext;
 	}
 
-	protected static Record record(Collection<Bin> bins) {
+	protected static Record aeroRecord(Collection<Bin> bins) {
 		Map<String, Object> collect = bins.stream()
 				.collect(Collectors.toMap(bin -> bin.name, bin -> bin.value.getObject()));
-		return record(collect);
+		return aeroRecord(collect);
 	}
 
-	protected static Record record(Map<String, Object> bins) {
+	protected static Record aeroRecord(Map<String, Object> bins) {
 		return new Record(bins, 0, 0);
 	}
 }

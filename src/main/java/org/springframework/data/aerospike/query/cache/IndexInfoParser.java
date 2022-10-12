@@ -40,7 +40,7 @@ public class IndexInfoParser {
 	private static final String NAMESPACE = "namespace";
 	private static final String TYPE = "type";
 	private static final String STRING_TYPE = "STRING";
-	private static final String GEO_JSON_TYPE = "GEOJSON";
+	private static final String GEO2DSPHERE_TYPE = "GEO2DSPHERE";
 	private static final String NUMERIC_TYPE = "NUMERIC";
 	private static final String NONE = "NONE";
 	private static final String LIST = "LIST";
@@ -105,7 +105,7 @@ public class IndexInfoParser {
 		}
 		if (indexTypeString.equalsIgnoreCase(STRING_TYPE))
 			return IndexType.STRING;
-		else if (indexTypeString.equalsIgnoreCase(GEO_JSON_TYPE))
+		else if (indexTypeString.equalsIgnoreCase(GEO2DSPHERE_TYPE))
 			return IndexType.GEO2DSPHERE;
 		else if (indexTypeString.equalsIgnoreCase(NUMERIC_TYPE))
 			return IndexType.NUMERIC;

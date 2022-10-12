@@ -5,13 +5,16 @@ import com.aerospike.client.exp.Expression;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class FilterExpressionsBuilder {
     public Expression build(Qualifier[] qualifiers) {
         if (qualifiers != null && qualifiers.length != 0) {
             List<Qualifier> relevantQualifiers = Arrays.stream(qualifiers)
-                    .filter(q -> q != null && !q.queryAsFilter())
+                    .filter(Objects::nonNull)
+                    .filter(q -> !q.queryAsFilter())
                     .collect(Collectors.toList());
 
             // in case there is more than 1 relevant qualifier -> the default behaviour is AND

@@ -62,4 +62,6 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
     Flux<Customer> findByAgeBetweenAndLastname(long from, long to, String lastname);
 
     Flux<Customer> findByAgeBetweenOrderByFirstnameDesc(long i, long j);
+
+    Flux<Customer> findByGroup(char group);
 }

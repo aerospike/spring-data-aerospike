@@ -122,11 +122,11 @@ abstract class BaseAerospikeTemplate {
         return (Class<T>) entity.getClass();
     }
 
-    <T> T mapToEntity(Key key, Class<T> type, Record record) {
-        if (record == null) {
+    <T> T mapToEntity(Key key, Class<T> type, Record aeroRecord) {
+        if (aeroRecord == null) {
             return null;
         }
-        AerospikeReadData data = AerospikeReadData.forRead(key, record);
+        AerospikeReadData data = AerospikeReadData.forRead(key, aeroRecord);
         return converter.read(type, data);
     }
 
@@ -148,11 +148,11 @@ abstract class BaseAerospikeTemplate {
         return new ConvertingPropertyAccessor<>(accessor, converter.getConversionService());
     }
 
-    <T> T updateVersion(T document, Record newRecord) {
+    <T> T updateVersion(T document, Record newAeroRecord) {
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         ConvertingPropertyAccessor<T> propertyAccessor = getPropertyAccessor(entity, document);
         AerospikePersistentProperty versionProperty = entity.getRequiredVersionProperty();
-        propertyAccessor.setProperty(versionProperty, newRecord.generation);
+        propertyAccessor.setProperty(versionProperty, newAeroRecord.generation);
         return document;
     }
 

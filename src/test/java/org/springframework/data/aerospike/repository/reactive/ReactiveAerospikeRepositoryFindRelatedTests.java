@@ -36,10 +36,10 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     public void setUp() {
         StepVerifier.create(deleteAll()).verifyComplete();
 
-        customer1 = Customer.builder().id(nextId()).firstname("Homer").lastname("Simpson").age(42).build();
-        customer2 = Customer.builder().id(nextId()).firstname("Marge").lastname("Simpson").age(39).build();
-        customer3 = Customer.builder().id(nextId()).firstname("Bart").lastname("Simpson").age(15).build();
-        customer4 = Customer.builder().id(nextId()).firstname("Matt").lastname("Groening").age(65).build();
+        customer1 = Customer.builder().id(nextId()).firstname("Homer").lastname("Simpson").age(42).group('a').build();
+        customer2 = Customer.builder().id(nextId()).firstname("Marge").lastname("Simpson").age(39).group('b').build();
+        customer3 = Customer.builder().id(nextId()).firstname("Bart").lastname("Simpson").age(15).group('b').build();
+        customer4 = Customer.builder().id(nextId()).firstname("Matt").lastname("Groening").age(65).group('c').build();
 
         additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_first_name_index", "firstname", IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_last_name_index", "lastname", IndexType.STRING);
@@ -245,6 +245,14 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
                 StepVerifier.create(customerRepo.findByAgeBetweenOrderByFirstnameDesc(30, 70)
                         .subscribeOn(Schedulers.parallel())),
                 customers -> assertThat(customers).containsExactly(customer4, customer2, customer1));
+    }
+
+    @Test
+    public void findByGroup() {
+        assertConsumedCustomers(
+                StepVerifier.create(customerRepo.findByGroup('b')
+                        .subscribeOn(Schedulers.parallel())),
+                customers -> assertThat(customers).containsOnly(customer2, customer3));
     }
 
     private void assertConsumedCustomers(StepVerifier.FirstStep<Customer> step, Consumer<Collection<Customer>> assertion) {

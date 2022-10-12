@@ -76,8 +76,8 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 			return null;
 		}
 
-		Map<String, Object> record = data.getRecord();
-		TypeInformation<? extends R> typeToUse = typeMapper.readType(record, ClassTypeInformation.from(targetClass));
+		Map<String, Object> aeroRecord = data.getAeroRecord();
+		TypeInformation<? extends R> typeToUse = typeMapper.readType(aeroRecord, ClassTypeInformation.from(targetClass));
 		Class<? extends R> rawType = typeToUse.getType();
 		if (conversions.hasCustomReadTarget(AerospikeReadData.class, rawType)) {
 			return conversionService.convert(data, rawType);
@@ -181,12 +181,11 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 
 		Map<Object, Object> converted = CollectionFactory.createMap(mapClass, keyClass, source.keySet().size());
 
-		source.entrySet()
-				.forEach((e) -> {
-					Object key = (keyClass != null) ? conversionService.convert(e.getKey(), keyClass) : e.getKey();
-					Object value = readValue(e.getValue(), mapValueType);
-					converted.put(key, value);
-				});
+		source.forEach((k, v) -> {
+			Object key = keyClass != null ? conversionService.convert(k, keyClass) : k;
+			Object value = readValue(v, mapValueType);
+			converted.put(key, value);
+		});
 
 		return (R) convertIfNeeded(converted, propertyType.getType());
 	}
@@ -248,7 +247,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 		private final Map<String, Object> source;
 
 		public RecordReadingPropertyValueProvider(AerospikeReadData readData) {
-			this(readData.getKey(), readData.getExpiration(), readData.getVersion(), readData.getRecord());
+			this(readData.getKey(), readData.getExpiration(), readData.getVersion(), readData.getAeroRecord());
 		}
 
 		public RecordReadingPropertyValueProvider(Map<String, Object> source) {
