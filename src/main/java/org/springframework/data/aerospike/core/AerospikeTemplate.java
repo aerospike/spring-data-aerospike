@@ -342,26 +342,26 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	}
 
 	private <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass) {
-		Record record;
+		Record aeroRecord;
 		String[] binNames = getBinNamesFromTargetClass(targetClass);
 		if (entity.isTouchOnRead()) {
 			Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-			record = getAndTouch(key, entity.getExpiration(), binNames);
+			aeroRecord = getAndTouch(key, entity.getExpiration(), binNames);
 		} else {
-			record = this.client.get(null, key, binNames);
+			aeroRecord = this.client.get(null, key, binNames);
 		}
-		return mapToEntity(key, targetClass, record);
+		return mapToEntity(key, targetClass, aeroRecord);
 	}
 
 	private <T> Object getRecordMapToEntityClass(AerospikePersistentEntity<?> entity, Key key, Class<T> entityClass) {
-		Record record;
+		Record aeroRecord;
 		if (entity.isTouchOnRead()) {
 			Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-			record = getAndTouch(key, entity.getExpiration(), null);
+			aeroRecord = getAndTouch(key, entity.getExpiration(), null);
 		} else {
-			record = this.client.get(null, key);
+			aeroRecord = this.client.get(null, key);
 		}
-		return mapToEntity(key, entityClass, record);
+		return mapToEntity(key, entityClass, aeroRecord);
 	}
 
 	private Record getAndTouch(Key key, int expiration, String[] binNames) {
@@ -429,18 +429,18 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 			if (targetClass != null) {
 				String[] binNames = getBinNamesFromTargetClass(targetClass);
-				Record[] records = client.get(null, keys, binNames);
+				Record[] aeroRecords = client.get(null, keys, binNames);
 
 				return IntStream.range(0, keys.length)
-						.filter(index -> records[index] != null)
-						.mapToObj(index -> mapToEntity(keys[index], targetClass, records[index]))
+						.filter(index -> aeroRecords[index] != null)
+						.mapToObj(index -> mapToEntity(keys[index], targetClass, aeroRecords[index]))
 						.collect(Collectors.toList());
 			} else {
-				Record[] records = client.get(null, keys);
+				Record[] aeroRecords = client.get(null, keys);
 
 				return IntStream.range(0, keys.length)
-						.filter(index -> records[index] != null)
-						.mapToObj(index -> mapToEntity(keys[index], entityClass, records[index]))
+						.filter(index -> aeroRecords[index] != null)
+						.mapToObj(index -> mapToEntity(keys[index], entityClass, aeroRecords[index]))
 						.collect(Collectors.toList());
 			}
 		} catch (AerospikeException e) {
