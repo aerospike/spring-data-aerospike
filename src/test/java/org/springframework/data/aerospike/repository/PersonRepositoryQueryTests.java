@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.repository;
 
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +39,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         additionalAerospikeTestOperations.deleteAll(Person.class);
     }
 
-    @BeforeAll
-    public void beforeAll() {
+    @BeforeEach
+    public void beforeEach() {
         additionalAerospikeTestOperations.deleteAll(Person.class);
-
         repository.saveAll(all);
     }
 
@@ -177,14 +176,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByFriendAgeGreaterThan() {
+        alicia.setFriend(boyd);
+        repository.save(alicia);
         dave.setFriend(oliver);
         repository.save(dave);
         carter.setFriend(dave);
         repository.save(carter);
         leroi.setFriend(carter);
         repository.save(leroi);
-        alicia.setFriend(boyd);
-        repository.save(alicia);
 
         assertThat(alicia.getFriend().getAge()).isGreaterThan(42);
         assertThat(leroi.getFriend().getAge()).isGreaterThan(42);
@@ -197,15 +196,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFriendAgeGreaterOrEqual () {
+    public void findPersonsByFriendAgeGreaterOrEqual() {
+        alicia.setFriend(boyd);
+        repository.save(alicia);
         dave.setFriend(oliver);
         repository.save(dave);
         carter.setFriend(dave);
         repository.save(carter);
         leroi.setFriend(carter);
         repository.save(leroi);
-        alicia.setFriend(boyd);
-        repository.save(alicia);
 
         List<Person> result = repository.findByFriendAgeGreaterThanEqual(42);
 
