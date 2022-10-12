@@ -32,7 +32,8 @@ import static java.util.stream.Collectors.toMap;
  */
 public class InternalIndexOperations {
 
-	private static final String SINDEX = "sindex";
+	// Base64 will return index context as a base64 response
+	private static final String SINDEX_WITH_BASE64 = "sindex-list:;b64=true";
 
 	private final IndexInfoParser indexInfoParser;
 
@@ -52,7 +53,7 @@ public class InternalIndexOperations {
 	}
 
 	public String buildGetIndexesCommand() {
-		return SINDEX;
+		return SINDEX_WITH_BASE64;
 	}
 
 	private static IndexKey getIndexKey(Index index) {

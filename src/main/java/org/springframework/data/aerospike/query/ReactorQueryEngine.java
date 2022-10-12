@@ -17,12 +17,15 @@
 package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Key;
+import com.aerospike.client.Record;
+import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.QueryPolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
@@ -64,6 +67,20 @@ public class ReactorQueryEngine {
 	 * @return A Flux<KeyRecord> to iterate over the results
 	 */
 	public Flux<KeyRecord> select(String namespace, String set, Filter filter, Qualifier... qualifiers) {
+		return select(namespace, set, null, filter, qualifiers);
+	}
+
+	/**
+	 * Select records filtered by a Filter and Qualifiers
+	 *
+	 * @param namespace  Namespace to storing the data
+	 * @param set        Set storing the data
+	 * @param binNames   Bin names to return from the query
+	 * @param filter     Aerospike Filter to be used
+	 * @param qualifiers Zero or more Qualifiers for the update query
+	 * @return A Flux<KeyRecord> to iterate over the results
+	 */
+	public Flux<KeyRecord> select(String namespace, String set, String[] binNames, Filter filter, Qualifier... qualifiers) {
 		/*
 		 * singleton using primary key
 		 */
@@ -71,20 +88,27 @@ public class ReactorQueryEngine {
 		if (qualifiers != null && qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier) {
 			KeyQualifier kq = (KeyQualifier) qualifiers[0];
 			Key key = kq.makeKey(namespace, set);
-			return Flux.from(this.client.get(null, key))
+			return Flux.from(getRecord(null, key, binNames))
 					.filter(keyRecord -> Objects.nonNull(keyRecord.record));
 		}
 
 		/*
 		 *  query with filters
 		 */
-		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers);
+		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers, binNames);
 		QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
 		localQueryPolicy.filterExp = filterExpressionsBuilder.build(qualifiers);
 		if (!scansEnabled && statement.getFilter() == null) {
 			return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
 		}
 		return client.query(localQueryPolicy, statement);
+	}
+
+	private Mono<KeyRecord> getRecord(Policy policy, Key key, String[] binNames) {
+		if (binNames == null || binNames.length == 0) {
+			return client.get(policy, key);
+		}
+		return client.get(policy, key, binNames);
 	}
 
 	public void setScansEnabled(boolean scansEnabled) {

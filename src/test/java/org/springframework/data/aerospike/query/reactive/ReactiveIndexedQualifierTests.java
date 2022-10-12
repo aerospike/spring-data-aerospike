@@ -258,13 +258,11 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 
 			StepVerifier.create(flux.collectList())
 					.expectNextMatches(results -> {
-						results.forEach(keyRecord -> {
-							assertThat(results)
-									.allSatisfy(rec -> {
-										assertThat(rec.record.getString("color")).isEqualTo(GREEN);
-										assertThat(rec.record.getInt("age")).isBetween(28, 29);
-									});
-						});
+						results.forEach(keyRecord -> assertThat(results)
+								.allSatisfy(rec -> {
+									assertThat(rec.record.getString("color")).isEqualTo(GREEN);
+									assertThat(rec.record.getInt("age")).isBetween(28, 29);
+								}));
 						return true;
 					})
 					.verifyComplete();

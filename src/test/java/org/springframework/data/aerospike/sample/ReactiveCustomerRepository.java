@@ -31,6 +31,12 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByLastname(String lastname);
 
+    // DTO Projection
+    Flux<CustomerSomeFields> findCustomerSomeFieldsByLastname(String lastname);
+
+    // Dynamic Projection
+    <T> Flux<T> findByLastname(String lastname, Class<T> type);
+
     Flux<Customer> findByLastnameNot(String lastname);
 
     Mono<Customer> findOneByLastname(String lastname);
@@ -42,6 +48,8 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
     Flux<Customer> findByFirstnameEndsWith(String postfix);
 
     Flux<Customer> findByFirstnameStartsWithOrderByAgeAsc(String prefix);
+
+    Flux<CustomerSomeFields> findCustomerSomeFieldsByFirstnameStartsWithOrderByFirstnameAsc(String prefix);
 
     Flux<Customer> findByAgeLessThan(long age, Sort sort);
 
@@ -62,4 +70,6 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
     Flux<Customer> findByAgeBetweenAndLastname(long from, long to, String lastname);
 
     Flux<Customer> findByAgeBetweenOrderByFirstnameDesc(long i, long j);
+
+    Flux<Customer> findByGroup(char group);
 }

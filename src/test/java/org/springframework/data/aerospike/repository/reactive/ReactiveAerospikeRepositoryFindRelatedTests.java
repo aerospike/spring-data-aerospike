@@ -7,6 +7,7 @@ import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
+import org.springframework.data.aerospike.sample.CustomerSomeFields;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
@@ -36,10 +37,10 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     public void setUp() {
         StepVerifier.create(deleteAll()).verifyComplete();
 
-        customer1 = Customer.builder().id(nextId()).firstname("Homer").lastname("Simpson").age(42).build();
-        customer2 = Customer.builder().id(nextId()).firstname("Marge").lastname("Simpson").age(39).build();
-        customer3 = Customer.builder().id(nextId()).firstname("Bart").lastname("Simpson").age(15).build();
-        customer4 = Customer.builder().id(nextId()).firstname("Matt").lastname("Groening").age(65).build();
+        customer1 = Customer.builder().id(nextId()).firstname("Homer").lastname("Simpson").age(42).group('a').build();
+        customer2 = Customer.builder().id(nextId()).firstname("Marge").lastname("Simpson").age(39).group('b').build();
+        customer3 = Customer.builder().id(nextId()).firstname("Bart").lastname("Simpson").age(15).group('b').build();
+        customer4 = Customer.builder().id(nextId()).firstname("Matt").lastname("Groening").age(65).group('c').build();
 
         additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_first_name_index", "firstname", IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_last_name_index", "lastname", IndexType.STRING);
@@ -119,6 +120,24 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     }
 
     @Test
+    public void findCustomerSomeFieldsByLastname_ShouldWorkProperlyProjection() {
+        assertConsumedCustomersSomeFields(
+                StepVerifier.create(customerRepo.findCustomerSomeFieldsByLastname("Simpson")
+                        .subscribeOn(Schedulers.parallel())),
+                customers -> assertThat(customers).containsOnly(customer1.toCustomerSomeFields(),
+                        customer2.toCustomerSomeFields(), customer3.toCustomerSomeFields()));
+    }
+
+    @Test
+    public void findDynamicTypeByLastname_ShouldWorkProperlyDynamicProjection() {
+        assertConsumedCustomersSomeFields(
+                StepVerifier.create(customerRepo.findByLastname("Simpson", CustomerSomeFields.class)
+                        .subscribeOn(Schedulers.parallel())),
+                customers -> assertThat(customers).containsOnly(customer1.toCustomerSomeFields(),
+                        customer2.toCustomerSomeFields(), customer3.toCustomerSomeFields()));
+    }
+
+    @Test
     public void findByLastnameName_ShouldWorkProperly() {
         assertConsumedCustomers(
                 StepVerifier.create(customerRepo.findByLastnameNot("Simpson")
@@ -164,6 +183,15 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
                 StepVerifier.create(customerRepo.findByFirstnameStartsWithOrderByAgeAsc("Ma")
                         .subscribeOn(Schedulers.parallel())),
                 customers -> assertThat(customers).containsExactly(customer2, customer4));
+    }
+
+    @Test
+    public void findCustomerSomeFieldsByFirstnameStartsWithOrderByAgeAsc_ShouldWorkProperly() {
+        assertConsumedCustomersSomeFields(
+                StepVerifier.create(customerRepo.findCustomerSomeFieldsByFirstnameStartsWithOrderByFirstnameAsc("Ma")
+                        .subscribeOn(Schedulers.parallel())),
+                customers -> assertThat(customers).containsExactly(customer2.toCustomerSomeFields(),
+                        customer4.toCustomerSomeFields()));
     }
 
     @Test
@@ -247,9 +275,25 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
                 customers -> assertThat(customers).containsExactly(customer4, customer2, customer1));
     }
 
+    @Test
+    public void findByGroup() {
+        assertConsumedCustomers(
+                StepVerifier.create(customerRepo.findByGroup('b')
+                        .subscribeOn(Schedulers.parallel())),
+                customers -> assertThat(customers).containsOnly(customer2, customer3));
+    }
+
     private void assertConsumedCustomers(StepVerifier.FirstStep<Customer> step, Consumer<Collection<Customer>> assertion) {
         step.recordWith(ArrayList::new)
                 .thenConsumeWhile(customer -> true)
+                .consumeRecordedWith(assertion)
+                .verifyComplete();
+    }
+
+    private void assertConsumedCustomersSomeFields(StepVerifier.FirstStep<CustomerSomeFields> step,
+                                                   Consumer<Collection<CustomerSomeFields>> assertion) {
+        step.recordWith(ArrayList::new)
+                .thenConsumeWhile(customerSomeFields -> true)
                 .consumeRecordedWith(assertion)
                 .verifyComplete();
     }
@@ -258,5 +302,3 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
         return customerRepo.findAll().flatMap(a -> customerRepo.delete(a)).then();
     }
 }
-
-      

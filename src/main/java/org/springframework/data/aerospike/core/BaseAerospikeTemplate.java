@@ -34,10 +34,7 @@ import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
-import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
-import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
-import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
-import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
+import org.springframework.data.aerospike.mapping.*;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
@@ -178,6 +175,13 @@ abstract class BaseAerospikeTemplate {
         return data;
     }
 
+    <T> AerospikeWriteData writeDataWithSpecificFields(T document, Collection<String> fields) {
+        AerospikeWriteData data = AerospikeWriteData.forWrite(getNamespace());
+        data.setRequestedBins(fieldsToBinNames(document, fields));
+        converter.write(document, data);
+        return data;
+    }
+
     WritePolicy expectGenerationCasAwareSavePolicy(AerospikeWriteData data) {
         RecordExistsAction recordExistsAction = data.getVersion()
                 .filter(v -> v > 0L)
@@ -230,6 +234,34 @@ abstract class BaseAerospikeTemplate {
     Map<Class<?>, List<Key>> toEntitiesKeyMap(GroupedKeys groupedKeys) {
         return groupedKeys.getEntitiesKeys().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> toKeysList(entry.getKey(), entry.getValue())));
+    }
+
+    private <T> List<String> fieldsToBinNames(T document, Collection<String> fields) {
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+
+        return fields.stream()
+                .map(field -> {
+                    // Field is a class member of document class.
+                    if (entity.getPersistentProperty(field) != null) {
+                        return Objects.requireNonNull(entity.getPersistentProperty(field)).getFieldName();
+                    }
+                    // Field is a @Field annotated value (already a bin name).
+                    if (getFieldAnnotatedValue(entity, field) != null) {
+                        return field;
+                    }
+                    throw translateError(new AerospikeException("Cannot convert field: " + field +
+                            " to bin name. field doesn't exists."));
+                })
+                .collect(Collectors.toList());
+    }
+
+    private String getFieldAnnotatedValue(AerospikePersistentEntity<?> entity, String field) {
+        for (AerospikePersistentProperty property : entity.getPersistentProperties(Field.class)) {
+            if (property.getFieldName().equals(field)) {
+                return field;
+            }
+        }
+        return null;
     }
 
     private <T> List<Key> toKeysList(Class<T> entityClass, Collection<?> ids) {

@@ -17,6 +17,7 @@
 
 package org.springframework.data.aerospike.annotation;
 
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 
@@ -31,6 +32,13 @@ import java.lang.annotation.Target;
  * <p>
  * For more details on Secondary index feature please refer to
  * <a href="https://www.aerospike.com/docs/architecture/secondary-index.html">Aerospike Secondary index</a>.
+ * <p>
+ * Creating a secondary index with context via @Indexed annotation is not supported at the moment - instead use:
+ * {@link org.springframework.data.aerospike.core.AerospikeOperations#createIndex(Class, String, String,
+ * IndexType, IndexCollectionType, CTX...)}
+ * or for reactive flow:
+ * {@link org.springframework.data.aerospike.core.ReactiveAerospikeOperations#createIndex(Class, String, String,
+ * IndexType, IndexCollectionType, CTX...)}
  *
  * @author Taras Danylchuk
  */

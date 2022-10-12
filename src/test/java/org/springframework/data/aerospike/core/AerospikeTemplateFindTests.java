@@ -22,6 +22,9 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import org.springframework.data.aerospike.SampleClasses.VersionedClassWithAllArgsConstructor;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.PersonMissingAndRedundantFields;
+import org.springframework.data.aerospike.sample.PersonSomeFields;
+import org.springframework.data.aerospike.sample.PersonTouchOnRead;
 
 import java.util.Arrays;
 import java.util.Collections;

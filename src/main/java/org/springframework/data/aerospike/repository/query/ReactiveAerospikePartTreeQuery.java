@@ -20,6 +20,7 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
+import reactor.core.publisher.Flux;
 
 /**
  * @author Igor Ermolenko
@@ -40,6 +41,29 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 	public Object execute(Object[] parameters) {
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
 		Query query = prepareQuery(parameters, accessor);
+		Class<?> targetClass = getTargetClass(accessor);
+		return findByQuery(query, targetClass);
+	}
+
+	private Class<?> getTargetClass(ParametersParameterAccessor accessor) {
+		// Dynamic projection
+		if (accessor.getParameters().hasDynamicProjection()) {
+			return accessor.findDynamicProjection();
+		}
+		// DTO projection
+		if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
+			return queryMethod.getReturnedObjectType();
+		}
+		// No projection - target class will be the entity class.
+		return queryMethod.getEntityInformation().getJavaType();
+	}
+
+	private Flux<?> findByQuery(Query query, Class<?> targetClass) {
+		// Run query and map to different target class.
+		if (targetClass != queryMethod.getEntityInformation().getJavaType()) {
+			return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(), targetClass);
+		}
+		// Run query and map to entity class type.
 		return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
 	}
 }

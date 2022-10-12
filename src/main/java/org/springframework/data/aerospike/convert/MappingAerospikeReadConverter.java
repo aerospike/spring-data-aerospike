@@ -181,12 +181,11 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 
 		Map<Object, Object> converted = CollectionFactory.createMap(mapClass, keyClass, source.keySet().size());
 
-		source.entrySet()
-				.forEach((e) -> {
-					Object key = (keyClass != null) ? conversionService.convert(e.getKey(), keyClass) : e.getKey();
-					Object value = readValue(e.getValue(), mapValueType);
-					converted.put(key, value);
-				});
+		source.forEach((k, v) -> {
+			Object key = keyClass != null ? conversionService.convert(k, keyClass) : k;
+			Object value = readValue(v, mapValueType);
+			converted.put(key, value);
+		});
 
 		return (R) convertIfNeeded(converted, propertyType.getType());
 	}

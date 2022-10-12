@@ -29,9 +29,9 @@
         <spring-boot-starter-test>2.6.5</spring-boot-starter-test>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike>5.1.11</aerospike>
-        <aerospike-reactor>5.1.11</aerospike-reactor>
-        <embedded-aerospike>2.1.4</embedded-aerospike>
+        <aerospike>6.1.2</aerospike>
+        <aerospike-reactor>6.1.2</aerospike-reactor>
+        <embedded-aerospike>2.2.9</embedded-aerospike>
         <awaitility>4.2.0</awaitility>
         <blockhound>1.0.6.RELEASE</blockhound>
         <lombok>1.18.22</lombok>

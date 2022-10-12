@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Value;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
@@ -82,7 +83,7 @@ public interface AerospikeOperations {
      * Version property will be updated with the server's version after successful operation.
      * <p>
      * If document does not have version property - record is updated with {@link com.aerospike.client.policy.RecordExistsAction#REPLACE} policy.
-     * This means that when such record does not exist it will be created, otherwise updated.
+     * This means that when such record does not exist it will be created, otherwise updated - an "upsert".
      *
      * @param document The document to save. Must not be {@literal null}.
      */
@@ -112,6 +113,18 @@ public interface AerospikeOperations {
      * @param document The document to update. Must not be {@literal null}.
      */
     <T> void update(T document);
+
+    /**
+     * Update document specific fields based on a given collection of fields.
+     * using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy -
+     * You can instantiate the document with only relevant fields and specify the list of fields that you want to update.
+     * taking into consideration the version property of the document if it is present.
+     * <p>
+     * If document has version property it will be updated with the server's version after successful operation.
+     *
+     * @param document The document to update. Must not be {@literal null}.
+     */
+    <T> void update(T document, Collection<String> fields);
 
     /**
      * Truncate/Delete all the documents in the given entity's set.
@@ -156,12 +169,31 @@ public interface AerospikeOperations {
     <T> Stream<T> find(Query query, Class<T> entityClass);
 
     /**
+     * Find documents in the given entityClass's set using a query and map them to the given target class type.
+     *
+     * @param query       The query to filter results. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Stream<S> find(Query query, Class<T> entityClass, Class<S> targetClass);
+
+    /**
      * Find all documents in the given entityClass's set and map them to the given class type.
      *
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
      * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
      */
     <T> Stream<T> findAll(Class<T> entityClass);
+
+    /**
+     * Find all documents in the given entityClass's set and map them to the given target class type.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Stream<S> findAll(Class<T> entityClass, Class<S> targetClass);
 
     /**
      * Find a document by id, set name will be determined by the given entityClass.
@@ -175,6 +207,18 @@ public interface AerospikeOperations {
     <T> T findById(Object id, Class<T> entityClass);
 
     /**
+     * Find a document by id, set name will be determined by the given entityClass.
+     * <p>
+     * Document will be mapped to the given entityClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return The document from Aerospike, returned document will be mapped to targetClass's type, if document doesn't exist return null.
+     */
+    <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass);
+
+    /**
      * Find documents by providing multiple ids using a single batch read operation, set name will be determined by the given entityClass.
      * <p>
      * Documents will be mapped to the given entityClass.
@@ -186,10 +230,22 @@ public interface AerospikeOperations {
     <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
+     * Find documents by providing multiple ids using a single batch read operation, set name will be determined by the given entityClass.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document exists return an empty list.
+     */
+    <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass);
+
+    /**
      * Executes a single batch request to get results for several entities.
      * <p>
      * Aerospike provides functionality to get documents from different sets in 1 batch
-     * request. The methods allows to put grouped keys by entity type as parameter and
+     * request. The methods allow to put grouped keys by entity type as parameter and
      * get result as spring data aerospike entities grouped by entity type.
      *
      * @param groupedKeys Must not be {@literal null}.
@@ -198,7 +254,7 @@ public interface AerospikeOperations {
     GroupedEntities findByIds(GroupedKeys groupedKeys);
 
     /**
-     * Add integer/double bin values to existing document bin values, read the new modified document and map it back the the
+     * Add integer/double bin values to existing document bin values, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -208,7 +264,7 @@ public interface AerospikeOperations {
     <T> T add(T document, Map<String, Long> values);
 
     /**
-     * Add integer/double bin value to existing document bin value, read the new modified document and map it back the the
+     * Add integer/double bin value to existing document bin value, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -219,7 +275,7 @@ public interface AerospikeOperations {
     <T> T add(T document, String binName, long value);
 
     /**
-     * Append bin string values to existing document bin values, read the new modified document and map it back the the
+     * Append bin string values to existing document bin values, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -229,7 +285,7 @@ public interface AerospikeOperations {
     <T> T append(T document, Map<String, String> values);
 
     /**
-     * Append bin string value to existing document bin value, read the new modified document and map it back the the
+     * Append bin string value to existing document bin value, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -240,7 +296,7 @@ public interface AerospikeOperations {
     <T> T append(T document, String binName, String value);
 
     /**
-     * Prepend bin string values to existing document bin values, read the new modified document and map it back the the
+     * Prepend bin string values to existing document bin values, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -250,7 +306,7 @@ public interface AerospikeOperations {
     <T> T prepend(T document, Map<String, String> values);
 
     /**
-     * Prepend bin string value to existing document bin value, read the new modified document and map it back the the
+     * Prepend bin string value to existing document bin value, read the new modified document and map it back the
      * given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
@@ -283,11 +339,21 @@ public interface AerospikeOperations {
     /**
      * Find all documents in the given entityClass's set using a provided sort and map them to the given class type.
      *
-     * @param entityClass The class to extract the Aerospike set from and to map the documents to.
      * @param sort        The sort to affect the returned iterable documents order.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to.
      * @return An Iterable of matching documents, returned documents will be mapped to entityClass's type.
      */
     <T> Iterable<T> findAll(Sort sort, Class<T> entityClass);
+
+    /**
+     * Find all documents in the given entityClass's set using a provided sort and map them to the given target class type.
+     *
+     * @param sort        The sort to affect the returned iterable documents order.
+     * @param entityClass The class to extract the Aerospike set from.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return An Iterable of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Iterable<S> findAll(Sort sort, Class<T> entityClass, Class<S> targetClass);
 
     /**
      * Find documents in the given entityClass's set using a range (offset, limit) and a sort
@@ -295,11 +361,24 @@ public interface AerospikeOperations {
      *
      * @param offset      The offset to start the range from.
      * @param limit       The limit of the range.
-     * @param sort        The sort to affect the returned Stream of documents order.
+     * @param sort        The sort to affect the order of the returned Stream of documents.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be {@literal null}.
      * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
      */
     <T> Stream<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass);
+
+    /**
+     * Find documents in the given entityClass's set using a range (offset, limit) and a sort
+     * and map them to the given target class type.
+     *
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
+     * @param sort        The sort to affect the returned Stream of documents order.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Stream<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass);
 
     /**
      * Return the amount of documents in a query results. set name will be determined by the given entityClass.
@@ -350,6 +429,19 @@ public interface AerospikeOperations {
                          IndexType indexType, IndexCollectionType indexCollectionType);
 
     /**
+     * Create index by specified name in Aerospike.
+     *
+     * @param entityClass         The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param indexName           The index name. Must not be {@literal null}.
+     * @param binName             The bin name to create the index on. Must not be {@literal null}.
+     * @param indexType           The type of the index. Must not be {@literal null}.
+     * @param indexCollectionType The collection type of the index. Must not be {@literal null}.
+     * @param ctx                 optional context to index on elements within a CDT.
+     */
+    <T> void createIndex(Class<T> entityClass, String indexName, String binName,
+                         IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
+
+    /**
      * Delete index by specified name from Aerospike.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
@@ -363,7 +455,7 @@ public interface AerospikeOperations {
      * @param indexName The Aerospike index name. Must not be {@literal null}.
      * @return true if exists
      * @deprecated This operation is deprecated due to complications that are required for guaranteed index existence response.
-     * <p>If you need to conditionally create index \u2014 replace this method (indexExists) with {@link #createIndex} and catch {@link IndexAlreadyExistsException}.
+     * <p>If you need to conditionally create index — replace this method (indexExists) with {@link #createIndex} and catch {@link IndexAlreadyExistsException}.
      * <p>More information can be found at: <a href="https://github.com/aerospike/aerospike-client-java/pull/149">https://github.com/aerospike/aerospike-client-java/pull/149</a>
      */
     @Deprecated

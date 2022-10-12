@@ -47,23 +47,43 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 		ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
 		Query query = prepareQuery(parameters, accessor);
 
+		Class<?> targetClass = getTargetClass(accessor);
+
 		if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
-			Stream<?> result = findByQuery(query);
+			Stream<?> result = findByQuery(query, targetClass);
 			long total = queryMethod.isSliceQuery() ? 0 : aerospikeOperations.count(query, queryMethod.getEntityInformation().getJavaType());
 			//TODO: should return SliceImpl for slice query
 			return new PageImpl(result.collect(Collectors.toList()), accessor.getPageable(), total);
 		} else if (queryMethod.isStreamQuery()) {
-			return findByQuery(query);
+			return findByQuery(query, targetClass);
 		} else if (queryMethod.isCollectionQuery()) {
-			return findByQuery(query).collect(Collectors.toList());
+			return findByQuery(query, targetClass).collect(Collectors.toList());
 		} else if (queryMethod.isQueryForEntity()) {
-			Stream<?> result = findByQuery(query);
+			Stream<?> result = findByQuery(query, targetClass);
 			return result.findFirst().orElse(null);
 		}
 		throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " not supported.");
 	}
 
-	private Stream<?> findByQuery(Query query) {
-		return this.aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
+	private Class<?> getTargetClass(ParametersParameterAccessor accessor) {
+		// Dynamic projection
+		if (accessor.getParameters().hasDynamicProjection()) {
+			return accessor.findDynamicProjection();
+		}
+		// DTO projection
+		if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
+			return queryMethod.getReturnedObjectType();
+		}
+		// No projection - target class will be the entity class.
+		return queryMethod.getEntityInformation().getJavaType();
+	}
+
+	private Stream<?> findByQuery(Query query, Class<?> targetClass) {
+		// Run query and map to different target class.
+		if (targetClass != queryMethod.getEntityInformation().getJavaType()) {
+			return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(), targetClass);
+		}
+		// Run query and map to entity class type.
+		return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
 	}
 }

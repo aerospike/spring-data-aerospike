@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.Record;
 import com.aerospike.client.*;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -33,18 +34,21 @@ import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
@@ -136,8 +140,30 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public <T> Mono<T> update(T document, Collection<String> fields) {
+        Assert.notNull(document, "Document must not be null!");
+
+        AerospikeWriteData data = writeDataWithSpecificFields(document, fields);
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+        if (entity.hasVersionProperty()) {
+            WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+            return doPersistWithVersionAndHandleCasError(document, data, policy);
+        } else {
+            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+            return doPersistAndHandleError(document, data, policy);
+        }
+    }
+
+    @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
         return findAllUsingQuery(entityClass, null, (Qualifier[]) null);
+    }
+
+    @Override
+    public <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass) {
+        return findAllUsingQuery(entityClass, targetClass, null, (Qualifier[]) null);
     }
 
     @Override
@@ -229,7 +255,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for entity without expiration property");
-            return getAndTouch(key, entity.getExpiration())
+            return getAndTouch(key, entity.getExpiration(), null)
                     .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                     .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record))
                     .onErrorResume(
@@ -246,6 +272,31 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public <T, S> Mono<S> findById(Object id, Class<T> entityClass, Class<S> targetClass) {
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+        Key key = getKey(id, entity);
+
+        String[] binNames = getBinNamesFromTargetClass(targetClass);
+
+        if (entity.isTouchOnRead()) {
+            Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for entity without expiration property");
+            return getAndTouch(key, entity.getExpiration(), binNames)
+                    .filter(keyRecord -> Objects.nonNull(keyRecord.record))
+                    .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
+                    .onErrorResume(
+                            th -> th instanceof AerospikeException && ((AerospikeException) th).getResultCode() == KEY_NOT_FOUND_ERROR,
+                            th -> Mono.empty()
+                    )
+                    .onErrorMap(this::translateError);
+        } else {
+            return reactorClient.get(null, key, binNames)
+                    .filter(keyRecord -> Objects.nonNull(keyRecord.record))
+                    .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
+                    .onErrorMap(this::translateError);
+        }
+    }
+
+    @Override
     public <T> Flux<T> findByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
@@ -257,6 +308,23 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .flatMap(reactorClient::get)
                 .filter(keyRecord -> nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
+    }
+
+    @Override
+    public <T, S> Flux<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(targetClass, "Target type must not be null!");
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+        String[] binNames = getBinNamesFromTargetClass(targetClass);
+
+        return Flux.fromIterable(ids)
+                .map(id -> getKey(id, entity))
+                .flatMap(key -> reactorClient.get(null, key, binNames))
+                .filter(keyRecord -> nonNull(keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
     }
 
     @Override
@@ -287,11 +355,31 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(targetClass, "Target type must not be null!");
+
+        return findAllUsingQuery(entityClass, targetClass, query);
+    }
+
+    @Override
     public <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass) {
         Assert.notNull(entityClass, "Type for count must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
 
         return findAllUsingQuery(entityClass, null, (Qualifier[]) null)
+                .skip(offset)
+                .take(limit);
+    }
+
+    @Override
+    public <T, S> Flux<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Type for count must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(targetClass, "Target type must not be null!");
+
+        return findAllUsingQuery(entityClass, targetClass, null, (Qualifier[]) null)
                 .skip(offset)
                 .take(limit);
     }
@@ -401,15 +489,23 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
                                       String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
+        return createIndex(entityClass, indexName, binName, indexType, indexCollectionType, new CTX[0]);
+    }
+
+    @Override
+    public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
+                                      String binName, IndexType indexType, IndexCollectionType indexCollectionType,
+                                      CTX... ctx) {
         Assert.notNull(entityClass, "Type must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
         Assert.notNull(binName, "Bin name must not be null!");
         Assert.notNull(indexType, "Index type must not be null!");
         Assert.notNull(indexCollectionType, "Index collection type must not be null!");
+        Assert.notNull(ctx, "Ctx must not be null!");
 
         String setName = getSetName(entityClass);
         return reactorClient.createIndex(null, this.namespace,
-                setName, indexName, binName, indexType, indexCollectionType)
+                        setName, indexName, binName, indexType, indexCollectionType, ctx)
                 .then(reactorIndexRefresher.refreshIndexes())
                 .onErrorMap(this::translateError);
     }
@@ -456,11 +552,31 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .map(keyRecord -> keyRecord.record);
     }
 
-    private Mono<KeyRecord> getAndTouch(Key key, int expiration) {
+    private Mono<KeyRecord> getAndTouch(Key key, int expiration, String[] binNames) {
         WritePolicy writePolicy = WritePolicyBuilder.builder(this.writePolicyDefault)
                 .expiration(expiration)
                 .build();
-        return reactorClient.operate(writePolicy, key, Operation.touch(), Operation.get());
+        if (binNames == null || binNames.length == 0) {
+            return reactorClient.operate(writePolicy, key, Operation.touch(), Operation.get());
+        }
+        Operation[] operations = new Operation[binNames.length + 1];
+        operations[0] = Operation.touch();
+
+        for (int i = 1; i < operations.length; i++) {
+            operations[i] = Operation.get(binNames[i - 1]);
+        }
+        return reactorClient.operate(writePolicy, key, operations);
+    }
+
+    private String[] getBinNamesFromTargetClass(Class<?> targetClass) {
+        AerospikePersistentEntity<?> targetEntity = mappingContext.getRequiredPersistentEntity(targetClass);
+
+        List<String> binNamesList = new ArrayList<>();
+
+        targetEntity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property
+                -> binNamesList.add(property.getFieldName()));
+
+        return binNamesList.toArray(new String[0]);
     }
 
     private Throwable translateError(Throwable e) {
@@ -470,7 +586,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return e;
     }
 
-    <T> Flux<T> findAllUsingQuery(Class<T> type, Query query) {
+    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Query query) {
         if ((query.getSort() == null || query.getSort().isUnsorted())
                 && query.getOffset() > 0) {
             throw new IllegalArgumentException("Unsorted query must not have offset value. " +
@@ -478,8 +594,27 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
 
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Flux<T> results = findAllUsingQuery(type, null, qualifier);
+        Flux<T> results = findAllUsingQuery(entityClass, null, qualifier);
 
+        results = applyPostProcessingOnResults(results, query);
+        return results;
+    }
+
+    <T, S> Flux<S> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Query query) {
+        if ((query.getSort() == null || query.getSort().isUnsorted())
+                && query.getOffset() > 0) {
+            throw new IllegalArgumentException("Unsorted query must not have offset value. " +
+                    "For retrieving paged results use sorted query.");
+        }
+
+        Qualifier qualifier = query.getCriteria().getCriteriaObject();
+        Flux<S> results = findAllUsingQuery(entityClass, targetClass, null, qualifier);
+
+        results = applyPostProcessingOnResults(results, query);
+        return results;
+    }
+
+    private <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, Query query) {
         if (query.getSort() != null && query.getSort().isSorted()) {
             Comparator<T> comparator = getComparator(query);
             results = results.sort(comparator);
@@ -494,21 +629,32 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
-    <T> Flux<T> findAllUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(type, filter, qualifiers)
-                .map(keyRecord -> mapToEntity(keyRecord.key, type, keyRecord.record));
+    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+                .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }
 
-    <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Query query) {
+    <T, S> Flux<S> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
+                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+    }
+
+    <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(type, "Type must not be null!");
+        Assert.notNull(entityClass, "Type must not be null!");
 
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        return findAllRecordsUsingQuery(type, null, qualifier);
+        return findAllRecordsUsingQuery(entityClass, null, null, qualifier);
     }
 
-    <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> type, Filter filter, Qualifier... qualifiers) {
-        String setName = getSetName(type);
-        return this.queryEngine.select(this.namespace, setName, filter, qualifiers);
+    <T, S> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
+        String setName = getSetName(entityClass);
+
+        if (targetClass != null) {
+            String[] binNames = getBinNamesFromTargetClass(targetClass);
+            return this.queryEngine.select(this.namespace, setName, binNames, filter, qualifiers);
+        } else {
+            return this.queryEngine.select(this.namespace, setName, filter, qualifiers);
+        }
     }
 }
