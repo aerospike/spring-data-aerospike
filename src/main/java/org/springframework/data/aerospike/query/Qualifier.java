@@ -398,7 +398,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
 	private Boolean ignoreCase() {
 		Boolean ignoreCase = (Boolean) internalMap.get(IGNORE_CASE);
-		return (ignoreCase == null) ? false : ignoreCase;
+		return ignoreCase == Boolean.TRUE;
 	}
 
 	protected String luaFieldString(String field) {
@@ -420,10 +420,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
 			//			res = value.toString();
 			//			break;
 			case ParticleType.STRING:
-				res = String.format("'%s'", value.toString());
+				res = String.format("'%s'", value);
 				break;
 			case ParticleType.GEOJSON:
-				res = String.format("'%s'", value.toString());
+				res = String.format("'%s'", value);
 				break;
 			default:
 				res = value.toString();
@@ -468,7 +468,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 	}
 
 	@Override
-	public void putAll(Map<? extends String, ? extends Object> m) {
+	public void putAll(Map<? extends String, ?> m) {
 		internalMap.putAll(m);
 	}
 

@@ -19,7 +19,6 @@ package org.springframework.data.aerospike.query.reactive;
 import com.aerospike.client.Value;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.Qualifier;
@@ -34,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.data.aerospike.CollectionUtils.countingInt;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.BETWEEN;
 import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.CONTAINING;
@@ -664,7 +664,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 						int age = keyRecord.record.getInt("age");
 						String color = keyRecord.record.getString("color");
 
-						Assert.assertTrue(expectedColor.equals(color) || (age >= 28 && age <= 29));
+						assertTrue(expectedColor.equals(color) || (age >= 28 && age <= 29));
 						if (expectedColor.equals(color)) {
 							colorMatched.incrementAndGet();
 						}
@@ -699,12 +699,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 						int age = keyRecord.record.getInt("age");
 						if (age == 25) has25.set(true);
-						else Assert.assertTrue("green".equals(keyRecord.record.getString("color"))
-								&& (age == 25 || (age >= 28 && age <= 29)));
+						else assertTrue("green".equals(keyRecord.record.getString("color")) && age >= 28 && age <= 29);
 
 					});
 
-					Assert.assertTrue(has25.get());
+					assertTrue(has25.get());
 
 					return true;
 				})

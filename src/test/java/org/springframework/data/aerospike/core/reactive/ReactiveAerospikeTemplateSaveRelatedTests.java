@@ -199,11 +199,9 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         reactiveTemplate.save(new VersionedClass(id, "foo2", 2L)).subscribeOn(Schedulers.parallel()).block();
 
         StepVerifier.create(reactorClient.get(new Policy(), key))
-                .assertNext(keyRecord -> {
-                    assertThat(keyRecord.record.bins)
-                            .doesNotContainKey("notPresent")
-                            .contains(entry("field", "foo2"));
-                })
+                .assertNext(keyRecord -> assertThat(keyRecord.record.bins)
+                        .doesNotContainKey("notPresent")
+                        .contains(entry("field", "foo2")))
                 .verifyComplete();
 
     }
