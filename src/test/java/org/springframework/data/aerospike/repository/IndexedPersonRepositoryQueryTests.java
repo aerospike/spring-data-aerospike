@@ -51,7 +51,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_ints_index", "ints", IndexType.NUMERIC, IndexCollectionType.LIST);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_map_keys_index", "map", IndexType.STRING, IndexCollectionType.MAPKEYS);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_map_values_index", "map", IndexType.STRING, IndexCollectionType.MAPVALUES);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_intmap_values_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPKEYS);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_intmap_keys_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPKEYS);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_intmap_values_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPVALUES);
         indexRefresher.refreshIndexes();
     }

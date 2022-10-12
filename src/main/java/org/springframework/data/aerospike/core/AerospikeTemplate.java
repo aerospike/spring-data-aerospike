@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.Record;
 import com.aerospike.client.*;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -88,16 +89,23 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 	@Override
 	public <T> void createIndex(Class<T> entityClass, String indexName,
 								String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
+		createIndex(entityClass, indexName, binName, indexType, indexCollectionType, new CTX[0]);
+	}
+
+	@Override
+	public <T> void createIndex(Class<T> entityClass, String indexName,
+								String binName, IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
 		Assert.notNull(entityClass, "Type must not be null!");
 		Assert.notNull(indexName, "Index name must not be null!");
 		Assert.notNull(binName, "Bin name must not be null!");
 		Assert.notNull(indexType, "Index type must not be null!");
 		Assert.notNull(indexCollectionType, "Index collection type must not be null!");
+		Assert.notNull(ctx, "Ctx must not be null!");
 
 		try {
 			String setName = getSetName(entityClass);
 			IndexTask task = client.createIndex(null, this.namespace,
-					setName, indexName, binName, indexType, indexCollectionType);
+					setName, indexName, binName, indexType, indexCollectionType, ctx);
 			if (task != null) {
 				task.waitTillComplete();
 			}
@@ -183,7 +191,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
 		if (entity.hasVersionProperty()) {
 			// we are ignoring generation here as insert operation should fail with DuplicateKeyException if key already exists
-			// and we do not mind which initial version is set in the document, BUT we need to update the version value in the original document
+			// we do not mind which initial version is set in the document, BUT we need to update the version value in the original document
 			// also we do not want to handle aerospike error codes as cas aware error codes as we are ignoring generation
 			doPersistWithVersionAndHandleError(document, data, policy);
 		} else {
@@ -203,6 +211,23 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			doPersistWithVersionAndHandleCasError(document, data, policy);
 		} else {
 			WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.REPLACE_ONLY);
+
+			doPersistAndHandleError(data, policy);
+		}
+	}
+
+	@Override
+	public <T> void update(T document, Collection<String> fields) {
+		Assert.notNull(document, "Document must not be null!");
+
+		AerospikeWriteData data = writeDataWithSpecificFields(document, fields);
+		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+		if (entity.hasVersionProperty()) {
+			WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+			doPersistWithVersionAndHandleCasError(document, data, policy);
+		} else {
+			WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
 			doPersistAndHandleError(data, policy);
 		}
@@ -257,8 +282,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 			AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 			Key key = getKey(id, entity);
 
-			Record record = this.client.operate(null, key, Operation.getHeader());
-			return record != null;
+			Record aeroRecord = this.client.operate(null, key, Operation.getHeader());
+			return aeroRecord != null;
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
@@ -436,9 +461,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 	private GroupedEntities findEntitiesByIdsInternal(GroupedKeys groupedKeys) {
 		EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
-		Record[] records = client.get(null, entitiesKeys.getKeys());
+		Record[] aeroRecords = client.get(null, entitiesKeys.getKeys());
 
-		return toGroupedEntities(entitiesKeys, records);
+		return toGroupedEntities(entitiesKeys, aeroRecords);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -579,11 +604,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 		try {
 			AerospikeWriteData data = writeData(document);
-			Record record = this.client.operate(null, data.getKey(),
+			Record aeroRecord = this.client.operate(null, data.getKey(),
 					Operation.prepend(new Bin(fieldName, value)),
 					Operation.get(fieldName));
 
-			return mapToEntity(data.getKey(), getEntityClass(document), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), aeroRecord);
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
@@ -597,9 +622,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		try {
 			AerospikeWriteData data = writeData(document);
 			Operation[] ops = operations(values, Operation.Type.PREPEND, Operation.get());
-			Record record = this.client.operate(null, data.getKey(), ops);
+			Record aeroRecord = this.client.operate(null, data.getKey(), ops);
 
-			return mapToEntity(data.getKey(), getEntityClass(document), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), aeroRecord);
 		}
 		catch (AerospikeException e) {
 			throw translateError(e);
@@ -614,9 +639,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		try {
 			AerospikeWriteData data = writeData(document);
 			Operation[] ops = operations(values, Operation.Type.APPEND, Operation.get());
-			Record record = this.client.operate(null, data.getKey(), ops);
+			Record aeroRecord = this.client.operate(null, data.getKey(), ops);
 
-			return mapToEntity(data.getKey(), getEntityClass(document), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), aeroRecord);
 		}
 		catch (AerospikeException e) {
 			throw translateError(e);
@@ -630,11 +655,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		try {
 
 			AerospikeWriteData data = writeData(document);
-			Record record = this.client.operate(null, data.getKey(),
+			Record aeroRecord = this.client.operate(null, data.getKey(),
 					Operation.append(new Bin(binName, value)),
 					Operation.get(binName));
 
-			return mapToEntity(data.getKey(), getEntityClass(document), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), aeroRecord);
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
@@ -653,9 +678,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 					.expiration(data.getExpiration())
 					.build();
 
-			Record record = this.client.operate(writePolicy, data.getKey(), ops);
+			Record aeroRecord = this.client.operate(writePolicy, data.getKey(), ops);
 
-			return mapToEntity(data.getKey(), getEntityClass(document), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), aeroRecord);
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
@@ -673,10 +698,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 					.expiration(data.getExpiration())
 					.build();
 
-			Record record = this.client.operate(writePolicy, data.getKey(),
+			Record aeroRecord = this.client.operate(writePolicy, data.getKey(),
 					Operation.add(new Bin(binName, value)), Operation.get());
 
-			return mapToEntity(data.getKey(), getEntityClass(document), record);
+			return mapToEntity(data.getKey(), getEntityClass(document), aeroRecord);
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}
@@ -692,8 +717,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 	private <T> void doPersistWithVersionAndHandleCasError(T document, AerospikeWriteData data, WritePolicy policy) {
 		try {
-			Record newRecord = putAndGetHeader(data, policy);
-			updateVersion(document, newRecord);
+			Record newAeroRecord = putAndGetHeader(data, policy);
+			updateVersion(document, newAeroRecord);
 		} catch (AerospikeException e) {
 			throw translateCasError(e);
 		}
@@ -701,8 +726,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
 	private <T> void doPersistWithVersionAndHandleError(T document, AerospikeWriteData data, WritePolicy policy) {
 		try {
-			Record newRecord = putAndGetHeader(data, policy);
-			updateVersion(document, newRecord);
+			Record newAeroRecord = putAndGetHeader(data, policy);
+			updateVersion(document, newAeroRecord);
 		} catch (AerospikeException e) {
 			throw translateError(e);
 		}

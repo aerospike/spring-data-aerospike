@@ -18,7 +18,6 @@ package org.springframework.data.aerospike.mapping;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.*;
 
 import java.util.concurrent.TimeUnit;
 

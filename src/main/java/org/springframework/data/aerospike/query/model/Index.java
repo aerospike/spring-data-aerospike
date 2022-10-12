@@ -16,6 +16,7 @@
  */
 package org.springframework.data.aerospike.query.model;
 
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.Builder;
@@ -40,6 +41,17 @@ public class Index {
 	String bin;
 	IndexType indexType;
 	IndexCollectionType indexCollectionType;
+	CTX[] ctx;
+
+	public Index(String name, String namespace, String set, String bin, IndexType indexType, IndexCollectionType indexCollectionType) {
+		this.name = name;
+		this.namespace = namespace;
+		this.set = set;
+		this.bin = bin;
+		this.indexType = indexType;
+		this.indexCollectionType = indexCollectionType;
+		this.ctx = null;
+	}
 
 	public String getName() {
 		return this.name;
@@ -63,5 +75,9 @@ public class Index {
 
 	public IndexCollectionType getCollectionType() {
 		return this.indexCollectionType;
+	}
+
+	public CTX[] getCTX() {
+		return this.ctx;
 	}
 }

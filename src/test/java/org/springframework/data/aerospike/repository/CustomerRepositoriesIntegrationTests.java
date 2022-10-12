@@ -22,6 +22,7 @@ import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.CustomerRepository;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,18 +50,24 @@ public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegratio
 
 	@Test
 	public void delete() {
-		repository.delete(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
+		repository.delete(Customer.builder().id(id).firstname("Dave").lastname("Matthews").group('a').build());
 	}
 
 	@Test
 	public void readById() {
-		Customer customer = repository.save(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
+		Customer customer = repository.save(Customer.builder()
+				.id(id)
+				.firstname("Dave")
+				.lastname("Matthews")
+				.group('a')
+				.build());
 
 		Optional<Customer> findById = repository.findById(id);
 
 		assertThat(findById).hasValueSatisfying(actual -> {
 			assertThat(actual.getLastname()).isEqualTo(customer.getLastname());
 			assertThat(actual.getFirstname()).isEqualTo(customer.getFirstname());
+			assertThat(actual.getGroup()).isEqualTo(customer.getGroup());
 		});
 	}
 
@@ -74,5 +81,38 @@ public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegratio
 		Iterable<Customer> customers = repository.findAllById(Arrays.asList(first.getId(), second.getId()));
 
 		assertThat(customers).hasSize(2);
+	}
+
+	@Test
+	public void findByGroup() {
+		Customer first = repository.save(Customer.builder()
+				.id(nextId())
+				.firstname("Dave")
+				.lastname("AMatthews")
+				.group('c')
+				.build());
+		Customer second = repository.save(Customer.builder()
+				.id(nextId())
+				.firstname("Dave")
+				.lastname("BMatthews")
+				.group('d')
+				.build());
+		Customer third = repository.save(Customer.builder()
+				.id(nextId())
+				.firstname("Dave")
+				.lastname("CMatthews")
+				.group('d')
+				.build());
+
+		List<Customer> results = repository.findByGroup('d');
+		assertThat(results).hasSize(2);
+		assertThat(results).containsOnly(second, third);
+
+		results = repository.findByGroup('c');
+		assertThat(results).hasSize(1);
+		assertThat(results).containsOnly(first);
+
+		results = repository.findByGroup('e');
+		assertThat(results).hasSize(0);
 	}
 }

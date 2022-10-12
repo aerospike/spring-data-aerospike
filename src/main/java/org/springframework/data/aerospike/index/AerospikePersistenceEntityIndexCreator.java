@@ -49,6 +49,7 @@ public class AerospikePersistenceEntityIndexCreator extends BaseAerospikePersist
     private void installIndex(AerospikeIndexDefinition index) {
         log.debug("Installing aerospike index: {}...", index);
         try {
+            // TODO: add ctx (@Indexed with ctx support)
             template.createIndex(index.getEntityClass(), index.getName(),
                     index.getFieldName(), index.getType(), index.getCollectionType());
             log.info("Installed aerospike index: {} successfully.", index);

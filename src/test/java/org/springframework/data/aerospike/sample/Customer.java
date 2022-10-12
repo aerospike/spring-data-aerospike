@@ -27,10 +27,11 @@ import org.springframework.data.annotation.Id;
 @Builder
 @Document
 public class Customer {
-
-    private @Id String id;
+    @Id
+    private String id;
     private String firstname, lastname;
     private long age;
+    private char group;
 
     public CustomerSomeFields toCustomerSomeFields() {
         return CustomerSomeFields.builder()

@@ -237,6 +237,4 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 			tryDropIndex(namespace, INDEXED_SET_NAME, "color_index");
 		}
 	}
-
-
 }

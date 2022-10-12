@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.query.cache;
 
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.query.model.Index;
@@ -40,12 +41,13 @@ public class IndexInfoParser {
 	private static final String NAMESPACE = "namespace";
 	private static final String TYPE = "type";
 	private static final String STRING_TYPE = "STRING";
-	private static final String GEO_JSON_TYPE = "GEOJSON";
+	private static final String GEO2DSPHERE_TYPE = "GEO2DSPHERE";
 	private static final String NUMERIC_TYPE = "NUMERIC";
 	private static final String NONE = "NONE";
 	private static final String LIST = "LIST";
 	private static final String MAPKEYS = "MAPKEYS";
 	private static final String MAPVALUES = "MAPVALUES";
+	private static final String CONTEXT = "context";
 
 	public Index parse(String infoString) {
 		Map<String, String> values = getIndexInfo(infoString);
@@ -55,6 +57,7 @@ public class IndexInfoParser {
 		String bin = getRequiredBin(values);
 		IndexType indexType = getIndexTypeInternal(values);
 		IndexCollectionType collectionType = getIndexCollectionTypeInternal(values);
+		CTX[] context = getIndexContext(values);
 		return Index.builder()
 				.name(name)
 				.namespace(namespace)
@@ -62,6 +65,7 @@ public class IndexInfoParser {
 				.bin(bin)
 				.indexType(indexType)
 				.indexCollectionType(collectionType)
+				.ctx(context)
 				.build();
 	}
 
@@ -78,7 +82,13 @@ public class IndexInfoParser {
 		}
 		return Arrays.stream(info.split(":"))
 				.map(part -> {
-					String[] kvParts = part.split("=");
+					String[] kvParts;
+					// Context base64 can contain "=".
+					if (part.contains(CONTEXT)) {
+						kvParts = part.split("=", 2);
+					} else {
+						kvParts = part.split("=");
+					}
 					if (kvParts.length == 0) {
 						throw new IllegalStateException("Failed to parse info string part: " + part);
 					}
@@ -105,7 +115,7 @@ public class IndexInfoParser {
 		}
 		if (indexTypeString.equalsIgnoreCase(STRING_TYPE))
 			return IndexType.STRING;
-		else if (indexTypeString.equalsIgnoreCase(GEO_JSON_TYPE))
+		else if (indexTypeString.equalsIgnoreCase(GEO2DSPHERE_TYPE))
 			return IndexType.GEO2DSPHERE;
 		else if (indexTypeString.equalsIgnoreCase(NUMERIC_TYPE))
 			return IndexType.NUMERIC;
@@ -156,5 +166,14 @@ public class IndexInfoParser {
 		if (namespace != null)
 			return namespace;
 		throw new IllegalStateException("Namespace not present in info: " + values);
+	}
+
+	private CTX[] getIndexContext(Map<String, String> values) {
+		String contextString = values.get(CONTEXT);
+
+		if (contextString != null && !contextString.equals("null")) {
+			return CTX.fromBase64(contextString);
+		}
+		return null;
 	}
 }

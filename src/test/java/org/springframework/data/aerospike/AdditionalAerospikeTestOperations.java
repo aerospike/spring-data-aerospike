@@ -45,14 +45,12 @@ public abstract class AdditionalAerospikeTestOperations {
     public void assertNoScansForSet(String setName) {
         List<ScanJob> jobs = getScans();
         List<ScanJob> jobsForSet = jobs.stream().filter(job -> setName.equals(job.set)).collect(Collectors.toList());
-        assertThat(jobsForSet)
-                .as("Scan jobs for set: " + setName)
-                .isEmpty();
+        jobsForSet.forEach(job -> assertThat(job.getStatus()).isEqualTo("done(ok)"));
     }
 
     @SneakyThrows
     public List<ScanJob> getScans() {
-        Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", "scan-list");
+        Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", "scan-show");
         String stdout = execResult.getStdout();
         return getScanJobs(stdout);
     }
