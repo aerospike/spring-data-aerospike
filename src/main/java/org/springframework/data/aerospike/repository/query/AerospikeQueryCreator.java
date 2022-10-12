@@ -32,6 +32,7 @@ import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.TypeInformation;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -65,7 +66,7 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		String fieldName = property.getFieldName();
 		IgnoreCaseType ignoreCase = part.shouldIgnoreCase();
 		FilterOperation op;
-		Object v1 = parameters.next(), v2 = null;
+		Object v1 = parameters.next(), v2 = null, v3 = null;
 		switch (part.getType()) {
 		case AFTER:
 		case GREATER_THAN:
@@ -111,26 +112,73 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			} else if (op == FilterOperation.BETWEEN) {
 				op = FilterOperation.LIST_BETWEEN;
 			}
-		} else if (propertyType.isMap()) {
-			AerospikeMapCriteria onMap = (AerospikeMapCriteria) parameters.next();
-			switch (onMap) {
-				case KEY:
-					if (op == FilterOperation.CONTAINING) {
+		} else {
+			if (op == FilterOperation.CONTAINING && propertyType.isMap()) {
+				AerospikeMapCriteria onMap = (AerospikeMapCriteria) parameters.next();
+				switch (onMap) {
+					case KEY:
 						op = FilterOperation.MAP_KEYS_CONTAINS;
-					}
-					break;
-				case VALUE:
-					if (op == FilterOperation.CONTAINING) {
+						break;
+					case VALUE:
 						op = FilterOperation.MAP_VALUES_CONTAINS;
-					}
-					break;
+						break;
+				}
+			}
+
+			if (part.getProperty().hasNext() && isPojoField(part, property)) { // find by POJO field
+				switch (op) {
+					case EQ:
+						op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
+						break;
+					case NOTEQ:
+						op = FilterOperation.MAP_VALUE_NOTEQ_BY_KEY;
+						break;
+					case GT:
+						op = FilterOperation.MAP_VALUE_GT_BY_KEY;
+						break;
+					case GTEQ:
+						op = FilterOperation.MAP_VALUE_GTEQ_BY_KEY;
+						break;
+					case LT:
+						op = FilterOperation.MAP_VALUE_LT_BY_KEY;
+						break;
+					case LTEQ:
+						op = FilterOperation.MAP_VALUE_LTEQ_BY_KEY;
+						break;
+					case BETWEEN:
+						op = FilterOperation.MAP_VALUES_BETWEEN_BY_KEY;
+						v3 = v2; // contains upper limit value
+						break;
+					case START_WITH:
+						op = FilterOperation.MAP_VALUE_START_WITH_BY_KEY;
+						break;
+					case ENDS_WITH:
+						op = FilterOperation.MAP_VALUE_ENDS_WITH_BY_KEY;
+						break;
+					case CONTAINING:
+						op = FilterOperation.MAP_VALUE_CONTAINING_BY_KEY;
+						break;
+					default:
+						break;
+				}
+
+				fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
+				v2 = property.getFieldName(); // VALUE2 contains key (field name)
 			}
 		}
 
 		if (null == v2) {
 			return new AerospikeCriteria(fieldName, op, ignoreCase == IgnoreCaseType.ALWAYS, Value.get(v1));
 		}
-		return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2));
+		if (null == v3) {
+			return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2));
+		}
+		return new AerospikeCriteria(fieldName, op, Value.get(v1), Value.get(v2), Value.get(v3));
+	}
+
+	private boolean isPojoField(Part part, AerospikePersistentProperty property) {
+		return Arrays.stream(part.getProperty().getType().getDeclaredFields())
+				.anyMatch(f -> f.getName().equals(property.getName()));
 	}
 
 	@Override

@@ -64,12 +64,16 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	List<P> findByAgeBetween(int from, int to);
 
+	List<P> findByFriendAgeBetween(int from, int to);
+
 	@SuppressWarnings("rawtypes")
 	Person findByShippingAddresses(Set address);
 
 	List<P> findByAddress(Address address);
 
 	List<P> findByAddressZipCode(String zipCode);
+
+	List<P> findByAddressZipCodeContaining(String str);
 
 	List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
 
@@ -128,6 +132,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	List<P> findByMapKeysContaining(String key);
 
+	List<P> findByFriendLastName(String value);
+
+	List<P> findByFriendAge(int value);
+
+	List<P> findByFriendAgeGreaterThan(int value);
+
+	List<P> findByFriendAgeGreaterThanEqual(int value);
+
 	List<P> findByStringsContaining(String string);
 
 	List<P> findByIntsContaining(Integer integer);
@@ -145,6 +157,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 	Iterable<P> findByAgeBetweenAndLastName(int from, int to, String lastName);
 
 	List<P> findByFirstNameStartsWith(String string);
+
+	List<P> findByFriendFirstNameStartsWith(String string);
 
 	Iterable<P> findByAgeBetweenOrderByLastName(int i, int j);
 }

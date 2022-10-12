@@ -54,6 +54,8 @@ public class Person {
 	private Date dateOfBirth;
 	private List<String> strings;
 	private List<Integer> ints;
+	private Address address;
+
 	@Field("email")
 	private String emailAddress;
 

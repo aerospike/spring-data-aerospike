@@ -37,6 +37,10 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 		super(field, operation, value1, value2);		
 	}
 
+	public AerospikeCriteria(String field, FilterOperation operation, Value value1, Value value2, Value value3) {
+		super(field, operation, value1, value2, value3);
+	}
+
 	/**
 	 * Creates an 'or' criteria using the $or operator for all of the provided criteria.
 	 *
