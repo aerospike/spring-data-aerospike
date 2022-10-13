@@ -89,7 +89,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
 		data.setExpiration(getExpiration(entity, accessor));
 
-		Map<String, Object> convertedProperties = convertProperties(type, entity, accessor);
+		Map<String, Object> convertedProperties = convertProperties(type, entity, accessor, false);
 
 		if (data.getRequestedBins().isEmpty()) {
 			convertedProperties.forEach(data::addBin);
@@ -110,17 +110,22 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 	}
 
 	private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
-												  ConvertingPropertyAccessor<?> accessor) {
+												  ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
 		Map<String, Object> target = new HashMap<>();
 		typeMapper.writeType(type, target);
 		entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property -> {
 
 			Object value = accessor.getProperty(property);
-			if (isNotWritable(property)) {
+			/*
+				For custom type bins - for example a nested POJO (Person has a friend field which is also a person),
+				We want to keep non-writable types (@Id, @Expiration, @Version...) as they are.
+				This is not relevant for records, only for custom type bins.
+			 */
+			if (isNotWritable(property) && !isCustomType) {
 				return;
 			}
 			Object valueToWrite = getValueToWrite(value, property.getTypeInformation());
-			if(valueToWrite != null) {
+			if (valueToWrite != null) {
 				target.put(property.getFieldName(), valueToWrite);
 			}
 		});
@@ -205,7 +210,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
 		ConvertingPropertyAccessor<?> accessor = new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
-		return convertProperties(type, entity, accessor);
+		return convertProperties(type, entity, accessor, true);
 	}
 
 	@SuppressWarnings("unchecked")

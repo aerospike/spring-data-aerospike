@@ -42,7 +42,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @BeforeAll
     public void beforeAll() {
         additionalAerospikeTestOperations.deleteAll(Person.class);
-
         repository.saveAll(all);
     }
 
@@ -145,28 +144,18 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByFriendAge() {
-        carter.setFriend(dave);
-        repository.save(carter);
-        dave.setFriend(oliver);
-        repository.save(dave);
         oliver.setFriend(alicia);
         repository.save(oliver);
+        dave.setFriend(oliver);
+        repository.save(dave);
+        carter.setFriend(dave);
+        repository.save(carter);
 
-        try {
-            List<Person> result = repository.findByFriendAge(42);
+        List<Person> result = repository.findByFriendAge(42);
 
-            assertThat(result)
-                    .hasSize(1)
-                    .extracting(Person::getFirstName)
-                    .containsExactly(carter.getFirstName()); // not comparing Persons because friend id comes as null
-        } finally {
-            carter.setFriend(null); // temporarily until bringing friend id is fixed
-            repository.save(carter);
-            dave.setFriend(null);
-            repository.save(dave);
-            oliver.setFriend(null);
-            repository.save(oliver);
-        }
+        assertThat(result)
+                .hasSize(1)
+                .containsExactly(carter);
     }
 
     @Test
@@ -187,12 +176,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByFriendAgeGreaterThan() {
-        carter.setFriend(dave);
-        repository.save(carter);
-        dave.setFriend(oliver);
-        repository.save(dave);
         alicia.setFriend(boyd);
         repository.save(alicia);
+        dave.setFriend(oliver);
+        repository.save(dave);
+        carter.setFriend(dave);
+        repository.save(carter);
         leroi.setFriend(carter);
         repository.save(leroi);
 
@@ -201,51 +190,27 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> result = repository.findByFriendAgeGreaterThan(42);
 
-        try {
-            assertThat(result)
-                .hasSize(2)
-                .extracting(Person::getFirstName)
-                .containsExactlyInAnyOrder(alicia.getFirstName(), leroi.getFirstName()); // not comparing Persons because friend id comes as null
-        } finally {
-            carter.setFriend(null); // temporarily until bringing friend id is fixed
-            repository.save(carter);
-            dave.setFriend(null);
-            repository.save(dave);
-            alicia.setFriend(null);
-            repository.save(alicia);
-            leroi.setFriend(null);
-            repository.save(leroi);
-        }
+        assertThat(result)
+            .hasSize(2)
+            .containsExactlyInAnyOrder(alicia, leroi);
     }
 
     @Test
-    public void findPersonsByFriendAgeGreaterOrEqual () {
-        carter.setFriend(dave);
-        repository.save(carter);
-        dave.setFriend(oliver);
-        repository.save(dave);
+    public void findPersonsByFriendAgeGreaterOrEqual() {
         alicia.setFriend(boyd);
         repository.save(alicia);
+        dave.setFriend(oliver);
+        repository.save(dave);
+        carter.setFriend(dave);
+        repository.save(carter);
         leroi.setFriend(carter);
         repository.save(leroi);
 
-        try {
-            List<Person> result = repository.findByFriendAgeGreaterThanEqual(42);
+        List<Person> result = repository.findByFriendAgeGreaterThanEqual(42);
 
-            assertThat(result)
-                    .hasSize(3)
-                    .extracting(Person::getFirstName)
-                    .containsExactlyInAnyOrder(carter.getFirstName(), alicia.getFirstName(), leroi.getFirstName()); // not comparing Persons because friend id comes as null
-        } finally {
-            carter.setFriend(null); // temporarily until bringing friend id is fixed
-            repository.save(carter);
-            dave.setFriend(null);
-            repository.save(dave);
-            alicia.setFriend(null);
-            repository.save(alicia);
-            leroi.setFriend(null);
-            repository.save(leroi);
-        }
+        assertThat(result)
+                .hasSize(3)
+                .containsExactlyInAnyOrder(carter, alicia, leroi);
     }
 
     @Test
@@ -452,24 +417,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findsPersonsByFriendFirstnameStartsWith() {
-        carter.setFriend(dave);
-        repository.save(carter);
         dave.setFriend(oliver);
         repository.save(dave);
+        carter.setFriend(dave);
+        repository.save(carter);
 
-        try {
-            List<Person> result = repository.findByFriendFirstNameStartsWith("D");
+        List<Person> result = repository.findByFriendFirstNameStartsWith("D");
 
-            assertThat(result)
-                    .hasSize(1)
-                    .extracting(Person::getFirstName)
-                    .containsExactly(carter.getFirstName()); // not comparing Persons because friend id comes as null
-        } finally {
-            carter.setFriend(null);   // temporarily until bringing friend id is fixed
-            repository.save(carter);
-            dave.setFriend(null);
-            repository.save(dave);
-        }
+        assertThat(result)
+                .hasSize(1)
+                .containsExactly(carter);
     }
 
     @Test
@@ -504,30 +461,21 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByFriendsInAgeRangeCorrectly() {
-        carter.setFriend(dave);
-        repository.save(carter);
-        dave.setFriend(oliver);
-        repository.save(dave);
         oliver.setFriend(alicia);
         repository.save(oliver);
+        dave.setFriend(oliver);
+        repository.save(dave);
+        carter.setFriend(dave);
+        repository.save(carter);
 
-        try {
-            List<Person> result = repository.findByFriendAgeBetween(40, 45);
+        List<Person> result = repository.findByFriendAgeBetween(40, 45);
 
-            assertThat(result)
-                    .hasSize(1)
-                    .extracting(Person::getFirstName)
-                    .containsExactly(carter.getFirstName()); // not comparing Persons because friend id comes as null
-        } finally {
-            carter.setFriend(null);  // temporarily until bringing friend id is fixed
-            repository.save(carter);
-            dave.setFriend(null);
-            repository.save(dave);
-            oliver.setFriend(null);
-            repository.save(oliver);
-        }
+        assertThat(result)
+                .hasSize(1)
+                .containsExactly(carter);
     }
 
+    // TODO: there is a ticket for that, FMWK-53
     /*
 	@Ignore("Searching by association not Supported Yet!" )
     @Test

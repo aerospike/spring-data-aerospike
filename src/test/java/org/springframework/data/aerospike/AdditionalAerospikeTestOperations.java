@@ -76,13 +76,12 @@ public abstract class AdditionalAerospikeTestOperations {
                 .contains("OK");
     }
 
-    public void deleteAll(Class... entityClasses) {
+    public void deleteAll(Class<?>... entityClasses) {
         Arrays.asList(entityClasses).forEach(this::delete);
         Arrays.asList(entityClasses).forEach(this::awaitUntilSetIsEmpty);
     }
 
-    @SuppressWarnings("unchecked")
-    private void awaitUntilSetIsEmpty(Class entityClass) {
+    private void awaitUntilSetIsEmpty(Class<?> entityClass) {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
                 .until(() -> isEmptySet(client, getNamespace(), entityClass));
@@ -108,7 +107,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     // Do not use this code in production!
     // This will not guarantee the correct answer from Aerospike Server for all cases.
-    // Also it requests index status only from one Aerospike node, which is OK for tests, and NOT OK for Production cluster.
+    // Also, it requests index status only from one Aerospike node, which is OK for tests, and NOT OK for Production cluster.
     public boolean indexExists(String indexName) {
         return IndexUtils.indexExists(client, getNamespace(), indexName);
     }
