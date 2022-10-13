@@ -317,13 +317,13 @@ public enum FilterOperation {
             switch (getValue1(map).getType()) {
                 case ParticleType.STRING:
                     exp = Exp.gt(
-                            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue2(map).toString()), Exp.mapBin(getField(map))),
+                            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toString()), Exp.mapBin(getField(map))),
                             Exp.val(0)
                     );
                     break;
                 case ParticleType.INTEGER:
                     exp = Exp.gt(
-                            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue2(map).toLong()), Exp.mapBin(getField(map))),
+                            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toLong()), Exp.mapBin(getField(map))),
                             Exp.val(0)
                     );
                     break;
@@ -341,13 +341,13 @@ public enum FilterOperation {
             switch (getValue1(map).getType()) {
                 case ParticleType.STRING:
                     exp = Exp.gt(
-                            MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue2(map).toString()), Exp.mapBin(getField(map))),
+                            MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toString()), Exp.mapBin(getField(map))),
                             Exp.val(0)
                     );
                     break;
                 case ParticleType.INTEGER:
                     exp = Exp.gt(
-                            MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue2(map).toLong()), Exp.mapBin(getField(map))),
+                            MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.mapBin(getField(map))),
                             Exp.val(0)
                     );
                     break;

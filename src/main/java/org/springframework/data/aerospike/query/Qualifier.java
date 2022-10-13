@@ -22,6 +22,7 @@ import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -116,6 +117,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		}
 	}
 
+	@Data
 	public static class QualifierBuilder {
 		private final Map<String, Object> map = new HashMap<>();
 
@@ -155,6 +157,18 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		public QualifierBuilder setValue3(Value value3) {
 			this.map.put(VALUE3, value3);
 			return this;
+		}
+
+		public boolean hasValue1() {
+			return this.map.containsKey(VALUE1) && this.map.get(VALUE1) != null;
+		}
+
+		public boolean hasValue2() {
+			return this.map.containsKey(VALUE2) && this.map.get(VALUE2) != null;
+		}
+
+		public boolean hasValue3() {
+			return this.map.containsKey(VALUE3) && this.map.get(VALUE3) != null;
 		}
 
 		public Qualifier build() {
