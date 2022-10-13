@@ -1,7 +1,7 @@
-function average(s)
+function average(s, name)
 
     local function mapper(out, rec)
-        out['sum'] = (out['sum'] or 0) + (rec['l1'] or 0)
+        out['sum'] = (out['sum'] or 0) + (rec[name] or 0)
         out['count'] = (out['count'] or 0) + 1
         return out
     end
