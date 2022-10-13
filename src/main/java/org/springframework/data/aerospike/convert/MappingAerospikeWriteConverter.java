@@ -118,7 +118,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 			Object value = accessor.getProperty(property);
 			/*
 				For custom type bins - for example a nested POJO (Person has a friend field which is also a person),
-				We want to keep non-writable types (@Id, @Expiration and @version) as they are.
+				We want to keep non-writable types (@Id, @Expiration, @Version...) as they are.
 				This is not relevant for records, only for custom type bins.
 			 */
 			if (isNotWritable(property) && !isCustomType) {
