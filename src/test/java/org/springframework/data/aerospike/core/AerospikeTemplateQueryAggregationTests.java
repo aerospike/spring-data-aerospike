@@ -7,7 +7,6 @@ import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.task.RegisterTask;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
