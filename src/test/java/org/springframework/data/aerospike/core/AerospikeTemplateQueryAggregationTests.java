@@ -96,7 +96,6 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
     }
 
     @Test
-    @Disabled
     public void queryAggregationAvg() {
         String binName = "age";
         List<Value> args = new ArrayList<>();
@@ -115,7 +114,6 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
     }
 
     @Test
-    @Disabled
     public void queryAggregationAvgWithFilter() {
         String binName = "age";
         List<Value> args = new ArrayList<>();
