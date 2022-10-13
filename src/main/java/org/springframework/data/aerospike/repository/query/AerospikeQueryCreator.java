@@ -236,14 +236,16 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			}
 		}
 
-		return new AerospikeCriteria(new Qualifier.QualifierBuilder()
+		Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
 				.setField(fieldName)
 				.setIgnoreCase(true)
 				.setFilterOperation(op)
-				.setValue1(Value.get(v1))
-				.setValue2(Value.get(v2))
-				.setValue3(Value.get(v3))
-		);
+				.setValue1(Value.get(v1));
+
+		if (v2 != null) qb.setValue2(Value.get(v2));
+		if (v3 != null) qb.setValue3(Value.get(v3));
+
+		return new AerospikeCriteria(qb);
 	}
 
 	private boolean isPojoField(Part part, AerospikePersistentProperty property) {
