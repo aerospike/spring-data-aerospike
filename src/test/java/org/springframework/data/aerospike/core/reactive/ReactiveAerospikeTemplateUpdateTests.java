@@ -300,7 +300,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         personWithList.getStringMap().put("key4", "Added something new");
 
         List<String> fields = new ArrayList<>();
-        fields.add("map");
+        fields.add("stringMap");
         reactiveTemplate.update(personWithList, fields).block();
 
         Person personWithList2 = findById(id, Person.class);

@@ -354,7 +354,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         personWithList.getStringMap().put("key4", "Added something new");
 
         List<String> fields = new ArrayList<>();
-        fields.add("map");
+        fields.add("stringMap");
         template.update(personWithList, fields);
 
         Person personWithList2 = template.findById(id, Person.class);
