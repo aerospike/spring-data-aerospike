@@ -2,10 +2,12 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.Language;
 import com.aerospike.client.Value;
+import com.aerospike.client.lua.LuaConfig;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.task.RegisterTask;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -25,11 +27,14 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
     public void setUp() {
         // Register UDFs
         RegisterTask taskSum = client.register(null,
-                "udf/sum_example.lua", "sum_example.lua", Language.LUA);
+                "src/test/resources/udf/sum_example.lua", "sum_example.lua", Language.LUA);
         taskSum.waitTillComplete();
         RegisterTask taskAvg = client.register(null,
-                "udf/average_example.lua", "average_example.lua", Language.LUA);
+                "src/test/resources/udf/average_example.lua", "average_example.lua", Language.LUA);
         taskAvg.waitTillComplete();
+
+        // Set Lua config source directory.
+        LuaConfig.SourceDirectory = "src/test/resources/udf";
 
         // Clean existing data
         additionalAerospikeTestOperations.deleteAll(Person.class);
@@ -63,6 +68,15 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
         // Create index
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class,
                 "person_age_index", "age", IndexType.NUMERIC);
+    }
+
+    @AfterAll
+    public void cleanUp() {
+        // Revert Lua config source directory
+        LuaConfig.SourceDirectory = System.getProperty("lua.dir", "udf");
+
+        // Clean existing data
+        additionalAerospikeTestOperations.deleteAll(Person.class);
     }
 
     @Test
