@@ -13,9 +13,16 @@ import com.aerospike.client.query.RegexFlag;
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.data.aerospike.query.Qualifier.*;
+import static org.springframework.data.aerospike.query.Qualifier.FIELD;
+import static org.springframework.data.aerospike.query.Qualifier.IGNORE_CASE;
+import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
+import static org.springframework.data.aerospike.query.Qualifier.QualifierRegexpBuilder;
+import static org.springframework.data.aerospike.query.Qualifier.VALUE1;
+import static org.springframework.data.aerospike.query.Qualifier.VALUE2;
+import static org.springframework.data.aerospike.query.Qualifier.VALUE3;
 
 public enum FilterOperation {
+
     AND {
         @Override
         public Exp process(Map<String, Object> map) {
@@ -40,7 +47,7 @@ public enum FilterOperation {
     },
     IN {
         @Override
-        public Exp process(Map<String, Object> map) { // Convert IN to a collection of or as Aerospike has not support for IN query
+        public Exp process(Map<String, Object> map) { // Convert IN to a collection of or as Aerospike has no support for IN query
             Value val = getValue1(map);
             int valType = val.getType();
             if (valType != ParticleType.LIST)
@@ -185,7 +192,7 @@ public enum FilterOperation {
                     break;
                 default:
                     throw new AerospikeException("FilterExpression unsupported type: expected String or Long (FilterOperation MAP_VALUE_EQ_BY_KEY)");
-            };
+            }
 
             return exp;
         }
@@ -436,11 +443,11 @@ public enum FilterOperation {
                     exp = Exp.gt(
                             ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong() + 1L), Exp.val(Long.MAX_VALUE), Exp.listBin(getField(map))),
                             Exp.val(0)
-                            );
+                    );
                     break;
                 default:
                     throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_GT)");
-            };
+            }
 
             return exp;
         }
@@ -458,7 +465,7 @@ public enum FilterOperation {
                     break;
                 default:
                     throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_GT)");
-            };
+            }
 
             return exp;
         }
@@ -468,7 +475,7 @@ public enum FilterOperation {
         public Exp process(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong() - 1L), Exp.listBin(getField(map))),
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong()), Exp.listBin(getField(map))),
                         Exp.val(0)
                 );
             }
@@ -480,14 +487,13 @@ public enum FilterOperation {
         public Exp process(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong()), Exp.listBin(getField(map))),
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong() + 1), Exp.listBin(getField(map))),
                         Exp.val(0)
                 );
             }
             throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_LTEQ)");
         }
-    }
-    ;
+    };
 
     public abstract Exp process(Map<String, Object> map);
 
@@ -499,7 +505,7 @@ public enum FilterOperation {
         return (Boolean) map.getOrDefault(IGNORE_CASE, false);
     }
 
-    public int regexFlags (Map<String, Object> map) {
+    public int regexFlags(Map<String, Object> map) {
         return ignoreCase(map) ? RegexFlag.ICASE : RegexFlag.NONE;
     }
 
