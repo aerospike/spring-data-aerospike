@@ -466,9 +466,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return toGroupedEntities(entitiesKeys, aeroRecords);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public <T> Iterable<T> aggregate(Filter filter, Class<T> entityClass,
+	public <T> ResultSet aggregate(Filter filter, Class<T> entityClass,
 			String module, String function, List<Value> arguments) {
 		Assert.notNull(entityClass, "Type must not be null!");
 
@@ -485,7 +484,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 					function, arguments.toArray(new Value[0]));
 		else
 			resultSet = this.client.queryAggregate(null, statement);
-		return (Iterable<T>) resultSet;
+		return resultSet;
 	}
 
 	@Override

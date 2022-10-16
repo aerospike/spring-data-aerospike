@@ -22,6 +22,7 @@ import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
+import com.aerospike.client.query.ResultSet;
 import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
@@ -326,7 +327,7 @@ public interface AerospikeOperations {
      * @param arguments   arguments to pass to function name, if any.
      * @return Result iterator.
      */
-    <T> Iterable<T> aggregate(Filter filter, Class<T> entityClass, String module, String function, List<Value> arguments);
+    <T> ResultSet aggregate(Filter filter, Class<T> entityClass, String module, String function, List<Value> arguments);
 
     /**
      * Execute operation against underlying store.
