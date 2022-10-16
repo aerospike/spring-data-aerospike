@@ -468,7 +468,7 @@ public enum FilterOperation {
         public Exp process(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong() - 1L), Exp.listBin(getField(map))),
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong()), Exp.listBin(getField(map))),
                         Exp.val(0)
                 );
             }
@@ -480,7 +480,7 @@ public enum FilterOperation {
         public Exp process(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong()), Exp.listBin(getField(map))),
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong() + 1), Exp.listBin(getField(map))),
                         Exp.val(0)
                 );
             }
