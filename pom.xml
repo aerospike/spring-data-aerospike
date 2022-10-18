@@ -16,15 +16,15 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>2.7.3</version>
+        <version>2.7.5</version>
     </parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <springdata.commons>2.7.3</springdata.commons>
-        <springdata.keyvalue>2.7.3</springdata.keyvalue>
+        <springdata.commons>2.7.5</springdata.commons>
+        <springdata.keyvalue>2.7.5</springdata.keyvalue>
         <spring-cloud-starter-bootstrap>3.1.4</spring-cloud-starter-bootstrap>
         <spring-boot-starter-test>2.7.4</spring-boot-starter-test>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
