@@ -19,8 +19,9 @@ package org.springframework.data.aerospike.query;
 import com.aerospike.client.Value;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.aerospike.CollectionUtils;
@@ -51,12 +52,13 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 /*
  * Tests to ensure that Qualifiers are built successfully for non indexed bins.
  */
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class QualifierTests extends BaseQueryEngineTests {
 
 	/*
 	 * These bins should not be indexed.
 	 */
-	@BeforeEach
+	@BeforeAll
 	public void dropIndexes() {
 		tryDropIndex(namespace, SET_NAME, "age_index");
 		tryDropIndex(namespace, SET_NAME, "color_index");
@@ -103,7 +105,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 	@Test
 	public void lTQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age < 26
-
 		Qualifier qualifier = new Qualifier("age", FilterOperation.LT, Value.get(26));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -134,7 +135,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 	@Test
 	public void numericEQQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age == 26
-
 		Qualifier qualifier = new Qualifier("age", FilterOperation.EQ, Value.get(26));
 		KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -148,7 +148,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 	@Test
 	public void numericGTEQQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age >= 28
-
 		Qualifier qualifier = new Qualifier("age", FilterOperation.GTEQ, Value.get(28));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -165,7 +164,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 	@Test
 	public void numericGTQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
-
 		Qualifier qualifier = new Qualifier("age", FilterOperation.GT, Value.get(28));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -178,7 +176,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void stringEQQualifier() {
-
 		Qualifier qualifier = new Qualifier("color", FilterOperation.EQ, Value.get(ORANGE));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -191,7 +188,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void stringEQIgnoreCaseQualifier() {
-
 		Qualifier qualifier = new Qualifier("color", FilterOperation.EQ, true, Value.get(ORANGE.toUpperCase()));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -229,6 +225,8 @@ public class QualifierTests extends BaseQueryEngineTests {
 					.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
 			// scan will be run, since Aerospike filter does not support case-insensitive string comparison
 		});
+
+		tryDropIndex(namespace, SET_NAME, "color_index");
 	}
 
 	@Test
@@ -242,7 +240,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void stringStartWithQualifier() {
-
 		Qualifier qualifier = new Qualifier("color", FilterOperation.START_WITH, Value.get(BLUE.substring(0, 2)));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -255,7 +252,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void stringStartWithEntireWordQualifier() {
-
 		Qualifier qualifier = new Qualifier("color", FilterOperation.START_WITH, Value.get(BLUE));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -268,7 +264,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void stringStartWithICASEQualifier() {
-
 		Qualifier qualifier = new Qualifier("color", FilterOperation.START_WITH, true, Value.get("BLU"));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -281,7 +276,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void stringEndsWithQualifier() {
-
 		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get(GREEN.substring(2)));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -294,7 +288,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void selectEndsWith() {
-
 		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get("e"));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -307,7 +300,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void stringEndsWithEntireWordQualifier() {
-
 		Qualifier qualifier = new Qualifier("color", FilterOperation.ENDS_WITH, Value.get(GREEN));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -321,7 +313,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 	@Test
 	public void betweenQualifier() {
 		// Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
-
 		Qualifier qualifier = new Qualifier("age", FilterOperation.BETWEEN, Value.get(26), Value.get(28));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -499,7 +490,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void containingDoesNotUseSpecialCharacterQualifier() {
-
 		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.CONTAINING, Value.get(".*"));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
@@ -511,7 +501,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void startWithDoesNotUseSpecialCharacterQualifier() {
-
 		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.START_WITH, Value.get(".*"));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
@@ -523,7 +512,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void endWithDoesNotUseSpecialCharacterQualifier() {
-
 		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.ENDS_WITH, Value.get(".*"));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
@@ -535,7 +523,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void eQIcaseDoesNotUseSpecialCharacter() {
-
 		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.EQ, true, Value.get(".*"));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
@@ -545,7 +532,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 	@ParameterizedTest
 	@ValueSource(strings = {"[", "$", "\\", "^"})
 	public void containingFindsSquareBracket(String specialString) {
-
 		Qualifier qualifier = new Qualifier(SPECIAL_CHAR_BIN, FilterOperation.CONTAINING, true, Value.get(specialString));
 		KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
 
@@ -573,7 +559,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void startWithAndEqualIgnoreCaseReturnsAllItems() {
-
 		boolean ignoreCase = true;
 		Qualifier qual1 = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get(BLUE.toUpperCase()));
 		Qualifier qual2 = new Qualifier("name", FilterOperation.START_WITH, ignoreCase, Value.get("NA"));
@@ -588,7 +573,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void equalIgnoreCaseReturnsNoItemsIfNoneMatched() {
-
 		boolean ignoreCase = false;
 		Qualifier qual1 = new Qualifier("color", FilterOperation.EQ, ignoreCase, Value.get(BLUE.toUpperCase()));
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qual1);
@@ -608,7 +592,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void selectWithBetweenAndOrQualifiers() {
-
 		Qualifier colorIsGreen = new Qualifier("color", Qualifier.FilterOperation.EQ, Value.get(GREEN));
 		Qualifier ageBetween28And29 = new Qualifier("age", Qualifier.FilterOperation.BETWEEN, Value.get(28), Value.get(29));
 		Qualifier ageIs25 = new Qualifier("age", Qualifier.FilterOperation.EQ, Value.get(25));
@@ -638,7 +621,6 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 	@Test
 	public void selectWithOrQualifiers() {
-
 		// We are  expecting to get back all records where color == blue or (age == 28 || age == 29)
 		Qualifier colorIsBlue = new Qualifier("color", Qualifier.FilterOperation.EQ, Value.get(BLUE));
 		Qualifier ageBetween28And29 = new Qualifier("age", Qualifier.FilterOperation.BETWEEN, Value.get(28), Value.get(29));
@@ -666,6 +648,4 @@ public class QualifierTests extends BaseQueryEngineTests {
 				.isNotEmpty()
 				.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
 	}
-
-
 }
