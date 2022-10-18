@@ -1,8 +1,10 @@
 package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.QueryUtils;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -17,6 +19,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingIntegrationTests {
 
     Person jean = Person.builder()
@@ -42,10 +45,8 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
 
     List<Person> all = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister, aabbot);
 
-    @Override
-    @BeforeEach
-    public void setUp() {
-        super.setUp();
+    @BeforeAll
+    public void beforeAllSetUp() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
 
         template.insertAll(all);
@@ -53,6 +54,12 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName", IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName", IndexType.STRING);
+    }
+
+    @Override
+    @BeforeEach
+    public void setUp() {
+        super.setUp();
     }
 
     @Test

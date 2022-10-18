@@ -84,7 +84,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     private void awaitUntilSetIsEmpty(Class<?> entityClass) {
         Awaitility.await()
-                .atMost(Duration.ofSeconds(20))
+                .atMost(Duration.ofSeconds(10))
                 .until(() -> isEntityClassSetEmpty(entityClass));
     }
 

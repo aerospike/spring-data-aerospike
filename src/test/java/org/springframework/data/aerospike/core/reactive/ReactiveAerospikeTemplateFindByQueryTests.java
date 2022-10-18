@@ -1,8 +1,10 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.QueryUtils;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -21,7 +23,15 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveIntegrationTests {
+
+    @BeforeAll
+    public void beforeAllSetUp() {
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName", IndexType.STRING);
+    }
 
     @Override
     @BeforeEach

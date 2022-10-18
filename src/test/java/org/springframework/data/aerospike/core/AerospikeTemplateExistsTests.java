@@ -35,5 +35,4 @@ public class AerospikeTemplateExistsTests extends BaseBlockingIntegrationTests {
     public void exists_shouldReturnFalseIfValueIsAbsent() {
         assertThat(template.exists(id, Person.class)).isFalse();
     }
-
 }

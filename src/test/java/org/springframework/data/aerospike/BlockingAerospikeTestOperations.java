@@ -19,7 +19,7 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
 
     @Override
     protected boolean isEntityClassSetEmpty(Class<?> clazz) {
-        return template.count(clazz) == 0;
+        return !template.findAll(clazz).findAny().isPresent();
     }
 
     @Override

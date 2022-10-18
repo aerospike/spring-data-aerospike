@@ -19,8 +19,10 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.CollectionUtils;
 import org.springframework.data.aerospike.QueryUtils;
@@ -36,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTests {
 
     Person jean = Person.builder().id(nextId()).firstName("Jean").lastName("Matthews").age(21).build();
@@ -50,10 +53,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     Person aabbot = Person.builder().id(nextId()).firstName("Aabbot").lastName("Matthews").age(30).build();
     List<Person> all = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister, aabbot);
 
-    @Override
-    @BeforeEach
-    public void setUp() {
-        super.setUp();
+    @BeforeAll
+    public void beforeAllSetUp() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
 
         template.insertAll(all);
@@ -61,6 +62,12 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName", IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName", IndexType.STRING);
+    }
+
+    @Override
+    @BeforeEach
+    public void setUp() {
+        super.setUp();
     }
 
     @Test
@@ -176,6 +183,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.findAll(Person.class);
 
         assertThat(result).isEmpty();
+
+        template.insertAll(all);
     }
 
     @Test

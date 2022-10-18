@@ -18,11 +18,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
 
     @Override
     protected boolean isEntityClassSetEmpty(Class<?> clazz) {
-        Long count = template.count(clazz).block();
-        if (count != null) {
-            return count == 0L;
-        }
-        return false;
+        return Boolean.TRUE.equals(template.findAll(clazz).hasElements().block());
     }
 
     @Override
