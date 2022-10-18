@@ -456,37 +456,27 @@ public enum FilterOperation {
     LIST_VALUE_GT {
         @Override
         public Exp process(Map<String, Object> map) {
-            Exp exp;
-            switch (getValue1(map).getType()) {
-                case ParticleType.INTEGER:
-                    exp = Exp.gt(
-                            ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong() + 1L), Exp.val(Long.MAX_VALUE), Exp.listBin(getField(map))),
-                            Exp.val(0)
-                    );
-                    break;
-                default:
-                    throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_GT)");
+            if (getValue1(map).getType() == ParticleType.INTEGER) {
+                return Exp.gt(
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong() + 1L), Exp.val(Long.MAX_VALUE), Exp.listBin(getField(map))),
+                        Exp.val(0)
+                );
+            } else {
+                throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_GT)");
             }
-
-            return exp;
         }
     },
     LIST_VALUE_GTEQ {
         @Override
         public Exp process(Map<String, Object> map) {
-            Exp exp;
-            switch (getValue1(map).getType()) {
-                case ParticleType.INTEGER:
-                    exp = Exp.gt(
-                            ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), null, Exp.listBin(getField(map))),
-                            Exp.val(0)
-                    );
-                    break;
-                default:
-                    throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_GT)");
+            if (getValue1(map).getType() == ParticleType.INTEGER) {
+                return Exp.gt(
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), null, Exp.listBin(getField(map))),
+                        Exp.val(0)
+                );
+            } else {
+                throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_GT)");
             }
-
-            return exp;
         }
     },
     LIST_VALUE_LT {
