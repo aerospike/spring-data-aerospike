@@ -67,7 +67,6 @@ public class Criteria implements CriteriaDefinition {
 			for (Criteria c : this.criteriaChain) {
 				qualifiers.add(c.getCriteriaObject());
 			}
-//			return new Qualifier(op, qualifiers.toArray(new Qualifier[0]));
 			return new Qualifier(new Qualifier.QualifierBuilder()
 					.setFilterOperation(op)
 					.setQualifiers(qualifiers.toArray(new Qualifier[0]))
@@ -187,7 +186,7 @@ public class Criteria implements CriteriaDefinition {
 		this.key = FilterOperation.OR.name();
 		return registerCriteriaChainElement(criteria);
 	}
-	
+
 	private Criteria registerCriteriaChainElement(Criteria... criteria) {
 		for(Criteria c : criteria){
 			if (lastOperatorWasNot()) {
