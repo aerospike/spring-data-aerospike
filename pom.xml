@@ -33,7 +33,6 @@
         <aerospike-reactor>6.1.2</aerospike-reactor>
         <embedded-aerospike>2.2.9</embedded-aerospike>
         <awaitility>4.2.0</awaitility>
-        <blockhound>1.0.6.RELEASE</blockhound>
         <lombok>1.18.22</lombok>
     </properties>
 
@@ -271,13 +270,6 @@
             <version>${awaitility}</version>
             <scope>test</scope>
         </dependency>
-        <!--Needed for tracking blocking calls in reactive application https://github.com/reactor/BlockHound -->
-        <dependency>
-            <groupId>io.projectreactor.tools</groupId>
-            <artifactId>blockhound</artifactId>
-            <version>${blockhound}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -339,7 +331,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration combine.self="override"/>
             </plugin>
         </plugins>
     </build>
