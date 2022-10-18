@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.core.reactive;
 
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
@@ -9,6 +10,9 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.repository.query.parser.Part;
 import reactor.core.scheduler.Schedulers;
+
+import java.time.Duration;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -87,7 +91,12 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
         reactiveTemplate.insert(new Person(nextId(), "vasili", 52)).subscribeOn(Schedulers.parallel()).block();
         reactiveTemplate.insert(new Person(nextId(), "petya", 52)).subscribeOn(Schedulers.parallel()).block();
 
-        Long count = reactiveTemplate.count(Person.class).block();
-        assertThat(count).isEqualTo(4);
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(15))
+                .until(() -> isCountExactlyNum(4L));
+    }
+
+    private boolean isCountExactlyNum(Long num) {
+        return Objects.equals(reactiveTemplate.count(Person.class).block(), num);
     }
 }
