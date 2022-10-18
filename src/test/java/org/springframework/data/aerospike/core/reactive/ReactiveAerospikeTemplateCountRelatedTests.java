@@ -1,13 +1,15 @@
 package org.springframework.data.aerospike.core.reactive;
 
+import com.aerospike.client.Value;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
-import org.springframework.data.aerospike.repository.query.Criteria;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.repository.query.parser.Part;
 import reactor.core.scheduler.Schedulers;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,17 +36,41 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
         reactiveTemplate.insert(new Person(nextId(), "vasili", 52)).block();
         reactiveTemplate.insert(new Person(nextId(), "petya", 52)).block();
 
-        Long vasyaCount = reactiveTemplate.count(new Query(new Criteria().is("vasili", "firstName")), Person.class)
+        Qualifier.QualifierBuilder qbVasya1 = new Qualifier.QualifierBuilder()
+                .setField("firstName")
+                .setValue1(Value.get("vasili"))
+                .setFilterOperation(FilterOperation.EQ);
+
+        Query queryVasya1 = new Query(new AerospikeCriteria(qbVasya1));
+
+        Long vasyaCount = reactiveTemplate.count(queryVasya1, Person.class)
                 .subscribeOn(Schedulers.parallel())
                 .block();
         assertThat(vasyaCount).isEqualTo(3);
 
-        Long vasya51Count = reactiveTemplate.count(new Query(new Criteria().is("vasili", "firstName").and("age").is(51, "age")), Person.class)
+        Qualifier.QualifierBuilder qbVasya2 = new Qualifier.QualifierBuilder()
+                .setField("age")
+                .setValue1(Value.get(51))
+                .setFilterOperation(FilterOperation.EQ);
+
+        Query queryVasyaAnd = new Query
+            (new AerospikeCriteria
+                    (new Qualifier.QualifierBuilder()
+                            .setFilterOperation(FilterOperation.AND)
+                            .setQualifiers(qbVasya1.build(), qbVasya2.build())
+                    )
+            );
+
+        Long vasya51Count = reactiveTemplate.count(queryVasyaAnd, Person.class)
                 .subscribeOn(Schedulers.parallel())
                 .block();
         assertThat(vasya51Count).isEqualTo(1);
 
-        Long petyaCount = reactiveTemplate.count(new Query(new Criteria().is("petya", "firstName")), Person.class)
+        Qualifier.QualifierBuilder qbPetya = new Qualifier.QualifierBuilder()
+                .setField("firstName")
+                .setValue1(Value.get("petya"))
+                .setFilterOperation(FilterOperation.EQ);
+        Long petyaCount = reactiveTemplate.count(new Query(new AerospikeCriteria(qbPetya)), Person.class)
                 .subscribeOn(Schedulers.parallel())
                 .block();
         assertThat(petyaCount).isEqualTo(1);
@@ -56,10 +82,22 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
         reactiveTemplate.insert(new Person(nextId(), "vasILI", 51)).block();
         reactiveTemplate.insert(new Person(nextId(), "vasili", 52)).block();
 
-        Query query1 = new Query(new Criteria().startingWith("vas", "firstName", Part.IgnoreCaseType.ALWAYS));
+        Qualifier.QualifierBuilder qbVasya1 = new Qualifier.QualifierBuilder()
+                .setField("firstName")
+                .setValue1(Value.get("vas"))
+                .setIgnoreCase(true)
+                .setFilterOperation(FilterOperation.STARTS_WITH);
+
+        Query query1 = new Query(new AerospikeCriteria(qbVasya1));
         assertThat(reactiveTemplate.count(query1, Person.class).block()).isEqualTo(3);
 
-        Query query2 = new Query(new Criteria().startingWith("VaS", "firstName", Part.IgnoreCaseType.NEVER));
+        Qualifier.QualifierBuilder qbVasya2 = new Qualifier.QualifierBuilder()
+                .setField("firstName")
+                .setValue1(Value.get("VaS"))
+                .setIgnoreCase(false)
+                .setFilterOperation(FilterOperation.STARTS_WITH);
+
+        Query query2 = new Query(new AerospikeCriteria(qbVasya2));
         assertThat(reactiveTemplate.count(query2, Person.class)
                 .subscribeOn(Schedulers.parallel())
                 .block()).isEqualTo(1);
@@ -67,7 +105,12 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
 
     @Test
     public void count_shouldReturnZeroIfNoDocumentsByProvidedCriteriaIsFound() {
-        Long count = reactiveTemplate.count(new Query(new Criteria().is("nastyushka", "firstName")), Person.class)
+        Qualifier.QualifierBuilder qb1 = new Qualifier.QualifierBuilder()
+                .setField("firstName")
+                .setValue1(Value.get("nastyushka"))
+                .setFilterOperation(FilterOperation.EQ);
+
+        Long count = reactiveTemplate.count(new Query(new AerospikeCriteria(qb1)), Person.class)
                 .subscribeOn(Schedulers.parallel())
                 .block();
 
