@@ -35,12 +35,12 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @AfterAll
     public void afterAll() {
-        additionalAerospikeTestOperations.deleteAll(IndexedPerson.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(IndexedPerson.class);
     }
 
     @BeforeAll
     public void beforeAll() {
-        additionalAerospikeTestOperations.deleteAll(IndexedPerson.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(IndexedPerson.class);
 
         repository.saveAll(Indexed.all);
 

@@ -36,12 +36,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @AfterAll
     public void afterAll() {
-        additionalAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
     }
 
     @BeforeAll
     public void beforeAll() {
-        additionalAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         repository.saveAll(all);
     }
 

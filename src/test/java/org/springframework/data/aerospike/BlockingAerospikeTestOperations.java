@@ -18,7 +18,12 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
     }
 
     @Override
-    protected void delete(Class<?> clazz) {
+    protected boolean isEntityClassSetEmpty(Class<?> clazz) {
+        return template.count(clazz) == 0;
+    }
+
+    @Override
+    protected void truncateSetOfEntityClass(Class<?> clazz) {
         template.delete(clazz);
     }
 

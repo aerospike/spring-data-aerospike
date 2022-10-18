@@ -54,7 +54,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @BeforeEach
     public void setUp() {
         super.setUp();
-        additionalAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
 
         template.insertAll(all);
 
@@ -171,7 +171,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findAll_findsNothing() {
-        additionalAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
 
         Stream<Person> result = template.findAll(Person.class);
 

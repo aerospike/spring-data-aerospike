@@ -24,7 +24,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
     @BeforeEach
     public void setUp() {
         super.setUp();
-        additionalAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
 
         additionalAerospikeTestOperations.createIndexIfNotExists(
                 Person.class, "person_age_index", "age", IndexType.NUMERIC);

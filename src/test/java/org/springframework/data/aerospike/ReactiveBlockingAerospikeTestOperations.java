@@ -10,17 +10,24 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
     private final ReactiveAerospikeTemplate template;
 
     public ReactiveBlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
-                                                   IAerospikeClient client, GenericContainer aerospike,
+                                                   IAerospikeClient client, GenericContainer<?> aerospike,
                                                    ReactiveAerospikeTemplate reactiveAerospikeTemplate) {
         super(indexInfoParser, client, aerospike);
         this.template = reactiveAerospikeTemplate;
     }
 
     @Override
-    protected void delete(Class<?> clazz) {
-        template.findAll(clazz)
-                .flatMap(template::delete)
-                .then().block();
+    protected boolean isEntityClassSetEmpty(Class<?> clazz) {
+        Long count = template.count(clazz).block();
+        if (count != null) {
+            return count == 0;
+        }
+        return false;
+    }
+
+    @Override
+    protected void truncateSetOfEntityClass(Class<?> clazz) {
+        template.delete(clazz).block();
     }
 
     @Override

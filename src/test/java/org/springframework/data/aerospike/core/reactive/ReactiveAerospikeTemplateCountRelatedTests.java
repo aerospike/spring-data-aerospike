@@ -24,7 +24,7 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
     @BeforeEach
     public void setUp() {
         super.setUp();
-        additionalAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
     }
 
     @Test

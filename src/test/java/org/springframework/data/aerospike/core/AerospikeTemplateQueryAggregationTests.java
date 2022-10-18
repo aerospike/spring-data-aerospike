@@ -37,7 +37,7 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
         LuaConfig.SourceDirectory = "src/test/resources/udf";
 
         // Clean existing data
-        additionalAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
 
         // Insert data
         Person firstPerson = Person.builder()
@@ -76,7 +76,7 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
         LuaConfig.SourceDirectory = System.getProperty("lua.dir", "udf");
 
         // Clean existing data
-        additionalAerospikeTestOperations.deleteAll(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
     }
 
     @Test
