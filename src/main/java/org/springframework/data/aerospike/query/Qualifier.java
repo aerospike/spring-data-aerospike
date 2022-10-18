@@ -277,7 +277,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 		try {
 			return FilterOperation.valueOf(getOperation().toString()).process(internalMap);
 		} catch (Exception e) {
-			throw new AerospikeException("FilterExpression unsupported operation: " + getOperation());
+			throw new AerospikeException(e.getMessage().isEmpty() ? "FilterExpression unsupported operation: " + getOperation() : e.getMessage());
 		}
 	}
 

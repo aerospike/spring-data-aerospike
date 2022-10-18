@@ -144,7 +144,7 @@ public enum FilterOperation {
     BETWEEN {
         @Override
         public Exp process(Map<String, Object> map) {
-            if (getValue1(map).getType() == ParticleType.INTEGER) {
+            if (getValue1(map).getType() == ParticleType.INTEGER && getValue2(map).getType() == ParticleType.INTEGER) {
                 return Exp.and(
                         Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong())),
                         Exp.le(Exp.intBin(getField(map)), Exp.val(getValue2(map).toLong()))
@@ -368,27 +368,41 @@ public enum FilterOperation {
     MAP_KEYS_BETWEEN {
         @Override
         public Exp process(Map<String, Object> map) {
-            if (getValue1(map).getType() == ParticleType.INTEGER) {
+            if (getValue1(map).getType() == ParticleType.INTEGER && getValue2(map).getType() == ParticleType.INTEGER) {
+                // + 1L to the valueEnd since the valueEnd is exclusive
+                Exp upperLimit = Exp.val(getValue2(map).toLong() + 1L);
+
+                // Long.MAX_VALUE will not be processed correctly if given as an inclusive parameter as it will cause overflow
+                if (getValue2(map).toLong() == Long.MAX_VALUE) upperLimit = null;
+
+
                 return Exp.gt(
-                        // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
-                        MapExp.getByKeyRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(getValue2(map).toLong() + 1L), Exp.mapBin(getField(map))),
+                        // + 1L to the valueEnd since the valueEnd is exclusive
+                        MapExp.getByKeyRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()), upperLimit, Exp.mapBin(getField(map))),
                         Exp.val(0)
                 );
             }
-            throw new AerospikeException("FilterExpression unsupported type: expected String or Long (FilterOperation MAP_KEYS_BETWEEN)");
+            throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation MAP_KEYS_BETWEEN)");
         }
     },
     MAP_VALUES_BETWEEN {
         @Override
         public Exp process(Map<String, Object> map) {
-            if (getValue1(map).getType() == ParticleType.INTEGER) {
+            if (getValue1(map).getType() == ParticleType.INTEGER && getValue2(map).getType() == ParticleType.INTEGER) {
+                // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
+                Exp upperLimit = Exp.val(getValue2(map).toLong() + 1L);
+
+                // Long.MAX_VALUE will not be processed correctly if given as an inclusive parameter as it will cause overflow
+                if (getValue2(map).toLong() == Long.MAX_VALUE) upperLimit = null;
+
+
                 return Exp.gt(
-                        // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
-                        MapExp.getByValueRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(getValue2(map).toLong() + 1L), Exp.mapBin(getField(map))),
+                        // + 1L to the valueEnd since the valueEnd is exclusive
+                        MapExp.getByValueRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()), upperLimit, Exp.mapBin(getField(map))),
                         Exp.val(0)
                 );
             }
-            throw new AerospikeException("FilterExpression unsupported type: expected String or Long (FilterOperation MAP_VALUES_BETWEEN)");
+            throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation MAP_VALUES_BETWEEN)");
         }
     },
     GEO_WITHIN {
@@ -424,14 +438,19 @@ public enum FilterOperation {
     LIST_VALUE_BETWEEN {
         @Override
         public Exp process(Map<String, Object> map) {
-            if (getValue1(map).getType() == ParticleType.INTEGER) {
+            if (getValue1(map).getType() == ParticleType.INTEGER && getValue2(map).getType() == ParticleType.INTEGER) {
+                // + 1L to the valueEnd since the valueEnd is exclusive
+                Exp upperLimit = Exp.val(getValue2(map).toLong() + 1L);
+
+                // Long.MAX_VALUE will not be processed correctly if given as an inclusive parameter as it will cause overflow
+                if (getValue2(map).toLong() == Long.MAX_VALUE) upperLimit = null;
+
                 return Exp.gt(
-                        // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(getValue2(map).toLong() + 1L), Exp.listBin(getField(map))),
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), upperLimit, Exp.listBin(getField(map))),
                         Exp.val(0)
                 );
             }
-            throw new AerospikeException("FilterExpression unsupported type: expected String or Long (FilterOperation LIST_BETWEEN)");
+            throw new AerospikeException("FilterExpression unsupported type: expected Long (FilterOperation LIST_BETWEEN)");
         }
     },
     LIST_VALUE_GT {
@@ -459,7 +478,7 @@ public enum FilterOperation {
             switch (getValue1(map).getType()) {
                 case ParticleType.INTEGER:
                     exp = Exp.gt(
-                            ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), Exp.val(Long.MAX_VALUE), Exp.listBin(getField(map))),
+                            ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), null, Exp.listBin(getField(map))),
                             Exp.val(0)
                     );
                     break;
@@ -486,8 +505,14 @@ public enum FilterOperation {
         @Override
         public Exp process(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
+                // + 1L to the valueEnd since the valueEnd is exclusive
+                Exp upperLimit = Exp.val(getValue1(map).toLong() + 1L);
+
+                // Long.MAX_VALUE will not be processed correctly if given as an inclusive parameter as it will cause overflow
+                if (getValue1(map).toLong() == Long.MAX_VALUE) upperLimit = null;
+
                 return Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), Exp.val(getValue1(map).toLong() + 1), Exp.listBin(getField(map))),
+                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE), upperLimit, Exp.listBin(getField(map))),
                         Exp.val(0)
                 );
             }

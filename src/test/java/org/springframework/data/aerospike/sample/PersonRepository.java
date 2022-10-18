@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.sample;
 
-import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
@@ -66,8 +65,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	List<P> findByAgeBetween(int from, int to);
 
-	List<P> findByFriendAgeBetween(int from, int to);
-
 	@SuppressWarnings("rawtypes")
 	Person findByShippingAddresses(Set address);
 
@@ -99,7 +96,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 	List<P> findByCredentials(Credentials credentials);
 	
-	List<P> findCustomerByAgeBetween(Integer from, Integer to);
+	List<P> findCustomerByAgeBetween(int from, int to);
 
 	List<P> findByAgeIn(ArrayList<Integer> ages);
 
@@ -151,7 +148,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 	 * @param key Map key
 	 * @param value Value of the key
 	 */
-	List<P> findByIntMapIsNot(String key, Integer value);
+	List<P> findByIntMapIsNot(String key, int value);
 
 	/**
 	 * Find all entities that satisfy the condition "have the given map key and a value that starts with the given string"
@@ -170,9 +167,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 	/**
 	 * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given integer"
 	 * @param key Map key
-	 * @param greaterThan Integer to check if value is greater than it
+	 * @param greaterThan int to check if value is greater than it
 	 */
-	List<P> findByIntMapGreaterThan(String key, Integer greaterThan);
+	List<P> findByIntMapGreaterThan(String key, int greaterThan);
 
 	/**
 	 * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
@@ -180,23 +177,105 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 	 * @param from the lower limit for the map value, inclusive
 	 * @param to the upper limit for the map value, inclusive
 	 */
-	List<P> findByIntMapBetween(String key, Integer from, Integer to);
+	List<P> findByIntMapBetween(String key, int from, int to);
 
 	List<P> findByFriendLastName(String value);
 
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age equal to the given integer" (find by POJO field)
+	 * @param value - number to check for equality
+	 */
 	List<P> findByFriendAge(int value);
 
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age NOT equal to the given integer" (find by POJO field)
+	 * @param value - number to check for inequality
+	 */
+	List<P> findByFriendAgeIsNot(int value);
+
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age greater than the given integer" (find by POJO field)
+	 * @param value - lower limit, exclusive
+	 */
 	List<P> findByFriendAgeGreaterThan(int value);
 
-	List<P> findByFriendAgeGreaterThanEqual(int value);
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age less than or equal to the given integer" (find by POJO field)
+	 * @param value - upper limit, inclusive
+	 */
+	List<P> findByFriendAgeLessThanEqual(int value);
 
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age in the given range" (find by POJO field)
+	 * @param from lower limit, inclusive
+	 * @param to upper limit, inclusive
+	 */
+	List<P> findByFriendAgeBetween(int from, int to);
+
+	/**
+	 * Find all entities that satisfy the condition "have the list which contains the given string"
+	 * <p>
+	 * List name in this case is Strings
+	 * </p>
+	 * @param string string to check
+	 */
 	List<P> findByStringsContaining(String string);
 
-	List<P> findByIntsContaining(Integer integer);
+	/**
+	 * Find all entities that satisfy the condition "have the list which contains the given integer"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * @param integer number to check
+	 */
+	List<P> findByIntsContaining(int integer);
 
-	List<P> findByIntsGreaterThan(Integer integer);
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is greater than the given integer"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * @param integer upper limit, exclusive
+	 */
+	List<P> findByIntsGreaterThan(int integer);
 
-	List<P> findByIntsLessThanEqual(Integer integer);
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given integer"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * @param integer upper limit, inclusive
+	 */
+	List<P> findByIntsLessThanEqual(int integer);
+
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given long"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * @param number upper limit, inclusive
+	 * */
+	List<P> findByIntsLessThanEqual(long number);
+
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is in the given range"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * @param from lower limit, inclusive
+	 * @param to upper limit, inclusive
+	 */
+	List<P> findByIntsBetween(int from, int to);
+
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is in the given range"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * @param from lower limit, inclusive
+	 * @param to upper limit, inclusive
+	 */
+	List<P> findByIntsBetween(long from, long to);
 
 	List<P> findByIntsContaining(List<Integer> integer);
 

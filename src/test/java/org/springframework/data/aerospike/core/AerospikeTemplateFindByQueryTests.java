@@ -24,11 +24,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.CollectionUtils;
 import org.springframework.data.aerospike.QueryUtils;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -38,16 +41,26 @@ import static org.assertj.core.api.Assertions.entry;
 
 public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTests {
 
-    Person jean = Person.builder().id(nextId()).firstName("Jean").lastName("Matthews").age(21).build();
-    Person ashley = Person.builder().id(nextId()).firstName("Ashley").lastName("Matthews").age(22).build();
-    Person beatrice = Person.builder().id(nextId()).firstName("Beatrice").lastName("Matthews").age(23).build();
-    Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(24).build();
-    Person zaipper = Person.builder().id(nextId()).firstName("Zaipper").lastName("Matthews").age(25).build();
-    Person knowlen = Person.builder().id(nextId()).firstName("knowlen").lastName("Matthews").age(26).build();
-    Person xylophone = Person.builder().id(nextId()).firstName("Xylophone").lastName("Matthews").age(27).build();
-    Person mitch = Person.builder().id(nextId()).firstName("Mitch").lastName("Matthews").age(28).build();
-    Person alister = Person.builder().id(nextId()).firstName("Alister").lastName("Matthews").age(29).build();
-    Person aabbot = Person.builder().id(nextId()).firstName("Aabbot").lastName("Matthews").age(30).build();
+    Person jean = Person.builder().id(nextId()).firstName("Jean").lastName("Matthews").age(21).ints(Collections.singletonList(100))
+            .strings(Collections.singletonList("str1")).friend(new Person("id21", "TestPerson21", 50)).build();
+    Person ashley = Person.builder().id(nextId()).firstName("Ashley").lastName("Matthews").ints(Collections.singletonList(22))
+            .strings(Collections.singletonList("str2")).age(22).friend(new Person("id22", "TestPerson22", 50)).build();
+    Person beatrice = Person.builder().id(nextId()).firstName("Beatrice").lastName("Matthews").age(23).ints(Collections.singletonList(23))
+            .friend(new Person("id23", "TestPerson23", 42)).build();
+    Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(24).stringMap(Collections.singletonMap("key1", "val1"))
+            .friend(new Person("id21", "TestPerson24", 54)).build();
+    Person zaipper = Person.builder().id(nextId()).firstName("Zaipper").lastName("Matthews").age(25)
+            .stringMap(Collections.singletonMap("key2", "val2")).address(new Address("Street 1", "C0121", "Sun City")).build();
+    Person knowlen = Person.builder().id(nextId()).firstName("knowlen").lastName("Matthews").age(26)
+            .intMap(Collections.singletonMap("key1", 11)).address(new Address("Street 2", "C0122", "Sun City")).build();
+    Person xylophone = Person.builder().id(nextId()).firstName("Xylophone").lastName("Matthews").age(27)
+            .intMap(Collections.singletonMap("key2", 22)).address(new Address("Street 3", "C0123", "Sun City")).build();
+    Person mitch = Person.builder().id(nextId()).firstName("Mitch").lastName("Matthews").age(28)
+            .intMap(Collections.singletonMap("key3", 24)).address(new Address("Street 4", "C0124", "Sun City")).build();
+    Person alister = Person.builder().id(nextId()).firstName("Alister").lastName("Matthews").age(29)
+            .stringMap(Collections.singletonMap("key4", "val4")).build();
+    Person aabbot = Person.builder().id(nextId()).firstName("Aabbot").lastName("Matthews").age(30)
+            .stringMap(Collections.singletonMap("key4", "val5")).build();
     List<Person> all = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister, aabbot);
 
     @Override
@@ -163,14 +176,14 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findAll_findsAllExistingDocuments() {
+    public void findAll_findAllExistingDocuments() {
         Stream<Person> result = template.findAll(Person.class);
 
         assertThat(result).containsAll(all);
     }
 
     @Test
-    public void findAll_findsNothing() {
+    public void findAll_findNothing() {
         additionalAerospikeTestOperations.deleteAll(Person.class);
 
         Stream<Person> result = template.findAll(Person.class);
@@ -186,5 +199,226 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         assertThatThrownBy(() -> template.find(query, Person.class))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
+    }
+
+
+    @Test
+    public void findByListContainingInteger() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsContaining", 100);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(jean);
+    }
+
+    @Test
+    public void findByListContainingString() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringsContaining", "str2");
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(ashley);
+    }
+
+    @Test
+    public void findByListValueLessThanOrEqual() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsLessThanEqual", 25);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder(ashley, beatrice);
+    }
+
+    @Test
+    public void findByListValueGreaterThan() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsGreaterThan", 10);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(3)
+                .containsExactlyInAnyOrder(ashley, beatrice, jean);
+    }
+
+    @Test
+    public void findByListValueInRange() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 10, 700);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(3)
+                .containsExactlyInAnyOrder(jean, ashley, beatrice);
+    }
+
+    @Test
+    public void findByMapKeysContaining() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1", CriteriaDefinition.AerospikeMapCriteria.KEY);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(dave);
+    }
+
+    @Test
+    public void findByMapValuesContaining() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "val2", CriteriaDefinition.AerospikeMapCriteria.VALUE);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(zaipper);
+    }
+
+    @Test
+    public void findByMapKeyValueEquals() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapEquals", "key1", "val1");
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(dave);
+    }
+
+    @Test
+    public void findByMapKeyValueNotEquals() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapIsNot", "key2", 11);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(xylophone);
+    }
+
+    @Test
+    public void findByMapKeyValueGreaterThan() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapGreaterThan", "key1", 1);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(knowlen);
+    }
+
+    @Test
+    public void findByMapKeyValueBetween() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapBetween", "key3", 11, 24);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(mitch);
+    }
+
+    @Test
+    public void findByMapKeyValueStartsWith() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapStartsWith", "key4", "val");
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder(alister, aabbot);
+    }
+
+    @Test
+    public void findByMapKeyValueContains() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key4", "al");
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder(alister, aabbot);
+    }
+
+    @Test
+    public void findPersonsByFriendAge() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAge", 50);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder(jean, ashley);
+    }
+
+    @Test
+    public void findPersonsByFriendAgeNotEqual() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeIsNot", 50);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder(beatrice, dave);
+    }
+
+    @Test
+    public void findPersonsByFriendAgeGreaterThan() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeGreaterThan", 42);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(3)
+                .containsExactlyInAnyOrder(jean, ashley, dave);
+    }
+
+    @Test
+    public void findPersonsByFriendAgeLessThanOrEqual() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeLessThanEqual", 54);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(4)
+                .containsExactlyInAnyOrder(jean, ashley, beatrice, dave);
+    }
+
+    @Test
+    public void findPersonsByFriendAgeRange() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeBetween", 50, 54);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(3)
+                .containsExactlyInAnyOrder(jean, ashley, dave);
+    }
+
+    @Test
+    public void findPersonsByAddressZipCode() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByAddressZipCode", "C0123");
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(xylophone);
+    }
+
+    @Test
+    public void findByAddressZipCodeContaining() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByAddressZipCodeContaining", "C012");
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(4)
+                .containsExactlyInAnyOrder(zaipper, knowlen, xylophone, mitch);
     }
 }
