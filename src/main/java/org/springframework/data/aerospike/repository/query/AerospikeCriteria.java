@@ -29,18 +29,6 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 		super(builder);
 	}
 
-	/**
-	 * Creates an 'or' criteria using the $or operator for all of the provided criteria.
-	 *
-	 * @param criteria the AerospikeCriteria instance.
-	 * @throws IllegalArgumentException if follows a not() call directly.
-	 */
-	public static AerospikeCriteria or(AerospikeCriteria... criteria) {
-		return new AerospikeCriteria(new QualifierBuilder()
-				.setFilterOperation(FilterOperation.OR)
-				.setQualifiers(criteria));
-	}
-
 	@Override
 	public Qualifier getCriteriaObject() {
 		return this;
