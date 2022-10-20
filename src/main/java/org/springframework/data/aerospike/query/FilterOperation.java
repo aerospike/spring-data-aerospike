@@ -37,7 +37,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -53,7 +53,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -78,7 +78,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -108,7 +108,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Filter.equal(getField(map), getValue1(map).toLong());
             } else {
@@ -136,7 +136,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -150,7 +150,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return Filter.range(getField(map), getValue1(map).toLong() + 1, getValue2(map) == null ? Long.MAX_VALUE : getValue2(map).toLong());
         }
     },
@@ -164,7 +164,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -178,7 +178,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return Filter.range(getField(map), Long.MIN_VALUE, getValue1(map).toLong() - 1);
         }
     },
@@ -192,7 +192,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return Filter.range(getField(map), Long.MIN_VALUE, getValue1(map).toLong());
         }
     },
@@ -209,7 +209,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return Filter.range(getField(map), getValue1(map).toLong(), getValue2(map) == null ? Long.MAX_VALUE : getValue2(map).toLong());
         }
     },
@@ -221,7 +221,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -233,7 +233,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -245,7 +245,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -273,7 +273,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -300,7 +300,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -318,7 +318,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -336,7 +336,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -354,7 +354,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -372,7 +372,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -396,7 +396,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -410,7 +410,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -424,7 +424,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -438,7 +438,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -467,7 +467,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return collectionContains(IndexCollectionType.MAPKEYS, map);
         }
     },
@@ -496,7 +496,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return collectionContains(IndexCollectionType.MAPVALUES, map);
         }
     },
@@ -521,7 +521,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return collectionRange(IndexCollectionType.MAPKEYS, map);
         }
     },
@@ -546,7 +546,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return collectionRange(IndexCollectionType.MAPVALUES, map);
         }
     },
@@ -557,7 +557,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return geoWithinRadius(IndexCollectionType.DEFAULT, map);
         }
     },
@@ -586,7 +586,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return collectionContains(IndexCollectionType.LIST, map);
         }
     },
@@ -609,7 +609,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return collectionRange(IndexCollectionType.LIST, map);
         }
     },
@@ -627,7 +627,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -645,7 +645,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -662,7 +662,7 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     },
@@ -685,14 +685,14 @@ public enum FilterOperation {
         }
 
         @Override
-        public Filter secIndexFilter(Map<String, Object> map) {
+        public Filter sIndexFilter(Map<String, Object> map) {
             return null;
         }
     };
 
     public abstract Exp filterExp(Map<String, Object> map);
 
-    public abstract Filter secIndexFilter(Map<String, Object> map);
+    public abstract Filter sIndexFilter(Map<String, Object> map);
 
     protected String getField(Map<String, Object> map) {
         return (String) map.get(FIELD);
@@ -737,7 +737,4 @@ public enum FilterOperation {
     protected Filter geoWithinRadius(IndexCollectionType collectionType, Map<String, Object> map) {
         return Filter.geoContains(getField(map), getValue1(map).toString());
     }
-
-
-
 }

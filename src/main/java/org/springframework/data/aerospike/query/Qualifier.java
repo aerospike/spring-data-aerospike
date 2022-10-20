@@ -213,7 +213,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
 	public Filter asFilter() {
 		try {
-			return FilterOperation.valueOf(getOperation().toString()).secIndexFilter(internalMap);
+			return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
 		} catch (Exception e) {
 			throw new AerospikeException(e.getMessage().isEmpty() ? "Secondary index filter unsupported operation: " + getOperation() : e.getMessage());
 		}
