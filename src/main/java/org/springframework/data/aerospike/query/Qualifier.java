@@ -21,7 +21,6 @@ import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
-import com.aerospike.client.query.IndexCollectionType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -213,76 +212,19 @@ public class Qualifier implements Map<String, Object>, Serializable {
 	}
 
 	public Filter asFilter() {
-		FilterOperation op = getOperation();
-		switch (op) {
-			case EQ:
-				if (getValue1().getType() == ParticleType.INTEGER) {
-					return Filter.equal(getField(), getValue1().toLong());
-				} else {
-					// There is no case insensitive string comparison filter.
-					if (ignoreCase()) {
-						return null;
-					}
-					return Filter.equal(getField(), getValue1().toString());
-				}
-			case GTEQ:
-			case BETWEEN:
-				return Filter.range(getField(), getValue1().toLong(), getValue2() == null ? Long.MAX_VALUE : getValue2().toLong());
-			case GT:
-				return Filter.range(getField(), getValue1().toLong() + 1, getValue2() == null ? Long.MAX_VALUE : getValue2().toLong());
-			case LT:
-				return Filter.range(getField(), Long.MIN_VALUE, getValue1().toLong() - 1);
-			case LTEQ:
-				return Filter.range(getField(), Long.MIN_VALUE, getValue1().toLong());
-			case LIST_CONTAINS:
-				return collectionContains(IndexCollectionType.LIST);
-			case MAP_KEYS_CONTAINS:
-				return collectionContains(IndexCollectionType.MAPKEYS);
-			case MAP_VALUES_CONTAINS:
-				return collectionContains(IndexCollectionType.MAPVALUES);
-			case LIST_VALUE_BETWEEN:
-				return collectionRange(IndexCollectionType.LIST);
-			case MAP_KEYS_BETWEEN:
-				return collectionRange(IndexCollectionType.MAPKEYS);
-			case MAP_VALUES_BETWEEN:
-				return collectionRange(IndexCollectionType.MAPVALUES);
-			case GEO_WITHIN:
-				return geoWithinRadius(IndexCollectionType.DEFAULT);
-			default:
-				return null;
+		try {
+			return FilterOperation.valueOf(getOperation().toString()).secIndexFilter(internalMap);
+		} catch (Exception e) {
+			throw new AerospikeException(e.getMessage().isEmpty() ? "Secondary index filter unsupported operation: " + getOperation() : e.getMessage());
 		}
-	}
-
-	private Filter geoWithinRadius(IndexCollectionType collectionType) {
-		return Filter.geoContains(getField(), getValue1().toString());
-	}
-
-	private Filter collectionContains(IndexCollectionType collectionType) {
-		Value val = getValue1();
-		int valType = val.getType();
-		switch (valType) {
-			case ParticleType.INTEGER:
-				return Filter.contains(getField(), collectionType, val.toLong());
-			case ParticleType.STRING:
-				return Filter.contains(getField(), collectionType, val.toString());
-		}
-		return null;
-	}
-
-	private Filter collectionRange(IndexCollectionType collectionType) {
-		return Filter.range(getField(), collectionType, getValue1().toLong(), getValue2().toLong());
 	}
 
 	public Exp toFilterExp() {
 		try {
-			return FilterOperation.valueOf(getOperation().toString()).process(internalMap);
+			return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
 		} catch (Exception e) {
 			throw new AerospikeException(e.getMessage().isEmpty() ? "FilterExpression unsupported operation: " + getOperation() : e.getMessage());
 		}
-	}
-
-	private Boolean ignoreCase() {
-		return (Boolean) internalMap.getOrDefault(IGNORE_CASE, false);
 	}
 
 	protected String luaFieldString(String field) {

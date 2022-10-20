@@ -275,12 +275,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
                 .hasSize(1)
                 .containsExactly(carter);
 
-        oliver.setFriend(null);
-        repository.save(oliver);
-        dave.setFriend(null);
-        repository.save(dave);
-        carter.setFriend(null);
-        repository.save(carter);
+        setFriendsToNull(oliver, dave, carter);
+    }
+
+    private void setFriendsToNull(Person... persons) {
+        for (Person person : persons) {
+            person.setFriend(null);
+            repository.save(person);
+        }
     }
 
     @Test
@@ -298,12 +300,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
                 .hasSize(2)
                 .containsExactlyInAnyOrder(dave, oliver);
 
-        oliver.setFriend(null);
-        repository.save(oliver);
-        dave.setFriend(null);
-        repository.save(dave);
-        carter.setFriend(null);
-        repository.save(carter);
+        setFriendsToNull(oliver, dave, carter);
     }
 
     @Test
@@ -342,14 +339,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(2)
             .containsExactlyInAnyOrder(alicia, leroi);
 
-        alicia.setFriend(null);
-        repository.save(alicia);
-        dave.setFriend(null);
-        repository.save(dave);
-        carter.setFriend(null);
-        repository.save(carter);
-        leroi.setFriend(null);
-        repository.save(leroi);
+        setFriendsToNull(alicia, dave, carter, leroi);
     }
 
     @Test
@@ -369,14 +359,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
                 .hasSize(2)
                 .containsExactlyInAnyOrder(dave, carter);
 
-        alicia.setFriend(null);
-        repository.save(alicia);
-        dave.setFriend(null);
-        repository.save(dave);
-        carter.setFriend(null);
-        repository.save(carter);
-        leroi.setFriend(null);
-        repository.save(leroi);
+        setFriendsToNull(alicia, dave, carter, leroi);
     }
 
     @Test
@@ -594,10 +577,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
                 .hasSize(1)
                 .containsExactly(carter);
 
-        dave.setFriend(null);
-        repository.save(dave);
-        carter.setFriend(null);
-        repository.save(carter);
+        setFriendsToNull(dave, carter);
     }
 
     @Test
@@ -645,12 +625,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
                 .hasSize(1)
                 .containsExactly(carter);
 
-        oliver.setFriend(null);
-        repository.save(oliver);
-        dave.setFriend(null);
-        repository.save(dave);
-        carter.setFriend(null);
-        repository.save(carter);
+        setFriendsToNull(oliver, dave, carter);
     }
 
     // TODO: there is a ticket for that, FMWK-53
