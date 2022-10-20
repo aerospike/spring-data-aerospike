@@ -137,7 +137,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            return null;
+            return null; // range with "and" ?
         }
     },
     GT {
@@ -151,7 +151,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            return Filter.range(getField(map), getValue1(map).toLong() + 1, getValue2(map) == null ? Long.MAX_VALUE : getValue2(map).toLong());
+            return Filter.range(getField(map), getValue1(map).toLong() + 1, getValue2(map) == null ? Long.MAX_VALUE : getValue2(map).toLong()); // so Long.MAX_VALUE shall not get here
         }
     },
     GTEQ {
@@ -165,7 +165,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            return null;
+            return Filter.range(getField(map), getValue1(map).toLong(), Long.MAX_VALUE);
         }
     },
     LT {
@@ -179,7 +179,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            return Filter.range(getField(map), Long.MIN_VALUE, getValue1(map).toLong() - 1);
+            return Filter.range(getField(map), Long.MIN_VALUE, getValue1(map).toLong() - 1); // so Long.MIN_VALUE shall not get here
         }
     },
     LTEQ {
