@@ -16,6 +16,7 @@
 package org.springframework.data.aerospike.sample;
 
 import org.springframework.data.aerospike.repository.AerospikeRepository;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -34,115 +35,265 @@ import java.util.stream.Stream;
  */
 public interface PersonRepository<P extends Person> extends AerospikeRepository<P, String> {
 
-	List<P> findByLastName(String lastName);
+    List<P> findByLastName(String lastName);
 
-	// DTO Projection
-	List<PersonSomeFields> findPersonSomeFieldsByLastName(String lastName);
+    // DTO Projection
+    List<PersonSomeFields> findPersonSomeFieldsByLastName(String lastName);
 
-	// Dynamic Projection
-	<T> List<T> findByLastName(String lastName, Class<T> type);
+    // Dynamic Projection
+    <T> List<T> findByLastName(String lastName, Class<T> type);
+
+    Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
+
+    List<P> findByLastNameEndsWith(String postfix);
+
+    List<P> findByLastNameOrderByFirstNameAsc(String lastName);
+
+    List<P> findByLastNameOrderByFirstNameDesc(String lastName);
+
+    List<P> findByFirstNameLike(String firstName);
+
+    List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
+
+    List<P> findByAgeLessThan(int age, Sort sort);
+
+    Stream<P> findByFirstNameIn(List<String> firstNames);
+
+    Stream<P> findByFirstNameNotIn(Collection<String> firstNames);
+
+    List<P> findByFirstNameAndLastName(String firstName, String lastName);
+
+    List<P> findByAgeBetween(int from, int to);
 	
-	Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
-
-	List<P> findByLastNameEndsWith(String postfix);
-
-	List<P> findByLastNameOrderByFirstNameAsc(String lastName);
-	
-	List<P> findByLastNameOrderByFirstNameDesc(String lastName);
-
-	List<P> findByFirstNameLike(String firstName);
-
-	List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
-
-	List<P> findByAgeLessThan(int age, Sort sort);
-
-	Stream<P> findByFirstNameIn(List<String> firstNames);
-
-	Stream<P> findByFirstNameNotIn(Collection<String> firstNames);
-
-	List<P> findByFirstNameAndLastName(String firstName, String lastName);
-
-	List<P> findByAgeBetween(int from, int to);
-
-	List<P> findByFriendAgeBetween(int from, int to);
-
 	@SuppressWarnings("rawtypes")
-	Person findByShippingAddresses(Set address);
+    Person findByShippingAddresses(Set address);
 
-	List<P> findByAddress(Address address);
+    List<P> findByAddress(Address address);
 
-	List<P> findByAddressZipCode(String zipCode);
+    List<P> findByAddressZipCode(String zipCode);
 
-	List<P> findByAddressZipCodeContaining(String str);
+    List<P> findByAddressZipCodeContaining(String str);
 
-	List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
+    List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
 
-	List<P> findByAgeOrLastNameLikeAndFirstNameLike(int age, String lastName, String firstName);
+    List<P> findByAgeOrLastNameLikeAndFirstNameLike(int age, String lastName, String firstName);
 
 //	List<P> findByNamedQuery(String firstName);
 
-	List<P> findByCreator(User user);
+    List<P> findByCreator(User user);
 
-	List<P> findByCreatedAtLessThan(Date date);
+    List<P> findByCreatedAtLessThan(Date date);
 
-	List<P> findByCreatedAtGreaterThan(Date date);
+    List<P> findByCreatedAtGreaterThan(Date date);
 
 //	List<P> findByCreatedAtLessThanManually(Date date);
 
-	List<P> findByCreatedAtBefore(Date date);
+    List<P> findByCreatedAtBefore(Date date);
 
-	List<P> findByCreatedAtAfter(Date date);
+    List<P> findByCreatedAtAfter(Date date);
 
-	Stream<P> findByLastNameNot(String lastName);
+    Stream<P> findByLastNameNot(String lastName);
 
-	List<P> findByCredentials(Credentials credentials);
-	
-	List<P> findCustomerByAgeBetween(Integer from, Integer to);
+    List<P> findByCredentials(Credentials credentials);
 
-	List<P> findByAgeIn(ArrayList<Integer> ages);
+    List<P> findCustomerByAgeBetween(int from, int to);
 
-	List<P> findPersonByFirstName(String firstName);
+    List<P> findByAgeIn(ArrayList<Integer> ages);
 
-	long countByLastName(String lastName);
+    List<P> findPersonByFirstName(String firstName);
 
-	int countByFirstName(String firstName);
+    long countByLastName(String lastName);
 
-	long someCountQuery(String lastName);
+    int countByFirstName(String firstName);
 
-	List<P> findByFirstNameIgnoreCase(String firstName);
+    long someCountQuery(String lastName);
 
-	List<P> findByFirstNameNotIgnoreCase(String firstName);
+    List<P> findByFirstNameIgnoreCase(String firstName);
 
-	List<P> findByFirstNameStartingWithIgnoreCase(String firstName);
+    List<P> findByFirstNameNotIgnoreCase(String firstName);
 
-	List<P> findByFirstNameEndingWithIgnoreCase(String firstName);
+    List<P> findByFirstNameStartingWithIgnoreCase(String firstName);
 
-	List<P> findByFirstNameContainingIgnoreCase(String firstName);
+    List<P> findByFirstNameEndingWithIgnoreCase(String firstName);
 
-	Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
+    List<P> findByFirstNameContainingIgnoreCase(String firstName);
 
-	// DTO Projection
-	Slice<PersonSomeFields> findPersonSomeFieldsByAgeGreaterThan(int age, Pageable pageable);
+    Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
 
-	List<P> deleteByLastName(String lastName);
+    // DTO Projection
+    Slice<PersonSomeFields> findPersonSomeFieldsByAgeGreaterThan(int age, Pageable pageable);
 
-	Long deletePersonByLastName(String lastName);
+    List<P> deleteByLastName(String lastName);
 
-	Page<P> findByAddressIn(List<Address> address, Pageable page);
+    Long deletePersonByLastName(String lastName);
 
-	List<P> findByMapKeysContaining(String key);
+    Page<P> findByAddressIn(List<Address> address, Pageable page);
 
-	List<P> findByFriendLastName(String value);
+    /**
+     * Find all entities containing the given map element (key or value depending on the given criteria)
+     *
+     * @param element  map element
+     * @param criteria KEY or VALUE
+     */
+    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
 
+    /**
+     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+     *
+     * @param key   Map key
+     * @param value Value of the key
+     */
+    List<P> findByStringMapEquals(String key, String value);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and NOT the given value"
+     *
+     * @param key   Map key
+     * @param value Value of the key
+     */
+    List<P> findByIntMapIsNot(String key, int value);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and a value that starts with the given string"
+     *
+     * @param key             Map key
+     * @param valueStartsWith String to check if value starts with it
+     */
+    List<P> findByStringMapStartsWith(String key, String valueStartsWith);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and a value that contains the given string"
+     *
+     * @param key       Map key
+     * @param valuePart String to check if value contains it
+     */
+    List<P> findByStringMapContaining(String key, String valuePart);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given integer"
+     *
+     * @param key         Map key
+     * @param greaterThan integer to check if value is greater than it
+     */
+    List<P> findByIntMapGreaterThan(String key, int greaterThan);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
+     *
+     * @param key  Map key
+     * @param from the lower limit for the map value, inclusive
+     * @param to   the upper limit for the map value, inclusive
+     */
+    List<P> findByIntMapBetween(String key, int from, int to);
+
+    List<P> findByFriendLastName(String value);
+
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age equal to the given integer" (find by POJO field)
+	 * 
+	 * @param value - number to check for equality
+	 */
 	List<P> findByFriendAge(int value);
 
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age NOT equal to the given integer" (find by POJO field)
+	 * 
+	 * @param value - number to check for inequality
+	 */
+	List<P> findByFriendAgeIsNot(int value);
+
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age greater than the given integer" (find by POJO field)
+	 * 
+	 * @param value - lower limit, exclusive
+	 */
 	List<P> findByFriendAgeGreaterThan(int value);
 
-	List<P> findByFriendAgeGreaterThanEqual(int value);
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age less than or equal to the given integer" (find by POJO field)
+	 * 
+	 * @param value - upper limit, inclusive
+	 */
+	List<P> findByFriendAgeLessThanEqual(int value);
 
+	/**
+	 * Find all entities that satisfy the condition "have a friend with the age in the given range" (find by POJO field)
+	 * 
+	 * @param from lower limit, inclusive
+	 * @param to upper limit, inclusive
+	 */
+	List<P> findByFriendAgeBetween(int from, int to);
+
+	/**
+	 * Find all entities that satisfy the condition "have the list which contains the given string"
+	 * <p>
+	 * List name in this case is Strings
+	 * </p>
+	 * @param string string to check
+	 */
 	List<P> findByStringsContaining(String string);
 
-	List<P> findByIntsContaining(Integer integer);
+	/**
+	 * Find all entities that satisfy the condition "have the list which contains the given integer"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * 
+	 * @param integer number to check
+	 */
+	List<P> findByIntsContaining(int integer);
+
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is greater than the given integer"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * 
+	 * @param integer upper limit, exclusive
+	 */
+	List<P> findByIntsGreaterThan(int integer);
+
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given integer"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * 
+	 * @param integer upper limit, inclusive
+	 */
+	List<P> findByIntsLessThanEqual(int integer);
+
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given long"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * 
+	 * @param number upper limit, inclusive
+	 * */
+	List<P> findByIntsLessThanEqual(long number);
+
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is in the given range"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * 
+	 * @param from lower limit, inclusive
+	 * @param to   upper limit, inclusive
+	 */
+	List<P> findByIntsBetween(int from, int to);
+
+	/**
+	 * Find all entities that satisfy the condition "have at least one list value which is in the given range"
+	 * <p>
+	 * List name in this case is Ints
+	 * </p>
+	 * 
+	 * @param from lower limit, inclusive
+	 * @param to   upper limit, inclusive
+	 */
+	List<P> findByIntsBetween(long from, long to);
 
 	List<P> findByIntsContaining(List<Integer> integer);
 

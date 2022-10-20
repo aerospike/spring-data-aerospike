@@ -28,7 +28,11 @@ public class ExpiryQualifier extends Qualifier {
 	private static final long serialVersionUID = 13172814137477042L;
 
 	public ExpiryQualifier(FilterOperation op, Value value) {
-		super(QueryEngine.Meta.EXPIRATION.toString(), op, value);
+		super(new QualifierBuilder()
+				.setField(QueryEngine.Meta.EXPIRATION.toString())
+				.setFilterOperation(op)
+				.setValue1(value)
+		);
 		if (value.getType() != ParticleType.INTEGER) {
 			throw new QualifierException("ExpiryQualifier value must be an integer or long");
 		}

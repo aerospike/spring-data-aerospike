@@ -16,7 +16,7 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.client.Value;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 
 /**
@@ -25,30 +25,8 @@ import org.springframework.data.aerospike.query.Qualifier;
  */
 public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 	
-	public AerospikeCriteria(FilterOperation operation, Qualifier... qualifiers) {
-		super(operation, qualifiers);
-	}
-	
-	public AerospikeCriteria(String field, FilterOperation operation, Boolean ignoreCase, Value value1) {
-		super(field, operation, ignoreCase, value1);
-	}
-
-	public AerospikeCriteria(String field, FilterOperation operation, Value value1, Value value2) {
-		super(field, operation, value1, value2);		
-	}
-
-	public AerospikeCriteria(String field, FilterOperation operation, Value value1, Value value2, Value value3) {
-		super(field, operation, value1, value2, value3);
-	}
-
-	/**
-	 * Creates an 'or' criteria using the $or operator for all of the provided criteria.
-	 *
-	 * @param criteria the AerospikeCriteria instance.
-	 * @throws IllegalArgumentException if follows a not() call directly.
-	 */
-	public static AerospikeCriteria or(AerospikeCriteria... criteria) {
-		return new AerospikeCriteria(Qualifier.FilterOperation.OR, criteria);
+	public AerospikeCriteria(QualifierBuilder builder) {
+		super(builder);
 	}
 
 	@Override
@@ -60,4 +38,5 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 	public String getKey() {
 		return this.getField();
 	}
+
 }

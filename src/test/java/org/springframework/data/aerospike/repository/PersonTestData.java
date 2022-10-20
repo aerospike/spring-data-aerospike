@@ -17,10 +17,10 @@ public class PersonTestData {
     public static Person donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39).strings(Arrays.asList("str1", "str2", "str3")).build();
     public static Person oliver = Person.builder().id(nextId()).firstName("Oliver August").lastName("Matthews").age(4).build();
     public static Person carter = Person.builder().id(nextId()).firstName("Carter").lastName("Beauford").age(49).build();
-    public static Person boyd = Person.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45).map(of("key1", "val1", "key2", "val2")).build();
-    public static Person stefan = Person.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34).map(of("key1", "val1", "key2", "val2", "key3", "val3")).build();
-    public static Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(41).build();
-    public static Person leroi2 = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25).ints(Arrays.asList(550, 990)).build();
+    public static Person boyd = Person.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45).stringMap(of("key1", "val1", "key2", "val2")).build();
+    public static Person stefan = Person.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34).stringMap(of("key1", "val1", "key2", "val2", "key3", "val3")).build();
+    public static Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(41).intMap(of("key1", 0, "key2", 1)).build();
+    public static Person leroi2 = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25).ints(Arrays.asList(500, 550, 990)).build();
     public static Person alicia = Person.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30).ints(Arrays.asList(550, 600, 990)).build();
 
     public static List<Person> all = Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi, leroi2, alicia);

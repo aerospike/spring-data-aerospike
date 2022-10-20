@@ -22,6 +22,7 @@ import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
@@ -36,22 +37,22 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.data.aerospike.CollectionUtils.countingInt;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.BETWEEN;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.CONTAINING;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.ENDS_WITH;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.EQ;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.GT;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.GTEQ;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.IN;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.LIST_BETWEEN;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.LIST_CONTAINS;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.LT;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.LTEQ;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.MAP_KEYS_BETWEEN;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.MAP_KEYS_CONTAINS;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.MAP_VALUES_BETWEEN;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.MAP_VALUES_CONTAINS;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.START_WITH;
+import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
+import static org.springframework.data.aerospike.query.FilterOperation.CONTAINING;
+import static org.springframework.data.aerospike.query.FilterOperation.ENDS_WITH;
+import static org.springframework.data.aerospike.query.FilterOperation.EQ;
+import static org.springframework.data.aerospike.query.FilterOperation.GT;
+import static org.springframework.data.aerospike.query.FilterOperation.GTEQ;
+import static org.springframework.data.aerospike.query.FilterOperation.IN;
+import static org.springframework.data.aerospike.query.FilterOperation.LIST_VALUE_BETWEEN;
+import static org.springframework.data.aerospike.query.FilterOperation.LIST_CONTAINS;
+import static org.springframework.data.aerospike.query.FilterOperation.LT;
+import static org.springframework.data.aerospike.query.FilterOperation.LTEQ;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_BETWEEN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_CONTAINS;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_BETWEEN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_CONTAINS;
+import static org.springframework.data.aerospike.query.FilterOperation.STARTS_WITH;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOURS;
@@ -81,7 +82,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	void throwsExceptionWhenScansDisabled() {
 		queryEngine.setScansEnabled(false);
 		try {
-			Qualifier qualifier = new Qualifier("age", LT, Value.get(26));
+			Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+					.setField("age")
+					.setFilterOperation(LT)
+					.setValue1(Value.get(26))
+			);
 			StepVerifier.create(queryEngine.select(namespace, SET_NAME, null, qualifier))
 					.expectErrorSatisfies(e -> assertThat(e)
 							.isInstanceOf(IllegalStateException.class)
@@ -95,7 +100,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void lTQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age < 26
-		Qualifier AgeRangeQualifier = new Qualifier("age", LT, Value.get(26));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("age")
+				.setFilterOperation(LT)
+				.setValue1(Value.get(26))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -114,7 +123,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void numericLTEQQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age <= 26
-		Qualifier AgeRangeQualifier = new Qualifier("age", LTEQ, Value.get(26));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("age")
+				.setFilterOperation(LTEQ)
+				.setValue1(Value.get(26))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -140,7 +153,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void numericEQQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age == 26
-		Qualifier AgeRangeQualifier = new Qualifier("age", EQ, Value.get(26));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("age")
+				.setFilterOperation(EQ)
+				.setValue1(Value.get(26))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 
 		StepVerifier.create(flux.collectList())
@@ -156,7 +173,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void numericGTEQQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age >= 28
-		Qualifier AgeRangeQualifier = new Qualifier("age", GTEQ, Value.get(28));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("age")
+				.setFilterOperation(GTEQ)
+				.setValue1(Value.get(28))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -182,7 +203,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void numericGTQualifier() {
 		// Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
-		Qualifier AgeRangeQualifier = new Qualifier("age", GT, Value.get(28));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("age")
+				.setFilterOperation(GT)
+				.setValue1(Value.get(28))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -196,7 +221,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void stringEQQualifier() {
-		Qualifier stringEqQualifier = new Qualifier("color", EQ, Value.get(ORANGE));
+		Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(EQ)
+				.setValue1(Value.get(ORANGE))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -210,7 +239,13 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void stringEQQualifierCaseSensitive() {
-		Qualifier stringEqQualifier = new Qualifier("color", EQ, true, Value.get(ORANGE.toUpperCase()));
+		Qualifier stringEqQualifier = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField("color")
+						.setFilterOperation(EQ)
+						.setIgnoreCase(true)
+						.setValue1(Value.get(ORANGE.toUpperCase()))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -226,7 +261,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	public void stringStartWithQualifier() {
 		String bluePrefix = "blu";
 
-		Qualifier stringEqQualifier = new Qualifier("color", START_WITH, Value.get("blu"));
+		Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(STARTS_WITH)
+				.setValue1(Value.get("blu"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -240,7 +279,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void stringStartWithEntireWordQualifier() {
-		Qualifier stringEqQualifier = new Qualifier("color", START_WITH, Value.get(BLUE));
+		Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(STARTS_WITH)
+				.setValue1(Value.get(BLUE))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -256,7 +299,13 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	public void stringStartWithICASEQualifier() {
 		String blue = "blu";
 
-		Qualifier stringEqQualifier = new Qualifier("color", START_WITH, true, Value.get("BLU"));
+		Qualifier stringEqQualifier = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField("color")
+						.setFilterOperation(STARTS_WITH)
+						.setIgnoreCase(true)
+						.setValue1(Value.get("BLU"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -272,7 +321,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	public void stringEndsWithQualifier() {
 		String greenEnding = GREEN.substring(2);
 
-		Qualifier stringEqQualifier = new Qualifier("color", ENDS_WITH, Value.get(greenEnding));
+		Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(ENDS_WITH)
+				.setValue1(Value.get(greenEnding))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -286,7 +339,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void stringEndsWithEntireWordQualifier() {
-		Qualifier stringEqQualifier = new Qualifier("color", ENDS_WITH, Value.get(GREEN));
+		Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(ENDS_WITH)
+				.setValue1(Value.get(GREEN))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, stringEqQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -301,7 +358,12 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void betweenQualifier() {
 		// Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
-		Qualifier AgeRangeQualifier = new Qualifier("age", BETWEEN, Value.get(26), Value.get(28));
+		Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
+				.setField("age")
+				.setFilterOperation(BETWEEN)
+				.setValue1(Value.get(26))
+				.setValue2(Value.get(28));
+		Qualifier AgeRangeQualifier = new Qualifier(qb);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -333,7 +395,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 				.filter(c -> c.contains("l"))
 				.collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
-		Qualifier AgeRangeQualifier = new Qualifier("color", CONTAINING, Value.get("l"));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(CONTAINING)
+				.setValue1(Value.get("l"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -352,7 +418,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 		Map<String, Integer> expectedColorCounts = inColours.stream()
 				.collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
-		Qualifier qualifier = new Qualifier("color", IN, Value.get(inColours));
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(IN)
+				.setValue1(Value.get(inColours))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -371,7 +441,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		String binName = "colorList";
 
-		Qualifier AgeRangeQualifier = new Qualifier(binName, LIST_CONTAINS, Value.get(searchColor));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(binName)
+				.setFilterOperation(LIST_CONTAINS)
+				.setValue1(Value.get(searchColor))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -396,7 +470,12 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		String binName = "longList";
 
-		Qualifier AgeRangeQualifier = new Qualifier(binName, LIST_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
+		Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
+				.setField(binName)
+				.setFilterOperation(LIST_VALUE_BETWEEN)
+				.setValue1(Value.get(ageStart))
+				.setValue2(Value.get(ageEnd));
+		Qualifier AgeRangeQualifier = new Qualifier(qb);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -428,7 +507,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		String binName = "colorAgeMap";
 
-		Qualifier AgeRangeQualifier = new Qualifier(binName, MAP_KEYS_CONTAINS, Value.get(searchColor));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(binName)
+				.setFilterOperation(MAP_KEYS_CONTAINS)
+				.setValue1(Value.get(searchColor))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -451,7 +534,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		String binName = "ageColorMap";
 
-		Qualifier AgeRangeQualifier = new Qualifier(binName, MAP_VALUES_CONTAINS, Value.get(searchColor));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(binName)
+				.setFilterOperation(MAP_VALUES_CONTAINS)
+				.setValue1(Value.get(searchColor))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -475,7 +562,12 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		String binName = "ageColorMap";
 
-		Qualifier AgeRangeQualifier = new Qualifier(binName, MAP_KEYS_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
+		Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
+				.setField(binName)
+				.setFilterOperation(MAP_KEYS_BETWEEN)
+				.setValue1(Value.get(ageStart))
+				.setValue2(Value.get(ageEnd));
+		Qualifier AgeRangeQualifier = new Qualifier(qb);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -514,7 +606,12 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		String binName = "colorAgeMap";
 
-		Qualifier AgeRangeQualifier = new Qualifier(binName, MAP_VALUES_BETWEEN, Value.get(ageStart), Value.get(ageEnd));
+		Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
+				.setField(binName)
+				.setFilterOperation(MAP_VALUES_BETWEEN)
+				.setValue1(Value.get(ageStart))
+				.setValue2(Value.get(ageEnd));
+		Qualifier AgeRangeQualifier = new Qualifier(qb);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -548,7 +645,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void testContainingDoesNotUseSpecialCharacterQualifier() {
-		Qualifier AgeRangeQualifier = new Qualifier(SPECIAL_CHAR_BIN, CONTAINING, Value.get(".*"));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(SPECIAL_CHAR_BIN)
+				.setFilterOperation(CONTAINING)
+				.setValue1(Value.get(".*"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -562,7 +663,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void testStartWithDoesNotUseSpecialCharacterQualifier() {
-		Qualifier AgeRangeQualifier = new Qualifier(SPECIAL_CHAR_BIN, START_WITH, Value.get(".*"));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(SPECIAL_CHAR_BIN)
+				.setFilterOperation(STARTS_WITH)
+				.setValue1(Value.get(".*"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -579,7 +684,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void testEndWithDoesNotUseSpecialCharacterQualifier() {
-		Qualifier AgeRangeQualifier = new Qualifier(SPECIAL_CHAR_BIN, ENDS_WITH, Value.get(".*"));
+		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(SPECIAL_CHAR_BIN)
+				.setFilterOperation(ENDS_WITH)
+				.setValue1(Value.get(".*"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, AgeRangeQualifier);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -596,7 +705,13 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void testEQIcaseDoesNotUseSpecialCharacter() {
-		Qualifier AgeRangeQualifier = new Qualifier(SPECIAL_CHAR_BIN, EQ, true, Value.get(".*"));
+		Qualifier AgeRangeQualifier = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField(SPECIAL_CHAR_BIN)
+						.setFilterOperation(EQ)
+						.setIgnoreCase(true)
+						.setValue1(Value.get(".*"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, AgeRangeQualifier);
 		StepVerifier.create(flux)
 				.verifyComplete();
@@ -606,7 +721,13 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 	public void testContainingFindsSquareBracket() {
 		String[] specialStrings = new String[]{"[", "$", "\\", "^"};
 		for (String specialString : specialStrings) {
-			Qualifier AgeRangeQualifier = new Qualifier(SPECIAL_CHAR_BIN, CONTAINING, true, Value.get(specialString));
+			Qualifier AgeRangeQualifier = new Qualifier(
+					new Qualifier.QualifierBuilder()
+							.setField(SPECIAL_CHAR_BIN)
+							.setFilterOperation(CONTAINING)
+							.setIgnoreCase(true)
+							.setValue1(Value.get(specialString))
+			);
 			Flux<KeyRecord> flux = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, AgeRangeQualifier);
 			StepVerifier.create(flux.collectList())
 					.expectNextMatches(results -> {
@@ -629,7 +750,13 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 			boolean ignoreCase = true;
 			String expectedColor = "blue";
 
-			Qualifier caseInsensitiveQual = new Qualifier("color", Qualifier.FilterOperation.EQ, ignoreCase, Value.get("BlUe"));
+			Qualifier caseInsensitiveQual = new Qualifier(
+					new Qualifier.QualifierBuilder()
+							.setField("color")
+							.setFilterOperation(FilterOperation.EQ)
+							.setIgnoreCase(ignoreCase)
+							.setValue1(Value.get("BlUe"))
+			);
 			Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, caseInsensitiveQual);
 			StepVerifier.create(flux.collectList())
 					.expectNextMatches(results -> {
@@ -649,9 +776,22 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 		String expectedColor = BLUE;
 
 		// We are  expecting to get back all records where color == blue or (age == 28 || age == 29)
-		Qualifier qual1 = new Qualifier("color", Qualifier.FilterOperation.EQ, Value.get(expectedColor));
-		Qualifier qual2 = new Qualifier("age", Qualifier.FilterOperation.BETWEEN, Value.get(28), Value.get(29));
-		Qualifier or = new Qualifier(Qualifier.FilterOperation.OR, qual1, qual2);
+		Qualifier.QualifierBuilder qb1 = new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(FilterOperation.EQ)
+				.setValue1(Value.get(expectedColor));
+		Qualifier.QualifierBuilder qb2 = new Qualifier.QualifierBuilder()
+				.setField("age")
+				.setFilterOperation(FilterOperation.BETWEEN)
+				.setValue1(Value.get(28))
+				.setValue2(Value.get(29));
+		Qualifier qual1 = new Qualifier(qb1);
+		Qualifier qual2 = new Qualifier(qb2);
+
+		Qualifier.QualifierBuilder qbOr = new Qualifier.QualifierBuilder()
+				.setFilterOperation(FilterOperation.OR)
+				.setQualifiers(qual1, qual2);
+		Qualifier or = new Qualifier(qbOr);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, or);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -680,13 +820,41 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void selectWithBetweenAndOrQualifiers() {
-		Qualifier qual1 = new Qualifier("color", Qualifier.FilterOperation.EQ, Value.get("green"));
-		Qualifier qual2 = new Qualifier("age", Qualifier.FilterOperation.BETWEEN, Value.get(28), Value.get(29));
-		Qualifier qual3 = new Qualifier("age", Qualifier.FilterOperation.EQ, Value.get(25));
-		Qualifier qual4 = new Qualifier("name", Qualifier.FilterOperation.EQ, Value.get("name:696"));
-		Qualifier or = new Qualifier(Qualifier.FilterOperation.OR, qual3, qual2, qual4);
-		Qualifier or2 = new Qualifier(Qualifier.FilterOperation.OR, qual1, qual4);
-		Qualifier and = new Qualifier(Qualifier.FilterOperation.AND, or, or2);
+		Qualifier.QualifierBuilder qbColorIsGreen = new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(FilterOperation.EQ)
+				.setValue1(Value.get("green"));
+		Qualifier.QualifierBuilder qbAgeBetween28And29 = new Qualifier.QualifierBuilder()
+				.setField("age")
+				.setFilterOperation(FilterOperation.BETWEEN)
+				.setValue1(Value.get(28))
+				.setValue2(Value.get(29));
+		Qualifier.QualifierBuilder qbAgeIs25 = new Qualifier.QualifierBuilder()
+				.setField("age")
+				.setFilterOperation(FilterOperation.EQ)
+				.setValue1(Value.get(25));
+		Qualifier.QualifierBuilder qbNameIs696 = new Qualifier.QualifierBuilder()
+				.setField("name")
+				.setFilterOperation(FilterOperation.EQ)
+				.setValue1(Value.get("name:696"));
+		Qualifier qualColorIsGreen = new Qualifier(qbColorIsGreen);
+		Qualifier qualAgeBetween28And29 = new Qualifier(qbAgeBetween28And29);
+		Qualifier qualAgeIs25 = new Qualifier(qbAgeIs25);
+		Qualifier qualNameIs696 = new Qualifier(qbNameIs696);
+
+		Qualifier.QualifierBuilder qbOr = new Qualifier.QualifierBuilder()
+				.setFilterOperation(FilterOperation.OR)
+				.setQualifiers(qualAgeIs25, qualAgeBetween28And29, qualNameIs696);
+		Qualifier.QualifierBuilder qbOr2 = new Qualifier.QualifierBuilder()
+				.setFilterOperation(FilterOperation.OR)
+				.setQualifiers(qualColorIsGreen, qualNameIs696);
+		Qualifier or = new Qualifier(qbOr);
+		Qualifier or2 = new Qualifier(qbOr2);
+
+		Qualifier.QualifierBuilder qbAnd = new Qualifier.QualifierBuilder()
+				.setFilterOperation(FilterOperation.AND)
+				.setQualifiers(or, or2);
+		Qualifier and = new Qualifier(qbAnd);
 
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, and);
 		StepVerifier.create(flux.collectList())

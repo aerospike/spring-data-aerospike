@@ -30,11 +30,19 @@ public class KeyQualifier extends Qualifier {
 	boolean hasDigest = false;
 
 	public KeyQualifier(Value value) {
-		super(QueryEngine.Meta.KEY.toString(), FilterOperation.EQ, value);
+		super(new QualifierBuilder()
+				.setField(QueryEngine.Meta.KEY.toString())
+				.setFilterOperation(FilterOperation.EQ)
+				.setValue1(value)
+		);
 	}
 
 	public KeyQualifier(byte[] digest) {
-		super(QueryEngine.Meta.KEY.toString(), FilterOperation.EQ, null);
+		super(new QualifierBuilder()
+				.setField(QueryEngine.Meta.KEY.toString())
+				.setFilterOperation(FilterOperation.EQ)
+				.setValue1(null)
+		);
 		this.internalMap.put("digest", digest);
 		this.hasDigest = true;
 	}

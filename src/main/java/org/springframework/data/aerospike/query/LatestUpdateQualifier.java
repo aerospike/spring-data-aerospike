@@ -28,7 +28,11 @@ public class LatestUpdateQualifier extends Qualifier {
 	private static final long serialVersionUID = -8767573059309320133L;
 
 	public LatestUpdateQualifier(FilterOperation op, Value value) {
-		super("latest_update_time", op, value); // the field should never be used as here we use a bit different logic
+		super(new QualifierBuilder()
+				.setField("latest_update_time")
+				.setFilterOperation(op)
+				.setValue1(value)
+		);
 		if (value.getType() != ParticleType.INTEGER) {
 			throw new QualifierException("LatestUpdateQualifer value must be an integer or long");
 		}

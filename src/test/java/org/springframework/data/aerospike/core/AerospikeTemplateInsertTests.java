@@ -60,7 +60,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
                 .age(45)
                 .waist(90)
                 .emailAddress("dave@gmail.com")
-                .map(Collections.singletonMap("k", "v"))
+                .stringMap(Collections.singletonMap("k", "v"))
                 .strings(Arrays.asList("a", "b", "c"))
                 .friend(new Person(null, "Anna", 43))
                 .active(true)

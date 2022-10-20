@@ -9,10 +9,10 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.ENDS_WITH;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.EQ;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.GEO_WITHIN;
-import static org.springframework.data.aerospike.query.Qualifier.FilterOperation.START_WITH;
+import static org.springframework.data.aerospike.query.FilterOperation.ENDS_WITH;
+import static org.springframework.data.aerospike.query.FilterOperation.EQ;
+import static org.springframework.data.aerospike.query.FilterOperation.GEO_WITHIN;
+import static org.springframework.data.aerospike.query.FilterOperation.STARTS_WITH;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_SET;
@@ -53,7 +53,11 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void selectEndssWith() {
-		Qualifier qual1 = new Qualifier("color", ENDS_WITH, Value.get("e"));
+		Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(ENDS_WITH)
+				.setValue1(Value.get("e"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -67,7 +71,11 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 
 	@Test
 	public void selectStartsWith() {
-		Qualifier startsWithQual = new Qualifier("color", START_WITH, Value.get("bl"));
+		Qualifier startsWithQual = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("color")
+				.setFilterOperation(STARTS_WITH)
+				.setValue1(Value.get("bl"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, startsWithQual);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -82,8 +90,20 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void startWithAndEqualIgnoreCaseReturnsAllItems() {
 		boolean ignoreCase = true;
-		Qualifier qual1 = new Qualifier("color", EQ, ignoreCase, Value.get("BLUE"));
-		Qualifier qual2 = new Qualifier("name", START_WITH, ignoreCase, Value.get("NA"));
+		Qualifier qual1 = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField("color")
+						.setFilterOperation(EQ)
+						.setIgnoreCase(ignoreCase)
+						.setValue1(Value.get("BLUE"))
+		);
+		Qualifier qual2 = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField("name")
+						.setFilterOperation(STARTS_WITH)
+						.setIgnoreCase(ignoreCase)
+						.setValue1(Value.get("NA"))
+		);
 
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1, qual2);
 		StepVerifier.create(flux)
@@ -94,7 +114,13 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void equalIgnoreCaseReturnsNoItemsIfNoneMatched() {
 		boolean ignoreCase = false;
-		Qualifier qual1 = new Qualifier("color", EQ, ignoreCase, Value.get("BLUE"));
+		Qualifier qual1 = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField("color")
+						.setFilterOperation(EQ)
+						.setIgnoreCase(ignoreCase)
+						.setValue1(Value.get("BLUE"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
 		StepVerifier.create(flux)
 				.expectNextCount(0)
@@ -104,7 +130,13 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void startWithIgnoreCaseReturnsNoItemsIfNoneMatched() {
 		boolean ignoreCase = false;
-		Qualifier qual1 = new Qualifier("name", START_WITH, ignoreCase, Value.get("NA"));
+		Qualifier qual1 = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField("name")
+						.setFilterOperation(STARTS_WITH)
+						.setIgnoreCase(ignoreCase)
+						.setValue1(Value.get("NA"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
 		StepVerifier.create(flux)
 				.expectNextCount(0)
@@ -116,7 +148,13 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 		boolean ignoreCase = true;
 		String expectedColor = "blue";
 
-		Qualifier caseInsensitiveQual = new Qualifier("color", EQ, ignoreCase, Value.get("BlUe"));
+		Qualifier caseInsensitiveQual = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField("color")
+						.setFilterOperation(EQ)
+						.setIgnoreCase(ignoreCase)
+						.setValue1(Value.get("BlUe"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, caseInsensitiveQual);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {
@@ -131,7 +169,13 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 	@Test
 	public void stringEqualIgnoreCaseWorksRequiresFullMatch() {
 		boolean ignoreCase = true;
-		Qualifier caseInsensitiveQual = new Qualifier("color", EQ, ignoreCase, Value.get("lue"));
+		Qualifier caseInsensitiveQual = new Qualifier(
+				new Qualifier.QualifierBuilder()
+						.setField("color")
+						.setFilterOperation(EQ)
+						.setIgnoreCase(ignoreCase)
+						.setValue1(Value.get("lue"))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, caseInsensitiveQual);
 
 		StepVerifier.create(flux)
@@ -147,7 +191,11 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 		String rgnstr = String.format("{ \"type\": \"AeroCircle\", "
 						+ "\"coordinates\": [[%.8f, %.8f], %f] }",
 				lon, lat, radius);
-		Qualifier qual1 = new Qualifier(GEO_BIN_NAME, GEO_WITHIN, Value.getAsGeoJSON(rgnstr));
+		Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField(GEO_BIN_NAME)
+				.setFilterOperation(GEO_WITHIN)
+				.setValue1(Value.getAsGeoJSON(rgnstr))
+		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, GEO_SET, null, qual1);
 		StepVerifier.create(flux.collectList())
 				.expectNextMatches(results -> {

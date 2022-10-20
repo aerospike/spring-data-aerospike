@@ -60,7 +60,7 @@ public class StatementBuilder {
 			Qualifier qualifier = qualifiers[i];
 
 			if (qualifier == null) continue;
-			if (qualifier.getOperation() == Qualifier.FilterOperation.AND) {
+			if (qualifier.getOperation() == FilterOperation.AND) {
 				for (Qualifier q : qualifier.getQualifiers()) {
 					if(q != null && isIndexedBin(stmt, q)) {
 						Filter filter = q.asFilter();
