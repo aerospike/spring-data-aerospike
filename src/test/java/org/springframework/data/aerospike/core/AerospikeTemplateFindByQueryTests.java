@@ -228,17 +228,6 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void find_throwsExceptionForUnsortedQueryWithSpecifiedOffsetValue() {
-        Query query = new Query((Sort) null);
-        query.setOffset(1);
-
-        assertThatThrownBy(() -> template.find(query, Person.class))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
-    }
-
-
-    @Test
     public void findByListContainingInteger() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsContaining", 100);
 
