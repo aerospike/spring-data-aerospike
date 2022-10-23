@@ -29,47 +29,47 @@ import java.util.List;
  */
 public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<Customer, String> {
 
-    Flux<Customer> findByLastname(String lastname);
+    Flux<Customer> findByLastName(String lastName);
 
     // DTO Projection
-    Flux<CustomerSomeFields> findCustomerSomeFieldsByLastname(String lastname);
+    Flux<CustomerSomeFields> findCustomerSomeFieldsByLastName(String lastName);
 
     // Dynamic Projection
-    <T> Flux<T> findByLastname(String lastname, Class<T> type);
+    <T> Flux<T> findByLastName(String lastName, Class<T> type);
 
-    Flux<Customer> findByLastnameNot(String lastname);
+    Flux<Customer> findByLastNameNot(String lastName);
 
-    Mono<Customer> findOneByLastname(String lastname);
+    Mono<Customer> findOneByLastName(String lastName);
 
-    Flux<Customer> findByLastnameOrderByFirstnameAsc(String lastname);
+    Flux<Customer> findByLastNameOrderByFirstNameAsc(String lastName);
 
-    Flux<Customer> findByLastnameOrderByFirstnameDesc(String lastname);
+    Flux<Customer> findByLastNameOrderByFirstNameDesc(String lastName);
 
-    Flux<Customer> findByFirstnameEndsWith(String postfix);
+    Flux<Customer> findByFirstNameEndsWith(String postfix);
 
-    Flux<Customer> findByFirstnameStartsWithOrderByAgeAsc(String prefix);
+    Flux<Customer> findByFirstNameStartsWithOrderByAgeAsc(String prefix);
 
-    Flux<CustomerSomeFields> findCustomerSomeFieldsByFirstnameStartsWithOrderByFirstnameAsc(String prefix);
+    Flux<CustomerSomeFields> findCustomerSomeFieldsByFirstNameStartsWithOrderByFirstNameAsc(String prefix);
 
     Flux<Customer> findByAgeLessThan(long age, Sort sort);
 
-    Flux<Customer> findByFirstnameIn(List<String> firstnames);
+    Flux<Customer> findByFirstNameIn(List<String> firstNames);
 
-    Flux<Customer> findByFirstnameAndLastname(String firstname, String lastname);
+    Flux<Customer> findByFirstNameAndLastName(String firstName, String lastName);
 
-    Mono<Customer> findOneByFirstnameAndLastname(String firstname, String lastname);
+    Mono<Customer> findOneByFirstNameAndLastName(String firstName, String lastName);
 
-    Flux<Customer> findByLastnameAndAge(String lastname, long age);
+    Flux<Customer> findByLastNameAndAge(String lastName, long age);
 
     Flux<Customer> findByAgeBetween(long from, long to);
 
-    Flux<Customer> findByFirstnameContains(String firstname);
+    Flux<Customer> findByFirstNameContains(String firstName);
 
-    Flux<Customer> findByFirstnameContainingIgnoreCase(String firstname);
+    Flux<Customer> findByFirstNameContainingIgnoreCase(String firstName);
 
-    Flux<Customer> findByAgeBetweenAndLastname(long from, long to, String lastname);
+    Flux<Customer> findByAgeBetweenAndLastName(long from, long to, String lastName);
 
-    Flux<Customer> findByAgeBetweenOrderByFirstnameDesc(long i, long j);
+    Flux<Customer> findByAgeBetweenOrderByFirstNameDesc(long i, long j);
 
     Flux<Customer> findByGroup(char group);
 }

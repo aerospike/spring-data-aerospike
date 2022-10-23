@@ -175,13 +175,13 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findInRange_shouldFindLimitedNumberOfDocumentsAndSkip() {
+    public void findInRange_shouldFailOnUnsortedQueryWithOffsetValue() {
         int skip = 3;
         int limit = 5;
-        Stream<Person> stream = template.findInRange(skip, limit, Sort.unsorted(), Person.class);
 
-        assertThat(stream)
-                .hasSize(5);
+        assertThatThrownBy(() -> template.findInRange(skip, limit, Sort.unsorted(), Person.class))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
     }
 
     @Test

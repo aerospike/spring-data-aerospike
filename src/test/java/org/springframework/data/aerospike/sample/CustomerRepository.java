@@ -24,17 +24,17 @@ import java.util.List;
  */
 public interface CustomerRepository extends AerospikeRepository<Customer, String> {
 
-    List<Customer> findByLastname(String lastname);
+    List<Customer> findByLastName(String lastName);
 
-    List<Customer> findByFirstname(String firstname);
+    List<Customer> findByFirstName(String firstName);
 
-    List<Customer> findCustomerByFirstname(String firstname);
+    List<Customer> findCustomerByFirstName(String firstName);
 
     List<Customer> findCustomerByAgeBetween(Integer from, Integer to);
 
-    List<Customer> findCustomerByFirstnameStartingWithIgnoreCase(String firstname);
+    List<Customer> findCustomerByFirstNameStartingWithIgnoreCase(String firstName);
 
-    List<Customer> findCustomerByLastnameOrderByFirstnameAsc(String lastname);
+    List<Customer> findCustomerByLastNameOrderByFirstNameAsc(String lastName);
 
     List<Customer> findByGroup(char group);
 }

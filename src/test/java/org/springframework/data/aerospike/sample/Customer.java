@@ -36,8 +36,8 @@ public class Customer {
 
     public CustomerSomeFields toCustomerSomeFields() {
         return CustomerSomeFields.builder()
-                .firstname(getFirstName())
-                .lastname(getLastName())
+                .firstName(getFirstName())
+                .lastName(getLastName())
                 .build();
     }
 }
