@@ -28,7 +28,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -188,6 +187,29 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given class type.
+     *
+     * @param sort        The sort to affect the returned iterable documents order.
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to.
+     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass);
+
+    /**
+     * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given target class type.
+     *
+     * @param sort        The sort to affect the returned iterable documents order.
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
+     * @param entityClass The class to extract the Aerospike set from.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Flux<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass);
 
     /**
      * Reactively find a document by id, set name will be determined by the given entityClass.
