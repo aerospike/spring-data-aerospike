@@ -241,9 +241,10 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 			}
 		}
 
-		qb.setIgnoreCase(true)
-			.setField(fieldName)
-			.setFilterOperation(op);
+		qb.setField(fieldName)
+			.setFilterOperation(op)
+			.setIgnoreCase(ignoreCaseToBoolean(part));
+
 		setNotNullQbValues(qb, v1, v2);
 
 		return new AerospikeCriteria(qb);
@@ -298,16 +299,15 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 		return query;
 	}
 
-	@SuppressWarnings("unused")
-	private boolean isSimpleComparisonPossible(Part part) {
+	private boolean ignoreCaseToBoolean(Part part) {
 		switch (part.shouldIgnoreCase()) {
 			case WHEN_POSSIBLE:
-				return part.getProperty().getType() != String.class;
+				return part.getProperty().getType() == String.class;
 			case ALWAYS:
-				return false;
+				return true;
 			case NEVER:
 			default:
-				return true;
+				return false;
 		}
 	}
 }
