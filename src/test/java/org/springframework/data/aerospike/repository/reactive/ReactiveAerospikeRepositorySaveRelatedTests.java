@@ -32,9 +32,9 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
 
     @BeforeEach
     public void setUp() {
-        customer1 = Customer.builder().id(nextId()).firstname("Homer").lastname("Simpson").age(42).build();
-        customer2 = Customer.builder().id(nextId()).firstname("Marge").lastname("Simpson").age(39).build();
-        customer3 = Customer.builder().id(nextId()).firstname("Bart").lastname("Simpson").age(15).build();
+        customer1 = Customer.builder().id(nextId()).firstName("Homer").lastName("Simpson").age(42).build();
+        customer2 = Customer.builder().id(nextId()).firstName("Marge").lastName("Simpson").age(39).build();
+        customer3 = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15).build();
     }
 
     @Test
@@ -48,8 +48,8 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
     public void saveEntityShouldUpdateExistingEntity() {
         StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel())).expectNext(customer1).verifyComplete();
 
-        customer1.setFirstname("Matt");
-        customer1.setLastname("Groening");
+        customer1.setFirstName("Matt");
+        customer1.setLastName("Groening");
 
         StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel())).expectNext(customer1).verifyComplete();
 
@@ -75,8 +75,8 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
         StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel()))
                 .expectNext(customer1).verifyComplete();
 
-        customer1.setFirstname("Matt");
-        customer1.setLastname("Groening");
+        customer1.setFirstName("Matt");
+        customer1.setLastName("Groening");
 
         StepVerifier.create(customerRepo.saveAll(Arrays.asList(customer1, customer2, customer3)).subscribeOn(Schedulers.parallel()))
                 .expectNextCount(3).verifyComplete();
@@ -101,8 +101,8 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
         StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel()))
                 .expectNext(customer1).verifyComplete();
 
-        customer1.setFirstname("Matt");
-        customer1.setLastname("Groening");
+        customer1.setFirstName("Matt");
+        customer1.setLastName("Groening");
 
         StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2, customer3))).expectNextCount(3).verifyComplete();
 
@@ -131,8 +131,8 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
 
     private void assertCustomerExistsInRepo(Customer customer) {
         StepVerifier.create(customerRepo.findById(customer.getId())).consumeNextWith(actual -> {
-            assertThat(actual.getFirstname()).isEqualTo(customer.getFirstname());
-            assertThat(actual.getLastname()).isEqualTo(customer.getLastname());
+            assertThat(actual.getFirstName()).isEqualTo(customer.getFirstName());
+            assertThat(actual.getLastName()).isEqualTo(customer.getLastName());
         }).verifyComplete();
     }
 }

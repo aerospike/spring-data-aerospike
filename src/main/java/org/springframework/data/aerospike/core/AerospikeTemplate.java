@@ -487,14 +487,23 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return resultSet;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <T> Iterable<T> findAll(Sort sort, Class<T> entityClass) {
-		throw new UnsupportedOperationException("not implemented");
+	public <T> Stream<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass) {
+		Assert.notNull(entityClass, "Type must not be null!");
+
+		return (Stream<T>) findAllUsingQueryWithPostProcessing(entityClass, null, sort, offset, limit,
+				null, (Qualifier[])null);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <T, S> Iterable<S> findAll(Sort sort, Class<T> entityClass, Class<S> targetClass) {
-		throw new UnsupportedOperationException("not implemented");
+	public <T, S> Stream<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass) {
+		Assert.notNull(entityClass, "Type must not be null!");
+		Assert.notNull(targetClass, "Target type must not be null!");
+
+		return (Stream<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, sort, offset, limit,
+				null, (Qualifier[])null);
 	}
 
 	public <T> boolean exists(Query query, Class<T> entityClass) {
@@ -529,7 +538,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Assert.notNull(query, "Query must not be null!");
 		Assert.notNull(entityClass, "Type must not be null!");
 
-		return (Stream<T>) findAllUsingQuery(entityClass, null, query);
+		return (Stream<T>) findAllUsingQueryWithPostProcessing(entityClass, null, query);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -539,7 +548,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		Assert.notNull(entityClass, "Type must not be null!");
 		Assert.notNull(targetClass, "Target type must not be null!");
 
-		return (Stream<S>) findAllUsingQuery(entityClass, targetClass, query);
+		return (Stream<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, query);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -548,21 +557,19 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 									 Class<T> entityClass) {
 		Assert.notNull(entityClass, "Type for count must not be null!");
 
-		Stream<T> results = (Stream<T>) findAllUsingQuery(entityClass, null, null, (Qualifier[])null);
-		//TODO:create a sort
-		return results.skip(offset).limit(limit);
+		return (Stream<T>) findAllUsingQueryWithPostProcessing(entityClass, null, sort, offset, limit,
+				null, (Qualifier[]) null);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T, S> Stream<S> findInRange(long offset, long limit, Sort sort,
-									 Class<T> entityClass, Class<S> targetClass) {
+										Class<T> entityClass, Class<S> targetClass) {
 		Assert.notNull(entityClass, "Type for count must not be null!");
 		Assert.notNull(targetClass, "Target type must not be null!");
 
-		Stream<S> results = (Stream<S>) findAllUsingQuery(entityClass, targetClass, null, (Qualifier[])null);
-		//TODO:create a sort
-		return results.skip(offset).limit(limit);
+		return (Stream<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, sort, offset, limit,
+				null, (Qualifier[]) null);
 	}
 
 	@Override
@@ -752,20 +759,40 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return client.operate(policy, key, operations);
 	}
 
-	<T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Query query) {
-		if ((query.getSort() == null || query.getSort().isUnsorted())
-				&& query.getOffset() > 0) {
-			throw new IllegalArgumentException("Unsorted query must not have offset value. " +
-					"For retrieving paged results use sorted query.");
-		}
-
+	<T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query) {
 		Qualifier qualifier = query.getCriteria().getCriteriaObject();
 		Stream<?> results = findAllUsingQuery(entityClass, targetClass, null, qualifier);
 		results = applyPostProcessingOnResults(results, query);
 		return results;
 	}
 
+	<T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
+		return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
+				.map(keyRecord -> {
+					if (targetClass != null) {
+						return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
+					} else {
+						return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
+					}
+				});
+	}
+
+	<T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Sort sort,
+									   long offset, long limit, Filter filter, Qualifier... qualifiers) {
+		Stream<?> results = findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
+				.map(keyRecord -> {
+					if (targetClass != null) {
+						return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
+					} else {
+						return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
+					}
+				});
+		results = applyPostProcessingOnResults(results, sort, offset, limit);
+		return results;
+	}
+
 	private <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
+		verifyUnsortedWithOffset(query.getSort(), query.getOffset());
 		if (query.getSort() != null && query.getSort().isSorted()) {
 			Comparator<T> comparator = getComparator(query);
 			results = results.sorted(comparator);
@@ -780,15 +807,29 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return results;
 	}
 
-	<T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
-		return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
-				.map(keyRecord -> {
-					if (targetClass != null) {
-						return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
-					} else {
-						return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
-					}
-				});
+	private <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Sort sort, long offset, long limit) {
+		verifyUnsortedWithOffset(sort, offset);
+		if (sort != null && sort.isSorted()) {
+			Comparator<T> comparator = getComparator(sort);
+			results = results.sorted(comparator);
+		}
+
+		if (offset > 0) {
+			results = results.skip(offset);
+		}
+
+		if (limit > 0) {
+			results = results.limit(limit);
+		}
+		return results;
+	}
+
+	private void verifyUnsortedWithOffset(Sort sort, long offset) {
+		if ((sort == null || sort.isUnsorted())
+				&& offset > 0) {
+			throw new IllegalArgumentException("Unsorted query must not have offset value. " +
+					"For retrieving paged results use sorted query.");
+		}
 	}
 
 	<T> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {

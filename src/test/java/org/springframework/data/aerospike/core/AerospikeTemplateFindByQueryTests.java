@@ -35,11 +35,13 @@ import org.springframework.data.domain.Sort;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.springframework.data.domain.Sort.Order.asc;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTests {
@@ -180,6 +182,31 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
         assertThat(stream)
                 .hasSize(5);
+    }
+
+    @Test
+    public void findInRange_shouldFindLimitedNumberOfDocumentsWithOrderBy() {
+        int skip = 0;
+        int limit = 5;
+        Sort sort = Sort.by(asc("firstName"));
+
+        List<Person> stream = template.findInRange(skip, limit, sort, Person.class)
+                .collect(Collectors.toList());
+
+        assertThat(stream)
+                .hasSize(5)
+                .containsExactly(aabbot, alister, ashley, beatrice, dave);
+    }
+
+    @Test
+    public void findAll_OrderByFirstName() {
+        Sort sort = Sort.by(asc("firstName"));
+        List<Person> result = template.findAll(sort, 0, 0, Person.class)
+                .collect(Collectors.toList());
+
+        assertThat(result)
+                .hasSize(10)
+                .containsExactly(aabbot, alister, ashley, beatrice, dave, jean, knowlen, mitch, xylophone, zaipper);
     }
 
     @Test

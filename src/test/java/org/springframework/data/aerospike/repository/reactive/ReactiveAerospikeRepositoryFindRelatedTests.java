@@ -35,10 +35,10 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     public void setUpBeforeAll() {
         customerRepo.deleteAll().block();
 
-        customer1 = Customer.builder().id(nextId()).firstname("Homer").lastname("Simpson").age(42).group('a').build();
-        customer2 = Customer.builder().id(nextId()).firstname("Marge").lastname("Simpson").age(39).group('b').build();
-        customer3 = Customer.builder().id(nextId()).firstname("Bart").lastname("Simpson").age(15).group('b').build();
-        customer4 = Customer.builder().id(nextId()).firstname("Matt").lastname("Groening").age(65).group('c').build();
+        customer1 = Customer.builder().id(nextId()).firstName("Homer").lastName("Simpson").age(42).group('a').build();
+        customer2 = Customer.builder().id(nextId()).firstName("Marge").lastName("Simpson").age(39).group('b').build();
+        customer3 = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15).group('b').build();
+        customer4 = Customer.builder().id(nextId()).firstName("Matt").lastName("Groening").age(65).group('c').build();
 
         additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_first_name_index", "firstname", IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_last_name_index", "lastname", IndexType.STRING);
@@ -191,7 +191,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
 
     @Test
     public void findByAgeLessThan_ShouldWorkProperly() {
-        List<Customer> results = customerRepo.findByAgeLessThan(40, Sort.by(asc("firstname")))
+        List<Customer> results = customerRepo.findByAgeLessThan(40, Sort.by(asc("firstName")))
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(customer3, customer2);

@@ -137,6 +137,13 @@ abstract class BaseAerospikeTemplate {
                 .orElseThrow(() -> new IllegalStateException("Comparator can not be created if sort orders are empty"));
     }
 
+    protected <T> Comparator<T> getComparator(Sort sort) {
+        return sort.stream()
+                .map(this::<T>getPropertyComparator)
+                .reduce(Comparator::thenComparing)
+                .orElseThrow(() -> new IllegalStateException("Comparator can not be created if sort orders are empty"));
+    }
+
     private <T> Comparator<T> getPropertyComparator(Sort.Order order) {
         boolean ignoreCase = true;
         boolean ascending = order.getDirection().isAscending();

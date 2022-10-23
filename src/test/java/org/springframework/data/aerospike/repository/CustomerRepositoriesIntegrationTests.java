@@ -36,12 +36,12 @@ public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegratio
 
 	@Test
 	public void create() {
-		repository.save(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
+		repository.save(Customer.builder().id(id).firstName("Dave").lastName("Matthews").build());
 	}
 
 	@Test
 	public void exists() {
-		repository.save(Customer.builder().id(id).firstname("Dave").lastname("Matthews").build());
+		repository.save(Customer.builder().id(id).firstName("Dave").lastName("Matthews").build());
 
 		boolean exists = repository.existsById(id);
 
@@ -50,33 +50,33 @@ public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegratio
 
 	@Test
 	public void delete() {
-		repository.delete(Customer.builder().id(id).firstname("Dave").lastname("Matthews").group('a').build());
+		repository.delete(Customer.builder().id(id).firstName("Dave").lastName("Matthews").group('a').build());
 	}
 
 	@Test
 	public void readById() {
 		Customer customer = repository.save(Customer.builder()
 				.id(id)
-				.firstname("Dave")
-				.lastname("Matthews")
+				.firstName("Dave")
+				.lastName("Matthews")
 				.group('a')
 				.build());
 
 		Optional<Customer> findById = repository.findById(id);
 
 		assertThat(findById).hasValueSatisfying(actual -> {
-			assertThat(actual.getLastname()).isEqualTo(customer.getLastname());
-			assertThat(actual.getFirstname()).isEqualTo(customer.getFirstname());
+			assertThat(actual.getLastName()).isEqualTo(customer.getLastName());
+			assertThat(actual.getFirstName()).isEqualTo(customer.getFirstName());
 			assertThat(actual.getGroup()).isEqualTo(customer.getGroup());
 		});
 	}
 
 	@Test
 	public void findAllByIDs(){
-		Customer first = repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("AMatthews").build());
-		Customer second = repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("BMatthews").build());
-		repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("CMatthews").build());
-		repository.save(Customer.builder().id(nextId()).firstname("Dave").lastname("DMatthews").build());
+		Customer first = repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("AMatthews").build());
+		Customer second = repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("BMatthews").build());
+		repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("CMatthews").build());
+		repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("DMatthews").build());
 
 		Iterable<Customer> customers = repository.findAllById(Arrays.asList(first.getId(), second.getId()));
 
@@ -87,20 +87,20 @@ public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegratio
 	public void findByGroup() {
 		Customer first = repository.save(Customer.builder()
 				.id(nextId())
-				.firstname("Dave")
-				.lastname("AMatthews")
+				.firstName("Dave")
+				.lastName("AMatthews")
 				.group('c')
 				.build());
 		Customer second = repository.save(Customer.builder()
 				.id(nextId())
-				.firstname("Dave")
-				.lastname("BMatthews")
+				.firstName("Dave")
+				.lastName("BMatthews")
 				.group('d')
 				.build());
 		Customer third = repository.save(Customer.builder()
 				.id(nextId())
-				.firstname("Dave")
-				.lastname("CMatthews")
+				.firstName("Dave")
+				.lastName("CMatthews")
 				.group('d')
 				.build());
 

@@ -341,20 +341,24 @@ public interface AerospikeOperations {
      * Find all documents in the given entityClass's set using a provided sort and map them to the given class type.
      *
      * @param sort        The sort to affect the returned iterable documents order.
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to.
-     * @return An Iterable of matching documents, returned documents will be mapped to entityClass's type.
+     * @return A stream of matching documents, returned documents will be mapped to entityClass's type.
      */
-    <T> Iterable<T> findAll(Sort sort, Class<T> entityClass);
+    <T> Stream<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass);
 
     /**
      * Find all documents in the given entityClass's set using a provided sort and map them to the given target class type.
      *
      * @param sort        The sort to affect the returned iterable documents order.
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
      * @param entityClass The class to extract the Aerospike set from.
      * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @return An Iterable of matching documents, returned documents will be mapped to targetClass's type.
+     * @return A stream of matching documents, returned documents will be mapped to targetClass's type.
      */
-    <T, S> Iterable<S> findAll(Sort sort, Class<T> entityClass, Class<S> targetClass);
+    <T, S> Stream<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass);
 
     /**
      * Find documents in the given entityClass's set using a range (offset, limit) and a sort

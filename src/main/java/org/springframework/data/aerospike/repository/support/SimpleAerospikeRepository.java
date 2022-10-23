@@ -79,7 +79,8 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
 
 	@Override
 	public Iterable<T> findAll(Sort sort) {
-		return operations.findAll(sort, entityInformation.getJavaType());
+		Stream<T> findResults = operations.findAll(sort, 0, 0, entityInformation.getJavaType());
+		return findResults::iterator;
 	}
 
 	@Override
