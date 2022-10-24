@@ -786,9 +786,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 .map(keyRecord -> {
                     if (targetClass != null) {
                         return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
-                    } else {
-                        return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
                     }
+                    return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
                 });
     }
 

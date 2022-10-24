@@ -672,10 +672,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (targetClass != null) {
             return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
                     .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
-        } else {
-            return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
-                    .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
         }
+        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+                .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }
 
     <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {
