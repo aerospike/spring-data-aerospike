@@ -766,8 +766,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 		return applyPostProcessingOnResults(results, query);
 	}
 
-	<T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Sort sort,
-														 long offset, long limit, Filter filter, Qualifier... qualifiers) {
+	<T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass,
+														 Class<S> targetClass,
+														 Sort sort,
+														 long offset,
+														 long limit,
+														 Filter filter,
+														 Qualifier... qualifiers) {
 		verifyUnsortedWithOffset(sort, offset);
 		Stream<?> results = findAllUsingQuery(entityClass, targetClass, filter, qualifiers);
 		return applyPostProcessingOnResults(results, sort, offset, limit);
