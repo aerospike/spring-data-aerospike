@@ -83,7 +83,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
     }
 
     @Test
-    public void find_shouldWorkWithFilterEqualProjection() {
+    public void findByFilterEqualProjection() {
         List<Person> allUsers = IntStream.rangeClosed(1, 10)
                 .mapToObj(id -> new Person(nextId(), "Dave", "Matthews")).collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
@@ -99,7 +99,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
     }
 
     @Test
-    public void find_shouldWorkWithFilterRangeProjection() {
+    public void findByFilterRangeProjection() {
         List<Person> allUsers = IntStream.rangeClosed(21, 30)
                 .mapToObj(age -> Person.builder().id(nextId()).firstName("Dave" + age).lastName("Matthews").age(age).build())
                 .collect(Collectors.toList());
@@ -118,7 +118,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
     }
 
     @Test
-    public void find_shouldWorkWithFilterRangeNonExistingProjection() {
+    public void findByFilterRangeNonExistingProjection() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 100, 150);
 
         List<PersonSomeFields> actual = reactiveTemplate.find(query, Person.class, PersonSomeFields.class)

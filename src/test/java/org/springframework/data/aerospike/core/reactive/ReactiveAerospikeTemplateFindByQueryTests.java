@@ -150,7 +150,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void find_shouldWorkWithFilterEqual() {
+    public void findByFilterEqual() {
         List<Person> allUsers = IntStream.rangeClosed(1, 10)
                 .mapToObj(id -> new Person(nextId(), "Dave", "Matthews")).collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
@@ -166,7 +166,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void find_shouldWorkWithFilterEqualOrderBy() {
+    public void findByFilterEqualOrderBy() {
         List<Person> allUsers = IntStream.rangeClosed(1, 10)
                 .mapToObj(id -> new Person(nextId(), "Dave" + id, "Matthews")).collect(Collectors.toList());
         Collections.shuffle(allUsers); // Shuffle user list
@@ -184,7 +184,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void find_shouldWorkWithFilterEqualOrderByDesc() {
+    public void findByFilterEqualOrderByDesc() {
         List<Person> allUsers = IntStream.rangeClosed(1, 10)
                 .mapToObj(id -> new Person(nextId(), "Dave" + id, "Matthews")).collect(Collectors.toList());
         Collections.shuffle(allUsers); // Shuffle user list
@@ -202,7 +202,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void find_shouldWorkWithFilterRange() {
+    public void findByFilterRange() {
         List<Person> allUsers = IntStream.rangeClosed(21, 30)
                 .mapToObj(age -> Person.builder().id(nextId()).firstName("Dave" + age).lastName("Matthews").age(age).build())
                 .collect(Collectors.toList());
@@ -220,7 +220,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void find_shouldWorkWithFilterRangeNonExisting() {
+    public void findByFilterRangeNonExisting() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 100, 150);
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)

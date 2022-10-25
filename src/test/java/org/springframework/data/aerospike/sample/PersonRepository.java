@@ -321,7 +321,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsLessThanEqual(long number);
 
     /**
-     * Find all entities that satisfy the condition "have at least one list value which is in the given range"
+     * Find all entities that satisfy the condition "have at least one list value in the given range"
      * <p>
      * List name in this case is Ints
      * </p>
@@ -330,8 +330,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit, inclusive
      */
     List<P> findByIntsBetween(int from, int to);
-
-    List<P> findByIntsContaining(List<Integer> integer);
 
     List<P> findTop3ByLastNameStartingWith(String lastName);
 
