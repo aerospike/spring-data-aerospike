@@ -853,7 +853,7 @@ public enum FilterOperation {
     /**
      * FilterOperations that require both sIndexFilter and FilterExpression
      */
-    public static List<FilterOperation> dualFilterOperations = Arrays.asList(
+    public static final List<FilterOperation> dualFilterOperations = Arrays.asList(
             MAP_VALUE_EQ_BY_KEY, MAP_VALUE_GT_BY_KEY, MAP_VALUE_GTEQ_BY_KEY, MAP_VALUE_LT_BY_KEY, MAP_VALUE_LTEQ_BY_KEY, MAP_VALUES_BETWEEN_BY_KEY
     );
 }
