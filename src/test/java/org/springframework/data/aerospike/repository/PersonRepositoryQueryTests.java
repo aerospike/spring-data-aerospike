@@ -89,15 +89,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByListValueInRange () {
+    void findByListValueInRange() {
         List<Person> persons = repository.findByIntsBetween(500, 600);
-
-        assertThat(persons).containsExactlyInAnyOrder(leroi2, alicia);
-    }
-
-    @Test
-    void findByListValueInRangeLong () {
-        List<Person> persons = repository.findByIntsBetween(Integer.MIN_VALUE, Long.MAX_VALUE);
 
         assertThat(persons).containsExactlyInAnyOrder(leroi2, alicia);
     }
@@ -137,7 +130,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     void findByMapKeyValueNotEquals() {
         assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
-        assertThat(! leroi.getIntMap().containsValue(22)).isTrue();
+        assertThat(!leroi.getIntMap().containsValue(22)).isTrue();
 
         List<Person> persons = repository.findByIntMapIsNot("key1", 22);
 
@@ -179,6 +172,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByMapKeyValueLessThanOrEqual() {
+        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
+        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+
+        List<Person> persons = repository.findByIntMapLessThanEqual("key2", 1);
+
+        assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
+    }
+
+    @Test
     void findByMapKeyValueBetween() {
         assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
         assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
@@ -188,6 +191,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> persons = repository.findByIntMapBetween("key2", 0, 1);
 
         assertThat(persons).contains(leroi);
+    }
+
+    @Test
+    void findByFirstNameContaining() {
+        List<Person> persons = repository.findByFirstNameContaining("er");
+
+        assertThat(persons).containsExactlyInAnyOrder(carter, oliver, leroi, leroi2);
     }
 
     @Test

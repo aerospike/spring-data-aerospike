@@ -176,10 +176,10 @@ public class AerospikeQueryCreator extends 	AbstractQueryCreator<Query, Aerospik
 								AerospikeMapCriteria onMap = (AerospikeMapCriteria) next;
 								switch (onMap) {
 									case KEY:
-										op = FilterOperation.MAP_KEYS_CONTAINS;
+										op = FilterOperation.MAP_KEYS_CONTAIN;
 										break;
 									case VALUE:
-										op = FilterOperation.MAP_VALUES_CONTAINS;
+										op = FilterOperation.MAP_VALUES_CONTAIN;
 										break;
 								}
 							} else {

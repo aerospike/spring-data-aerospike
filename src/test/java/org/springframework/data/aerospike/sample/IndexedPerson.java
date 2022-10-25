@@ -35,12 +35,14 @@ public class IndexedPerson extends Person {
                 .age(person.getAge())
                 .waist(person.getWaist())
                 .sex(person.getSex())
+                .intMap(person.getIntMap())
                 .stringMap(person.getStringMap())
                 .friend(person.getFriend())
                 .active(person.isActive())
                 .dateOfBirth(person.getDateOfBirth())
                 .strings(person.getStrings())
                 .ints(person.getInts())
+                .address(person.getAddress())
                 .emailAddress(person.getEmailAddress())
                 .build();
     }

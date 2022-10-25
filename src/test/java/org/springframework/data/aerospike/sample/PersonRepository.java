@@ -55,7 +55,21 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
 
+	/**
+	 * Find all entities with age less than the given numeric parameter
+	 *
+	 * @param age integer to compare with
+	 * @param sort sorting
+	 */
     List<P> findByAgeLessThan(int age, Sort sort);
+
+	/**
+	 * Find all entities with age less than the given numeric parameter
+	 *
+	 * @param age long to compare with, [Long.MIN_VALUE+1..Long.MAX_VALUE]
+	 * @param sort sorting
+	 */
+	List<P> findByAgeLessThan(long age, Sort sort);
 
     Stream<P> findByFirstNameIn(List<String> firstNames);
 
@@ -73,6 +87,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAddressZipCode(String zipCode);
 
     List<P> findByAddressZipCodeContaining(String str);
+
+	List<P> findByFirstNameContaining(String str);
 
     List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
 
@@ -118,7 +134,21 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameContainingIgnoreCase(String firstName);
 
+	/**
+	 * Find all entities with age greater than the given numeric parameter
+	 *
+	 * @param age integer to compare with
+	 * @param pageable
+	 */
     Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
+
+	/**
+	 * Find all entities with age greater than the given numeric parameter
+	 *
+	 * @param age long to compare with, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+	 * @param pageable
+	 */
+	Slice<P> findByAgeGreaterThan(long age, Pageable pageable);
 
     // DTO Projection
     Slice<PersonSomeFields> findPersonSomeFieldsByAgeGreaterThan(int age, Pageable pageable);
@@ -144,6 +174,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param value Value of the key
      */
     List<P> findByStringMapEquals(String key, String value);
+
+	/**
+	 * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+	 *
+	 * @param key   Map key
+	 * @param value Value of the key
+	 */
+	List<P> findByIntMapEquals(String key, int value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and NOT the given value"
@@ -176,6 +214,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param greaterThan integer to check if value is greater than it
      */
     List<P> findByIntMapGreaterThan(String key, int greaterThan);
+
+	/**
+	 * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to the given integer"
+	 *
+	 * @param key         		Map key
+	 * @param lessThanOrEqualTo integer to check if value satisfies the condition
+	 */
+	List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
@@ -284,17 +330,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 	 */
 	List<P> findByIntsBetween(int from, int to);
 
-	/**
-	 * Find all entities that satisfy the condition "have at least one list value which is in the given range"
-	 * <p>
-	 * List name in this case is Ints
-	 * </p>
-	 * 
-	 * @param from lower limit, inclusive
-	 * @param to   upper limit, inclusive
-	 */
-	List<P> findByIntsBetween(long from, long to);
-
 	List<P> findByIntsContaining(List<Integer> integer);
 
 	List<P> findTop3ByLastNameStartingWith(String lastName);
@@ -306,6 +341,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 	List<P> findByFirstNameAndAge(String string, int i);
 
 	Iterable<P> findByAgeBetweenAndLastName(int from, int to, String lastName);
+
+	Iterable<P> findByAgeBetweenOrLastName(int from, int to, String lastName);
 
 	List<P> findByFirstNameStartsWith(String string);
 

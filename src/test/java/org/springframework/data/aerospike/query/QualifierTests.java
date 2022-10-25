@@ -507,7 +507,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField(binName)
-				.setFilterOperation(FilterOperation.MAP_KEYS_CONTAINS)
+				.setFilterOperation(FilterOperation.MAP_KEYS_CONTAIN)
 				.setValue1(Value.get(searchColor))
 		);
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -529,7 +529,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField(binName)
-				.setFilterOperation(FilterOperation.MAP_VALUES_CONTAINS)
+				.setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
 				.setValue1(Value.get(searchColor))
 		);
 		KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);

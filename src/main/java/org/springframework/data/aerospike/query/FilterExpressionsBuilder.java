@@ -6,7 +6,6 @@ import com.aerospike.client.exp.Expression;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class FilterExpressionsBuilder {
@@ -14,7 +13,7 @@ public class FilterExpressionsBuilder {
         if (qualifiers != null && qualifiers.length != 0) {
             List<Qualifier> relevantQualifiers = Arrays.stream(qualifiers)
                     .filter(Objects::nonNull)
-                    .filter(q -> !q.queryAsFilter())
+                    .filter(this::excludeIrrelevantFilters)
                     .collect(Collectors.toList());
 
             // in case there is more than 1 relevant qualifier -> the default behaviour is AND
@@ -29,5 +28,13 @@ public class FilterExpressionsBuilder {
             }
         }
         return null;
+    }
+
+    /**
+     * The filter allows only qualifiers without sIndexFilter and those with the dualFilterOperation that require both sIndexFilter and FilterExpression
+     * The filter is irrelevant for AND operation (nested qualifiers)
+     */
+    private boolean excludeIrrelevantFilters(Qualifier qualifier) {
+        return ! qualifier.queryAsFilter() || (qualifier.queryAsFilter() && FilterOperation.dualFilterOperations.contains(qualifier.getOperation()));
     }
 }

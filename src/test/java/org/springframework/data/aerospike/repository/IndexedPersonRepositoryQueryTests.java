@@ -10,6 +10,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.repository.PersonTestData.Indexed;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.IndexedPersonRepository;
 import org.springframework.data.aerospike.sample.Person;
@@ -49,10 +50,12 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_age_index", "age", IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_strings_index", "strings", IndexType.STRING, IndexCollectionType.LIST);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_ints_index", "ints", IndexType.NUMERIC, IndexCollectionType.LIST);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_map_keys_index", "map", IndexType.STRING, IndexCollectionType.MAPKEYS);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_map_values_index", "map", IndexType.STRING, IndexCollectionType.MAPVALUES);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_intmap_keys_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPKEYS);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_intmap_values_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPVALUES);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_string_map_keys_index", "stringMap", IndexType.STRING, IndexCollectionType.MAPKEYS);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_string_map_values_index", "stringMap", IndexType.STRING, IndexCollectionType.MAPVALUES);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_int_map_keys_index", "intMap", IndexType.STRING, IndexCollectionType.MAPKEYS);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_int_map_values_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPVALUES);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_address_keys_index", "address", IndexType.STRING, IndexCollectionType.MAPKEYS);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_address_values_index", "address", IndexType.STRING, IndexCollectionType.MAPVALUES);
         indexRefresher.refreshIndexes();
     }
 
@@ -87,6 +90,28 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         List<IndexedPerson> persons = repository.findByIntsContaining(7777);
 
         assertThat(persons).isEmpty();
+    }
+
+
+    @Test
+    void findByListValueGreaterThan() {
+        List<IndexedPerson> persons = repository.findByIntsGreaterThan(549);
+
+        assertThat(persons).containsExactlyInAnyOrder(leroi2, alicia);
+    }
+
+    @Test
+    void findByListValueLessThanOrEqual() {
+        List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500);
+
+        assertThat(persons).containsOnly(leroi2);
+    }
+
+    @Test
+    void findByListValueInRange() {
+        List<IndexedPerson> persons = repository.findByIntsBetween(500, 600);
+
+        assertThat(persons).containsExactlyInAnyOrder(leroi2, alicia);
     }
 
     @Test
@@ -231,5 +256,95 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
         Iterable<IndexedPerson> result = repository.findByAgeBetweenAndLastName(20, 26, "Moore");
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    public void findsPersonInAgeRangeOrNameCorrectly() {
+        Iterable<IndexedPerson> it = repository.findByAgeBetweenOrLastName(40, 45, "Matthews");
+        assertThat(it).containsExactlyInAnyOrder(oliver, boyd, dave, leroi);
+
+        Iterable<IndexedPerson> result = repository.findByAgeBetweenOrLastName(20, 26, "Moe");
+        assertThat(result).containsExactlyInAnyOrder(leroi2);
+    }
+
+    @Test
+    void findByMapKeysContaining() {
+        assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
+        assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
+
+        List<IndexedPerson> persons = repository.findByStringMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY);
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
+    void findByMapValuesContaining() {
+        assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
+        assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
+
+        List<IndexedPerson> persons = repository.findByStringMapContaining("val1", CriteriaDefinition.AerospikeMapCriteria.VALUE);
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
+    void findByMapKeyValueEqualsInt() {
+        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
+        assertThat(leroi.getIntMap().containsValue(0)).isTrue();
+
+        Iterable<IndexedPerson> result = repository.findByIntMapEquals("key1", 0);
+
+        assertThat(result).contains(leroi);
+    }
+
+    @Test
+    void findByMapKeyValueEqualsString() {
+        assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
+        assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
+        assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
+        assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
+
+        List<IndexedPerson> persons = repository.findByStringMapEquals("key1", "val1");
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
+    public void findPersonsByAddressZipCode() {
+        List<IndexedPerson> result = repository.findByAddressZipCode("C0123");
+
+        assertThat(result).containsExactly(dave);
+    }
+
+    @Test
+    void findByMapKeyValueGreaterThan() {
+        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
+        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+
+        List<IndexedPerson> persons = repository.findByIntMapGreaterThan("key2", 0);
+
+        assertThat(persons).contains(leroi);
+    }
+
+    @Test
+    void findByMapKeyValueLessThanOrEqual() {
+        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
+        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+
+        List<IndexedPerson> persons = repository.findByIntMapLessThanEqual("key2", 1);
+
+        assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
+    }
+
+    @Test
+    void findByMapKeyValueBetween() {
+        assertThat(carter.getIntMap().containsKey("key2")).isTrue();
+        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
+        assertThat(carter.getIntMap().get("key2") >= 0).isTrue();
+        assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
+
+        List<IndexedPerson> persons = repository.findByIntMapBetween("key2", 0, 1);
+
+        assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
     }
 }

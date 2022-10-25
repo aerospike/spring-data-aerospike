@@ -125,9 +125,11 @@ public class QueryEngine {
 		Statement statement = statementBuilder.build(namespace, set, filter, qualifiers, binNames);
 		QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
 		localQueryPolicy.filterExp = filterExpressionsBuilder.build(qualifiers);
+
 		if (!scansEnabled && statement.getFilter() == null) {
 			throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
 		}
+
 		RecordSet rs = client.query(localQueryPolicy, statement);
 		return new KeyRecordIterator(namespace, rs);
 	}

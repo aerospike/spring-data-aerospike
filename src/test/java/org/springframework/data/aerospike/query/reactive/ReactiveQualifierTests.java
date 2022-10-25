@@ -49,9 +49,9 @@ import static org.springframework.data.aerospike.query.FilterOperation.LIST_CONT
 import static org.springframework.data.aerospike.query.FilterOperation.LT;
 import static org.springframework.data.aerospike.query.FilterOperation.LTEQ;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_BETWEEN;
-import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_CONTAINS;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_CONTAIN;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_BETWEEN;
-import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_CONTAINS;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_CONTAIN;
 import static org.springframework.data.aerospike.query.FilterOperation.STARTS_WITH;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
@@ -509,7 +509,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField(binName)
-				.setFilterOperation(MAP_KEYS_CONTAINS)
+				.setFilterOperation(MAP_KEYS_CONTAIN)
 				.setValue1(Value.get(searchColor))
 		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
@@ -536,7 +536,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
 		Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
 				.setField(binName)
-				.setFilterOperation(MAP_VALUES_CONTAINS)
+				.setFilterOperation(MAP_VALUES_CONTAIN)
 				.setValue1(Value.get(searchColor))
 		);
 		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
