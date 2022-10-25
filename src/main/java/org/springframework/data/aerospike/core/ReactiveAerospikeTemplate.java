@@ -48,7 +48,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
@@ -113,7 +112,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
-            // we are ignoring generation here as insert operation should fail with DuplicateKeyException if key already exists
+            // we are ignoring generation here as insert operation should fail with DuplicateKeyException if key already exists,
             // and we do not mind which initial version is set in the document, BUT we need to update the version value in the original document
             // also we do not want to handle aerospike error codes as cas aware error codes as we are ignoring generation
             return doPersistWithVersionAndHandleError(document, data, policy);
@@ -156,14 +155,40 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
-        return findAllUsingQuery(entityClass, null, (Qualifier[]) null);
+        Assert.notNull(entityClass, "Type must not be null!");
+
+        return (Flux<T>) findAllUsingQuery(entityClass, null, null, (Qualifier[]) null);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass) {
-        return findAllUsingQuery(entityClass, targetClass, null, (Qualifier[]) null);
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(targetClass, "Target type must not be null!");
+
+        return (Flux<S>) findAllUsingQuery(entityClass, targetClass, null, (Qualifier[]) null);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Type must not be null!");
+
+        return (Flux<T>) findAllUsingQueryWithPostProcessing(entityClass, null, sort, offset, limit,
+                null, (Qualifier[]) null);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T, S> Flux<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(targetClass, "Target type must not be null!");
+
+        return (Flux<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, sort, offset, limit,
+                null, (Qualifier[])null);
     }
 
     @Override
@@ -346,42 +371,44 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .onErrorMap(this::translateError);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Flux<T> find(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
 
-        return findAllUsingQuery(entityClass, query);
+        return (Flux<T>) findAllUsingQueryWithPostProcessing(entityClass, null, query);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass) {
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
         Assert.notNull(targetClass, "Target type must not be null!");
 
-        return findAllUsingQuery(entityClass, targetClass, query);
+        return (Flux<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, query);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass) {
         Assert.notNull(entityClass, "Type for count must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
 
-        return findAllUsingQuery(entityClass, null, (Qualifier[]) null)
-                .skip(offset)
-                .take(limit);
+        return (Flux<T>) findAllUsingQueryWithPostProcessing(entityClass, null, sort, offset, limit,
+                null, (Qualifier[]) null);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T, S> Flux<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass) {
         Assert.notNull(entityClass, "Type for count must not be null!");
         Assert.notNull(entityClass, "Type must not be null!");
         Assert.notNull(targetClass, "Target type must not be null!");
 
-        return findAllUsingQuery(entityClass, targetClass, null, (Qualifier[]) null)
-                .skip(offset)
-                .take(limit);
+        return (Flux<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, sort, offset, limit,
+                null, (Qualifier[]) null);
     }
 
     @Override
@@ -586,32 +613,28 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return e;
     }
 
-    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Query query) {
-        if ((query.getSort() == null || query.getSort().isUnsorted())
-                && query.getOffset() > 0) {
-            throw new IllegalArgumentException("Unsorted query must not have offset value. " +
-                    "For retrieving paged results use sorted query.");
-        }
-
+    <T, S> Flux<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query) {
+        verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Flux<T> results = findAllUsingQuery(entityClass, null, qualifier);
-
+        Flux<?> results = findAllUsingQuery(entityClass, targetClass, null, qualifier);
         results = applyPostProcessingOnResults(results, query);
         return results;
     }
 
-    <T, S> Flux<S> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Query query) {
-        if ((query.getSort() == null || query.getSort().isUnsorted())
-                && query.getOffset() > 0) {
+    <T, S> Flux<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Sort sort,
+                                                       long offset, long limit, Filter filter, Qualifier... qualifiers) {
+        verifyUnsortedWithOffset(sort, offset);
+        Flux<?> results = findAllUsingQuery(entityClass, targetClass, filter, qualifiers);
+        results = applyPostProcessingOnResults(results, sort, offset, limit);
+        return results;
+    }
+
+    private void verifyUnsortedWithOffset(Sort sort, long offset) {
+        if ((sort == null || sort.isUnsorted())
+                && offset > 0) {
             throw new IllegalArgumentException("Unsorted query must not have offset value. " +
                     "For retrieving paged results use sorted query.");
         }
-
-        Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Flux<S> results = findAllUsingQuery(entityClass, targetClass, null, qualifier);
-
-        results = applyPostProcessingOnResults(results, query);
-        return results;
     }
 
     private <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, Query query) {
@@ -629,14 +652,29 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
-    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
-                .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
+    private <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, Sort sort, long offset, long limit) {
+        if (sort != null && sort.isSorted()) {
+            Comparator<T> comparator = getComparator(sort);
+            results = results.sort(comparator);
+        }
+
+        if (offset > 0) {
+            results = results.skip(offset);
+        }
+
+        if (limit > 0) {
+            results = results.take(limit);
+        }
+        return results;
     }
 
-    <T, S> Flux<S> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
-                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+    <T, S> Flux<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier... qualifiers) {
+        if (targetClass != null) {
+            return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
+                    .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+        }
+        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+                .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }
 
     <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {

@@ -59,11 +59,11 @@ public class SimpleReactiveAerospikeRepositoryTest {
 
     @BeforeEach
     public void setUp() {
-        testCustomer = Customer.builder().id("21").firstname("Jean").build();
+        testCustomer = Customer.builder().id("21").firstName("Jean").build();
         testCustomers = asList(
-                Customer.builder().id("one").firstname("Jean").age(21).build(),
-                Customer.builder().id("two").firstname("Jean2").age(22).build(),
-                Customer.builder().id("three").firstname("Jean3").age(23).build());
+                Customer.builder().id("one").firstName("Jean").age(21).build(),
+                Customer.builder().id("two").firstName("Jean2").age(22).build(),
+                Customer.builder().id("three").firstName("Jean3").age(23).build());
     }
 
     @Test

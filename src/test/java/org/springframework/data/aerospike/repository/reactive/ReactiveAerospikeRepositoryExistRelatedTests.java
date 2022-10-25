@@ -22,8 +22,8 @@ public class ReactiveAerospikeRepositoryExistRelatedTests extends BaseReactiveIn
 
     @BeforeEach
     public void setUp() {
-        customer1 = Customer.builder().id(nextId()).firstname("Homer").lastname("Simpson").age(42).build();
-        customer2 = Customer.builder().id(nextId()).firstname("Marge").lastname("Simpson").age(39).build();
+        customer1 = Customer.builder().id(nextId()).firstName("Homer").lastName("Simpson").age(42).build();
+        customer2 = Customer.builder().id(nextId()).firstName("Marge").lastName("Simpson").age(39).build();
         StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2))).expectNextCount(2).verifyComplete();
     }
 

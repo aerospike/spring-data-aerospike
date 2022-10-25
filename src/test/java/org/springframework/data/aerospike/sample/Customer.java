@@ -29,14 +29,15 @@ import org.springframework.data.annotation.Id;
 public class Customer {
     @Id
     private String id;
-    private String firstname, lastname;
+    private String firstName;
+    private String lastName;
     private long age;
     private char group;
 
     public CustomerSomeFields toCustomerSomeFields() {
         return CustomerSomeFields.builder()
-                .firstname(getFirstname())
-                .lastname(getLastname())
+                .firstName(getFirstName())
+                .lastName(getLastName())
                 .build();
     }
 }

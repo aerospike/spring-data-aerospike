@@ -14,6 +14,8 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Objects;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.domain.Sort.Order.asc;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveIntegrationTests {
@@ -89,6 +92,49 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(actual)
                 .hasSize(5)
                 .containsAnyElementsOf(allUsers);
+    }
+
+    @Test
+    public void findInRange_shouldFindLimitedNumberOfDocumentsWithOrderBy() {
+        List<Person> persons = new ArrayList<>();
+        persons.add(new Person(nextId(), "Dave", "Matthews"));
+        persons.add(new Person(nextId(), "Josh", "Matthews"));
+        persons.add(new Person(nextId(), "Chris", "Yes"));
+        persons.add(new Person(nextId(), "Kate", "New"));
+        persons.add(new Person(nextId(), "Nicole", "Joshua"));
+        reactiveTemplate.insertAll(persons).blockLast();
+
+        int skip = 0;
+        int limit = 3;
+        Sort sort = Sort.by(asc("firstName"));
+
+        List<Person> result = reactiveTemplate.findInRange(skip, limit, sort, Person.class)
+                .subscribeOn(Schedulers.parallel())
+                .collectList().block();
+
+        assertThat(Objects.requireNonNull(result).stream().map(Person::getFirstName).collect(Collectors.toList()))
+                .hasSize(3)
+                .containsExactly("Chris", "Dave", "Josh");
+    }
+
+    @Test
+    public void findAll_OrderByFirstName() {
+        List<Person> persons = new ArrayList<>();
+        persons.add(new Person(nextId(), "Dave", "Matthews"));
+        persons.add(new Person(nextId(), "Josh", "Matthews"));
+        persons.add(new Person(nextId(), "Chris", "Yes"));
+        persons.add(new Person(nextId(), "Kate", "New"));
+        persons.add(new Person(nextId(), "Nicole", "Joshua"));
+        reactiveTemplate.insertAll(persons).blockLast();
+
+        Sort sort = Sort.by(asc("firstName"));
+        List<Person> result = reactiveTemplate.findAll(sort, 0, 0, Person.class)
+                .subscribeOn(Schedulers.parallel())
+                .collectList().block();
+
+        assertThat(Objects.requireNonNull(result).stream().map(Person::getFirstName).collect(Collectors.toList()))
+                .hasSize(5)
+                .containsExactly("Chris", "Dave", "Josh", "Kate", "Nicole");
     }
 
     @Test

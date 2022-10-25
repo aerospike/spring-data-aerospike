@@ -33,10 +33,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -69,10 +69,10 @@ public class SimpleAerospikeRepositoryTest {
 		when(metadata.getJavaType()).thenReturn(Person.class);
 
 		testPerson = new Person("21", "Jean");
-		testPersons = asList(
-				new Person("one", "Jean", 21),
-				new Person("two", "Jean2", 22),
-				new Person("three", "Jean3", 23));
+		testPersons = new ArrayList<>();
+		testPersons.add(new Person("one", "Jean", 21));
+		testPersons.add(new Person("two", "Jean2", 22));
+		testPersons.add(new Person("three", "Jean3", 23));
 	}
 
 	@Test
@@ -110,10 +110,13 @@ public class SimpleAerospikeRepositoryTest {
 
 	@Test
 	public void findAllSort() {
-		when(operations.findAll(Sort.by(Sort.Direction.ASC, "biff"), Person.class)).thenReturn(testPersons);
+		when(operations.findAll(Sort.by(Sort.Direction.ASC, "firstName"), 0, 0, Person.class))
+				.thenReturn(testPersons.stream());
 
-		Iterable<Person> fetchList = aerospikeRepository.findAll(Sort.by(Sort.Direction.ASC, "biff"));
-		assertThat(fetchList).isEqualTo(testPersons);
+		Iterable<Person> fetchList = aerospikeRepository.findAll(Sort.by(Sort.Direction.ASC, "firstName"));
+		List<Person> results = new ArrayList<>();
+		fetchList.forEach(results::add);
+		assertThat(results).isEqualTo(testPersons);
 	}
 
 	@Test

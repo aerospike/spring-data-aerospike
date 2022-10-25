@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @Builder
 public class CustomerSomeFields {
-    private String firstname;
-    private String lastname;
+    private String firstName;
+    private String lastName;
 }

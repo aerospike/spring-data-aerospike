@@ -184,8 +184,8 @@ public interface AbstractFindByEntitiesTest {
     default List<Customer> generateCustomers(int count) {
         return IntStream.range(0, count)
                 .mapToObj(i -> Customer.builder().id(nextId())
-                        .firstname("firstName" + i)
-                        .lastname("Smith")
+                        .firstName("firstName" + i)
+                        .lastName("Smith")
                         .build())
                 .peek(this::save)
                 .collect(Collectors.toList());
