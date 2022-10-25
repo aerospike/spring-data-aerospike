@@ -35,6 +35,6 @@ public class FilterExpressionsBuilder {
      * The filter is irrelevant for AND operation (nested qualifiers)
      */
     private boolean excludeIrrelevantFilters(Qualifier qualifier) {
-        return ! qualifier.queryAsFilter() || (qualifier.queryAsFilter() && FilterOperation.dualFilterOperations.contains(qualifier.getOperation()));
+        return !qualifier.queryAsFilter() || (qualifier.queryAsFilter() && FilterOperation.dualFilterOperations.contains(qualifier.getOperation()));
     }
 }

@@ -55,21 +55,21 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
 
-	/**
-	 * Find all entities with age less than the given numeric parameter
-	 *
-	 * @param age integer to compare with
-	 * @param sort sorting
-	 */
+    /**
+     * Find all entities with age less than the given numeric parameter
+     *
+     * @param age  integer to compare with
+     * @param sort sorting
+     */
     List<P> findByAgeLessThan(int age, Sort sort);
 
-	/**
-	 * Find all entities with age less than the given numeric parameter
-	 *
-	 * @param age long to compare with, [Long.MIN_VALUE+1..Long.MAX_VALUE]
-	 * @param sort sorting
-	 */
-	List<P> findByAgeLessThan(long age, Sort sort);
+    /**
+     * Find all entities with age less than the given numeric parameter
+     *
+     * @param age  long to compare with, [Long.MIN_VALUE+1..Long.MAX_VALUE]
+     * @param sort sorting
+     */
+    List<P> findByAgeLessThan(long age, Sort sort);
 
     Stream<P> findByFirstNameIn(List<String> firstNames);
 
@@ -78,8 +78,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFirstNameAndLastName(String firstName, String lastName);
 
     List<P> findByAgeBetween(int from, int to);
-	
-	@SuppressWarnings("rawtypes")
+
+    @SuppressWarnings("rawtypes")
     Person findByShippingAddresses(Set address);
 
     List<P> findByAddress(Address address);
@@ -88,7 +88,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByAddressZipCodeContaining(String str);
 
-	List<P> findByFirstNameContaining(String str);
+    List<P> findByFirstNameContaining(String str);
 
     List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
 
@@ -134,21 +134,21 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameContainingIgnoreCase(String firstName);
 
-	/**
-	 * Find all entities with age greater than the given numeric parameter
-	 *
-	 * @param age integer to compare with
-	 * @param pageable
-	 */
+    /**
+     * Find all entities with age greater than the given numeric parameter
+     *
+     * @param age      integer to compare with
+     * @param pageable
+     */
     Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
 
-	/**
-	 * Find all entities with age greater than the given numeric parameter
-	 *
-	 * @param age long to compare with, [Long.MIN_VALUE..Long.MAX_VALUE-1]
-	 * @param pageable
-	 */
-	Slice<P> findByAgeGreaterThan(long age, Pageable pageable);
+    /**
+     * Find all entities with age greater than the given numeric parameter
+     *
+     * @param age      long to compare with, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     * @param pageable
+     */
+    Slice<P> findByAgeGreaterThan(long age, Pageable pageable);
 
     // DTO Projection
     Slice<PersonSomeFields> findPersonSomeFieldsByAgeGreaterThan(int age, Pageable pageable);
@@ -175,13 +175,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByStringMapEquals(String key, String value);
 
-	/**
-	 * Find all entities that satisfy the condition "have exactly the given map key and the given value"
-	 *
-	 * @param key   Map key
-	 * @param value Value of the key
-	 */
-	List<P> findByIntMapEquals(String key, int value);
+    /**
+     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+     *
+     * @param key   Map key
+     * @param value Value of the key
+     */
+    List<P> findByIntMapEquals(String key, int value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and NOT the given value"
@@ -215,13 +215,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByIntMapGreaterThan(String key, int greaterThan);
 
-	/**
-	 * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to the given integer"
-	 *
-	 * @param key         		Map key
-	 * @param lessThanOrEqualTo integer to check if value satisfies the condition
-	 */
-	List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
+    /**
+     * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to the given integer"
+     *
+     * @param key               Map key
+     * @param lessThanOrEqualTo integer to check if value satisfies the condition
+     */
+    List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
@@ -234,119 +234,120 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFriendLastName(String value);
 
-	/**
-	 * Find all entities that satisfy the condition "have a friend with the age equal to the given integer" (find by POJO field)
-	 * 
-	 * @param value - number to check for equality
-	 */
-	List<P> findByFriendAge(int value);
+    /**
+     * Find all entities that satisfy the condition "have a friend with the age equal to the given integer" (find by POJO field)
+     *
+     * @param value - number to check for equality
+     */
+    List<P> findByFriendAge(int value);
 
-	/**
-	 * Find all entities that satisfy the condition "have a friend with the age NOT equal to the given integer" (find by POJO field)
-	 * 
-	 * @param value - number to check for inequality
-	 */
-	List<P> findByFriendAgeIsNot(int value);
+    /**
+     * Find all entities that satisfy the condition "have a friend with the age NOT equal to the given integer" (find by POJO field)
+     *
+     * @param value - number to check for inequality
+     */
+    List<P> findByFriendAgeIsNot(int value);
 
-	/**
-	 * Find all entities that satisfy the condition "have a friend with the age greater than the given integer" (find by POJO field)
-	 * 
-	 * @param value - lower limit, exclusive
-	 */
-	List<P> findByFriendAgeGreaterThan(int value);
+    /**
+     * Find all entities that satisfy the condition "have a friend with the age greater than the given integer" (find by POJO field)
+     *
+     * @param value - lower limit, exclusive
+     */
+    List<P> findByFriendAgeGreaterThan(int value);
 
-	/**
-	 * Find all entities that satisfy the condition "have a friend with the age less than or equal to the given integer" (find by POJO field)
-	 * 
-	 * @param value - upper limit, inclusive
-	 */
-	List<P> findByFriendAgeLessThanEqual(int value);
+    /**
+     * Find all entities that satisfy the condition "have a friend with the age less than or equal to the given integer" (find by POJO field)
+     *
+     * @param value - upper limit, inclusive
+     */
+    List<P> findByFriendAgeLessThanEqual(int value);
 
-	/**
-	 * Find all entities that satisfy the condition "have a friend with the age in the given range" (find by POJO field)
-	 * 
-	 * @param from lower limit, inclusive
-	 * @param to upper limit, inclusive
-	 */
-	List<P> findByFriendAgeBetween(int from, int to);
+    /**
+     * Find all entities that satisfy the condition "have a friend with the age in the given range" (find by POJO field)
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, inclusive
+     */
+    List<P> findByFriendAgeBetween(int from, int to);
 
-	/**
-	 * Find all entities that satisfy the condition "have the list which contains the given string"
-	 * <p>
-	 * List name in this case is Strings
-	 * </p>
-	 * @param string string to check
-	 */
-	List<P> findByStringsContaining(String string);
+    /**
+     * Find all entities that satisfy the condition "have the list which contains the given string"
+     * <p>
+     * List name in this case is Strings
+     * </p>
+     *
+     * @param string string to check
+     */
+    List<P> findByStringsContaining(String string);
 
-	/**
-	 * Find all entities that satisfy the condition "have the list which contains the given integer"
-	 * <p>
-	 * List name in this case is Ints
-	 * </p>
-	 * 
-	 * @param integer number to check
-	 */
-	List<P> findByIntsContaining(int integer);
+    /**
+     * Find all entities that satisfy the condition "have the list which contains the given integer"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param integer number to check
+     */
+    List<P> findByIntsContaining(int integer);
 
-	/**
-	 * Find all entities that satisfy the condition "have at least one list value which is greater than the given integer"
-	 * <p>
-	 * List name in this case is Ints
-	 * </p>
-	 * 
-	 * @param integer upper limit, exclusive
-	 */
-	List<P> findByIntsGreaterThan(int integer);
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is greater than the given integer"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param integer upper limit, exclusive
+     */
+    List<P> findByIntsGreaterThan(int integer);
 
-	/**
-	 * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given integer"
-	 * <p>
-	 * List name in this case is Ints
-	 * </p>
-	 * 
-	 * @param integer upper limit, inclusive
-	 */
-	List<P> findByIntsLessThanEqual(int integer);
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given integer"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param integer upper limit, inclusive
+     */
+    List<P> findByIntsLessThanEqual(int integer);
 
-	/**
-	 * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given long"
-	 * <p>
-	 * List name in this case is Ints
-	 * </p>
-	 * 
-	 * @param number upper limit, inclusive
-	 * */
-	List<P> findByIntsLessThanEqual(long number);
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given long"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param number upper limit, inclusive
+     */
+    List<P> findByIntsLessThanEqual(long number);
 
-	/**
-	 * Find all entities that satisfy the condition "have at least one list value which is in the given range"
-	 * <p>
-	 * List name in this case is Ints
-	 * </p>
-	 * 
-	 * @param from lower limit, inclusive
-	 * @param to   upper limit, inclusive
-	 */
-	List<P> findByIntsBetween(int from, int to);
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is in the given range"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, inclusive
+     */
+    List<P> findByIntsBetween(int from, int to);
 
-	List<P> findByIntsContaining(List<Integer> integer);
+    List<P> findByIntsContaining(List<Integer> integer);
 
-	List<P> findTop3ByLastNameStartingWith(String lastName);
+    List<P> findTop3ByLastNameStartingWith(String lastName);
 
-	Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
+    Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
-	List<P> findByFirstName(String string);
+    List<P> findByFirstName(String string);
 
-	List<P> findByFirstNameAndAge(String string, int i);
+    List<P> findByFirstNameAndAge(String string, int i);
 
-	Iterable<P> findByAgeBetweenAndLastName(int from, int to, String lastName);
+    Iterable<P> findByAgeBetweenAndLastName(int from, int to, String lastName);
 
-	Iterable<P> findByAgeBetweenOrLastName(int from, int to, String lastName);
+    Iterable<P> findByAgeBetweenOrLastName(int from, int to, String lastName);
 
-	List<P> findByFirstNameStartsWith(String string);
+    List<P> findByFirstNameStartsWith(String string);
 
-	List<P> findByFriendFirstNameStartsWith(String string);
+    List<P> findByFriendFirstNameStartsWith(String string);
 
-	Iterable<P> findByAgeBetweenOrderByLastName(int i, int j);
+    Iterable<P> findByAgeBetweenOrderByLastName(int i, int j);
 }
