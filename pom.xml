@@ -31,7 +31,7 @@
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike>6.1.3</aerospike>
         <aerospike-reactor>6.1.2</aerospike-reactor>
-        <embedded-aerospike>2.2.9</embedded-aerospike>
+        <embedded-aerospike>2.2.10</embedded-aerospike>
         <awaitility>4.2.0</awaitility>
         <lombok>1.18.22</lombok>
     </properties>
