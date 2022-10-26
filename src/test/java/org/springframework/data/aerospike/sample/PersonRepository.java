@@ -160,12 +160,28 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Page<P> findByAddressIn(List<Address> address, Pageable page);
 
     /**
-     * Find all entities containing the given map element (key or value depending on the given criteria)
+     * Find all entities containing the given string in a map (key or value depending on the given criteria)
      *
-     * @param element  map element
-     * @param criteria KEY or VALUE
+     * @param mapElement element of a map
+     * @param criteria   KEY or VALUE
      */
-    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
+    List<P> findByStringMapContaining(String mapElement, CriteriaDefinition.AerospikeMapCriteria criteria);
+
+    /**
+     * Find all entities containing the given map (String, Integer) key
+     *
+     * @param key      map key
+     * @param criteria KEY
+     */
+    List<P> findByIntMapContaining(String key, CriteriaDefinition.AerospikeMapCriteria criteria);
+
+    /**
+     * Find all entities containing the given map (String, Integer) value
+     *
+     * @param value    map value
+     * @param criteria VALUE
+     */
+    List<P> findByIntMapContaining(int value, CriteriaDefinition.AerospikeMapCriteria criteria);
 
     /**
      * Find all entities that satisfy the condition "have exactly the given map key and the given value"

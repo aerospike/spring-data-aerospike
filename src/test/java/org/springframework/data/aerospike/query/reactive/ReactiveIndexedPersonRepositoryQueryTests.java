@@ -122,7 +122,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapKeysContaining() {
+    public void findByMapKeysContainingInStringMap() {
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -130,11 +130,27 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapValuesContaining() {
+    public void findByMapValuesContainingStringInStringMap() {
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("val1", CriteriaDefinition.AerospikeMapCriteria.VALUE)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(stefan, boyd);
+    }
+
+    @Test
+    public void findByMapKeysContainingInIntMap() {
+        List<IndexedPerson> results = reactiveRepository.findByIntMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY)
+                .subscribeOn(Schedulers.parallel()).collectList().block();
+
+        assertThat(results).contains(carter, leroi);
+    }
+
+    @Test
+    public void findByMapValuesContainingInIntMap() {
+        List<IndexedPerson> results = reactiveRepository.findByIntMapContaining(1, CriteriaDefinition.AerospikeMapCriteria.VALUE)
+                .subscribeOn(Schedulers.parallel()).collectList().block();
+
+        assertThat(results).contains(carter, leroi);
     }
 
     @Test

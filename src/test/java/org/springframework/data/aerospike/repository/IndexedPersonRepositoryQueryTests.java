@@ -268,7 +268,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    void findByMapKeysContaining() {
+    void findByMapKeysContainingInStringMap() {
         assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
         assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
 
@@ -278,13 +278,33 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    void findByMapValuesContaining() {
+    void findByMapValuesContainingInStringMap() {
         assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
         assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("val1", CriteriaDefinition.AerospikeMapCriteria.VALUE);
 
         assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
+    void findByMapKeysContainingInIntMap() {
+        assertThat(carter.getIntMap().containsKey("key1")).isTrue();
+        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
+
+        List<IndexedPerson> persons = repository.findByIntMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY);
+
+        assertThat(persons).contains(carter, leroi);
+    }
+
+    @Test
+    void findByMapValuesContainingInIntMap() {
+        assertThat(carter.getIntMap().containsValue(1)).isTrue();
+        assertThat(leroi.getIntMap().containsValue(1)).isTrue();
+
+        List<IndexedPerson> persons = repository.findByIntMapContaining(1, CriteriaDefinition.AerospikeMapCriteria.VALUE);
+
+        assertThat(persons).contains(carter, leroi);
     }
 
     @Test

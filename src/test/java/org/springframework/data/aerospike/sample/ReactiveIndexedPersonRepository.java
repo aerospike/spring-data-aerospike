@@ -23,7 +23,29 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
 
     Flux<IndexedPerson> findByAgeGreaterThan(int age);
 
-    Flux<IndexedPerson> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
+    /**
+     * Find all entities containing the given string in a map (key or value depending on the given criteria)
+     *
+     * @param mapElement element of a map
+     * @param criteria   KEY or VALUE
+     */
+    Flux<IndexedPerson> findByStringMapContaining(String mapElement, CriteriaDefinition.AerospikeMapCriteria criteria);
+
+    /**
+     * Find all entities containing the given map (String, Integer) key
+     *
+     * @param key      map key
+     * @param criteria KEY
+     */
+    Flux<IndexedPerson> findByIntMapContaining(String key, CriteriaDefinition.AerospikeMapCriteria criteria);
+
+    /**
+     * Find all entities containing the given map (String, Integer) value
+     *
+     * @param value    map value
+     * @param criteria VALUE
+     */
+    Flux<IndexedPerson> findByIntMapContaining(int value, CriteriaDefinition.AerospikeMapCriteria criteria);
 
     /**
      * Find all entities that satisfy the condition "have exactly the given map key and the given value"
