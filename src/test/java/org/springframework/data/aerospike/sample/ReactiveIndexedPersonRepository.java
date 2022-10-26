@@ -26,26 +26,18 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     /**
      * Find all entities containing the given string in a map (key or value depending on the given criteria)
      *
-     * @param mapElement element of a map
+     * @param mapElement element of a map containing strings
      * @param criteria   KEY or VALUE
      */
     Flux<IndexedPerson> findByStringMapContaining(String mapElement, CriteriaDefinition.AerospikeMapCriteria criteria);
 
     /**
-     * Find all entities containing the given map (String, Integer) key
+     * Find all entities containing the given integer in a map (key or value depending on the given criteria)
      *
-     * @param key      map key
-     * @param criteria KEY
+     * @param mapElement element of a map containing integers
+     * @param criteria   KEY or VALUE
      */
-    Flux<IndexedPerson> findByIntMapContaining(String key, CriteriaDefinition.AerospikeMapCriteria criteria);
-
-    /**
-     * Find all entities containing the given map (String, Integer) value
-     *
-     * @param value    map value
-     * @param criteria VALUE
-     */
-    Flux<IndexedPerson> findByIntMapContaining(int value, CriteriaDefinition.AerospikeMapCriteria criteria);
+    Flux<IndexedPerson> findByIntMapContaining(int mapElement, CriteriaDefinition.AerospikeMapCriteria criteria);
 
     /**
      * Find all entities that satisfy the condition "have exactly the given map key and the given value"
@@ -61,7 +53,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param key   Map key
      * @param value Value of the key
      */
-    Flux<IndexedPerson> findByIntMapEquals(String key, int value);
+    Flux<IndexedPerson> findByIntMapEquals(int key, int value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given integer"
@@ -69,7 +61,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param key         Map key
      * @param greaterThan integer to check if value is greater than it
      */
-    Flux<IndexedPerson> findByIntMapGreaterThan(String key, int greaterThan);
+    Flux<IndexedPerson> findByIntMapGreaterThan(int key, int greaterThan);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to the given integer"
@@ -77,7 +69,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param key               Map key
      * @param lessThanOrEqualTo integer to check if value satisfies the condition
      */
-    Flux<IndexedPerson> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
+    Flux<IndexedPerson> findByIntMapLessThanEqual(int key, int lessThanOrEqualTo);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
@@ -86,7 +78,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param from the lower limit for the map value, inclusive
      * @param to   the upper limit for the map value, inclusive
      */
-    Flux<IndexedPerson> findByIntMapBetween(String key, int from, int to);
+    Flux<IndexedPerson> findByIntMapBetween(int key, int from, int to);
 
     Flux<IndexedPerson> findByFriendLastName(String value);
 

@@ -52,7 +52,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_ints_index", "ints", IndexType.NUMERIC, IndexCollectionType.LIST);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_string_map_keys_index", "stringMap", IndexType.STRING, IndexCollectionType.MAPKEYS);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_string_map_values_index", "stringMap", IndexType.STRING, IndexCollectionType.MAPVALUES);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_int_map_keys_index", "intMap", IndexType.STRING, IndexCollectionType.MAPKEYS);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_int_map_keys_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPKEYS);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_int_map_values_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPVALUES);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_address_keys_index", "address", IndexType.STRING, IndexCollectionType.MAPKEYS);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_address_values_index", "address", IndexType.STRING, IndexCollectionType.MAPVALUES);
@@ -268,7 +268,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    void findByMapKeysContainingInStringMap() {
+    void findByMapKeysContainingString() {
         assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
         assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
 
@@ -278,7 +278,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    void findByMapValuesContainingInStringMap() {
+    void findByMapValuesContainingString() {
         assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
         assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
 
@@ -288,33 +288,33 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    void findByMapKeysContainingInIntMap() {
-        assertThat(carter.getIntMap().containsKey("key1")).isTrue();
-        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
+    void findByMapKeysContainingInt() {
+        assertThat(carter.getIntMap().containsKey(1)).isTrue();
+        assertThat(leroi.getIntMap().containsKey(1)).isTrue();
 
-        List<IndexedPerson> persons = repository.findByIntMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY);
+        List<IndexedPerson> persons = repository.findByIntMapContaining(1, CriteriaDefinition.AerospikeMapCriteria.KEY);
 
         assertThat(persons).contains(carter, leroi);
     }
 
     @Test
-    void findByMapValuesContainingInIntMap() {
+    void findByMapValuesContainingInt() {
         assertThat(carter.getIntMap().containsValue(1)).isTrue();
         assertThat(leroi.getIntMap().containsValue(1)).isTrue();
 
         List<IndexedPerson> persons = repository.findByIntMapContaining(1, CriteriaDefinition.AerospikeMapCriteria.VALUE);
 
-        assertThat(persons).contains(carter, leroi);
+        assertThat(persons).containsExactlyInAnyOrder(carter, leroi);
     }
 
     @Test
     void findByMapKeyValueEqualsInt() {
-        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
+        assertThat(leroi.getIntMap().containsKey(1)).isTrue();
         assertThat(leroi.getIntMap().containsValue(0)).isTrue();
 
-        Iterable<IndexedPerson> result = repository.findByIntMapEquals("key1", 0);
+        Iterable<IndexedPerson> result = repository.findByIntMapEquals(1, 0);
 
-        assertThat(result).contains(leroi);
+        assertThat(result).containsExactlyInAnyOrder(leroi, carter);
     }
 
     @Test
@@ -338,32 +338,32 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     void findByMapKeyValueGreaterThan() {
-        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(leroi.getIntMap().containsKey(2)).isTrue();
+        assertThat(leroi.getIntMap().get(2) > 0).isTrue();
 
-        List<IndexedPerson> persons = repository.findByIntMapGreaterThan("key2", 0);
+        List<IndexedPerson> persons = repository.findByIntMapGreaterThan(2, 0);
 
         assertThat(persons).contains(leroi);
     }
 
     @Test
     void findByMapKeyValueLessThanOrEqual() {
-        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(leroi.getIntMap().containsKey(2)).isTrue();
+        assertThat(leroi.getIntMap().get(2) > 0).isTrue();
 
-        List<IndexedPerson> persons = repository.findByIntMapLessThanEqual("key2", 1);
+        List<IndexedPerson> persons = repository.findByIntMapLessThanEqual(2, 1);
 
         assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
     }
 
     @Test
     void findByMapKeyValueBetween() {
-        assertThat(carter.getIntMap().containsKey("key2")).isTrue();
-        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
-        assertThat(carter.getIntMap().get("key2") >= 0).isTrue();
-        assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
+        assertThat(carter.getIntMap().containsKey(2)).isTrue();
+        assertThat(leroi.getIntMap().containsKey(2)).isTrue();
+        assertThat(carter.getIntMap().get(2) >= 0).isTrue();
+        assertThat(leroi.getIntMap().get(2) >= 0).isTrue();
 
-        List<IndexedPerson> persons = repository.findByIntMapBetween("key2", 0, 1);
+        List<IndexedPerson> persons = repository.findByIntMapBetween(2, 0, 1);
 
         assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
     }

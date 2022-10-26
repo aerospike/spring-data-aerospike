@@ -38,7 +38,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_ints_index", "ints", IndexType.NUMERIC, IndexCollectionType.LIST).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_string_map_keys_index", "stringMap", IndexType.STRING, IndexCollectionType.MAPKEYS).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_string_map_values_index", "stringMap", IndexType.STRING, IndexCollectionType.MAPVALUES).block();
-        reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_int_map_keys_index", "intMap", IndexType.STRING, IndexCollectionType.MAPKEYS).block();
+        reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_int_map_keys_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPKEYS).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_int_map_values_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPVALUES).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_address_keys_index", "address", IndexType.STRING, IndexCollectionType.MAPKEYS).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_address_values_index", "address", IndexType.STRING, IndexCollectionType.MAPVALUES).block();
@@ -122,7 +122,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapKeysContainingInStringMap() {
+    public void findByMapKeysContainingString() {
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -130,7 +130,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapValuesContainingStringInStringMap() {
+    public void findByMapValuesContainingString() {
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("val1", CriteriaDefinition.AerospikeMapCriteria.VALUE)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -138,15 +138,15 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapKeysContainingInIntMap() {
-        List<IndexedPerson> results = reactiveRepository.findByIntMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY)
+    public void findByMapKeysContainingInt() {
+        List<IndexedPerson> results = reactiveRepository.findByIntMapContaining(1, CriteriaDefinition.AerospikeMapCriteria.KEY)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(carter, leroi);
     }
 
     @Test
-    public void findByMapValuesContainingInIntMap() {
+    public void findByMapValuesContainingInt() {
         List<IndexedPerson> results = reactiveRepository.findByIntMapContaining(1, CriteriaDefinition.AerospikeMapCriteria.VALUE)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -155,10 +155,10 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByMapKeyValueEqualsInt() {
-        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
+        assertThat(leroi.getIntMap().containsKey(1)).isTrue();
         assertThat(leroi.getIntMap().containsValue(0)).isTrue();
 
-        List<IndexedPerson> results = reactiveRepository.findByIntMapEquals("key1", 0)
+        List<IndexedPerson> results = reactiveRepository.findByIntMapEquals(1, 0)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(carter, leroi);
@@ -187,10 +187,10 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByMapKeyValueGreaterThan() {
-        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(leroi.getIntMap().containsKey(2)).isTrue();
+        assertThat(leroi.getIntMap().get(2) > 0).isTrue();
 
-        List<IndexedPerson> results = reactiveRepository.findByIntMapGreaterThan("key2", 0)
+        List<IndexedPerson> results = reactiveRepository.findByIntMapGreaterThan(2, 0)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(leroi);
@@ -198,22 +198,22 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByMapKeyValueLessThanOrEqual() {
-        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(leroi.getIntMap().containsKey(2)).isTrue();
+        assertThat(leroi.getIntMap().get(2) > 0).isTrue();
 
-        List<IndexedPerson> results = reactiveRepository.findByIntMapLessThanEqual("key2", 1)
+        List<IndexedPerson> results = reactiveRepository.findByIntMapLessThanEqual(2, 1)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(leroi, carter);
     }
 
     public void findByMapKeyValueBetween() {
-        assertThat(carter.getIntMap().containsKey("key2")).isTrue();
-        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
-        assertThat(carter.getIntMap().get("key2") >= 0).isTrue();
-        assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
+        assertThat(carter.getIntMap().containsKey(2)).isTrue();
+        assertThat(leroi.getIntMap().containsKey(2)).isTrue();
+        assertThat(carter.getIntMap().get(2) >= 0).isTrue();
+        assertThat(leroi.getIntMap().get(2) >= 0).isTrue();
 
-        List<IndexedPerson> results = reactiveRepository.findByIntMapBetween("key2", 0, 1)
+        List<IndexedPerson> results = reactiveRepository.findByIntMapBetween(2, 0, 1)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(leroi, carter);

@@ -162,26 +162,18 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities containing the given string in a map (key or value depending on the given criteria)
      *
-     * @param mapElement element of a map
+     * @param mapElement element of a map of strings
      * @param criteria   KEY or VALUE
      */
     List<P> findByStringMapContaining(String mapElement, CriteriaDefinition.AerospikeMapCriteria criteria);
 
     /**
-     * Find all entities containing the given map (String, Integer) key
+     * Find all entities containing the given integer in a map (key or value depending on the given criteria)
      *
-     * @param key      map key
-     * @param criteria KEY
+     * @param mapElement element of a map of integers
+     * @param criteria   KEY or VALUE
      */
-    List<P> findByIntMapContaining(String key, CriteriaDefinition.AerospikeMapCriteria criteria);
-
-    /**
-     * Find all entities containing the given map (String, Integer) value
-     *
-     * @param value    map value
-     * @param criteria VALUE
-     */
-    List<P> findByIntMapContaining(int value, CriteriaDefinition.AerospikeMapCriteria criteria);
+    List<P> findByIntMapContaining(int mapElement, CriteriaDefinition.AerospikeMapCriteria criteria);
 
     /**
      * Find all entities that satisfy the condition "have exactly the given map key and the given value"
@@ -197,7 +189,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key   Map key
      * @param value Value of the key
      */
-    List<P> findByIntMapEquals(String key, int value);
+    List<P> findByIntMapEquals(int key, int value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and NOT the given value"
@@ -205,7 +197,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key   Map key
      * @param value Value of the key
      */
-    List<P> findByIntMapIsNot(String key, int value);
+    List<P> findByIntMapIsNot(int key, int value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value that starts with the given string"
@@ -229,7 +221,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key         Map key
      * @param greaterThan integer to check if value is greater than it
      */
-    List<P> findByIntMapGreaterThan(String key, int greaterThan);
+    List<P> findByIntMapGreaterThan(int key, int greaterThan);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to the given integer"
@@ -237,7 +229,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key               Map key
      * @param lessThanOrEqualTo integer to check if value satisfies the condition
      */
-    List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
+    List<P> findByIntMapLessThanEqual(int key, int lessThanOrEqualTo);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
@@ -246,7 +238,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param from the lower limit for the map value, inclusive
      * @param to   the upper limit for the map value, inclusive
      */
-    List<P> findByIntMapBetween(String key, int from, int to);
+    List<P> findByIntMapBetween(int key, int from, int to);
 
     List<P> findByFriendLastName(String value);
 

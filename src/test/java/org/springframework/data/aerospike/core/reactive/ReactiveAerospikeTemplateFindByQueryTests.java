@@ -328,7 +328,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapKeysContaining() {
+    public void findByMapKeysContainingString() {
         List<Person> persons = IntStream.rangeClosed(1, 2)
                 .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").stringMap(Collections.singletonMap("key" + id, "val" + id)).build())
                 .collect(Collectors.toList());
@@ -345,7 +345,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapValuesContaining() {
+    public void findByMapValuesContainingString() {
         List<Person> persons = IntStream.rangeClosed(1, 2)
                 .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").stringMap(Collections.singletonMap("key" + id, "val" + id)).build())
                 .collect(Collectors.toList());
@@ -359,6 +359,40 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
                 .hasSize(1)
                 .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
+    }
+
+    @Test
+    public void findByMapKeysContainingInt() {
+        List<Person> persons = IntStream.rangeClosed(1, 2)
+                .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").intMap(Collections.singletonMap(id, id - 1)).build())
+                .collect(Collectors.toList());
+        reactiveTemplate.insertAll(persons).blockLast();
+
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapContaining", 1, CriteriaDefinition.AerospikeMapCriteria.KEY);
+
+        List<Person> result = reactiveTemplate.find(query, Person.class)
+                .subscribeOn(Schedulers.parallel())
+                .collectList().block();
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
+    }
+
+    @Test
+    public void findByMapValuesContainingInt() {
+        List<Person> persons = IntStream.rangeClosed(1, 2)
+                .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").intMap(Collections.singletonMap(id, id - 1)).build())
+                .collect(Collectors.toList());
+        reactiveTemplate.insertAll(persons).blockLast();
+
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapContaining", 1, CriteriaDefinition.AerospikeMapCriteria.VALUE);
+
+        List<Person> result = reactiveTemplate.find(query, Person.class)
+                .subscribeOn(Schedulers.parallel())
+                .collectList().block();
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrderElementsOf(persons.subList(1, 2));
     }
 
     @Test
@@ -381,7 +415,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @Test
     public void findByMapKeyValueNotEquals() {
         List<Person> persons = IntStream.rangeClosed(1, 5)
-                .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").intMap(Collections.singletonMap("key" + id, id)).build())
+                .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").intMap(Collections.singletonMap(id, id)).build())
                 .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
@@ -398,7 +432,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @Test
     public void findByMapKeyValueGreaterThan() {
         List<Person> persons = IntStream.rangeClosed(1, 5)
-                .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").intMap(Collections.singletonMap("key" + id, id)).build())
+                .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").intMap(Collections.singletonMap(id, id)).build())
                 .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
@@ -415,11 +449,11 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @Test
     public void findByMapKeyValueBetween() {
         List<Person> persons = IntStream.rangeClosed(1, 5)
-                .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").intMap(Collections.singletonMap("key" + id, id)).build())
+                .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews").intMap(Collections.singletonMap(id, id)).build())
                 .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapBetween", "key3", 0, 4);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapBetween", 3, 0, 4);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
                 .subscribeOn(Schedulers.parallel())

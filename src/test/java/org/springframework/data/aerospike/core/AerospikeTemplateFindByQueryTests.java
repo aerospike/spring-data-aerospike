@@ -31,6 +31,7 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,13 +56,14 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(24).stringMap(Collections.singletonMap("key1", "val1"))
             .friend(new Person("id21", "TestPerson24", 54)).build();
     Person zaipper = Person.builder().id(nextId()).firstName("Zaipper").lastName("Matthews").age(25)
-            .stringMap(Collections.singletonMap("key2", "val2")).address(new Address("Street 1", "C0121", "Sun City")).build();
+            .stringMap(Collections.singletonMap("key2", "val2")).intMap(Collections.singletonMap(2, 22))
+            .address(new Address("Street 1", "C0121", "Sun City")).build();
     Person knowlen = Person.builder().id(nextId()).firstName("knowlen").lastName("Matthews").age(26)
-            .intMap(Collections.singletonMap("key1", 11)).address(new Address("Street 2", "C0122", "Sun City")).build();
+            .intMap(Collections.singletonMap(1, 11)).address(new Address("Street 2", "C0122", "Sun City")).build();
     Person xylophone = Person.builder().id(nextId()).firstName("Xylophone").lastName("Matthews").age(27)
-            .intMap(Collections.singletonMap("key2", 22)).address(new Address("Street 3", "C0123", "Sun City")).build();
+            .intMap(Collections.singletonMap(2, 22)).address(new Address("Street 3", "C0123", "Sun City")).build();
     Person mitch = Person.builder().id(nextId()).firstName("Mitch").lastName("Matthews").age(28)
-            .intMap(Collections.singletonMap("key3", 24)).address(new Address("Street 4", "C0124", "Sun City")).build();
+            .intMap(ImmutableMap.of(2, 22, 3, 24)).address(new Address("Street 4", "C0124", "Sun City")).build();
     Person alister = Person.builder().id(nextId()).firstName("Alister").lastName("Matthews").age(29)
             .stringMap(Collections.singletonMap("key4", "val4")).build();
     Person aabbot = Person.builder().id(nextId()).firstName("Aabbot").lastName("Matthews").age(30)
@@ -283,7 +285,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findByMapKeysContaining() {
+    public void findByMapKeysContainingString() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1", CriteriaDefinition.AerospikeMapCriteria.KEY);
 
         Stream<Person> result = template.find(query, Person.class);
@@ -294,7 +296,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findByMapValuesContaining() {
+    public void findByMapValuesContainingString() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "val2", CriteriaDefinition.AerospikeMapCriteria.VALUE);
 
         Stream<Person> result = template.find(query, Person.class);
@@ -302,6 +304,28 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         assertThat(result)
                 .hasSize(1)
                 .containsExactlyInAnyOrder(zaipper);
+    }
+
+    @Test
+    public void findByMapKeysContainingInt() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapContaining", 1, CriteriaDefinition.AerospikeMapCriteria.KEY);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(1)
+                .containsExactlyInAnyOrder(knowlen);
+    }
+
+    @Test
+    public void findByMapValuesContainingInt() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapContaining", 22, CriteriaDefinition.AerospikeMapCriteria.VALUE);
+
+        Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+                .hasSize(3)
+                .containsExactlyInAnyOrder(xylophone, mitch, zaipper);
     }
 
     @Test
@@ -317,13 +341,13 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByMapKeyValueNotEquals() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapIsNot", "key2", 11);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapIsNot", 2, 11);
 
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(xylophone);
+                .hasSize(3)
+                .containsExactlyInAnyOrder(zaipper, xylophone, mitch);
     }
 
     @Test
@@ -339,7 +363,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByMapKeyValueBetween() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapBetween", "key3", 11, 24);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapBetween", 3, 11, 24);
 
         Stream<Person> result = template.find(query, Person.class);
 

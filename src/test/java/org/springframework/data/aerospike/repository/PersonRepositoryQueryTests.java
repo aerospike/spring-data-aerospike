@@ -96,7 +96,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByMapKeysContainingInStringMap() {
+    void findByMapKeysContainingString() {
         assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
         assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
 
@@ -106,7 +106,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByMapValuesContainingInStringMap() {
+    void findByMapValuesContainingString() {
         assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
         assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
 
@@ -116,17 +116,17 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByMapKeysContainingInIntMap() {
-        assertThat(carter.getIntMap().containsKey("key1")).isTrue();
-        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
+    void findByMapKeysContainingInt() {
+        assertThat(carter.getIntMap().containsKey(1)).isTrue();
+        assertThat(leroi.getIntMap().containsKey(1)).isTrue();
 
-        List<Person> persons = repository.findByIntMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY);
+        List<Person> persons = repository.findByIntMapContaining(1, CriteriaDefinition.AerospikeMapCriteria.KEY);
 
         assertThat(persons).contains(carter, leroi);
     }
 
     @Test
-    void findByMapValuesContainingInIntMap() {
+    void findByMapValuesContainingInt() {
         assertThat(carter.getIntMap().containsValue(1)).isTrue();
         assertThat(leroi.getIntMap().containsValue(1)).isTrue();
 
@@ -149,10 +149,10 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByMapKeyValueNotEquals() {
-        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
+        assertThat(leroi.getIntMap().containsKey(1)).isTrue();
         assertThat(!leroi.getIntMap().containsValue(22)).isTrue();
 
-        List<Person> persons = repository.findByIntMapIsNot("key1", 22);
+        List<Person> persons = repository.findByIntMapIsNot(1, 22);
 
         assertThat(persons).contains(leroi);
     }
@@ -183,32 +183,32 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByMapKeyValueGreaterThan() {
-        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(leroi.getIntMap().containsKey(2)).isTrue();
+        assertThat(leroi.getIntMap().get(2) > 0).isTrue();
 
-        List<Person> persons = repository.findByIntMapGreaterThan("key2", 0);
+        List<Person> persons = repository.findByIntMapGreaterThan(2, 0);
 
         assertThat(persons).contains(leroi);
     }
 
     @Test
     void findByMapKeyValueLessThanOrEqual() {
-        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(leroi.getIntMap().containsKey(2)).isTrue();
+        assertThat(leroi.getIntMap().get(2) > 0).isTrue();
 
-        List<Person> persons = repository.findByIntMapLessThanEqual("key2", 1);
+        List<Person> persons = repository.findByIntMapLessThanEqual(2, 1);
 
         assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
     }
 
     @Test
     void findByMapKeyValueBetween() {
-        assertThat(leroi.getIntMap().containsKey("key1")).isTrue();
-        assertThat(leroi.getIntMap().containsKey("key2")).isTrue();
-        assertThat(leroi.getIntMap().get("key1") >= 0).isTrue();
-        assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
+        assertThat(leroi.getIntMap().containsKey(1)).isTrue();
+        assertThat(leroi.getIntMap().containsKey(1)).isTrue();
+        assertThat(leroi.getIntMap().get(1) >= 0).isTrue();
+        assertThat(leroi.getIntMap().get(1) >= 0).isTrue();
 
-        List<Person> persons = repository.findByIntMapBetween("key2", 0, 1);
+        List<Person> persons = repository.findByIntMapBetween(2, 0, 1);
 
         assertThat(persons).contains(leroi);
     }
