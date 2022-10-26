@@ -33,7 +33,7 @@
         <aerospike-reactor>6.1.2</aerospike-reactor>
         <embedded-aerospike>2.2.10</embedded-aerospike>
         <awaitility>4.2.0</awaitility>
-        <lombok>1.18.22</lombok>
+        <lombok>1.18.24</lombok>
     </properties>
 
     <licenses>
