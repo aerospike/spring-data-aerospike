@@ -29,6 +29,7 @@ The documentation for this project can be found on [javadoc.io](https://www.java
 4. [How to create secondary index in Spring Data Aerospike](https://medium.com/aerospike-developer-blog/how-to-create-secondary-index-in-spring-data-aerospike-e19d7e343d7c?source=friends_link&sk=413619a568f9aac51ed2f2611ee70aba)
 5. [Caching with Spring Boot and Aerospike](https://medium.com/aerospike-developer-blog/caching-with-spring-boot-and-aerospike-17b91267d6c?source=friends_link&sk=e166b4592c9c00e3d996663f4c47e2b5)
 6. [Spring Data Aerospike: Reactive Repositories](https://medium.com/aerospike-developer-blog/spring-data-aerospike-reactive-repositories-fb6478acea41?source=friends_link&sk=66541b82192ded459a537261e9a38bd5)
+7. [Spring Data Aerospike - Projections](https://medium.com/aerospike-developer-blog/spring-data-aerospike-projections-951382bc07b5)
 
 ## Spring Data Aerospike compatibility
 
