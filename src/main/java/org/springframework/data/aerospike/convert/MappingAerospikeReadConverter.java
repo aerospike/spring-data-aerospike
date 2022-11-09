@@ -142,7 +142,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 			}
 			return convertCollection(asCollection(source), propertyType);
 		} else if (propertyType.isMap()) {
-			return convertMap((Map<String, Object>) source, propertyType);
+			return convertMap((Map<Object, Object>) source, propertyType);
 		} else if (source instanceof Map) { // custom type
 			return convertCustomType((Map<String, Object>) source, propertyType);
 		}
@@ -173,7 +173,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 	}
 
 	@SuppressWarnings("unchecked")
-	private <R> R convertMap(Map<String, Object> source, TypeInformation<?> propertyType) {
+	private <R> R convertMap(Map<Object, Object> source, TypeInformation<?> propertyType) {
 		Class<?> mapClass = propertyType.getType();
 		TypeInformation<?> keyType = propertyType.getComponentType();
 		Class<?> keyClass = keyType == null ? null : keyType.getType();

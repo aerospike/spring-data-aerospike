@@ -180,7 +180,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 		return source.stream().map(element -> getValueToWrite(element, componentType)).collect(Collectors.toList());
 	}
 
-	private Map<String, Object> convertMap(final Map<Object, Object> source, final TypeInformation<?> type) {
+	private Map<Object, Object> convertMap(final Map<Object, Object> source, final TypeInformation<?> type) {
 		Assert.notNull(source, "Given map must not be null!");
 		Assert.notNull(type, "Given type must not be null!");
 
@@ -191,15 +191,8 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 				throw new MappingException("Cannot use a complex object as a key value.");
 			}
 
-			String simpleKey;
-			if (conversionService.canConvert(key.getClass(), String.class)) {
-				simpleKey = conversionService.convert(key, String.class);
-			} else {
-				simpleKey = key.toString();
-			}
-
 			Object convertedValue = getValueToWrite(value, type.getMapValueType());
-			m.put(simpleKey, convertedValue);
+			m.put(key, convertedValue);
 		}, HashMap::putAll);
 	}
 
