@@ -369,7 +369,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 .expiration(expiration)
                 .build();
 
-        if (this.client.exists(null, key)) {
+        try {
             if (binNames == null || binNames.length == 0) {
                 return this.client.operate(writePolicy, key, Operation.touch(), Operation.get());
             } else {
@@ -381,8 +381,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 }
                 return this.client.operate(writePolicy, key, operations);
             }
+        } catch (AerospikeException aerospikeException) {
+            if (aerospikeException.getResultCode() == ResultCode.KEY_NOT_FOUND_ERROR) {
+                return null;
+            }
+            throw aerospikeException;
         }
-        return null;
     }
 
     private String[] getBinNamesFromTargetClass(Class<?> targetClass) {
