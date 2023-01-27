@@ -150,12 +150,12 @@ public class ReactiveRepositoryExample {
     @Autowired
     ReactiveAerospikeOperations aerospikeOperations;
     @Autowired
-    AerospikeReactorClient client;
+    IAerospikeReactorClient client;
 
     public RepositoryExample(ApplicationContext ctx) {
         aerospikeOperations = ctx.getBean(ReactiveAerospikeTemplate.class);
         repository = (ReactivePersonRepository) ctx.getBean("reactivePersonRepository");
-        client = ctx.getBean(AerospikeReactorClient.class);
+        client = ctx.getBean(IAerospikeReactorClient.class);
     }
 
     protected void setUp() {

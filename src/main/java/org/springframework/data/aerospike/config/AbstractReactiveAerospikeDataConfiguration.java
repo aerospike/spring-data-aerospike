@@ -19,6 +19,7 @@ import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.reactor.AerospikeReactorClient;
+import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,14 +50,14 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     public ReactiveAerospikeTemplate reactiveAerospikeTemplate(MappingAerospikeConverter mappingAerospikeConverter,
                                                                AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
-                                                               AerospikeReactorClient aerospikeReactorClient,
+                                                               IAerospikeReactorClient aerospikeReactorClient,
                                                                ReactorQueryEngine reactorQueryEngine, ReactorIndexRefresher reactorIndexRefresher) {
         return new ReactiveAerospikeTemplate(aerospikeReactorClient, nameSpace(), mappingAerospikeConverter, aerospikeMappingContext,
                 aerospikeExceptionTranslator, reactorQueryEngine, reactorIndexRefresher);
     }
 
     @Bean(name = "reactiveAerospikeQueryEngine")
-    public ReactorQueryEngine reactorQueryEngine(AerospikeReactorClient aerospikeReactorClient,
+    public ReactorQueryEngine reactorQueryEngine(IAerospikeReactorClient aerospikeReactorClient,
                                                  StatementBuilder statementBuilder,
                                                  FilterExpressionsBuilder filterExpressionsBuilder) {
         ReactorQueryEngine queryEngine = new ReactorQueryEngine(aerospikeReactorClient, statementBuilder, filterExpressionsBuilder, aerospikeReactorClient.getQueryPolicyDefault());
@@ -65,7 +66,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     }
 
     @Bean(name = "reactiveAerospikeIndexRefresher")
-    public ReactorIndexRefresher reactorIndexRefresher(AerospikeReactorClient aerospikeReactorClient, IndexesCacheUpdater indexesCacheUpdater) {
+    public ReactorIndexRefresher reactorIndexRefresher(IAerospikeReactorClient aerospikeReactorClient, IndexesCacheUpdater indexesCacheUpdater) {
         ReactorIndexRefresher refresher = new ReactorIndexRefresher(aerospikeReactorClient, aerospikeReactorClient.getInfoPolicyDefault(),
                 new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater);
         refresher.refreshIndexes().block();
@@ -73,7 +74,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     }
 
     @Bean(name = "aerospikeReactorClient")
-    public AerospikeReactorClient aerospikeReactorClient(IAerospikeClient aerospikeClient) {
+    public IAerospikeReactorClient aerospikeReactorClient(IAerospikeClient aerospikeClient) {
         return new AerospikeReactorClient(aerospikeClient);
     }
 

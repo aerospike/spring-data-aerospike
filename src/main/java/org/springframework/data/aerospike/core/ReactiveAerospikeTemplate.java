@@ -25,7 +25,6 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
-import com.aerospike.client.reactor.AerospikeReactorClient;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
@@ -63,11 +62,11 @@ import static org.springframework.data.aerospike.core.OperationUtils.operations;
 @Slf4j
 public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations {
 
-    private final AerospikeReactorClient reactorClient;
+    private final IAerospikeReactorClient reactorClient;
     private final ReactorQueryEngine queryEngine;
     private final ReactorIndexRefresher reactorIndexRefresher;
 
-    public ReactiveAerospikeTemplate(AerospikeReactorClient reactorClient,
+    public ReactiveAerospikeTemplate(IAerospikeReactorClient reactorClient,
                                      String namespace,
                                      MappingAerospikeConverter converter,
                                      AerospikeMappingContext mappingContext,

@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike;
 
-import com.aerospike.client.reactor.AerospikeReactorClient;
+import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.aerospike.config.CommonTestConfig;
@@ -22,7 +22,7 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     @Autowired
     protected ReactiveAerospikeTemplate reactiveTemplate;
     @Autowired
-    protected AerospikeReactorClient reactorClient;
+    protected IAerospikeReactorClient reactorClient;
 
     protected <T> T findById(Serializable id, Class<T> type) {
         return reactiveTemplate.findById(id, type).block();
