@@ -64,14 +64,6 @@ public class StubParameterAccessor implements AerospikeParameterAccessor {
 		return this.values;
 	}
 
-	/**
-	 * @deprecated
-	 */
-	@Override
-	public Optional<Class<?>> getDynamicProjection() {
-		return Optional.empty();
-	}
-
 	@Override
 	public Class<?> findDynamicProjection() {
 		return null;

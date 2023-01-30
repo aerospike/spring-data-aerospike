@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.CrudRepository;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +34,7 @@ import java.util.stream.Stream;
  * @author Peter Milne
  * @author Jean Mercier
  */
-public interface PersonRepository<P extends Person> extends AerospikeRepository<P, String> {
+public interface PersonRepository<P extends Person> extends AerospikeRepository<P, String>, CrudRepository<P, String> {
 
     List<P> findByLastName(String lastName);
 
@@ -208,7 +209,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapContaining(String key, String valuePart);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given integer"
+     * Find all entities that satisfy the condition "have the given map key and a value that is greater
+     * than the given integer"
      *
      * @param key         Map key
      * @param greaterThan integer to check if value is greater than it
@@ -216,7 +218,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntMapGreaterThan(String key, int greaterThan);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to the given integer"
+     * Find all entities that satisfy the condition "have the given map key and a value that is less than
+     * or equal to the given integer"
      *
      * @param key               Map key
      * @param lessThanOrEqualTo integer to check if value satisfies the condition
@@ -235,28 +238,32 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendLastName(String value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the age equal to the given integer" (find by POJO field)
+     * Find all entities that satisfy the condition "have a friend with the age equal to the given integer"
+     * (find by POJO field)
      *
      * @param value - number to check for equality
      */
     List<P> findByFriendAge(int value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the age NOT equal to the given integer" (find by POJO field)
+     * Find all entities that satisfy the condition "have a friend with the age NOT equal to the given integer"
+     * (find by POJO field)
      *
      * @param value - number to check for inequality
      */
     List<P> findByFriendAgeIsNot(int value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the age greater than the given integer" (find by POJO field)
+     * Find all entities that satisfy the condition "have a friend with the age greater than the given integer"
+     * (find by POJO field)
      *
      * @param value - lower limit, exclusive
      */
     List<P> findByFriendAgeGreaterThan(int value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the age less than or equal to the given integer" (find by POJO field)
+     * Find all entities that satisfy the condition "have a friend with the age less than
+     * or equal to the given integer" (find by POJO field)
      *
      * @param value - upper limit, inclusive
      */
@@ -301,7 +308,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsGreaterThan(int integer);
 
     /**
-     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given integer"
+     * Find all entities that satisfy the condition "have at least one list value which is less than
+     * or equal to the given integer"
      * <p>
      * List name in this case is Ints
      * </p>
@@ -311,7 +319,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsLessThanEqual(int integer);
 
     /**
-     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given long"
+     * Find all entities that satisfy the condition "have at least one list value which is less than
+     * or equal to the given long"
      * <p>
      * List name in this case is Ints
      * </p>
