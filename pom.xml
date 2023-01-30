@@ -27,7 +27,7 @@
         <springdata.keyvalue>3.0.1</springdata.keyvalue>
         <spring-cloud-starter-bootstrap>4.0.0</spring-cloud-starter-bootstrap>
         <spring-boot-starter-test>3.0.2</spring-boot-starter-test>
-        <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
+        <maven.javadoc.plugin>3.4.1</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike>6.1.6</aerospike>
         <aerospike-reactor>6.1.2</aerospike-reactor>
@@ -326,7 +326,7 @@
                     <splitindex>true</splitindex>
                     <bottom>Copyright &#169; 2020&#x2013;{currentYear} Aerospike, Inc. All rights reserved.</bottom>
                     <sourcepath>${basedir}/src/main/java</sourcepath>
-                    <source>1.8</source>
+                    <source>17</source>
                 </configuration>
                 <executions>
                     <execution>
