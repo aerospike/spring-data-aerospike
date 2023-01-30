@@ -16,13 +16,14 @@
 package org.springframework.data.aerospike.sample;
 
 import org.springframework.data.aerospike.repository.AerospikeRepository;
+import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 
 /**
  * @author Oliver Gierke
  */
-public interface CustomerRepository extends AerospikeRepository<Customer, String> {
+public interface CustomerRepository extends AerospikeRepository<Customer, String>, CrudRepository<Customer, String> {
 
     List<Customer> findByLastName(String lastName);
 
