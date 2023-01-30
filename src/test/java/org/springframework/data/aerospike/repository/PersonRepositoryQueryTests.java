@@ -481,7 +481,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsSomeFieldsByAgeGreaterThan_forExistingResultProjection() {
-        Slice<PersonSomeFields> slice = repository.findPersonSomeFieldsByAgeGreaterThan(40, PageRequest.of(0, 10));
+        Slice<PersonSomeFields> slice = repository.findPersonSomeFieldsByAgeGreaterThan(
+                40, PageRequest.of(0, 10)
+        );
 
         assertThat(slice.hasContent()).isTrue();
         assertThat(slice.hasNext()).isFalse();
@@ -501,7 +503,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findByAgeGreaterThan_respectsLimitAndOffsetAndSort() {
         List<Person> result = IntStream.range(0, 4)
-                .mapToObj(index -> repository.findByAgeGreaterThan(40, PageRequest.of(index, 1, Sort.by("age"))))
+                .mapToObj(index -> repository.findByAgeGreaterThan(40, PageRequest.of(
+                        index, 1, Sort.by("age")
+                )))
                 .flatMap(slice -> slice.getContent().stream())
                 .collect(Collectors.toList());
 
@@ -591,7 +595,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPagedPersons() {
-        Page<Person> result = repository.findAll(PageRequest.of(1, 2, Sort.Direction.ASC, "lastname", "firstname"));
+        Page<Person> result = repository.findAll(PageRequest.of(
+                1, 2, Sort.Direction.ASC, "lastname", "firstname")
+        );
         assertThat(result.isFirst()).isFalse();
         assertThat(result.isLast()).isFalse();
     }

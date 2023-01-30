@@ -33,18 +33,19 @@ The documentation for this project can be found on [javadoc.io](https://www.java
 
 ## Spring Data Aerospike compatibility
 
-|Spring Data Aerospike | Spring Boot | Aerospike Client | Aerospike Reactor Client | Aerospike Server
-| :----------- | :---- | :----------- | :----------- | :-----------
-|3.5.x | 2.7.x | 6.1.x | 6.1.x | 5.2.x.x +
-|3.4.x | 2.6.x | 5.1.x | 5.1.x | 5.2.x.x +
-|3.3.x | 2.5.x | 5.1.x | 5.1.x | 5.2.x.x +
-|3.2.x | 2.5.x | 5.1.x | 5.0.x | 5.2.x.x +
-|3.0.x, 3.1.x | 2.5.x | 5.1.x | 5.0.x
-|2.5.x | 2.5.x | 4.4.x | 4.4.x 
-|2.4.2.RELEASE | 2.3.x | 4.4.x | 4.4.x
-|2.3.5.RELEASE | 2.2.x | 4.4.x | 4.4.x
-|2.1.1.RELEASE | 2.1.x, 2.0.x | 4.4.x | 3.2.x
-|1.2.1.RELEASE | 1.5.x | 4.1.x | 
+| Spring Data Aerospike | Spring Boot  | Aerospike Client | Aerospike Reactor Client | Aerospike Server
+|:----------------------|:-------------|:-----------------|:-------------------------| :-----------
+| 4.0.x                 | 3.0.x        | 6.1.x            | 6.1.x                    | 5.2.x.x +
+| 3.5.x                 | 2.7.x        | 6.1.x            | 6.1.x                    | 5.2.x.x +
+| 3.4.x                 | 2.6.x        | 5.1.x            | 5.1.x                    | 5.2.x.x +
+| 3.3.x                 | 2.5.x        | 5.1.x            | 5.1.x                    | 5.2.x.x +
+| 3.2.x                 | 2.5.x        | 5.1.x            | 5.0.x                    | 5.2.x.x +
+| 3.0.x, 3.1.x          | 2.5.x        | 5.1.x            | 5.0.x                    
+| 2.5.x                 | 2.5.x        | 4.4.x            | 4.4.x                    
+| 2.4.2.RELEASE         | 2.3.x        | 4.4.x            | 4.4.x                    
+| 2.3.5.RELEASE         | 2.2.x        | 4.4.x            | 4.4.x                    
+| 2.1.1.RELEASE         | 2.1.x, 2.0.x | 4.4.x            | 3.2.x                    
+| 1.2.1.RELEASE         | 1.5.x        | 4.1.x            | 
 
 ## Quick Start
 
@@ -56,7 +57,7 @@ Add the Maven dependency:
 <dependency>
   <groupId>com.aerospike</groupId>
   <artifactId>spring-data-aerospike</artifactId>
-  <version>3.5.0</version>
+  <version>4.0.0</version>
 </dependency>
 ```
 
