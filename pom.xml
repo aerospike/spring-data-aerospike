@@ -33,11 +33,11 @@
         <aerospike-reactor>6.1.2</aerospike-reactor>
         <reactor-test>3.4.24</reactor-test>
         <embedded-aerospike>2.2.14</embedded-aerospike>
+        <jodatime>2.12.2</jodatime>
         <lombok>1.18.24</lombok>
         <awaitility>4.2.0</awaitility>
-        <logback.local>1.4.5</logback.local>
+        <logback.test>1.4.5</logback.test>
         <hibernate.validator>8.0.0.Final</hibernate.validator>
-        <jodatime>2.12.2</jodatime>
     </properties>
 
     <licenses>
@@ -278,13 +278,13 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>${logback.local}</version>
+            <version>${logback.test}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback.local}</version>
+            <version>${logback.test}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
