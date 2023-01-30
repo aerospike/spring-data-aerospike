@@ -16,7 +16,6 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-<!--        <version>2.7.5</version>-->
         <version>3.0.1</version>
     </parent>
 
@@ -24,14 +23,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springdata.commons>3.0.1</springdata.commons>
         <springdata.keyvalue>3.0.1</springdata.keyvalue>
-        <spring-cloud-starter-bootstrap>3.1.4</spring-cloud-starter-bootstrap>
-<!--        <spring-cloud-starter-bootstrap>4.0.0</spring-cloud-starter-bootstrap>-->
+        <spring-cloud-starter-bootstrap>4.0.0</spring-cloud-starter-bootstrap>
         <spring-boot-starter-test>3.0.2</spring-boot-starter-test>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike>6.1.6</aerospike>
         <aerospike-reactor>6.1.2</aerospike-reactor>
-<!--        <embedded-aerospike>2.2.10</embedded-aerospike>-->
         <embedded-aerospike>2.2.14</embedded-aerospike>
         <awaitility>4.2.0</awaitility>
         <lombok>1.18.24</lombok>
