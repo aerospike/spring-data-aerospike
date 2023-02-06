@@ -21,9 +21,13 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 /**
  * {@link NamespaceHandler} for the Aerospike namespace.
  *
+ * <p>Deprecated. Configure necessary client policies by overriding
+ * {@link org.springframework.data.aerospike.config.AerospikeDataConfigurationSupport#getClientPolicy()}</p>
+ *
  * @author Oliver Gierke
  * @author Peter Milne
  */
+@Deprecated
 public class AerospikeNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
