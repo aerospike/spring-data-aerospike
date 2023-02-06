@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.config;
 
 import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.policy.ClientPolicy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.aerospike.AdditionalAerospikeTestOperations;
@@ -54,6 +55,15 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
 	@Override
 	protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
 		builder.scansEnabled(true);
+	}
+
+	@Override
+	protected ClientPolicy getClientPolicy() {
+		ClientPolicy clientPolicy = super.getClientPolicy();
+		clientPolicy.readPolicyDefault.maxRetries = 3;
+		clientPolicy.writePolicyDefault.totalTimeout = 1000;
+		clientPolicy.infoPolicyDefault.timeout = 1000;
+		return clientPolicy;
 	}
 
 	@Bean
