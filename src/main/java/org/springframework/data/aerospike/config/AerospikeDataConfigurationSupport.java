@@ -159,7 +159,8 @@ public abstract class AerospikeDataConfigurationSupport {
     /**
      * Return {@link ClientPolicy} object that contains all client policies.
      *
-     * <p>Override this method to set the necessary parameters.</p>
+     * <p>Override this method to set the necessary parameters, </p>
+     * <p>call super.getClientPolicy() to apply default values first.</p>
      *
      * @return ClientPolicy
      */

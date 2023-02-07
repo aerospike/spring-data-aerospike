@@ -83,6 +83,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
 
     @Override
     protected ClientPolicy getClientPolicy() {
+        // super.getClientPolicy() to apply default values first
         ClientPolicy clientPolicy = super.getClientPolicy();
         clientPolicy.eventLoops = eventLoops();
         return clientPolicy;
