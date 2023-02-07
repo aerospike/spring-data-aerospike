@@ -27,49 +27,49 @@ import java.util.List;
 @EnableAerospikeRepositories(basePackageClasses = {ContactRepository.class, CustomerRepository.class})
 public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
 
-	@Value("${embedded.aerospike.namespace}")
-	protected String namespace;
-	@Value("${embedded.aerospike.host}")
-	protected String host;
-	@Value("${embedded.aerospike.port}")
-	protected int port;
+    @Value("${embedded.aerospike.namespace}")
+    protected String namespace;
+    @Value("${embedded.aerospike.host}")
+    protected String host;
+    @Value("${embedded.aerospike.port}")
+    protected int port;
 
-	@Override
-	protected List<?> customConverters() {
-		return Arrays.asList(
-				SampleClasses.CompositeKey.CompositeKeyToStringConverter.INSTANCE,
-				SampleClasses.CompositeKey.StringToCompositeKeyConverter.INSTANCE
-		);
-	}
+    @Override
+    protected List<?> customConverters() {
+        return Arrays.asList(
+                SampleClasses.CompositeKey.CompositeKeyToStringConverter.INSTANCE,
+                SampleClasses.CompositeKey.StringToCompositeKeyConverter.INSTANCE
+        );
+    }
 
-	@Override
-	protected Collection<Host> getHosts() {
-		return Collections.singleton(new Host(host, port));
-	}
+    @Override
+    protected Collection<Host> getHosts() {
+        return Collections.singleton(new Host(host, port));
+    }
 
-	@Override
-	protected String nameSpace() {
-		return namespace;
-	}
+    @Override
+    protected String nameSpace() {
+        return namespace;
+    }
 
-	@Override
-	protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
-		builder.scansEnabled(true);
-	}
+    @Override
+    protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
+        builder.scansEnabled(true);
+    }
 
-	@Override
-	protected ClientPolicy getClientPolicy() {
-		// super.getClientPolicy() to apply default values first
-		ClientPolicy clientPolicy = super.getClientPolicy();
-		clientPolicy.readPolicyDefault.maxRetries = 3;
-		clientPolicy.writePolicyDefault.totalTimeout = 1000;
-		clientPolicy.infoPolicyDefault.timeout = 1000;
-		return clientPolicy;
-	}
+    @Override
+    protected ClientPolicy getClientPolicy() {
+        // super.getClientPolicy() to apply default values first
+        ClientPolicy clientPolicy = super.getClientPolicy();
+        clientPolicy.readPolicyDefault.maxRetries = 3;
+        clientPolicy.writePolicyDefault.totalTimeout = 1000;
+        clientPolicy.infoPolicyDefault.timeout = 1000;
+        return clientPolicy;
+    }
 
-	@Bean
-	public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template, IAerospikeClient client,
-																 GenericContainer<?> aerospike) {
-		return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike);
-	}
+    @Bean
+    public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template, IAerospikeClient client,
+                                                                 GenericContainer<?> aerospike) {
+        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike);
+    }
 }
