@@ -113,7 +113,8 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         // truncate is async operation that is why we need to wait until
         // it completes
         await().atMost(TEN_SECONDS)
-                .untilAsserted(() -> assertThat(template.findByIds(Arrays.asList(id1, id2), CustomCollectionClassToDelete.class)).hasSize(0));
+            .untilAsserted(() -> assertThat(template.findByIds(Arrays.asList(id1, id2),
+                CustomCollectionClassToDelete.class)).hasSize(0));
     }
 
     @Test
@@ -128,16 +129,16 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         // truncate is async operation that is why we need to wait until
         // it completes
         await().atMost(TEN_SECONDS)
-                .untilAsserted(() -> {
-                    assertThat(template.findById(id1, DocumentWithExpiration.class)).isNull();
-                    assertThat(template.findById(id2, DocumentWithExpiration.class)).isNull();
-                });
+            .untilAsserted(() -> {
+                assertThat(template.findById(id1, DocumentWithExpiration.class)).isNull();
+                assertThat(template.findById(id2, DocumentWithExpiration.class)).isNull();
+            });
     }
 
     @Test
     public void deleteByType_NullTypeThrowsException() {
         assertThatThrownBy(() -> template.delete(null))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Type must not be null!");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Type must not be null!");
     }
 }

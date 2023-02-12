@@ -30,31 +30,31 @@ public class ReactiveAerospikeRepositoryExistRelatedTests extends BaseReactiveIn
     @Test
     public void existsById_ShouldReturnTrueWhenExists() {
         StepVerifier.create(customerRepo.existsById(customer2.getId()).subscribeOn(Schedulers.parallel()))
-                .expectNext(true).verifyComplete();
+            .expectNext(true).verifyComplete();
     }
 
     @Test
     public void existsById_ShouldReturnFalseWhenNotExists() {
         StepVerifier.create(customerRepo.existsById("non-existent-id").subscribeOn(Schedulers.parallel()))
-                .expectNext(false).verifyComplete();
+            .expectNext(false).verifyComplete();
     }
 
     @Test
     public void existsByIdPublisher_ShouldReturnTrueWhenExists() {
         StepVerifier.create(customerRepo.existsById(Flux.just(customer1.getId())).subscribeOn(Schedulers.parallel()))
-                .expectNext(true).verifyComplete();
+            .expectNext(true).verifyComplete();
     }
 
     @Test
     public void existsByIdPublisher_ShouldReturnFalseWhenNotExists() {
         StepVerifier.create(customerRepo.existsById(Flux.just("non-existent-id")).subscribeOn(Schedulers.parallel()))
-                .expectNext(false).verifyComplete();
+            .expectNext(false).verifyComplete();
     }
 
     @Test
     public void existsByIdPublisher_ShouldCheckOnlyFirstElement() {
         StepVerifier.create(customerRepo.existsById(Flux.just(customer1.getId(), "non-existent-id"))
                 .subscribeOn(Schedulers.parallel()))
-                .expectNext(true).verifyComplete();
+            .expectNext(true).verifyComplete();
     }
 }

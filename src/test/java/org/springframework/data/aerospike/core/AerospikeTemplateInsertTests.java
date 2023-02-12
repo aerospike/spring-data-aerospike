@@ -54,19 +54,19 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void insertsDocumentWithListMapDateStringLongValues() {
         Person customer = Person.builder()
-                .id(id)
-                .firstName("Dave")
-                .lastName("Grohl")
-                .age(45)
-                .waist(90)
-                .emailAddress("dave@gmail.com")
-                .stringMap(Collections.singletonMap("k", "v"))
-                .strings(Arrays.asList("a", "b", "c"))
-                .friend(new Person(null, "Anna", 43))
-                .active(true)
-                .sex(Person.Sex.MALE)
-                .dateOfBirth(new Date())
-                .build();
+            .id(id)
+            .firstName("Dave")
+            .lastName("Grohl")
+            .age(45)
+            .waist(90)
+            .emailAddress("dave@gmail.com")
+            .stringMap(Collections.singletonMap("k", "v"))
+            .strings(Arrays.asList("a", "b", "c"))
+            .friend(new Person(null, "Anna", 43))
+            .active(true)
+            .sex(Person.Sex.MALE)
+            .dateOfBirth(new Date())
+            .build();
 
         template.insert(customer);
 
@@ -117,7 +117,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
         template.insert(person);
         assertThatThrownBy(() -> template.insert(person))
-                .isInstanceOf(DuplicateKeyException.class);
+            .isInstanceOf(DuplicateKeyException.class);
     }
 
     @Test
@@ -126,7 +126,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
         template.insert(document);
         assertThatThrownBy(() -> template.insert(document))
-                .isInstanceOf(DuplicateKeyException.class);
+            .isInstanceOf(DuplicateKeyException.class);
     }
 
     @Test
@@ -174,19 +174,20 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         List<Person> records = Arrays.asList(person, person);
 
         assertThatThrownBy(() -> template.insertAll(records))
-                .isInstanceOf(DuplicateKeyException.class);
+            .isInstanceOf(DuplicateKeyException.class);
     }
 
     @Test
     public void insertAll_insertsAllDocuments() {
         List<Person> persons = IntStream.range(1, 10)
-                .mapToObj(age -> Person.builder().id(nextId())
-                        .firstName("Gregor")
-                        .age(age).build())
-                .collect(Collectors.toList());
+            .mapToObj(age -> Person.builder().id(nextId())
+                .firstName("Gregor")
+                .age(age).build())
+            .collect(Collectors.toList());
         template.insertAll(persons);
 
-        List<Person> result = template.findByIds(persons.stream().map(Person::getId).collect(Collectors.toList()), Person.class);
+        List<Person> result = template.findByIds(persons.stream().map(Person::getId)
+            .collect(Collectors.toList()), Person.class);
 
         assertThat(result).hasSameElementsAs(persons);
     }

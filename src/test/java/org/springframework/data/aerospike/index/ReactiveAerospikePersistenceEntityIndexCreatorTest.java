@@ -22,7 +22,8 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
     ReactiveAerospikeTemplate template = mock(ReactiveAerospikeTemplate.class);
 
     ReactiveAerospikePersistenceEntityIndexCreator creator =
-            new ReactiveAerospikePersistenceEntityIndexCreator(null, createIndexesOnStartup, aerospikeIndexResolver, template);
+        new ReactiveAerospikePersistenceEntityIndexCreator(null, createIndexesOnStartup, aerospikeIndexResolver,
+            template);
 
     String name = "someName";
     String fieldName = "fieldName";
@@ -30,12 +31,12 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
     IndexType type = IndexType.STRING;
     IndexCollectionType collectionType = IndexCollectionType.DEFAULT;
     AerospikeIndexDefinition definition = AerospikeIndexDefinition.builder()
-            .name(name)
-            .fieldName(fieldName)
-            .entityClass(targetClass)
-            .type(type)
-            .collectionType(collectionType)
-            .build();
+        .name(name)
+        .fieldName(fieldName)
+        .entityClass(targetClass)
+        .type(type)
+        .collectionType(collectionType)
+        .build();
 
     @Test
     void shouldInstallIndex() {
@@ -49,7 +50,7 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
     @Test
     void shouldSkipInstallIndexOnAlreadyExists() {
         when(template.createIndex(targetClass, name, fieldName, type, collectionType))
-                .thenReturn(Mono.error(new IndexAlreadyExistsException("some message", new RuntimeException())));
+            .thenReturn(Mono.error(new IndexAlreadyExistsException("some message", new RuntimeException())));
 
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
 
@@ -59,7 +60,7 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
     @Test
     void shouldFailInstallIndexOnUnhandledException() {
         when(template.createIndex(targetClass, name, fieldName, type, collectionType))
-                .thenReturn(Mono.error(new RuntimeException()));
+            .thenReturn(Mono.error(new RuntimeException()));
 
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
 

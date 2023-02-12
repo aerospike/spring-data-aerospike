@@ -35,11 +35,11 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Offset.offset;
+import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
+import static org.springframework.data.aerospike.AwaitilityUtils.awaitTwoSecondsUntil;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
-import static org.springframework.data.aerospike.AwaitilityUtils.awaitTwoSecondsUntil;
-import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
@@ -57,12 +57,13 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
         template.add(document, singletonMap("intField", 10L));
 
         awaitTwoSecondsUntil(() -> {
-            DocumentWithDefaultConstructor shouldNotExpire = template.findById(id, DocumentWithDefaultConstructor.class);
+            DocumentWithDefaultConstructor shouldNotExpire = template.findById(id,
+                DocumentWithDefaultConstructor.class);
             assertThat(shouldNotExpire).isNotNull();
             assertThat(shouldNotExpire.getIntField()).isEqualTo(10);
         });
         awaitTenSecondsUntil(() ->
-                assertThat(template.findById(id, DocumentWithDefaultConstructor.class)).isNull()
+            assertThat(template.findById(id, DocumentWithDefaultConstructor.class)).isNull()
         );
     }
 
@@ -75,12 +76,13 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
         template.add(document, "intField", 10L);
 
         awaitTwoSecondsUntil(() -> {
-                DocumentWithDefaultConstructor shouldNotExpire = template.findById(id, DocumentWithDefaultConstructor.class);
-                assertThat(shouldNotExpire).isNotNull();
-                assertThat(shouldNotExpire.getIntField()).isEqualTo(10);
+            DocumentWithDefaultConstructor shouldNotExpire = template.findById(id,
+                DocumentWithDefaultConstructor.class);
+            assertThat(shouldNotExpire).isNotNull();
+            assertThat(shouldNotExpire.getIntField()).isEqualTo(10);
         });
         awaitTenSecondsUntil(() ->
-                assertThat(template.findById(id, DocumentWithDefaultConstructor.class)).isNull()
+            assertThat(template.findById(id, DocumentWithDefaultConstructor.class)).isNull()
         );
     }
 
@@ -89,10 +91,10 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
         template.insert(new DocumentWithUnixTimeExpiration(id, DateTime.now().plusSeconds(1)));
 
         awaitTwoSecondsUntil(() ->
-                assertThat(template.findById(id, DocumentWithUnixTimeExpiration.class)).isNotNull()
+            assertThat(template.findById(id, DocumentWithUnixTimeExpiration.class)).isNotNull()
         );
         awaitTenSecondsUntil(() ->
-                assertThat(template.findById(id, DocumentWithUnixTimeExpiration.class)).isNull()
+            assertThat(template.findById(id, DocumentWithUnixTimeExpiration.class)).isNull()
         );
     }
 
@@ -101,11 +103,11 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
         template.insert(new DocumentWithExpirationAnnotation(id, 1));
 
         awaitTwoSecondsUntil(() ->
-                assertThat(template.findById(id, DocumentWithExpirationAnnotation.class)).isNotNull()
+            assertThat(template.findById(id, DocumentWithExpirationAnnotation.class)).isNotNull()
         );
 
         awaitTenSecondsUntil(() ->
-                assertThat(template.findById(id, DocumentWithExpirationAnnotation.class)).isNull()
+            assertThat(template.findById(id, DocumentWithExpirationAnnotation.class)).isNull()
         );
     }
 
@@ -141,10 +143,10 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
         template.insert(new DocumentWithExpiration(id));
 
         awaitTwoSecondsUntil(() ->
-                assertThat(template.findById(id, DocumentWithExpiration.class)).isNotNull()
+            assertThat(template.findById(id, DocumentWithExpiration.class)).isNotNull()
         );
         awaitTenSecondsUntil(() ->
-                assertThat(template.findById(id, DocumentWithExpiration.class)).isNull()
+            assertThat(template.findById(id, DocumentWithExpiration.class)).isNull()
         );
     }
 
@@ -152,7 +154,8 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
     public void shouldSaveAndGetDocumentWithImmutableExpiration() {
         template.insert(new DocumentWithExpirationAnnotationAndPersistenceConstructor(id, 60L));
 
-        DocumentWithExpirationAnnotationAndPersistenceConstructor doc = template.findById(id, DocumentWithExpirationAnnotationAndPersistenceConstructor.class);
+        DocumentWithExpirationAnnotationAndPersistenceConstructor doc = template.findById(id,
+            DocumentWithExpirationAnnotationAndPersistenceConstructor.class);
         assertThat(doc).isNotNull();
         assertThat(doc.getExpiration()).isCloseTo(60L, Offset.offset(10L));
     }
@@ -197,8 +200,8 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
         DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation(id, -500);
 
         assertThatThrownBy(() -> template.insert(document))
-                .isInstanceOf(InvalidDataAccessApiUsageException.class)
-                .hasCauseInstanceOf(AerospikeException.class)
-                .hasStackTraceContaining("Parameter error");
+            .isInstanceOf(InvalidDataAccessApiUsageException.class)
+            .hasCauseInstanceOf(AerospikeException.class)
+            .hasStackTraceContaining("Parameter error");
     }
 }

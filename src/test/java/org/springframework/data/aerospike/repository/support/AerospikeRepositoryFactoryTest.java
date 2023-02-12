@@ -47,44 +47,49 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class AerospikeRepositoryFactoryTest {
 
-	@Mock RepositoryInformation repositoryInformation;
-	@SuppressWarnings("rawtypes")
-	@Mock MappingContext context;
-	@Mock AerospikeRepositoryFactory aerospikeRepositoryFactoryMock;
-	@SuppressWarnings("rawtypes")
-	@Mock AerospikePersistentEntity entity;
-	@Mock AerospikeOperations aerospikeOperations;
+    @Mock
+    RepositoryInformation repositoryInformation;
+    @SuppressWarnings("rawtypes")
+    @Mock
+    MappingContext context;
+    @Mock
+    AerospikeRepositoryFactory aerospikeRepositoryFactoryMock;
+    @SuppressWarnings("rawtypes")
+    @Mock
+    AerospikePersistentEntity entity;
+    @Mock
+    AerospikeOperations aerospikeOperations;
 
-	@SuppressWarnings("unchecked")
-	@BeforeEach
-	public void setUp() {
-		when(aerospikeOperations.getMappingContext()).thenReturn(context);
-	}
+    @SuppressWarnings("unchecked")
+    @BeforeEach
+    public void setUp() {
+        when(aerospikeOperations.getMappingContext()).thenReturn(context);
+    }
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void getEntityInformationClassOfT() {
-		when(context.getRequiredPersistentEntity(Person.class)).thenReturn(entity);
+    @SuppressWarnings("unchecked")
+    @Test
+    public void getEntityInformationClassOfT() {
+        when(context.getRequiredPersistentEntity(Person.class)).thenReturn(entity);
 
-		AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeOperations);
-		EntityInformation<Person, Serializable> entityInformation = factory.getEntityInformation(Person.class);
-		assertThat(entityInformation).isInstanceOf(PersistentEntityInformation.class);
-	}
+        AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeOperations);
+        EntityInformation<Person, Serializable> entityInformation = factory.getEntityInformation(Person.class);
+        assertThat(entityInformation).isInstanceOf(PersistentEntityInformation.class);
+    }
 
-	@Test
-	public void getTargetRepositoryRepositoryInformation() {
-		when(aerospikeRepositoryFactoryMock.getTargetRepository(repositoryInformation)).thenReturn(new Object());
+    @Test
+    public void getTargetRepositoryRepositoryInformation() {
+        when(aerospikeRepositoryFactoryMock.getTargetRepository(repositoryInformation)).thenReturn(new Object());
 
-		Object repository = aerospikeRepositoryFactoryMock.getTargetRepository(repositoryInformation);
-		assertThat(repository).isNotNull();
-	}
+        Object repository = aerospikeRepositoryFactoryMock.getTargetRepository(repositoryInformation);
+        assertThat(repository).isNotNull();
+    }
 
-	@Test
-	public void testGetRepositoryBaseClassRepositoryMetadata() {
-		RepositoryMetadata metadata = mock(RepositoryMetadata.class);
-		Mockito.<Class<?>>when(metadata.getRepositoryInterface()).thenReturn(SimpleKeyValueRepository.class);
-		AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeOperations);
-		Class<?> repositoryBaseClass = factory.getRepositoryBaseClass(metadata);
-		assertThat(repositoryBaseClass.getSimpleName()).isEqualTo(SimpleKeyValueRepository.class.getSimpleName());
-	}
+    @Test
+    public void testGetRepositoryBaseClassRepositoryMetadata() {
+        RepositoryMetadata metadata = mock(RepositoryMetadata.class);
+        Mockito.<Class<?>>when(metadata.getRepositoryInterface()).thenReturn(SimpleKeyValueRepository.class);
+        AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeOperations);
+        Class<?> repositoryBaseClass = factory.getRepositoryBaseClass(metadata);
+        assertThat(repositoryBaseClass.getSimpleName()).isEqualTo(SimpleKeyValueRepository.class.getSimpleName());
+    }
 }

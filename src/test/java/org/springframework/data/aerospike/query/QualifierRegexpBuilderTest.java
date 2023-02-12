@@ -26,122 +26,122 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class QualifierRegexpBuilderTest {
 
-	@Test
-	public void escapesBackslash() {
-		String inputStr = "a\\b";
-		String expectedStr = "a\\\\b"; // a\\b
+    @Test
+    public void escapesBackslash() {
+        String inputStr = "a\\b";
+        String expectedStr = "a\\\\b"; // a\\b
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
 
-	@Test
-	public void escapesDot() {
-		String inputStr = "a.b";
-		String expectedStr = "a\\.b"; // a\.b
+    @Test
+    public void escapesDot() {
+        String inputStr = "a.b";
+        String expectedStr = "a\\.b"; // a\.b
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
-	
-	@Test
-	public void escapesSquareBracket() {
-		String inputStr = "a[b";
-		String expectedStr = "a\\[b"; // a\[b
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+    @Test
+    public void escapesSquareBracket() {
+        String inputStr = "a[b";
+        String expectedStr = "a\\[b"; // a\[b
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
+        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
 
-	@Test
-	public void escapesAsterisk() {
-		String inputStr = "a*b";
-		String expectedStr = "a\\*b"; // a\*b
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+    @Test
+    public void escapesAsterisk() {
+        String inputStr = "a*b";
+        String expectedStr = "a\\*b"; // a\*b
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
+        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
 
-	@Test
-	public void escapesCircumflex() {
-		String inputStr = "a^b";
-		String expectedStr = "a\\^b"; // a\^b
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+    @Test
+    public void escapesCircumflex() {
+        String inputStr = "a^b";
+        String expectedStr = "a\\^b"; // a\^b
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
+        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
 
-	@Test
-	public void escapesDollar() {
-		String inputStr = "a$b";
-		String expectedStr = "a\\$b"; // a\$b
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+    @Test
+    public void escapesDollar() {
+        String inputStr = "a$b";
+        String expectedStr = "a\\$b"; // a\$b
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
+        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
 
-	@Test
-	public void doesNotEscapeOtherCharacter() {
-		String inputStr = "abcdefghijklmnopqrstuvwxyz";
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+    @Test
+    public void doesNotEscapeOtherCharacter() {
+        String inputStr = "abcdefghijklmnopqrstuvwxyz";
 
-		assertThat(escapedStr).isEqualTo(inputStr);
-	}
-	
-	@Test
-	public void escapesMultiplSpecialCharacters() {
-		String inputStr = "\\^aerospike$"; // \\\^aerospike\$
-		String expectedStr = "\\\\\\^aerospike\\$"; // \^aerospike\$
+        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        assertThat(escapedStr).isEqualTo(inputStr);
+    }
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
-	
-	@Test
-	public void buildsEscapedStartsWith() {
-		String inputStr = "*aero";
-		String expectedStr = "^\\*aero";
+    @Test
+    public void escapesMultiplSpecialCharacters() {
+        String inputStr = "\\^aerospike$"; // \\\^aerospike\$
+        String expectedStr = "\\\\\\^aerospike\\$"; // \^aerospike\$
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.getStartsWith(inputStr);
-		
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
-	
-	@Test
-	public void buildsEscapedEndsWith() {
-		String inputStr = "*spike*";
-		String expectedStr = "\\*spike\\*$";
+        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.getEndsWith(inputStr);
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
-	
-	@Test
-	public void buildsEscapedContaining() {
-		String inputStr = "*erospi*";
-		String expectedStr = "\\*erospi\\*"; // \*erospi\*
+    @Test
+    public void buildsEscapedStartsWith() {
+        String inputStr = "*aero";
+        String expectedStr = "^\\*aero";
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.getContaining(inputStr);
+        String escapedStr = Qualifier.QualifierRegexpBuilder.getStartsWith(inputStr);
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
 
-	@Test
-	public void buildsEscapedEquals() {
-		String inputStr = "\\*aerospike*";
-		String expectedStr = "^\\\\\\*aerospike\\*$"; // ^\\\*aerospike\*$
+    @Test
+    public void buildsEscapedEndsWith() {
+        String inputStr = "*spike*";
+        String expectedStr = "\\*spike\\*$";
 
-		String escapedStr = Qualifier.QualifierRegexpBuilder.getStringEquals(inputStr);
+        String escapedStr = Qualifier.QualifierRegexpBuilder.getEndsWith(inputStr);
 
-		assertThat(escapedStr).isEqualTo(expectedStr);
-	}
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
+
+    @Test
+    public void buildsEscapedContaining() {
+        String inputStr = "*erospi*";
+        String expectedStr = "\\*erospi\\*"; // \*erospi\*
+
+        String escapedStr = Qualifier.QualifierRegexpBuilder.getContaining(inputStr);
+
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
+
+    @Test
+    public void buildsEscapedEquals() {
+        String inputStr = "\\*aerospike*";
+        String expectedStr = "^\\\\\\*aerospike\\*$"; // ^\\\*aerospike\*$
+
+        String escapedStr = Qualifier.QualifierRegexpBuilder.getStringEquals(inputStr);
+
+        assertThat(escapedStr).isEqualTo(expectedStr);
+    }
 }

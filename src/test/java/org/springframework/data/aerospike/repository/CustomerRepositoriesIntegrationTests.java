@@ -32,87 +32,90 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegrationTests {
 
-	@Autowired CustomerRepository repository;
+    @Autowired
+    CustomerRepository repository;
 
-	@Test
-	public void create() {
-		repository.save(Customer.builder().id(id).firstName("Dave").lastName("Matthews").build());
-	}
+    @Test
+    public void create() {
+        repository.save(Customer.builder().id(id).firstName("Dave").lastName("Matthews").build());
+    }
 
-	@Test
-	public void exists() {
-		repository.save(Customer.builder().id(id).firstName("Dave").lastName("Matthews").build());
+    @Test
+    public void exists() {
+        repository.save(Customer.builder().id(id).firstName("Dave").lastName("Matthews").build());
 
-		boolean exists = repository.existsById(id);
+        boolean exists = repository.existsById(id);
 
-		assertThat(exists).isTrue();
-	}
+        assertThat(exists).isTrue();
+    }
 
-	@Test
-	public void delete() {
-		repository.delete(Customer.builder().id(id).firstName("Dave").lastName("Matthews").group('a').build());
-	}
+    @Test
+    public void delete() {
+        repository.delete(Customer.builder().id(id).firstName("Dave").lastName("Matthews").group('a').build());
+    }
 
-	@Test
-	public void readById() {
-		Customer customer = repository.save(Customer.builder()
-				.id(id)
-				.firstName("Dave")
-				.lastName("Matthews")
-				.group('a')
-				.build());
+    @Test
+    public void readById() {
+        Customer customer = repository.save(Customer.builder()
+            .id(id)
+            .firstName("Dave")
+            .lastName("Matthews")
+            .group('a')
+            .build());
 
-		Optional<Customer> findById = repository.findById(id);
+        Optional<Customer> findById = repository.findById(id);
 
-		assertThat(findById).hasValueSatisfying(actual -> {
-			assertThat(actual.getLastName()).isEqualTo(customer.getLastName());
-			assertThat(actual.getFirstName()).isEqualTo(customer.getFirstName());
-			assertThat(actual.getGroup()).isEqualTo(customer.getGroup());
-		});
-	}
+        assertThat(findById).hasValueSatisfying(actual -> {
+            assertThat(actual.getLastName()).isEqualTo(customer.getLastName());
+            assertThat(actual.getFirstName()).isEqualTo(customer.getFirstName());
+            assertThat(actual.getGroup()).isEqualTo(customer.getGroup());
+        });
+    }
 
-	@Test
-	public void findAllByIDs(){
-		Customer first = repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("AMatthews").build());
-		Customer second = repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("BMatthews").build());
-		repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("CMatthews").build());
-		repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("DMatthews").build());
+    @Test
+    public void findAllByIDs() {
+        Customer first = repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("AMatthews")
+            .build());
+        Customer second = repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("BMatthews")
+            .build());
+        repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("CMatthews").build());
+        repository.save(Customer.builder().id(nextId()).firstName("Dave").lastName("DMatthews").build());
 
-		Iterable<Customer> customers = repository.findAllById(Arrays.asList(first.getId(), second.getId()));
+        Iterable<Customer> customers = repository.findAllById(Arrays.asList(first.getId(), second.getId()));
 
-		assertThat(customers).hasSize(2);
-	}
+        assertThat(customers).hasSize(2);
+    }
 
-	@Test
-	public void findByGroup() {
-		Customer first = repository.save(Customer.builder()
-				.id(nextId())
-				.firstName("Dave")
-				.lastName("AMatthews")
-				.group('c')
-				.build());
-		Customer second = repository.save(Customer.builder()
-				.id(nextId())
-				.firstName("Dave")
-				.lastName("BMatthews")
-				.group('d')
-				.build());
-		Customer third = repository.save(Customer.builder()
-				.id(nextId())
-				.firstName("Dave")
-				.lastName("CMatthews")
-				.group('d')
-				.build());
+    @Test
+    public void findByGroup() {
+        Customer first = repository.save(Customer.builder()
+            .id(nextId())
+            .firstName("Dave")
+            .lastName("AMatthews")
+            .group('c')
+            .build());
+        Customer second = repository.save(Customer.builder()
+            .id(nextId())
+            .firstName("Dave")
+            .lastName("BMatthews")
+            .group('d')
+            .build());
+        Customer third = repository.save(Customer.builder()
+            .id(nextId())
+            .firstName("Dave")
+            .lastName("CMatthews")
+            .group('d')
+            .build());
 
-		List<Customer> results = repository.findByGroup('d');
-		assertThat(results).hasSize(2);
-		assertThat(results).containsOnly(second, third);
+        List<Customer> results = repository.findByGroup('d');
+        assertThat(results).hasSize(2);
+        assertThat(results).containsOnly(second, third);
 
-		results = repository.findByGroup('c');
-		assertThat(results).hasSize(1);
-		assertThat(results).containsOnly(first);
+        results = repository.findByGroup('c');
+        assertThat(results).hasSize(1);
+        assertThat(results).containsOnly(first);
 
-		results = repository.findByGroup('e');
-		assertThat(results).hasSize(0);
-	}
+        results = repository.findByGroup('e');
+        assertThat(results).hasSize(0);
+    }
 }

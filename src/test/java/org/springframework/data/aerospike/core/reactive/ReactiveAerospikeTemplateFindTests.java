@@ -30,7 +30,7 @@ public class ReactiveAerospikeTemplateFindTests extends BaseReactiveIntegrationT
         StepVerifier.create(reactiveTemplate.save(person)).expectNext(person).verifyComplete();
 
         StepVerifier.create(reactiveTemplate.findById(id, Person.class)
-                .subscribeOn(Schedulers.parallel())
+            .subscribeOn(Schedulers.parallel())
         ).consumeNextWith(actual -> {
             assertThat(actual.getFirstName()).isEqualTo(person.getFirstName());
             assertThat(actual.getLastName()).isEqualTo(person.getLastName());
@@ -40,16 +40,16 @@ public class ReactiveAerospikeTemplateFindTests extends BaseReactiveIntegrationT
     @Test
     public void findById_shouldReturnNullForNonExistingKey() {
         StepVerifier.create(reactiveTemplate.findById("dave-is-absent", Person.class)
-                        .subscribeOn(Schedulers.parallel())
-                )
-                .expectNextCount(0).verifyComplete();
+                .subscribeOn(Schedulers.parallel())
+            )
+            .expectNextCount(0).verifyComplete();
     }
 
     @Test
     public void findById_shouldReturnNullForNonExistingKeyIfTouchOnReadSetToTrue() {
         StepVerifier.create(reactiveTemplate.findById("foo-is-absent", DocumentWithTouchOnRead.class)
-                        .subscribeOn(Schedulers.parallel()))
-                .expectNextCount(0).verifyComplete();
+                .subscribeOn(Schedulers.parallel()))
+            .expectNextCount(0).verifyComplete();
     }
 
     @Test
@@ -58,27 +58,30 @@ public class ReactiveAerospikeTemplateFindTests extends BaseReactiveIntegrationT
         StepVerifier.create(reactiveTemplate.save(document)).expectNext(document).verifyComplete();
 
         StepVerifier.create(reactiveTemplate.findById(document.getId(), DocumentWithTouchOnRead.class)
-                        .subscribeOn(Schedulers.parallel()))
-                .consumeNextWith(actual -> assertThat(actual.getVersion()).isEqualTo(document.getVersion() + 1)).verifyComplete();
+                .subscribeOn(Schedulers.parallel()))
+            .consumeNextWith(actual -> assertThat(actual.getVersion()).isEqualTo(document.getVersion() + 1))
+            .verifyComplete();
     }
 
     @Test
     public void findById_shouldFailOnTouchOnReadWithExpirationProperty() {
-        DocumentWithTouchOnReadAndExpirationProperty document = new DocumentWithTouchOnReadAndExpirationProperty(id, EXPIRATION_ONE_MINUTE);
+        DocumentWithTouchOnReadAndExpirationProperty document = new DocumentWithTouchOnReadAndExpirationProperty(id,
+            EXPIRATION_ONE_MINUTE);
         reactiveTemplate.insert(document).block();
 
-        assertThatThrownBy(() -> reactiveTemplate.findById(document.getId(), DocumentWithTouchOnReadAndExpirationProperty.class)
-                .subscribeOn(Schedulers.parallel()))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Touch on read is not supported for entity without expiration property");
+        assertThatThrownBy(() -> reactiveTemplate.findById(document.getId(),
+                DocumentWithTouchOnReadAndExpirationProperty.class)
+            .subscribeOn(Schedulers.parallel()))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Touch on read is not supported for entity without expiration property");
     }
 
     @Test
     public void findByIds_shouldReturnEmptyList() {
         StepVerifier.create(reactiveTemplate.findByIds(Collections.emptyList(), Person.class)
-                        .subscribeOn(Schedulers.parallel()))
-                .expectNextCount(0)
-                .verifyComplete();
+                .subscribeOn(Schedulers.parallel()))
+            .expectNextCount(0)
+            .verifyComplete();
     }
 
     @Test
@@ -90,8 +93,8 @@ public class ReactiveAerospikeTemplateFindTests extends BaseReactiveIntegrationT
 
         List<String> ids = Arrays.asList("unknown", customer1.getId(), customer2.getId());
         List<Person> actual = reactiveTemplate.findByIds(ids, Person.class)
-                .subscribeOn(Schedulers.parallel())
-                .collectList().block();
+            .subscribeOn(Schedulers.parallel())
+            .collectList().block();
 
         assertThat(actual).containsExactlyInAnyOrder(customer1, customer2);
     }

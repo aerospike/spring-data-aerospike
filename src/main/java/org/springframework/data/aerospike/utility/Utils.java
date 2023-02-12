@@ -40,6 +40,7 @@ public class Utils {
      * @param infoString The name of the variable to retrieve.
      * @return An "Info" value for the given variable from all the nodes in the cluster.
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static String[] infoAll(IAerospikeClient client,
                                    String infoString) {
         String[] messages = new String[client.getNodes().length];

@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.core.reactive;
 
-import org.awaitility.Awaitility;
 import com.aerospike.client.Value;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
@@ -41,42 +41,42 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
         reactiveTemplate.insert(new Person(nextId(), "petya", 52)).block();
 
         Qualifier.QualifierBuilder qbVasya1 = new Qualifier.QualifierBuilder()
-                .setField("firstName")
-                .setValue1(Value.get("vasili"))
-                .setFilterOperation(FilterOperation.EQ);
+            .setField("firstName")
+            .setValue1(Value.get("vasili"))
+            .setFilterOperation(FilterOperation.EQ);
 
         Query queryVasya1 = new Query(new AerospikeCriteria(qbVasya1));
 
         Long vasyaCount = reactiveTemplate.count(queryVasya1, Person.class)
-                .subscribeOn(Schedulers.parallel())
-                .block();
+            .subscribeOn(Schedulers.parallel())
+            .block();
         assertThat(vasyaCount).isEqualTo(3);
 
         Qualifier.QualifierBuilder qbVasya2 = new Qualifier.QualifierBuilder()
-                .setField("age")
-                .setValue1(Value.get(51))
-                .setFilterOperation(FilterOperation.EQ);
+            .setField("age")
+            .setValue1(Value.get(51))
+            .setFilterOperation(FilterOperation.EQ);
 
         Query queryVasyaAnd = new Query
             (new AerospikeCriteria
-                    (new Qualifier.QualifierBuilder()
-                            .setFilterOperation(FilterOperation.AND)
-                            .setQualifiers(qbVasya1.build(), qbVasya2.build())
-                    )
+                (new Qualifier.QualifierBuilder()
+                    .setFilterOperation(FilterOperation.AND)
+                    .setQualifiers(qbVasya1.build(), qbVasya2.build())
+                )
             );
 
         Long vasya51Count = reactiveTemplate.count(queryVasyaAnd, Person.class)
-                .subscribeOn(Schedulers.parallel())
-                .block();
+            .subscribeOn(Schedulers.parallel())
+            .block();
         assertThat(vasya51Count).isEqualTo(1);
 
         Qualifier.QualifierBuilder qbPetya = new Qualifier.QualifierBuilder()
-                .setField("firstName")
-                .setValue1(Value.get("petya"))
-                .setFilterOperation(FilterOperation.EQ);
+            .setField("firstName")
+            .setValue1(Value.get("petya"))
+            .setFilterOperation(FilterOperation.EQ);
         Long petyaCount = reactiveTemplate.count(new Query(new AerospikeCriteria(qbPetya)), Person.class)
-                .subscribeOn(Schedulers.parallel())
-                .block();
+            .subscribeOn(Schedulers.parallel())
+            .block();
         assertThat(petyaCount).isEqualTo(1);
     }
 
@@ -87,36 +87,36 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
         reactiveTemplate.insert(new Person(nextId(), "vasili", 52)).block();
 
         Qualifier.QualifierBuilder qbVasya1 = new Qualifier.QualifierBuilder()
-                .setField("firstName")
-                .setValue1(Value.get("vas"))
-                .setIgnoreCase(true)
-                .setFilterOperation(FilterOperation.STARTS_WITH);
+            .setField("firstName")
+            .setValue1(Value.get("vas"))
+            .setIgnoreCase(true)
+            .setFilterOperation(FilterOperation.STARTS_WITH);
 
         Query query1 = new Query(new AerospikeCriteria(qbVasya1));
         assertThat(reactiveTemplate.count(query1, Person.class).block()).isEqualTo(3);
 
         Qualifier.QualifierBuilder qbVasya2 = new Qualifier.QualifierBuilder()
-                .setField("firstName")
-                .setValue1(Value.get("VaS"))
-                .setIgnoreCase(false)
-                .setFilterOperation(FilterOperation.STARTS_WITH);
+            .setField("firstName")
+            .setValue1(Value.get("VaS"))
+            .setIgnoreCase(false)
+            .setFilterOperation(FilterOperation.STARTS_WITH);
 
         Query query2 = new Query(new AerospikeCriteria(qbVasya2));
         assertThat(reactiveTemplate.count(query2, Person.class)
-                .subscribeOn(Schedulers.parallel())
-                .block()).isEqualTo(1);
+            .subscribeOn(Schedulers.parallel())
+            .block()).isEqualTo(1);
     }
 
     @Test
     public void count_shouldReturnZeroIfNoDocumentsByProvidedCriteriaIsFound() {
         Qualifier.QualifierBuilder qb1 = new Qualifier.QualifierBuilder()
-                .setField("firstName")
-                .setValue1(Value.get("nastyushka"))
-                .setFilterOperation(FilterOperation.EQ);
+            .setField("firstName")
+            .setValue1(Value.get("nastyushka"))
+            .setFilterOperation(FilterOperation.EQ);
 
         Long count = reactiveTemplate.count(new Query(new AerospikeCriteria(qb1)), Person.class)
-                .subscribeOn(Schedulers.parallel())
-                .block();
+            .subscribeOn(Schedulers.parallel())
+            .block();
 
         assertThat(count).isZero();
     }
@@ -124,7 +124,7 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
     @Test
     public void count_shouldRejectNullEntityClass() {
         assertThatThrownBy(() -> reactiveTemplate.count(null, (Class<?>) null).block())
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -135,10 +135,11 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
         reactiveTemplate.insert(new Person(nextId(), "petya", 52)).subscribeOn(Schedulers.parallel()).block();
 
         Awaitility.await()
-                .atMost(Duration.ofSeconds(15))
-                .until(() -> isCountExactlyNum(4L));
+            .atMost(Duration.ofSeconds(15))
+            .until(() -> isCountExactlyNum(4L));
     }
 
+    @SuppressWarnings("SameParameterValue")
     private boolean isCountExactlyNum(Long num) {
         return Objects.equals(reactiveTemplate.count(Person.class).block(), num);
     }

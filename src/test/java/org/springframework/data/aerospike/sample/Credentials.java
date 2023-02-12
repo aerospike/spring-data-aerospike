@@ -20,4 +20,5 @@ package org.springframework.data.aerospike.sample;
  * @author Jean Mercier
  */
 public interface Credentials {
+
 }

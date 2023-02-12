@@ -20,11 +20,11 @@ public class GroupedKeysTest {
         keys.add("p22");
 
         GroupedKeys groupedKeys = GroupedKeys.builder()
-                .entityKeys(Person.class, keys)
-                .build();
+            .entityKeys(Person.class, keys)
+            .build();
 
         Map<Class<?>, Collection<?>> expectedResult =
-                new HashMap<>();
+            new HashMap<>();
         expectedResult.put(Person.class, keys);
 
         assertThat(groupedKeys.getEntitiesKeys()).containsAllEntriesOf(expectedResult);

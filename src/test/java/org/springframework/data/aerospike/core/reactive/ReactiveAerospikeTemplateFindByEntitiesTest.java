@@ -11,14 +11,14 @@ public class ReactiveAerospikeTemplateFindByEntitiesTest extends BaseReactiveInt
     @Override
     public <T> void save(T obj) {
         reactiveTemplate.save(obj)
-                .subscribeOn(Schedulers.parallel())
-                .block();
+            .subscribeOn(Schedulers.parallel())
+            .block();
     }
 
     @Override
     public GroupedEntities findByIds(GroupedKeys groupedKeys) {
         return reactiveTemplate.findByIds(groupedKeys)
-                .subscribeOn(Schedulers.parallel())
-                .block();
+            .subscribeOn(Schedulers.parallel())
+            .block();
     }
 }

@@ -27,6 +27,7 @@ import org.springframework.data.annotation.Id;
 @Builder
 @Document
 public class Customer {
+
     @Id
     private String id;
     private String firstName;
@@ -36,8 +37,8 @@ public class Customer {
 
     public CustomerSomeFields toCustomerSomeFields() {
         return CustomerSomeFields.builder()
-                .firstName(getFirstName())
-                .lastName(getLastName())
-                .build();
+            .firstName(getFirstName())
+            .lastName(getLastName())
+            .build();
     }
 }

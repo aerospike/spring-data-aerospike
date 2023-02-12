@@ -27,8 +27,8 @@ public class ReactiveAerospikeTemplateCompositeKeyTests extends BaseReactiveInte
     @Test
     public void findById() {
         StepVerifier.create(reactiveTemplate.findById(document.getId(), DocumentWithCompositeKey.class))
-                .expectNext(document)
-                .verifyComplete();
+            .expectNext(document)
+            .verifyComplete();
     }
 
     @Test
@@ -36,8 +36,9 @@ public class ReactiveAerospikeTemplateCompositeKeyTests extends BaseReactiveInte
         DocumentWithCompositeKey document2 = new DocumentWithCompositeKey(new CompositeKey(nextId(), 999));
         reactiveTemplate.save(document2).block();
 
-        List<DocumentWithCompositeKey> actual = reactiveTemplate.findByIds(asList(document.getId(), document2.getId()), DocumentWithCompositeKey.class)
-                .collectList().block();
+        List<DocumentWithCompositeKey> actual = reactiveTemplate.findByIds(asList(document.getId(),
+                document2.getId()), DocumentWithCompositeKey.class)
+            .collectList().block();
 
         assertThat(actual).containsOnly(document, document2);
     }
@@ -45,14 +46,14 @@ public class ReactiveAerospikeTemplateCompositeKeyTests extends BaseReactiveInte
     @Test
     public void delete() {
         StepVerifier.create(reactiveTemplate.delete(document.getId(), DocumentWithCompositeKey.class))
-                .expectNext(true)
-                .verifyComplete();
+            .expectNext(true)
+            .verifyComplete();
     }
 
     @Test
     public void exists() {
         StepVerifier.create(reactiveTemplate.exists(document.getId(), DocumentWithCompositeKey.class))
-                .expectNext(true)
-                .verifyComplete();
+            .expectNext(true)
+            .verifyComplete();
     }
 }

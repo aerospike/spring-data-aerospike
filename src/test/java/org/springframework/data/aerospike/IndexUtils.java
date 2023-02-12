@@ -18,45 +18,48 @@ import java.util.stream.Collectors;
 
 public class IndexUtils {
 
-	public static void dropIndex(IAerospikeClient client, String namespace, String setName, String indexName) {
-		waitTillComplete(() -> client.dropIndex(null, namespace, setName, indexName));
-	}
+    public static void dropIndex(IAerospikeClient client, String namespace, String setName, String indexName) {
+        waitTillComplete(() -> client.dropIndex(null, namespace, setName, indexName));
+    }
 
-	public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName, String binName, IndexType indexType) {
-		waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType));
-	}
+    public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
+                                   String binName, IndexType indexType) {
+        waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType));
+    }
 
-	public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName, String binName, IndexType indexType, IndexCollectionType collectionType) {
-		waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType, collectionType));
-	}
+    public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
+                                   String binName, IndexType indexType, IndexCollectionType collectionType) {
+        waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType,
+            collectionType));
+    }
 
-	public static List<Index> getIndexes(IAerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
-		Node node = getNode(client);
-		String response = Info.request(node, "sindex-list:ns=" + namespace + ";b64=true");
-		return Arrays.stream(response.split(";"))
-				.map(indexInfoParser::parse)
-				.collect(Collectors.toList());
-	}
+    public static List<Index> getIndexes(IAerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
+        Node node = getNode(client);
+        String response = Info.request(node, "sindex-list:ns=" + namespace + ";b64=true");
+        return Arrays.stream(response.split(";"))
+            .map(indexInfoParser::parse)
+            .collect(Collectors.toList());
+    }
 
-	public static boolean indexExists(IAerospikeClient client, String namespace, String indexName) {
-		Node node = getNode(client);
-		String response = Info.request(node, "sindex/" + namespace + '/' + indexName);
-		return !response.startsWith("FAIL:201");
-	}
+    public static boolean indexExists(IAerospikeClient client, String namespace, String indexName) {
+        Node node = getNode(client);
+        String response = Info.request(node, "sindex/" + namespace + '/' + indexName);
+        return !response.startsWith("FAIL:201");
+    }
 
-	private static void waitTillComplete(Supplier<IndexTask> supplier) {
-		IndexTask task = supplier.get();
-		if (task == null) {
-			throw new IllegalStateException("task can not be null");
-		}
-		task.waitTillComplete();
-	}
+    private static void waitTillComplete(Supplier<IndexTask> supplier) {
+        IndexTask task = supplier.get();
+        if (task == null) {
+            throw new IllegalStateException("task can not be null");
+        }
+        task.waitTillComplete();
+    }
 
-	private static Node getNode(IAerospikeClient client) {
-		Node[] nodes = client.getNodes();
-		if (nodes.length == 0) {
-			throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
-		}
-		return nodes[0];
-	}
+    private static Node getNode(IAerospikeClient client) {
+        Node[] nodes = client.getNodes();
+        if (nodes.length == 0) {
+            throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
+        }
+        return nodes[0];
+    }
 }

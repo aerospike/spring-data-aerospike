@@ -20,44 +20,46 @@ import static org.mockito.Mockito.when;
 
 public abstract class BaseMappingAerospikeConverterTest {
 
-	protected static final String NAMESPACE = "namespace";
+    protected static final String NAMESPACE = "namespace";
 
-	protected MappingAerospikeConverter converter = getMappingAerospikeConverter(
-			new SampleClasses.ComplexIdToStringConverter(),
-			new SampleClasses.StringToComplexIdConverter());
+    protected final MappingAerospikeConverter converter = getMappingAerospikeConverter(
+        new SampleClasses.ComplexIdToStringConverter(),
+        new SampleClasses.StringToComplexIdConverter());
 
-	protected MappingAerospikeConverter getMappingAerospikeConverter(Converter<?, ?>... customConverters) {
-		return getMappingAerospikeConverter(new AerospikeTypeAliasAccessor(), customConverters);
-	}
+    protected static Record aeroRecord(Collection<Bin> bins) {
+        Map<String, Object> collect = bins.stream()
+            .collect(Collectors.toMap(bin -> bin.name, bin -> bin.value.getObject()));
+        return aeroRecord(collect);
+    }
 
-	protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeTypeAliasAccessor typeAliasAccessor, Converter<?, ?>... customConverters) {
-		AerospikeMappingContext mappingContext = new AerospikeMappingContext();
-		mappingContext.setApplicationContext(getApplicationContext());
-		CustomConversions customConversions = new AerospikeCustomConversions(asList(customConverters));
+    protected static Record aeroRecord(Map<String, Object> bins) {
+        return new Record(bins, 0, 0);
+    }
 
-		MappingAerospikeConverter converter = new MappingAerospikeConverter(mappingContext, customConversions, typeAliasAccessor);
-		converter.afterPropertiesSet();
-		return converter;
-	}
+    protected MappingAerospikeConverter getMappingAerospikeConverter(Converter<?, ?>... customConverters) {
+        return getMappingAerospikeConverter(new AerospikeTypeAliasAccessor(), customConverters);
+    }
 
-	private ApplicationContext getApplicationContext() {
-		Environment environment = mock(Environment.class);
-		when(environment.resolveRequiredPlaceholders(anyString()))
-				.thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
+    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeTypeAliasAccessor typeAliasAccessor,
+                                                                     Converter<?, ?>... customConverters) {
+        AerospikeMappingContext mappingContext = new AerospikeMappingContext();
+        mappingContext.setApplicationContext(getApplicationContext());
+        CustomConversions customConversions = new AerospikeCustomConversions(asList(customConverters));
 
-		ApplicationContext applicationContext = mock(ApplicationContext.class);
-		when(applicationContext.getEnvironment()).thenReturn(environment);
+        MappingAerospikeConverter converter = new MappingAerospikeConverter(mappingContext, customConversions,
+            typeAliasAccessor);
+        converter.afterPropertiesSet();
+        return converter;
+    }
 
-		return applicationContext;
-	}
+    private ApplicationContext getApplicationContext() {
+        Environment environment = mock(Environment.class);
+        when(environment.resolveRequiredPlaceholders(anyString()))
+            .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
 
-	protected static Record aeroRecord(Collection<Bin> bins) {
-		Map<String, Object> collect = bins.stream()
-				.collect(Collectors.toMap(bin -> bin.name, bin -> bin.value.getObject()));
-		return aeroRecord(collect);
-	}
+        ApplicationContext applicationContext = mock(ApplicationContext.class);
+        when(applicationContext.getEnvironment()).thenReturn(environment);
 
-	protected static Record aeroRecord(Map<String, Object> bins) {
-		return new Record(bins, 0, 0);
-	}
+        return applicationContext;
+    }
 }

@@ -10,11 +10,11 @@ public class AwaitilityUtils {
 
     public static void awaitTenSecondsUntil(ThrowingRunnable runnable) {
         await().atMost(TEN_SECONDS)
-                .untilAsserted(runnable);
+            .untilAsserted(runnable);
     }
 
     public static void awaitTwoSecondsUntil(ThrowingRunnable runnable) {
         await().atMost(TWO_SECONDS)
-                .untilAsserted(runnable);
+            .untilAsserted(runnable);
     }
 }

@@ -16,41 +16,44 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class BaseQueryEngineTests extends BaseBlockingIntegrationTests {
 
-	@Autowired
-	QueryEngineTestDataPopulator queryEngineTestDataPopulator;
+    @Autowired
+    QueryEngineTestDataPopulator queryEngineTestDataPopulator;
 
-	@BeforeEach
-	public void setUp() {
-		queryEngineTestDataPopulator.setupAllData();
-	}
+    @BeforeEach
+    public void setUp() {
+        queryEngineTestDataPopulator.setupAllData();
+    }
 
-	protected void withIndex(String namespace, String setName, String indexName, String binName, IndexType indexType, Runnable runnable) {
-		tryCreateIndex(namespace, setName, indexName, binName, indexType);
-		try {
-			runnable.run();
-		} finally {
-			tryDropIndex(namespace, setName, indexName);
-		}
-	}
+    protected void withIndex(String namespace, String setName, String indexName, String binName, IndexType indexType,
+                             Runnable runnable) {
+        tryCreateIndex(namespace, setName, indexName, binName, indexType);
+        try {
+            runnable.run();
+        } finally {
+            tryDropIndex(namespace, setName, indexName);
+        }
+    }
 
-	protected void tryDropIndex(String namespace, String setName, String indexName) {
-		IndexUtils.dropIndex(client, namespace, setName, indexName);
-		indexRefresher.refreshIndexes();
-	}
+    protected void tryDropIndex(String namespace, String setName, String indexName) {
+        IndexUtils.dropIndex(client, namespace, setName, indexName);
+        indexRefresher.refreshIndexes();
+    }
 
-	protected void tryCreateIndex(String namespace, String setName, String indexName, String binName, IndexType indexType) {
-		AwaitilityUtils.awaitTenSecondsUntil(() -> {
-			IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType);
-			indexRefresher.refreshIndexes();
-			IndexKey indexKey = new IndexKey(namespace, setName, binName, indexType, null);
-			Optional<Index> index = indexesCache.getIndex(indexKey);
-			assertThat(index).as("Index for: " + indexKey + " not created").isPresent();
-		});
-	}
+    protected void tryCreateIndex(String namespace, String setName, String indexName, String binName,
+                                  IndexType indexType) {
+        AwaitilityUtils.awaitTenSecondsUntil(() -> {
+            IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType);
+            indexRefresher.refreshIndexes();
+            IndexKey indexKey = new IndexKey(namespace, setName, binName, indexType, null);
+            Optional<Index> index = indexesCache.getIndex(indexKey);
+            assertThat(index).as("Index for: " + indexKey + " not created").isPresent();
+        });
+    }
 
-	protected void tryCreateIndex(String namespace, String setName, String indexName, String binName, IndexType indexType,
-								  IndexCollectionType collectionType) {
-		IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType, collectionType);
-		indexRefresher.refreshIndexes();
-	}
+    protected void tryCreateIndex(String namespace, String setName, String indexName, String binName,
+                                  IndexType indexType,
+                                  IndexCollectionType collectionType) {
+        IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType, collectionType);
+        indexRefresher.refreshIndexes();
+    }
 }

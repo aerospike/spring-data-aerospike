@@ -22,4 +22,5 @@ import org.springframework.data.aerospike.repository.AerospikeRepository;
  */
 
 public interface AutoIndexedDocumentRepository extends AerospikeRepository<AutoIndexedDocument, String> {
+
 }

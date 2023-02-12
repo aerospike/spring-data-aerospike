@@ -41,10 +41,10 @@ public class RepositoriesIntegrationTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveObjectWithPersistenceConstructorThatHasAllFields() {
         CompositeObject expected = CompositeObject.builder()
-                .id("composite-object-1")
-                .intValue(15)
-                .simpleObject(SimpleObject.builder().property1("prop1").property2(555).build())
-                .build();
+            .id("composite-object-1")
+            .intValue(15)
+            .simpleObject(SimpleObject.builder().property1("prop1").property2(555).build())
+            .build();
         repository.save(expected);
 
         Optional<CompositeObject> actual = repository.findById(expected.getId());
@@ -56,8 +56,8 @@ public class RepositoriesIntegrationTests extends BaseBlockingIntegrationTests {
     public void shouldDeleteObjectWithPersistenceConstructor() {
         String id = nextId();
         CompositeObject expected = CompositeObject.builder()
-                .id(id)
-                .build();
+            .id(id)
+            .build();
         repository.save(expected);
         assertThat(repository.findById(id)).isPresent();
 

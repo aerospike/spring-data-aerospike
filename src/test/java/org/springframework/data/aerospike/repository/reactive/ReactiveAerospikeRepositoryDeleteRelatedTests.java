@@ -38,28 +38,30 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
 
     @Test
     public void deleteById_ShouldDeleteExistent() {
-        StepVerifier.create(customerRepo.deleteById(customer2.getId()).subscribeOn(Schedulers.parallel())).verifyComplete();
+        StepVerifier.create(customerRepo.deleteById(customer2.getId()).subscribeOn(Schedulers.parallel()))
+            .verifyComplete();
 
         StepVerifier.create(customerRepo.findById(customer2.getId())).expectNextCount(0).verifyComplete();
     }
 
     @Test
     public void deleteById_ShouldSkipNonexistent() {
-        StepVerifier.create(customerRepo.deleteById("non-existent-id").subscribeOn(Schedulers.parallel())).verifyComplete();
+        StepVerifier.create(customerRepo.deleteById("non-existent-id").subscribeOn(Schedulers.parallel()))
+            .verifyComplete();
     }
 
     @Test
     @SuppressWarnings("ConstantConditions")
     public void deleteById_ShouldRejectsNullObject() {
         assertThatThrownBy(() -> customerRepo.deleteById((String) null).block())
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void deleteByIdPublisher_ShouldDeleteOnlyFirstElement() {
         StepVerifier.create(customerRepo.deleteById(Flux.just(customer1.getId(), customer2.getId()))
                 .subscribeOn(Schedulers.parallel()))
-                .verifyComplete();
+            .verifyComplete();
 
         StepVerifier.create(customerRepo.findById(customer1.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(customerRepo.findById(customer2.getId())).expectNext(customer2).verifyComplete();
@@ -69,7 +71,7 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
     public void deleteByIdPublisher_ShouldSkipNonexistent() {
         StepVerifier.create(customerRepo.deleteById(Flux.just("non-existent-id"))
                 .subscribeOn(Schedulers.parallel()))
-                .verifyComplete();
+            .verifyComplete();
     }
 
     @Test
@@ -77,7 +79,7 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
     public void deleteByIdPublisher_ShouldRejectsNullObject() {
         //noinspection unchecked
         assertThatThrownBy(() -> customerRepo.deleteById((Publisher) null).block())
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -89,17 +91,18 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
 
     @Test
     public void delete_ShouldSkipNonexistent() {
-        Customer nonExistentCustomer = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15).build();
+        Customer nonExistentCustomer = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15)
+            .build();
 
         StepVerifier.create(customerRepo.delete(nonExistentCustomer).subscribeOn(Schedulers.parallel()))
-                .verifyComplete();
+            .verifyComplete();
     }
 
     @Test
     @SuppressWarnings("ConstantConditions")
     public void delete_ShouldRejectsNullObject() {
         assertThatThrownBy(() -> customerRepo.delete(null).block())
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
 
     }
 
@@ -113,9 +116,11 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
 
     @Test
     public void deleteAllIterable_ShouldSkipNonexistent() {
-        Customer nonExistentCustomer = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15).build();
+        Customer nonExistentCustomer = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15)
+            .build();
 
-        customerRepo.deleteAll(asList(customer1, nonExistentCustomer, customer2)).subscribeOn(Schedulers.parallel()).block();
+        customerRepo.deleteAll(asList(customer1, nonExistentCustomer, customer2)).subscribeOn(Schedulers.parallel())
+            .block();
 
         StepVerifier.create(customerRepo.findById(customer1.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(customerRepo.findById(customer2.getId())).expectNextCount(0).verifyComplete();
@@ -126,7 +131,7 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
         List<Customer> entities = asList(customer1, null, customer2);
 
         assertThatThrownBy(() -> customerRepo.deleteAll(entities).subscribeOn(Schedulers.parallel()).block())
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -139,9 +144,11 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
 
     @Test
     public void deleteAllPublisher_ShouldSkipNonexistent() {
-        Customer nonExistentCustomer = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15).build();
+        Customer nonExistentCustomer = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15)
+            .build();
 
-        customerRepo.deleteAll(Flux.just(customer1, nonExistentCustomer, customer2)).subscribeOn(Schedulers.parallel()).block();
+        customerRepo.deleteAll(Flux.just(customer1, nonExistentCustomer, customer2)).subscribeOn(Schedulers.parallel())
+            .block();
 
         StepVerifier.create(customerRepo.findById(customer1.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(customerRepo.findById(customer2.getId())).expectNextCount(0).verifyComplete();
@@ -149,7 +156,8 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
 
     @Test
     public void deleteAllById_ShouldDelete() {
-        customerRepo.deleteAllById(asList(customer1.getId(), customer2.getId())).subscribeOn(Schedulers.parallel()).block();
+        customerRepo.deleteAllById(asList(customer1.getId(), customer2.getId())).subscribeOn(Schedulers.parallel())
+            .block();
 
         StepVerifier.create(customerRepo.findById(customer1.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(customerRepo.findById(customer2.getId())).expectNextCount(0).verifyComplete();

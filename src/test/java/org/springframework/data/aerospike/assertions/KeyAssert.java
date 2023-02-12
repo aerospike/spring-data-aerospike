@@ -14,6 +14,7 @@ public class KeyAssert extends AbstractAssert<KeyAssert, Key> {
         return new KeyAssert(key);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public KeyAssert consistsOf(String namespace, String setName, Object userKey) {
         Assertions.assertThat(actual.namespace).isEqualTo(namespace);
         Assertions.assertThat(actual.setName).isEqualTo(setName);

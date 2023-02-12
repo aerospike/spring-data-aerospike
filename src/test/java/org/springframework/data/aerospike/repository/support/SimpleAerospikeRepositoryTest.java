@@ -54,166 +54,166 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class SimpleAerospikeRepositoryTest {
 
-	@Mock
-	EntityInformation<Person, String> metadata;
-	@Mock
-	AerospikeOperations operations;
-	@InjectMocks
-	SimpleAerospikeRepository<Person, String> aerospikeRepository;
+    @Mock
+    EntityInformation<Person, String> metadata;
+    @Mock
+    AerospikeOperations operations;
+    @InjectMocks
+    SimpleAerospikeRepository<Person, String> aerospikeRepository;
 
-	Person testPerson;
-	List<Person> testPersons;
+    Person testPerson;
+    List<Person> testPersons;
 
-	@BeforeEach
-	public void setUp() {
-		when(metadata.getJavaType()).thenReturn(Person.class);
+    @BeforeEach
+    public void setUp() {
+        when(metadata.getJavaType()).thenReturn(Person.class);
 
-		testPerson = new Person("21", "Jean");
-		testPersons = new ArrayList<>();
-		testPersons.add(new Person("one", "Jean", 21));
-		testPersons.add(new Person("two", "Jean2", 22));
-		testPersons.add(new Person("three", "Jean3", 23));
-	}
+        testPerson = new Person("21", "Jean");
+        testPersons = new ArrayList<>();
+        testPersons.add(new Person("one", "Jean", 21));
+        testPersons.add(new Person("two", "Jean2", 22));
+        testPersons.add(new Person("three", "Jean3", 23));
+    }
 
-	@Test
-	public void findOne() {
-		when(operations.findById("21", Person.class)).thenReturn(testPerson);
+    @Test
+    public void findOne() {
+        when(operations.findById("21", Person.class)).thenReturn(testPerson);
 
-		Optional<Person> person = aerospikeRepository.findById("21");
+        Optional<Person> person = aerospikeRepository.findById("21");
 
-		assertThat(person)
-				.hasValueSatisfying(actual -> assertThat(actual.getFirstName()).isEqualTo("Jean"));
-	}
+        assertThat(person)
+            .hasValueSatisfying(actual -> assertThat(actual.getFirstName()).isEqualTo("Jean"));
+    }
 
-	@Test
-	public void save() {
-		Person myPerson = aerospikeRepository.save(testPerson);
+    @Test
+    public void save() {
+        Person myPerson = aerospikeRepository.save(testPerson);
 
-		assertThat(testPerson).isEqualTo(myPerson);
-		verify(operations).save(testPerson);
-	}
+        assertThat(testPerson).isEqualTo(myPerson);
+        verify(operations).save(testPerson);
+    }
 
-	@Test
-	public void saveIterableOfS() {
-		List<Person> result = aerospikeRepository.saveAll(testPersons);
+    @Test
+    public void saveIterableOfS() {
+        List<Person> result = aerospikeRepository.saveAll(testPersons);
 
-		assertThat(result).isEqualTo(testPersons);
-		verify(operations, times(testPersons.size())).save(any());
-	}
+        assertThat(result).isEqualTo(testPersons);
+        verify(operations, times(testPersons.size())).save(any());
+    }
 
-	@Test
-	public void delete() {
-		aerospikeRepository.delete(testPerson);
+    @Test
+    public void delete() {
+        aerospikeRepository.delete(testPerson);
 
-		verify(operations).delete(testPerson);
-	}
+        verify(operations).delete(testPerson);
+    }
 
-	@Test
-	public void findAllSort() {
-		when(operations.findAll(Sort.by(Sort.Direction.ASC, "firstName"), 0, 0, Person.class))
-				.thenReturn(testPersons.stream());
+    @Test
+    public void findAllSort() {
+        when(operations.findAll(Sort.by(Sort.Direction.ASC, "firstName"), 0, 0, Person.class))
+            .thenReturn(testPersons.stream());
 
-		Iterable<Person> fetchList = aerospikeRepository.findAll(Sort.by(Sort.Direction.ASC, "firstName"));
-		List<Person> results = new ArrayList<>();
-		fetchList.forEach(results::add);
-		assertThat(results).isEqualTo(testPersons);
-	}
+        Iterable<Person> fetchList = aerospikeRepository.findAll(Sort.by(Sort.Direction.ASC, "firstName"));
+        List<Person> results = new ArrayList<>();
+        fetchList.forEach(results::add);
+        assertThat(results).isEqualTo(testPersons);
+    }
 
-	@Test
-	public void findAllPageable() {
-		Page<Person> page = new PageImpl<>(IterableConverter.toList(testPersons), PageRequest.of(0, 2), 5);
+    @Test
+    public void findAllPageable() {
+        Page<Person> page = new PageImpl<>(IterableConverter.toList(testPersons), PageRequest.of(0, 2), 5);
 
-		doReturn(testPersons.stream()).when(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
-		doReturn("set").when(operations).getSetName(Person.class);
-		doReturn(5L).when(operations).count("set");
+        doReturn(testPersons.stream()).when(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
+        doReturn("set").when(operations).getSetName(Person.class);
+        doReturn(5L).when(operations).count("set");
 
-		Page<Person> result = aerospikeRepository.findAll(PageRequest.of(0, 2));
+        Page<Person> result = aerospikeRepository.findAll(PageRequest.of(0, 2));
 
-		verify(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
-		assertThat(result).isEqualTo(page);
-	}
+        verify(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
+        assertThat(result).isEqualTo(page);
+    }
 
-	@Test
-	public void exists() {
-		when(operations.exists(testPerson.getId(), Person.class)).thenReturn(true);
+    @Test
+    public void exists() {
+        when(operations.exists(testPerson.getId(), Person.class)).thenReturn(true);
 
-		boolean exists = aerospikeRepository.existsById(testPerson.getId());
-		assertThat(exists).isTrue();
-	}
+        boolean exists = aerospikeRepository.existsById(testPerson.getId());
+        assertThat(exists).isTrue();
+    }
 
-	@Test
-	public void findAll() {
-		when(operations.findAll(Person.class)).thenReturn(testPersons.stream());
+    @Test
+    public void findAll() {
+        when(operations.findAll(Person.class)).thenReturn(testPersons.stream());
 
-		List<Person> fetchList = aerospikeRepository.findAll();
+        List<Person> fetchList = aerospikeRepository.findAll();
 
-		assertThat(fetchList).hasSameElementsAs(testPersons);
-	}
+        assertThat(fetchList).hasSameElementsAs(testPersons);
+    }
 
-	@Test
-	public void findAllIterableOfID() {
-		List<String> ids = testPersons.stream().map(Person::getId).collect(toList());
-		when(aerospikeRepository.findAllById(ids)).thenReturn(testPersons);
+    @Test
+    public void findAllIterableOfID() {
+        List<String> ids = testPersons.stream().map(Person::getId).collect(toList());
+        when(aerospikeRepository.findAllById(ids)).thenReturn(testPersons);
 
-		List<Person> fetchList = (List<Person>) aerospikeRepository.findAllById(ids);
+        List<Person> fetchList = (List<Person>) aerospikeRepository.findAllById(ids);
 
-		assertThat(fetchList).isEqualTo(testPersons);
-	}
+        assertThat(fetchList).isEqualTo(testPersons);
+    }
 
-	@Test
-	public void deleteID() {
-		aerospikeRepository.deleteById("one");
+    @Test
+    public void deleteID() {
+        aerospikeRepository.deleteById("one");
 
-		verify(operations).delete("one", Person.class);
-	}
+        verify(operations).delete("one", Person.class);
+    }
 
-	@Test
-	public void deleteAllById() {
-		List<String> personIds = testPersons.stream()
-				.map(Person::getId)
-				.collect(toList());
-		aerospikeRepository.deleteAllById(personIds);
+    @Test
+    public void deleteAllById() {
+        List<String> personIds = testPersons.stream()
+            .map(Person::getId)
+            .collect(toList());
+        aerospikeRepository.deleteAllById(personIds);
 
-		verify(operations).delete("one", Person.class);
-		verify(operations).delete("two", Person.class);
-		verify(operations).delete("three", Person.class);
-	}
+        verify(operations).delete("one", Person.class);
+        verify(operations).delete("two", Person.class);
+        verify(operations).delete("three", Person.class);
+    }
 
-	@Test
-	public void deleteIterableOfQExtendsT() {
-		aerospikeRepository.deleteAll(testPersons);
+    @Test
+    public void deleteIterableOfQExtendsT() {
+        aerospikeRepository.deleteAll(testPersons);
 
-		verify(operations, times(testPersons.size())).delete(any(Person.class));
-	}
+        verify(operations, times(testPersons.size())).delete(any(Person.class));
+    }
 
-	@Test
-	public void deleteAll() {
-		aerospikeRepository.deleteAll();
+    @Test
+    public void deleteAll() {
+        aerospikeRepository.deleteAll();
 
-		verify(operations).delete(Person.class);
-	}
+        verify(operations).delete(Person.class);
+    }
 
-	@Test
-	public void createIndex() {
-		aerospikeRepository.createIndex(Person.class, "index_first_name", "firstName", IndexType.STRING);
+    @Test
+    public void createIndex() {
+        aerospikeRepository.createIndex(Person.class, "index_first_name", "firstName", IndexType.STRING);
 
-		verify(operations).createIndex(Person.class, "index_first_name", "firstName", IndexType.STRING);
-	}
+        verify(operations).createIndex(Person.class, "index_first_name", "firstName", IndexType.STRING);
+    }
 
-	@Test
-	public void deleteIndex() {
-		aerospikeRepository.deleteIndex(Person.class, "index_first_name");
+    @Test
+    public void deleteIndex() {
+        aerospikeRepository.deleteIndex(Person.class, "index_first_name");
 
-		verify(operations).deleteIndex(Person.class, "index_first_name");
-	}
+        verify(operations).deleteIndex(Person.class, "index_first_name");
+    }
 
-	@Test
-	public void indexExists() {
-		when(operations.indexExists(anyString())).thenReturn(true);
+    @Test
+    public void indexExists() {
+        when(operations.indexExists(anyString())).thenReturn(true);
 
-		boolean exists = aerospikeRepository.indexExists("index_first_name");
+        boolean exists = aerospikeRepository.indexExists("index_first_name");
 
-		assertThat(exists).isTrue();
-		verify(operations).indexExists("index_first_name");
-	}
+        assertThat(exists).isTrue();
+        verify(operations).indexExists("index_first_name");
+    }
 }

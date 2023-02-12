@@ -303,6 +303,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return this;
         }
 
+        @SuppressWarnings("UnusedReturnValue")
         public QualifierBuilder setValue3(Value value3) {
             this.map.put(VALUE3, value3);
             return this;

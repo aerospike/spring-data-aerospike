@@ -42,7 +42,8 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     Flux<IndexedPerson> findByIntMapEquals(String key, int value);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given integer"
+     * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given
+     * integer"
      *
      * @param key         Map key
      * @param greaterThan integer to check if value is greater than it
@@ -50,7 +51,8 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     Flux<IndexedPerson> findByIntMapGreaterThan(String key, int greaterThan);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to the given integer"
+     * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to
+     * the given integer"
      *
      * @param key               Map key
      * @param lessThanOrEqualTo integer to check if value satisfies the condition
@@ -69,28 +71,32 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     Flux<IndexedPerson> findByFriendLastName(String value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the age equal to the given integer" (find by POJO field)
+     * Find all entities that satisfy the condition "have a friend with the age equal to the given integer" (find by
+     * POJO field)
      *
      * @param value - number to check for equality
      */
     Flux<IndexedPerson> findByFriendAge(int value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the age greater than the given integer" (find by POJO field)
+     * Find all entities that satisfy the condition "have a friend with the age greater than the given integer" (find by
+     * POJO field)
      *
      * @param value - lower limit, exclusive
      */
     Flux<IndexedPerson> findByFriendAgeGreaterThan(int value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the age less than or equal to the given integer" (find by POJO field)
+     * Find all entities that satisfy the condition "have a friend with the age less than or equal to the given integer"
+     * (find by POJO field)
      *
      * @param value - upper limit, inclusive
      */
     Flux<IndexedPerson> findByFriendAgeLessThanEqual(int value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the age in the given range" (find by POJO field)
+     * Find all entities that satisfy the condition "have a friend with the age in the given range" (find by POJO
+     * field)
      *
      * @param from lower limit, inclusive
      * @param to   upper limit, inclusive
@@ -118,7 +124,8 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     Flux<IndexedPerson> findByIntsContaining(int integer);
 
     /**
-     * Find all entities that satisfy the condition "have at least one list value which is greater than the given integer"
+     * Find all entities that satisfy the condition "have at least one list value which is greater than the given
+     * integer"
      * <p>
      * List name in this case is Ints
      * </p>
@@ -128,7 +135,8 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     Flux<IndexedPerson> findByIntsGreaterThan(int integer);
 
     /**
-     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the given integer"
+     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
+     * given integer"
      * <p>
      * List name in this case is Ints
      * </p>

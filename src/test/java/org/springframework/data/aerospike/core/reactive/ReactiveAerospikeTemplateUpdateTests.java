@@ -28,8 +28,8 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     @Test
     public void shouldThrowExceptionOnUpdateForNonexistingKey() {
         create(reactiveTemplate.update(new Person(id, "svenfirstName", 11)))
-                .expectError(DataRetrievalFailureException.class)
-                .verify();
+            .expectError(DataRetrievalFailureException.class)
+            .verify();
     }
 
     @Test
@@ -83,21 +83,21 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         fields.add("non-existing-field");
 
         assertThatThrownBy(() -> reactiveTemplate.update(Person.builder().id(id).age(41).build(), fields).block())
-                .isInstanceOf(RecoverableDataAccessException.class)
-                .hasMessageContaining("field doesn't exists");
+            .isInstanceOf(RecoverableDataAccessException.class)
+            .hasMessageContaining("field doesn't exists");
     }
 
     @Test
     public void updateSpecificFieldsWithFieldAnnotatedProperty() {
         Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
-                .emailAddress("andrew@gmail.com").build();
+            .emailAddress("andrew@gmail.com").build();
         reactiveTemplate.insert(person).block();
 
         List<String> fields = new ArrayList<>();
         fields.add("age");
         fields.add("emailAddress");
         reactiveTemplate.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields)
-                .block();
+            .block();
 
         assertThat(findById(id, Person.class)).satisfies(doc -> {
             assertThat(doc.getFirstName()).isEqualTo("Andrew");
@@ -110,14 +110,14 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     @Test
     public void updateSpecificFieldsWithFieldAnnotatedPropertyActualValue() {
         Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
-                .emailAddress("andrew@gmail.com").build();
+            .emailAddress("andrew@gmail.com").build();
         reactiveTemplate.insert(person).block();
 
         List<String> fields = new ArrayList<>();
         fields.add("age");
         fields.add("email");
         reactiveTemplate.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields)
-                .block();
+            .block();
 
         assertThat(findById(id, Person.class)).satisfies(doc -> {
             assertThat(doc.getFirstName()).isEqualTo("Andrew");
@@ -131,14 +131,14 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     public void updatesFieldValueAndDocumentVersion() {
         VersionedClass document = new VersionedClass(id, "foobar");
         create(reactiveTemplate.insert(document))
-                .assertNext(updated -> assertThat(updated.version).isEqualTo(1))
-                .verifyComplete();
+            .assertNext(updated -> assertThat(updated.version).isEqualTo(1))
+            .verifyComplete();
         assertThat(findById(id, VersionedClass.class).version).isEqualTo(1);
 
         document = new VersionedClass(id, "foobar1", document.version);
         create(reactiveTemplate.update(document))
-                .assertNext(updated -> assertThat(updated.version).isEqualTo(2))
-                .verifyComplete();
+            .assertNext(updated -> assertThat(updated.version).isEqualTo(2))
+            .verifyComplete();
         assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
             assertThat(doc.field).isEqualTo("foobar1");
             assertThat(doc.version).isEqualTo(2);
@@ -146,8 +146,8 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
 
         document = new VersionedClass(id, "foobar2", document.version);
         create(reactiveTemplate.update(document))
-                .assertNext(updated -> assertThat(updated.version).isEqualTo(3))
-                .verifyComplete();
+            .assertNext(updated -> assertThat(updated.version).isEqualTo(3))
+            .verifyComplete();
         assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
             assertThat(doc.field).isEqualTo("foobar2");
             assertThat(doc.version).isEqualTo(3);
@@ -198,8 +198,8 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         reactiveTemplate.update(document).block();
 
         StepVerifier.create(reactorClient.get(new Policy(), new Key(getNameSpace(), "versioned-set", id)))
-                .assertNext(keyRecord -> assertThat(keyRecord.record.generation).isEqualTo(3))
-                .verifyComplete();
+            .assertNext(keyRecord -> assertThat(keyRecord.record.generation).isEqualTo(3))
+            .verifyComplete();
         VersionedClass actual = findById(id, VersionedClass.class);
         assertThat(actual.version).isEqualTo(3);
     }
@@ -217,11 +217,11 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             long counterValue = counter.incrementAndGet();
             String data = "value-" + counterValue;
             reactiveTemplate.update(new VersionedClass(id, data, document.version))
-                    .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
-                        optimisticLock.incrementAndGet();
-                        return Mono.empty();
-                    })
-                    .block();
+                .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
+                    optimisticLock.incrementAndGet();
+                    return Mono.empty();
+                })
+                .block();
         });
 
         assertThat(optimisticLock.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
@@ -256,16 +256,16 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         list.add("string2");
         list.add("string3");
         Person person = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
 
         reactiveTemplate.insert(person).block();
 
         Person personWithList = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
         personWithList.getStrings().add("Added something new");
 
         List<String> fields = new ArrayList<>();
@@ -288,15 +288,15 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         list.add("string2");
         list.add("string3");
         Person person = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
         reactiveTemplate.insert(person).block();
 
         Person personWithList = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
         personWithList.getStringMap().put("key4", "Added something new");
 
         List<String> fields = new ArrayList<>();
