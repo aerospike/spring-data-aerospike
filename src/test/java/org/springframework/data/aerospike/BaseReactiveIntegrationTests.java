@@ -10,12 +10,12 @@ import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import java.io.Serializable;
 
 @SpringBootTest(
-        classes = {ReactiveTestConfig.class, CommonTestConfig.class},
-        properties = {
-                "expirationProperty: 1",
-                "setSuffix: service1",
-                "indexSuffix: index1"
-        }
+    classes = {ReactiveTestConfig.class, CommonTestConfig.class},
+    properties = {
+        "expirationProperty: 1",
+        "setSuffix: service1",
+        "indexSuffix: index1"
+    }
 )
 public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests {
 

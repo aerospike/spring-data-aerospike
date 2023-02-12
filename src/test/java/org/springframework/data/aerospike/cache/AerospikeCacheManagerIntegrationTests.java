@@ -218,7 +218,8 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     public static class CachedObject {
-        private String value;
+
+        private final String value;
 
         public CachedObject(String value) {
             this.value = value;

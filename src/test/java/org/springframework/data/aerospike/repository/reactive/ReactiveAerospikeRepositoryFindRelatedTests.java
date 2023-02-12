@@ -40,18 +40,21 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
         customer3 = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15).group('b').build();
         customer4 = Customer.builder().id(nextId()).firstName("Matt").lastName("Groening").age(65).group('c').build();
 
-        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_first_name_index", "firstname", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_last_name_index", "lastname", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_age_index", "age", IndexType.NUMERIC);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_first_name_index",
+            "firstname", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_last_name_index",
+            "lastname", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_age_index", "age",
+            IndexType.NUMERIC);
 
         customerRepo.saveAll(Flux.just(customer1, customer2, customer3, customer4))
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
     }
 
     @Test
     public void findById_ShouldReturnExistent() {
         Customer result = customerRepo.findById(customer2.getId())
-                .subscribeOn(Schedulers.parallel()).block();
+            .subscribeOn(Schedulers.parallel()).block();
 
         assertThat(result).isEqualTo(customer2);
     }
@@ -59,7 +62,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findById_ShouldNotReturnNotExistent() {
         Customer result = customerRepo.findById("non-existent-id")
-                .subscribeOn(Schedulers.parallel()).block();
+            .subscribeOn(Schedulers.parallel()).block();
 
         assertThat(result).isNull();
     }
@@ -84,7 +87,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     public void findAll_ShouldReturnAll() {
         List<Customer> results = customerRepo.findAll().subscribeOn(Schedulers.parallel()).collectList().block();
         assertThat(results)
-                .containsOnly(customer1, customer2, customer3, customer4);
+            .containsOnly(customer1, customer2, customer3, customer4);
     }
 
     @Test
@@ -92,7 +95,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
         Iterable<String> ids = asList(customer2.getId(), "non-existent-id", customer4.getId());
 
         List<Customer> results = customerRepo.findAllById(ids)
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer2, customer4);
     }
@@ -102,7 +105,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
         Publisher<String> ids = Flux.just(customer1.getId(), customer2.getId(), customer4.getId(), "non-existent-id");
 
         List<Customer> results = customerRepo.findAllById(ids)
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer1, customer2, customer4);
     }
@@ -110,7 +113,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByLastname_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByLastName("Simpson")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer1, customer2, customer3);
     }
@@ -118,25 +121,25 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findCustomerSomeFieldsByLastname_ShouldWorkProperlyProjection() {
         List<CustomerSomeFields> results = customerRepo.findCustomerSomeFieldsByLastName("Simpson")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer1.toCustomerSomeFields(), customer2.toCustomerSomeFields(),
-                customer3.toCustomerSomeFields());
+            customer3.toCustomerSomeFields());
     }
 
     @Test
     public void findDynamicTypeByLastname_ShouldWorkProperlyDynamicProjection() {
         List<CustomerSomeFields> results = customerRepo.findByLastName("Simpson", CustomerSomeFields.class)
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer1.toCustomerSomeFields(), customer2.toCustomerSomeFields(),
-                customer3.toCustomerSomeFields());
+            customer3.toCustomerSomeFields());
     }
 
     @Test
     public void findByLastnameName_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByLastNameNot("Simpson")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer4);
     }
@@ -144,7 +147,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findOneByLastname_ShouldWorkProperly() {
         Customer result = customerRepo.findOneByLastName("Groening")
-                .subscribeOn(Schedulers.parallel()).block();
+            .subscribeOn(Schedulers.parallel()).block();
 
         assertThat(result).isEqualTo(customer4);
     }
@@ -152,7 +155,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByLastnameOrderByFirstnameAsc_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByLastNameOrderByFirstNameAsc("Simpson")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(customer3, customer1, customer2);
     }
@@ -160,7 +163,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByLastnameOrderByFirstnameDesc_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByLastNameOrderByFirstNameDesc("Simpson")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(customer2, customer1, customer3);
     }
@@ -168,7 +171,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByFirstnameEndsWith_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByFirstNameEndsWith("t")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer3, customer4);
     }
@@ -176,14 +179,15 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByFirstnameStartsWithOrderByAgeAsc_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByFirstNameStartsWithOrderByAgeAsc("Ma")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(customer2, customer4);
     }
 
     @Test
     public void findCustomerSomeFieldsByFirstnameStartsWithOrderByAgeAsc_ShouldWorkProperly() {
-        List<CustomerSomeFields> results = customerRepo.findCustomerSomeFieldsByFirstNameStartsWithOrderByFirstNameAsc("Ma")
+        List<CustomerSomeFields> results =
+            customerRepo.findCustomerSomeFieldsByFirstNameStartsWithOrderByFirstNameAsc("Ma")
                 .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(customer2.toCustomerSomeFields(), customer4.toCustomerSomeFields());
@@ -192,7 +196,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByAgeLessThan_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByAgeLessThan(40, Sort.by(asc("firstName")))
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(customer3, customer2);
     }
@@ -200,7 +204,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByFirstnameIn_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByFirstNameIn(asList("Matt", "Homer"))
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer1, customer4);
     }
@@ -208,7 +212,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByFirstnameAndLastname_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByFirstNameAndLastName("Bart", "Simpson")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer3);
     }
@@ -216,7 +220,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findOneByFirstnameAndLastname_ShouldWorkProperly() {
         Customer result = customerRepo.findByFirstNameAndLastName("Bart", "Simpson")
-                .subscribeOn(Schedulers.parallel()).blockLast();
+            .subscribeOn(Schedulers.parallel()).blockLast();
 
         assertThat(result).isEqualTo(customer3);
     }
@@ -224,7 +228,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByLastnameAndAge_ShouldWorkProperly() {
         Customer result = customerRepo.findByLastNameAndAge("Simpson", 15)
-                .subscribeOn(Schedulers.parallel()).blockLast();
+            .subscribeOn(Schedulers.parallel()).blockLast();
 
         assertThat(result).isEqualTo(customer3);
     }
@@ -232,7 +236,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByAgeBetween_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByAgeBetween(10, 40)
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer2, customer3);
     }
@@ -240,7 +244,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByFirstnameContains_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByFirstNameContains("ar")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer2, customer3);
     }
@@ -248,7 +252,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByFirstnameContainingIgnoreCase_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByFirstNameContainingIgnoreCase("m")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer1, customer2, customer4);
     }
@@ -256,7 +260,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByAgeBetweenAndLastname_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByAgeBetweenAndLastName(30, 70, "Simpson")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer1, customer2);
     }
@@ -264,7 +268,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByAgeBetweenOrderByFirstnameDesc_ShouldWorkProperly() {
         List<Customer> results = customerRepo.findByAgeBetweenOrderByFirstNameDesc(30, 70)
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(customer4, customer2, customer1);
     }
@@ -272,7 +276,7 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @Test
     public void findByGroup() {
         List<Customer> results = customerRepo.findByGroup('b')
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer2, customer3);
     }

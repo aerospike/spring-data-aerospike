@@ -47,7 +47,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     protected static final String OPERATION = "operation";
     protected static final String AS_FILTER = "queryAsFilter";
     private static final long serialVersionUID = -2689196529952712849L;
-    protected Map<String, Object> internalMap;
+    protected final Map<String, Object> internalMap;
 
     public Qualifier(QualifierBuilder builder) {
         internalMap = new HashMap<>();
@@ -175,6 +175,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
         return internalMap.remove(key);
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public void putAll(Map<? extends String, ? extends Object> m) {
         internalMap.putAll(m);

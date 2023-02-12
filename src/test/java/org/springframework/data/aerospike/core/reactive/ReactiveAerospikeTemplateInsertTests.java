@@ -17,6 +17,7 @@ import reactor.test.StepVerifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static java.util.Arrays.asList;
@@ -30,31 +31,31 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         reactiveTemplate.insert(initial).block();
 
         StepVerifier.create(reactorClient.get(new Policy(), new Key(getNameSpace(), "custom-set", id)))
-                .assertNext(keyRecord -> assertThat(keyRecord.record.getString("data")).isEqualTo("data0"))
-                .verifyComplete();
+            .assertNext(keyRecord -> assertThat(keyRecord.record.getString("data")).isEqualTo("data0"))
+            .verifyComplete();
         assertThat(findById(id, CustomCollectionClass.class)).isEqualTo(initial);
     }
 
     @Test
     public void insertsDocumentWithListMapDateStringLongValues() {
         Person customer = Person.builder()
-                .id(id)
-                .firstName("Dave")
-                .lastName("Grohl")
-                .age(45)
-                .waist(90)
-                .emailAddress("dave@gmail.com")
-                .stringMap(Collections.singletonMap("k", "v"))
-                .strings(Arrays.asList("a", "b", "c"))
-                .friend(new Person(null, "Anna", 43))
-                .active(true)
-                .sex(Person.Sex.MALE)
-                .dateOfBirth(new Date())
-                .build();
+            .id(id)
+            .firstName("Dave")
+            .lastName("Grohl")
+            .age(45)
+            .waist(90)
+            .emailAddress("dave@gmail.com")
+            .stringMap(Collections.singletonMap("k", "v"))
+            .strings(Arrays.asList("a", "b", "c"))
+            .friend(new Person(null, "Anna", 43))
+            .active(true)
+            .sex(Person.Sex.MALE)
+            .dateOfBirth(new Date())
+            .build();
 
         StepVerifier.create(reactiveTemplate.insert(customer))
-                .expectNext(customer)
-                .verifyComplete();
+            .expectNext(customer)
+            .verifyComplete();
 
         Person actual = findById(id, Person.class);
         assertThat(actual).isEqualTo(customer);
@@ -103,8 +104,8 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
         reactiveTemplate.insert(person).subscribeOn(Schedulers.parallel()).block();
         StepVerifier.create(reactiveTemplate.insert(person).subscribeOn(Schedulers.parallel()))
-                .expectError(DuplicateKeyException.class)
-                .verify();
+            .expectError(DuplicateKeyException.class)
+            .verify();
     }
 
     @Test
@@ -113,8 +114,8 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
         reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
         StepVerifier.create(reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()))
-                .expectError(DuplicateKeyException.class)
-                .verify();
+            .expectError(DuplicateKeyException.class)
+            .verify();
     }
 
     @Test
@@ -127,12 +128,12 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             long counterValue = counter.incrementAndGet();
             String data = "value-" + counterValue;
             reactiveTemplate.insert(new VersionedClass(id, data))
-                    .subscribeOn(Schedulers.parallel())
-                    .onErrorResume(DuplicateKeyException.class, e -> {
-                        duplicateKeyCounter.incrementAndGet();
-                        return Mono.empty();
-                    })
-                    .block();
+                .subscribeOn(Schedulers.parallel())
+                .onErrorResume(DuplicateKeyException.class, e -> {
+                    duplicateKeyCounter.incrementAndGet();
+                    return Mono.empty();
+                })
+                .block();
         });
 
         assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
@@ -148,12 +149,12 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             long counterValue = counter.incrementAndGet();
             String data = "value-" + counterValue;
             reactiveTemplate.insert(new Person(id, data, 28))
-                    .subscribeOn(Schedulers.parallel())
-                    .onErrorResume(DuplicateKeyException.class, e -> {
-                        duplicateKeyCounter.incrementAndGet();
-                        return Mono.empty();
-                    })
-                    .block();
+                .subscribeOn(Schedulers.parallel())
+                .onErrorResume(DuplicateKeyException.class, e -> {
+                    duplicateKeyCounter.incrementAndGet();
+                    return Mono.empty();
+                })
+                .block();
         });
 
         assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
@@ -178,8 +179,8 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         reactiveTemplate.insert(person).block();
         assertThat(findById(id, Person.class)).isEqualTo(person);
 
-        StepVerifier.create(reactiveTemplate.insertAll(asList(person)))
-                .expectError(DuplicateKeyException.class)
-                .verify();
+        StepVerifier.create(reactiveTemplate.insertAll(List.of(person)))
+            .expectError(DuplicateKeyException.class)
+            .verify();
     }
 }

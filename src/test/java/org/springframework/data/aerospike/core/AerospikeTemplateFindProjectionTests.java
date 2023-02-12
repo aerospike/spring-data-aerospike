@@ -18,19 +18,19 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
     @Test
     public void findByIdWithProjection() {
         Person firstPerson = Person.builder()
-                .id(nextId())
-                .firstName("first")
-                .lastName("lastName1")
-                .emailAddress("gmail.com")
-                .age(40)
-                .build();
+            .id(nextId())
+            .firstName("first")
+            .lastName("lastName1")
+            .emailAddress("gmail.com")
+            .age(40)
+            .build();
         Person secondPerson = Person.builder()
-                .id(nextId())
-                .firstName("second")
-                .lastName("lastName2")
-                .emailAddress("gmail.com")
-                .age(50)
-                .build();
+            .id(nextId())
+            .firstName("second")
+            .lastName("lastName2")
+            .emailAddress("gmail.com")
+            .age(50)
+            .build();
         template.save(firstPerson);
         template.save(secondPerson);
 
@@ -44,21 +44,22 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
     @Test
     public void findByIdWithProjectionPersonWithMissingFields() {
         Person firstPerson = Person.builder()
-                .id(nextId())
-                .firstName("first")
-                .lastName("lastName1")
-                .emailAddress("gmail.com")
-                .build();
+            .id(nextId())
+            .firstName("first")
+            .lastName("lastName1")
+            .emailAddress("gmail.com")
+            .build();
         Person secondPerson = Person.builder()
-                .id(nextId())
-                .firstName("second")
-                .lastName("lastName2")
-                .emailAddress("gmail.com")
-                .build();
+            .id(nextId())
+            .firstName("second")
+            .lastName("lastName2")
+            .emailAddress("gmail.com")
+            .build();
         template.save(firstPerson);
         template.save(secondPerson);
 
-        PersonMissingAndRedundantFields result = template.findById(firstPerson.getId(), Person.class, PersonMissingAndRedundantFields.class);
+        PersonMissingAndRedundantFields result = template.findById(firstPerson.getId(), Person.class,
+            PersonMissingAndRedundantFields.class);
 
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
@@ -69,21 +70,22 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
     @Test
     public void findByIdWithProjectionPersonWithMissingFieldsIncludingTouchOnRead() {
         PersonTouchOnRead firstPerson = PersonTouchOnRead.builder()
-                .id(nextId())
-                .firstName("first")
-                .lastName("lastName1")
-                .emailAddress("gmail.com")
-                .build();
+            .id(nextId())
+            .firstName("first")
+            .lastName("lastName1")
+            .emailAddress("gmail.com")
+            .build();
         PersonTouchOnRead secondPerson = PersonTouchOnRead.builder()
-                .id(nextId())
-                .firstName("second")
-                .lastName("lastName2")
-                .emailAddress("gmail.com")
-                .build();
+            .id(nextId())
+            .firstName("second")
+            .lastName("lastName2")
+            .emailAddress("gmail.com")
+            .build();
         template.save(firstPerson);
         template.save(secondPerson);
 
-        PersonMissingAndRedundantFields result = template.findById(firstPerson.getId(), PersonTouchOnRead.class, PersonMissingAndRedundantFields.class);
+        PersonMissingAndRedundantFields result = template.findById(firstPerson.getId(), PersonTouchOnRead.class,
+            PersonMissingAndRedundantFields.class);
 
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
@@ -94,7 +96,8 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
     @Test
     public void findByIdsWithTargetClass_shouldFindExisting() {
         Person firstPerson = Person.builder().id(nextId()).firstName("first").emailAddress("gmail.com").age(40).build();
-        Person secondPerson = Person.builder().id(nextId()).firstName("second").emailAddress("gmail.com").age(50).build();
+        Person secondPerson = Person.builder().id(nextId()).firstName("second").emailAddress("gmail.com").age(50)
+            .build();
         template.save(firstPerson);
         template.save(secondPerson);
 
@@ -103,13 +106,14 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
         List<PersonSomeFields> actual = template.findByIds(ids, Person.class, PersonSomeFields.class);
 
         assertThat(actual).containsExactly(
-                firstPerson.toPersonSomeFields(),
-                secondPerson.toPersonSomeFields());
+            firstPerson.toPersonSomeFields(),
+            secondPerson.toPersonSomeFields());
     }
 
     @Test
     public void findByIdsWithTargetClass_shouldReturnEmptyList() {
-        List<PersonSomeFields> actual = template.findByIds(Collections.emptyList(), Person.class, PersonSomeFields.class);
+        List<PersonSomeFields> actual = template.findByIds(Collections.emptyList(), Person.class,
+            PersonSomeFields.class);
         assertThat(actual).isEmpty();
     }
 }

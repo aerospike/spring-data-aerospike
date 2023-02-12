@@ -27,11 +27,13 @@ import java.lang.annotation.Annotation;
  */
 public class ReactiveAerospikeRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSupport {
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected Class<? extends Annotation> getAnnotation() {
         return EnableReactiveAerospikeRepositories.class;
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected RepositoryConfigurationExtension getExtension() {
         return new ReactiveAerospikeRepositoryConfigurationExtension();

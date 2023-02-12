@@ -34,6 +34,7 @@ public abstract class BaseAerospikeRepositoryFactoryBean<T extends Repository<S,
         super(repositoryInterface);
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public void setMappingContext(MappingContext<?, ?> mappingContext) {
         super.setMappingContext(mappingContext);

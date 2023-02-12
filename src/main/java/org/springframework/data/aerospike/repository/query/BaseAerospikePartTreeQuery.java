@@ -48,6 +48,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         this.queryCreator = queryCreator;
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public QueryMethod getQueryMethod() {
         return queryMethod;

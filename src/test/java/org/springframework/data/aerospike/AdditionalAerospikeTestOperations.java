@@ -9,7 +9,11 @@ import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
-import lombok.*;
+import lombok.Builder;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.Value;
 import org.awaitility.Awaitility;
 import org.springframework.data.aerospike.core.WritePolicyBuilder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
@@ -39,8 +43,8 @@ public abstract class AdditionalAerospikeTestOperations {
         List<ScanJob> jobs = getScans();
         List<ScanJob> jobsForSet = jobs.stream().filter(job -> job.set.equals(setName)).collect(Collectors.toList());
         assertThat(jobsForSet)
-                .as("Scan jobs for set: " + setName)
-                .satisfies(consumer);
+            .as("Scan jobs for set: " + setName)
+            .satisfies(consumer);
     }
 
     public void assertNoScansForSet(String setName) {
@@ -62,19 +66,19 @@ public abstract class AdditionalAerospikeTestOperations {
         }
         String response = stdout.replaceAll("\n", "");
         return ResponseUtils.parseResponse(response, pairsMap -> ScanJob.builder()
-                .module(pairsMap.get("module"))
-                .set(pairsMap.get("set"))
-                .udfFunction(pairsMap.get("udf-function"))
-                .status(pairsMap.get("status"))
-                .build());
+            .module(pairsMap.get("module"))
+            .set(pairsMap.get("set"))
+            .udfFunction(pairsMap.get("udf-function"))
+            .status(pairsMap.get("status"))
+            .build());
     }
 
     @SneakyThrows
     public void killAllScans() {
         Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", "scan-abort-all:");
         assertThat(execResult.getStdout())
-                .as("Scan jobs killed")
-                .contains("OK");
+            .as("Scan jobs killed")
+            .contains("OK");
     }
 
     public void deleteAllAndVerify(Class<?>... entityClasses) {
@@ -84,15 +88,18 @@ public abstract class AdditionalAerospikeTestOperations {
 
     private void awaitUntilSetIsEmpty(Class<?> entityClass) {
         Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
-                .until(() -> isEntityClassSetEmpty(entityClass));
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> isEntityClassSetEmpty(entityClass));
     }
 
-    public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
-        IndexUtils.createIndex(client, getNamespace(), getSetName(entityClass), indexName, binName, indexType, indexCollectionType);
+    public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName,
+                                           IndexType indexType, IndexCollectionType indexCollectionType) {
+        IndexUtils.createIndex(client, getNamespace(), getSetName(entityClass), indexName, binName, indexType,
+            indexCollectionType);
     }
 
-    public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName, IndexType indexType) {
+    public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName,
+                                           IndexType indexType) {
         IndexUtils.createIndex(client, getNamespace(), getSetName(entityClass), indexName, binName, indexType);
     }
 
@@ -102,15 +109,16 @@ public abstract class AdditionalAerospikeTestOperations {
 
     // Do not use this code in production!
     // This will not guarantee the correct answer from Aerospike Server for all cases.
-    // Also, it requests index status only from one Aerospike node, which is OK for tests, and NOT OK for Production cluster.
+    // Also, it requests index status only from one Aerospike node, which is OK for tests, and NOT OK for Production
+    // cluster.
     public boolean indexExists(String indexName) {
         return IndexUtils.indexExists(client, getNamespace(), indexName);
     }
 
     public List<Index> getIndexes(String setName) {
         return getIndexes().stream()
-                .filter(index -> index.getSet().equalsIgnoreCase(setName))
-                .collect(Collectors.toList());
+            .filter(index -> index.getSet().equalsIgnoreCase(setName))
+            .collect(Collectors.toList());
     }
 
     public List<Index> getIndexes() {
@@ -120,12 +128,12 @@ public abstract class AdditionalAerospikeTestOperations {
     public void addNewFieldToSavedDataInAerospike(Key key) {
         Record initial = client.get(new Policy(), key);
         Bin[] bins = Stream.concat(
-                initial.bins.entrySet().stream().map(e -> new Bin(e.getKey(), e.getValue())),
-                Stream.of(new Bin("notPresent", "cats"))).toArray(Bin[]::new);
+            initial.bins.entrySet().stream().map(e -> new Bin(e.getKey(), e.getValue())),
+            Stream.of(new Bin("notPresent", "cats"))).toArray(Bin[]::new);
 
         WritePolicy policy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
-                .recordExistsAction(RecordExistsAction.REPLACE)
-                .build();
+            .recordExistsAction(RecordExistsAction.REPLACE)
+            .build();
 
         client.put(policy, key, bins);
 

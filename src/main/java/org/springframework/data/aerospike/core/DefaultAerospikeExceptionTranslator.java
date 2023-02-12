@@ -35,6 +35,7 @@ import org.springframework.data.aerospike.IndexNotFoundException;
  */
 public class DefaultAerospikeExceptionTranslator implements AerospikeExceptionTranslator {
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public DataAccessException translateExceptionIfPossible(RuntimeException cause) {
         if (cause instanceof AerospikeException) {

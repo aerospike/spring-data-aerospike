@@ -61,6 +61,7 @@ public class ReactiveAerospikeRepositoryFactoryTest {
 
     @BeforeEach
     public void setUp() {
+        //noinspection unchecked
         when(aerospikeOperations.getMappingContext()).thenReturn(context);
     }
 

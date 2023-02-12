@@ -116,7 +116,7 @@ public enum FilterOperation {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Filter.equal(getField(map), getValue1(map).toLong());
             } else {
-                // There is no case insensitive string comparison filter.
+                // There is no case-insensitive string comparison filter.
                 if (ignoreCase(map)) {
                     return null;
                 }
@@ -309,7 +309,7 @@ public enum FilterOperation {
 
             switch (getValue1(map).getType()) {
                 case ParticleType.STRING:
-                    // There is no case insensitive string comparison filter.
+                    // There is no case-insensitive string comparison filter.
                     if (ignoreCase(map)) return null;
                     filter = Filter.contains(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toString());
                     break;

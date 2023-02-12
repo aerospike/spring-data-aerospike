@@ -78,7 +78,7 @@ Dependency will be provided for you by `spring-data-aerospike`, so no need to de
 * Basic POJO mapping support to and from Bins
 * Convenience methods to interact with the store (insert object, update objects) and Aerospike specific ones.
 * Connection affinity callback
-* Exception translation into Spring's [technology agnostic DAO exception hierarchy](https://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions).
+* Exception translation into Spring's [technology-agnostic DAO exception hierarchy](https://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions).
 
 ### Spring Data repositories
 

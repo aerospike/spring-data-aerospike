@@ -38,10 +38,11 @@ public class BasicAerospikePersistentEntityTest {
 
     @Test
     public void shouldFailIfEnvironmentNull() {
-        BasicAerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(DocumentWithExpressionInCollection.class);
+        BasicAerospikePersistentEntity<?> entity =
+            context.getRequiredPersistentEntity(DocumentWithExpressionInCollection.class);
 
         assertThatThrownBy(entity::getSetName)
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Environment must be set to use 'collection'");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Environment must be set to use 'collection'");
     }
 }

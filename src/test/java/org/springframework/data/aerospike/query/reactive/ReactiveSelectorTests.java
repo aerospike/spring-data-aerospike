@@ -22,188 +22,188 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 
 public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 
-	@Test
-	public void selectOneWithKey() {
-		KeyQualifier kq = new KeyQualifier(Value.get("selector-test:3"));
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, kq);
+    @Test
+    public void selectOneWithKey() {
+        KeyQualifier kq = new KeyQualifier(Value.get("selector-test:3"));
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, kq);
 
-		StepVerifier.create(flux)
-				.expectNextCount(1)
-				.verifyComplete();
-	}
+        StepVerifier.create(flux)
+            .expectNextCount(1)
+            .verifyComplete();
+    }
 
-	@Test
-	public void selectOneWithNonExistingKey() {
-		KeyQualifier kq = new KeyQualifier(Value.get("selector-test:no-such-record"));
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, kq);
+    @Test
+    public void selectOneWithNonExistingKey() {
+        KeyQualifier kq = new KeyQualifier(Value.get("selector-test:no-such-record"));
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, kq);
 
-		StepVerifier.create(flux)
-				.expectNextCount(0)
-				.verifyComplete();
-	}
+        StepVerifier.create(flux)
+            .expectNextCount(0)
+            .verifyComplete();
+    }
 
-	@Test
-	public void selectAll() {
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null);
+    @Test
+    public void selectAll() {
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null);
 
-		StepVerifier.create(flux)
-				.expectNextCount(RECORD_COUNT)
-				.verifyComplete();
-	}
+        StepVerifier.create(flux)
+            .expectNextCount(RECORD_COUNT)
+            .verifyComplete();
+    }
 
-	@Test
-	public void selectEndssWith() {
-		Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
-				.setField("color")
-				.setFilterOperation(ENDS_WITH)
-				.setValue1(Value.get("e"))
-		);
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
-		StepVerifier.create(flux.collectList())
-				.expectNextMatches(results -> {
-					assertThat(results)
-							.allSatisfy(rec -> assertThat(rec.record.getString("color")).endsWith("e"))
-							.hasSize(queryEngineTestDataPopulator.colourCounts.get(ORANGE) + queryEngineTestDataPopulator.colourCounts.get(BLUE));
-					return true;
-				})
-				.verifyComplete();
-	}
+    @Test
+    public void selectEndssWith() {
+        Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
+            .setField("color")
+            .setFilterOperation(ENDS_WITH)
+            .setValue1(Value.get("e"))
+        );
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                assertThat(results)
+                    .allSatisfy(rec -> assertThat(rec.record.getString("color")).endsWith("e"))
+                    .hasSize(queryEngineTestDataPopulator.colourCounts.get(ORANGE) + queryEngineTestDataPopulator.colourCounts.get(BLUE));
+                return true;
+            })
+            .verifyComplete();
+    }
 
-	@Test
-	public void selectStartsWith() {
-		Qualifier startsWithQual = new Qualifier(new Qualifier.QualifierBuilder()
-				.setField("color")
-				.setFilterOperation(STARTS_WITH)
-				.setValue1(Value.get("bl"))
-		);
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, startsWithQual);
-		StepVerifier.create(flux.collectList())
-				.expectNextMatches(results -> {
-					assertThat(results)
-							.allSatisfy(rec -> assertThat(rec.record.getString("color")).startsWith("bl"))
-							.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
-					return true;
-				})
-				.verifyComplete();
-	}
+    @Test
+    public void selectStartsWith() {
+        Qualifier startsWithQual = new Qualifier(new Qualifier.QualifierBuilder()
+            .setField("color")
+            .setFilterOperation(STARTS_WITH)
+            .setValue1(Value.get("bl"))
+        );
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, startsWithQual);
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                assertThat(results)
+                    .allSatisfy(rec -> assertThat(rec.record.getString("color")).startsWith("bl"))
+                    .hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
+                return true;
+            })
+            .verifyComplete();
+    }
 
-	@Test
-	public void startWithAndEqualIgnoreCaseReturnsAllItems() {
-		boolean ignoreCase = true;
-		Qualifier qual1 = new Qualifier(
-				new Qualifier.QualifierBuilder()
-						.setField("color")
-						.setFilterOperation(EQ)
-						.setIgnoreCase(ignoreCase)
-						.setValue1(Value.get("BLUE"))
-		);
-		Qualifier qual2 = new Qualifier(
-				new Qualifier.QualifierBuilder()
-						.setField("name")
-						.setFilterOperation(STARTS_WITH)
-						.setIgnoreCase(ignoreCase)
-						.setValue1(Value.get("NA"))
-		);
+    @Test
+    public void startWithAndEqualIgnoreCaseReturnsAllItems() {
+        boolean ignoreCase = true;
+        Qualifier qual1 = new Qualifier(
+            new Qualifier.QualifierBuilder()
+                .setField("color")
+                .setFilterOperation(EQ)
+                .setIgnoreCase(ignoreCase)
+                .setValue1(Value.get("BLUE"))
+        );
+        Qualifier qual2 = new Qualifier(
+            new Qualifier.QualifierBuilder()
+                .setField("name")
+                .setFilterOperation(STARTS_WITH)
+                .setIgnoreCase(ignoreCase)
+                .setValue1(Value.get("NA"))
+        );
 
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1, qual2);
-		StepVerifier.create(flux)
-				.expectNextCount(queryEngineTestDataPopulator.colourCounts.get("blue"))
-				.verifyComplete();
-	}
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1, qual2);
+        StepVerifier.create(flux)
+            .expectNextCount(queryEngineTestDataPopulator.colourCounts.get("blue"))
+            .verifyComplete();
+    }
 
-	@Test
-	public void equalIgnoreCaseReturnsNoItemsIfNoneMatched() {
-		boolean ignoreCase = false;
-		Qualifier qual1 = new Qualifier(
-				new Qualifier.QualifierBuilder()
-						.setField("color")
-						.setFilterOperation(EQ)
-						.setIgnoreCase(ignoreCase)
-						.setValue1(Value.get("BLUE"))
-		);
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
-		StepVerifier.create(flux)
-				.expectNextCount(0)
-				.verifyComplete();
-	}
+    @Test
+    public void equalIgnoreCaseReturnsNoItemsIfNoneMatched() {
+        boolean ignoreCase = false;
+        Qualifier qual1 = new Qualifier(
+            new Qualifier.QualifierBuilder()
+                .setField("color")
+                .setFilterOperation(EQ)
+                .setIgnoreCase(ignoreCase)
+                .setValue1(Value.get("BLUE"))
+        );
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
+        StepVerifier.create(flux)
+            .expectNextCount(0)
+            .verifyComplete();
+    }
 
-	@Test
-	public void startWithIgnoreCaseReturnsNoItemsIfNoneMatched() {
-		boolean ignoreCase = false;
-		Qualifier qual1 = new Qualifier(
-				new Qualifier.QualifierBuilder()
-						.setField("name")
-						.setFilterOperation(STARTS_WITH)
-						.setIgnoreCase(ignoreCase)
-						.setValue1(Value.get("NA"))
-		);
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
-		StepVerifier.create(flux)
-				.expectNextCount(0)
-				.verifyComplete();
-	}
+    @Test
+    public void startWithIgnoreCaseReturnsNoItemsIfNoneMatched() {
+        boolean ignoreCase = false;
+        Qualifier qual1 = new Qualifier(
+            new Qualifier.QualifierBuilder()
+                .setField("name")
+                .setFilterOperation(STARTS_WITH)
+                .setIgnoreCase(ignoreCase)
+                .setValue1(Value.get("NA"))
+        );
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, qual1);
+        StepVerifier.create(flux)
+            .expectNextCount(0)
+            .verifyComplete();
+    }
 
-	@Test
-	public void stringEqualIgnoreCaseWorksOnUnindexedBin() {
-		boolean ignoreCase = true;
-		String expectedColor = "blue";
+    @Test
+    public void stringEqualIgnoreCaseWorksOnUnindexedBin() {
+        boolean ignoreCase = true;
+        String expectedColor = "blue";
 
-		Qualifier caseInsensitiveQual = new Qualifier(
-				new Qualifier.QualifierBuilder()
-						.setField("color")
-						.setFilterOperation(EQ)
-						.setIgnoreCase(ignoreCase)
-						.setValue1(Value.get("BlUe"))
-		);
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, caseInsensitiveQual);
-		StepVerifier.create(flux.collectList())
-				.expectNextMatches(results -> {
-					assertThat(results)
-							.allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(expectedColor))
-							.hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
-					return true;
-				})
-				.verifyComplete();
-	}
+        Qualifier caseInsensitiveQual = new Qualifier(
+            new Qualifier.QualifierBuilder()
+                .setField("color")
+                .setFilterOperation(EQ)
+                .setIgnoreCase(ignoreCase)
+                .setValue1(Value.get("BlUe"))
+        );
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, caseInsensitiveQual);
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                assertThat(results)
+                    .allSatisfy(rec -> assertThat(rec.record.getString("color")).isEqualTo(expectedColor))
+                    .hasSize(queryEngineTestDataPopulator.colourCounts.get(BLUE));
+                return true;
+            })
+            .verifyComplete();
+    }
 
-	@Test
-	public void stringEqualIgnoreCaseWorksRequiresFullMatch() {
-		boolean ignoreCase = true;
-		Qualifier caseInsensitiveQual = new Qualifier(
-				new Qualifier.QualifierBuilder()
-						.setField("color")
-						.setFilterOperation(EQ)
-						.setIgnoreCase(ignoreCase)
-						.setValue1(Value.get("lue"))
-		);
-		Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, caseInsensitiveQual);
+    @Test
+    public void stringEqualIgnoreCaseWorksRequiresFullMatch() {
+        boolean ignoreCase = true;
+        Qualifier caseInsensitiveQual = new Qualifier(
+            new Qualifier.QualifierBuilder()
+                .setField("color")
+                .setFilterOperation(EQ)
+                .setIgnoreCase(ignoreCase)
+                .setValue1(Value.get("lue"))
+        );
+        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, caseInsensitiveQual);
 
-		StepVerifier.create(flux)
-				.expectNextCount(0)
-				.verifyComplete();
-	}
+        StepVerifier.create(flux)
+            .expectNextCount(0)
+            .verifyComplete();
+    }
 
-	@Test
-	public void selectWithGeoWithin() {
-		double lon = -122.0;
-		double lat = 37.5;
-		double radius = 50000.0;
-		String rgnstr = String.format("{ \"type\": \"AeroCircle\", "
-						+ "\"coordinates\": [[%.8f, %.8f], %f] }",
-				lon, lat, radius);
-		Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
-				.setField(GEO_BIN_NAME)
-				.setFilterOperation(GEO_WITHIN)
-				.setValue1(Value.getAsGeoJSON(rgnstr))
-		);
-		Flux<KeyRecord> flux = queryEngine.select(namespace, GEO_SET, null, qual1);
-		StepVerifier.create(flux.collectList())
-				.expectNextMatches(results -> {
-					assertThat(results)
-							.allSatisfy(rec -> assertThat(rec.record.generation).isGreaterThanOrEqualTo(1))
-							.isNotEmpty();
-					return true;
-				})
-				.verifyComplete();
-	}
+    @Test
+    public void selectWithGeoWithin() {
+        double lon = -122.0;
+        double lat = 37.5;
+        double radius = 50000.0;
+        String rgnstr = String.format("{ \"type\": \"AeroCircle\", "
+                + "\"coordinates\": [[%.8f, %.8f], %f] }",
+            lon, lat, radius);
+        Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
+            .setField(GEO_BIN_NAME)
+            .setFilterOperation(GEO_WITHIN)
+            .setValue1(Value.getAsGeoJSON(rgnstr))
+        );
+        Flux<KeyRecord> flux = queryEngine.select(namespace, GEO_SET, null, qual1);
+        StepVerifier.create(flux.collectList())
+            .expectNextMatches(results -> {
+                assertThat(results)
+                    .allSatisfy(rec -> assertThat(rec.record.generation).isGreaterThanOrEqualTo(1))
+                    .isNotEmpty();
+                return true;
+            })
+            .verifyComplete();
+    }
 }

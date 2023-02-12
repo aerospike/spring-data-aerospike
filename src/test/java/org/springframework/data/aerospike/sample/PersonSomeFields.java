@@ -7,6 +7,7 @@ import org.springframework.data.aerospike.mapping.Field;
 @Data
 @Builder
 public class PersonSomeFields {
+
     private String firstName;
     private String lastName;
     @Field("email")

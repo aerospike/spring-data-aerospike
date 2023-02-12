@@ -106,7 +106,7 @@ public class PersonRepositoryTests {
 
 The sample creates an application context with Spring's unit test support which will perform annotation based dependency injection into test cases. Inside the test method we simply use the repository to query the datastore.
 
-[[aerospiek.reactive.repositories.queries]]
+[[aerospike.reactive.repositories.queries]]
 == Query methods
 
 Most of the data access operations you usually trigger on a repository result a query being executed against the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface

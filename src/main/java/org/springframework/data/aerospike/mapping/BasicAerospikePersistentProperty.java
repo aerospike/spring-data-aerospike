@@ -99,6 +99,7 @@ public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentP
         return fieldName;
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected Association<AerospikePersistentProperty> createAssociation() {
         return new Association<>(this, null);

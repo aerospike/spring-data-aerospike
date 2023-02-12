@@ -100,7 +100,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(stefan.getStringMap().containsKey("key1")).isTrue();
         assertThat(boyd.getStringMap().containsKey("key1")).isTrue();
 
-        List<Person> persons = repository.findByStringMapContaining("key1", CriteriaDefinition.AerospikeMapCriteria.KEY);
+        List<Person> persons = repository.findByStringMapContaining("key1",
+            CriteriaDefinition.AerospikeMapCriteria.KEY);
 
         assertThat(persons).contains(stefan, boyd);
     }
@@ -110,7 +111,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(stefan.getStringMap().containsValue("val1")).isTrue();
         assertThat(boyd.getStringMap().containsValue("val1")).isTrue();
 
-        List<Person> persons = repository.findByStringMapContaining("val1", CriteriaDefinition.AerospikeMapCriteria.VALUE);
+        List<Person> persons = repository.findByStringMapContaining("val1",
+            CriteriaDefinition.AerospikeMapCriteria.VALUE);
 
         assertThat(persons).contains(stefan, boyd);
     }
@@ -229,7 +231,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = (List<Person>) repository.findAll();
 
         assertThat(result)
-                .containsExactlyInAnyOrderElementsOf(all);
+            .containsExactlyInAnyOrderElementsOf(all);
     }
 
     @Test
@@ -237,9 +239,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = (List<Person>) repository.findAllById(Arrays.asList(dave.getId(), boyd.getId()));
 
         assertThat(result)
-                .hasSize(2)
-                .contains(dave)
-                .doesNotContain(oliver, carter, stefan, leroi, alicia);
+            .hasSize(2)
+            .contains(dave)
+            .doesNotContain(oliver, carter, stefan, leroi, alicia);
     }
 
     @Test
@@ -247,8 +249,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByLastName("Beauford");
 
         assertThat(result)
-                .hasSize(1)
-                .containsOnly(carter);
+            .hasSize(1)
+            .containsOnly(carter);
     }
 
     @Test
@@ -256,8 +258,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
 
         assertThat(result)
-                .hasSize(1)
-                .containsOnly(carter.toPersonSomeFields());
+            .hasSize(1)
+            .containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
@@ -265,8 +267,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<PersonSomeFields> result = repository.findByLastName("Beauford", PersonSomeFields.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsOnly(carter.toPersonSomeFields());
+            .hasSize(1)
+            .containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
@@ -281,8 +283,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFriendAge(42);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactly(carter);
+            .hasSize(1)
+            .containsExactly(carter);
 
         setFriendsToNull(oliver, dave, carter);
     }
@@ -306,8 +308,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFriendAgeIsNot(42);
 
         assertThat(result)
-                .hasSize(2)
-                .containsExactlyInAnyOrder(dave, oliver);
+            .hasSize(2)
+            .containsExactlyInAnyOrder(dave, oliver);
 
         setFriendsToNull(oliver, dave, carter);
     }
@@ -324,8 +326,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByAddressZipCode("C0123");
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactly(dave);
+            .hasSize(1)
+            .containsExactly(dave);
     }
 
     @Test
@@ -365,8 +367,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFriendAgeLessThanEqual(42);
 
         assertThat(result)
-                .hasSize(2)
-                .containsExactlyInAnyOrder(dave, carter);
+            .hasSize(2)
+            .containsExactlyInAnyOrder(dave, carter);
 
         setFriendsToNull(alicia, dave, carter, leroi);
     }
@@ -379,8 +381,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             List<Person> result = (List<Person>) repository.findAll();
 
             assertThat(result)
-                    .doesNotContain(dave)
-                    .hasSize(all.size() - 1);
+                .doesNotContain(dave)
+                .hasSize(all.size() - 1);
         } finally {
             repository.save(dave);
         }
@@ -394,8 +396,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             List<Person> result = (List<Person>) repository.findAll();
 
             assertThat(result)
-                    .doesNotContain(dave)
-                    .hasSize(all.size() - 1);
+                .doesNotContain(dave)
+                .hasSize(all.size() - 1);
         } finally {
             repository.save(dave);
         }
@@ -413,8 +415,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         Stream<Person> result = repository.findByLastNameNot("Moore");
 
         assertThat(result)
-                .doesNotContain(leroi, leroi2)
-                .contains(dave, donny, oliver, carter, boyd, stefan, alicia);
+            .doesNotContain(leroi, leroi2)
+            .contains(dave, donny, oliver, carter, boyd, stefan, alicia);
     }
 
     @Test
@@ -422,8 +424,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         Set<String> allFirstNames = all.stream().map(Person::getFirstName).collect(Collectors.toSet());
 //		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(allFirstNames))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unsupported keyword!");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unsupported keyword!");
 
 //		assertThat(result).isEmpty();
     }
@@ -432,8 +434,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void findByFirstnameNotIn_forExistingResult() {
 //		Stream<Person> result = repository.findByFirstnameNotIn(Collections.singleton("Alicia"));
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(Collections.singleton("Alicia")))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unsupported keyword!");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unsupported keyword!");
 
 //		assertThat(result).contains(dave, donny, oliver, carter, boyd, stefan, leroi, leroi2);
     }
@@ -455,8 +457,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void countByLastName_forExistingResult() {
         assertThatThrownBy(() -> repository.countByLastName("Leroi"))
-                .isInstanceOf(UnsupportedOperationException.class)
-                .hasMessage("Query method Person.countByLastName not supported.");
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessage("Query method Person.countByLastName not supported.");
 
 //		assertThat(result).isEqualTo(2);
     }
@@ -464,8 +466,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void countByLastName_forEmptyResult() {
         assertThatThrownBy(() -> repository.countByLastName("Smirnova"))
-                .isInstanceOf(UnsupportedOperationException.class)
-                .hasMessage("Query method Person.countByLastName not supported.");
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessage("Query method Person.countByLastName not supported.");
 
 //		assertThat(result).isEqualTo(0);
     }
@@ -482,13 +484,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findPersonsSomeFieldsByAgeGreaterThan_forExistingResultProjection() {
         Slice<PersonSomeFields> slice = repository.findPersonSomeFieldsByAgeGreaterThan(
-                40, PageRequest.of(0, 10)
+            40, PageRequest.of(0, 10)
         );
 
         assertThat(slice.hasContent()).isTrue();
         assertThat(slice.hasNext()).isFalse();
         assertThat(slice.getContent()).hasSize(4).contains(dave.toPersonSomeFields(),
-                carter.toPersonSomeFields(), boyd.toPersonSomeFields(), leroi.toPersonSomeFields());
+            carter.toPersonSomeFields(), boyd.toPersonSomeFields(), leroi.toPersonSomeFields());
     }
 
     @Test
@@ -503,15 +505,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findByAgeGreaterThan_respectsLimitAndOffsetAndSort() {
         List<Person> result = IntStream.range(0, 4)
-                .mapToObj(index -> repository.findByAgeGreaterThan(40, PageRequest.of(
-                        index, 1, Sort.by("age")
-                )))
-                .flatMap(slice -> slice.getContent().stream())
-                .collect(Collectors.toList());
+            .mapToObj(index -> repository.findByAgeGreaterThan(40, PageRequest.of(
+                index, 1, Sort.by("age")
+            )))
+            .flatMap(slice -> slice.getContent().stream())
+            .collect(Collectors.toList());
 
         assertThat(result)
-                .hasSize(4)
-                .containsSequence(leroi, dave, boyd, carter);
+            .hasSize(4)
+            .containsSequence(leroi, dave, boyd, carter);
     }
 
     @Test
@@ -587,8 +589,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFriendFirstNameStartsWith("D");
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactly(carter);
+            .hasSize(1)
+            .containsExactly(carter);
 
         setFriendsToNull(dave, carter);
     }
@@ -596,7 +598,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findPagedPersons() {
         Page<Person> result = repository.findAll(PageRequest.of(
-                1, 2, Sort.Direction.ASC, "lastname", "firstname")
+            1, 2, Sort.Direction.ASC, "lastname", "firstname")
         );
         assertThat(result.isFirst()).isFalse();
         assertThat(result.isLast()).isFalse();
@@ -637,8 +639,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFriendAgeBetween(40, 45);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactly(carter);
+            .hasSize(1)
+            .containsExactly(carter);
 
         setFriendsToNull(oliver, dave, carter);
     }

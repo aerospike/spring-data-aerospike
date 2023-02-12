@@ -70,7 +70,7 @@ public @interface EnableAerospikeRepositories {
     Filter[] excludeFilters() default {};
 
     /**
-     * Specifies which types are eligible for component scanning. Further narrows the set of candidate components from
+     * Specifies which types are eligible for component scanning. Narrows the set of candidate components from
      * everything in {@link #basePackages()} to everything in the base packages that matches the given filter or
      * filters.
      */
@@ -115,7 +115,7 @@ public @interface EnableAerospikeRepositories {
 
     /**
      * Configures whether nested repository-interfaces (e.g. defined as inner classes) should be discovered by the
-     * repositories infrastructure.
+     * repositories' infrastructure.
      */
     boolean considerNestedRepositories() default false;
 }

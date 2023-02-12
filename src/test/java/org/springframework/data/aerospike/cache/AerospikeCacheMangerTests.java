@@ -30,61 +30,66 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 
  * @author Venil Noronha
  */
 public class AerospikeCacheMangerTests extends BaseBlockingIntegrationTests {
 
-	@Value("${embedded.aerospike.namespace}")
-	public String namespace;
+    @Value("${embedded.aerospike.namespace}")
+    public String namespace;
 
-	@Autowired
-	IAerospikeClient client;
-	@Autowired
-	MappingAerospikeConverter converter;
+    @Autowired
+    IAerospikeClient client;
+    @Autowired
+    MappingAerospikeConverter converter;
 
-	@Test
-	public void missingCache() {
-		AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, DEFAULT_SET_NAME);
-		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration);
-		manager.afterPropertiesSet();
-		Cache cache = manager.getCache("missing-cache");
+    @Test
+    public void missingCache() {
+        AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace,
+            DEFAULT_SET_NAME);
+        AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration);
+        manager.afterPropertiesSet();
+        Cache cache = manager.getCache("missing-cache");
 
-		assertThat(cache).isNotNull();
-	}
+        assertThat(cache).isNotNull();
+    }
 
-	@Test
-	public void defaultCache() {
-		AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, DEFAULT_SET_NAME);
-		Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
-		aerospikeCacheConfigurationMap.put("default-cache", aerospikeCacheConfiguration);
-		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration, aerospikeCacheConfigurationMap);
-		manager.afterPropertiesSet();
-		Cache cache = manager.getCache("default-cache");
+    @Test
+    public void defaultCache() {
+        AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace,
+            DEFAULT_SET_NAME);
+        Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
+        aerospikeCacheConfigurationMap.put("default-cache", aerospikeCacheConfiguration);
+        AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration,
+            aerospikeCacheConfigurationMap);
+        manager.afterPropertiesSet();
+        Cache cache = manager.getCache("default-cache");
 
-		assertThat(cache).isNotNull().isInstanceOf(AerospikeCache.class);
-	}
+        assertThat(cache).isNotNull().isInstanceOf(AerospikeCache.class);
+    }
 
-	@Test
-	public void defaultCacheWithCustomizedSet() {
-		Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
-		AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, "custom-set");
-		aerospikeCacheConfigurationMap.put("default-cache",aerospikeCacheConfiguration);
-		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration, aerospikeCacheConfigurationMap);
-		manager.afterPropertiesSet();
-		Cache cache = manager.getCache("default-cache");
+    @Test
+    public void defaultCacheWithCustomizedSet() {
+        Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
+        AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, "custom" +
+            "-set");
+        aerospikeCacheConfigurationMap.put("default-cache", aerospikeCacheConfiguration);
+        AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration,
+            aerospikeCacheConfigurationMap);
+        manager.afterPropertiesSet();
+        Cache cache = manager.getCache("default-cache");
 
-		assertThat(cache).isNotNull().isInstanceOf(AerospikeCache.class);
-	}
+        assertThat(cache).isNotNull().isInstanceOf(AerospikeCache.class);
+    }
 
-	@Test
-	public void transactionAwareCache() {
-		AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace, DEFAULT_SET_NAME);
-		AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration);
-		manager.setTransactionAware(true);
-		manager.afterPropertiesSet();
-		Cache cache = manager.getCache("transaction-aware-cache");
+    @Test
+    public void transactionAwareCache() {
+        AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace,
+            DEFAULT_SET_NAME);
+        AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration);
+        manager.setTransactionAware(true);
+        manager.afterPropertiesSet();
+        Cache cache = manager.getCache("transaction-aware-cache");
 
-		assertThat(cache).isNotNull().isInstanceOf(TransactionAwareCacheDecorator.class);
-	}
+        assertThat(cache).isNotNull().isInstanceOf(TransactionAwareCacheDecorator.class);
+    }
 }

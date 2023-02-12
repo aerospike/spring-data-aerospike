@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class PersonMissingAndRedundantFields {
+
     private String firstName;
     private String lastName;
     private String missingField;

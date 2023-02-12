@@ -36,7 +36,7 @@ public abstract class BaseAerospikeRepositoryConfigurationExtension extends Repo
     protected static final String AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE = "aerospikeTemplateRef";
 
     /**
-     * Detects the query creator type to be used for the factory to set. Will lookup a {@link QueryCreatorType}
+     * Detects the query creator type to be used for the factory to set. Will look up a {@link QueryCreatorType}
      * annotation on the {@code @Enable}-annotation or use {@link SpelQueryCreator} if not found.
      *
      * @param config The annotation repository configuration to get the query creator metadata from.

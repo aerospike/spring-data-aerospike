@@ -37,6 +37,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         this.aerospikeOperations = aerospikeOperations;
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);

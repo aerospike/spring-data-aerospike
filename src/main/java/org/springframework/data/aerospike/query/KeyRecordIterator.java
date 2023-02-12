@@ -75,6 +75,7 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 
     @Override
     public void close() {
+        //noinspection synchronization
         synchronized (closeLock) {
             if (recordSet != null)
                 recordSet.close();

@@ -64,6 +64,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         return source.getClass().isArray() ? CollectionUtils.arrayToList(source) : Collections.singleton(source);
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public void write(Object source, final AerospikeWriteData data) {
         if (source == null) {

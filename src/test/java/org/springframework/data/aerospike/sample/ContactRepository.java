@@ -19,6 +19,7 @@ import org.springframework.data.aerospike.repository.AerospikeRepository;
 
 /**
  * Simple repository interface managing {@link Contact}s.
+ *
  * @author Peter Milne
  * @author Jean Mercier
  */

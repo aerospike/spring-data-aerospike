@@ -15,8 +15,8 @@
  */
 package org.springframework.data.aerospike.sample;
 
-import lombok.Data;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.aerospike.mapping.Document;
@@ -38,49 +38,48 @@ import java.util.Map;
 @Document
 public class Person {
 
-	public enum Sex {
-		MALE, FEMALE
-	}
+    private @Id String id;
+    private String firstName;
+    private String lastName;
+    private int age;
+    private int waist;
+    private Sex sex;
+    private Map<String, String> stringMap;
+    private Map<String, Integer> intMap;
+    private Person friend;
+    private boolean active;
+    private Date dateOfBirth;
+    private List<String> strings;
+    private List<Integer> ints;
+    private Address address;
+    @Field("email")
+    private String emailAddress;
+    public Person(String id, String firstName) {
+        this.id = id;
+        this.firstName = firstName;
+    }
 
-	private @Id String id;
-	private String firstName;
-	private String lastName;
-	private int age;
-	private int waist;
-	private Sex sex;
-	private Map<String, String> stringMap;
-	private Map<String, Integer> intMap;
-	private Person friend;
-	private boolean active;
-	private Date dateOfBirth;
-	private List<String> strings;
-	private List<Integer> ints;
-	private Address address;
-	@Field("email")
-	private String emailAddress;
+    public Person(String id, String firstName, String lastName) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
 
-	public Person(String id, String firstName) {
-		this.id = id;
-		this.firstName = firstName;
-	}
+    public Person(String id, String firstName, int age) {
+        this.id = id;
+        this.firstName = firstName;
+        this.age = age;
+    }
 
-	public Person(String id, String firstName, String lastName) {
-		this.id = id;
-		this.firstName = firstName;
-		this.lastName = lastName;
-	}
+    public PersonSomeFields toPersonSomeFields() {
+        return PersonSomeFields.builder()
+            .firstName(getFirstName())
+            .lastName(getLastName())
+            .emailAddress(getEmailAddress())
+            .build();
+    }
 
-	public Person(String id, String firstName, int age) {
-		this.id = id;
-		this.firstName = firstName;
-		this.age = age;
-	}
-
-	public PersonSomeFields toPersonSomeFields() {
-		return PersonSomeFields.builder()
-				.firstName(getFirstName())
-				.lastName(getLastName())
-				.emailAddress(getEmailAddress())
-				.build();
-	}
+    public enum Sex {
+        MALE, FEMALE
+    }
 }

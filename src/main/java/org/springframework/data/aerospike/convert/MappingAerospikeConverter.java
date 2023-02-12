@@ -70,11 +70,13 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
         return conversionService;
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public <R> R read(Class<R> type, final AerospikeReadData data) {
         return readConverter.read(type, data);
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public void write(Object source, AerospikeWriteData sink) {
         writeConverter.write(source, sink);

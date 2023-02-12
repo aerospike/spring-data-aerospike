@@ -71,6 +71,7 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
         });
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public void addPersistentProperty(AerospikePersistentProperty property) {
         super.addPersistentProperty(property);
@@ -112,6 +113,7 @@ public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, 
         return expirationProperty != null;
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public void setEnvironment(Environment environment) {
         this.environment = environment;

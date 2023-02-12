@@ -41,7 +41,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldThrowExceptionOnUpdateForNonExistingKey() {
         assertThatThrownBy(() -> template.update(new Person(id, "svenfirstName", 11)))
-                .isInstanceOf(DataRetrievalFailureException.class);
+            .isInstanceOf(DataRetrievalFailureException.class);
     }
 
     @Test
@@ -95,14 +95,14 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         fields.add("non-existing-field");
 
         assertThatThrownBy(() -> template.update(Person.builder().id(id).age(41).build(), fields))
-                .isInstanceOf(RecoverableDataAccessException.class)
-                .hasMessageContaining("field doesn't exists");
+            .isInstanceOf(RecoverableDataAccessException.class)
+            .hasMessageContaining("field doesn't exists");
     }
 
     @Test
     public void updateSpecificFieldsWithFieldAnnotatedProperty() {
         Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
-                .emailAddress("andrew@gmail.com").build();
+            .emailAddress("andrew@gmail.com").build();
         template.insert(person);
 
         List<String> fields = new ArrayList<>();
@@ -121,7 +121,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateSpecificFieldsWithFieldAnnotatedPropertyActualValue() {
         Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
-                .emailAddress("andrew@gmail.com").build();
+            .emailAddress("andrew@gmail.com").build();
         template.insert(person);
 
         List<String> fields = new ArrayList<>();
@@ -258,9 +258,9 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         list.add("string2");
         list.add("string3");
         Person person = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
 
         template.insert(person);
 
@@ -284,16 +284,16 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         list.add("string2");
         list.add("string3");
         Person person = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
 
         template.insert(person);
 
         Person personWithList = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
         personWithList.getStrings().add("Added something new");
 
         List<String> fields = new ArrayList<>();
@@ -316,9 +316,9 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         list.add("string2");
         list.add("string3");
         Person person = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
         template.insert(person);
 
         Person personWithList = template.findById(id, Person.class);
@@ -342,15 +342,15 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         list.add("string2");
         list.add("string3");
         Person person = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
         template.insert(person);
 
         Person personWithList = Person.builder().id(id).firstName("QLastName").age(50)
-                .stringMap(map)
-                .strings(list)
-                .build();
+            .stringMap(map)
+            .strings(list)
+            .build();
         personWithList.getStringMap().put("key4", "Added something new");
 
         List<String> fields = new ArrayList<>();

@@ -32,8 +32,8 @@ public class AerospikeTemplatePersistTests extends BaseBlockingIntegrationTests 
         CustomCollectionClass initial = new CustomCollectionClass(id, "data");
 
         WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
-                .recordExistsAction(RecordExistsAction.CREATE_ONLY)
-                .build();
+            .recordExistsAction(RecordExistsAction.CREATE_ONLY)
+            .build();
 
         template.persist(initial, writePolicy);
 
@@ -46,10 +46,10 @@ public class AerospikeTemplatePersistTests extends BaseBlockingIntegrationTests 
         CustomCollectionClass initial = new CustomCollectionClass(id, "data");
 
         WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
-                .recordExistsAction(RecordExistsAction.UPDATE_ONLY)
-                .build();
+            .recordExistsAction(RecordExistsAction.UPDATE_ONLY)
+            .build();
 
         assertThatThrownBy(() -> template.persist(initial, writePolicy))
-                .isInstanceOf(DataRetrievalFailureException.class);
+            .isInstanceOf(DataRetrievalFailureException.class);
     }
 }

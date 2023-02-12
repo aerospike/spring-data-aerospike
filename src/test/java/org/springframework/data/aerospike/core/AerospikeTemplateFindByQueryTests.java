@@ -46,27 +46,33 @@ import static org.springframework.data.domain.Sort.Order.asc;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTests {
 
-    Person jean = Person.builder().id(nextId()).firstName("Jean").lastName("Matthews").age(21).ints(Collections.singletonList(100))
-            .strings(Collections.singletonList("str1")).friend(new Person("id21", "TestPerson21", 50)).build();
-    Person ashley = Person.builder().id(nextId()).firstName("Ashley").lastName("Matthews").ints(Collections.singletonList(22))
-            .strings(Collections.singletonList("str2")).age(22).friend(new Person("id22", "TestPerson22", 50)).build();
-    Person beatrice = Person.builder().id(nextId()).firstName("Beatrice").lastName("Matthews").age(23).ints(Collections.singletonList(23))
-            .friend(new Person("id23", "TestPerson23", 42)).build();
-    Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(24).stringMap(Collections.singletonMap("key1", "val1"))
-            .friend(new Person("id21", "TestPerson24", 54)).build();
-    Person zaipper = Person.builder().id(nextId()).firstName("Zaipper").lastName("Matthews").age(25)
-            .stringMap(Collections.singletonMap("key2", "val2")).address(new Address("Street 1", "C0121", "Sun City")).build();
-    Person knowlen = Person.builder().id(nextId()).firstName("knowlen").lastName("Matthews").age(26)
-            .intMap(Collections.singletonMap("key1", 11)).address(new Address("Street 2", "C0122", "Sun City")).build();
-    Person xylophone = Person.builder().id(nextId()).firstName("Xylophone").lastName("Matthews").age(27)
-            .intMap(Collections.singletonMap("key2", 22)).address(new Address("Street 3", "C0123", "Sun City")).build();
-    Person mitch = Person.builder().id(nextId()).firstName("Mitch").lastName("Matthews").age(28)
-            .intMap(Collections.singletonMap("key3", 24)).address(new Address("Street 4", "C0124", "Sun City")).build();
-    Person alister = Person.builder().id(nextId()).firstName("Alister").lastName("Matthews").age(29)
-            .stringMap(Collections.singletonMap("key4", "val4")).build();
-    Person aabbot = Person.builder().id(nextId()).firstName("Aabbot").lastName("Matthews").age(30)
-            .stringMap(Collections.singletonMap("key4", "val5")).build();
-    List<Person> all = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister, aabbot);
+    final Person jean = Person.builder().id(nextId()).firstName("Jean").lastName("Matthews").age(21)
+        .ints(Collections.singletonList(100))
+        .strings(Collections.singletonList("str1")).friend(new Person("id21", "TestPerson21", 50)).build();
+    final Person ashley = Person.builder().id(nextId()).firstName("Ashley").lastName("Matthews")
+        .ints(Collections.singletonList(22))
+        .strings(Collections.singletonList("str2")).age(22).friend(new Person("id22", "TestPerson22", 50)).build();
+    final Person beatrice = Person.builder().id(nextId()).firstName("Beatrice").lastName("Matthews").age(23)
+        .ints(Collections.singletonList(23))
+        .friend(new Person("id23", "TestPerson23", 42)).build();
+    final Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(24)
+        .stringMap(Collections.singletonMap("key1", "val1"))
+        .friend(new Person("id21", "TestPerson24", 54)).build();
+    final Person zaipper = Person.builder().id(nextId()).firstName("Zaipper").lastName("Matthews").age(25)
+        .stringMap(Collections.singletonMap("key2", "val2")).address(new Address("Street 1", "C0121", "Sun City"))
+        .build();
+    final Person knowlen = Person.builder().id(nextId()).firstName("knowlen").lastName("Matthews").age(26)
+        .intMap(Collections.singletonMap("key1", 11)).address(new Address("Street 2", "C0122", "Sun City")).build();
+    final Person xylophone = Person.builder().id(nextId()).firstName("Xylophone").lastName("Matthews").age(27)
+        .intMap(Collections.singletonMap("key2", 22)).address(new Address("Street 3", "C0123", "Sun City")).build();
+    final Person mitch = Person.builder().id(nextId()).firstName("Mitch").lastName("Matthews").age(28)
+        .intMap(Collections.singletonMap("key3", 24)).address(new Address("Street 4", "C0124", "Sun City")).build();
+    final Person alister = Person.builder().id(nextId()).firstName("Alister").lastName("Matthews").age(29)
+        .stringMap(Collections.singletonMap("key4", "val4")).build();
+    final Person aabbot = Person.builder().id(nextId()).firstName("Aabbot").lastName("Matthews").age(30)
+        .stringMap(Collections.singletonMap("key4", "val5")).build();
+    final List<Person> all = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister,
+        aabbot);
 
     @BeforeAll
     public void beforeAllSetUp() {
@@ -74,9 +80,12 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
         template.insertAll(all);
 
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age", IndexType.NUMERIC);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age",
+            IndexType.NUMERIC);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName"
+            , IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName",
+            IndexType.STRING);
     }
 
     @Override
@@ -101,8 +110,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(10)
-                .containsExactly(aabbot, alister, ashley, beatrice, dave, jean, knowlen, mitch, xylophone, zaipper);
+            .hasSize(10)
+            .containsExactly(aabbot, alister, ashley, beatrice, dave, jean, knowlen, mitch, xylophone, zaipper);
     }
 
     @Test
@@ -113,8 +122,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(10)
-                .containsExactly(zaipper, xylophone, mitch, knowlen, jean, dave, beatrice, ashley, alister, aabbot);
+            .hasSize(10)
+            .containsExactly(zaipper, xylophone, mitch, knowlen, jean, dave, beatrice, ashley, alister, aabbot);
     }
 
     @Test
@@ -134,7 +143,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(6);
+            .hasSize(6);
     }
 
     @Test
@@ -158,10 +167,10 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         RecordSet rs = client.query(null, aerospikeQuery);
 
         assertThat(CollectionUtils.toList(rs))
-                .singleElement()
-                .satisfies(record ->
-                        assertThat(record.bins)
-                                .containsOnly(entry("firstName", dave.getFirstName()), entry("lastName", dave.getLastName())));
+            .singleElement()
+            .satisfies(record ->
+                assertThat(record.bins)
+                    .containsOnly(entry("firstName", dave.getFirstName()), entry("lastName", dave.getLastName())));
     }
 
     @Test
@@ -171,7 +180,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> stream = template.findInRange(skip, limit, Sort.unsorted(), Person.class);
 
         assertThat(stream)
-                .hasSize(5);
+            .hasSize(5);
     }
 
     @Test
@@ -180,8 +189,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         int limit = 5;
 
         assertThatThrownBy(() -> template.findInRange(skip, limit, Sort.unsorted(), Person.class))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
     }
 
     @Test
@@ -191,22 +200,22 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Sort sort = Sort.by(asc("firstName"));
 
         List<Person> stream = template.findInRange(skip, limit, sort, Person.class)
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
 
         assertThat(stream)
-                .hasSize(5)
-                .containsExactly(aabbot, alister, ashley, beatrice, dave);
+            .hasSize(5)
+            .containsExactly(aabbot, alister, ashley, beatrice, dave);
     }
 
     @Test
     public void findAll_OrderByFirstName() {
         Sort sort = Sort.by(asc("firstName"));
         List<Person> result = template.findAll(sort, 0, 0, Person.class)
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
 
         assertThat(result)
-                .hasSize(10)
-                .containsExactly(aabbot, alister, ashley, beatrice, dave, jean, knowlen, mitch, xylophone, zaipper);
+            .hasSize(10)
+            .containsExactly(aabbot, alister, ashley, beatrice, dave, jean, knowlen, mitch, xylophone, zaipper);
     }
 
     @Test
@@ -234,8 +243,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(jean);
+            .hasSize(1)
+            .containsExactlyInAnyOrder(jean);
     }
 
     @Test
@@ -245,8 +254,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(ashley);
+            .hasSize(1)
+            .containsExactlyInAnyOrder(ashley);
     }
 
     @Test
@@ -256,8 +265,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(2)
-                .containsExactlyInAnyOrder(ashley, beatrice);
+            .hasSize(2)
+            .containsExactlyInAnyOrder(ashley, beatrice);
     }
 
     @Test
@@ -267,8 +276,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(3)
-                .containsExactlyInAnyOrder(ashley, beatrice, jean);
+            .hasSize(3)
+            .containsExactlyInAnyOrder(ashley, beatrice, jean);
     }
 
     @Test
@@ -278,30 +287,32 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(3)
-                .containsExactlyInAnyOrder(jean, ashley, beatrice);
+            .hasSize(3)
+            .containsExactlyInAnyOrder(jean, ashley, beatrice);
     }
 
     @Test
     public void findByMapKeysContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1", CriteriaDefinition.AerospikeMapCriteria.KEY);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1",
+            CriteriaDefinition.AerospikeMapCriteria.KEY);
 
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(dave);
+            .hasSize(1)
+            .containsExactlyInAnyOrder(dave);
     }
 
     @Test
     public void findByMapValuesContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "val2", CriteriaDefinition.AerospikeMapCriteria.VALUE);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "val2",
+            CriteriaDefinition.AerospikeMapCriteria.VALUE);
 
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(zaipper);
+            .hasSize(1)
+            .containsExactlyInAnyOrder(zaipper);
     }
 
     @Test
@@ -311,8 +322,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(dave);
+            .hasSize(1)
+            .containsExactlyInAnyOrder(dave);
     }
 
     @Test
@@ -322,8 +333,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(xylophone);
+            .hasSize(1)
+            .containsExactlyInAnyOrder(xylophone);
     }
 
     @Test
@@ -333,8 +344,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(knowlen);
+            .hasSize(1)
+            .containsExactlyInAnyOrder(knowlen);
     }
 
     @Test
@@ -344,8 +355,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(mitch);
+            .hasSize(1)
+            .containsExactlyInAnyOrder(mitch);
     }
 
     @Test
@@ -355,8 +366,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(2)
-                .containsExactlyInAnyOrder(alister, aabbot);
+            .hasSize(2)
+            .containsExactlyInAnyOrder(alister, aabbot);
     }
 
     @Test
@@ -366,8 +377,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(2)
-                .containsExactlyInAnyOrder(alister, aabbot);
+            .hasSize(2)
+            .containsExactlyInAnyOrder(alister, aabbot);
     }
 
     @Test
@@ -377,8 +388,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(2)
-                .containsExactlyInAnyOrder(jean, ashley);
+            .hasSize(2)
+            .containsExactlyInAnyOrder(jean, ashley);
     }
 
     @Test
@@ -388,8 +399,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(2)
-                .containsExactlyInAnyOrder(beatrice, dave);
+            .hasSize(2)
+            .containsExactlyInAnyOrder(beatrice, dave);
     }
 
     @Test
@@ -399,8 +410,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(3)
-                .containsExactlyInAnyOrder(jean, ashley, dave);
+            .hasSize(3)
+            .containsExactlyInAnyOrder(jean, ashley, dave);
     }
 
     @Test
@@ -410,8 +421,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(4)
-                .containsExactlyInAnyOrder(jean, ashley, beatrice, dave);
+            .hasSize(4)
+            .containsExactlyInAnyOrder(jean, ashley, beatrice, dave);
     }
 
     @Test
@@ -421,8 +432,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(3)
-                .containsExactlyInAnyOrder(jean, ashley, dave);
+            .hasSize(3)
+            .containsExactlyInAnyOrder(jean, ashley, dave);
     }
 
     @Test
@@ -432,8 +443,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(1)
-                .containsExactlyInAnyOrder(xylophone);
+            .hasSize(1)
+            .containsExactlyInAnyOrder(xylophone);
     }
 
     @Test
@@ -443,7 +454,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-                .hasSize(4)
-                .containsExactlyInAnyOrder(zaipper, knowlen, xylophone, mitch);
+            .hasSize(4)
+            .containsExactlyInAnyOrder(zaipper, knowlen, xylophone, mitch);
     }
 }

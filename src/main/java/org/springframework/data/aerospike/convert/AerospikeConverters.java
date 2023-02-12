@@ -60,6 +60,7 @@ abstract class AerospikeConverters {
     public enum StringToBigDecimalConverter implements Converter<String, BigDecimal> {
         INSTANCE;
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public BigDecimal convert(String source) {
             return StringUtils.hasText(source) ? new BigDecimal(source) : null;
@@ -70,6 +71,7 @@ abstract class AerospikeConverters {
     public enum LongToBooleanConverter implements Converter<Long, Boolean> {
         INSTANCE;
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public Boolean convert(Long source) {
             return source != 0L;

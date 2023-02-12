@@ -22,9 +22,6 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import org.springframework.data.aerospike.SampleClasses.VersionedClassWithAllArgsConstructor;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.sample.PersonMissingAndRedundantFields;
-import org.springframework.data.aerospike.sample.PersonSomeFields;
-import org.springframework.data.aerospike.sample.PersonTouchOnRead;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -108,14 +105,14 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
     public void findById_shouldFailOnTouchOnReadWithExpirationProperty() {
         template.insert(new DocumentWithTouchOnReadAndExpirationProperty(id, EXPIRATION_ONE_MINUTE));
         assertThatThrownBy(() -> template.findById(id, DocumentWithTouchOnReadAndExpirationProperty.class))
-                .isInstanceOf(IllegalStateException.class);
+            .isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     public void findByKey() {
         client.put(null, new Key(getNameSpace(), "Person", id),
-                new Bin("firstName", "Dave"),
-                new Bin("age", 56));
+            new Bin("firstName", "Dave"),
+            new Bin("age", 56));
 
         Person result = template.findById(id, Person.class);
 

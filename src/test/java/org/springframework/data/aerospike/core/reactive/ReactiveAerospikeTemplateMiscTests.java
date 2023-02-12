@@ -25,17 +25,17 @@ public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveIntegrationT
         Key key = new Key(getNameSpace(), "shouldTranslateException", "reactiveShouldTranslateException");
         Bin bin = new Bin("bin_name", "bin_value");
         StepVerifier.create(reactorClient.add(null, key, bin))
-                .expectNext(key)
-                .verifyComplete();
+            .expectNext(key)
+            .verifyComplete();
 
         StepVerifier.create(reactiveTemplate.execute(() -> {
-            WritePolicy writePolicy = WritePolicyBuilder.builder(reactorClient.getWritePolicyDefault())
+                WritePolicy writePolicy = WritePolicyBuilder.builder(reactorClient.getWritePolicyDefault())
                     .recordExistsAction(RecordExistsAction.CREATE_ONLY)
                     .build();
-            return reactorClient.add(writePolicy, key, bin).subscribeOn(Schedulers.parallel()).block();
-        }))
-                .expectError(DuplicateKeyException.class)
-                .verify();
+                return reactorClient.add(writePolicy, key, bin).subscribeOn(Schedulers.parallel()).block();
+            }))
+            .expectError(DuplicateKeyException.class)
+            .verify();
     }
 
     @Test
@@ -44,14 +44,14 @@ public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveIntegrationT
         reactiveTemplate.insert(one).subscribeOn(Schedulers.parallel()).block();
 
         StepVerifier.create(reactiveTemplate.exists(id, Person.class).subscribeOn(Schedulers.parallel()))
-                .expectNext(true)
-                .verifyComplete();
+            .expectNext(true)
+            .verifyComplete();
     }
 
     @Test
     public void exists_shouldReturnFalseIfValueIsAbsent() {
         StepVerifier.create(reactiveTemplate.exists(id, Person.class).subscribeOn(Schedulers.parallel()))
-                .expectNext(false)
-                .verifyComplete();
+            .expectNext(false)
+            .verifyComplete();
     }
 }

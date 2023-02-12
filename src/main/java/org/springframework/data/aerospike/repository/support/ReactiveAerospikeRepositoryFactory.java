@@ -82,25 +82,28 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
         return QUERY_DSL_PRESENT && QuerydslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "NullableProblems"})
     @Override
     public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
         AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(domainClass);
         return new PersistentEntityInformation<>((AerospikePersistentEntity<T>) entity);
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
         EntityInformation<?, Object> entityInformation = getEntityInformation(repositoryInformation.getDomainType());
         return super.getTargetRepositoryViaReflection(repositoryInformation, entityInformation, aerospikeOperations);
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
         return isQueryDslRepository(metadata.getRepositoryInterface()) ? QuerydslKeyValueRepository.class
             : SimpleKeyValueRepository.class;
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
                                                                    QueryMethodEvaluationContextProvider evaluationContextProvider) {
@@ -124,7 +127,7 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
          * {@link QueryMethodEvaluationContextProvider}, {@link KeyValueOperations} and query creator type.
          * <p>
          *
-         * @param key                       Currently unused, same behaviour in the built in spring's
+         * @param key                       Currently unused, same behaviour in the built-in spring's
          *                                  KeyValueQueryLookupStrategy implementation.
          * @param evaluationContextProvider must not be {@literal null}.
          * @param aerospikeOperations       must not be {@literal null}.
@@ -142,6 +145,7 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
             this.queryCreator = queryCreator;
         }
 
+        @SuppressWarnings("NullableProblems")
         @Override
         public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata,
                                             ProjectionFactory projectionFactory,

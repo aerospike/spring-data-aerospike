@@ -57,6 +57,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         this.context = context;
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected AerospikeCriteria create(Part part, Iterator<Object> iterator) {
         PersistentPropertyPath<AerospikePersistentProperty> path =
@@ -275,6 +276,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             .anyMatch(f -> f.getName().equals(property.getName()));
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected AerospikeCriteria and(Part part, AerospikeCriteria base, Iterator<Object> iterator) {
         if (base == null) {
@@ -291,6 +293,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         );
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected AerospikeCriteria or(AerospikeCriteria base, AerospikeCriteria criteria) {
         return new AerospikeCriteria(new Qualifier.QualifierBuilder()
@@ -299,6 +302,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         );
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     protected Query complete(AerospikeCriteria criteria, Sort sort) {
         Query query = criteria == null ? null : new Query(criteria).with(sort);

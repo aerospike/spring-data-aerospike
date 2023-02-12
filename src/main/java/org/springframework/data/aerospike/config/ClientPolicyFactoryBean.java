@@ -133,7 +133,7 @@ public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
     }
 
     /**
-     * Configures the User name for authentication to cluster. Only used for clusters running with security enabled.
+     * Configures the username for authentication to cluster. Only used for clusters running with security enabled.
      *
      * @param user The user configuration value.
      */

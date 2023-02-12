@@ -29,21 +29,21 @@ public class IndexedPerson extends Person {
 
     public static IndexedPerson from(Person person) {
         return IndexedPerson.builder()
-                .id(person.getId())
-                .firstName(person.getFirstName())
-                .lastName(person.getLastName())
-                .age(person.getAge())
-                .waist(person.getWaist())
-                .sex(person.getSex())
-                .intMap(person.getIntMap())
-                .stringMap(person.getStringMap())
-                .friend(person.getFriend())
-                .active(person.isActive())
-                .dateOfBirth(person.getDateOfBirth())
-                .strings(person.getStrings())
-                .ints(person.getInts())
-                .address(person.getAddress())
-                .emailAddress(person.getEmailAddress())
-                .build();
+            .id(person.getId())
+            .firstName(person.getFirstName())
+            .lastName(person.getLastName())
+            .age(person.getAge())
+            .waist(person.getWaist())
+            .sex(person.getSex())
+            .intMap(person.getIntMap())
+            .stringMap(person.getStringMap())
+            .friend(person.getFriend())
+            .active(person.isActive())
+            .dateOfBirth(person.getDateOfBirth())
+            .strings(person.getStrings())
+            .ints(person.getInts())
+            .address(person.getAddress())
+            .emailAddress(person.getEmailAddress())
+            .build();
     }
 }

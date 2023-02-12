@@ -35,7 +35,8 @@ public class AerospikeTemplateCompositeKeyTests extends BaseBlockingIntegrationT
         DocumentWithCompositeKey document2 = new DocumentWithCompositeKey(new CompositeKey("part1", 999));
         template.save(document2);
 
-        List<DocumentWithCompositeKey> actual = template.findByIds(asList(document.getId(), document2.getId()), DocumentWithCompositeKey.class);
+        List<DocumentWithCompositeKey> actual = template.findByIds(asList(document.getId(), document2.getId()),
+            DocumentWithCompositeKey.class);
 
         assertThat(actual).containsOnly(document, document2);
     }

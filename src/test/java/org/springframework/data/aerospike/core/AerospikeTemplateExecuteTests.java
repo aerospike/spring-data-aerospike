@@ -34,7 +34,7 @@ public class AerospikeTemplateExecuteTests extends BaseBlockingIntegrationTests 
         Bin bin = new Bin("bin_name", "bin_value");
 
         template.getAerospikeClient().add(null, key, bin);
-        assertThatThrownBy(() ->template.execute(() -> {
+        assertThatThrownBy(() -> template.execute(() -> {
             IAerospikeClient client = template.getAerospikeClient();
             WritePolicy writePolicy = new WritePolicy(client.getWritePolicyDefault());
             writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;

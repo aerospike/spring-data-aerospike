@@ -19,7 +19,7 @@ public class WritePolicyBuilderTest {
     @Test
     public void shouldFailOnNull() {
         assertThatThrownBy(() -> WritePolicyBuilder.builder(null))
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -27,48 +27,48 @@ public class WritePolicyBuilderTest {
         WritePolicy policy = new WritePolicy();
         policy.commitLevel = null;
         assertThatThrownBy(() -> WritePolicyBuilder.builder(policy).build())
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void shouldFailOnNullRecordExistsAction() {
         assertThatThrownBy(() -> WritePolicyBuilder.builder(new WritePolicy())
-                .recordExistsAction(null)
-                .build())
-                .isInstanceOf(IllegalArgumentException.class);
+            .recordExistsAction(null)
+            .build())
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void shouldFailOnNullGenerationPolicy() {
         assertThatThrownBy(() -> WritePolicyBuilder.builder(new WritePolicy())
-                .generationPolicy(null)
-                .build())
-                .isInstanceOf(IllegalArgumentException.class);
+            .generationPolicy(null)
+            .build())
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void shouldFailOnNoneGenerationPolicy() {
         assertThatThrownBy(() -> WritePolicyBuilder.builder(new WritePolicy())
-                .generation(1)
-                .generationPolicy(GenerationPolicy.NONE)
-                .build())
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Field 'generationPolicy' must not be 'NONE' when 'generation' is set");
+            .generation(1)
+            .generationPolicy(GenerationPolicy.NONE)
+            .build())
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("Field 'generationPolicy' must not be 'NONE' when 'generation' is set");
     }
 
     @Test
     public void shouldBuildWithOverriddenProps() {
         WritePolicy source = new WritePolicy();
         WritePolicy policy = WritePolicyBuilder.builder(source)
-                .generationPolicy(GENERATION_POLICY)
-                .generation(GENERATION)
-                .expiration(EXPIRATION)
-                .recordExistsAction(RECORD_EXISTS_ACTION)
-                .sendKey(SEND_KEY)
-                .build();
+            .generationPolicy(GENERATION_POLICY)
+            .generation(GENERATION)
+            .expiration(EXPIRATION)
+            .recordExistsAction(RECORD_EXISTS_ACTION)
+            .sendKey(SEND_KEY)
+            .build();
 
         assertThat(policy).isEqualToIgnoringGivenFields(source,
-                "generationPolicy", "generation", "expiration", "recordExistsAction", "sendKey");
+            "generationPolicy", "generation", "expiration", "recordExistsAction", "sendKey");
 
         assertThat(policy.generationPolicy).isEqualTo(GENERATION_POLICY);
         assertThat(policy.generation).isEqualTo(GENERATION);
