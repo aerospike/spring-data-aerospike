@@ -298,7 +298,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 
 	@Test
 	void GenericType() {
-		GenericType<GenericType<String>> object = new GenericType("my-id", "string");
+		@SuppressWarnings("unchecked") GenericType<GenericType<String>> object = new GenericType("my-id", "string");
 
 		assertWriteAndRead(object, "GenericType", "my-id",
 				new Bin("@_class", GenericType.class.getName()),
@@ -449,7 +449,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 
 		AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
 
-		T actual = (T) converter.read(object.getClass(), forRead);
+		@SuppressWarnings("unchecked") T actual = (T) converter.read(object.getClass(), forRead);
 
 		assertThat(actual).isEqualTo(object);
 	}

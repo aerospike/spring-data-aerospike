@@ -21,5 +21,4 @@ import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository
  * @author Taras Danylchuk
  */
 public interface ReactiveAutoIndexedDocumentRepository extends ReactiveAerospikeRepository<AutoIndexedDocument, String> {
-
 }

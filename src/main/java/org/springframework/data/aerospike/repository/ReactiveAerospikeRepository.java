@@ -24,5 +24,4 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
  * @author Igor Ermolenko
  */
 public interface ReactiveAerospikeRepository<T, ID> extends ReactiveCrudRepository<T, ID> {
-
 }

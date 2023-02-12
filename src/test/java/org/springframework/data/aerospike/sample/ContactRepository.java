@@ -23,5 +23,4 @@ import org.springframework.data.aerospike.repository.AerospikeRepository;
  * @author Jean Mercier
  */
 public interface ContactRepository extends AerospikeRepository<Contact, String> {
-
 }

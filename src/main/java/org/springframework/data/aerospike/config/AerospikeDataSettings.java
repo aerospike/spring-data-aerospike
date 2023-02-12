@@ -37,6 +37,5 @@ public class AerospikeDataSettings {
      * it will satisfy javadoc and won't interfere with the @Builder annotation's normal behaviour.
      */
     public static class AerospikeDataSettingsBuilder {
-
     }
 }

@@ -23,5 +23,4 @@ import org.springframework.dao.support.PersistenceExceptionTranslator;
  * @author Oliver Gierke
  */
 public interface AerospikeExceptionTranslator extends PersistenceExceptionTranslator {
-
 }

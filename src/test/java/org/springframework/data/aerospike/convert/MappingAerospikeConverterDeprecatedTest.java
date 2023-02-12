@@ -50,8 +50,8 @@ public class MappingAerospikeConverterDeprecatedTest {
 	private static final String AEROSPIKE_KEY = "AerospikeKey";
 	private static final String AEROSPIKE_SET_NAME = "AerospikeSetName";
 	private static final String AEROSPIKE_NAME_SPACE = "AerospikeNameSpace";
-	private CustomConversions customConversions = new AerospikeCustomConversions(Collections.emptyList());
-	private AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor = new AerospikeTypeAliasAccessor();
+	private final CustomConversions customConversions = new AerospikeCustomConversions(Collections.emptyList());
+	private final AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor = new AerospikeTypeAliasAccessor();
 
 	@BeforeEach
 	public void setUp() {
@@ -147,7 +147,8 @@ public class MappingAerospikeConverterDeprecatedTest {
 		Object object = getBinValue("enums", result.getBins());
 
 		assertThat((List) object).hasSize(1);
-		assertThat((List) object).containsOnly("FIRST");
+        //noinspection unchecked
+        assertThat((List) object).containsOnly("FIRST");
 	}
 
 	@SuppressWarnings("serial")
@@ -310,7 +311,6 @@ public class MappingAerospikeConverterDeprecatedTest {
 		SECOND {
 			@Override
 			void method() {
-
 			}
 		};
 
@@ -318,7 +318,6 @@ public class MappingAerospikeConverterDeprecatedTest {
 	}
 
 	interface InterfaceType {
-
 	}
 
 	static class Address implements InterfaceType {
@@ -361,7 +360,6 @@ public class MappingAerospikeConverterDeprecatedTest {
 	}
 
 	interface Contact {
-
 	}
 
 	static class Person implements Contact {
@@ -377,7 +375,6 @@ public class MappingAerospikeConverterDeprecatedTest {
 		Set<Address> addresses;
 
 		public Person() {
-
 		}
 
 		public Person(Set<Address> addresses) {

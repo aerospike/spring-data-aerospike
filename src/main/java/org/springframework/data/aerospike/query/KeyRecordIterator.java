@@ -127,7 +127,6 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 
     @Override
     public void remove() {
-
     }
 
     @Override

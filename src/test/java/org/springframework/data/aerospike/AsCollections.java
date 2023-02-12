@@ -15,7 +15,8 @@ public class AsCollections {
 		}
 		Map<K, V> map = new HashMap<>();
 		for (int i = 0; i < args.length; i = i + 2) {
-			map.put((K) args[i], (V) args[i + 1]);
+            //noinspection unchecked
+            map.put((K) args[i], (V) args[i + 1]);
 		}
 		return map;
 	}

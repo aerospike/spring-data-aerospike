@@ -487,7 +487,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
 		Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
 				.map(rec -> {
-					List<Long> ageList = (List<Long>) rec.record.getList(binName);
+					@SuppressWarnings("unchecked") List<Long> ageList = (List<Long>) rec.record.getList(binName);
 					Long age = ageList.get(0);
 					return age;
 				})

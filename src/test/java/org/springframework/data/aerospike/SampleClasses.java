@@ -342,7 +342,6 @@ public class SampleClasses {
 	}
 
 	public interface Contact {
-
 	}
 
 	@Document(expiration = EXPIRATION_ONE_SECOND)
@@ -355,7 +354,6 @@ public class SampleClasses {
 		Set<Address> addresses;
 
 		public Person() {
-
 		}
 
 		public Person(Set<Address> addresses) {
@@ -392,7 +390,7 @@ public class SampleClasses {
 	public static class VersionedClassWithAllArgsConstructor {
 
 		@Id
-		private String id;
+		private final String id;
 
 		@Version
 		public long version;
@@ -414,8 +412,8 @@ public class SampleClasses {
 	public static class CustomCollectionClass {
 
 		@Id
-		private String id;
-		private String data;
+		private final String id;
+		private final String data;
 
 		public CustomCollectionClass(String id, String data) {
 			this.id = id;
@@ -583,26 +581,21 @@ public class SampleClasses {
 
 	@Document(expirationExpression = "${expirationProperty}")
 	public static class DocumentWithExpirationExpression {
-
 	}
 
 	@Document(expiration = EXPIRATION_ONE_SECOND, expirationUnit = TimeUnit.MINUTES)
 	public static class DocumentWithExpirationUnit {
-
 	}
 
 	@Document
 	public static class DocumentWithoutExpiration {
-
 	}
 
 	public static class DocumentWithoutAnnotation {
-
 	}
 
 	@Document(expiration = 1, expirationExpression = "${expirationProperty}")
 	public static class DocumentWithExpirationAndExpression {
-
 	}
 
 	@Data

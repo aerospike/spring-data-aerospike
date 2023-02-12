@@ -453,7 +453,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 					// so there are an equal amount of records with the list == [lcolor"] as with a color == "color"
 					assertThat(results)
 							.allSatisfy(rec -> {
-								List<String> colorList = (List<String>) rec.record.getList(binName);
+								@SuppressWarnings("unchecked") List<String> colorList = (List<String>) rec.record.getList(binName);
 								String color = colorList.get(0);
 								assertThat(color).isEqualTo(searchColor);
 							})
@@ -519,7 +519,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 					// so there are an equal amount of records with the map {"color" => #} as with a color == "color"
 					assertThat(results)
 							.allSatisfy(rec -> {
-								Map<String, ?> colorMap = (Map<String, ?>) rec.record.getMap(binName);
+								@SuppressWarnings("unchecked") Map<String, ?> colorMap = (Map<String, ?>) rec.record.getMap(binName);
 								assertThat(colorMap).containsKey(searchColor);
 							})
 							.hasSize(queryEngineTestDataPopulator.colourCounts.get(searchColor));
@@ -546,7 +546,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 					// so there are an equal amount of records with the map {"color" => #} as with a color == "color"
 					assertThat(results)
 							.allSatisfy(rec -> {
-								Map<?, String> colorMap = (Map<?, String>) rec.record.getMap(binName);
+								@SuppressWarnings("unchecked") Map<?, String> colorMap = (Map<?, String>) rec.record.getMap(binName);
 								assertThat(colorMap).containsValue(searchColor);
 							})
 							.hasSize(queryEngineTestDataPopulator.colourCounts.get(searchColor));
@@ -575,7 +575,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 					AtomicInteger age26Count = new AtomicInteger();
 					AtomicInteger age27Count = new AtomicInteger();
 					results.forEach(keyRecord -> {
-						Map<Long, ?> ageColorMap = (Map<Long, ?>) keyRecord.record.getMap(binName);
+						@SuppressWarnings("unchecked") Map<Long, ?> ageColorMap = (Map<Long, ?>) keyRecord.record.getMap(binName);
 						// This is always a one item map
 						for (Long age : ageColorMap.keySet()) {
 							if (age == SKIP_LONG_VALUE) {
@@ -619,7 +619,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 					AtomicInteger age26Count = new AtomicInteger();
 					AtomicInteger age27Count = new AtomicInteger();
 					results.forEach(keyRecord -> {
-						Map<?, Long> colorAgeMap = (Map<?, Long>) keyRecord.record.getMap(binName);
+						@SuppressWarnings("unchecked") Map<?, Long> colorAgeMap = (Map<?, Long>) keyRecord.record.getMap(binName);
 						// This is always a one item map
 						for (Long age : colorAgeMap.values()) {
 							if (age == SKIP_LONG_VALUE) {

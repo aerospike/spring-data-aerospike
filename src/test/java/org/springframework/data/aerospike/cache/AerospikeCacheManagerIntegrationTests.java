@@ -197,7 +197,6 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
 
         @CacheEvict("TEST")
         public void cacheEvictMethod(String param) {
-
         }
 
         @CachePut("TEST")
@@ -218,7 +217,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     public static class CachedObject {
-        private String value;
+        private final String value;
 
         public CachedObject(String value) {
             this.value = value;

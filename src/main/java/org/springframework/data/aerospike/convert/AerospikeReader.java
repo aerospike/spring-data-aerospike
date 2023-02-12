@@ -21,5 +21,4 @@ import org.springframework.data.convert.EntityReader;
  * Interface to read object from store specific sources.
  */
 public interface AerospikeReader<T> extends EntityReader<T, AerospikeReadData> {
-
 }
