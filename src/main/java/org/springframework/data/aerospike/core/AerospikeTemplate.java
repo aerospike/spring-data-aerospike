@@ -792,6 +792,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return applyPostProcessingOnResults(results, query);
     }
 
+    @SuppressWarnings("SameParameterValue")
     <T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Sort sort,
                                                          long offset, long limit, Filter filter,
                                                          Qualifier... qualifiers) {

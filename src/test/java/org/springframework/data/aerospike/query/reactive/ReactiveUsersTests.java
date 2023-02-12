@@ -13,22 +13,22 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 
 public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
 
-    @Test
-    public void usersInNorthRegion() {
-        Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
-            .setField("region")
-            .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get("n"))
-        );
-        Flux<KeyRecord> flux = queryEngine.select(namespace, USERS_SET, null, qualifier);
+	@Test
+	public void usersInNorthRegion() {
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("region")
+				.setFilterOperation(FilterOperation.EQ)
+				.setValue1(Value.get("n"))
+		);
+		Flux<KeyRecord> flux = queryEngine.select(namespace, USERS_SET, null, qualifier);
 
-        StepVerifier.create(flux.collectList())
-            .expectNextMatches(results -> {
-                assertThat(results)
-                    .isNotEmpty()
-                    .allSatisfy(rec -> assertThat(rec.record.getString("region")).isEqualTo("n"));
-                return true;
-            })
-            .verifyComplete();
-    }
+		StepVerifier.create(flux.collectList())
+				.expectNextMatches(results -> {
+					assertThat(results)
+							.isNotEmpty()
+							.allSatisfy(rec-> assertThat(rec.record.getString("region")).isEqualTo("n"));
+					return true;
+				})
+				.verifyComplete();
+	}
 }

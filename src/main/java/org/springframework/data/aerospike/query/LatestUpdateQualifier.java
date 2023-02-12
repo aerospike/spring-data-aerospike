@@ -26,6 +26,7 @@ import com.aerospike.client.command.ParticleType;
  */
 public class LatestUpdateQualifier extends Qualifier {
 
+    @SuppressWarnings("MissingSerialAnnotation")
     private static final long serialVersionUID = -8767573059309320133L;
 
     public LatestUpdateQualifier(FilterOperation op, Value value) {

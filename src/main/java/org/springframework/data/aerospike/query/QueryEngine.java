@@ -112,6 +112,7 @@ public class QueryEngine {
         return new KeyRecordIterator(namespace, rs);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private Record getRecord(Policy policy, Key key, String[] binNames) {
         if (binNames == null || binNames.length == 0) {
             return client.get(policy, key);

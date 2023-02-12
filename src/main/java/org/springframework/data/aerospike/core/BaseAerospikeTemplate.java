@@ -289,7 +289,7 @@ abstract class BaseAerospikeTemplate {
             .collect(Collectors.toList());
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "SameParameterValue"})
     private <S> S convertIfNecessary(Object source, Class<S> type) {
         return type.isAssignableFrom(source.getClass()) ? (S) source :
             converter.getConversionService().convert(source, type);

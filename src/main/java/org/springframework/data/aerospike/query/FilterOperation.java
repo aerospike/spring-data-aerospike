@@ -932,6 +932,7 @@ public enum FilterOperation {
         return Filter.range(getField(map), collectionType, getValue1(map).toLong(), getValue2(map).toLong());
     }
 
+    @SuppressWarnings("SameParameterValue")
     protected Filter geoWithinRadius(IndexCollectionType collectionType, Map<String, Object> map) {
         return Filter.geoContains(getField(map), getValue1(map).toString());
     }

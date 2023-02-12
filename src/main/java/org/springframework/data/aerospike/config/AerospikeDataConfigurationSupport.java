@@ -140,6 +140,7 @@ public abstract class AerospikeDataConfigurationSupport {
         return getClass().getPackage().getName();
     }
 
+    @SuppressWarnings("SameReturnValue")
     protected FieldNamingStrategy fieldNamingStrategy() {
         return PropertyNameFieldNamingStrategy.INSTANCE;
     }
@@ -148,6 +149,7 @@ public abstract class AerospikeDataConfigurationSupport {
 
     protected abstract String nameSpace();
 
+    @SuppressWarnings("SameReturnValue")
     protected boolean isCreateIndexesOnStartup() {
         return true;
     }

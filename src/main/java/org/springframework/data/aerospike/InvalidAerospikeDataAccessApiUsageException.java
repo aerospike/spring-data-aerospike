@@ -23,6 +23,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
  */
 public class InvalidAerospikeDataAccessApiUsageException extends InvalidDataAccessApiUsageException {
 
+    @SuppressWarnings("MissingSerialAnnotation")
     private static final long serialVersionUID = -5449729113380096389L;
 
     public InvalidAerospikeDataAccessApiUsageException(String msg) {

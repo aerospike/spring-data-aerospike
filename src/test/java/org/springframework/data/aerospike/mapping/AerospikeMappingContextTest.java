@@ -27,26 +27,26 @@ import static org.mockito.Mockito.mock;
  * @author Jean Mercier
  */
 public class AerospikeMappingContextTest {
+	
+	@Test
+	public void setFieldNamingStrategy() {
+		AerospikeMappingContext context = new AerospikeMappingContext();
+		context.setApplicationContext(mock(ApplicationContext.class));
+		context.setFieldNamingStrategy(null);
+		
+		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
 
-    @Test
-    public void setFieldNamingStrategy() {
-        AerospikeMappingContext context = new AerospikeMappingContext();
-        context.setApplicationContext(mock(ApplicationContext.class));
-        context.setFieldNamingStrategy(null);
+		assertThat(entity.getPersistentProperty("firstName").getField().getName()).isEqualTo("firstName");
+	}
 
-        AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
+	@Test
+	public void createPersistentEntityTypeInformationOfT() {
+		AerospikeMappingContext context = new AerospikeMappingContext();
+		context.setApplicationContext(mock(ApplicationContext.class));
+		context.setFieldNamingStrategy(null);
+		
+		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
 
-        assertThat(entity.getPersistentProperty("firstName").getField().getName()).isEqualTo("firstName");
-    }
-
-    @Test
-    public void createPersistentEntityTypeInformationOfT() {
-        AerospikeMappingContext context = new AerospikeMappingContext();
-        context.setApplicationContext(mock(ApplicationContext.class));
-        context.setFieldNamingStrategy(null);
-
-        AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(Person.class);
-
-        assertThat(entity.getTypeInformation().getType().getSimpleName()).isEqualTo(Person.class.getSimpleName());
-    }
+		assertThat(entity.getTypeInformation().getType().getSimpleName()).isEqualTo(Person.class.getSimpleName());
+	}
 }

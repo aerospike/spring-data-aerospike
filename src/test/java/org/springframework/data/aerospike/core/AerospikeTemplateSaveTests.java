@@ -66,7 +66,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         template.save(new VersionedClass(id, "foo"));
 
         assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo")))
-            .isInstanceOf(OptimisticLockingFailureException.class);
+                .isInstanceOf(OptimisticLockingFailureException.class);
     }
 
     @Test
@@ -80,7 +80,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldFailSaveNewDocumentWithVersionGreaterThanZero() {
         assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo", 5L)))
-            .isInstanceOf(DataRetrievalFailureException.class);
+                .isInstanceOf(DataRetrievalFailureException.class);
     }
 
     @Test
@@ -99,12 +99,12 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
         VersionedClass byId = template.findById(id, VersionedClass.class);
         assertThat(byId.getField())
-            .isEqualTo("field");
+                .isEqualTo("field");
 
         template.save(new VersionedClass(id, null, byId.version));
 
         assertThat(template.findById(id, VersionedClass.class).getField())
-            .isNull();
+                .isNull();
     }
 
     @Test
@@ -217,7 +217,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void rejectsNullObjectToBeSaved() {
         assertThatThrownBy(() -> template.save(null))
-            .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

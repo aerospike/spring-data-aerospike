@@ -20,53 +20,52 @@ import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Optional;
 
 /**
  * @author Peter Milne
  * @author Jean Mercier
  */
 public class StubParameterAccessor implements AerospikeParameterAccessor {
+	
+	private final Object[] values;
 
-    private final Object[] values;
+	public StubParameterAccessor(Object... values) {
+		this.values = values;
+	}
 
-    public StubParameterAccessor(Object... values) {
-        this.values = values;
-    }
+	@Override
+	public Pageable getPageable() {
+		return null;
+	}
 
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public Pageable getPageable() {
-        return null;
-    }
+	@Override
+	public Sort getSort() {
+		return null;
+	}
 
-    @SuppressWarnings("NullableProblems")
-    @Override
-    public Sort getSort() {
-        return null;
-    }
+	@Override
+	public Object getBindableValue(int index) {
+		return values[index];
+	}
 
-    @Override
-    public Object getBindableValue(int index) {
-        return values[index];
-    }
+	@Override
+	public boolean hasBindableNullValue() {
+		return false;
+	}
 
-    @Override
-    public boolean hasBindableNullValue() {
-        return false;
-    }
+	@Override
+	public Iterator<Object> iterator() {
+		return Arrays.asList(values).iterator();
+	}
 
-    @Override
-    public Iterator<Object> iterator() {
-        return Arrays.asList(values).iterator();
-    }
+	@Override
+	public Object[] getValues() {
+		return this.values;
+	}
 
-    @Override
-    public Object[] getValues() {
-        return this.values;
-    }
-
-    @Override
-    public Class<?> findDynamicProjection() {
-        return null;
-    }
+	@Override
+	public Class<?> findDynamicProjection() {
+		return null;
+	}
 }

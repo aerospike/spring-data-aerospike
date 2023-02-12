@@ -639,6 +639,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
+    @SuppressWarnings("SameParameterValue")
     <T, S> Flux<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Sort sort,
                                                        long offset, long limit, Filter filter,
                                                        Qualifier... qualifiers) {

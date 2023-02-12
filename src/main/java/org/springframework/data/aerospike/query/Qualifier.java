@@ -46,6 +46,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     protected static final String QUALIFIERS = "qualifiers";
     protected static final String OPERATION = "operation";
     protected static final String AS_FILTER = "queryAsFilter";
+    @SuppressWarnings("MissingSerialAnnotation")
     private static final long serialVersionUID = -2689196529952712849L;
     protected final Map<String, Object> internalMap;
 
@@ -128,8 +129,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
             //			res = value.toString();
             //			break;
             case ParticleType.STRING:
-                res = String.format("'%s'", value);
-                break;
             case ParticleType.GEOJSON:
                 res = String.format("'%s'", value);
                 break;
@@ -177,7 +176,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
     @SuppressWarnings("NullableProblems")
     @Override
-    public void putAll(Map<? extends String, ? extends Object> m) {
+    public void putAll(Map<? extends String, ?> m) {
         internalMap.putAll(m);
     }
 

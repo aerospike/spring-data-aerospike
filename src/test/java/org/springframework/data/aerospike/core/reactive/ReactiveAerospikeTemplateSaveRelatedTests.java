@@ -42,8 +42,8 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         reactiveTemplate.save(new VersionedClass(id, "foo", 0L)).subscribeOn(Schedulers.parallel()).block();
 
         StepVerifier.create(reactiveTemplate.save(new VersionedClass(id, "foo", 0L)).subscribeOn(Schedulers.parallel()))
-            .expectError(OptimisticLockingFailureException.class)
-            .verify();
+                .expectError(OptimisticLockingFailureException.class)
+                .verify();
     }
 
     @Test
@@ -57,8 +57,8 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void save_shouldFailSaveNewDocumentWithVersionGreaterThanZero() {
         StepVerifier.create(reactiveTemplate.save(new VersionedClass(id, "foo", 5L)).subscribeOn(Schedulers.parallel()))
-            .expectError(DataRetrievalFailureException.class)
-            .verify();
+                .expectError(DataRetrievalFailureException.class)
+                .verify();
     }
 
     @Test
@@ -157,12 +157,12 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
             String data = "value-" + counterValue;
             VersionedClass messageData = new VersionedClass(id, data);
             reactiveTemplate.save(messageData)
-                .subscribeOn(Schedulers.parallel())
-                .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
-                    optimisticLockCounter.incrementAndGet();
-                    return Mono.empty();
-                })
-                .block();
+                    .subscribeOn(Schedulers.parallel())
+                    .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
+                        optimisticLockCounter.incrementAndGet();
+                        return Mono.empty();
+                    })
+                    .block();
         });
 
         assertThat(optimisticLockCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
@@ -199,16 +199,16 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         reactiveTemplate.save(new VersionedClass(id, "foo2", 2L)).subscribeOn(Schedulers.parallel()).block();
 
         StepVerifier.create(reactorClient.get(new Policy(), key))
-            .assertNext(keyRecord -> assertThat(keyRecord.record.bins)
-                .doesNotContainKey("notPresent")
-                .contains(entry("field", "foo2")))
-            .verifyComplete();
+                .assertNext(keyRecord -> assertThat(keyRecord.record.bins)
+                        .doesNotContainKey("notPresent")
+                        .contains(entry("field", "foo2")))
+                .verifyComplete();
 
     }
 
     @Test
     public void save_rejectsNullObjectToBeSaved() {
         assertThatThrownBy(() -> reactiveTemplate.save(null).block())
-            .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

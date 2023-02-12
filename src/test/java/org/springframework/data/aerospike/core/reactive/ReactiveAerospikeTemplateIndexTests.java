@@ -37,10 +37,9 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     public void createIndex_shouldNoThrowExceptionIfIndexAlreadyExists() {
         reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING).block();
 
-        assertThatCode(() -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField",
-                IndexType.STRING)
-            .block())
-            .doesNotThrowAnyException();
+        assertThatCode(() -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING)
+                .block())
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -48,16 +47,14 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
         AtomicInteger errorsCount = new AtomicInteger();
 
         IntStream.range(0, 5)
-            .mapToObj(i -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField",
-                    IndexType.STRING)
-                .onErrorResume(throwable -> {
-                    errorsCount.incrementAndGet();
-                    return Mono.empty();
-                }))
-            .forEach(Mono::block);
+                .mapToObj(i -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING)
+                        .onErrorResume(throwable -> {
+                            errorsCount.incrementAndGet();
+                            return Mono.empty();
+                        }))
+                .forEach(Mono::block);
 
-        assertThat(errorsCount.get()).isLessThanOrEqualTo(4);// depending on the timing all 5 requests can succeed on
-        // Aerospike Server
+        assertThat(errorsCount.get()).isLessThanOrEqualTo(4);// depending on the timing all 5 requests can succeed on Aerospike Server
 
         assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
     }
@@ -65,39 +62,30 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     @Test
     public void createIndex_createsIndex() {
         String setName = reactiveTemplate.getSetName(AerospikeTemplateIndexTests.IndexedDocument.class);
-        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "stringField",
-                IndexType.STRING)
-            .block();
+        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING).block();
 
         awaitTenSecondsUntil(() ->
-            assertThat(additionalAerospikeTestOperations.getIndexes(setName))
-                .contains(Index.builder().name(INDEX_TEST_1).namespace(namespace).set(setName).bin("stringField")
-                    .indexType(IndexType.STRING).build())
+                assertThat(additionalAerospikeTestOperations.getIndexes(setName))
+                        .contains(Index.builder().name(INDEX_TEST_1).namespace(namespace).set(setName).bin("stringField").indexType(IndexType.STRING).build())
         );
     }
 
     @Test
     public void createIndex_createsListIndex() {
         String setName = reactiveTemplate.getSetName(AerospikeTemplateIndexTests.IndexedDocument.class);
-        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "listField",
-                IndexType.STRING, IndexCollectionType.LIST)
-            .block();
+        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "listField", IndexType.STRING, IndexCollectionType.LIST).block();
 
         awaitTenSecondsUntil(() ->
-            assertThat(additionalAerospikeTestOperations.getIndexes(setName))
-                .contains(Index.builder().name(INDEX_TEST_1).namespace(namespace).set(setName).bin("listField")
-                    .indexType(IndexType.STRING).indexCollectionType(IndexCollectionType.LIST).build())
+                assertThat(additionalAerospikeTestOperations.getIndexes(setName))
+                        .contains(Index.builder().name(INDEX_TEST_1).namespace(namespace).set(setName).bin("listField")
+                                .indexType(IndexType.STRING).indexCollectionType(IndexCollectionType.LIST).build())
         );
     }
 
     @Test
     public void createIndex_createsMapIndex() {
-        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "mapField",
-                IndexType.STRING, IndexCollectionType.MAPKEYS)
-            .block();
-        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_2, "mapField",
-                IndexType.STRING, IndexCollectionType.MAPVALUES)
-            .block();
+        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "mapField", IndexType.STRING, IndexCollectionType.MAPKEYS).block();
+        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_2, "mapField", IndexType.STRING, IndexCollectionType.MAPVALUES).block();
 
         awaitTenSecondsUntil(() -> {
             assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
@@ -107,12 +95,8 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
 
     @Test
     public void createIndex_createsIndexForDifferentTypes() {
-        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "mapField",
-                IndexType.STRING)
-            .block();
-        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_2, "mapField",
-                IndexType.NUMERIC)
-            .block();
+        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "mapField", IndexType.STRING).block();
+        reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_2, "mapField", IndexType.NUMERIC).block();
 
         awaitTenSecondsUntil(() -> {
             assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
@@ -124,17 +108,17 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     public void createIndex_createsIndexOnNestedList() {
         String setName = reactiveTemplate.getSetName(AerospikeTemplateIndexTests.IndexedDocument.class);
         reactiveTemplate.createIndex(
-            AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "nestedList",
-            IndexType.STRING, IndexCollectionType.LIST, CTX.listIndex(1)).block();
+                AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "nestedList",
+                IndexType.STRING, IndexCollectionType.LIST, CTX.listIndex(1)).block();
 
         awaitTenSecondsUntil(() -> {
-                CTX ctx = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
-                    .filter(o -> o.getName().equals(INDEX_TEST_1))
-                    .findFirst().orElse(null)).getCTX()[0];
+                    CTX ctx = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
+                            .filter(o -> o.getName().equals(INDEX_TEST_1))
+                            .findFirst().orElse(null)).getCTX()[0];
 
-                assertThat(ctx.id).isEqualTo(CTX.listIndex(1).id);
-                assertThat(ctx.value.toLong()).isEqualTo(CTX.listIndex(1).value.toLong());
-            }
+                    assertThat(ctx.id).isEqualTo(CTX.listIndex(1).id);
+                    assertThat(ctx.value.toLong()).isEqualTo(CTX.listIndex(1).value.toLong());
+                }
         );
     }
 
@@ -143,32 +127,31 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
         String setName = reactiveTemplate.getSetName(AerospikeTemplateIndexTests.IndexedDocument.class);
 
         CTX[] ctx = new CTX[]{
-            CTX.mapKey(com.aerospike.client.Value.get("key1")),
-            CTX.mapKey(com.aerospike.client.Value.get("innerKey2"))
+                CTX.mapKey(com.aerospike.client.Value.get("key1")),
+                CTX.mapKey(com.aerospike.client.Value.get("innerKey2"))
         };
         reactiveTemplate.createIndex(AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1,
-            "mapOfLists", IndexType.STRING, IndexCollectionType.MAPKEYS, ctx).block();
+                "mapOfLists", IndexType.STRING, IndexCollectionType.MAPKEYS, ctx).block();
 
         awaitTenSecondsUntil(() -> {
-                CTX[] ctxResponse =
-                    Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
-                    .filter(o -> o.getName().equals(INDEX_TEST_1))
-                    .findFirst().orElse(null)).getCTX();
+                    CTX[] ctxResponse = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
+                            .filter(o -> o.getName().equals(INDEX_TEST_1))
+                            .findFirst().orElse(null)).getCTX();
 
-                assertThat(ctx.length).isEqualTo(ctxResponse.length);
-                assertThat(ctx[0].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
-                assertThat(ctx[1].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
-                assertThat(ctx[0].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
-                assertThat(ctx[1].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
-            }
+                    assertThat(ctx.length).isEqualTo(ctxResponse.length);
+                    assertThat(ctx[0].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
+                    assertThat(ctx[1].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
+                    assertThat(ctx[0].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
+                    assertThat(ctx[1].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
+                }
         );
     }
 
     @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
         assertThatCode(() -> reactiveTemplate.deleteIndex(IndexedDocument.class, "not-existing-index")
-            .block())
-            .doesNotThrowAnyException();
+                .block())
+                .doesNotThrowAnyException();
     }
 
     @Test
@@ -188,7 +171,6 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     @Value
     @Document
     public static class IndexedDocument {
-
         String stringField;
         int intField;
     }

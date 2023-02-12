@@ -27,7 +27,6 @@ import org.springframework.data.annotation.Id;
 @Document
 public class User {
 
-    @Id
-    String id;
-    String username;
+	@Id String id;
+	String username;
 }

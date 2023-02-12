@@ -17,26 +17,25 @@ import static org.mockito.Mockito.when;
 
 class ReactiveAerospikePersistenceEntityIndexCreatorTest {
 
-    final boolean createIndexesOnStartup = true;
-    final AerospikeIndexResolver aerospikeIndexResolver = mock(AerospikeIndexResolver.class);
-    final ReactiveAerospikeTemplate template = mock(ReactiveAerospikeTemplate.class);
+    boolean createIndexesOnStartup = true;
+    AerospikeIndexResolver aerospikeIndexResolver = mock(AerospikeIndexResolver.class);
+    ReactiveAerospikeTemplate template = mock(ReactiveAerospikeTemplate.class);
 
-    final ReactiveAerospikePersistenceEntityIndexCreator creator =
-        new ReactiveAerospikePersistenceEntityIndexCreator(null, createIndexesOnStartup, aerospikeIndexResolver,
-            template);
+    ReactiveAerospikePersistenceEntityIndexCreator creator =
+            new ReactiveAerospikePersistenceEntityIndexCreator(null, createIndexesOnStartup, aerospikeIndexResolver, template);
 
-    final String name = "someName";
-    final String fieldName = "fieldName";
-    final Class<?> targetClass = AutoIndexedDocument.class;
-    final IndexType type = IndexType.STRING;
-    final IndexCollectionType collectionType = IndexCollectionType.DEFAULT;
-    final AerospikeIndexDefinition definition = AerospikeIndexDefinition.builder()
-        .name(name)
-        .fieldName(fieldName)
-        .entityClass(targetClass)
-        .type(type)
-        .collectionType(collectionType)
-        .build();
+    String name = "someName";
+    String fieldName = "fieldName";
+    Class<?> targetClass = AutoIndexedDocument.class;
+    IndexType type = IndexType.STRING;
+    IndexCollectionType collectionType = IndexCollectionType.DEFAULT;
+    AerospikeIndexDefinition definition = AerospikeIndexDefinition.builder()
+            .name(name)
+            .fieldName(fieldName)
+            .entityClass(targetClass)
+            .type(type)
+            .collectionType(collectionType)
+            .build();
 
     @Test
     void shouldInstallIndex() {
@@ -50,7 +49,7 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
     @Test
     void shouldSkipInstallIndexOnAlreadyExists() {
         when(template.createIndex(targetClass, name, fieldName, type, collectionType))
-            .thenReturn(Mono.error(new IndexAlreadyExistsException("some message", new RuntimeException())));
+                .thenReturn(Mono.error(new IndexAlreadyExistsException("some message", new RuntimeException())));
 
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
 
@@ -60,7 +59,7 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
     @Test
     void shouldFailInstallIndexOnUnhandledException() {
         when(template.createIndex(targetClass, name, fieldName, type, collectionType))
-            .thenReturn(Mono.error(new RuntimeException()));
+                .thenReturn(Mono.error(new RuntimeException()));
 
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
 

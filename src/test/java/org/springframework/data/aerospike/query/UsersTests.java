@@ -9,38 +9,38 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 
 public class UsersTests extends BaseQueryEngineTests {
 
-    @Test
-    public void allUsers() {
-        KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null);
+	@Test
+	public void allUsers() {
+		KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null);
 
-        assertThat(it).toIterable().hasSize(RECORD_COUNT);
-    }
+		assertThat(it).toIterable().hasSize(RECORD_COUNT);
+	}
 
-    @Test
-    public void usersInterupted() {
-        try (KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null)) {
-            int counter = 0;
-            while (it.hasNext()) {
-                it.next();
-                counter++;
-                if (counter >= 1000)
-                    break;
-            }
-        }
-    }
+	@Test
+	public void usersInterupted() {
+		try (KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null)) {
+			int counter = 0;
+			while (it.hasNext()) {
+				it.next();
+				counter++;
+				if (counter >= 1000)
+					break;
+			}
+		}
+	}
 
-    @Test
-    public void usersInNorthRegion() {
-        Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
-            .setField("region")
-            .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get("n"))
-        );
+	@Test
+	public void usersInNorthRegion() {
+		Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+				.setField("region")
+				.setFilterOperation(FilterOperation.EQ)
+				.setValue1(Value.get("n"))
+		);
 
-        KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, qualifier);
+		KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, qualifier);
 
-        assertThat(it).toIterable()
-            .isNotEmpty()
-            .allSatisfy(rec -> assertThat(rec.record.getString("region")).isEqualTo("n"));
-    }
+		assertThat(it).toIterable()
+				.isNotEmpty()
+				.allSatisfy(rec -> assertThat(rec.record.getString("region")).isEqualTo("n"));
+	}
 }

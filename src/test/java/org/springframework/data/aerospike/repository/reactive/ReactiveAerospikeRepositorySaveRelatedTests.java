@@ -39,35 +39,31 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
 
     @Test
     public void saveEntityShouldInsertNewEntity() {
-        StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel())).expectNext(customer1)
-            .verifyComplete();
+        StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel())).expectNext(customer1).verifyComplete();
 
         assertCustomerExistsInRepo(customer1);
     }
 
     @Test
     public void saveEntityShouldUpdateExistingEntity() {
-        StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel())).expectNext(customer1)
-            .verifyComplete();
+        StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel())).expectNext(customer1).verifyComplete();
 
         customer1.setFirstName("Matt");
         customer1.setLastName("Groening");
 
-        StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel())).expectNext(customer1)
-            .verifyComplete();
+        StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel())).expectNext(customer1).verifyComplete();
 
         assertCustomerExistsInRepo(customer1);
     }
 
     @Test
     public void saveIterableOfNewEntitiesShouldInsertEntity() {
-        StepVerifier.create(customerRepo.saveAll(Arrays.asList(customer1, customer2, customer3))
-                .subscribeOn(Schedulers.parallel()))
-            .recordWith(ArrayList::new)
-            .thenConsumeWhile(customer -> true)
-            .consumeRecordedWith(actual ->
-                assertThat(actual).containsOnly(customer1, customer2, customer3)
-            ).verifyComplete();
+        StepVerifier.create(customerRepo.saveAll(Arrays.asList(customer1, customer2, customer3)).subscribeOn(Schedulers.parallel()))
+                .recordWith(ArrayList::new)
+                .thenConsumeWhile(customer -> true)
+                .consumeRecordedWith(actual ->
+                        assertThat(actual).containsOnly(customer1, customer2, customer3)
+                ).verifyComplete();
 
         assertCustomerExistsInRepo(customer1);
         assertCustomerExistsInRepo(customer2);
@@ -77,14 +73,13 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
     @Test
     public void saveIterableOfMixedEntitiesShouldInsertNewAndUpdateOld() {
         StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel()))
-            .expectNext(customer1).verifyComplete();
+                .expectNext(customer1).verifyComplete();
 
         customer1.setFirstName("Matt");
         customer1.setLastName("Groening");
 
-        StepVerifier.create(customerRepo.saveAll(Arrays.asList(customer1, customer2, customer3))
-                .subscribeOn(Schedulers.parallel()))
-            .expectNextCount(3).verifyComplete();
+        StepVerifier.create(customerRepo.saveAll(Arrays.asList(customer1, customer2, customer3)).subscribeOn(Schedulers.parallel()))
+                .expectNextCount(3).verifyComplete();
 
         assertCustomerExistsInRepo(customer1);
         assertCustomerExistsInRepo(customer2);
@@ -93,9 +88,8 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
 
     @Test
     public void savePublisherOfEntitiesShouldInsertEntity() {
-        StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2, customer3))
-                .subscribeOn(Schedulers.parallel()))
-            .expectNextCount(3).verifyComplete();
+        StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2, customer3)).subscribeOn(Schedulers.parallel()))
+                .expectNextCount(3).verifyComplete();
 
         assertCustomerExistsInRepo(customer1);
         assertCustomerExistsInRepo(customer2);
@@ -105,13 +99,12 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
     @Test
     public void savePublisherOfMixedEntitiesShouldInsertNewAndUpdateOld() {
         StepVerifier.create(customerRepo.save(customer1).subscribeOn(Schedulers.parallel()))
-            .expectNext(customer1).verifyComplete();
+                .expectNext(customer1).verifyComplete();
 
         customer1.setFirstName("Matt");
         customer1.setLastName("Groening");
 
-        StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2, customer3))).expectNextCount(3)
-            .verifyComplete();
+        StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2, customer3))).expectNextCount(3).verifyComplete();
 
         assertCustomerExistsInRepo(customer1);
         assertCustomerExistsInRepo(customer2);
@@ -121,13 +114,13 @@ public class ReactiveAerospikeRepositorySaveRelatedTests extends BaseReactiveInt
     @Test
     public void shouldSaveObjectWithPersistenceConstructorThatHasAllFields() {
         CompositeObject expected = CompositeObject.builder()
-            .id("composite-object-1")
-            .intValue(15)
-            .simpleObject(SimpleObject.builder().property1("prop1").property2(555).build())
-            .build();
+                .id("composite-object-1")
+                .intValue(15)
+                .simpleObject(SimpleObject.builder().property1("prop1").property2(555).build())
+                .build();
 
         StepVerifier.create(compositeRepo.save(expected).subscribeOn(Schedulers.parallel()))
-            .expectNext(expected).verifyComplete();
+                .expectNext(expected).verifyComplete();
 
         StepVerifier.create(compositeRepo.findById(expected.getId())).consumeNextWith(actual -> {
             assertThat(actual.getIntValue()).isEqualTo(expected.getIntValue());

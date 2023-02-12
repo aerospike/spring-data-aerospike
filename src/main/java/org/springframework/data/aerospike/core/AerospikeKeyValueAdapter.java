@@ -127,13 +127,12 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
     }
 
     @SuppressWarnings("NullableProblems")
     @Override
     public Collection<?> find(KeyValueQuery<?> query, String keyspace) {
-        // TODO Auto-generated method stub
         return super.find(query, keyspace);
     }
 
@@ -141,14 +140,12 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
     @Override
     public CloseableIterator<Entry<Object, Object>> entries(
         String keyspace) {
-        // TODO Auto-generated method stub
         return null;
     }
 
     @SuppressWarnings("NullableProblems")
     @Override
     public long count(String keyspace) {
-        // TODO Auto-generated method stub
         return 0;
     }
 

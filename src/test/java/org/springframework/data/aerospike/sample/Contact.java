@@ -15,25 +15,25 @@
  */
 package org.springframework.data.aerospike.sample;
 
-import lombok.Data;
+import java.util.UUID;
+
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
 
-import java.util.UUID;
+import lombok.Data;
 
 /**
  * Sample contact domain class.
- *
  * @author Oliver Gierke
  */
 @Data
 @Document
 public abstract class Contact {
 
-    @Id
-    public String id;
+	@Id
+	public String id;
 
-    public Contact() {
-        this.id = UUID.randomUUID().toString();
-    }
+	public Contact() {
+		this.id = UUID.randomUUID().toString();
+	}
 }

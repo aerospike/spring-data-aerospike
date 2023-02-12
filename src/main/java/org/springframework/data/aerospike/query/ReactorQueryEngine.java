@@ -101,6 +101,7 @@ public class ReactorQueryEngine {
         return client.query(localQueryPolicy, statement);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private Mono<KeyRecord> getRecord(Policy policy, Key key, String[] binNames) {
         if (binNames == null || binNames.length == 0) {
             return client.get(policy, key);

@@ -14,8 +14,7 @@ public class FilterExpressionsBuilder {
         if (qualifiers != null && qualifiers.length != 0) {
             List<Qualifier> relevantQualifiers = Arrays.stream(qualifiers)
                 .filter(Objects::nonNull)
-                .filter(this::excludeIrrelevantFilters)
-                .collect(Collectors.toList());
+                .filter(this::excludeIrrelevantFilters).toList();
 
             // in case there is more than 1 relevant qualifier -> the default behaviour is AND
             if (relevantQualifiers.size() > 1) {

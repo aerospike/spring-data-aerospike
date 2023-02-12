@@ -11,12 +11,12 @@ import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 
 @SpringBootTest(
-    classes = {BlockingTestConfig.class, CommonTestConfig.class},
-    properties = {
-        "expirationProperty: 1",
-        "setSuffix: service1",
-        "indexSuffix: index1"
-    }
+        classes = {BlockingTestConfig.class, CommonTestConfig.class},
+        properties = {
+                "expirationProperty: 1",
+                "setSuffix: service1",
+                "indexSuffix: index1"
+        }
 )
 public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests {
 

@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.query;
 
 public class QualifierException extends RuntimeException {
 
+    @SuppressWarnings("MissingSerialAnnotation")
     private static final long serialVersionUID = 1L;
 
     public QualifierException(String msg) {
