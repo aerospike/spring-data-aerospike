@@ -25,12 +25,12 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
  * @author Jean Mercier
  * @author Igor Ermolenko
  */
-public abstract class BaseAerospikeRepositoryFactoryBean<T extends Repository<S, ID>, S, ID> extends
-    RepositoryFactoryBeanSupport<T, S, ID> {
+public abstract class BaseAerospikeRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
+    extends RepositoryFactoryBeanSupport<T, S, ID> {
 
     protected Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
-    public BaseAerospikeRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+    protected BaseAerospikeRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
         super(repositoryInterface);
     }
 

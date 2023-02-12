@@ -40,9 +40,9 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     private final QueryMethodEvaluationContextProvider evaluationContextProvider;
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
-    public BaseAerospikePartTreeQuery(QueryMethod queryMethod,
-                                      QueryMethodEvaluationContextProvider evalContextProvider,
-                                      Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+    protected BaseAerospikePartTreeQuery(QueryMethod queryMethod,
+                                         QueryMethodEvaluationContextProvider evalContextProvider,
+                                         Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         this.queryMethod = queryMethod;
         this.evaluationContextProvider = evalContextProvider;
         this.queryCreator = queryCreator;

@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentProperty<AerospikePersistentProperty>
-    implements
-    AerospikePersistentProperty {
+public class BasicAerospikePersistentProperty
+    extends AnnotationBasedPersistentProperty<AerospikePersistentProperty>
+    implements AerospikePersistentProperty {
 
     private static final Set<Class<?>> SUPPORTED_ID_TYPES = new HashSet<>();
 

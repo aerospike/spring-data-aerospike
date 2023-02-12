@@ -29,8 +29,9 @@ import org.springframework.util.StringUtils;
  *
  * @author Oliver Gierke
  */
-public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, AerospikePersistentProperty> implements
-    AerospikePersistentEntity<T>, EnvironmentAware {
+public class BasicAerospikePersistentEntity<T>
+    extends BasicPersistentEntity<T, AerospikePersistentProperty>
+    implements AerospikePersistentEntity<T>, EnvironmentAware {
 
     static final int DEFAULT_EXPIRATION = 0;
     private final Lazy<String> setName;
