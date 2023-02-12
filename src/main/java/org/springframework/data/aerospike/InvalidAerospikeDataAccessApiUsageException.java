@@ -32,5 +32,4 @@ public class InvalidAerospikeDataAccessApiUsageException extends InvalidDataAcce
     public InvalidAerospikeDataAccessApiUsageException(String msg, Throwable cause) {
         super(msg, cause);
     }
-
 }

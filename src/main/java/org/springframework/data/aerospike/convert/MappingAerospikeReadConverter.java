@@ -30,7 +30,11 @@ import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.PreferredConstructor;
 import org.springframework.data.mapping.PropertyHandler;
-import org.springframework.data.mapping.model.*;
+import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
+import org.springframework.data.mapping.model.EntityInstantiator;
+import org.springframework.data.mapping.model.EntityInstantiators;
+import org.springframework.data.mapping.model.PersistentEntityParameterValueProvider;
+import org.springframework.data.mapping.model.PropertyValueProvider;
 import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
@@ -54,10 +58,10 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
     private final GenericConversionService conversionService;
 
     public MappingAerospikeReadConverter(EntityInstantiators entityInstantiators,
-        TypeAliasAccessor<Map<String, Object>> typeAliasAccessor,
-        TypeMapper<Map<String, Object>> typeMapper,
-        AerospikeMappingContext mappingContext, CustomConversions conversions,
-        GenericConversionService conversionService) {
+                                         TypeAliasAccessor<Map<String, Object>> typeAliasAccessor,
+                                         TypeMapper<Map<String, Object>> typeMapper,
+                                         AerospikeMappingContext mappingContext, CustomConversions conversions,
+                                         GenericConversionService conversionService) {
         this.entityInstantiators = entityInstantiators;
         this.typeAliasAccessor = typeAliasAccessor;
         this.typeMapper = typeMapper;
@@ -104,8 +108,8 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 
     @SuppressWarnings("unchecked")
     private <R> R convertProperties(AerospikePersistentEntity<?> entity,
-        RecordReadingPropertyValueProvider propertyValueProvider,
-        PersistentPropertyAccessor<?> accessor) {
+                                    RecordReadingPropertyValueProvider propertyValueProvider,
+                                    PersistentPropertyAccessor<?> accessor) {
         entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) persistentProperty -> {
 
             PreferredConstructor<?, AerospikePersistentProperty> constructor = entity.getPersistenceConstructor();
@@ -211,7 +215,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
     }
 
     private ConvertingPropertyAccessor<Object> getConvertingPropertyAccessor(AerospikePersistentEntity<?> entity,
-        RecordReadingPropertyValueProvider recordReadingPropertyValueProvider) {
+                                                                             RecordReadingPropertyValueProvider recordReadingPropertyValueProvider) {
         EntityInstantiator instantiator = entityInstantiators.getInstantiatorFor(entity);
         Object instance = instantiator.createInstance(entity, new PersistentEntityParameterValueProvider<>(entity,
             recordReadingPropertyValueProvider, null));
@@ -253,7 +257,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
         }
 
         public RecordReadingPropertyValueProvider(Key key, Integer expiration, int generation,
-            Map<String, Object> source) {
+                                                  Map<String, Object> source) {
             this.key = key;
             this.expiration = expiration;
             this.generation = generation;

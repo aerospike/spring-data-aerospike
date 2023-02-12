@@ -50,7 +50,7 @@ public class QueryEngine {
     private boolean scansEnabled = false;
 
     public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
-        FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
+                       FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
         this.client = client;
         this.statementBuilder = statementBuilder;
         this.filterExpressionsBuilder = filterExpressionsBuilder;
@@ -81,7 +81,7 @@ public class QueryEngine {
      * @return A KeyRecordIterator to iterate over the results
      */
     public KeyRecordIterator select(String namespace, String set, String[] binNames, Filter filter,
-        Qualifier... qualifiers) {
+                                    Qualifier... qualifiers) {
         /*
          * singleton using primary key
          */

@@ -43,7 +43,7 @@ public class Index {
     CTX[] ctx;
 
     public Index(String name, String namespace, String set, String bin, IndexType indexType,
-        IndexCollectionType indexCollectionType) {
+                 IndexCollectionType indexCollectionType) {
         this.name = name;
         this.namespace = namespace;
         this.set = set;

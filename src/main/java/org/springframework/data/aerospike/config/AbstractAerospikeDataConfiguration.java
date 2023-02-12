@@ -39,18 +39,18 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
 
     @Bean(name = "aerospikeTemplate")
     public AerospikeTemplate aerospikeTemplate(IAerospikeClient aerospikeClient,
-        MappingAerospikeConverter mappingAerospikeConverter,
-        AerospikeMappingContext aerospikeMappingContext,
-        AerospikeExceptionTranslator aerospikeExceptionTranslator,
-        QueryEngine queryEngine, IndexRefresher indexRefresher) {
+                                               MappingAerospikeConverter mappingAerospikeConverter,
+                                               AerospikeMappingContext aerospikeMappingContext,
+                                               AerospikeExceptionTranslator aerospikeExceptionTranslator,
+                                               QueryEngine queryEngine, IndexRefresher indexRefresher) {
         return new AerospikeTemplate(aerospikeClient, nameSpace(), mappingAerospikeConverter,
             aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine, indexRefresher);
     }
 
     @Bean(name = "aerospikeQueryEngine")
     public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
-        StatementBuilder statementBuilder,
-        FilterExpressionsBuilder filterExpressionsBuilder) {
+                                   StatementBuilder statementBuilder,
+                                   FilterExpressionsBuilder filterExpressionsBuilder) {
         QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder,
             aerospikeClient.getQueryPolicyDefault());
         queryEngine.setScansEnabled(aerospikeDataSettings().isScansEnabled());

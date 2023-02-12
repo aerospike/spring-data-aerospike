@@ -46,7 +46,7 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
      * Creates a new {@link MappingAerospikeConverter}.
      */
     public MappingAerospikeConverter(AerospikeMappingContext mappingContext, CustomConversions conversions,
-        AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor) {
+                                     AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor) {
         this.conversions = conversions;
         this.conversionService = new DefaultConversionService();
 

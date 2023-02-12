@@ -34,9 +34,9 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     private final AerospikeOperations aerospikeOperations;
 
     public AerospikePartTreeQuery(QueryMethod queryMethod,
-        QueryMethodEvaluationContextProvider evalContextProvider,
-        AerospikeOperations aerospikeOperations,
-        Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+                                  QueryMethodEvaluationContextProvider evalContextProvider,
+                                  AerospikeOperations aerospikeOperations,
+                                  Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(queryMethod, evalContextProvider, queryCreator);
         this.aerospikeOperations = aerospikeOperations;
     }

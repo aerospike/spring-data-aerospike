@@ -31,12 +31,12 @@ public class InfoResponseUtils {
     }
 
     public static <T> T getPropertyFromConfigResponse(String response, String propertyName,
-        Function<String, T> mapper) {
+                                                      Function<String, T> mapper) {
         return getPropertyFromResponse(response, propertyName, mapper, SEMICOLON_DELIMITER);
     }
 
     public static <T> T getPropertyFromResponse(String response, String propertyName, Function<String, T> mapper,
-        Pattern delimiterPattern) {
+                                                Pattern delimiterPattern) {
         String[] keyValuePair = delimiterPattern
             .splitAsStream(response)
             .filter(pair -> pair.startsWith(propertyName))

@@ -50,7 +50,7 @@ public class AerospikeWriteData {
     }
 
     public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version,
-        Collection<String> requestedBins) {
+                              Collection<String> requestedBins) {
         this.key = key;
         this.bins = bins;
         this.expiration = expiration;

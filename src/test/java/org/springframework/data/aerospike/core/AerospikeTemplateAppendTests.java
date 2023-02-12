@@ -54,5 +54,4 @@ public class AerospikeTemplateAppendTests extends BaseBlockingIntegrationTests {
         assertThat(actual.getFirstName()).isEqualTo("Nastya");
         assertThat(actual.getEmailAddress()).isEqualTo("nastya@gmail.com");
     }
-
 }

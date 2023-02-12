@@ -37,6 +37,7 @@ import java.util.Set;
  * @author Peter Milne
  */
 public class Qualifier implements Map<String, Object>, Serializable {
+
     protected static final String FIELD = "field";
     protected static final String IGNORE_CASE = "ignoreCase";
     protected static final String VALUE1 = "value1";
@@ -205,6 +206,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     public static class QualifierRegexpBuilder {
+
         private static final Character BACKSLASH = '\\';
         private static final Character DOT = '.';
         private static final Character ASTERISK = '*';
@@ -265,6 +267,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
     @Data
     public static class QualifierBuilder {
+
         private final Map<String, Object> map = new HashMap<>();
 
         public QualifierBuilder() {

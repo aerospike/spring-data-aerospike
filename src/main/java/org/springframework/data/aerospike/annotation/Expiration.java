@@ -15,7 +15,11 @@
  */
 package org.springframework.data.aerospike.annotation;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Demarcates a property to be used as expiration field. Expiration can be specified in two flavors: as an offset in

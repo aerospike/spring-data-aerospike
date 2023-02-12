@@ -63,7 +63,7 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 
     @SuppressWarnings("unchecked")
     public ReactiveAerospikeRepositoryFactory(ReactiveAerospikeOperations aerospikeOperations,
-        Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+                                              Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         Assert.notNull(aerospikeOperations, "AerospikeOperations must not be null!");
         Assert.notNull(queryCreator, "Query creator type must not be null!");
         this.queryCreator = queryCreator;
@@ -103,7 +103,7 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 
     @Override
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
-        QueryMethodEvaluationContextProvider evaluationContextProvider) {
+                                                                   QueryMethodEvaluationContextProvider evaluationContextProvider) {
         return Optional.of(
             new ReactiveAerospikeQueryLookupStrategy(key, evaluationContextProvider, this.aerospikeOperations,
                 this.queryCreator));
@@ -131,8 +131,9 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
          * @param queryCreator              must not be {@literal null}.
          */
         public ReactiveAerospikeQueryLookupStrategy(@Nullable Key key,
-            QueryMethodEvaluationContextProvider evaluationContextProvider,
-            ReactiveAerospikeOperations aerospikeOperations, Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+                                                    QueryMethodEvaluationContextProvider evaluationContextProvider,
+                                                    ReactiveAerospikeOperations aerospikeOperations, Class<?
+            extends AbstractQueryCreator<?, ?>> queryCreator) {
             Assert.notNull(evaluationContextProvider, "QueryMethodEvaluationContextProvider must not be null!");
             Assert.notNull(aerospikeOperations, "AerospikeOperations must not be null!");
             Assert.notNull(queryCreator, "Query creator type must not be null!");
@@ -143,8 +144,8 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 
         @Override
         public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata,
-            ProjectionFactory projectionFactory,
-            NamedQueries namedQueries) {
+                                            ProjectionFactory projectionFactory,
+                                            NamedQueries namedQueries) {
             QueryMethod queryMethod = new QueryMethod(method, metadata, projectionFactory);
             return new ReactiveAerospikePartTreeQuery(queryMethod, evaluationContextProvider, this.aerospikeOperations,
                 this.queryCreator);

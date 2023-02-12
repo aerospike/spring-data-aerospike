@@ -15,8 +15,12 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Bin;
+import com.aerospike.client.Key;
+import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
-import com.aerospike.client.*;
+import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
@@ -45,7 +49,13 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
@@ -67,11 +77,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private final ReactorIndexRefresher reactorIndexRefresher;
 
     public ReactiveAerospikeTemplate(IAerospikeReactorClient reactorClient,
-        String namespace,
-        MappingAerospikeConverter converter,
-        AerospikeMappingContext mappingContext,
-        AerospikeExceptionTranslator exceptionTranslator,
-        ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher) {
+                                     String namespace,
+                                     MappingAerospikeConverter converter,
+                                     AerospikeMappingContext mappingContext,
+                                     AerospikeExceptionTranslator exceptionTranslator,
+                                     ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher) {
         super(namespace, converter, mappingContext, exceptionTranslator, reactorClient.getWritePolicyDefault());
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
         this.reactorClient = reactorClient;
@@ -269,7 +279,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private <T> Mono<T> executeOperationsOnValue(T document, AerospikeWriteData data, Operation[] operations,
-        WritePolicy writePolicy) {
+                                                 WritePolicy writePolicy) {
         return reactorClient.operate(writePolicy, data.getKey(), operations)
             .filter(keyRecord -> Objects.nonNull(keyRecord.record))
             .map(keyRecord -> mapToEntity(keyRecord.key, getEntityClass(document), keyRecord.record))
@@ -517,20 +527,20 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
-        String binName, IndexType indexType) {
+                                      String binName, IndexType indexType) {
         return createIndex(entityClass, indexName, binName, indexType, IndexCollectionType.DEFAULT);
     }
 
     @Override
     public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
-        String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
+                                      String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
         return createIndex(entityClass, indexName, binName, indexType, indexCollectionType, new CTX[0]);
     }
 
     @Override
     public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
-        String binName, IndexType indexType, IndexCollectionType indexCollectionType,
-        CTX... ctx) {
+                                      String binName, IndexType indexType, IndexCollectionType indexCollectionType,
+                                      CTX... ctx) {
         Assert.notNull(entityClass, "Type must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
         Assert.notNull(binName, "Bin name must not be null!");
@@ -630,7 +640,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     <T, S> Flux<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Sort sort,
-        long offset, long limit, Filter filter, Qualifier... qualifiers) {
+                                                       long offset, long limit, Filter filter,
+                                                       Qualifier... qualifiers) {
         verifyUnsortedWithOffset(sort, offset);
         Flux<?> results = findAllUsingQuery(entityClass, targetClass, filter, qualifiers);
         results = applyPostProcessingOnResults(results, sort, offset, limit);
@@ -677,7 +688,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     <T, S> Flux<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
-        Qualifier... qualifiers) {
+                                     Qualifier... qualifiers) {
         if (targetClass != null) {
             return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
                 .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
@@ -695,7 +706,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     <T, S> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
-        Qualifier... qualifiers) {
+                                                    Qualifier... qualifiers) {
         String setName = getSetName(entityClass);
 
         if (targetClass != null) {

@@ -34,9 +34,9 @@ public class AerospikePersistenceEntityIndexCreator extends BaseAerospikePersist
     private final AerospikeTemplate template;
 
     public AerospikePersistenceEntityIndexCreator(ObjectProvider<AerospikeMappingContext> mappingContext,
-        boolean createIndexesOnStartup,
-        AerospikeIndexResolver aerospikeIndexResolver,
-        AerospikeTemplate template) {
+                                                  boolean createIndexesOnStartup,
+                                                  AerospikeIndexResolver aerospikeIndexResolver,
+                                                  AerospikeTemplate template) {
         super(mappingContext, createIndexesOnStartup, aerospikeIndexResolver);
         this.template = template;
     }

@@ -31,7 +31,12 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.utility.TimeUtils.unixTimeToOffsetInSeconds;
@@ -44,8 +49,8 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     private final GenericConversionService conversionService;
 
     public MappingAerospikeWriteConverter(TypeMapper<Map<String, Object>> typeMapper,
-        AerospikeMappingContext mappingContext, CustomConversions conversions,
-        GenericConversionService conversionService) {
+                                          AerospikeMappingContext mappingContext, CustomConversions conversions,
+                                          GenericConversionService conversionService) {
         this.typeMapper = typeMapper;
         this.mappingContext = mappingContext;
         this.conversions = conversions;
@@ -113,7 +118,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     }
 
     private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
-        ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
+                                                  ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
         Map<String, Object> target = new HashMap<>();
         typeMapper.writeType(type, target);
         entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property -> {
@@ -233,7 +238,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     }
 
     private int getExpirationFromProperty(ConvertingPropertyAccessor<?> accessor,
-        AerospikePersistentProperty expirationProperty) {
+                                          AerospikePersistentProperty expirationProperty) {
         if (expirationProperty.isExpirationSpecifiedAsUnixTime()) {
             Long unixTime = accessor.getProperty(expirationProperty, Long.class);
             Assert.notNull(unixTime, "Expiration must not be null!");

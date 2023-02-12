@@ -15,7 +15,12 @@
  */
 package org.springframework.data.aerospike.config;
 
-import com.aerospike.client.policy.*;
+import com.aerospike.client.policy.BatchPolicy;
+import com.aerospike.client.policy.ClientPolicy;
+import com.aerospike.client.policy.Policy;
+import com.aerospike.client.policy.QueryPolicy;
+import com.aerospike.client.policy.ScanPolicy;
+import com.aerospike.client.policy.WritePolicy;
 import org.springframework.beans.factory.FactoryBean;
 
 /**

@@ -42,9 +42,9 @@ public class CachingAerospikePersistentProperty extends BasicAerospikePersistent
      * @param fieldNamingStrategy a field naming strategy - in case of null default will be selected.
      */
     public CachingAerospikePersistentProperty(Property property,
-        PersistentEntity<?, AerospikePersistentProperty> owner,
-        SimpleTypeHolder simpleTypeHolder,
-        FieldNamingStrategy fieldNamingStrategy) {
+                                              PersistentEntity<?, AerospikePersistentProperty> owner,
+                                              SimpleTypeHolder simpleTypeHolder,
+                                              FieldNamingStrategy fieldNamingStrategy) {
         super(property, owner, simpleTypeHolder, fieldNamingStrategy);
     }
 

@@ -17,6 +17,7 @@
 package org.springframework.data.aerospike.query;
 
 public class QualifierException extends RuntimeException {
+
     private static final long serialVersionUID = 1L;
 
     public QualifierException(String msg) {

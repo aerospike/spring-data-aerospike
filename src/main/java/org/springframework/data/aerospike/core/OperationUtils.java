@@ -25,8 +25,8 @@ import java.util.function.Function;
 public class OperationUtils {
 
     static <T> Operation[] operations(Map<String, T> values,
-        Operation.Type operationType,
-        Operation... additionalOperations) {
+                                      Operation.Type operationType,
+                                      Operation... additionalOperations) {
         Operation[] operations = new Operation[values.size() + additionalOperations.length];
         int x = 0;
         for (Map.Entry<String, T> entry : values.entrySet()) {
@@ -41,8 +41,8 @@ public class OperationUtils {
     }
 
     static Operation[] operations(Bin[] bins,
-        Function<Bin, Operation> binToOperation,
-        Operation... additionalOperations) {
+                                  Function<Bin, Operation> binToOperation,
+                                  Operation... additionalOperations) {
         Operation[] operations = new Operation[bins.length + additionalOperations.length];
         int i = 0;
         for (Bin bin : bins) {

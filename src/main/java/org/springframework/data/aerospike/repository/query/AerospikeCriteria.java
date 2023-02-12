@@ -37,5 +37,4 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
     public String getKey() {
         return this.getField();
     }
-
 }

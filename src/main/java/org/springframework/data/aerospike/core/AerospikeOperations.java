@@ -441,7 +441,7 @@ public interface AerospikeOperations {
      * @param indexType   The type of the index. Must not be {@literal null}.
      */
     <T> void createIndex(Class<T> entityClass, String indexName, String binName,
-        IndexType indexType);
+                         IndexType indexType);
 
     /**
      * Create index by specified name in Aerospike.
@@ -453,7 +453,7 @@ public interface AerospikeOperations {
      * @param indexCollectionType The collection type of the index. Must not be {@literal null}.
      */
     <T> void createIndex(Class<T> entityClass, String indexName, String binName,
-        IndexType indexType, IndexCollectionType indexCollectionType);
+                         IndexType indexType, IndexCollectionType indexCollectionType);
 
     /**
      * Create index by specified name in Aerospike.
@@ -466,7 +466,7 @@ public interface AerospikeOperations {
      * @param ctx                 optional context to index on elements within a CDT.
      */
     <T> void createIndex(Class<T> entityClass, String indexName, String binName,
-        IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
+                         IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
 
     /**
      * Delete index by specified name from Aerospike.

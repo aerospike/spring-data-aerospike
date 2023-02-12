@@ -43,5 +43,4 @@ public class UsersTests extends BaseQueryEngineTests {
 				.isNotEmpty()
 				.allSatisfy(rec -> assertThat(rec.record.getString("region")).isEqualTo("n"));
 	}
-
 }

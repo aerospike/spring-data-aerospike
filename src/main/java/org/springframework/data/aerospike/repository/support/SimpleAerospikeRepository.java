@@ -38,7 +38,7 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     private final EntityInformation<T, ID> entityInformation;
 
     public SimpleAerospikeRepository(EntityInformation<T, ID> metadata,
-        AerospikeOperations operations) {
+                                     AerospikeOperations operations) {
         this.entityInformation = metadata;
         this.operations = operations;
     }

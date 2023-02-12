@@ -33,5 +33,4 @@ public abstract class BaseIntegrationTests {
     protected static String nextId() {
         return AerospikeUniqueId.nextId();
     }
-
 }

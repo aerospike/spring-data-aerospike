@@ -94,7 +94,6 @@ public class TestRepositoryConfig {
 	public @Bean AerospikeTemplate aerospikeTemplate() {
 		return new AerospikeTemplate(aerospikeClient(), "test");
 	}
-
 }
 ----
 ====

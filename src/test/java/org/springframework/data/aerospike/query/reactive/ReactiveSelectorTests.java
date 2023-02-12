@@ -206,5 +206,4 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 				})
 				.verifyComplete();
 	}
-
 }

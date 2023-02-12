@@ -22,4 +22,5 @@ import org.springframework.data.convert.EntityWriter;
  * @author Jean Mercier
  */
 public interface AerospikeWriter<T> extends EntityWriter<T, AerospikeWriteData> {
+
 }

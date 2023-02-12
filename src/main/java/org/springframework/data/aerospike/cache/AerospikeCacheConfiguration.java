@@ -25,6 +25,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class AerospikeCacheConfiguration {
+
     private final String namespace;
     private final String set;
     private final int expirationInSeconds;

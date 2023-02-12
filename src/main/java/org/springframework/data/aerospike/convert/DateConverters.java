@@ -27,7 +27,11 @@ import org.springframework.util.ClassUtils;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Out of the box conversions for java dates and calendars.

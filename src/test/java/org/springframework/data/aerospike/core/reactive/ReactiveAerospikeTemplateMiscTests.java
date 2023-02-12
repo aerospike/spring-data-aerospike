@@ -54,5 +54,4 @@ public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveIntegrationT
                 .expectNext(false)
                 .verifyComplete();
     }
-
 }

@@ -33,19 +33,7 @@ import org.springframework.data.convert.CustomConversions;
 
 import java.math.BigInteger;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -594,5 +582,4 @@ public class MappingAerospikeConverterDeprecatedTest {
 			throw new ConversionNotSupportedException(source, String.class, null);
 		}
 	}
-
 }

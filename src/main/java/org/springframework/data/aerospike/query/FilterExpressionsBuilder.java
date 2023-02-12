@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class FilterExpressionsBuilder {
+
     public Expression build(Qualifier[] qualifiers) {
         if (qualifiers != null && qualifiers.length != 0) {
             List<Qualifier> relevantQualifiers = Arrays.stream(qualifiers)

@@ -16,7 +16,11 @@
 package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.data.repository.query.*;
+import org.springframework.data.repository.query.ParameterAccessor;
+import org.springframework.data.repository.query.ParametersParameterAccessor;
+import org.springframework.data.repository.query.QueryMethod;
+import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.expression.EvaluationContext;
@@ -37,8 +41,8 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
     public BaseAerospikePartTreeQuery(QueryMethod queryMethod,
-        QueryMethodEvaluationContextProvider evalContextProvider,
-        Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+                                      QueryMethodEvaluationContextProvider evalContextProvider,
+                                      Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         this.queryMethod = queryMethod;
         this.evaluationContextProvider = evalContextProvider;
         this.queryCreator = queryCreator;

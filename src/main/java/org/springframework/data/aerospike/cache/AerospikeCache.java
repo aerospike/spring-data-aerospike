@@ -48,9 +48,9 @@ public class AerospikeCache implements Cache {
     private final WritePolicy writePolicyForPut;
 
     public AerospikeCache(String name,
-        IAerospikeClient client,
-        AerospikeConverter aerospikeConverter,
-        AerospikeCacheConfiguration cacheConfiguration) {
+                          IAerospikeClient client,
+                          AerospikeConverter aerospikeConverter,
+                          AerospikeCacheConfiguration cacheConfiguration) {
         this.name = name;
         this.client = client;
         this.aerospikeConverter = aerospikeConverter;

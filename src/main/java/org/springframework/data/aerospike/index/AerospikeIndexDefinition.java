@@ -28,6 +28,7 @@ import lombok.Value;
 @Value
 @Builder
 public class AerospikeIndexDefinition {
+
     @NonNull
     String name;
     @NonNull

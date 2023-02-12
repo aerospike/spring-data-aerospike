@@ -63,7 +63,8 @@ public class AerospikeMappingContext extends
 
     @Override
     protected AerospikePersistentProperty createPersistentProperty(Property property,
-        BasicAerospikePersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
+                                                                   BasicAerospikePersistentEntity<?> owner,
+                                                                   SimpleTypeHolder simpleTypeHolder) {
         return new CachingAerospikePersistentProperty(property, owner, simpleTypeHolder, fieldNamingStrategy);
     }
 
@@ -71,5 +72,4 @@ public class AerospikeMappingContext extends
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;
     }
-
 }

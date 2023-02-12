@@ -44,7 +44,7 @@ public class AerospikeIndexResolver implements EnvironmentAware {
     }
 
     private AerospikeIndexDefinition convertToIndex(BasicAerospikePersistentEntity<?> persistentEntity,
-        AerospikePersistentProperty property) {
+                                                    AerospikePersistentProperty property) {
         Indexed annotation = property.getRequiredAnnotation(Indexed.class);
         String indexName;
         if (StringUtils.hasText(annotation.name())) {
@@ -63,7 +63,7 @@ public class AerospikeIndexResolver implements EnvironmentAware {
     }
 
     private String getIndexName(BasicAerospikePersistentEntity<?> entity,
-        AerospikePersistentProperty property, Indexed annotation) {
+                                AerospikePersistentProperty property, Indexed annotation) {
         return String.join("_",
             entity.getSetName(), property.getFieldName(), annotation.type().name().toLowerCase(),
             annotation.collectionType().name().toLowerCase());

@@ -407,7 +407,7 @@ public interface ReactiveAerospikeOperations {
      * @param indexType   The type of the index. Must not be {@literal null}.
      */
     <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
-        String binName, IndexType indexType);
+                               String binName, IndexType indexType);
 
     /**
      * Reactively create index by specified name in Aerospike.
@@ -419,7 +419,7 @@ public interface ReactiveAerospikeOperations {
      * @param indexCollectionType The collection type of the index. Must not be {@literal null}.
      */
     <T> Mono<Void> createIndex(Class<T> entityClass, String indexName, String binName,
-        IndexType indexType, IndexCollectionType indexCollectionType);
+                               IndexType indexType, IndexCollectionType indexCollectionType);
 
     /**
      * Reactively create index by specified name in Aerospike.
@@ -432,7 +432,7 @@ public interface ReactiveAerospikeOperations {
      * @param ctx                 optional context to index on elements within a CDT.
      */
     <T> Mono<Void> createIndex(Class<T> entityClass, String indexName, String binName,
-        IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
+                               IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
 
     /**
      * Reactively delete index by specified name from Aerospike.

@@ -52,7 +52,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     }
 
     public AerospikeQueryCreator(PartTree tree, ParameterAccessor parameters,
-        MappingContext<?, AerospikePersistentProperty> context) {
+                                 MappingContext<?, AerospikePersistentProperty> context) {
         super(tree, parameters);
         this.context = context;
     }

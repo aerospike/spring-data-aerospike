@@ -15,13 +15,25 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Bin;
+import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.Info;
+import com.aerospike.client.Key;
+import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
-import com.aerospike.client.*;
+import com.aerospike.client.ResultCode;
+import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
-import com.aerospike.client.query.*;
+import com.aerospike.client.query.Filter;
+import com.aerospike.client.query.IndexCollectionType;
+import com.aerospike.client.query.IndexType;
+import com.aerospike.client.query.KeyRecord;
+import com.aerospike.client.query.ResultSet;
+import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
@@ -43,7 +55,14 @@ import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -68,12 +87,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private final IndexRefresher indexRefresher;
 
     public AerospikeTemplate(IAerospikeClient client,
-        String namespace,
-        MappingAerospikeConverter converter,
-        AerospikeMappingContext mappingContext,
-        AerospikeExceptionTranslator exceptionTranslator,
-        QueryEngine queryEngine,
-        IndexRefresher indexRefresher) {
+                             String namespace,
+                             MappingAerospikeConverter converter,
+                             AerospikeMappingContext mappingContext,
+                             AerospikeExceptionTranslator exceptionTranslator,
+                             QueryEngine queryEngine,
+                             IndexRefresher indexRefresher) {
         super(namespace, converter, mappingContext, exceptionTranslator, client.getWritePolicyDefault());
         this.client = client;
         this.queryEngine = queryEngine;
@@ -82,19 +101,20 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void createIndex(Class<T> entityClass, String indexName,
-        String binName, IndexType indexType) {
+                                String binName, IndexType indexType) {
         createIndex(entityClass, indexName, binName, indexType, IndexCollectionType.DEFAULT);
     }
 
     @Override
     public <T> void createIndex(Class<T> entityClass, String indexName,
-        String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
+                                String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
         createIndex(entityClass, indexName, binName, indexType, indexCollectionType, new CTX[0]);
     }
 
     @Override
     public <T> void createIndex(Class<T> entityClass, String indexName,
-        String binName, IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
+                                String binName, IndexType indexType, IndexCollectionType indexCollectionType,
+                                CTX... ctx) {
         Assert.notNull(entityClass, "Type must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
         Assert.notNull(binName, "Bin name must not be null!");
@@ -475,7 +495,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> ResultSet aggregate(Filter filter, Class<T> entityClass,
-        String module, String function, List<Value> arguments) {
+                                   String module, String function, List<Value> arguments) {
         Assert.notNull(entityClass, "Type must not be null!");
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
@@ -561,7 +581,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @SuppressWarnings("unchecked")
     @Override
     public <T> Stream<T> findInRange(long offset, long limit, Sort sort,
-        Class<T> entityClass) {
+                                     Class<T> entityClass) {
         Assert.notNull(entityClass, "Type for count must not be null!");
 
         return (Stream<T>) findAllUsingQueryWithPostProcessing(entityClass, null, sort, offset, limit,
@@ -571,7 +591,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @SuppressWarnings("unchecked")
     @Override
     public <T, S> Stream<S> findInRange(long offset, long limit, Sort sort,
-        Class<T> entityClass, Class<S> targetClass) {
+                                        Class<T> entityClass, Class<S> targetClass) {
         Assert.notNull(entityClass, "Type for count must not be null!");
         Assert.notNull(targetClass, "Target type must not be null!");
 
@@ -773,7 +793,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     <T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Sort sort,
-        long offset, long limit, Filter filter, Qualifier... qualifiers) {
+                                                         long offset, long limit, Filter filter,
+                                                         Qualifier... qualifiers) {
         verifyUnsortedWithOffset(sort, offset);
         Stream<?> results = findAllUsingQuery(entityClass, targetClass, filter, qualifiers);
         return applyPostProcessingOnResults(results, sort, offset, limit);
@@ -788,7 +809,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
-        Qualifier... qualifiers) {
+                                       Qualifier... qualifiers) {
         return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
             .map(keyRecord -> {
                 if (targetClass != null) {
@@ -838,7 +859,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     <T, S> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
-        Qualifier... qualifiers) {
+                                                      Qualifier... qualifiers) {
         String setName = getSetName(entityClass);
 
         KeyRecordIterator recIterator;

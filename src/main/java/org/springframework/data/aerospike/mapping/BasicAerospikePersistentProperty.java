@@ -20,7 +20,11 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mapping.Association;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentEntity;
-import org.springframework.data.mapping.model.*;
+import org.springframework.data.mapping.model.AnnotationBasedPersistentProperty;
+import org.springframework.data.mapping.model.FieldNamingStrategy;
+import org.springframework.data.mapping.model.Property;
+import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
+import org.springframework.data.mapping.model.SimpleTypeHolder;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -47,9 +51,9 @@ public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentP
     private final FieldNamingStrategy fieldNamingStrategy;
 
     public BasicAerospikePersistentProperty(Property property,
-        PersistentEntity<?, AerospikePersistentProperty> owner,
-        SimpleTypeHolder simpleTypeHolder,
-        FieldNamingStrategy fieldNamingStrategy) {
+                                            PersistentEntity<?, AerospikePersistentProperty> owner,
+                                            SimpleTypeHolder simpleTypeHolder,
+                                            FieldNamingStrategy fieldNamingStrategy) {
         super(property, owner, simpleTypeHolder);
 
         this.fieldNamingStrategy = (fieldNamingStrategy == null

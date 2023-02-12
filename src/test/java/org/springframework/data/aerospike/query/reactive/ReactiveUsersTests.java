@@ -31,5 +31,4 @@ public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
 				})
 				.verifyComplete();
 	}
-
 }

@@ -16,7 +16,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.data.aerospike.query.Qualifier.*;
+import static org.springframework.data.aerospike.query.Qualifier.FIELD;
+import static org.springframework.data.aerospike.query.Qualifier.IGNORE_CASE;
+import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
+import static org.springframework.data.aerospike.query.Qualifier.QualifierRegexpBuilder;
+import static org.springframework.data.aerospike.query.Qualifier.VALUE1;
+import static org.springframework.data.aerospike.query.Qualifier.VALUE2;
+import static org.springframework.data.aerospike.query.Qualifier.VALUE3;
 
 public enum FilterOperation {
 

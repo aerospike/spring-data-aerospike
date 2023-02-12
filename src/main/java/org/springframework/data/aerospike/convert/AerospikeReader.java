@@ -18,4 +18,5 @@ package org.springframework.data.aerospike.convert;
 import org.springframework.data.convert.EntityReader;
 
 public interface AerospikeReader<T> extends EntityReader<T, AerospikeReadData> {
+
 }

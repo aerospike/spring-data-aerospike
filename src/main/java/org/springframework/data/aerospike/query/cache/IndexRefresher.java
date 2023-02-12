@@ -38,7 +38,7 @@ public class IndexRefresher {
     private final IndexesCacheUpdater indexesCacheUpdater;
 
     public IndexRefresher(IAerospikeClient client, InfoPolicy infoPolicy,
-        InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
+                          InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
         this.client = client;
         this.infoPolicy = infoPolicy;
         this.indexOperations = indexOperations;

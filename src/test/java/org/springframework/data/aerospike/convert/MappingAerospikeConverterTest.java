@@ -23,20 +23,6 @@ import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.SampleClasses;
-import org.springframework.data.aerospike.SampleClasses.AerospikeReadDataToUserConverter;
-import org.springframework.data.aerospike.SampleClasses.CollectionOfObjects;
-import org.springframework.data.aerospike.SampleClasses.Contact;
-import org.springframework.data.aerospike.SampleClasses.CustomTypeWithCustomTypeImmutable;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
-import org.springframework.data.aerospike.SampleClasses.Name;
-import org.springframework.data.aerospike.SampleClasses.Person;
-import org.springframework.data.aerospike.SampleClasses.User;
-import org.springframework.data.aerospike.SampleClasses.UserToAerospikeWriteDataConverter;
-import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
 import java.time.Duration;
@@ -53,8 +39,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.list;
 import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.AsCollections.set;
-import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
-import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_SECOND;
+import static org.springframework.data.aerospike.SampleClasses.*;
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
 import static org.springframework.data.aerospike.assertions.KeyAssert.assertThat;
@@ -339,5 +324,4 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
 		ZonedDateTime aerospikeExpirationOffset = ZonedDateTime.of(2010, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
 		return (int) Duration.between(aerospikeExpirationOffset, documentExpiration).getSeconds();
 	}
-
 }

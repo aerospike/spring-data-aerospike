@@ -25,6 +25,7 @@ import com.aerospike.client.command.ParticleType;
  * @author eluppol
  */
 public class LatestUpdateQualifier extends Qualifier {
+
     private static final long serialVersionUID = -8767573059309320133L;
 
     public LatestUpdateQualifier(FilterOperation op, Value value) {

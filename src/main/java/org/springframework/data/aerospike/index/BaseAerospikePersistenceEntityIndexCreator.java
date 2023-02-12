@@ -109,8 +109,8 @@ public abstract class BaseAerospikePersistenceEntityIndexCreator
 
     @Value
     private static class IndexesEvent {
+
         Set<AerospikeIndexDefinition> indexes;
         MappingContextEvent<?, ?> event;
     }
-
 }

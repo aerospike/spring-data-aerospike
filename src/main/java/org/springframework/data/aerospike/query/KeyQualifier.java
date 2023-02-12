@@ -25,6 +25,7 @@ import com.aerospike.client.Value;
  * @author peter
  */
 public class KeyQualifier extends Qualifier {
+
     private static final long serialVersionUID = 2430949321378171078L;
 
     boolean hasDigest = false;

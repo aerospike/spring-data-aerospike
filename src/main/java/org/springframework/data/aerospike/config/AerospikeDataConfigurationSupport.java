@@ -42,7 +42,11 @@ import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Taras Danylchuk
@@ -62,8 +66,8 @@ public abstract class AerospikeDataConfigurationSupport {
 
     @Bean(name = "mappingAerospikeConverter")
     public MappingAerospikeConverter mappingAerospikeConverter(AerospikeMappingContext aerospikeMappingContext,
-        AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
-        AerospikeCustomConversions customConversions) {
+                                                               AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
+                                                               AerospikeCustomConversions customConversions) {
         return new MappingAerospikeConverter(aerospikeMappingContext, customConversions, aerospikeTypeAliasAccessor);
     }
 

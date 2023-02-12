@@ -334,5 +334,4 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 			additionalAerospikeTestOperations.assertNoScansForSet(INDEXED_GEO_SET);
 		});
 	}
-
 }

@@ -32,6 +32,7 @@ import reactor.core.publisher.Mono;
  */
 @RequiredArgsConstructor
 public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospikeRepository<T, ID> {
+
     private final EntityInformation<T, ID> entityInformation;
     private final ReactiveAerospikeOperations operations;
 

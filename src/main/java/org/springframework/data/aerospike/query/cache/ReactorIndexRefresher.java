@@ -35,7 +35,7 @@ public class ReactorIndexRefresher {
     private final IndexesCacheUpdater indexesCacheUpdater;
 
     public ReactorIndexRefresher(IAerospikeReactorClient client, InfoPolicy infoPolicy,
-        InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
+                                 InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
         this.client = client;
         this.infoPolicy = infoPolicy;
         this.indexOperations = indexOperations;

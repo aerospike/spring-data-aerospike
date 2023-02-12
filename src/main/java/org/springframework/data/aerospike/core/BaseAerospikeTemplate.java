@@ -15,8 +15,11 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.Key;
+import com.aerospike.client.Log;
 import com.aerospike.client.Record;
-import com.aerospike.client.*;
+import com.aerospike.client.ResultCode;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -31,7 +34,11 @@ import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
-import org.springframework.data.aerospike.mapping.*;
+import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
+import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
+import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
@@ -40,7 +47,11 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -60,10 +71,10 @@ abstract class BaseAerospikeTemplate {
     protected final WritePolicy writePolicyDefault;
 
     BaseAerospikeTemplate(String namespace,
-        MappingAerospikeConverter converter,
-        AerospikeMappingContext mappingContext,
-        AerospikeExceptionTranslator exceptionTranslator,
-        WritePolicy writePolicyDefault) {
+                          MappingAerospikeConverter converter,
+                          AerospikeMappingContext mappingContext,
+                          AerospikeExceptionTranslator exceptionTranslator,
+                          WritePolicy writePolicyDefault) {
         Assert.notNull(writePolicyDefault, "Write policy must not be null!");
         Assert.notNull(namespace, "Namespace cannot be null");
         Assert.hasLength(namespace, "Namespace cannot be empty");

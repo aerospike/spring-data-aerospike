@@ -36,6 +36,7 @@ import java.util.Map;
  */
 //TODO: split if-else logic to three different iterators (Anastasiia Smirnova)
 public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
+
     private static final String META_DATA = "meta_data";
     private static final String SET_NAME = "set_name";
     private static final String DIGEST = "digest";

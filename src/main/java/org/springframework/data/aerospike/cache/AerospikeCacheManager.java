@@ -23,7 +23,11 @@ import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * {@link CacheManager} implementation for Aerospike. By default {@link AerospikeCache}s will be lazily initialized for
@@ -50,8 +54,8 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
      * @param defaultCacheConfiguration the default cache configuration.
      */
     public AerospikeCacheManager(IAerospikeClient aerospikeClient,
-        AerospikeConverter aerospikeConverter,
-        AerospikeCacheConfiguration defaultCacheConfiguration) {
+                                 AerospikeConverter aerospikeConverter,
+                                 AerospikeCacheConfiguration defaultCacheConfiguration) {
         this(aerospikeClient, aerospikeConverter, defaultCacheConfiguration, new LinkedHashMap<>());
     }
 
@@ -65,9 +69,9 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
      * @param initialPerCacheConfiguration a map of caches (cache names) and matching configurations.
      */
     public AerospikeCacheManager(IAerospikeClient aerospikeClient,
-        AerospikeConverter aerospikeConverter,
-        AerospikeCacheConfiguration defaultCacheConfiguration,
-        Map<String, AerospikeCacheConfiguration> initialPerCacheConfiguration) {
+                                 AerospikeConverter aerospikeConverter,
+                                 AerospikeCacheConfiguration defaultCacheConfiguration,
+                                 Map<String, AerospikeCacheConfiguration> initialPerCacheConfiguration) {
         Assert.notNull(aerospikeClient, "The aerospike client must not be null");
         Assert.notNull(aerospikeConverter, "The aerospike converter must not be null");
         Assert.notNull(defaultCacheConfiguration, "The default cache configuration must not be null");

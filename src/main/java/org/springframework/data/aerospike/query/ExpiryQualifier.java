@@ -25,6 +25,7 @@ import com.aerospike.client.command.ParticleType;
  * @author peter
  */
 public class ExpiryQualifier extends Qualifier {
+
     private static final long serialVersionUID = 13172814137477042L;
 
     public ExpiryQualifier(FilterOperation op, Value value) {

@@ -41,7 +41,7 @@ public class Utils {
      * @return An "Info" value for the given variable from all the nodes in the cluster.
      */
     public static String[] infoAll(IAerospikeClient client,
-        String infoString) {
+                                   String infoString) {
         String[] messages = new String[client.getNodes().length];
         int index = 0;
         for (Node node : client.getNodes()) {
