@@ -37,7 +37,6 @@ abstract class AerospikeConverters {
     }
 
     static Collection<Object> getConvertersToRegister() {
-
         List<Object> converters = new ArrayList<>();
 
         converters.add(BigDecimalToStringConverter.INSTANCE);

@@ -68,8 +68,8 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
         Assert.notNull(queryCreator, "Query creator type must not be null!");
         this.queryCreator = queryCreator;
         this.aerospikeOperations = aerospikeOperations;
-        this.context =
-            (MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty>) aerospikeOperations.getMappingContext();
+        this.context = (MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty>)
+            aerospikeOperations.getMappingContext();
     }
 
     /**
@@ -105,8 +105,9 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 
     @SuppressWarnings("NullableProblems")
     @Override
-    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
-                                                                   QueryMethodEvaluationContextProvider evaluationContextProvider) {
+    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
+        Key key,
+        QueryMethodEvaluationContextProvider evaluationContextProvider) {
         return Optional.of(
             new ReactiveAerospikeQueryLookupStrategy(key, evaluationContextProvider, this.aerospikeOperations,
                 this.queryCreator));

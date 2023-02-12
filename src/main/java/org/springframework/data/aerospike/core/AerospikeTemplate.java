@@ -684,7 +684,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(document, "Document must not be null!");
 
         try {
-
             AerospikeWriteData data = writeData(document);
             Record aeroRecord = this.client.operate(null, data.getKey(),
                 Operation.append(new Bin(binName, value)),

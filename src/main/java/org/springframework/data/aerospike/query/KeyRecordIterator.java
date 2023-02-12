@@ -44,12 +44,12 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
     private static final String GENERATION = "generation";
     private static final Logger log = LoggerFactory.getLogger(KeyRecordIterator.class);
     private final String namespace;
+    private final Integer closeLock = Integer.valueOf(0);
     private RecordSet recordSet;
     private ResultSet resultSet;
     private Iterator<KeyRecord> recordSetIterator;
     private Iterator<Object> resultSetIterator;
     private KeyRecord singleRecord;
-    private final Integer closeLock = Integer.valueOf(0);
 
     public KeyRecordIterator(String namespace) {
         super();
@@ -109,7 +109,7 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
             Map<String, Object> binMap = new HashMap<>(map);
             if (log.isDebugEnabled()) {
                 for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    log.debug(entry.getKey() + " = " + entry.getValue());
+                    log.debug("{} = {}", entry.getKey(), entry.getValue());
                 }
             }
             Long generation = (Long) meta.get(GENERATION);

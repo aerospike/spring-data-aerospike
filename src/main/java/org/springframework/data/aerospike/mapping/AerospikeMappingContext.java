@@ -32,8 +32,8 @@ import org.springframework.data.util.TypeInformation;
  * @author Oliver Gierke
  * @author Peter Milne
  */
-public class AerospikeMappingContext extends
-    AbstractMappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty>
+public class AerospikeMappingContext
+    extends AbstractMappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty>
     implements ApplicationContextAware {
 
     private static final FieldNamingStrategy DEFAULT_NAMING_STRATEGY = PropertyNameFieldNamingStrategy.INSTANCE;
