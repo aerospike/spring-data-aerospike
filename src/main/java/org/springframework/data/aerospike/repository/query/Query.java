@@ -25,148 +25,148 @@ import org.springframework.data.keyvalue.core.query.KeyValueQuery;
  */
 public class Query {
 
-	private static final int NOT_SPECIFIED = -1;
+    private static final int NOT_SPECIFIED = -1;
 
-	private Sort sort;
-	private long offset = NOT_SPECIFIED;
-	private int rows = NOT_SPECIFIED;
-	private CriteriaDefinition criteria;
+    private Sort sort;
+    private long offset = NOT_SPECIFIED;
+    private int rows = NOT_SPECIFIED;
+    private CriteriaDefinition criteria;
 
-	/**
-	 * Creates new instance of {@link KeyValueQuery} with given criteria.
-	 *
-	 * @param criteria can be {@literal null}.
-	 */
-	public Query(CriteriaDefinition criteria) {
-		this.criteria = criteria;
-	}
+    /**
+     * Creates new instance of {@link KeyValueQuery} with given criteria.
+     *
+     * @param criteria can be {@literal null}.
+     */
+    public Query(CriteriaDefinition criteria) {
+        this.criteria = criteria;
+    }
 
-	/**
-	 * Creates new instance of {@link Query} with given {@link Sort}.
-	 *
-	 * @param sort can be {@literal null}.
-	 */
-	public Query(Sort sort) {
-		this.sort = sort;
-	}
+    /**
+     * Creates new instance of {@link Query} with given {@link Sort}.
+     *
+     * @param sort can be {@literal null}.
+     */
+    public Query(Sort sort) {
+        this.sort = sort;
+    }
 
-	/**
-	 * Get the criteria object.
-	 */
-	public CriteriaDefinition getCriteria() {
-		return criteria;
-	}
+    /**
+     * Get the criteria object.
+     */
+    public CriteriaDefinition getCriteria() {
+        return criteria;
+    }
 
-	/**
-	 * Get {@link Sort}.
-	 */
-	public Sort getSort() {
-		return sort;
-	}
+    /**
+     * Get {@link Sort}.
+     */
+    public Sort getSort() {
+        return sort;
+    }
 
-	/**
-	 * Number of elements to skip.
-	 *
-	 * @return negative value if not set.
-	 */
-	public long getOffset() {
-		return this.offset;
-	}
+    /**
+     * Set {@link Sort} to be applied.
+     */
+    public void setSort(Sort sort) {
+        this.sort = sort;
+    }
 
-	public boolean hasOffset() {
-		return this.offset != NOT_SPECIFIED;
-	}
+    /**
+     * Number of elements to skip.
+     *
+     * @return negative value if not set.
+     */
+    public long getOffset() {
+        return this.offset;
+    }
 
-	public boolean hasRows() {
-		return this.rows != NOT_SPECIFIED;
-	}
+    /**
+     * Set the number of elements to skip.
+     *
+     * @param offset use negative value for none.
+     */
+    public void setOffset(long offset) {
+        this.offset = offset;
+    }
 
-	/**
-	 * Number of elements to read.
-	 *
-	 * @return negative value if not set.
-	 */
-	public int getRows() {
-		return this.rows;
-	}
+    public boolean hasOffset() {
+        return this.offset != NOT_SPECIFIED;
+    }
 
-	/**
-	 * Set the number of elements to skip.
-	 *
-	 * @param offset use negative value for none.
-	 */
-	public void setOffset(long offset) {
-		this.offset = offset;
-	}
+    public boolean hasRows() {
+        return this.rows != NOT_SPECIFIED;
+    }
 
-	/**
-	 * Set the number of elements to read.
-	 */
-	public void setRows(int rows) {
-		this.rows = rows;
-	}
+    /**
+     * Number of elements to read.
+     *
+     * @return negative value if not set.
+     */
+    public int getRows() {
+        return this.rows;
+    }
 
-	/**
-	 * Set {@link Sort} to be applied.
-	 */
-	public void setSort(Sort sort) {
-		this.sort = sort;
-	}
+    /**
+     * Set the number of elements to read.
+     */
+    public void setRows(int rows) {
+        this.rows = rows;
+    }
 
-	/**
-	 * Add given {@link Sort}.
-	 *
-	 * @param sort {@literal null} {@link Sort} will be ignored.
-	 */
-	public Query orderBy(Sort sort) {
-		if (sort == null) {
-			return this;
-		}
+    /**
+     * Add given {@link Sort}.
+     *
+     * @param sort {@literal null} {@link Sort} will be ignored.
+     */
+    public Query orderBy(Sort sort) {
+        if (sort == null) {
+            return this;
+        }
 
-		if (this.sort != null) {
-			this.sort.and(sort);
-		} else {
-			this.sort = sort;
-		}
-		return this;
-	}
+        if (this.sort != null) {
+            this.sort.and(sort);
+        } else {
+            this.sort = sort;
+        }
+        return this;
+    }
 
-	/**
-	 * @see Query#setOffset(long)
-	 */
-	public Query skip(long offset) {
-		setOffset(offset);
-		return this;
-	}
+    /**
+     * @see Query#setOffset(long)
+     */
+    public Query skip(long offset) {
+        setOffset(offset);
+        return this;
+    }
 
-	/**
-	 * @see Query#setRows(int)
-	 */
-	public Query limit(int rows) {
-		setRows(rows);
-		return this;
-	}
+    /**
+     * @see Query#setRows(int)
+     */
+    public Query limit(int rows) {
+        setRows(rows);
+        return this;
+    }
 
-	public Query with(Sort sort) {
-		if (sort == null) {
-			return this;
-		}
+    public Query with(Sort sort) {
+        if (sort == null) {
+            return this;
+        }
 
-		for (Order order : sort) {
-			if (order.isIgnoreCase()) {
-				throw new IllegalArgumentException(String.format(
-						"Given sort contained an Order for %s with ignore case! "
-								+ "Aerospike does not support sorting ignoring case currently!",
-						order.getProperty()));
-			}
-		}
+        for (Order order : sort) {
+            if (order.isIgnoreCase()) {
+                throw new IllegalArgumentException(String.format(
+                    "Given sort contained an Order for %s with ignore case! "
+                        + "Aerospike does not support sorting ignoring case currently!",
+                    order.getProperty()));
+            }
+        }
 
-		if (this.sort == null) {
-			this.sort = sort;
-		} else {
-			this.sort = this.sort.and(sort);
-		}
+        if (this.sort == null) {
+            this.sort = sort;
+        } else {
+            this.sort = this.sort.and(sort);
+        }
 
-		return this;
-	}
+        return this;
+    }
 }

@@ -22,18 +22,20 @@ import lombok.Value;
 @Value
 public class AerospikeDataSettings {
 
-	@Builder.Default
-	boolean scansEnabled = false;
-	@Builder.Default
-	boolean sendKey = true;
-	@Builder.Default
-	boolean createIndexesOnStartup = true;
+    @Builder.Default
+    boolean scansEnabled = false;
+    @Builder.Default
+    boolean sendKey = true;
+    @Builder.Default
+    boolean createIndexesOnStartup = true;
 
-	/*
-	 * (non-Javadoc)
-	 * Javadoc is not aware of the code modifications made by Lombok.
-	 * You can fix it with either delombok or by adding a static inner class inside the class that uses the @Builder annotation,
-	 * it will satisfy javadoc and won't interfere with the @Builder annotation's normal behaviour.
-	 */
-	public static class AerospikeDataSettingsBuilder{}
+    /*
+     * (non-Javadoc)
+     * Javadoc is not aware of the code modifications made by Lombok.
+     * You can fix it with either delombok or by adding a static inner class inside the class that uses the @Builder
+     * annotation,
+     * it will satisfy javadoc and won't interfere with the @Builder annotation's normal behaviour.
+     */
+    public static class AerospikeDataSettingsBuilder {
+    }
 }

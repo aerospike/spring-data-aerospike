@@ -52,96 +52,103 @@ import static org.springframework.data.querydsl.QuerydslUtils.QUERY_DSL_PRESENT;
  */
 public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
 
-	private static final Class<AerospikeQueryCreator> DEFAULT_QUERY_CREATOR = AerospikeQueryCreator.class;
+    private static final Class<AerospikeQueryCreator> DEFAULT_QUERY_CREATOR = AerospikeQueryCreator.class;
 
-	private final AerospikeOperations aerospikeOperations;
-	private final MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty> context;
-	private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
+    private final AerospikeOperations aerospikeOperations;
+    private final MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty> context;
+    private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
-	public AerospikeRepositoryFactory(AerospikeOperations aerospikeOperations) {
-		this(aerospikeOperations, DEFAULT_QUERY_CREATOR);
-	}
+    public AerospikeRepositoryFactory(AerospikeOperations aerospikeOperations) {
+        this(aerospikeOperations, DEFAULT_QUERY_CREATOR);
+    }
 
-	@SuppressWarnings("unchecked")
-	public AerospikeRepositoryFactory(AerospikeOperations aerospikeOperations,
-									  Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-		Assert.notNull(aerospikeOperations, "AerospikeOperations must not be null!");
-		Assert.notNull(queryCreator, "Query creator type must not be null!");
-		this.queryCreator = queryCreator;
-		this.aerospikeOperations = aerospikeOperations;
-		this.context = (MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty>) aerospikeOperations.getMappingContext();
-	}
+    @SuppressWarnings("unchecked")
+    public AerospikeRepositoryFactory(AerospikeOperations aerospikeOperations,
+        Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+        Assert.notNull(aerospikeOperations, "AerospikeOperations must not be null!");
+        Assert.notNull(queryCreator, "Query creator type must not be null!");
+        this.queryCreator = queryCreator;
+        this.aerospikeOperations = aerospikeOperations;
+        this.context =
+            (MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty>) aerospikeOperations.getMappingContext();
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
-		AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(domainClass);
-		return new PersistentEntityInformation<>((AerospikePersistentEntity<T>) entity);
-	}
+    /**
+     * Returns whether the given repository interface requires a QueryDsl specific implementation to be chosen.
+     *
+     * @param repositoryInterface must not be {@literal null}.
+     * @return An indication if the given repository requires a QueryDsl implementation.
+     */
+    private static boolean isQueryDslRepository(Class<?> repositoryInterface) {
+        return QUERY_DSL_PRESENT && QuerydslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
+    }
 
-	@Override
-	protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
-		EntityInformation<?, Object> entityInformation = getEntityInformation(repositoryInformation.getDomainType());
-		return super.getTargetRepositoryViaReflection(repositoryInformation, entityInformation, aerospikeOperations);
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T, ID> EntityInformation<T, ID> getEntityInformation(Class<T> domainClass) {
+        AerospikePersistentEntity<?> entity = context.getRequiredPersistentEntity(domainClass);
+        return new PersistentEntityInformation<>((AerospikePersistentEntity<T>) entity);
+    }
 
-	@Override
-	protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
-		return isQueryDslRepository(metadata.getRepositoryInterface()) ? QuerydslKeyValueRepository.class
-				: SimpleKeyValueRepository.class;
-	}
+    @Override
+    protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
+        EntityInformation<?, Object> entityInformation = getEntityInformation(repositoryInformation.getDomainType());
+        return super.getTargetRepositoryViaReflection(repositoryInformation, entityInformation, aerospikeOperations);
+    }
 
-	/**
-	 * Returns whether the given repository interface requires a QueryDsl specific implementation to be chosen.
-	 *
-	 * @param repositoryInterface must not be {@literal null}.
-	 * @return An indication if the given repository requires a QueryDsl implementation.
-	 */
-	private static boolean isQueryDslRepository(Class<?> repositoryInterface) {
-		return QUERY_DSL_PRESENT && QuerydslPredicateExecutor.class.isAssignableFrom(repositoryInterface);
-	}
+    @Override
+    protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
+        return isQueryDslRepository(metadata.getRepositoryInterface()) ? QuerydslKeyValueRepository.class
+            : SimpleKeyValueRepository.class;
+    }
 
-	@Override
-	protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key, QueryMethodEvaluationContextProvider evaluationContextProvider) {
-		return Optional.of(new AerospikeQueryLookupStrategy(key, evaluationContextProvider, this.aerospikeOperations, this.queryCreator));
-	}
+    @Override
+    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(Key key,
+        QueryMethodEvaluationContextProvider evaluationContextProvider) {
+        return Optional.of(new AerospikeQueryLookupStrategy(key, evaluationContextProvider, this.aerospikeOperations,
+            this.queryCreator));
+    }
 
-	/**
-	 * @author Christoph Strobl
-	 * @author Oliver Gierke
-	 */
-	private static class AerospikeQueryLookupStrategy implements QueryLookupStrategy {
+    /**
+     * @author Christoph Strobl
+     * @author Oliver Gierke
+     */
+    private static class AerospikeQueryLookupStrategy implements QueryLookupStrategy {
 
-		private final QueryMethodEvaluationContextProvider evaluationContextProvider;
-		private final AerospikeOperations aerospikeOperations;
-		private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
+        private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+        private final AerospikeOperations aerospikeOperations;
+        private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
-		/**
-		 * Creates a new {@link AerospikeQueryLookupStrategy} for the given {@link Key}, {@link QueryMethodEvaluationContextProvider},
-		 * {@link KeyValueOperations} and query creator type.
-		 * <p>
-		 * TODO: Key is not considered. Should it?
-		 *
-		 * @param key                       Currently unused, same behaviour in the built in spring's KeyValueQueryLookupStrategy implementation.
-		 * @param evaluationContextProvider must not be {@literal null}.
-		 * @param aerospikeOperations       must not be {@literal null}.
-		 * @param queryCreator              must not be {@literal null}.
-		 */
-		public AerospikeQueryLookupStrategy(@Nullable Key key, QueryMethodEvaluationContextProvider evaluationContextProvider,
-											AerospikeOperations aerospikeOperations, Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-			Assert.notNull(evaluationContextProvider, "QueryMethodEvaluationContextProvider must not be null!");
-			Assert.notNull(aerospikeOperations, "AerospikeOperations must not be null!");
-			Assert.notNull(queryCreator, "Query creator type must not be null!");
-			this.evaluationContextProvider = evaluationContextProvider;
-			this.aerospikeOperations = aerospikeOperations;
-			this.queryCreator = queryCreator;
-		}
+        /**
+         * Creates a new {@link AerospikeQueryLookupStrategy} for the given {@link Key},
+         * {@link QueryMethodEvaluationContextProvider}, {@link KeyValueOperations} and query creator type.
+         * <p>
+         * TODO: Key is not considered. Should it?
+         *
+         * @param key                       Currently unused, same behaviour in the built in spring's
+         *                                  KeyValueQueryLookupStrategy implementation.
+         * @param evaluationContextProvider must not be {@literal null}.
+         * @param aerospikeOperations       must not be {@literal null}.
+         * @param queryCreator              must not be {@literal null}.
+         */
+        public AerospikeQueryLookupStrategy(@Nullable Key key,
+            QueryMethodEvaluationContextProvider evaluationContextProvider,
+            AerospikeOperations aerospikeOperations, Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+            Assert.notNull(evaluationContextProvider, "QueryMethodEvaluationContextProvider must not be null!");
+            Assert.notNull(aerospikeOperations, "AerospikeOperations must not be null!");
+            Assert.notNull(queryCreator, "Query creator type must not be null!");
+            this.evaluationContextProvider = evaluationContextProvider;
+            this.aerospikeOperations = aerospikeOperations;
+            this.queryCreator = queryCreator;
+        }
 
-		@Override
-		public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata, ProjectionFactory projectionFactory,
-				NamedQueries namedQueries) {
-			QueryMethod queryMethod = new QueryMethod(method, metadata, projectionFactory);
-			return new AerospikePartTreeQuery(queryMethod, evaluationContextProvider, this.aerospikeOperations, this.queryCreator);
-		}
-	}
+        @Override
+        public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata,
+            ProjectionFactory projectionFactory,
+            NamedQueries namedQueries) {
+            QueryMethod queryMethod = new QueryMethod(method, metadata, projectionFactory);
+            return new AerospikePartTreeQuery(queryMethod, evaluationContextProvider, this.aerospikeOperations,
+                this.queryCreator);
+        }
+    }
 }

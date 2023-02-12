@@ -28,47 +28,48 @@ import org.springframework.data.util.TypeInformation;
 
 /**
  * An Aerospike-specific implementation of {@link MappingContext}.
- * 
+ *
  * @author Oliver Gierke
  * @author Peter Milne
  */
 public class AerospikeMappingContext extends
-		AbstractMappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> implements ApplicationContextAware {
+    AbstractMappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty>
+    implements ApplicationContextAware {
 
-	private static final FieldNamingStrategy DEFAULT_NAMING_STRATEGY = PropertyNameFieldNamingStrategy.INSTANCE;
+    private static final FieldNamingStrategy DEFAULT_NAMING_STRATEGY = PropertyNameFieldNamingStrategy.INSTANCE;
 
-	private FieldNamingStrategy fieldNamingStrategy = DEFAULT_NAMING_STRATEGY;
-	private ApplicationContext context;
+    private FieldNamingStrategy fieldNamingStrategy = DEFAULT_NAMING_STRATEGY;
+    private ApplicationContext context;
 
-	/**
-	 * Configures the {@link FieldNamingStrategy} to be used to determine the field name if no manual mapping is applied.
-	 * Defaults to a strategy using the plain property name.
-	 *
-	 * @param fieldNamingStrategy the {@link FieldNamingStrategy} to be used to determine the field name if no manual
-	 *                            mapping is applied.
-	 */
-	public void setFieldNamingStrategy(FieldNamingStrategy fieldNamingStrategy) {
-		this.fieldNamingStrategy = fieldNamingStrategy == null ? DEFAULT_NAMING_STRATEGY : fieldNamingStrategy;
-	}
+    /**
+     * Configures the {@link FieldNamingStrategy} to be used to determine the field name if no manual mapping is
+     * applied. Defaults to a strategy using the plain property name.
+     *
+     * @param fieldNamingStrategy the {@link FieldNamingStrategy} to be used to determine the field name if no manual
+     *                            mapping is applied.
+     */
+    public void setFieldNamingStrategy(FieldNamingStrategy fieldNamingStrategy) {
+        this.fieldNamingStrategy = fieldNamingStrategy == null ? DEFAULT_NAMING_STRATEGY : fieldNamingStrategy;
+    }
 
-	@Override
-	protected <T> BasicAerospikePersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
-		BasicAerospikePersistentEntity<T> entity = new BasicAerospikePersistentEntity<>(typeInformation);
-		if (context != null) {
-			entity.setEnvironment(context.getEnvironment());
-		}
-		return entity;
-	}
+    @Override
+    protected <T> BasicAerospikePersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
+        BasicAerospikePersistentEntity<T> entity = new BasicAerospikePersistentEntity<>(typeInformation);
+        if (context != null) {
+            entity.setEnvironment(context.getEnvironment());
+        }
+        return entity;
+    }
 
-	@Override
-	protected AerospikePersistentProperty createPersistentProperty(Property property,
-		BasicAerospikePersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
-		return new CachingAerospikePersistentProperty(property, owner, simpleTypeHolder, fieldNamingStrategy);
-	}
+    @Override
+    protected AerospikePersistentProperty createPersistentProperty(Property property,
+        BasicAerospikePersistentEntity<?> owner, SimpleTypeHolder simpleTypeHolder) {
+        return new CachingAerospikePersistentProperty(property, owner, simpleTypeHolder, fieldNamingStrategy);
+    }
 
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.context = applicationContext;
-	}
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.context = applicationContext;
+    }
 
 }

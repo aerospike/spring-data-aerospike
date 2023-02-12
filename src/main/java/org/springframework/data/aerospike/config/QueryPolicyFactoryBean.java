@@ -15,9 +15,8 @@
  */
 package org.springframework.data.aerospike.config;
 
-import org.springframework.beans.factory.FactoryBean;
-
 import com.aerospike.client.policy.QueryPolicy;
+import org.springframework.beans.factory.FactoryBean;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a {@link QueryPolicy} via XML.
@@ -26,52 +25,50 @@ import com.aerospike.client.policy.QueryPolicy;
  */
 public class QueryPolicyFactoryBean extends ReadPolicyFactoryBean {
 
-	private final QueryPolicy policy;
+    private final QueryPolicy policy;
 
-	/**
-	 * Creates a new {@link QueryPolicyFactoryBean}.
-	 */
-	public QueryPolicyFactoryBean() {
-		this.policy = new QueryPolicy();
-	}
+    /**
+     * Creates a new {@link QueryPolicyFactoryBean}.
+     */
+    public QueryPolicyFactoryBean() {
+        this.policy = new QueryPolicy();
+    }
 
-	/**
-	 * Configures the maximum number of concurrent requests to server nodes at any point in time.
-	 * If there are 16 nodes in the cluster and maxConcurrentNodes is 8, then queries
-	 * will be made to 8 nodes in parallel.  When a query completes, a new query will
-	 * be issued until all 16 nodes have been queried.
-	 * Default (0) is to issue requests to all server nodes in parallel.
-	 *
-	 * @param maxConcurrentNodes The maxConcurrentNodes configuration value.
-	 */
-	public void setMaxConcurrentNodes(int maxConcurrentNodes){
-		this.policy.maxConcurrentNodes = maxConcurrentNodes;
-	}
+    /**
+     * Configures the maximum number of concurrent requests to server nodes at any point in time. If there are 16 nodes
+     * in the cluster and maxConcurrentNodes is 8, then queries will be made to 8 nodes in parallel.  When a query
+     * completes, a new query will be issued until all 16 nodes have been queried. Default (0) is to issue requests to
+     * all server nodes in parallel.
+     *
+     * @param maxConcurrentNodes The maxConcurrentNodes configuration value.
+     */
+    public void setMaxConcurrentNodes(int maxConcurrentNodes) {
+        this.policy.maxConcurrentNodes = maxConcurrentNodes;
+    }
 
-	/**
-	 * Configure the number of records to place in queue before blocking.
-	 * Records received from multiple server nodes will be placed in a queue.
-	 * A separate thread consumes these records in parallel.
-	 * If the queue is full, the producer threads will block until records are consumed.
-	 *
-	 * @param recordQueueSize The recordQueueSize configuration value.
-	 */
-	public void setRecordQueueSize(int recordQueueSize){
-		this.policy.recordQueueSize = recordQueueSize;
-	}
+    /**
+     * Configure the number of records to place in queue before blocking. Records received from multiple server nodes
+     * will be placed in a queue. A separate thread consumes these records in parallel. If the queue is full, the
+     * producer threads will block until records are consumed.
+     *
+     * @param recordQueueSize The recordQueueSize configuration value.
+     */
+    public void setRecordQueueSize(int recordQueueSize) {
+        this.policy.recordQueueSize = recordQueueSize;
+    }
 
-	@Override
-	public QueryPolicy getObject() throws Exception {
-		return policy;
-	}
+    @Override
+    public QueryPolicy getObject() throws Exception {
+        return policy;
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return false;
-	}
+    @Override
+    public boolean isSingleton() {
+        return false;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return QueryPolicy.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return QueryPolicy.class;
+    }
 }

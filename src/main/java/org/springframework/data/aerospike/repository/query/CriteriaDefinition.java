@@ -24,20 +24,20 @@ import org.springframework.data.aerospike.query.Qualifier;
  */
 public interface CriteriaDefinition {
 
-	/**
-	 * Get {@link Filter} representation.
-	 */
-	Qualifier getCriteriaObject();
+    /**
+     * Get {@link Filter} representation.
+     */
+    Qualifier getCriteriaObject();
 
-	/**
-	 * Get the identifying {@literal key}.
-	 *
-	 * @since 1.6
-	 */
-	String getKey();
-	
-	enum AerospikeMapCriteria{
-		KEY,
-		VALUE
-	}
+    /**
+     * Get the identifying {@literal key}.
+     *
+     * @since 1.6
+     */
+    String getKey();
+
+    enum AerospikeMapCriteria {
+        KEY,
+        VALUE
+    }
 }

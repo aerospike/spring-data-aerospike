@@ -29,43 +29,43 @@ import java.util.Map;
  */
 public class AerospikeReadData {
 
-	private final Key key;
-	private final Map<String, Object> aeroRecord;
-	private final int expiration;
-	private final int version;
+    private final Key key;
+    private final Map<String, Object> aeroRecord;
+    private final int expiration;
+    private final int version;
 
-	private AerospikeReadData(Key key, Map<String, Object> aeroRecord, int expiration, int version) {
-		this.key = key;
-		this.aeroRecord = aeroRecord;
-		this.expiration = expiration;
-		this.version = version;
-	}
+    private AerospikeReadData(Key key, Map<String, Object> aeroRecord, int expiration, int version) {
+        this.key = key;
+        this.aeroRecord = aeroRecord;
+        this.expiration = expiration;
+        this.version = version;
+    }
 
-	public static AerospikeReadData forRead(Key key, Record aeroRecord) {
-		Assert.notNull(key, "Key must not be null");
-		Assert.notNull(aeroRecord, "Record must not be null");
-		Assert.notNull(aeroRecord.bins, "Record bins must not be null");
+    public static AerospikeReadData forRead(Key key, Record aeroRecord) {
+        Assert.notNull(key, "Key must not be null");
+        Assert.notNull(aeroRecord, "Record must not be null");
+        Assert.notNull(aeroRecord.bins, "Record bins must not be null");
 
-		return new AerospikeReadData(key, aeroRecord.bins, aeroRecord.getTimeToLive(), aeroRecord.generation);
-	}
+        return new AerospikeReadData(key, aeroRecord.bins, aeroRecord.getTimeToLive(), aeroRecord.generation);
+    }
 
-	public Map<String, Object> getAeroRecord() {
-		return aeroRecord;
-	}
+    public Map<String, Object> getAeroRecord() {
+        return aeroRecord;
+    }
 
-	public Key getKey() {
-		return key;
-	}
+    public Key getKey() {
+        return key;
+    }
 
-	public Object getValue(String key) {
-		return aeroRecord.get(key);
-	}
+    public Object getValue(String key) {
+        return aeroRecord.get(key);
+    }
 
-	public int getExpiration() {
-		return expiration;
-	}
+    public int getExpiration() {
+        return expiration;
+    }
 
-	public int getVersion() {
-		return version;
-	}
+    public int getVersion() {
+        return version;
+    }
 }

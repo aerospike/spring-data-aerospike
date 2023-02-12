@@ -15,12 +15,11 @@
  */
 package org.springframework.data.aerospike.config;
 
-import org.springframework.beans.factory.FactoryBean;
-
 import com.aerospike.client.policy.CommitLevel;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
+import org.springframework.beans.factory.FactoryBean;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a read policy via XML.
@@ -29,88 +28,88 @@ import com.aerospike.client.policy.WritePolicy;
  */
 public class WritePolicyFactoryBean extends ReadPolicyFactoryBean {
 
-	private final WritePolicy policy;
+    private final WritePolicy policy;
 
-	/**
-	 * Creates a new {@link WritePolicyFactoryBean}.
-	 */
-	public WritePolicyFactoryBean() {
-		this.policy = new WritePolicy();
-	}
+    /**
+     * Creates a new {@link WritePolicyFactoryBean}.
+     */
+    public WritePolicyFactoryBean() {
+        this.policy = new WritePolicy();
+    }
 
-	/**
-	 * Configures  consistency guarantee when committing a transaction on the server. The default
-	 * (COMMIT_ALL) indicates that the server should wait for master and all replica commits to
-	 * be successful before returning success to the client.
-	 *
-	 * @param commitLevel The commitLevel configuration value.
-	 */
-	public void setCommitLevel(CommitLevel commitLevel){
-		this.policy.commitLevel = commitLevel;
-	}
+    /**
+     * Configures  consistency guarantee when committing a transaction on the server. The default (COMMIT_ALL) indicates
+     * that the server should wait for master and all replica commits to be successful before returning success to the
+     * client.
+     *
+     * @param commitLevel The commitLevel configuration value.
+     */
+    public void setCommitLevel(CommitLevel commitLevel) {
+        this.policy.commitLevel = commitLevel;
+    }
 
-	/**
-	 * Configures Record expiration. Also known as ttl (time to live).
-	 * Seconds record will live before being removed by the server.
-	 *
-	 * @param expiration The expiration configuration value.
-	 */
-	public void setExpiration(int expiration){
-		this.policy.expiration = expiration;
-	}
+    /**
+     * Configures Record expiration. Also known as ttl (time to live). Seconds record will live before being removed by
+     * the server.
+     *
+     * @param expiration The expiration configuration value.
+     */
+    public void setExpiration(int expiration) {
+        this.policy.expiration = expiration;
+    }
 
-	/**
-	 * Configures the expected generation. Generation is the number of times a record has been modified
-	 * (including creation) on the server. If a write operation is creating a record,
-	 * the expected generation would be <code>0</code>.
-	 *
-	 * @param generation The generation configuration value.
-	 */
-	public void setGeneration(int generation){
-		this.policy.generation = generation;
-	}
+    /**
+     * Configures the expected generation. Generation is the number of times a record has been modified (including
+     * creation) on the server. If a write operation is creating a record, the expected generation would be
+     * <code>0</code>.
+     *
+     * @param generation The generation configuration value.
+     */
+    public void setGeneration(int generation) {
+        this.policy.generation = generation;
+    }
 
-	/**
-	 * Configure how to handle record writes based on record generation. The default (NONE)
-	 * indicates that the generation is not used to restrict writes.
-	 *
-	 * @param generationPolicy The generationPolicy configuration value.
-	 */
-	public void setGenerationPolicy(GenerationPolicy generationPolicy){
-		this.policy.generationPolicy = generationPolicy;
-	}
+    /**
+     * Configure how to handle record writes based on record generation. The default (NONE) indicates that the
+     * generation is not used to restrict writes.
+     *
+     * @param generationPolicy The generationPolicy configuration value.
+     */
+    public void setGenerationPolicy(GenerationPolicy generationPolicy) {
+        this.policy.generationPolicy = generationPolicy;
+    }
 
-	/**
-	 * QConfigure how to handle writes where the record already exists.
-	 *
-	 * @param recordExistsAction The recordExistsAction configuration value.
-	 */
-	public void setRecordExistsAction(RecordExistsAction recordExistsAction){
-		this.policy.recordExistsAction = recordExistsAction;
-	}
+    /**
+     * QConfigure how to handle writes where the record already exists.
+     *
+     * @param recordExistsAction The recordExistsAction configuration value.
+     */
+    public void setRecordExistsAction(RecordExistsAction recordExistsAction) {
+        this.policy.recordExistsAction = recordExistsAction;
+    }
 
-	/**
-	 * Configure sending the user defined key in addition to hash digest on a record put.
-	 * The default is to not send the user defined key.
-	 *
-	 * @param sendKey The sendKey configuration value.
-	 */
-	public void setSendKey(boolean sendKey){
-		this.policy.sendKey = sendKey;
-	}
+    /**
+     * Configure sending the user defined key in addition to hash digest on a record put. The default is to not send the
+     * user defined key.
+     *
+     * @param sendKey The sendKey configuration value.
+     */
+    public void setSendKey(boolean sendKey) {
+        this.policy.sendKey = sendKey;
+    }
 
-	@Override
-	public WritePolicy getObject() throws Exception {
-		return policy;
-	}
+    @Override
+    public WritePolicy getObject() throws Exception {
+        return policy;
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return false;
-	}
+    @Override
+    public boolean isSingleton() {
+        return false;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return WritePolicy.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return WritePolicy.class;
+    }
 }

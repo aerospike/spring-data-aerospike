@@ -31,85 +31,86 @@ import java.util.Optional;
  */
 public class AerospikeWriteData {
 
-	private Key key;
-	private Collection<Bin> bins;
-	private int expiration;
-	private Integer version;
-	private Collection<String> requestedBins;
+    private Key key;
+    private Collection<Bin> bins;
+    private int expiration;
+    private Integer version;
+    private Collection<String> requestedBins;
 
-	/**
-	 * Use the other constructor.
-	 */
-	@Deprecated
-	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration) {
-		this(key, bins, expiration, null);
-	}
+    /**
+     * Use the other constructor.
+     */
+    @Deprecated
+    public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration) {
+        this(key, bins, expiration, null);
+    }
 
-	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version) {
-		this(key, bins, expiration, version, Collections.emptyList());
-	}
+    public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version) {
+        this(key, bins, expiration, version, Collections.emptyList());
+    }
 
-	public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version, Collection<String> requestedBins) {
-		this.key = key;
-		this.bins = bins;
-		this.expiration = expiration;
-		this.version = version;
-		this.requestedBins = requestedBins;
-	}
+    public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version,
+        Collection<String> requestedBins) {
+        this.key = key;
+        this.bins = bins;
+        this.expiration = expiration;
+        this.version = version;
+        this.requestedBins = requestedBins;
+    }
 
-	public static AerospikeWriteData forWrite(String namespace) {
-		return new AerospikeWriteData(new Key(namespace, "", ""), new ArrayList<>(), 0, null);
-	}
+    public static AerospikeWriteData forWrite(String namespace) {
+        return new AerospikeWriteData(new Key(namespace, "", ""), new ArrayList<>(), 0, null);
+    }
 
-	public void setKey(Key key) {
-		this.key = key;
-	}
+    public Key getKey() {
+        return key;
+    }
 
-	public Key getKey() {
-		return key;
-	}
+    public void setKey(Key key) {
+        this.key = key;
+    }
 
-	public Collection<Bin> getBins() {
-		return Collections.unmodifiableCollection(bins);
-	}
+    public Collection<Bin> getBins() {
+        return Collections.unmodifiableCollection(bins);
+    }
 
-	public Bin[] getBinsAsArray() {
-		return bins.toArray(new Bin[0]);
-	}
+    public void setBins(Collection<Bin> bins) {
+        this.bins = bins;
+    }
 
-	public void addBin(String key, Object value) {
-		add(new Bin(key, value));
-	}
+    public Bin[] getBinsAsArray() {
+        return bins.toArray(new Bin[0]);
+    }
 
-	public void add(Bin bin) {
-		this.bins.add(bin);
-	}
+    public void addBin(String key, Object value) {
+        add(new Bin(key, value));
+    }
 
-	public int getExpiration() {
-		return expiration;
-	}
+    public void add(Bin bin) {
+        this.bins.add(bin);
+    }
 
-	public void setExpiration(int expiration) {
-		this.expiration = expiration;
-	}
+    public int getExpiration() {
+        return expiration;
+    }
 
-	public void setBins(Collection<Bin> bins) {
-		this.bins = bins;
-	}
+    public void setExpiration(int expiration) {
+        this.expiration = expiration;
+    }
 
-	public Optional<Integer> getVersion() {
-		return Optional.ofNullable(version);
-	}
+    public Optional<Integer> getVersion() {
+        return Optional.ofNullable(version);
+    }
 
-	public void setVersion(Integer version) {
-		this.version = version;
-	}
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 
-	public Collection<String> getRequestedBins() {
-		return requestedBins;
-	}
+    public Collection<String> getRequestedBins() {
+        return requestedBins;
+    }
 
-	public void setRequestedBins(Collection<String> requestedBins) {
-		this.requestedBins = requestedBins;
-	}
+    public void setRequestedBins(Collection<String> requestedBins) {
+        this.requestedBins = requestedBins;
+    }
 }

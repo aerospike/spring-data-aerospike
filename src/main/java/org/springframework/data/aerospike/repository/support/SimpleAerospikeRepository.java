@@ -34,122 +34,123 @@ import java.util.stream.Stream;
 
 public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, ID>, CrudRepository<T, ID> {
 
-	private final AerospikeOperations operations;
-	private final EntityInformation<T, ID> entityInformation;
-	
-	public SimpleAerospikeRepository(EntityInformation<T, ID> metadata,
-			AerospikeOperations operations) {
-		this.entityInformation = metadata;
-		this.operations = operations;
-	}
+    private final AerospikeOperations operations;
+    private final EntityInformation<T, ID> entityInformation;
 
-	@Override
-	public Optional<T> findById(ID id) {
-		return Optional.ofNullable(operations.findById(id, entityInformation.getJavaType()));
-	}
+    public SimpleAerospikeRepository(EntityInformation<T, ID> metadata,
+        AerospikeOperations operations) {
+        this.entityInformation = metadata;
+        this.operations = operations;
+    }
 
-	@Override
-	public <S extends T> S save(S entity) {
-		Assert.notNull(entity, "Cannot save NULL entity");
+    @Override
+    public Optional<T> findById(ID id) {
+        return Optional.ofNullable(operations.findById(id, entityInformation.getJavaType()));
+    }
 
-		operations.save(entity);
-		return entity;
-	}
+    @Override
+    public <S extends T> S save(S entity) {
+        Assert.notNull(entity, "Cannot save NULL entity");
 
-	public <S extends T> List<S> saveAll(Iterable<S> entities) {
-		Assert.notNull(entities, "The given Iterable of entities not be null!");
+        operations.save(entity);
+        return entity;
+    }
 
-		List<S> result = IterableConverter.toList(entities);
-		for (S entity : result) {
-			save(entity);
-		}
+    public <S extends T> List<S> saveAll(Iterable<S> entities) {
+        Assert.notNull(entities, "The given Iterable of entities not be null!");
 
-		return result;
-	}
-	
-	@Override
-	public void delete(T entity) {
-		operations.delete(entity);
-	}
+        List<S> result = IterableConverter.toList(entities);
+        for (S entity : result) {
+            save(entity);
+        }
 
-	@Override
-	public void deleteAllById(Iterable<? extends ID> iterable) {
-		Assert.notNull(iterable, "The given Iterable must not be null!");
-		iterable.forEach(this::deleteById);
-	}
+        return result;
+    }
 
-	@Override
-	public Iterable<T> findAll(Sort sort) {
-		Stream<T> findResults = operations.findAll(sort, 0, 0, entityInformation.getJavaType());
-		return findResults::iterator;
-	}
+    @Override
+    public void delete(T entity) {
+        operations.delete(entity);
+    }
 
-	@Override
-	public Page<T> findAll(Pageable pageable) {
-		if (pageable == null) {
-			List<T> result = findAll();
-			return new PageImpl<>(result, null, result.size());
-		}
+    @Override
+    public void deleteAllById(Iterable<? extends ID> iterable) {
+        Assert.notNull(iterable, "The given Iterable must not be null!");
+        iterable.forEach(this::deleteById);
+    }
 
-		Class<T> type = entityInformation.getJavaType();
-		String setName = operations.getSetName(type);
+    @Override
+    public Iterable<T> findAll(Sort sort) {
+        Stream<T> findResults = operations.findAll(sort, 0, 0, entityInformation.getJavaType());
+        return findResults::iterator;
+    }
 
-		Stream<T> content = operations.findInRange(pageable.getOffset(), pageable.getPageSize(), pageable.getSort(), type);
-		long totalCount = operations.count(setName);
+    @Override
+    public Page<T> findAll(Pageable pageable) {
+        if (pageable == null) {
+            List<T> result = findAll();
+            return new PageImpl<>(result, null, result.size());
+        }
 
-		return new PageImpl<>(content.collect(Collectors.toList()), pageable, totalCount);
-	}
+        Class<T> type = entityInformation.getJavaType();
+        String setName = operations.getSetName(type);
 
-	@Override
-	public boolean existsById(ID id) {
-		return operations.exists(id, entityInformation.getJavaType());
-	}
+        Stream<T> content =
+            operations.findInRange(pageable.getOffset(), pageable.getPageSize(), pageable.getSort(), type);
+        long totalCount = operations.count(setName);
 
-	@Override
-	public List<T> findAll() {
-		return operations.findAll(entityInformation.getJavaType()).collect(Collectors.toList());
-	}
+        return new PageImpl<>(content.collect(Collectors.toList()), pageable, totalCount);
+    }
 
-	@Override
-	public Iterable<T> findAllById(Iterable<ID> ids) {
-		return operations.findByIds(ids, entityInformation.getJavaType());
-	}
+    @Override
+    public boolean existsById(ID id) {
+        return operations.exists(id, entityInformation.getJavaType());
+    }
 
-	@Override
-	public long count() {
-		return operations.count(entityInformation.getJavaType());
-	}
+    @Override
+    public List<T> findAll() {
+        return operations.findAll(entityInformation.getJavaType()).collect(Collectors.toList());
+    }
 
-	@Override
-	public void deleteById(ID id) {
-		Assert.notNull(id, "The given id must not be null!");
-		operations.delete(id, entityInformation.getJavaType());
-	}
+    @Override
+    public Iterable<T> findAllById(Iterable<ID> ids) {
+        return operations.findByIds(ids, entityInformation.getJavaType());
+    }
 
-	@Override
-	public void deleteAll(Iterable<? extends T> entities) {
-		for (T entity : entities) {
-			delete(entity);
-		}
-	}
+    @Override
+    public long count() {
+        return operations.count(entityInformation.getJavaType());
+    }
 
-	@Override
-	public void deleteAll() {
-		operations.delete(entityInformation.getJavaType());
-	}
+    @Override
+    public void deleteById(ID id) {
+        Assert.notNull(id, "The given id must not be null!");
+        operations.delete(id, entityInformation.getJavaType());
+    }
 
-	@Override
-	public <E> void createIndex(Class<E> domainType, String indexName, String binName, IndexType indexType) {
-		operations.createIndex(domainType, indexName, binName, indexType);
-	}
+    @Override
+    public void deleteAll(Iterable<? extends T> entities) {
+        for (T entity : entities) {
+            delete(entity);
+        }
+    }
 
-	@Override
-	public <E> void deleteIndex(Class<E> domainType, String indexName) {
-		operations.deleteIndex(domainType, indexName);
-	}
+    @Override
+    public void deleteAll() {
+        operations.delete(entityInformation.getJavaType());
+    }
 
-	@Override
-	public boolean indexExists(String indexName) {
-		return operations.indexExists(indexName);
-	}
+    @Override
+    public <E> void createIndex(Class<E> domainType, String indexName, String binName, IndexType indexType) {
+        operations.createIndex(domainType, indexName, binName, indexType);
+    }
+
+    @Override
+    public <E> void deleteIndex(Class<E> domainType, String indexName) {
+        operations.deleteIndex(domainType, indexName);
+    }
+
+    @Override
+    public boolean indexExists(String indexName) {
+        return operations.indexExists(indexName);
+    }
 }

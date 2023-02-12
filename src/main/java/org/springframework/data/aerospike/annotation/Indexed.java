@@ -27,16 +27,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a field to be indexed using Aerospike's secondary index.
- * This will make spring-data-aerospike create index on application's startup.
+ * Marks a field to be indexed using Aerospike's secondary index. This will make spring-data-aerospike create index on
+ * application's startup.
  * <p>
  * For more details on Secondary index feature please refer to
  * <a href="https://www.aerospike.com/docs/architecture/secondary-index.html">Aerospike Secondary index</a>.
  * <p>
  * Creating a secondary index with context via @Indexed annotation is not supported at the moment - instead use:
- * {@link org.springframework.data.aerospike.core.AerospikeOperations#createIndex(Class, String, String,
- * IndexType, IndexCollectionType, CTX...)}
- * or for reactive flow:
+ * {@link org.springframework.data.aerospike.core.AerospikeOperations#createIndex(Class, String, String, IndexType,
+ * IndexCollectionType, CTX...)} or for reactive flow:
  * {@link org.springframework.data.aerospike.core.ReactiveAerospikeOperations#createIndex(Class, String, String,
  * IndexType, IndexCollectionType, CTX...)}
  *
@@ -47,11 +46,11 @@ import java.lang.annotation.Target;
 public @interface Indexed {
 
     /**
-     * If not set, name will be automatically generated with pattern {setName}_{fieldName}_lowercase{type}_lowercase{collectionType}.
+     * If not set, name will be automatically generated with pattern
+     * {setName}_{fieldName}_lowercase{type}_lowercase{collectionType}.
      * <p>
-     * Allows the actual value to be set using standard Spring property sources mechanism.
-     * Syntax is the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}.
-     * SpEL is NOT supported.
+     * Allows the actual value to be set using standard Spring property sources mechanism. Syntax is the same as for
+     * {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}. SpEL is NOT supported.
      */
     String name() default "";
 

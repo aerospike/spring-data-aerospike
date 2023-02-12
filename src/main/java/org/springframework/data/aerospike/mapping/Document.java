@@ -15,14 +15,10 @@
  */
 package org.springframework.data.aerospike.mapping;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.concurrent.TimeUnit;
-
 import org.springframework.data.annotation.Persistent;
+
+import java.lang.annotation.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity.DEFAULT_EXPIRATION;
 
@@ -35,53 +31,48 @@ import static org.springframework.data.aerospike.mapping.BasicAerospikePersisten
 @Persistent
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE })
+@Target({ElementType.TYPE})
 public @interface Document {
 
-	/**
-	 * An optional name of the collection. If the name is not specified, a {@link Class#getSimpleName()} of the entity's
-	 * class will be used.
-	 * Allows the actual value to be set using standard Spring property sources mechanism.
-	 * Syntax is the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}.
-	 * <br /><br />
-	 * SpEL is NOT supported.
-	 */
-	String collection() default "";
-
-	/**
-	 * Defines the default language to be used with this document.
-	 *
-	 * @since 1.6
-	 */
-	String language() default "";
-
-	/**
-	 * An optional expiration time for the document.
-	 * Default is namespace configuration variable "default-ttl" on the server.
-	 * Ignored if entity has field
-	 * annotated by {@link org.springframework.data.aerospike.annotation.Expiration}
-	 * <br/>
-	 * Only one of two might might be set at the same time: either expiration or {@link #expirationExpression()}
-	 * See {@link com.aerospike.client.policy.WritePolicy#expiration} for possible values.
-	 */
-	int expiration() default DEFAULT_EXPIRATION;
-
-	/**
-	 * Same as {@link #expiration} but allows the actual value to be set using standard Spring property sources mechanism.
-	 * Only one might be set at the same time: either {@link #expiration()} or expirationExpression. <br />
-	 * Syntax is the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}.
-	 * <br /><br />
-	 * SpEL is NOT supported.
-	 */
-	String expirationExpression() default "";
-
-	/**
-	 * An optional time unit for the document's {@link #expiration()}, if set. Default is {@link TimeUnit#SECONDS}.
-	 */
-	TimeUnit expirationUnit() default TimeUnit.SECONDS;
+    /**
+     * An optional name of the collection. If the name is not specified, a {@link Class#getSimpleName()} of the entity's
+     * class will be used. Allows the actual value to be set using standard Spring property sources mechanism. Syntax is
+     * the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}. <br /><br
+     * /> SpEL is NOT supported.
+     */
+    String collection() default "";
 
     /**
-     * An optional flag associated indicating whether the expiration timer should be reset whenever the document is directly read
+     * Defines the default language to be used with this document.
+     *
+     * @since 1.6
      */
-	boolean touchOnRead() default false;
+    String language() default "";
+
+    /**
+     * An optional expiration time for the document. Default is namespace configuration variable "default-ttl" on the
+     * server. Ignored if entity has field annotated by {@link org.springframework.data.aerospike.annotation.Expiration}
+     * <br/> Only one of two might might be set at the same time: either expiration or {@link #expirationExpression()}
+     * See {@link com.aerospike.client.policy.WritePolicy#expiration} for possible values.
+     */
+    int expiration() default DEFAULT_EXPIRATION;
+
+    /**
+     * Same as {@link #expiration} but allows the actual value to be set using standard Spring property sources
+     * mechanism. Only one might be set at the same time: either {@link #expiration()} or expirationExpression. <br />
+     * Syntax is the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}.
+     * <br /><br /> SpEL is NOT supported.
+     */
+    String expirationExpression() default "";
+
+    /**
+     * An optional time unit for the document's {@link #expiration()}, if set. Default is {@link TimeUnit#SECONDS}.
+     */
+    TimeUnit expirationUnit() default TimeUnit.SECONDS;
+
+    /**
+     * An optional flag associated indicating whether the expiration timer should be reset whenever the document is
+     * directly read
+     */
+    boolean touchOnRead() default false;
 }

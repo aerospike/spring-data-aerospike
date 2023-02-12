@@ -34,9 +34,9 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     private final AerospikeOperations aerospikeOperations;
 
     public AerospikePartTreeQuery(QueryMethod queryMethod,
-                                  QueryMethodEvaluationContextProvider evalContextProvider,
-                                  AerospikeOperations aerospikeOperations,
-                                  Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+        QueryMethodEvaluationContextProvider evalContextProvider,
+        AerospikeOperations aerospikeOperations,
+        Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(queryMethod, evalContextProvider, queryCreator);
         this.aerospikeOperations = aerospikeOperations;
     }
@@ -51,7 +51,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
             Stream<?> result = findByQuery(query, targetClass);
-            long total = queryMethod.isSliceQuery() ? 0 : aerospikeOperations.count(query, queryMethod.getEntityInformation().getJavaType());
+            long total = queryMethod.isSliceQuery() ? 0 :
+                aerospikeOperations.count(query, queryMethod.getEntityInformation().getJavaType());
             //TODO: should return SliceImpl for slice query
             return new PageImpl(result.collect(Collectors.toList()), accessor.getPageable(), total);
         } else if (queryMethod.isStreamQuery()) {

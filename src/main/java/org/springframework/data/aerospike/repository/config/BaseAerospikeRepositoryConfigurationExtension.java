@@ -35,19 +35,9 @@ public abstract class BaseAerospikeRepositoryConfigurationExtension extends Repo
     protected static final String MAPPING_CONTEXT_BEAN_NAME = "aerospikeMappingContext";
     protected static final String AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE = "aerospikeTemplateRef";
 
-    @Override
-    public void postProcess(BeanDefinitionBuilder builder, AnnotationRepositoryConfigurationSource config) {
-
-        AnnotationAttributes attributes = config.getAttributes();
-
-        builder.addPropertyReference("operations", attributes.getString(AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE));
-        builder.addPropertyValue("queryCreator", getQueryCreatorType(config));
-        builder.addPropertyReference("mappingContext", MAPPING_CONTEXT_BEAN_NAME);
-    }
-
     /**
-     * Detects the query creator type to be used for the factory to set. Will lookup a {@link QueryCreatorType} annotation
-     * on the {@code @Enable}-annotation or use {@link SpelQueryCreator} if not found.
+     * Detects the query creator type to be used for the factory to set. Will lookup a {@link QueryCreatorType}
+     * annotation on the {@code @Enable}-annotation or use {@link SpelQueryCreator} if not found.
      *
      * @param config The annotation repository configuration to get the query creator metadata from.
      * @return Query creator class.
@@ -64,5 +54,15 @@ public abstract class BaseAerospikeRepositoryConfigurationExtension extends Repo
 
         AnnotationAttributes queryCreatorAttributes = new AnnotationAttributes(queryCreatorFoo);
         return queryCreatorAttributes.getClass("value");
+    }
+
+    @Override
+    public void postProcess(BeanDefinitionBuilder builder, AnnotationRepositoryConfigurationSource config) {
+
+        AnnotationAttributes attributes = config.getAttributes();
+
+        builder.addPropertyReference("operations", attributes.getString(AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE));
+        builder.addPropertyValue("queryCreator", getQueryCreatorType(config));
+        builder.addPropertyReference("mappingContext", MAPPING_CONTEXT_BEAN_NAME);
     }
 }

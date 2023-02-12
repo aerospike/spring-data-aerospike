@@ -21,25 +21,24 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 /**
  * {@link NamespaceHandler} for the Aerospike namespace.
  *
- * @deprecated Configure necessary client policies by overriding
- * {@link org.springframework.data.aerospike.config.AerospikeDataConfigurationSupport#getClientPolicy()}
- *
  * @author Oliver Gierke
  * @author Peter Milne
+ * @deprecated Configure necessary client policies by overriding
+ * {@link org.springframework.data.aerospike.config.AerospikeDataConfigurationSupport#getClientPolicy()}
  */
 @Deprecated
 public class AerospikeNamespaceHandler extends NamespaceHandlerSupport {
 
-	@Override
-	public void init() {
+    @Override
+    public void init() {
 
-		// TODO: add declarations and namespaces for other top-level configuration elements
-		registerBeanDefinitionParser("client", new AerospikeClientBeanDefinitionParser());
-		registerBeanDefinitionParser("clientPolicy", new ClientPolicyBeanDefinitionParser());
-		registerBeanDefinitionParser("readPolicy", new ReadPolicyBeanDefinitionParser());
-		registerBeanDefinitionParser("writePolicy", new WritePolicyBeanDefinitionParser());
-		registerBeanDefinitionParser("queryPolicy", new QueryPolicyBeanDefinitionParser());
-		registerBeanDefinitionParser("scanPolicy", new ScanPolicyBeanDefinitionParser());
-		registerBeanDefinitionParser("batchPolicy", new BatchPolicyBeanDefinitionParser());
-	}
+        // TODO: add declarations and namespaces for other top-level configuration elements
+        registerBeanDefinitionParser("client", new AerospikeClientBeanDefinitionParser());
+        registerBeanDefinitionParser("clientPolicy", new ClientPolicyBeanDefinitionParser());
+        registerBeanDefinitionParser("readPolicy", new ReadPolicyBeanDefinitionParser());
+        registerBeanDefinitionParser("writePolicy", new WritePolicyBeanDefinitionParser());
+        registerBeanDefinitionParser("queryPolicy", new QueryPolicyBeanDefinitionParser());
+        registerBeanDefinitionParser("scanPolicy", new ScanPolicyBeanDefinitionParser());
+        registerBeanDefinitionParser("batchPolicy", new BatchPolicyBeanDefinitionParser());
+    }
 }

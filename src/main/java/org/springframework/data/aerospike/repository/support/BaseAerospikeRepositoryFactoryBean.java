@@ -25,26 +25,26 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
  * @author Jean Mercier
  * @author Igor Ermolenko
  */
-public abstract class BaseAerospikeRepositoryFactoryBean<T extends Repository <S, ID>, S, ID> extends
-		RepositoryFactoryBeanSupport<T, S, ID> {
+public abstract class BaseAerospikeRepositoryFactoryBean<T extends Repository<S, ID>, S, ID> extends
+    RepositoryFactoryBeanSupport<T, S, ID> {
 
-	protected Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
+    protected Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
-	public BaseAerospikeRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
-		super(repositoryInterface);
-	}
+    public BaseAerospikeRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+        super(repositoryInterface);
+    }
 
-	@Override
-	public void setMappingContext(MappingContext<?, ?> mappingContext) {
-		super.setMappingContext(mappingContext);
-	}
+    @Override
+    public void setMappingContext(MappingContext<?, ?> mappingContext) {
+        super.setMappingContext(mappingContext);
+    }
 
-	public void setQueryCreator(Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-		this.queryCreator = queryCreator;
-	}
+    public void setQueryCreator(Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+        this.queryCreator = queryCreator;
+    }
 
-	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-	}
+    @Override
+    public void afterPropertiesSet() {
+        super.afterPropertiesSet();
+    }
 }

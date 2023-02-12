@@ -19,20 +19,20 @@ import org.springframework.data.mapping.PersistentEntity;
 
 /**
  * Aerospike-specific extensions of {@link PersistentEntity}.
- * 
+ *
  * @author Oliver Gierke
  * @author Peter Milne
  */
 public interface AerospikePersistentEntity<T> extends PersistentEntity<T, AerospikePersistentProperty> {
 
-	String getSetName();
+    String getSetName();
 
-	int getExpiration();
+    int getExpiration();
 
-	boolean isTouchOnRead();
+    boolean isTouchOnRead();
 
-	AerospikePersistentProperty getExpirationProperty();
+    AerospikePersistentProperty getExpirationProperty();
 
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	boolean hasExpirationProperty();
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    boolean hasExpirationProperty();
 }

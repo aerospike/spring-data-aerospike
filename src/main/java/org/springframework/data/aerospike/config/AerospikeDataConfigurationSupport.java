@@ -62,8 +62,8 @@ public abstract class AerospikeDataConfigurationSupport {
 
     @Bean(name = "mappingAerospikeConverter")
     public MappingAerospikeConverter mappingAerospikeConverter(AerospikeMappingContext aerospikeMappingContext,
-                                                               AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
-                                                               AerospikeCustomConversions customConversions) {
+        AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
+        AerospikeCustomConversions customConversions) {
         return new MappingAerospikeConverter(aerospikeMappingContext, customConversions, aerospikeTypeAliasAccessor);
     }
 
@@ -117,11 +117,15 @@ public abstract class AerospikeDataConfigurationSupport {
         Set<Class<?>> initialEntitySet = new HashSet<>();
 
         if (StringUtils.hasText(basePackage)) {
-            ClassPathScanningCandidateComponentProvider componentProvider = new ClassPathScanningCandidateComponentProvider(false);
+            ClassPathScanningCandidateComponentProvider componentProvider =
+                new ClassPathScanningCandidateComponentProvider(false);
+
             componentProvider.addIncludeFilter(new AnnotationTypeFilter(Document.class));
             componentProvider.addIncludeFilter(new AnnotationTypeFilter(Persistent.class));
+
             for (BeanDefinition candidate : componentProvider.findCandidateComponents(basePackage)) {
-                initialEntitySet.add(ClassUtils.forName(candidate.getBeanClassName(), AerospikeDataConfigurationSupport.class.getClassLoader()));
+                initialEntitySet.add(ClassUtils.forName(candidate.getBeanClassName(),
+                    AerospikeDataConfigurationSupport.class.getClassLoader()));
             }
         }
 

@@ -16,7 +16,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 
 /**
@@ -24,19 +23,19 @@ import org.springframework.data.aerospike.query.Qualifier;
  * @author Jeff Boone
  */
 public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
-	
-	public AerospikeCriteria(QualifierBuilder builder) {
-		super(builder);
-	}
 
-	@Override
-	public Qualifier getCriteriaObject() {
-		return this;
-	}
+    public AerospikeCriteria(QualifierBuilder builder) {
+        super(builder);
+    }
 
-	@Override
-	public String getKey() {
-		return this.getField();
-	}
+    @Override
+    public Qualifier getCriteriaObject() {
+        return this;
+    }
+
+    @Override
+    public String getKey() {
+        return this.getField();
+    }
 
 }

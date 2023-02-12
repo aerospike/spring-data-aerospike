@@ -23,7 +23,7 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
  * @author Igor Ermolenko
  */
 public class ReactiveAerospikeRepositoryFactoryBean<T extends Repository<S, ID>, S, ID> extends
-        BaseAerospikeRepositoryFactoryBean<T, S, ID> {
+    BaseAerospikeRepositoryFactoryBean<T, S, ID> {
 
     private ReactiveAerospikeOperations operations;
 

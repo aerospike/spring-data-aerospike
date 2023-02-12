@@ -39,33 +39,37 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
 
     @Bean(name = "aerospikeTemplate")
     public AerospikeTemplate aerospikeTemplate(IAerospikeClient aerospikeClient,
-                                               MappingAerospikeConverter mappingAerospikeConverter,
-                                               AerospikeMappingContext aerospikeMappingContext,
-                                               AerospikeExceptionTranslator aerospikeExceptionTranslator,
-                                               QueryEngine queryEngine, IndexRefresher indexRefresher) {
+        MappingAerospikeConverter mappingAerospikeConverter,
+        AerospikeMappingContext aerospikeMappingContext,
+        AerospikeExceptionTranslator aerospikeExceptionTranslator,
+        QueryEngine queryEngine, IndexRefresher indexRefresher) {
         return new AerospikeTemplate(aerospikeClient, nameSpace(), mappingAerospikeConverter,
-                aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine, indexRefresher);
+            aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine, indexRefresher);
     }
 
     @Bean(name = "aerospikeQueryEngine")
     public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
-                                   StatementBuilder statementBuilder,
-                                   FilterExpressionsBuilder filterExpressionsBuilder) {
-        QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder, aerospikeClient.getQueryPolicyDefault());
+        StatementBuilder statementBuilder,
+        FilterExpressionsBuilder filterExpressionsBuilder) {
+        QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder,
+            aerospikeClient.getQueryPolicyDefault());
         queryEngine.setScansEnabled(aerospikeDataSettings().isScansEnabled());
         return queryEngine;
     }
 
     @Bean
-    public AerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
-                                                                                         AerospikeIndexResolver aerospikeIndexResolver,
-                                                                                         @Lazy AerospikeTemplate template) {
-        return new AerospikePersistenceEntityIndexCreator(aerospikeMappingContext, aerospikeDataSettings().isCreateIndexesOnStartup(), aerospikeIndexResolver, template);
+    public AerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
+        ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
+        AerospikeIndexResolver aerospikeIndexResolver,
+        @Lazy AerospikeTemplate template) {
+        return new AerospikePersistenceEntityIndexCreator(aerospikeMappingContext,
+            aerospikeDataSettings().isCreateIndexesOnStartup(), aerospikeIndexResolver, template);
     }
 
     @Bean(name = "aerospikeIndexRefresher")
     public IndexRefresher indexRefresher(IAerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater) {
-        IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(), new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater);
+        IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(),
+            new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater);
         refresher.refreshIndexes();
         return refresher;
     }

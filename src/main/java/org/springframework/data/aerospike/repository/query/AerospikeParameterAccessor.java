@@ -23,11 +23,11 @@ import org.springframework.data.repository.query.ParameterAccessor;
  */
 public interface AerospikeParameterAccessor extends ParameterAccessor {
 
-	/**
-	 * Returns the raw parameter values of the underlying query method.
-	 *
-	 * @return the raw parameter values of the underlying query method.
-	 * @since 1.8
-	 */
-	Object[] getValues();
+    /**
+     * Returns the raw parameter values of the underlying query method.
+     *
+     * @return the raw parameter values of the underlying query method.
+     * @since 1.8
+     */
+    Object[] getValues();
 }

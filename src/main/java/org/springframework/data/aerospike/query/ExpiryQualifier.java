@@ -25,21 +25,21 @@ import com.aerospike.client.command.ParticleType;
  * @author peter
  */
 public class ExpiryQualifier extends Qualifier {
-	private static final long serialVersionUID = 13172814137477042L;
+    private static final long serialVersionUID = 13172814137477042L;
 
-	public ExpiryQualifier(FilterOperation op, Value value) {
-		super(new QualifierBuilder()
-				.setField(QueryEngine.Meta.EXPIRATION.toString())
-				.setFilterOperation(op)
-				.setValue1(value)
-		);
-		if (value.getType() != ParticleType.INTEGER) {
-			throw new QualifierException("ExpiryQualifier value must be an integer or long");
-		}
-	}
+    public ExpiryQualifier(FilterOperation op, Value value) {
+        super(new QualifierBuilder()
+            .setField(QueryEngine.Meta.EXPIRATION.toString())
+            .setFilterOperation(op)
+            .setValue1(value)
+        );
+        if (value.getType() != ParticleType.INTEGER) {
+            throw new QualifierException("ExpiryQualifier value must be an integer or long");
+        }
+    }
 
-	@Override
-	protected String luaFieldString(String field) {
-		return "expiry";
-	}
+    @Override
+    protected String luaFieldString(String field) {
+        return "expiry";
+    }
 }

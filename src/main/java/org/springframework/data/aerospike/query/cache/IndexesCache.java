@@ -23,7 +23,7 @@ import java.util.Optional;
 
 public interface IndexesCache {
 
-	Optional<Index> getIndex(IndexKey indexKey);
+    Optional<Index> getIndex(IndexKey indexKey);
 
-	boolean hasIndexFor(IndexedField indexedField);
+    boolean hasIndexFor(IndexedField indexedField);
 }

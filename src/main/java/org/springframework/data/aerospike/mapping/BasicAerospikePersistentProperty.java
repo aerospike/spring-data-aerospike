@@ -29,72 +29,74 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentProperty<AerospikePersistentProperty> implements
-		AerospikePersistentProperty {
+public class BasicAerospikePersistentProperty extends AnnotationBasedPersistentProperty<AerospikePersistentProperty>
+    implements
+    AerospikePersistentProperty {
 
-	private static final Set<Class<?>> SUPPORTED_ID_TYPES = new HashSet<>();
+    private static final Set<Class<?>> SUPPORTED_ID_TYPES = new HashSet<>();
 
-	static {
-		SUPPORTED_ID_TYPES.add(String.class);
-		SUPPORTED_ID_TYPES.add(Integer.class);
-		SUPPORTED_ID_TYPES.add(Long.class);
-		SUPPORTED_ID_TYPES.add(byte[].class);
-		SUPPORTED_ID_TYPES.add(Map.class);
-		SUPPORTED_ID_TYPES.add(List.class);
-	}
+    static {
+        SUPPORTED_ID_TYPES.add(String.class);
+        SUPPORTED_ID_TYPES.add(Integer.class);
+        SUPPORTED_ID_TYPES.add(Long.class);
+        SUPPORTED_ID_TYPES.add(byte[].class);
+        SUPPORTED_ID_TYPES.add(Map.class);
+        SUPPORTED_ID_TYPES.add(List.class);
+    }
 
-	private final FieldNamingStrategy fieldNamingStrategy;
+    private final FieldNamingStrategy fieldNamingStrategy;
 
-	public BasicAerospikePersistentProperty(Property property,
-											PersistentEntity<?, AerospikePersistentProperty> owner,
-											SimpleTypeHolder simpleTypeHolder,
-											FieldNamingStrategy fieldNamingStrategy) {
-		super(property, owner, simpleTypeHolder);
+    public BasicAerospikePersistentProperty(Property property,
+        PersistentEntity<?, AerospikePersistentProperty> owner,
+        SimpleTypeHolder simpleTypeHolder,
+        FieldNamingStrategy fieldNamingStrategy) {
+        super(property, owner, simpleTypeHolder);
 
-		this.fieldNamingStrategy = (fieldNamingStrategy == null
-				? PropertyNameFieldNamingStrategy.INSTANCE
-				: fieldNamingStrategy);
-	}
+        this.fieldNamingStrategy = (fieldNamingStrategy == null
+            ? PropertyNameFieldNamingStrategy.INSTANCE
+            : fieldNamingStrategy);
+    }
 
-	@Override
-	public boolean isExplicitIdProperty() {
-		return isAnnotationPresent(Id.class);
-	}
+    @Override
+    public boolean isExplicitIdProperty() {
+        return isAnnotationPresent(Id.class);
+    }
 
-	@Override
-	public boolean isExpirationProperty() {
-		return isAnnotationPresent(Expiration.class);
-	}
+    @Override
+    public boolean isExpirationProperty() {
+        return isAnnotationPresent(Expiration.class);
+    }
 
-	@Override
-	public boolean isExpirationSpecifiedAsUnixTime() {
-		Expiration expiration = findAnnotation(Expiration.class);
-		Assert.state(expiration != null, "Property " + getName() + " is not expiration property");
+    @Override
+    public boolean isExpirationSpecifiedAsUnixTime() {
+        Expiration expiration = findAnnotation(Expiration.class);
+        Assert.state(expiration != null, "Property " + getName() + " is not expiration property");
 
-		return expiration.unixTime();
-	}
+        return expiration.unixTime();
+    }
 
-	@Override
-	public String getFieldName() {
-		org.springframework.data.aerospike.mapping.Field annotation =
-				findAnnotation(org.springframework.data.aerospike.mapping.Field.class);
+    @Override
+    public String getFieldName() {
+        org.springframework.data.aerospike.mapping.Field annotation =
+            findAnnotation(org.springframework.data.aerospike.mapping.Field.class);
 
-		if (annotation != null && StringUtils.hasText(annotation.value())) {
-			return annotation.value();
-		}
+        if (annotation != null && StringUtils.hasText(annotation.value())) {
+            return annotation.value();
+        }
 
-		String fieldName = fieldNamingStrategy.getFieldName(this);
+        String fieldName = fieldNamingStrategy.getFieldName(this);
 
-		if (!StringUtils.hasText(fieldName)) {
-			throw new MappingException(String.format("Invalid (null or empty) field name returned for property %s by %s!",
-					this, fieldNamingStrategy.getClass()));
-		}
+        if (!StringUtils.hasText(fieldName)) {
+            throw new MappingException(
+                String.format("Invalid (null or empty) field name returned for property %s by %s!",
+                    this, fieldNamingStrategy.getClass()));
+        }
 
-		return fieldName;
-	}
+        return fieldName;
+    }
 
-	@Override
-	protected Association<AerospikePersistentProperty> createAssociation() {
-		return new Association<>(this, null);
-	}
+    @Override
+    protected Association<AerospikePersistentProperty> createAssociation() {
+        return new Association<>(this, null);
+    }
 }

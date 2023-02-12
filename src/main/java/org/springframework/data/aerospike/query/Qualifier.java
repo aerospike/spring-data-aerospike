@@ -32,294 +32,297 @@ import java.util.Set;
 /**
  * Generic Bin qualifier. It acts as a filter to exclude records that do not meet the given criteria.
  * <p>
- * For the list of the supported operations see
- * {@link FilterOperation}
+ * For the list of the supported operations see {@link FilterOperation}
  *
  * @author Peter Milne
  */
 public class Qualifier implements Map<String, Object>, Serializable {
-	private static final long serialVersionUID = -2689196529952712849L;
-	protected static final String FIELD = "field";
-	protected static final String IGNORE_CASE = "ignoreCase";
-	protected static final String VALUE1 = "value1";
-	protected static final String VALUE2 = "value2";
-	protected static final String VALUE3 = "value3";
-	protected static final String QUALIFIERS = "qualifiers";
-	protected static final String OPERATION = "operation";
-	protected static final String AS_FILTER = "queryAsFilter";
-	protected Map<String, Object> internalMap;
+    protected static final String FIELD = "field";
+    protected static final String IGNORE_CASE = "ignoreCase";
+    protected static final String VALUE1 = "value1";
+    protected static final String VALUE2 = "value2";
+    protected static final String VALUE3 = "value3";
+    protected static final String QUALIFIERS = "qualifiers";
+    protected static final String OPERATION = "operation";
+    protected static final String AS_FILTER = "queryAsFilter";
+    private static final long serialVersionUID = -2689196529952712849L;
+    protected Map<String, Object> internalMap;
 
-	public static class QualifierRegexpBuilder {
-		private static final Character BACKSLASH = '\\';
-		private static final Character DOT = '.';
-		private static final Character ASTERISK = '*';
-		private static final Character DOLLAR = '$';
-		private static final Character OPEN_BRACKET = '[';
-		private static final Character CIRCUMFLEX = '^';
+    public Qualifier(QualifierBuilder builder) {
+        internalMap = new HashMap<>();
 
-		public static String escapeBRERegexp(String base) {
-			StringBuilder builder = new StringBuilder();
-			for (char stringChar : base.toCharArray()) {
-				if (
-						stringChar == BACKSLASH ||
-								stringChar == DOT ||
-								stringChar == ASTERISK ||
-								stringChar == DOLLAR ||
-								stringChar == OPEN_BRACKET ||
-								stringChar == CIRCUMFLEX) {
-					builder.append(BACKSLASH);
-				}
-				builder.append(stringChar);
-			}
-			return builder.toString();
-		}
+        if (!builder.buildMap().isEmpty()) {
+            internalMap.putAll(builder.buildMap());
+        }
+    }
 
-		/*
-		 * This op is always in [START_WITH, ENDS_WITH, EQ, CONTAINING]
-		 */
-		private static String getRegexp(String base, FilterOperation op) {
-			String escapedBase = escapeBRERegexp(base);
-			if (op == FilterOperation.STARTS_WITH) {
-				return "^" + escapedBase;
-			}
-			if (op == FilterOperation.ENDS_WITH) {
-				return escapedBase + "$";
-			}
-			if (op == FilterOperation.EQ) {
-				return "^" + escapedBase + "$";
-			}
-			return escapedBase;
-		}
+    public FilterOperation getOperation() {
+        return (FilterOperation) internalMap.get(OPERATION);
+    }
 
-		public static String getStartsWith(String base) {
-			return getRegexp(base, FilterOperation.STARTS_WITH);
-		}
+    public String getField() {
+        return (String) internalMap.get(FIELD);
+    }
 
-		public static String getEndsWith(String base) {
-			return getRegexp(base, FilterOperation.ENDS_WITH);
-		}
+    public void asFilter(Boolean queryAsFilter) {
+        internalMap.put(AS_FILTER, queryAsFilter);
+    }
 
-		public static String getContaining(String base) {
-			return getRegexp(base, FilterOperation.CONTAINING);
-		}
+    public Boolean queryAsFilter() {
+        return internalMap.containsKey(AS_FILTER) && (Boolean) internalMap.get(AS_FILTER);
+    }
 
-		public static String getStringEquals(String base) {
-			return getRegexp(base, FilterOperation.EQ);
-		}
-	}
+    public Qualifier[] getQualifiers() {
+        return (Qualifier[]) internalMap.get(QUALIFIERS);
+    }
 
-	public Qualifier(QualifierBuilder builder) {
-		internalMap = new HashMap<>();
+    public Value getValue1() {
+        return (Value) internalMap.get(VALUE1);
+    }
 
-		if (! builder.buildMap().isEmpty()) {
-			internalMap.putAll(builder.buildMap());
-		}
-	}
+    public Value getValue2() {
+        return (Value) internalMap.get(VALUE2);
+    }
 
-	@Data
-	public static class QualifierBuilder {
-		private final Map<String, Object> map = new HashMap<>();
+    public Value getValue3() {
+        return (Value) internalMap.get(VALUE3);
+    }
 
-		public QualifierBuilder() {
-		}
+    public Filter asFilter() {
+        try {
+            return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
+        } catch (Exception e) {
+            throw new AerospikeException(
+                e.getMessage().isEmpty() ? "Secondary index filter unsupported operation: " + getOperation() :
+                    e.getMessage());
+        }
+    }
 
-		public QualifierBuilder setField(String field) {
-			this.map.put(FIELD, field);
-			return this;
-		}
+    public Exp toFilterExp() {
+        try {
+            return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
+        } catch (Exception e) {
+            throw new AerospikeException(
+                e.getMessage().isEmpty() ? "FilterExpression unsupported operation: " + getOperation() :
+                    e.getMessage());
+        }
+    }
 
-		public QualifierBuilder setIgnoreCase(boolean ignoreCase) {
-			this.map.put(IGNORE_CASE, ignoreCase);
-			return this;
-		}
+    protected String luaFieldString(String field) {
+        return String.format("rec['%s']", field);
+    }
 
-		public QualifierBuilder setFilterOperation(FilterOperation filterOperation) {
-			this.map.put(OPERATION, filterOperation);
-			return this;
-		}
+    protected String luaValueString(Value value) {
+        String res = null;
+        if (null == value) return res;
+        int type = value.getType();
+        switch (type) {
+            //		case ParticleType.LIST:
+            //			res = value.toString();
+            //			break;
+            //		case ParticleType.MAP:
+            //			res = value.toString();
+            //			break;
+            //		case ParticleType.DOUBLE:
+            //			res = value.toString();
+            //			break;
+            case ParticleType.STRING:
+                res = String.format("'%s'", value);
+                break;
+            case ParticleType.GEOJSON:
+                res = String.format("'%s'", value);
+                break;
+            default:
+                res = value.toString();
+                break;
+        }
+        return res;
+    }
 
-		public QualifierBuilder setQualifiers(Qualifier... qualifiers) {
-			this.map.put(QUALIFIERS, qualifiers);
-			return this;
-		}
+    @Override
+    public int size() {
+        return internalMap.size();
+    }
 
-		public QualifierBuilder setValue1(Value value1) {
-			this.map.put(VALUE1, value1);
-			return this;
-		}
+    @Override
+    public boolean isEmpty() {
+        return internalMap.isEmpty();
+    }
 
-		public QualifierBuilder setValue2(Value value2) {
-			this.map.put(VALUE2, value2);
-			return this;
-		}
+    @Override
+    public boolean containsKey(Object key) {
+        return internalMap.containsKey(key);
+    }
 
-		public QualifierBuilder setValue3(Value value3) {
-			this.map.put(VALUE3, value3);
-			return this;
-		}
+    @Override
+    public boolean containsValue(Object value) {
+        return internalMap.containsValue(value);
+    }
 
-		public boolean hasValue1() {
-			return this.map.containsKey(VALUE1) && this.map.get(VALUE1) != null;
-		}
+    @Override
+    public Object get(Object key) {
+        return internalMap.get(key);
+    }
 
-		public boolean hasValue2() {
-			return this.map.containsKey(VALUE2) && this.map.get(VALUE2) != null;
-		}
+    @Override
+    public Object put(String key, Object value) {
+        return internalMap.put(key, value);
+    }
 
-		public boolean hasValue3() {
-			return this.map.containsKey(VALUE3) && this.map.get(VALUE3) != null;
-		}
+    @Override
+    public Object remove(Object key) {
+        return internalMap.remove(key);
+    }
 
-		public Qualifier build() {
-			return new Qualifier(this);
-		}
+    @Override
+    public void putAll(Map<? extends String, ? extends Object> m) {
+        internalMap.putAll(m);
+    }
 
-		public Map<String, Object> buildMap() {
-			return this.map;
-		}
-	}
+    @Override
+    public void clear() {
+        internalMap.clear();
+    }
 
-	public FilterOperation getOperation() {
-		return (FilterOperation) internalMap.get(OPERATION);
-	}
+    @Override
+    public Set<String> keySet() {
+        return internalMap.keySet();
+    }
 
-	public String getField() {
-		return (String) internalMap.get(FIELD);
-	}
+    @Override
+    public Collection<Object> values() {
+        return internalMap.values();
+    }
 
-	public void asFilter(Boolean queryAsFilter) {
-		internalMap.put(AS_FILTER, queryAsFilter);
-	}
+    @Override
+    public Set<Entry<String, Object>> entrySet() {
+        return internalMap.entrySet();
+    }
 
-	public Boolean queryAsFilter() {
-		return internalMap.containsKey(AS_FILTER) && (Boolean) internalMap.get(AS_FILTER);
-	}
+    @Override
+    public String toString() {
+        return String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
+    }
 
-	public Qualifier[] getQualifiers() {
-		return (Qualifier[]) internalMap.get(QUALIFIERS);
-	}
+    public static class QualifierRegexpBuilder {
+        private static final Character BACKSLASH = '\\';
+        private static final Character DOT = '.';
+        private static final Character ASTERISK = '*';
+        private static final Character DOLLAR = '$';
+        private static final Character OPEN_BRACKET = '[';
+        private static final Character CIRCUMFLEX = '^';
 
-	public Value getValue1() {
-		return (Value) internalMap.get(VALUE1);
-	}
+        public static String escapeBRERegexp(String base) {
+            StringBuilder builder = new StringBuilder();
+            for (char stringChar : base.toCharArray()) {
+                if (
+                    stringChar == BACKSLASH ||
+                        stringChar == DOT ||
+                        stringChar == ASTERISK ||
+                        stringChar == DOLLAR ||
+                        stringChar == OPEN_BRACKET ||
+                        stringChar == CIRCUMFLEX) {
+                    builder.append(BACKSLASH);
+                }
+                builder.append(stringChar);
+            }
+            return builder.toString();
+        }
 
-	public Value getValue2() {
-		return (Value) internalMap.get(VALUE2);
-	}
+        /*
+         * This op is always in [START_WITH, ENDS_WITH, EQ, CONTAINING]
+         */
+        private static String getRegexp(String base, FilterOperation op) {
+            String escapedBase = escapeBRERegexp(base);
+            if (op == FilterOperation.STARTS_WITH) {
+                return "^" + escapedBase;
+            }
+            if (op == FilterOperation.ENDS_WITH) {
+                return escapedBase + "$";
+            }
+            if (op == FilterOperation.EQ) {
+                return "^" + escapedBase + "$";
+            }
+            return escapedBase;
+        }
 
-	public Value getValue3() {
-		return (Value) internalMap.get(VALUE3);
-	}
+        public static String getStartsWith(String base) {
+            return getRegexp(base, FilterOperation.STARTS_WITH);
+        }
 
-	public Filter asFilter() {
-		try {
-			return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
-		} catch (Exception e) {
-			throw new AerospikeException(e.getMessage().isEmpty() ? "Secondary index filter unsupported operation: " + getOperation() : e.getMessage());
-		}
-	}
+        public static String getEndsWith(String base) {
+            return getRegexp(base, FilterOperation.ENDS_WITH);
+        }
 
-	public Exp toFilterExp() {
-		try {
-			return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
-		} catch (Exception e) {
-			throw new AerospikeException(e.getMessage().isEmpty() ? "FilterExpression unsupported operation: " + getOperation() : e.getMessage());
-		}
-	}
+        public static String getContaining(String base) {
+            return getRegexp(base, FilterOperation.CONTAINING);
+        }
 
-	protected String luaFieldString(String field) {
-		return String.format("rec['%s']", field);
-	}
+        public static String getStringEquals(String base) {
+            return getRegexp(base, FilterOperation.EQ);
+        }
+    }
 
-	protected String luaValueString(Value value) {
-		String res = null;
-		if (null == value) return res;
-		int type = value.getType();
-		switch (type) {
-			//		case ParticleType.LIST:
-			//			res = value.toString();
-			//			break;
-			//		case ParticleType.MAP:
-			//			res = value.toString();
-			//			break;
-			//		case ParticleType.DOUBLE:
-			//			res = value.toString();
-			//			break;
-			case ParticleType.STRING:
-				res = String.format("'%s'", value.toString());
-				break;
-			case ParticleType.GEOJSON:
-				res = String.format("'%s'", value.toString());
-				break;
-			default:
-				res = value.toString();
-				break;
-		}
-		return res;
-	}
+    @Data
+    public static class QualifierBuilder {
+        private final Map<String, Object> map = new HashMap<>();
 
-	@Override
-	public int size() {
-		return internalMap.size();
-	}
+        public QualifierBuilder() {
+        }
 
-	@Override
-	public boolean isEmpty() {
-		return internalMap.isEmpty();
-	}
+        public QualifierBuilder setField(String field) {
+            this.map.put(FIELD, field);
+            return this;
+        }
 
-	@Override
-	public boolean containsKey(Object key) {
-		return internalMap.containsKey(key);
-	}
+        public QualifierBuilder setIgnoreCase(boolean ignoreCase) {
+            this.map.put(IGNORE_CASE, ignoreCase);
+            return this;
+        }
 
-	@Override
-	public boolean containsValue(Object value) {
-		return internalMap.containsValue(value);
-	}
+        public QualifierBuilder setFilterOperation(FilterOperation filterOperation) {
+            this.map.put(OPERATION, filterOperation);
+            return this;
+        }
 
-	@Override
-	public Object get(Object key) {
-		return internalMap.get(key);
-	}
+        public QualifierBuilder setQualifiers(Qualifier... qualifiers) {
+            this.map.put(QUALIFIERS, qualifiers);
+            return this;
+        }
 
-	@Override
-	public Object put(String key, Object value) {
-		return internalMap.put(key, value);
-	}
+        public QualifierBuilder setValue1(Value value1) {
+            this.map.put(VALUE1, value1);
+            return this;
+        }
 
-	@Override
-	public Object remove(Object key) {
-		return internalMap.remove(key);
-	}
+        public QualifierBuilder setValue2(Value value2) {
+            this.map.put(VALUE2, value2);
+            return this;
+        }
 
-	@Override
-	public void putAll(Map<? extends String, ? extends Object> m) {
-		internalMap.putAll(m);
-	}
+        public QualifierBuilder setValue3(Value value3) {
+            this.map.put(VALUE3, value3);
+            return this;
+        }
 
-	@Override
-	public void clear() {
-		internalMap.clear();
-	}
+        public boolean hasValue1() {
+            return this.map.containsKey(VALUE1) && this.map.get(VALUE1) != null;
+        }
 
-	@Override
-	public Set<String> keySet() {
-		return internalMap.keySet();
-	}
+        public boolean hasValue2() {
+            return this.map.containsKey(VALUE2) && this.map.get(VALUE2) != null;
+        }
 
-	@Override
-	public Collection<Object> values() {
-		return internalMap.values();
-	}
+        public boolean hasValue3() {
+            return this.map.containsKey(VALUE3) && this.map.get(VALUE3) != null;
+        }
 
-	@Override
-	public Set<Entry<String, Object>> entrySet() {
-		return internalMap.entrySet();
-	}
+        public Qualifier build() {
+            return new Qualifier(this);
+        }
 
-	@Override
-	public String toString() {
-		return String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
-	}
+        public Map<String, Object> buildMap() {
+            return this.map;
+        }
+    }
 }

@@ -38,13 +38,13 @@ public class AerospikeIndexResolver implements EnvironmentAware {
 
     public Set<AerospikeIndexDefinition> detectIndexes(BasicAerospikePersistentEntity<?> persistentEntity) {
         return StreamSupport.stream(persistentEntity.spliterator(), false)
-                .filter(property -> property.isAnnotationPresent(Indexed.class))
-                .map(property -> convertToIndex(persistentEntity, property))
-                .collect(toSet());
+            .filter(property -> property.isAnnotationPresent(Indexed.class))
+            .map(property -> convertToIndex(persistentEntity, property))
+            .collect(toSet());
     }
 
     private AerospikeIndexDefinition convertToIndex(BasicAerospikePersistentEntity<?> persistentEntity,
-                                                    AerospikePersistentProperty property) {
+        AerospikePersistentProperty property) {
         Indexed annotation = property.getRequiredAnnotation(Indexed.class);
         String indexName;
         if (StringUtils.hasText(annotation.name())) {
@@ -54,18 +54,19 @@ public class AerospikeIndexResolver implements EnvironmentAware {
             indexName = getIndexName(persistentEntity, property, annotation);
         }
         return AerospikeIndexDefinition.builder()
-                .entityClass(persistentEntity.getType())
-                .fieldName(property.getFieldName())
-                .name(indexName)
-                .type(annotation.type())
-                .collectionType(annotation.collectionType())
-                .build();
+            .entityClass(persistentEntity.getType())
+            .fieldName(property.getFieldName())
+            .name(indexName)
+            .type(annotation.type())
+            .collectionType(annotation.collectionType())
+            .build();
     }
 
     private String getIndexName(BasicAerospikePersistentEntity<?> entity,
-                                AerospikePersistentProperty property, Indexed annotation) {
+        AerospikePersistentProperty property, Indexed annotation) {
         return String.join("_",
-                entity.getSetName(), property.getFieldName(), annotation.type().name().toLowerCase(), annotation.collectionType().name().toLowerCase());
+            entity.getSetName(), property.getFieldName(), annotation.type().name().toLowerCase(),
+            annotation.collectionType().name().toLowerCase());
     }
 
     @Override

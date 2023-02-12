@@ -26,64 +26,62 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import java.util.Random;
 
 /**
- * Utility class containing useful methods
- * for interacting with Aerospike
- * across the entire implementation
+ * Utility class containing useful methods for interacting with Aerospike across the entire implementation
  *
  * @author peter
  */
 @UtilityClass
 public class Utils {
 
-	/**
-	 * Issues an "Info" request to all nodes in the cluster.
-	 *
-	 * @param client     An IAerospikeClient.
-	 * @param infoString The name of the variable to retrieve.
-	 * @return An "Info" value for the given variable from all the nodes in the cluster.
-	 */
-	public static String[] infoAll(IAerospikeClient client,
-								   String infoString) {
-		String[] messages = new String[client.getNodes().length];
-		int index = 0;
-		for (Node node : client.getNodes()) {
-			messages[index] = Info.request(node, infoString);
-		}
-		return messages;
-	}
+    /**
+     * Issues an "Info" request to all nodes in the cluster.
+     *
+     * @param client     An IAerospikeClient.
+     * @param infoString The name of the variable to retrieve.
+     * @return An "Info" value for the given variable from all the nodes in the cluster.
+     */
+    public static String[] infoAll(IAerospikeClient client,
+        String infoString) {
+        String[] messages = new String[client.getNodes().length];
+        int index = 0;
+        for (Node node : client.getNodes()) {
+            messages[index] = Info.request(node, infoString);
+        }
+        return messages;
+    }
 
-	public static int getReplicationFactor(Node[] nodes, String namespace) {
-		Node randomNode = getRandomNode(nodes);
+    public static int getReplicationFactor(Node[] nodes, String namespace) {
+        Node randomNode = getRandomNode(nodes);
 
-		String response = Info.request(randomNode, "get-config:context=namespace;id=" + namespace);
-		if (response.equalsIgnoreCase("ns_type=unknown")) {
-			throw new InvalidDataAccessResourceUsageException("Namespace: " + namespace + " does not exist");
-		}
-		return InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor", Integer::parseInt);
-	}
+        String response = Info.request(randomNode, "get-config:context=namespace;id=" + namespace);
+        if (response.equalsIgnoreCase("ns_type=unknown")) {
+            throw new InvalidDataAccessResourceUsageException("Namespace: " + namespace + " does not exist");
+        }
+        return InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor", Integer::parseInt);
+    }
 
-	public static Node getRandomNode(Node[] nodes) {
-		Random random = new Random();
+    public static Node getRandomNode(Node[] nodes) {
+        Random random = new Random();
 
-		if (nodes.length == 0) {
-			throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
-		}
-		int offset = random.nextInt(nodes.length);
-		for (int i = 0; i < nodes.length; i++) {
-			int index = (offset + i) % nodes.length;
-			Node node = nodes[index];
-			if (node.isActive()) {
-				return node;
-			}
-		}
-		throw new AerospikeException.InvalidNode("Command failed because no active nodes found.");
-	}
+        if (nodes.length == 0) {
+            throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
+        }
+        int offset = random.nextInt(nodes.length);
+        for (int i = 0; i < nodes.length; i++) {
+            int index = (offset + i) % nodes.length;
+            Node node = nodes[index];
+            if (node.isActive()) {
+                return node;
+            }
+        }
+        throw new AerospikeException.InvalidNode("Command failed because no active nodes found.");
+    }
 
-	public static long getObjectsCount(Node node, String namespace, String setName) {
-		String infoString = Info.request(node, "sets/" + namespace + "/" + setName);
-		if (infoString.isEmpty()) {// set is not present
-			return 0L;
-		}
-		return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);
-	}
+    public static long getObjectsCount(Node node, String namespace, String setName) {
+        String infoString = Info.request(node, "sets/" + namespace + "/" + setName);
+        if (infoString.isEmpty()) {// set is not present
+            return 0L;
+        }
+        return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);
+    }
 }

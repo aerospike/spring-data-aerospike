@@ -31,222 +31,221 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.utility.TimeUtils.unixTimeToOffsetInSeconds;
 
 public class MappingAerospikeWriteConverter implements EntityWriter<Object, AerospikeWriteData> {
 
-	private final TypeMapper<Map<String, Object>> typeMapper;
-	private final AerospikeMappingContext mappingContext;
-	private final CustomConversions conversions;
-	private final GenericConversionService conversionService;
+    private final TypeMapper<Map<String, Object>> typeMapper;
+    private final AerospikeMappingContext mappingContext;
+    private final CustomConversions conversions;
+    private final GenericConversionService conversionService;
 
-	public MappingAerospikeWriteConverter(TypeMapper<Map<String, Object>> typeMapper,
-										  AerospikeMappingContext mappingContext, CustomConversions conversions,
-										  GenericConversionService conversionService) {
-		this.typeMapper = typeMapper;
-		this.mappingContext = mappingContext;
-		this.conversions = conversions;
-		this.conversionService = conversionService;
-	}
+    public MappingAerospikeWriteConverter(TypeMapper<Map<String, Object>> typeMapper,
+        AerospikeMappingContext mappingContext, CustomConversions conversions,
+        GenericConversionService conversionService) {
+        this.typeMapper = typeMapper;
+        this.mappingContext = mappingContext;
+        this.conversions = conversions;
+        this.conversionService = conversionService;
+    }
 
-	@Override
-	public void write(Object source, final AerospikeWriteData data) {
-		if (source == null) {
-			return;
-		}
+    private static Collection<?> asCollection(final Object source) {
+        if (source instanceof Collection) {
+            return (Collection<?>) source;
+        }
+        return source.getClass().isArray() ? CollectionUtils.arrayToList(source) : Collections.singleton(source);
+    }
 
-		boolean hasCustomConverter = conversions.hasCustomWriteTarget(source.getClass(), AerospikeWriteData.class);
-		if (hasCustomConverter) {
-			convertToAerospikeWriteData(source, data);
-			return;
-		}
+    @Override
+    public void write(Object source, final AerospikeWriteData data) {
+        if (source == null) {
+            return;
+        }
 
-		TypeInformation<?> type = ClassTypeInformation.from(source.getClass());
-		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
-		ConvertingPropertyAccessor<?> accessor = new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
+        boolean hasCustomConverter = conversions.hasCustomWriteTarget(source.getClass(), AerospikeWriteData.class);
+        if (hasCustomConverter) {
+            convertToAerospikeWriteData(source, data);
+            return;
+        }
 
-		AerospikePersistentProperty idProperty = entity.getIdProperty();
-		if (idProperty != null) {
-			String id = accessor.getProperty(idProperty, String.class);
-			Assert.notNull(id, "Id must not be null!");
+        TypeInformation<?> type = ClassTypeInformation.from(source.getClass());
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
+        ConvertingPropertyAccessor<?> accessor =
+            new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
-			data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
-		}
+        AerospikePersistentProperty idProperty = entity.getIdProperty();
+        if (idProperty != null) {
+            String id = accessor.getProperty(idProperty, String.class);
+            Assert.notNull(id, "Id must not be null!");
 
-		AerospikePersistentProperty versionProperty = entity.getVersionProperty();
-		if (versionProperty != null) {
-			Integer version = accessor.getProperty(versionProperty, Integer.class);
-			data.setVersion(version);
-		}
+            data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
+        }
 
-		data.setExpiration(getExpiration(entity, accessor));
+        AerospikePersistentProperty versionProperty = entity.getVersionProperty();
+        if (versionProperty != null) {
+            Integer version = accessor.getProperty(versionProperty, Integer.class);
+            data.setVersion(version);
+        }
 
-		Map<String, Object> convertedProperties = convertProperties(type, entity, accessor, false);
+        data.setExpiration(getExpiration(entity, accessor));
 
-		if (data.getRequestedBins().isEmpty()) {
-			convertedProperties.forEach(data::addBin);
-		} else {
-			convertedProperties.forEach((key, value) -> {
-				if (data.getRequestedBins().contains(key)) {
-					data.addBin(key, value);
-				}
-			});
-		}
-	}
+        Map<String, Object> convertedProperties = convertProperties(type, entity, accessor, false);
 
-	private void convertToAerospikeWriteData(Object source, AerospikeWriteData data) {
-		AerospikeWriteData converted = conversionService.convert(source, AerospikeWriteData.class);
-		data.setBins(converted.getBins());
-		data.setKey(converted.getKey());
-		data.setExpiration(converted.getExpiration());
-	}
+        if (data.getRequestedBins().isEmpty()) {
+            convertedProperties.forEach(data::addBin);
+        } else {
+            convertedProperties.forEach((key, value) -> {
+                if (data.getRequestedBins().contains(key)) {
+                    data.addBin(key, value);
+                }
+            });
+        }
+    }
 
-	private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
-												  ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
-		Map<String, Object> target = new HashMap<>();
-		typeMapper.writeType(type, target);
-		entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property -> {
+    private void convertToAerospikeWriteData(Object source, AerospikeWriteData data) {
+        AerospikeWriteData converted = conversionService.convert(source, AerospikeWriteData.class);
+        data.setBins(converted.getBins());
+        data.setKey(converted.getKey());
+        data.setExpiration(converted.getExpiration());
+    }
 
-			Object value = accessor.getProperty(property);
+    private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
+        ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
+        Map<String, Object> target = new HashMap<>();
+        typeMapper.writeType(type, target);
+        entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property -> {
+
+            Object value = accessor.getProperty(property);
 			/*
 				For custom type bins - for example a nested POJO (Person has a friend field which is also a person),
 				We want to keep non-writable types (@Id, @Expiration, @Version...) as they are.
 				This is not relevant for records, only for custom type bins.
 			 */
-			if (isNotWritable(property) && !isCustomType) {
-				return;
-			}
-			Object valueToWrite = getValueToWrite(value, property.getTypeInformation());
-			if (valueToWrite != null) {
-				target.put(property.getFieldName(), valueToWrite);
-			}
-		});
-		return target;
-	}
+            if (isNotWritable(property) && !isCustomType) {
+                return;
+            }
+            Object valueToWrite = getValueToWrite(value, property.getTypeInformation());
+            if (valueToWrite != null) {
+                target.put(property.getFieldName(), valueToWrite);
+            }
+        });
+        return target;
+    }
 
-	private boolean isNotWritable(AerospikePersistentProperty property) {
-		return property.isIdProperty() || property.isExpirationProperty() || property.isVersionProperty() || !property.isWritable();
-	}
+    private boolean isNotWritable(AerospikePersistentProperty property) {
+        return property.isIdProperty() || property.isExpirationProperty() || property.isVersionProperty() ||
+            !property.isWritable();
+    }
 
-	private Object getValueToWrite(Object value, TypeInformation<?> type) {
-		if (value == null) {
-			return null;
-		} else if (type == null || conversions.isSimpleType(value.getClass())) {
-			return getSimpleValueToWrite(value);
-		} else {
-			return getNonSimpleValueToWrite(value, type);
-		}
-	}
+    private Object getValueToWrite(Object value, TypeInformation<?> type) {
+        if (value == null) {
+            return null;
+        } else if (type == null || conversions.isSimpleType(value.getClass())) {
+            return getSimpleValueToWrite(value);
+        } else {
+            return getNonSimpleValueToWrite(value, type);
+        }
+    }
 
-	private Object getSimpleValueToWrite(Object value) {
-		Optional<Class<?>> customTarget = conversions.getCustomWriteTarget(value.getClass());
-		return customTarget
-				.<Object>map(aClass -> conversionService.convert(value, aClass))
-				.orElse(value);
-	}
+    private Object getSimpleValueToWrite(Object value) {
+        Optional<Class<?>> customTarget = conversions.getCustomWriteTarget(value.getClass());
+        return customTarget
+            .<Object>map(aClass -> conversionService.convert(value, aClass))
+            .orElse(value);
+    }
 
-	private Object getNonSimpleValueToWrite(Object value, TypeInformation<?> type) {
-		TypeInformation<?> valueType = ClassTypeInformation.from(value.getClass());
+    private Object getNonSimpleValueToWrite(Object value, TypeInformation<?> type) {
+        TypeInformation<?> valueType = ClassTypeInformation.from(value.getClass());
 
-		if (valueType.isCollectionLike()) {
-			return convertCollection(asCollection(value), type);
-		}
-
-		if (valueType.isMap()) {
-			return convertMap(asMap(value), type);
-		}
-
-		Optional<Class<?>> basicTargetType = conversions.getCustomWriteTarget(value.getClass());
-		return basicTargetType
-				.<Object>map(aClass -> conversionService.convert(value, aClass))
-				.orElseGet(() -> convertCustomType(value, valueType));
-
-	}
-
-	private List<Object> convertCollection(final Collection<?> source, final TypeInformation<?> type) {
-		Assert.notNull(source, "Given collection must not be null!");
-		Assert.notNull(type, "Given type must not be null!");
-
-		TypeInformation<?> componentType = type.getComponentType();
-
-		return source.stream().map(element -> getValueToWrite(element, componentType)).collect(Collectors.toList());
-	}
-
-	private Map<String, Object> convertMap(final Map<Object, Object> source, final TypeInformation<?> type) {
-		Assert.notNull(source, "Given map must not be null!");
-		Assert.notNull(type, "Given type must not be null!");
-
-		return source.entrySet().stream().collect(HashMap::new, (m, e) -> {
-			Object key = e.getKey();
-			Object value = e.getValue();
-			if (!conversions.isSimpleType(key.getClass())) {
-				throw new MappingException("Cannot use a complex object as a key value.");
-			}
-
-			String simpleKey;
-			if (conversionService.canConvert(key.getClass(), String.class)) {
-				simpleKey = conversionService.convert(key, String.class);
-			} else {
-				simpleKey = key.toString();
-			}
-
-			Object convertedValue = getValueToWrite(value, type.getMapValueType());
-			m.put(simpleKey, convertedValue);
-		}, HashMap::putAll);
-	}
-
-	private Map<String, Object> convertCustomType(Object source, TypeInformation<?> type) {
-		Assert.notNull(source, "Given map must not be null!");
-		Assert.notNull(type, "Given type must not be null!");
-
-		AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
-		ConvertingPropertyAccessor<?> accessor = new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
-
-		return convertProperties(type, entity, accessor, true);
-	}
-
-	@SuppressWarnings("unchecked")
-	private Map<Object, Object> asMap(Object value) {
-		return (Map<Object, Object>) value;
-	}
-
-	private static Collection<?> asCollection(final Object source) {
-		if (source instanceof Collection) {
-			return (Collection<?>) source;
-		}
-		return source.getClass().isArray() ? CollectionUtils.arrayToList(source) : Collections.singleton(source);
-	}
-
-	private int getExpiration(AerospikePersistentEntity<?> entity, ConvertingPropertyAccessor<?> accessor) {
-		AerospikePersistentProperty expirationProperty = entity.getExpirationProperty();
-		if (expirationProperty != null) {
-			return getExpirationFromProperty(accessor, expirationProperty);
-		}
-
-		return entity.getExpiration();
-	}
-
-	private int getExpirationFromProperty(ConvertingPropertyAccessor<?> accessor, AerospikePersistentProperty expirationProperty) {
-		if (expirationProperty.isExpirationSpecifiedAsUnixTime()) {
-			Long unixTime = accessor.getProperty(expirationProperty, Long.class);
-			Assert.notNull(unixTime, "Expiration must not be null!");
-			int inSeconds = unixTimeToOffsetInSeconds(unixTime);
-			Assert.isTrue(inSeconds > 0, "Expiration value must be greater than zero, but was: "
-					+ inSeconds + " seconds (unix time: " + unixTime + ")");
-			return inSeconds;
+        if (valueType.isCollectionLike()) {
+            return convertCollection(asCollection(value), type);
         }
 
-		Integer expirationInSeconds = accessor.getProperty(expirationProperty, Integer.class);
-		Assert.notNull(expirationInSeconds, "Expiration must not be null!");
+        if (valueType.isMap()) {
+            return convertMap(asMap(value), type);
+        }
 
-		return expirationInSeconds;
-	}
+        Optional<Class<?>> basicTargetType = conversions.getCustomWriteTarget(value.getClass());
+        return basicTargetType
+            .<Object>map(aClass -> conversionService.convert(value, aClass))
+            .orElseGet(() -> convertCustomType(value, valueType));
+
+    }
+
+    private List<Object> convertCollection(final Collection<?> source, final TypeInformation<?> type) {
+        Assert.notNull(source, "Given collection must not be null!");
+        Assert.notNull(type, "Given type must not be null!");
+
+        TypeInformation<?> componentType = type.getComponentType();
+
+        return source.stream().map(element -> getValueToWrite(element, componentType)).collect(Collectors.toList());
+    }
+
+    private Map<String, Object> convertMap(final Map<Object, Object> source, final TypeInformation<?> type) {
+        Assert.notNull(source, "Given map must not be null!");
+        Assert.notNull(type, "Given type must not be null!");
+
+        return source.entrySet().stream().collect(HashMap::new, (m, e) -> {
+            Object key = e.getKey();
+            Object value = e.getValue();
+            if (!conversions.isSimpleType(key.getClass())) {
+                throw new MappingException("Cannot use a complex object as a key value.");
+            }
+
+            String simpleKey;
+            if (conversionService.canConvert(key.getClass(), String.class)) {
+                simpleKey = conversionService.convert(key, String.class);
+            } else {
+                simpleKey = key.toString();
+            }
+
+            Object convertedValue = getValueToWrite(value, type.getMapValueType());
+            m.put(simpleKey, convertedValue);
+        }, HashMap::putAll);
+    }
+
+    private Map<String, Object> convertCustomType(Object source, TypeInformation<?> type) {
+        Assert.notNull(source, "Given map must not be null!");
+        Assert.notNull(type, "Given type must not be null!");
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
+        ConvertingPropertyAccessor<?> accessor =
+            new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
+
+        return convertProperties(type, entity, accessor, true);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<Object, Object> asMap(Object value) {
+        return (Map<Object, Object>) value;
+    }
+
+    private int getExpiration(AerospikePersistentEntity<?> entity, ConvertingPropertyAccessor<?> accessor) {
+        AerospikePersistentProperty expirationProperty = entity.getExpirationProperty();
+        if (expirationProperty != null) {
+            return getExpirationFromProperty(accessor, expirationProperty);
+        }
+
+        return entity.getExpiration();
+    }
+
+    private int getExpirationFromProperty(ConvertingPropertyAccessor<?> accessor,
+        AerospikePersistentProperty expirationProperty) {
+        if (expirationProperty.isExpirationSpecifiedAsUnixTime()) {
+            Long unixTime = accessor.getProperty(expirationProperty, Long.class);
+            Assert.notNull(unixTime, "Expiration must not be null!");
+            int inSeconds = unixTimeToOffsetInSeconds(unixTime);
+            Assert.isTrue(inSeconds > 0, "Expiration value must be greater than zero, but was: "
+                + inSeconds + " seconds (unix time: " + unixTime + ")");
+            return inSeconds;
+        }
+
+        Integer expirationInSeconds = accessor.getProperty(expirationProperty, Integer.class);
+        Assert.notNull(expirationInSeconds, "Expiration must not be null!");
+
+        return expirationInSeconds;
+    }
 }

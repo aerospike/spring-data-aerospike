@@ -29,14 +29,14 @@ import org.w3c.dom.Element;
  */
 public class ScanPolicyBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-	@Override
-	protected Class<?> getBeanClass(Element element) {
-		return QueryPolicyFactoryBean.class;
-	}
+    @Override
+    protected Class<?> getBeanClass(Element element) {
+        return QueryPolicyFactoryBean.class;
+    }
 
-	@Override
-	protected void doParse(Element element, BeanDefinitionBuilder builder) {
-		ParsingUtils.setPropertyValue(builder, element, "max-concurrent-threads");
-		// TODO: set all properties of the XML element on the builder
-	}
+    @Override
+    protected void doParse(Element element, BeanDefinitionBuilder builder) {
+        ParsingUtils.setPropertyValue(builder, element, "max-concurrent-threads");
+        // TODO: set all properties of the XML element on the builder
+    }
 }

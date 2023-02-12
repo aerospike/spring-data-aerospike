@@ -33,16 +33,16 @@ class EntitiesKeys {
 
     public static EntitiesKeys of(Map<Class<?>, List<Key>> entitiesKeys) {
         Class<?>[] entityClasses = entitiesKeys.entrySet().stream()
-                .flatMap(entry -> entry.getValue().stream().map(item -> entry.getKey()))
-                .toArray(Class<?>[]::new);
+            .flatMap(entry -> entry.getValue().stream().map(item -> entry.getKey()))
+            .toArray(Class<?>[]::new);
 
         Key[] keys = entitiesKeys.entrySet().stream()
-                .flatMap(entry -> entry.getValue().stream())
-                .toArray(Key[]::new);
+            .flatMap(entry -> entry.getValue().stream())
+            .toArray(Key[]::new);
 
         return EntitiesKeys.builder()
-                .entityClasses(entityClasses)
-                .keys(keys)
-                .build();
+            .entityClasses(entityClasses)
+            .keys(keys)
+            .build();
     }
 }

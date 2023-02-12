@@ -30,110 +30,110 @@ import org.springframework.util.StringUtils;
  * @author Oliver Gierke
  */
 public class BasicAerospikePersistentEntity<T> extends BasicPersistentEntity<T, AerospikePersistentProperty> implements
-		AerospikePersistentEntity<T>, EnvironmentAware {
+    AerospikePersistentEntity<T>, EnvironmentAware {
 
-	static final int DEFAULT_EXPIRATION = 0;
+    static final int DEFAULT_EXPIRATION = 0;
+    private final Lazy<String> setName;
+    private final Lazy<Integer> expiration;
+    private final Lazy<Boolean> isTouchOnRead;
+    private AerospikePersistentProperty expirationProperty;
+    private Environment environment;
 
-	private AerospikePersistentProperty expirationProperty;
-	private Environment environment;
-	private final Lazy<String> setName;
-	private final Lazy<Integer> expiration;
-	private final Lazy<Boolean> isTouchOnRead;
+    /**
+     * Creates a new {@link BasicAerospikePersistentEntity} using a given {@link TypeInformation}.
+     *
+     * @param information must not be {@literal null}.
+     */
+    public BasicAerospikePersistentEntity(TypeInformation<T> information) {
+        super(information);
+        this.setName = Lazy.of(() -> {
+            Class<T> type = getType();
+            Document annotation = type.getAnnotation(Document.class);
+            if (annotation != null && !annotation.collection().isEmpty()) {
+                Assert.notNull(environment, "Environment must be set to use 'collection'");
 
-	/**
-	 * Creates a new {@link BasicAerospikePersistentEntity}
-	 * using a given {@link TypeInformation}.
-	 *
-	 * @param information must not be {@literal null}.
-	 */
-	public BasicAerospikePersistentEntity(TypeInformation<T> information) {
-		super(information);
-		this.setName = Lazy.of(() -> {
-			Class<T> type = getType();
-			Document annotation = type.getAnnotation(Document.class);
-			if (annotation != null && !annotation.collection().isEmpty()) {
-				Assert.notNull(environment, "Environment must be set to use 'collection'");
+                return environment.resolveRequiredPlaceholders(annotation.collection());
+            }
+            return type.getSimpleName();
+        });
+        this.expiration = Lazy.of(() -> {
+            Document annotation = getType().getAnnotation(Document.class);
+            if (annotation == null) {
+                return DEFAULT_EXPIRATION;
+            }
 
-				return environment.resolveRequiredPlaceholders(annotation.collection());
-			}
-			return type.getSimpleName();
-		});
-		this.expiration = Lazy.of(() -> {
-			Document annotation = getType().getAnnotation(Document.class);
-			if (annotation == null) {
-				return DEFAULT_EXPIRATION;
-			}
+            int expirationValue = getExpirationValue(annotation);
+            return (int) annotation.expirationUnit().toSeconds(expirationValue);
+        });
+        this.isTouchOnRead = Lazy.of(() -> {
+            Document annotation = getType().getAnnotation(Document.class);
+            return annotation != null && annotation.touchOnRead();
+        });
+    }
 
-			int expirationValue = getExpirationValue(annotation);
-			return (int) annotation.expirationUnit().toSeconds(expirationValue);
-		});
-		this.isTouchOnRead = Lazy.of(() -> {
-			Document annotation = getType().getAnnotation(Document.class);
-			return annotation != null && annotation.touchOnRead();
-		});
-	}
+    @Override
+    public void addPersistentProperty(AerospikePersistentProperty property) {
+        super.addPersistentProperty(property);
 
-	@Override
-	public void addPersistentProperty(AerospikePersistentProperty property) {
-		super.addPersistentProperty(property);
+        if (property.isExpirationProperty()) {
+            if (expirationProperty != null) {
+                String message = String.format("Attempt to add expiration property %s but already have property %s " +
+                        "registered as expiration. Check your mapping configuration!", property.getField(),
+                    expirationProperty.getField());
+                throw new MappingException(message);
+            }
 
-		if (property.isExpirationProperty()) {
-			if (expirationProperty != null) {
-				String message = String.format("Attempt to add expiration property %s but already have property %s " +
-						"registered as expiration. Check your mapping configuration!", property.getField(), expirationProperty.getField());
-				throw new MappingException(message);
-			}
+            expirationProperty = property;
+        }
+    }
 
-			expirationProperty = property;
-		}
-	}
+    @Override
+    public String getSetName() {
+        return setName.get();
+    }
 
-	@Override
-	public String getSetName() {
-		return setName.get();
-	}
+    @Override
+    public int getExpiration() {
+        return expiration.get();
+    }
 
-	@Override
-	public int getExpiration() {
-		return expiration.get();
-	}
+    @Override
+    public boolean isTouchOnRead() {
+        return isTouchOnRead.get();
+    }
 
-	@Override
-	public boolean isTouchOnRead() {
-		return isTouchOnRead.get();
-	}
+    @Override
+    public AerospikePersistentProperty getExpirationProperty() {
+        return expirationProperty;
+    }
 
-	@Override
-	public AerospikePersistentProperty getExpirationProperty() {
-		return expirationProperty;
-	}
+    @Override
+    public boolean hasExpirationProperty() {
+        return expirationProperty != null;
+    }
 
-	@Override
-	public boolean hasExpirationProperty() {
-		return expirationProperty != null;
-	}
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
 
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
+    private int getExpirationValue(Document annotation) {
+        int expiration = annotation.expiration();
+        String expressionString = annotation.expirationExpression();
 
-	private int getExpirationValue(Document annotation) {
-		int expiration = annotation.expiration();
-		String expressionString = annotation.expirationExpression();
+        if (StringUtils.hasLength(expressionString)) {
+            Assert.state(expiration == DEFAULT_EXPIRATION, "Both 'expiration' and 'expirationExpression' are set");
+            Assert.notNull(environment, "Environment must be set to use 'expirationExpression'");
 
-		if (StringUtils.hasLength(expressionString)) {
-			Assert.state(expiration == DEFAULT_EXPIRATION, "Both 'expiration' and 'expirationExpression' are set");
-			Assert.notNull(environment, "Environment must be set to use 'expirationExpression'");
+            String resolvedExpression = environment.resolveRequiredPlaceholders(expressionString);
+            try {
+                return Integer.parseInt(resolvedExpression);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(
+                    "Invalid Integer value for expiration expression: " + resolvedExpression);
+            }
+        }
 
-			String resolvedExpression = environment.resolveRequiredPlaceholders(expressionString);
-			try {
-				return Integer.parseInt(resolvedExpression);
-			} catch (NumberFormatException e) {
-				throw new IllegalArgumentException("Invalid Integer value for expiration expression: " + resolvedExpression);
-			}
-		}
-
-		return expiration;
-	}
+        return expiration;
+    }
 }

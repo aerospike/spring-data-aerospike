@@ -25,65 +25,65 @@ import java.util.Objects;
  */
 public class IndexKey {
 
-	private final String namespace;
-	private final String set;
-	private final String field;
-	private final IndexType type;
-	private final IndexCollectionType collectionType;
+    private final String namespace;
+    private final String set;
+    private final String field;
+    private final IndexType type;
+    private final IndexCollectionType collectionType;
 
-	public IndexKey(String namespace, String set, String field, IndexType type, IndexCollectionType collectionType) {
-		this.namespace = namespace;
-		this.set = set;
-		this.field = field;
-		this.type = type;
-		this.collectionType = collectionType;
-	}
+    public IndexKey(String namespace, String set, String field, IndexType type, IndexCollectionType collectionType) {
+        this.namespace = namespace;
+        this.set = set;
+        this.field = field;
+        this.type = type;
+        this.collectionType = collectionType;
+    }
 
-	public String getNamespace() {
-		return namespace;
-	}
+    public String getNamespace() {
+        return namespace;
+    }
 
-	public String getSet() {
-		return set;
-	}
+    public String getSet() {
+        return set;
+    }
 
-	public String getField() {
-		return field;
-	}
+    public String getField() {
+        return field;
+    }
 
-	public IndexType getType() {
-		return type;
-	}
+    public IndexType getType() {
+        return type;
+    }
 
-	public IndexCollectionType getCollectionType() {
-		return collectionType;
-	}
+    public IndexCollectionType getCollectionType() {
+        return collectionType;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		IndexKey indexKey = (IndexKey) o;
-		return Objects.equals(namespace, indexKey.namespace) &&
-				Objects.equals(set, indexKey.set) &&
-				Objects.equals(field, indexKey.field) &&
-				type == indexKey.type &&
-				collectionType == indexKey.collectionType;
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        IndexKey indexKey = (IndexKey) o;
+        return Objects.equals(namespace, indexKey.namespace) &&
+            Objects.equals(set, indexKey.set) &&
+            Objects.equals(field, indexKey.field) &&
+            type == indexKey.type &&
+            collectionType == indexKey.collectionType;
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(namespace, set, field, type, collectionType);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(namespace, set, field, type, collectionType);
+    }
 
-	@Override
-	public String toString() {
-		return "IndexKey{" +
-				"namespace='" + namespace + '\'' +
-				", set='" + set + '\'' +
-				", field='" + field + '\'' +
-				", type=" + type +
-				", collectionType=" + collectionType +
-				'}';
-	}
+    @Override
+    public String toString() {
+        return "IndexKey{" +
+            "namespace='" + namespace + '\'' +
+            ", set='" + set + '\'' +
+            ", field='" + field + '\'' +
+            ", type=" + type +
+            ", collectionType=" + collectionType +
+            '}';
+    }
 }

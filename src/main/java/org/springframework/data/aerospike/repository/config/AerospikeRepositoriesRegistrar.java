@@ -27,13 +27,13 @@ import java.lang.annotation.Annotation;
  */
 public class AerospikeRepositoriesRegistrar extends RepositoryBeanDefinitionRegistrarSupport {
 
-	@Override
-	protected Class<? extends Annotation> getAnnotation() {
-		return EnableAerospikeRepositories.class;
-	}
+    @Override
+    protected Class<? extends Annotation> getAnnotation() {
+        return EnableAerospikeRepositories.class;
+    }
 
-	@Override
-	protected RepositoryConfigurationExtension getExtension() {
-		return new AerospikeRepositoryConfigurationExtension();
-	}
+    @Override
+    protected RepositoryConfigurationExtension getExtension() {
+        return new AerospikeRepositoryConfigurationExtension();
+    }
 }

@@ -25,82 +25,82 @@ import org.springframework.data.mapping.model.SimpleTypeHolder;
  */
 public class CachingAerospikePersistentProperty extends BasicAerospikePersistentProperty {
 
-	private Boolean isIdProperty;
-	private Boolean isAssociation;
-	private String fieldName;
-	private Boolean usePropertyAccess;
-	private Boolean isTransient;
-	private Boolean isExpirationProperty;
-	private Boolean isExpirationSpecifiedAsUnixTime;
+    private Boolean isIdProperty;
+    private Boolean isAssociation;
+    private String fieldName;
+    private Boolean usePropertyAccess;
+    private Boolean isTransient;
+    private Boolean isExpirationProperty;
+    private Boolean isExpirationSpecifiedAsUnixTime;
 
-	/**
-	 * Creates a new {@link CachingAerospikePersistentProperty}.
-	 *
-	 * @param property            The {@link Property} to be persistent.
-	 * @param owner               must not be {@literal null}.
-	 * @param simpleTypeHolder    must not be {@literal null}.
-	 * @param fieldNamingStrategy a field naming strategy - in case of null default will be selected.
-	 */
-	public CachingAerospikePersistentProperty(Property property,
-											  PersistentEntity<?, AerospikePersistentProperty> owner,
-											  SimpleTypeHolder simpleTypeHolder,
-											  FieldNamingStrategy fieldNamingStrategy) {
-		super(property, owner, simpleTypeHolder, fieldNamingStrategy);
-	}
+    /**
+     * Creates a new {@link CachingAerospikePersistentProperty}.
+     *
+     * @param property            The {@link Property} to be persistent.
+     * @param owner               must not be {@literal null}.
+     * @param simpleTypeHolder    must not be {@literal null}.
+     * @param fieldNamingStrategy a field naming strategy - in case of null default will be selected.
+     */
+    public CachingAerospikePersistentProperty(Property property,
+        PersistentEntity<?, AerospikePersistentProperty> owner,
+        SimpleTypeHolder simpleTypeHolder,
+        FieldNamingStrategy fieldNamingStrategy) {
+        super(property, owner, simpleTypeHolder, fieldNamingStrategy);
+    }
 
-	@Override
-	public boolean isIdProperty() {
-		if (this.isIdProperty == null) {
-			this.isIdProperty = super.isIdProperty();
-		}
-		return this.isIdProperty;
-	}
+    @Override
+    public boolean isIdProperty() {
+        if (this.isIdProperty == null) {
+            this.isIdProperty = super.isIdProperty();
+        }
+        return this.isIdProperty;
+    }
 
-	@Override
-	public boolean isAssociation() {
-		if (this.isAssociation == null) {
-			this.isAssociation = super.isAssociation();
-		}
-		return this.isAssociation;
-	}
+    @Override
+    public boolean isAssociation() {
+        if (this.isAssociation == null) {
+            this.isAssociation = super.isAssociation();
+        }
+        return this.isAssociation;
+    }
 
-	@Override
-	public String getFieldName() {
-		if (this.fieldName == null) {
-			this.fieldName = super.getFieldName();
-		}
-		return this.fieldName;
-	}
+    @Override
+    public String getFieldName() {
+        if (this.fieldName == null) {
+            this.fieldName = super.getFieldName();
+        }
+        return this.fieldName;
+    }
 
-	@Override
-	public boolean usePropertyAccess() {
-		if (this.usePropertyAccess == null) {
-			this.usePropertyAccess = super.usePropertyAccess();
-		}
-		return this.usePropertyAccess;
-	}
+    @Override
+    public boolean usePropertyAccess() {
+        if (this.usePropertyAccess == null) {
+            this.usePropertyAccess = super.usePropertyAccess();
+        }
+        return this.usePropertyAccess;
+    }
 
-	@Override
-	public boolean isTransient() {
-		if (this.isTransient == null) {
-			this.isTransient = super.isTransient();
-		}
-		return this.isTransient;
-	}
+    @Override
+    public boolean isTransient() {
+        if (this.isTransient == null) {
+            this.isTransient = super.isTransient();
+        }
+        return this.isTransient;
+    }
 
-	@Override
-	public boolean isExpirationProperty() {
-		if (this.isExpirationProperty == null) {
-			this.isExpirationProperty = super.isExpirationProperty();
-		}
-		return this.isExpirationProperty;
-	}
+    @Override
+    public boolean isExpirationProperty() {
+        if (this.isExpirationProperty == null) {
+            this.isExpirationProperty = super.isExpirationProperty();
+        }
+        return this.isExpirationProperty;
+    }
 
-	@Override
-	public boolean isExpirationSpecifiedAsUnixTime() {
-		if (this.isExpirationSpecifiedAsUnixTime == null) {
-			this.isExpirationSpecifiedAsUnixTime = super.isExpirationSpecifiedAsUnixTime();
-		}
-		return this.isExpirationSpecifiedAsUnixTime;
-	}
+    @Override
+    public boolean isExpirationSpecifiedAsUnixTime() {
+        if (this.isExpirationSpecifiedAsUnixTime == null) {
+            this.isExpirationSpecifiedAsUnixTime = super.isExpirationSpecifiedAsUnixTime();
+        }
+        return this.isExpirationSpecifiedAsUnixTime;
+    }
 }

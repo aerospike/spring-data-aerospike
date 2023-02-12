@@ -15,11 +15,7 @@
  */
 package org.springframework.data.aerospike.mapping;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Annotation to define custom metadata for document fields.
@@ -31,8 +27,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Field {
-	/**
-	 * The key to be used to store the field inside the document.
-	 */
-	String value() default "";
+    /**
+     * The key to be used to store the field inside the document.
+     */
+    String value() default "";
 }

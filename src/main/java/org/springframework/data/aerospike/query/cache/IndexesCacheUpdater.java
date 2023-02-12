@@ -19,5 +19,5 @@ import org.springframework.data.aerospike.query.model.IndexesInfo;
 
 public interface IndexesCacheUpdater {
 
-	void update(IndexesInfo cache);
+    void update(IndexesInfo cache);
 }

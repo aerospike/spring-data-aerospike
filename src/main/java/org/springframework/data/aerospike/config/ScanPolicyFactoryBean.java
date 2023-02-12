@@ -15,9 +15,8 @@
  */
 package org.springframework.data.aerospike.config;
 
-import org.springframework.beans.factory.FactoryBean;
-
 import com.aerospike.client.policy.ScanPolicy;
+import org.springframework.beans.factory.FactoryBean;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a {@link ScanPolicy} via XML.
@@ -26,60 +25,59 @@ import com.aerospike.client.policy.ScanPolicy;
  */
 public class ScanPolicyFactoryBean extends ReadPolicyFactoryBean {
 
-	private final ScanPolicy policy;
+    private final ScanPolicy policy;
 
-	/**
-	 * Creates a new {@link ScanPolicyFactoryBean}.
-	 */
-	public ScanPolicyFactoryBean() {
-		this.policy = new ScanPolicy();
-	}
+    /**
+     * Creates a new {@link ScanPolicyFactoryBean}.
+     */
+    public ScanPolicyFactoryBean() {
+        this.policy = new ScanPolicy();
+    }
 
-	/**
-	 * Configures scan requests to be issued in parallel or serially.
-	 *
-	 * @param concurrentNodes The concurrentNodes configuration value.
-	 */
-	public void setConcurrentNodes(boolean concurrentNodes){
-		this.policy.concurrentNodes = concurrentNodes;
-	}
+    /**
+     * Configures scan requests to be issued in parallel or serially.
+     *
+     * @param concurrentNodes The concurrentNodes configuration value.
+     */
+    public void setConcurrentNodes(boolean concurrentNodes) {
+        this.policy.concurrentNodes = concurrentNodes;
+    }
 
-	/**
-	 * Indicates if bin data is retrieved. If false, only record digests are retrieved.
-	 *
-	 * @param includeBinData The includeBinData configuration value.
-	 */
-	public void setIncludeBinData(boolean includeBinData){
-		this.policy.includeBinData = includeBinData;
-	}
+    /**
+     * Indicates if bin data is retrieved. If false, only record digests are retrieved.
+     *
+     * @param includeBinData The includeBinData configuration value.
+     */
+    public void setIncludeBinData(boolean includeBinData) {
+        this.policy.includeBinData = includeBinData;
+    }
 
-	/**
-	 * Configures the maximum number of concurrent requests to server nodes at any point in time.
-	 * If there are 16 nodes in the cluster and maxConcurrentNodes is 8, then scan requests
-	 * will be made to 8 nodes in parallel.  When a scan completes, a new scan request will
-	 * be issued until all 16 nodes have been scanned.
-	 * <p>
-	 * This property is only relevant when concurrentNodes is true.
-	 * Default (0) is to issue requests to all server nodes in parallel.
-	 *
-	 * @param maxConcurrentNodes The maxConcurrentNodes configuration value.
-	 */
-	public void setMaxConcurrentNodes(int maxConcurrentNodes){
-		this.policy.maxConcurrentNodes = maxConcurrentNodes;
-	}
+    /**
+     * Configures the maximum number of concurrent requests to server nodes at any point in time. If there are 16 nodes
+     * in the cluster and maxConcurrentNodes is 8, then scan requests will be made to 8 nodes in parallel.  When a scan
+     * completes, a new scan request will be issued until all 16 nodes have been scanned.
+     * <p>
+     * This property is only relevant when concurrentNodes is true. Default (0) is to issue requests to all server nodes
+     * in parallel.
+     *
+     * @param maxConcurrentNodes The maxConcurrentNodes configuration value.
+     */
+    public void setMaxConcurrentNodes(int maxConcurrentNodes) {
+        this.policy.maxConcurrentNodes = maxConcurrentNodes;
+    }
 
-	@Override
-	public ScanPolicy getObject() throws Exception {
-		return policy;
-	}
+    @Override
+    public ScanPolicy getObject() throws Exception {
+        return policy;
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return false;
-	}
+    @Override
+    public boolean isSingleton() {
+        return false;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return ScanPolicy.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return ScanPolicy.class;
+    }
 }

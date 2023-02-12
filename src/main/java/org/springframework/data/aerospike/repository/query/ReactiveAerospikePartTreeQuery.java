@@ -27,43 +27,43 @@ import reactor.core.publisher.Flux;
  */
 public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
-	private final ReactiveAerospikeOperations aerospikeOperations;
+    private final ReactiveAerospikeOperations aerospikeOperations;
 
-	public ReactiveAerospikePartTreeQuery(QueryMethod queryMethod,
-										  QueryMethodEvaluationContextProvider evalContextProvider,
-										  ReactiveAerospikeOperations aerospikeOperations,
-										  Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-		super(queryMethod, evalContextProvider, queryCreator);
-		this.aerospikeOperations = aerospikeOperations;
-	}
+    public ReactiveAerospikePartTreeQuery(QueryMethod queryMethod,
+        QueryMethodEvaluationContextProvider evalContextProvider,
+        ReactiveAerospikeOperations aerospikeOperations,
+        Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
+        super(queryMethod, evalContextProvider, queryCreator);
+        this.aerospikeOperations = aerospikeOperations;
+    }
 
-	@Override
-	public Object execute(Object[] parameters) {
-		ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
-		Query query = prepareQuery(parameters, accessor);
-		Class<?> targetClass = getTargetClass(accessor);
-		return findByQuery(query, targetClass);
-	}
+    @Override
+    public Object execute(Object[] parameters) {
+        ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
+        Query query = prepareQuery(parameters, accessor);
+        Class<?> targetClass = getTargetClass(accessor);
+        return findByQuery(query, targetClass);
+    }
 
-	private Class<?> getTargetClass(ParametersParameterAccessor accessor) {
-		// Dynamic projection
-		if (accessor.getParameters().hasDynamicProjection()) {
-			return accessor.findDynamicProjection();
-		}
-		// DTO projection
-		if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
-			return queryMethod.getReturnedObjectType();
-		}
-		// No projection - target class will be the entity class.
-		return queryMethod.getEntityInformation().getJavaType();
-	}
+    private Class<?> getTargetClass(ParametersParameterAccessor accessor) {
+        // Dynamic projection
+        if (accessor.getParameters().hasDynamicProjection()) {
+            return accessor.findDynamicProjection();
+        }
+        // DTO projection
+        if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
+            return queryMethod.getReturnedObjectType();
+        }
+        // No projection - target class will be the entity class.
+        return queryMethod.getEntityInformation().getJavaType();
+    }
 
-	private Flux<?> findByQuery(Query query, Class<?> targetClass) {
-		// Run query and map to different target class.
-		if (targetClass != queryMethod.getEntityInformation().getJavaType()) {
-			return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(), targetClass);
-		}
-		// Run query and map to entity class type.
-		return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
-	}
+    private Flux<?> findByQuery(Query query, Class<?> targetClass) {
+        // Run query and map to different target class.
+        if (targetClass != queryMethod.getEntityInformation().getJavaType()) {
+            return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(), targetClass);
+        }
+        // Run query and map to entity class type.
+        return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
+    }
 }

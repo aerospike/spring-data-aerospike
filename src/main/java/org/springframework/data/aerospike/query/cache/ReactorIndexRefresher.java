@@ -27,28 +27,28 @@ import reactor.core.publisher.Mono;
  */
 public class ReactorIndexRefresher {
 
-	private static final Logger log = LoggerFactory.getLogger(ReactorIndexRefresher.class);
+    private static final Logger log = LoggerFactory.getLogger(ReactorIndexRefresher.class);
 
-	private final IAerospikeReactorClient client;
-	private final InfoPolicy infoPolicy;
-	private final InternalIndexOperations indexOperations;
-	private final IndexesCacheUpdater indexesCacheUpdater;
+    private final IAerospikeReactorClient client;
+    private final InfoPolicy infoPolicy;
+    private final InternalIndexOperations indexOperations;
+    private final IndexesCacheUpdater indexesCacheUpdater;
 
-	public ReactorIndexRefresher(IAerospikeReactorClient client, InfoPolicy infoPolicy,
-								 InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
-		this.client = client;
-		this.infoPolicy = infoPolicy;
-		this.indexOperations = indexOperations;
-		this.indexesCacheUpdater = indexesCacheUpdater;
-	}
+    public ReactorIndexRefresher(IAerospikeReactorClient client, InfoPolicy infoPolicy,
+        InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
+        this.client = client;
+        this.infoPolicy = infoPolicy;
+        this.indexOperations = indexOperations;
+        this.indexesCacheUpdater = indexesCacheUpdater;
+    }
 
-	public Mono<Void> refreshIndexes() {
-		return client.info(infoPolicy, null, indexOperations.buildGetIndexesCommand())
-				.doOnSubscribe(subscription -> log.trace("Loading indexes"))
-				.doOnNext(indexInfo -> {
-					IndexesInfo cache = indexOperations.parseIndexesInfo(indexInfo);
-					this.indexesCacheUpdater.update(cache);
-					log.debug("Loaded indexes: {}", cache.indexes);
-				}).then();
-	}
+    public Mono<Void> refreshIndexes() {
+        return client.info(infoPolicy, null, indexOperations.buildGetIndexesCommand())
+            .doOnSubscribe(subscription -> log.trace("Loading indexes"))
+            .doOnNext(indexInfo -> {
+                IndexesInfo cache = indexOperations.parseIndexesInfo(indexInfo);
+                this.indexesCacheUpdater.update(cache);
+                log.debug("Loaded indexes: {}", cache.indexes);
+            }).then();
+    }
 }

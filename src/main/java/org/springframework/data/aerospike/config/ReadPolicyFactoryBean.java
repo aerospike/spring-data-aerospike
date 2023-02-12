@@ -15,9 +15,8 @@
  */
 package org.springframework.data.aerospike.config;
 
-import org.springframework.beans.factory.FactoryBean;
-
 import com.aerospike.client.policy.Policy;
+import org.springframework.beans.factory.FactoryBean;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a read policy via XML.
@@ -26,68 +25,66 @@ import com.aerospike.client.policy.Policy;
  */
 public class ReadPolicyFactoryBean implements FactoryBean<Policy> {
 
-	private final Policy policy;
+    private final Policy policy;
 
-	/**
-	 * Creates a new {@link ReadPolicyFactoryBean}.
-	 */
-	public ReadPolicyFactoryBean() {
-		this.policy = new Policy();
-	}
+    /**
+     * Creates a new {@link ReadPolicyFactoryBean}.
+     */
+    public ReadPolicyFactoryBean() {
+        this.policy = new Policy();
+    }
 
-	/**
-	 * Configures the timeout for each transaction attempt of an operation.
-	 *
-	 * @param socketTimeout The socketTimeout configuration value.
-	 */
-	public void setSocketTimeout(int socketTimeout){
-		this.policy.socketTimeout = socketTimeout;
-	}
+    /**
+     * Configures the timeout for each transaction attempt of an operation.
+     *
+     * @param socketTimeout The socketTimeout configuration value.
+     */
+    public void setSocketTimeout(int socketTimeout) {
+        this.policy.socketTimeout = socketTimeout;
+    }
 
-	/**
-	 * Configures the timeout for an operation.
-	 *
-	 * @param totalTimeout The totalTimeout configuration value.
-	 */
-	public void setTotalTimeout(int totalTimeout){
-		this.policy.totalTimeout = totalTimeout;
-	}
+    /**
+     * Configures the timeout for an operation.
+     *
+     * @param totalTimeout The totalTimeout configuration value.
+     */
+    public void setTotalTimeout(int totalTimeout) {
+        this.policy.totalTimeout = totalTimeout;
+    }
 
-	/**
-	 * Configures the maximum number of retries before aborting the current transaction.
-	 * A retry is attempted when there is a network error other than timeout.
-	 * If maxRetries is exceeded, the abort will occur even if the timeout
-	 * has not yet been exceeded.  The default number of retries is 1.
-	 *
-	 * @param maxRetries The maxRetries configuration value.
-	 */
-	public void setMaxRetries(int maxRetries){
-		this.policy.maxRetries = maxRetries;
-	}
+    /**
+     * Configures the maximum number of retries before aborting the current transaction. A retry is attempted when there
+     * is a network error other than timeout. If maxRetries is exceeded, the abort will occur even if the timeout has
+     * not yet been exceeded.  The default number of retries is 1.
+     *
+     * @param maxRetries The maxRetries configuration value.
+     */
+    public void setMaxRetries(int maxRetries) {
+        this.policy.maxRetries = maxRetries;
+    }
 
-	/**
-	 * Configures the sleep between retries if a transaction fails and the
-	 * timeout was not exceeded.  Enter zero to skip sleep.
-	 * The default sleep between retries is 500 ms.
-	 *
-	 * @param sleepBetweenRetries The sleepBetweenRetries configuration value.
-	 */
-	public void setSleepBetweenRetries(int sleepBetweenRetries){
-		this.policy.sleepBetweenRetries = sleepBetweenRetries;
-	}
+    /**
+     * Configures the sleep between retries if a transaction fails and the timeout was not exceeded.  Enter zero to skip
+     * sleep. The default sleep between retries is 500 ms.
+     *
+     * @param sleepBetweenRetries The sleepBetweenRetries configuration value.
+     */
+    public void setSleepBetweenRetries(int sleepBetweenRetries) {
+        this.policy.sleepBetweenRetries = sleepBetweenRetries;
+    }
 
-	@Override
-	public Policy getObject() throws Exception {
-		return policy;
-	}
+    @Override
+    public Policy getObject() throws Exception {
+        return policy;
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return false;
-	}
+    @Override
+    public boolean isSingleton() {
+        return false;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return Policy.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return Policy.class;
+    }
 }

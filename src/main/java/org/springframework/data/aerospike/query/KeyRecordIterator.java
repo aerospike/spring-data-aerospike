@@ -36,100 +36,100 @@ import java.util.Map;
  */
 //TODO: split if-else logic to three different iterators (Anastasiia Smirnova)
 public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
-	private static final String META_DATA = "meta_data";
-	private static final String SET_NAME = "set_name";
-	private static final String DIGEST = "digest";
-	private static final String EXPIRY = "expiry";
-	private static final String GENERATION = "generation";
-	private static final Logger log = LoggerFactory.getLogger(KeyRecordIterator.class);
-	private RecordSet recordSet;
-	private ResultSet resultSet;
-	private Iterator<KeyRecord> recordSetIterator;
-	private Iterator<Object> resultSetIterator;
-	private final String namespace;
-	private KeyRecord singleRecord;
-	private Integer closeLock = new Integer(0);
+    private static final String META_DATA = "meta_data";
+    private static final String SET_NAME = "set_name";
+    private static final String DIGEST = "digest";
+    private static final String EXPIRY = "expiry";
+    private static final String GENERATION = "generation";
+    private static final Logger log = LoggerFactory.getLogger(KeyRecordIterator.class);
+    private final String namespace;
+    private RecordSet recordSet;
+    private ResultSet resultSet;
+    private Iterator<KeyRecord> recordSetIterator;
+    private Iterator<Object> resultSetIterator;
+    private KeyRecord singleRecord;
+    private final Integer closeLock = Integer.valueOf(0);
 
-	public KeyRecordIterator(String namespace) {
-		super();
-		this.namespace = namespace;
-	}
+    public KeyRecordIterator(String namespace) {
+        super();
+        this.namespace = namespace;
+    }
 
-	public KeyRecordIterator(String namespace, KeyRecord singleRecord) {
-		this(namespace);
-		this.singleRecord = singleRecord;
-	}
+    public KeyRecordIterator(String namespace, KeyRecord singleRecord) {
+        this(namespace);
+        this.singleRecord = singleRecord;
+    }
 
-	public KeyRecordIterator(String namespace, RecordSet recordSet) {
-		this(namespace);
-		this.recordSet = recordSet;
-		this.recordSetIterator = recordSet.iterator();
-	}
+    public KeyRecordIterator(String namespace, RecordSet recordSet) {
+        this(namespace);
+        this.recordSet = recordSet;
+        this.recordSetIterator = recordSet.iterator();
+    }
 
-	public KeyRecordIterator(String namespace, ResultSet resultSet) {
-		this(namespace);
-		this.resultSet = resultSet;
-		this.resultSetIterator = resultSet.iterator();
-	}
+    public KeyRecordIterator(String namespace, ResultSet resultSet) {
+        this(namespace);
+        this.resultSet = resultSet;
+        this.resultSetIterator = resultSet.iterator();
+    }
 
-	@Override
-	public void close() {
-		synchronized (closeLock) {
-			if (recordSet != null)
-				recordSet.close();
-			if (resultSet != null)
-				resultSet.close();
-			if (singleRecord != null)
-				singleRecord = null;
-		}
-	}
+    @Override
+    public void close() {
+        synchronized (closeLock) {
+            if (recordSet != null)
+                recordSet.close();
+            if (resultSet != null)
+                resultSet.close();
+            if (singleRecord != null)
+                singleRecord = null;
+        }
+    }
 
-	@Override
-	public boolean hasNext() {
-		if (this.recordSetIterator != null)
-			return this.recordSetIterator.hasNext();
-		else if (this.resultSetIterator != null)
-			return this.resultSetIterator.hasNext();
-		else return this.singleRecord != null;
-	}
+    @Override
+    public boolean hasNext() {
+        if (this.recordSetIterator != null)
+            return this.recordSetIterator.hasNext();
+        else if (this.resultSetIterator != null)
+            return this.resultSetIterator.hasNext();
+        else return this.singleRecord != null;
+    }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public KeyRecord next() {
-		KeyRecord keyRecord = null;
+    @SuppressWarnings("unchecked")
+    @Override
+    public KeyRecord next() {
+        KeyRecord keyRecord = null;
 
-		if (this.recordSetIterator != null) {
-			keyRecord = this.recordSetIterator.next();
-		} else if (this.resultSetIterator != null) {
-			Map<String, Object> map = (Map<String, Object>) this.resultSetIterator.next();
-			Map<String, Object> meta = (Map<String, Object>) map.get(META_DATA);
-			map.remove(META_DATA);
-			Map<String, Object> binMap = new HashMap<>(map);
-			if (log.isDebugEnabled()) {
-				for (Map.Entry<String, Object> entry : map.entrySet()) {
-					log.debug(entry.getKey() + " = " + entry.getValue());
-				}
-			}
-			Long generation = (Long) meta.get(GENERATION);
-			//TODO: there is probably a bug, since TTL is not an expiration date! (Anastasiia Smirnova)
-			Long ttl = (Long) meta.get(EXPIRY);
-			Record record = new Record(binMap, generation.intValue(), ttl.intValue());
-			Key key = new Key(namespace, (byte[]) meta.get(DIGEST), (String) meta.get(SET_NAME), null);
-			keyRecord = new KeyRecord(key, record);
-		} else if (singleRecord != null) {
-			keyRecord = singleRecord;
-			singleRecord = null;
-		}
-		return keyRecord;
-	}
+        if (this.recordSetIterator != null) {
+            keyRecord = this.recordSetIterator.next();
+        } else if (this.resultSetIterator != null) {
+            Map<String, Object> map = (Map<String, Object>) this.resultSetIterator.next();
+            Map<String, Object> meta = (Map<String, Object>) map.get(META_DATA);
+            map.remove(META_DATA);
+            Map<String, Object> binMap = new HashMap<>(map);
+            if (log.isDebugEnabled()) {
+                for (Map.Entry<String, Object> entry : map.entrySet()) {
+                    log.debug(entry.getKey() + " = " + entry.getValue());
+                }
+            }
+            Long generation = (Long) meta.get(GENERATION);
+            //TODO: there is probably a bug, since TTL is not an expiration date! (Anastasiia Smirnova)
+            Long ttl = (Long) meta.get(EXPIRY);
+            Record record = new Record(binMap, generation.intValue(), ttl.intValue());
+            Key key = new Key(namespace, (byte[]) meta.get(DIGEST), (String) meta.get(SET_NAME), null);
+            keyRecord = new KeyRecord(key, record);
+        } else if (singleRecord != null) {
+            keyRecord = singleRecord;
+            singleRecord = null;
+        }
+        return keyRecord;
+    }
 
-	@Override
-	public void remove() {
+    @Override
+    public void remove() {
 
-	}
+    }
 
-	@Override
-	public String toString() {
-		return this.namespace;
-	}
+    @Override
+    public String toString() {
+        return this.namespace;
+    }
 }

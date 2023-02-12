@@ -70,6 +70,6 @@ public class WritePolicyBuilder {
         Assert.notNull(policy.recordExistsAction, "Field 'recordExistsAction' must not be null");
         Assert.notNull(policy.generationPolicy, "Field 'generationPolicy' must not be null");
         Assert.state(!(policy.generation > 0 && policy.generationPolicy == NONE),
-                "Field 'generationPolicy' must not be 'NONE' when 'generation' is set");
+            "Field 'generationPolicy' must not be 'NONE' when 'generation' is set");
     }
 }

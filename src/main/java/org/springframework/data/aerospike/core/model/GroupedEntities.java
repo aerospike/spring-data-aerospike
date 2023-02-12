@@ -45,12 +45,12 @@ public class GroupedEntities {
 
         @SuppressWarnings("unchecked")
         public <T> GroupedEntities.GroupedEntitiesBuilder entity(Class<T> key, T entity) {
-            entitiesResults.compute(key, (k,v) -> {
+            entitiesResults.compute(key, (k, v) -> {
                 if (v == null) {
                     return new ArrayList<>(singletonList(entity));
                 }
 
-                ((List<T>)v).add(entity);
+                ((List<T>) v).add(entity);
                 return v;
             });
 

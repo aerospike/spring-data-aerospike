@@ -16,14 +16,6 @@
 
 package org.springframework.data.aerospike.convert;
 
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
@@ -33,6 +25,10 @@ import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.util.ClassUtils;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.*;
+
 /**
  * Out of the box conversions for java dates and calendars.
  *
@@ -40,193 +36,193 @@ import org.springframework.util.ClassUtils;
  */
 public final class DateConverters {
 
-  private DateConverters() {
-  }
+    private static final boolean JODA_TIME_IS_PRESENT = ClassUtils.isPresent("org.joda.time.LocalDate", null);
 
-  private static final boolean JODA_TIME_IS_PRESENT = ClassUtils.isPresent("org.joda.time.LocalDate", null);
-
-  /**
-   * Returns all converters by this class that can be registered.
-   *
-   * @return the list of converters to register.
-   */
-  public static Collection<Converter<?, ?>> getConvertersToRegister() {
-    List<Converter<?, ?>> converters = new ArrayList<>();
-
-    converters.add(DateToLongConverter.INSTANCE);
-    converters.add(CalendarToLongConverter.INSTANCE);
-    converters.add(NumberToDateConverter.INSTANCE);
-    converters.add(NumberToCalendarConverter.INSTANCE);
-    converters.add(Java8LocalDateTimeToLongConverter.INSTANCE);
-    converters.add(NumberToJava8LocalDateTimeConverter.INSTANCE);
-
-    if (JODA_TIME_IS_PRESENT) {
-      converters.add(LocalDateToLongConverter.INSTANCE);
-      converters.add(LocalDateTimeToLongConverter.INSTANCE);
-      converters.add(DateTimeToLongConverter.INSTANCE);
-      converters.add(DateMidnightToLongConverter.INSTANCE);
-      converters.add(NumberToLocalDateConverter.INSTANCE);
-      converters.add(NumberToLocalDateTimeConverter.INSTANCE);
-      converters.add(NumberToDateTimeConverter.INSTANCE);
-      converters.add(NumberToDateMidnightConverter.INSTANCE);
+    private DateConverters() {
     }
 
-    return converters;
-  }
+    /**
+     * Returns all converters by this class that can be registered.
+     *
+     * @return the list of converters to register.
+     */
+    public static Collection<Converter<?, ?>> getConvertersToRegister() {
+        List<Converter<?, ?>> converters = new ArrayList<>();
 
-  @WritingConverter
-  public enum DateToLongConverter implements Converter<Date, Long> {
-    INSTANCE;
+        converters.add(DateToLongConverter.INSTANCE);
+        converters.add(CalendarToLongConverter.INSTANCE);
+        converters.add(NumberToDateConverter.INSTANCE);
+        converters.add(NumberToCalendarConverter.INSTANCE);
+        converters.add(Java8LocalDateTimeToLongConverter.INSTANCE);
+        converters.add(NumberToJava8LocalDateTimeConverter.INSTANCE);
 
-    @Override
-    public Long convert(Date source) {
-      return source == null ? null : source.getTime();
+        if (JODA_TIME_IS_PRESENT) {
+            converters.add(LocalDateToLongConverter.INSTANCE);
+            converters.add(LocalDateTimeToLongConverter.INSTANCE);
+            converters.add(DateTimeToLongConverter.INSTANCE);
+            converters.add(DateMidnightToLongConverter.INSTANCE);
+            converters.add(NumberToLocalDateConverter.INSTANCE);
+            converters.add(NumberToLocalDateTimeConverter.INSTANCE);
+            converters.add(NumberToDateTimeConverter.INSTANCE);
+            converters.add(NumberToDateMidnightConverter.INSTANCE);
+        }
+
+        return converters;
     }
-  }
 
-  @WritingConverter
-  public enum Java8LocalDateTimeToLongConverter implements Converter<java.time.LocalDateTime, Long> {
-    INSTANCE;
+    @WritingConverter
+    public enum DateToLongConverter implements Converter<Date, Long> {
+        INSTANCE;
 
-    @Override
-    public Long convert(java.time.LocalDateTime source) {
-      return source == null ? null : source.atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
+        @Override
+        public Long convert(Date source) {
+            return source == null ? null : source.getTime();
+        }
     }
-  }
 
-  @WritingConverter
-  public enum CalendarToLongConverter implements Converter<Calendar, Long> {
-    INSTANCE;
+    @WritingConverter
+    public enum Java8LocalDateTimeToLongConverter implements Converter<java.time.LocalDateTime, Long> {
+        INSTANCE;
 
-    @Override
-    public Long convert(Calendar source) {
-      return source == null ? null : source.getTimeInMillis() / 1000;
+        @Override
+        public Long convert(java.time.LocalDateTime source) {
+            return source == null ? null : source.atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
+        }
     }
-  }
 
-  @ReadingConverter
-  public enum NumberToDateConverter implements Converter<Number, Date> {
-    INSTANCE;
+    @WritingConverter
+    public enum CalendarToLongConverter implements Converter<Calendar, Long> {
+        INSTANCE;
 
-    @Override
-    public Date convert(Number source) {
-      if (source == null) {
-        return null;
-      }
-
-      Date date = new Date();
-      date.setTime(source.longValue());
-      return date;
+        @Override
+        public Long convert(Calendar source) {
+            return source == null ? null : source.getTimeInMillis() / 1000;
+        }
     }
-  }
 
-  @ReadingConverter
-  public enum NumberToJava8LocalDateTimeConverter implements Converter<Number, java.time.LocalDateTime> {
-    INSTANCE;
+    @ReadingConverter
+    public enum NumberToDateConverter implements Converter<Number, Date> {
+        INSTANCE;
 
-    @Override
-    public java.time.LocalDateTime convert(Number source) {
-      if (source == null) {
-        return null;
-      }
+        @Override
+        public Date convert(Number source) {
+            if (source == null) {
+                return null;
+            }
 
-      return java.time.LocalDateTime.ofInstant(Instant.ofEpochMilli(source.longValue()), ZoneOffset.UTC);
+            Date date = new Date();
+            date.setTime(source.longValue());
+            return date;
+        }
     }
-  }
 
-  @ReadingConverter
-  public enum NumberToCalendarConverter implements Converter<Number, Calendar> {
-    INSTANCE;
+    @ReadingConverter
+    public enum NumberToJava8LocalDateTimeConverter implements Converter<Number, java.time.LocalDateTime> {
+        INSTANCE;
 
-    @Override
-    public Calendar convert(Number source) {
-      if (source == null) {
-        return null;
-      }
+        @Override
+        public java.time.LocalDateTime convert(Number source) {
+            if (source == null) {
+                return null;
+            }
 
-      Calendar calendar = Calendar.getInstance();
-      calendar.setTimeInMillis(source.longValue() * 1000);
-      return calendar;
+            return java.time.LocalDateTime.ofInstant(Instant.ofEpochMilli(source.longValue()), ZoneOffset.UTC);
+        }
     }
-  }
 
-  @WritingConverter
-  public enum LocalDateToLongConverter implements Converter<LocalDate, Long> {
-    INSTANCE;
+    @ReadingConverter
+    public enum NumberToCalendarConverter implements Converter<Number, Calendar> {
+        INSTANCE;
 
-    @Override
-    public Long convert(LocalDate source) {
-      return source == null ? null : source.toDate().getTime();
+        @Override
+        public Calendar convert(Number source) {
+            if (source == null) {
+                return null;
+            }
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(source.longValue() * 1000);
+            return calendar;
+        }
     }
-  }
 
-  @WritingConverter
-  public enum LocalDateTimeToLongConverter implements Converter<LocalDateTime, Long> {
-    INSTANCE;
+    @WritingConverter
+    public enum LocalDateToLongConverter implements Converter<LocalDate, Long> {
+        INSTANCE;
 
-    @Override
-    public Long convert(LocalDateTime source) {
-      return source == null ? null : source.toDate().getTime();
+        @Override
+        public Long convert(LocalDate source) {
+            return source == null ? null : source.toDate().getTime();
+        }
     }
-  }
 
-  @WritingConverter
-  public enum DateTimeToLongConverter implements Converter<DateTime, Long> {
-    INSTANCE;
+    @WritingConverter
+    public enum LocalDateTimeToLongConverter implements Converter<LocalDateTime, Long> {
+        INSTANCE;
 
-    @Override
-    public Long convert(DateTime source) {
-      return source == null ? null : source.toDate().getTime();
+        @Override
+        public Long convert(LocalDateTime source) {
+            return source == null ? null : source.toDate().getTime();
+        }
     }
-  }
 
-  @WritingConverter
-  public enum DateMidnightToLongConverter implements Converter<DateMidnight, Long> {
-    INSTANCE;
+    @WritingConverter
+    public enum DateTimeToLongConverter implements Converter<DateTime, Long> {
+        INSTANCE;
 
-    @Override
-    public Long convert(DateMidnight source) {
-      return source == null ? null : source.toDate().getTime();
+        @Override
+        public Long convert(DateTime source) {
+            return source == null ? null : source.toDate().getTime();
+        }
     }
-  }
 
-  @ReadingConverter
-  public enum NumberToLocalDateConverter implements Converter<Number, LocalDate> {
-    INSTANCE;
+    @WritingConverter
+    public enum DateMidnightToLongConverter implements Converter<DateMidnight, Long> {
+        INSTANCE;
 
-    @Override
-    public LocalDate convert(Number source) {
-      return source == null ? null : new LocalDate(source.longValue());
+        @Override
+        public Long convert(DateMidnight source) {
+            return source == null ? null : source.toDate().getTime();
+        }
     }
-  }
 
-  @ReadingConverter
-  public enum NumberToLocalDateTimeConverter implements Converter<Number, LocalDateTime> {
-    INSTANCE;
+    @ReadingConverter
+    public enum NumberToLocalDateConverter implements Converter<Number, LocalDate> {
+        INSTANCE;
 
-    @Override
-    public LocalDateTime convert(Number source) {
-      return source == null ? null : new LocalDateTime(source.longValue());
+        @Override
+        public LocalDate convert(Number source) {
+            return source == null ? null : new LocalDate(source.longValue());
+        }
     }
-  }
 
-  @ReadingConverter
-  public enum NumberToDateTimeConverter implements Converter<Number, DateTime> {
-    INSTANCE;
+    @ReadingConverter
+    public enum NumberToLocalDateTimeConverter implements Converter<Number, LocalDateTime> {
+        INSTANCE;
 
-    @Override
-    public DateTime convert(Number source) {
-      return source == null ? null : new DateTime(source.longValue());
+        @Override
+        public LocalDateTime convert(Number source) {
+            return source == null ? null : new LocalDateTime(source.longValue());
+        }
     }
-  }
 
-  @ReadingConverter
-  public enum NumberToDateMidnightConverter implements Converter<Number, DateMidnight> {
-    INSTANCE;
+    @ReadingConverter
+    public enum NumberToDateTimeConverter implements Converter<Number, DateTime> {
+        INSTANCE;
 
-    @Override
-    public DateMidnight convert(Number source) {
-      return source == null ? null : new DateMidnight(source.longValue());
+        @Override
+        public DateTime convert(Number source) {
+            return source == null ? null : new DateTime(source.longValue());
+        }
     }
-  }
+
+    @ReadingConverter
+    public enum NumberToDateMidnightConverter implements Converter<Number, DateMidnight> {
+        INSTANCE;
+
+        @Override
+        public DateMidnight convert(Number source) {
+            return source == null ? null : new DateMidnight(source.longValue());
+        }
+    }
 }

@@ -15,8 +15,10 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.*;
+import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.Key;
 import com.aerospike.client.Record;
+import com.aerospike.client.Value;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import org.springframework.data.aerospike.convert.AerospikeConverter;
@@ -40,105 +42,108 @@ import java.util.Map.Entry;
  */
 public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 
-	private final AerospikeConverter converter;
-	private final IAerospikeClient client;
-	private final String namespace;
-	private final WritePolicy insertPolicy;
-	private final WritePolicy updatePolicy;
+    private final AerospikeConverter converter;
+    private final IAerospikeClient client;
+    private final String namespace;
+    private final WritePolicy insertPolicy;
+    private final WritePolicy updatePolicy;
 
-	/**
-	 * Creates a new {@link AerospikeKeyValueAdapter} using the given {@link IAerospikeClient} and
-	 * {@link AerospikeConverter}.
-	 *
-	 * @param client    must not be {@literal null}.
-	 * @param converter must not be {@literal null}.
-	 */
-	public AerospikeKeyValueAdapter(IAerospikeClient client, AerospikeConverter converter, String namespace) {
-		this.client = client;
-		this.converter = converter;
-		this.namespace = namespace;
-		this.insertPolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
-				.recordExistsAction(RecordExistsAction.CREATE_ONLY)
-				.build();
-		this.updatePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
-				.recordExistsAction(RecordExistsAction.UPDATE_ONLY)
-				.build();
-	}
+    /**
+     * Creates a new {@link AerospikeKeyValueAdapter} using the given {@link IAerospikeClient} and
+     * {@link AerospikeConverter}.
+     *
+     * @param client    must not be {@literal null}.
+     * @param converter must not be {@literal null}.
+     */
+    public AerospikeKeyValueAdapter(IAerospikeClient client, AerospikeConverter converter, String namespace) {
+        this.client = client;
+        this.converter = converter;
+        this.namespace = namespace;
+        this.insertPolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+            .recordExistsAction(RecordExistsAction.CREATE_ONLY)
+            .build();
+        this.updatePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+            .recordExistsAction(RecordExistsAction.UPDATE_ONLY)
+            .build();
+    }
 
-	@Override
-	public Object put(Object id, Object item, String keyspace) {
-		AerospikeWriteData data = AerospikeWriteData.forWrite(namespace);
-		converter.write(item, data);
-		client.put(null, data.getKey(), data.getBinsAsArray());
-		return item;
-	}
+    @Override
+    public Object put(Object id, Object item, String keyspace) {
+        AerospikeWriteData data = AerospikeWriteData.forWrite(namespace);
+        converter.write(item, data);
+        client.put(null, data.getKey(), data.getBinsAsArray());
+        return item;
+    }
 
-	@Override
-	public boolean contains(Object id, String keyspace) {
-		return client.exists(null, makeKey(keyspace, id.toString()));
-	}
+    @Override
+    public boolean contains(Object id, String keyspace) {
+        return client.exists(null, makeKey(keyspace, id.toString()));
+    }
 
-	@Override
-	public Object get(Object id, String keyspace) {
-		Key key = makeKey(keyspace, id.toString());
-		Record aeroRecord = client.get(null, key);
-		if(aeroRecord == null){
-			return null;
-		}
-		AerospikeReadData data = AerospikeReadData.forRead(key, aeroRecord);
-		return converter.read(Object.class,  data);
-	}
+    @Override
+    public Object get(Object id, String keyspace) {
+        Key key = makeKey(keyspace, id.toString());
+        Record aeroRecord = client.get(null, key);
+        if (aeroRecord == null) {
+            return null;
+        }
+        AerospikeReadData data = AerospikeReadData.forRead(key, aeroRecord);
+        return converter.read(Object.class, data);
+    }
 
-	@Override
-	public Object delete(Object id, String keyspace) {
-		Key key = new Key(namespace, keyspace, id.toString());
-		Object object = get(id, keyspace);
-		if (object != null) {
-			WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
-					.recordExistsAction(RecordExistsAction.UPDATE_ONLY)
-					.build();
-			client.delete(writePolicy, key);
-		}
-		return object;
-	}
+    @Override
+    public Object delete(Object id, String keyspace) {
+        Key key = new Key(namespace, keyspace, id.toString());
+        Object object = get(id, keyspace);
+        if (object != null) {
+            WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+                .recordExistsAction(RecordExistsAction.UPDATE_ONLY)
+                .build();
+            client.delete(writePolicy, key);
+        }
+        return object;
+    }
 
-	@Override
-	public Collection<?> getAllOf(String keyspace) {
-		return null;
-	}
+    @Override
+    public Collection<?> getAllOf(String keyspace) {
+        return null;
+    }
 
-	@Override
-	public void deleteAllOf(String keyspace) {
-		//"set-config:context=namespace;id=namespace_name;set=set_name;set-delete=true;"
-		Utils.infoAll(client, "set-config:context=namespace;id=" + this.namespace + ";set=" + keyspace + ";set-delete=true;");
-	}
+    @Override
+    public void deleteAllOf(String keyspace) {
+        //"set-config:context=namespace;id=namespace_name;set=set_name;set-delete=true;"
+        Utils.infoAll(client,
+            "set-config:context=namespace;id=" + this.namespace + ";set=" + keyspace + ";set-delete=true;");
+    }
 
-	@Override
-	public void clear() {}
+    @Override
+    public void clear() {
+    }
 
-	@Override
-	public void destroy() throws Exception {}
-	
-	@Override
-	public Collection<?> find(KeyValueQuery<?> query, String keyspace) {
-		// TODO Auto-generated method stub
-		return super.find(query, keyspace);
-	}
+    @Override
+    public void destroy() throws Exception {
+    }
 
-	@Override
-	public CloseableIterator<Entry<Object, Object>> entries(
-			String keyspace) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Collection<?> find(KeyValueQuery<?> query, String keyspace) {
+        // TODO Auto-generated method stub
+        return super.find(query, keyspace);
+    }
 
-	@Override
-	public long count(String keyspace) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    @Override
+    public CloseableIterator<Entry<Object, Object>> entries(
+        String keyspace) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	private Key makeKey(String set, Object keyValue){
-		return new Key(this.namespace, set, Value.get(keyValue));
-	}
+    @Override
+    public long count(String keyspace) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
+
+    private Key makeKey(String set, Object keyValue) {
+        return new Key(this.namespace, set, Value.get(keyValue));
+    }
 }

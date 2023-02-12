@@ -24,8 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 /**
- * This class represents a Secondary Index
- * created in the cluster.
+ * This class represents a Secondary Index created in the cluster.
  *
  * @author Peter Milne
  * @author Anastasiia Smirnova
@@ -35,49 +34,50 @@ import lombok.Value;
 @RequiredArgsConstructor
 public class Index {
 
-	String name;
-	String namespace;
-	String set;
-	String bin;
-	IndexType indexType;
-	IndexCollectionType indexCollectionType;
-	CTX[] ctx;
+    String name;
+    String namespace;
+    String set;
+    String bin;
+    IndexType indexType;
+    IndexCollectionType indexCollectionType;
+    CTX[] ctx;
 
-	public Index(String name, String namespace, String set, String bin, IndexType indexType, IndexCollectionType indexCollectionType) {
-		this.name = name;
-		this.namespace = namespace;
-		this.set = set;
-		this.bin = bin;
-		this.indexType = indexType;
-		this.indexCollectionType = indexCollectionType;
-		this.ctx = null;
-	}
+    public Index(String name, String namespace, String set, String bin, IndexType indexType,
+        IndexCollectionType indexCollectionType) {
+        this.name = name;
+        this.namespace = namespace;
+        this.set = set;
+        this.bin = bin;
+        this.indexType = indexType;
+        this.indexCollectionType = indexCollectionType;
+        this.ctx = null;
+    }
 
-	public String getName() {
-		return this.name;
-	}
+    public String getName() {
+        return this.name;
+    }
 
-	public String getBin() {
-		return this.bin;
-	}
+    public String getBin() {
+        return this.bin;
+    }
 
-	public String getSet() {
-		return this.set;
-	}
+    public String getSet() {
+        return this.set;
+    }
 
-	public String getNamespace() {
-		return this.namespace;
-	}
+    public String getNamespace() {
+        return this.namespace;
+    }
 
-	public IndexType getType() {
-		return this.indexType;
-	}
+    public IndexType getType() {
+        return this.indexType;
+    }
 
-	public IndexCollectionType getCollectionType() {
-		return this.indexCollectionType;
-	}
+    public IndexCollectionType getCollectionType() {
+        return this.indexCollectionType;
+    }
 
-	public CTX[] getCTX() {
-		return this.ctx;
-	}
+    public CTX[] getCTX() {
+        return this.ctx;
+    }
 }

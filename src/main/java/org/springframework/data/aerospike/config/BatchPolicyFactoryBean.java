@@ -15,9 +15,8 @@
  */
 package org.springframework.data.aerospike.config;
 
-import org.springframework.beans.factory.FactoryBean;
-
 import com.aerospike.client.policy.BatchPolicy;
+import org.springframework.beans.factory.FactoryBean;
 
 /**
  * A {@link FactoryBean} implementation that exposes the setters necessary to configure a {@link BatchPolicy} via XML.
@@ -26,36 +25,36 @@ import com.aerospike.client.policy.BatchPolicy;
  */
 public class BatchPolicyFactoryBean extends ReadPolicyFactoryBean {
 
-	private final BatchPolicy policy;
+    private final BatchPolicy policy;
 
-	/**
-	 * Creates a new {@link BatchPolicyFactoryBean}.
-	 */
-	public BatchPolicyFactoryBean() {
-		this.policy = new BatchPolicy();
-	}
+    /**
+     * Creates a new {@link BatchPolicyFactoryBean}.
+     */
+    public BatchPolicyFactoryBean() {
+        this.policy = new BatchPolicy();
+    }
 
-	/**
-	 * Configures the maximum number of concurrent batch request threads to server nodes at any point in time
-	 *
-	 * @param maxConcurrentThreads The maxConcurrentThreads configuration value.
-	 */
-	public void setMaxConcurrentThreads(int maxConcurrentThreads){
-		this.policy.maxConcurrentThreads = maxConcurrentThreads;
-	}
+    /**
+     * Configures the maximum number of concurrent batch request threads to server nodes at any point in time
+     *
+     * @param maxConcurrentThreads The maxConcurrentThreads configuration value.
+     */
+    public void setMaxConcurrentThreads(int maxConcurrentThreads) {
+        this.policy.maxConcurrentThreads = maxConcurrentThreads;
+    }
 
-	@Override
-	public BatchPolicy getObject() throws Exception {
-		return policy;
-	}
+    @Override
+    public BatchPolicy getObject() throws Exception {
+        return policy;
+    }
 
-	@Override
-	public boolean isSingleton() {
-		return false;
-	}
+    @Override
+    public boolean isSingleton() {
+        return false;
+    }
 
-	@Override
-	public Class<?> getObjectType() {
-		return BatchPolicy.class;
-	}
+    @Override
+    public Class<?> getObjectType() {
+        return BatchPolicy.class;
+    }
 }

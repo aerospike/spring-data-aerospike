@@ -32,31 +32,32 @@ import static java.util.stream.Collectors.toMap;
  */
 public class InternalIndexOperations {
 
-	// Base64 will return index context as a base64 response
-	private static final String SINDEX_WITH_BASE64 = "sindex-list:;b64=true";
+    // Base64 will return index context as a base64 response
+    private static final String SINDEX_WITH_BASE64 = "sindex-list:;b64=true";
 
-	private final IndexInfoParser indexInfoParser;
+    private final IndexInfoParser indexInfoParser;
 
-	public InternalIndexOperations(IndexInfoParser indexInfoParser) {
-		this.indexInfoParser = indexInfoParser;
-	}
+    public InternalIndexOperations(IndexInfoParser indexInfoParser) {
+        this.indexInfoParser = indexInfoParser;
+    }
 
-	public IndexesInfo parseIndexesInfo(String infoResponse) {
-		if (infoResponse.isEmpty()) {
-			return IndexesInfo.empty();
-		}
-		return IndexesInfo.of(Arrays.stream(infoResponse.split(";"))
-				.map(indexInfoParser::parse)
-				.collect(collectingAndThen(
-						toMap(InternalIndexOperations::getIndexKey, index -> index),
-						Collections::unmodifiableMap)));
-	}
+    private static IndexKey getIndexKey(Index index) {
+        return new IndexKey(index.getNamespace(), index.getSet(), index.getBin(), index.getType(),
+            index.getCollectionType());
+    }
 
-	public String buildGetIndexesCommand() {
-		return SINDEX_WITH_BASE64;
-	}
+    public IndexesInfo parseIndexesInfo(String infoResponse) {
+        if (infoResponse.isEmpty()) {
+            return IndexesInfo.empty();
+        }
+        return IndexesInfo.of(Arrays.stream(infoResponse.split(";"))
+            .map(indexInfoParser::parse)
+            .collect(collectingAndThen(
+                toMap(InternalIndexOperations::getIndexKey, index -> index),
+                Collections::unmodifiableMap)));
+    }
 
-	private static IndexKey getIndexKey(Index index) {
-		return new IndexKey(index.getNamespace(), index.getSet(), index.getBin(), index.getType(), index.getCollectionType());
-	}
+    public String buildGetIndexesCommand() {
+        return SINDEX_WITH_BASE64;
+    }
 }

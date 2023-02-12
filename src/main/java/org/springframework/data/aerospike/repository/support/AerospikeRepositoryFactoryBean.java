@@ -23,25 +23,25 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
  * @author Peter Milne
  * @author Jean Mercier
  */
-public class AerospikeRepositoryFactoryBean<T extends Repository <S, ID>, S, ID> extends
-		BaseAerospikeRepositoryFactoryBean<T, S, ID> {
-	
-	private AerospikeOperations operations;
+public class AerospikeRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
+    extends BaseAerospikeRepositoryFactoryBean<T, S, ID> {
 
-	public AerospikeRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
-		super(repositoryInterface);
-	}
+    private AerospikeOperations operations;
 
-	public void setOperations(AerospikeOperations operations) {
-		this.operations = operations;
-	}
+    public AerospikeRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
+        super(repositoryInterface);
+    }
 
-	@Override
-	protected RepositoryFactorySupport createRepositoryFactory() {
-		return new AerospikeRepositoryFactory(this.operations, this.queryCreator);
-	}
-	
-	public void setKeyValueOperations(AerospikeOperations operations) {
-		this.operations = operations;
-	}
+    public void setOperations(AerospikeOperations operations) {
+        this.operations = operations;
+    }
+
+    @Override
+    protected RepositoryFactorySupport createRepositoryFactory() {
+        return new AerospikeRepositoryFactory(this.operations, this.queryCreator);
+    }
+
+    public void setKeyValueOperations(AerospikeOperations operations) {
+        this.operations = operations;
+    }
 }

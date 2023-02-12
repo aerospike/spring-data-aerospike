@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.config;
 
+import com.aerospike.client.AerospikeClient;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
@@ -23,43 +24,42 @@ import org.springframework.data.config.ParsingUtils;
 import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
-import com.aerospike.client.AerospikeClient;
-
 /**
  * @author Oliver Gierke
  */
 public class AerospikeClientBeanDefinitionParser implements BeanDefinitionParser {
 
-	private final ClientPolicyBeanDefinitionParser clientPolicyParser = new ClientPolicyBeanDefinitionParser();
+    private final ClientPolicyBeanDefinitionParser clientPolicyParser = new ClientPolicyBeanDefinitionParser();
 
-	@Override
-	public BeanDefinition parse(Element element, ParserContext parserContext) {
-		BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AerospikeClient.class);
-		builder.addConstructorArgValue(element.getAttribute("host"));
-		builder.addConstructorArgValue(element.getAttribute("port"));
-		builder.setDestroyMethodName("close");
+    @Override
+    public BeanDefinition parse(Element element, ParserContext parserContext) {
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.rootBeanDefinition(AerospikeClient.class);
+        builder.addConstructorArgValue(element.getAttribute("host"));
+        builder.addConstructorArgValue(element.getAttribute("port"));
+        builder.setDestroyMethodName("close");
 
-		parserContext.getRegistry().registerBeanDefinition("aerospikeClient",
-				ParsingUtils.getSourceBeanDefinition(builder, parserContext, element));
+        parserContext.getRegistry().registerBeanDefinition("aerospikeClient",
+            ParsingUtils.getSourceBeanDefinition(builder, parserContext, element));
 
-		parseNestedClientPolicy(element, parserContext, builder);
+        parseNestedClientPolicy(element, parserContext, builder);
 
-		return null;
-	}
+        return null;
+    }
 
-	/**
-	 * Looks up a nested {@code client-policy} element within the given one and passes a {@link BeanDefinition} from it.
-	 *
-	 * @param element       the current {@code client} element, must not be {@literal null}.
-	 * @param parserContext must not be {@literal null}.
-	 * @param builder       must not be {@literal null}.
-	 */
-	private void parseNestedClientPolicy(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
-		Element clientPolicyElement = DomUtils.getChildElementByTagName(element, "client-policy");
+    /**
+     * Looks up a nested {@code client-policy} element within the given one and passes a {@link BeanDefinition} from
+     * it.
+     *
+     * @param element       the current {@code client} element, must not be {@literal null}.
+     * @param parserContext must not be {@literal null}.
+     * @param builder       must not be {@literal null}.
+     */
+    private void parseNestedClientPolicy(Element element, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        Element clientPolicyElement = DomUtils.getChildElementByTagName(element, "client-policy");
 
-		if (clientPolicyElement != null) {
-			BeanDefinition policyDefinition = clientPolicyParser.parse(clientPolicyElement, parserContext);
-			builder.addConstructorArgValue(policyDefinition);
-		}
-	}
+        if (clientPolicyElement != null) {
+            BeanDefinition policyDefinition = clientPolicyParser.parse(clientPolicyElement, parserContext);
+            builder.addConstructorArgValue(policyDefinition);
+        }
+    }
 }

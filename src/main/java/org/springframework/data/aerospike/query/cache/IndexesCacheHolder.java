@@ -27,20 +27,20 @@ import java.util.Optional;
  */
 public class IndexesCacheHolder implements IndexesCache, IndexesCacheUpdater {
 
-	private volatile IndexesInfo cache = IndexesInfo.empty();
+    private volatile IndexesInfo cache = IndexesInfo.empty();
 
-	@Override
-	public Optional<Index> getIndex(IndexKey indexKey) {
-		return Optional.ofNullable(cache.indexes.get(indexKey));
-	}
+    @Override
+    public Optional<Index> getIndex(IndexKey indexKey) {
+        return Optional.ofNullable(cache.indexes.get(indexKey));
+    }
 
-	@Override
-	public boolean hasIndexFor(IndexedField indexedField) {
-		return cache.indexedFields.contains(indexedField);
-	}
+    @Override
+    public boolean hasIndexFor(IndexedField indexedField) {
+        return cache.indexedFields.contains(indexedField);
+    }
 
-	@Override
-	public void update(IndexesInfo cache) {
-		this.cache = cache;
-	}
+    @Override
+    public void update(IndexesInfo cache) {
+        this.cache = cache;
+    }
 }

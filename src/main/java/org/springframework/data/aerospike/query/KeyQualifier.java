@@ -25,43 +25,43 @@ import com.aerospike.client.Value;
  * @author peter
  */
 public class KeyQualifier extends Qualifier {
-	private static final long serialVersionUID = 2430949321378171078L;
+    private static final long serialVersionUID = 2430949321378171078L;
 
-	boolean hasDigest = false;
+    boolean hasDigest = false;
 
-	public KeyQualifier(Value value) {
-		super(new QualifierBuilder()
-				.setField(QueryEngine.Meta.KEY.toString())
-				.setFilterOperation(FilterOperation.EQ)
-				.setValue1(value)
-		);
-	}
+    public KeyQualifier(Value value) {
+        super(new QualifierBuilder()
+            .setField(QueryEngine.Meta.KEY.toString())
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(value)
+        );
+    }
 
-	public KeyQualifier(byte[] digest) {
-		super(new QualifierBuilder()
-				.setField(QueryEngine.Meta.KEY.toString())
-				.setFilterOperation(FilterOperation.EQ)
-				.setValue1(null)
-		);
-		this.internalMap.put("digest", digest);
-		this.hasDigest = true;
-	}
+    public KeyQualifier(byte[] digest) {
+        super(new QualifierBuilder()
+            .setField(QueryEngine.Meta.KEY.toString())
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(null)
+        );
+        this.internalMap.put("digest", digest);
+        this.hasDigest = true;
+    }
 
-	@Override
-	protected String luaFieldString(String field) {
-		return "digest";
-	}
+    @Override
+    protected String luaFieldString(String field) {
+        return "digest";
+    }
 
-	public byte[] getDigest() {
-		return (byte[]) this.internalMap.get("digest");
-	}
+    public byte[] getDigest() {
+        return (byte[]) this.internalMap.get("digest");
+    }
 
-	public Key makeKey(String namespace, String set) {
-		if (hasDigest) {
-			byte[] digest = getDigest();
-			return new Key(namespace, digest, set, null);
-		} else {
-			return new Key(namespace, set, getValue1());
-		}
-	}
+    public Key makeKey(String namespace, String set) {
+        if (hasDigest) {
+            byte[] digest = getDigest();
+            return new Key(namespace, digest, set, null);
+        } else {
+            return new Key(namespace, set, getValue1());
+        }
+    }
 }
