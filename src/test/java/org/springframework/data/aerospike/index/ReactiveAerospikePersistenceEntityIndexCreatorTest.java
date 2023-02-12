@@ -17,20 +17,20 @@ import static org.mockito.Mockito.when;
 
 class ReactiveAerospikePersistenceEntityIndexCreatorTest {
 
-    boolean createIndexesOnStartup = true;
-    AerospikeIndexResolver aerospikeIndexResolver = mock(AerospikeIndexResolver.class);
-    ReactiveAerospikeTemplate template = mock(ReactiveAerospikeTemplate.class);
+    final boolean createIndexesOnStartup = true;
+    final AerospikeIndexResolver aerospikeIndexResolver = mock(AerospikeIndexResolver.class);
+    final ReactiveAerospikeTemplate template = mock(ReactiveAerospikeTemplate.class);
 
-    ReactiveAerospikePersistenceEntityIndexCreator creator =
+    final ReactiveAerospikePersistenceEntityIndexCreator creator =
         new ReactiveAerospikePersistenceEntityIndexCreator(null, createIndexesOnStartup, aerospikeIndexResolver,
             template);
 
-    String name = "someName";
-    String fieldName = "fieldName";
-    Class<?> targetClass = AutoIndexedDocument.class;
-    IndexType type = IndexType.STRING;
-    IndexCollectionType collectionType = IndexCollectionType.DEFAULT;
-    AerospikeIndexDefinition definition = AerospikeIndexDefinition.builder()
+    final String name = "someName";
+    final String fieldName = "fieldName";
+    final Class<?> targetClass = AutoIndexedDocument.class;
+    final IndexType type = IndexType.STRING;
+    final IndexCollectionType collectionType = IndexCollectionType.DEFAULT;
+    final AerospikeIndexDefinition definition = AerospikeIndexDefinition.builder()
         .name(name)
         .fieldName(fieldName)
         .entityClass(targetClass)
