@@ -25,10 +25,19 @@ public interface AerospikePersistentProperty extends PersistentProperty<Aerospik
      */
     boolean usePropertyAccess();
 
+    /**
+     * @return whether id property is explicit
+     */
     boolean isExplicitIdProperty();
 
+    /**
+     * @return whether expiration property is present
+     */
     boolean isExpirationProperty();
 
+    /**
+     * @return whether expiration is set as Unix timestamp
+     */
     boolean isExpirationSpecifiedAsUnixTime();
 
     /**

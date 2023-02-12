@@ -66,7 +66,7 @@ public interface AerospikeOperations {
     IAerospikeClient getAerospikeClient();
 
     /**
-     * Insert document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
+     * Insert a document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
@@ -75,16 +75,16 @@ public interface AerospikeOperations {
     <T> void insert(T document);
 
     /**
-     * Save document.
+     * Save a document.
      * <p>
-     * If document has version property - CAS algorithm is used for updating record. Version property is used for
-     * deciding whether to create new record or update existing. If version is set to zero - new record will be created,
+     * If the document has version property - CAS algorithm is used for updating record. Version property is used for
+     * deciding whether to create new record or update existing. If the version is set to zero - new record will be created,
      * creation will fail is such record already exists. If version is greater than zero - existing record will be
      * updated with {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY} policy taking into consideration
      * the version property of the document. Version property will be updated with the server's version after successful
      * operation.
      * <p>
-     * If document does not have version property - record is updated with
+     * If the document does not have version property - record is updated with
      * {@link com.aerospike.client.policy.RecordExistsAction#REPLACE} policy. This means that when such record does not
      * exist it will be created, otherwise updated - an "upsert".
      *
@@ -93,7 +93,7 @@ public interface AerospikeOperations {
     <T> void save(T document);
 
     /**
-     * Persist document using specified WritePolicy.
+     * Persist a document using specified WritePolicy.
      *
      * @param document    The document to persist. Must not be {@literal null}.
      * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
@@ -109,7 +109,7 @@ public interface AerospikeOperations {
     <T> void insertAll(Collection<? extends T> documents);
 
     /**
-     * Update document using {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY} policy taking into
+     * Update a document using {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY} policy taking into
      * consideration the version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
@@ -119,7 +119,7 @@ public interface AerospikeOperations {
     <T> void update(T document);
 
     /**
-     * Update document specific fields based on a given collection of fields. using
+     * Update a document specific fields based on a given collection of fields. using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy - You can instantiate the document with
      * only relevant fields and specify the list of fields that you want to update. taking into consideration the
      * version property of the document if it is present.
@@ -138,7 +138,7 @@ public interface AerospikeOperations {
     <T> void delete(Class<T> entityClass);
 
     /**
-     * Delete document by id, set name will be determined by the given entityClass.
+     * Delete a document by id, set name will be determined by the given entityClass.
      *
      * @param id          The id of the document to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
@@ -147,7 +147,7 @@ public interface AerospikeOperations {
     <T> boolean delete(Object id, Class<T> entityClass);
 
     /**
-     * Delete document.
+     * Delete a document.
      *
      * @param document The document to delete. Must not be {@literal null}.
      * @return whether the document existed on server before deletion.
@@ -155,7 +155,7 @@ public interface AerospikeOperations {
     <T> boolean delete(T document);
 
     /**
-     * Check if document exists by providing document id and entityClass (set name will be determined by the given
+     * Check if a document exists by providing document id and entityClass (set name will be determined by the given
      * entityClass).
      *
      * @param id          The id to check if exists. Must not be {@literal null}.
@@ -433,7 +433,7 @@ public interface AerospikeOperations {
     <T> long count(Class<T> entityClass);
 
     /**
-     * Create index by specified name in Aerospike.
+     * Create an index with the specified name in Aerospike.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param indexName   The index name. Must not be {@literal null}.
@@ -444,7 +444,7 @@ public interface AerospikeOperations {
                          IndexType indexType);
 
     /**
-     * Create index by specified name in Aerospike.
+     * Create an index with the specified name in Aerospike.
      *
      * @param entityClass         The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param indexName           The index name. Must not be {@literal null}.
@@ -456,7 +456,7 @@ public interface AerospikeOperations {
                          IndexType indexType, IndexCollectionType indexCollectionType);
 
     /**
-     * Create index by specified name in Aerospike.
+     * Create an index with the specified name in Aerospike.
      *
      * @param entityClass         The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param indexName           The index name. Must not be {@literal null}.
@@ -469,7 +469,7 @@ public interface AerospikeOperations {
                          IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
 
     /**
-     * Delete index by specified name from Aerospike.
+     * Delete an index with the specified name from Aerospike.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param indexName   The index name. Must not be {@literal null}.
@@ -477,7 +477,7 @@ public interface AerospikeOperations {
     <T> void deleteIndex(Class<T> entityClass, String indexName);
 
     /**
-     * Checks whether index by specified name exists in Aerospike.
+     * Checks whether an index with the specified name exists in Aerospike.
      *
      * @param indexName The Aerospike index name. Must not be {@literal null}.
      * @return true if exists

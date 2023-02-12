@@ -28,8 +28,10 @@ import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.IndexNotFoundException;
 
 /**
+ * This class translates the AerospikeException and result code to a DataAccessException.
+ *
  * @author Peter Milne
- * @author Anastasiia Smirnova This class translates the AerospikeException and result code to a DataAccessException.
+ * @author Anastasiia Smirnova
  */
 public class DefaultAerospikeExceptionTranslator implements AerospikeExceptionTranslator {
 

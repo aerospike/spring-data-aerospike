@@ -23,7 +23,15 @@ import java.util.Optional;
 
 public interface IndexesCache {
 
+    /**
+     * @param indexKey to search by
+     * @return Optional {@link Index}
+     */
     Optional<Index> getIndex(IndexKey indexKey);
 
+    /**
+     * @param indexedField to search by
+     * @return true if there is an index for the given indexed field
+     */
     boolean hasIndexFor(IndexedField indexedField);
 }

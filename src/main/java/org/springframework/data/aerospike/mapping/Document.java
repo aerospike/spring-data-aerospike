@@ -41,8 +41,8 @@ public @interface Document {
     /**
      * An optional name of the collection. If the name is not specified, a {@link Class#getSimpleName()} of the entity's
      * class will be used. Allows the actual value to be set using standard Spring property sources mechanism. Syntax is
-     * the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}. <br /><br
-     * /> SpEL is NOT supported.
+     * the same as for {@link org.springframework.core.env.Environment#resolveRequiredPlaceholders(String)}. <br /><br/>
+     * SpEL is NOT supported.
      */
     String collection() default "";
 
@@ -55,9 +55,10 @@ public @interface Document {
 
     /**
      * An optional expiration time for the document. Default is namespace configuration variable "default-ttl" on the
-     * server. Ignored if entity has field annotated by {@link org.springframework.data.aerospike.annotation.Expiration}
-     * <br/> Only one of two might might be set at the same time: either expiration or {@link #expirationExpression()}
-     * See {@link com.aerospike.client.policy.WritePolicy#expiration} for possible values.
+     * server. Ignored if entity has field annotated by
+     * {@link org.springframework.data.aerospike.annotation.Expiration}. <br/> Only one of two might be set at the same
+     * time: either expiration or {@link #expirationExpression()}. See
+     * {@link com.aerospike.client.policy.WritePolicy#expiration} for possible values.
      */
     int expiration() default DEFAULT_EXPIRATION;
 
@@ -75,8 +76,7 @@ public @interface Document {
     TimeUnit expirationUnit() default TimeUnit.SECONDS;
 
     /**
-     * An optional flag associated indicating whether the expiration timer should be reset whenever the document is
-     * directly read
+     * An optional flag indicating whether the expiration timer should be reset whenever the document is directly read.
      */
     boolean touchOnRead() default false;
 }

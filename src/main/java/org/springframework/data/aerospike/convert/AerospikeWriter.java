@@ -18,6 +18,8 @@ package org.springframework.data.aerospike.convert;
 import org.springframework.data.convert.EntityWriter;
 
 /**
+ * Interface to write objects into store specific receivers.
+ *
  * @author Peter Milne
  * @author Jean Mercier
  */

@@ -21,7 +21,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.Repository;
 
 /**
- * Aerospike specific {@link Repository}
+ * Aerospike specific {@link Repository}.
  *
  * @author Oliver Gierke
  * @author Peter Milne
@@ -29,12 +29,26 @@ import org.springframework.data.repository.Repository;
  */
 public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T, ID> {
 
+    /**
+     * Create an index with the specified name.
+     *
+     * @param domainType The class to extract the Aerospike set from. Must not be {@literal null}
+     * @param indexName  The index name. Must not be {@literal null}
+     * @param binName    The bin name to create the index on. Must not be {@literal null}
+     * @param indexType  The type of the index. Must not be {@literal null}
+     */
     <E> void createIndex(Class<E> domainType, String indexName, String binName, IndexType indexType);
 
+    /**
+     * Delete an index with the specified name.
+     *
+     * @param domainType The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param indexName  The index name. Must not be {@literal null}.
+     */
     <E> void deleteIndex(Class<E> domainType, String indexName);
 
     /**
-     * Checks whether index by specified name exists in Aerospike.
+     * Checks whether an index with the specified name exists in Aerospike.
      *
      * @param indexName The Aerospike index name.
      * @return true if exists
@@ -42,9 +56,8 @@ public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T
      * response.
      * <p>If you need to conditionally create index — replace this method (indexExists) with {@link #createIndex} and
      * catch {@link IndexAlreadyExistsException}.
-     * <p>More information can be found at: <a
-     * href="https://github.com/aerospike/aerospike-client-java/pull/149">https://github
-     * .com/aerospike/aerospike-client-java/pull/149</a>
+     * <p>More information can be found at: <a href="https://github.com/aerospike/aerospike-client-java/pull/149">
+     * https://github.com/aerospike/aerospike-client-java/pull/149</a>
      */
     @Deprecated
     boolean indexExists(String indexName);
