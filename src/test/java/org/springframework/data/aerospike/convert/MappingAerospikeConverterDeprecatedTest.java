@@ -586,7 +586,7 @@ public class MappingAerospikeConverterDeprecatedTest {
     static class FooBarEnumToStringConverter implements Converter<FooBarEnum, String> {
 
         @Override
-        public String convert(FooBarEnum source) {
+        public String convert(@SuppressWarnings("NullableProblems") FooBarEnum source) {
 
             if (source == null) {
                 return null;
@@ -599,7 +599,7 @@ public class MappingAerospikeConverterDeprecatedTest {
     static class StringToFooNumConverter implements Converter<String, FooBarEnum> {
 
         @Override
-        public FooBarEnum convert(String source) {
+        public FooBarEnum convert(@SuppressWarnings("NullableProblems") String source) {
 
             if (source == null) {
                 return null;

@@ -204,7 +204,7 @@ public final class DateConverters {
         INSTANCE;
 
         @Override
-        public LocalDate convert(Number source) {
+        public LocalDate convert(@SuppressWarnings("NullableProblems") Number source) {
             return source == null ? null : new LocalDate(source.longValue());
         }
     }
