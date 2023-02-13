@@ -19,6 +19,8 @@ package org.springframework.data.aerospike.query;
 import com.aerospike.client.Key;
 import com.aerospike.client.Value;
 
+import java.io.Serial;
+
 /**
  * Qualifier used to query by primary key
  *
@@ -26,7 +28,7 @@ import com.aerospike.client.Value;
  */
 public class KeyQualifier extends Qualifier {
 
-    @SuppressWarnings("MissingSerialAnnotation")
+    @Serial
     private static final long serialVersionUID = 2430949321378171078L;
 
     boolean hasDigest = false;

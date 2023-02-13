@@ -53,7 +53,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             Stream<?> result = findByQuery(query, targetClass);
             long total = queryMethod.isSliceQuery() ? 0 :
                 aerospikeOperations.count(query, queryMethod.getEntityInformation().getJavaType());
-            //TODO: should return SliceImpl for slice query
+            // TODO: should return SliceImpl for slice query
             return new PageImpl(result.collect(Collectors.toList()), accessor.getPageable(), total);
         } else if (queryMethod.isStreamQuery()) {
             return findByQuery(query, targetClass);

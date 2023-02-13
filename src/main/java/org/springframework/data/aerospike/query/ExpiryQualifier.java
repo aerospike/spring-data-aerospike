@@ -19,6 +19,8 @@ package org.springframework.data.aerospike.query;
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 
+import java.io.Serial;
+
 /**
  * Qualifier used to query by expiry epoch
  *
@@ -26,7 +28,7 @@ import com.aerospike.client.command.ParticleType;
  */
 public class ExpiryQualifier extends Qualifier {
 
-    @SuppressWarnings("MissingSerialAnnotation")
+    @Serial
     private static final long serialVersionUID = 13172814137477042L;
 
     public ExpiryQualifier(FilterOperation op, Value value) {

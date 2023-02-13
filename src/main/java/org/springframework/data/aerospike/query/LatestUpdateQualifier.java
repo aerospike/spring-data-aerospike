@@ -19,6 +19,8 @@ package org.springframework.data.aerospike.query;
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 
+import java.io.Serial;
+
 /**
  * Qualifier used to query by latest update time
  *
@@ -26,7 +28,7 @@ import com.aerospike.client.command.ParticleType;
  */
 public class LatestUpdateQualifier extends Qualifier {
 
-    @SuppressWarnings("MissingSerialAnnotation")
+    @Serial
     private static final long serialVersionUID = -8767573059309320133L;
 
     public LatestUpdateQualifier(FilterOperation op, Value value) {

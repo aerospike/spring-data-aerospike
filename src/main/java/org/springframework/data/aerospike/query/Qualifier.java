@@ -23,6 +23,7 @@ import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
 import lombok.Data;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,7 +47,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     protected static final String QUALIFIERS = "qualifiers";
     protected static final String OPERATION = "operation";
     protected static final String AS_FILTER = "queryAsFilter";
-    @SuppressWarnings("MissingSerialAnnotation")
+    @Serial
     private static final long serialVersionUID = -2689196529952712849L;
     protected final Map<String, Object> internalMap;
 
