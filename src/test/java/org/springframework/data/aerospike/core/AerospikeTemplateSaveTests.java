@@ -37,7 +37,7 @@ import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
 public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
-    //test for RecordExistsAction.REPLACE_ONLY policy
+    // test for RecordExistsAction.REPLACE_ONLY policy
     @Test
     public void shouldReplaceAllBinsPresentInAerospikeWhenSavingDocument() {
         Key key = new Key(getNameSpace(), "versioned-set", id);

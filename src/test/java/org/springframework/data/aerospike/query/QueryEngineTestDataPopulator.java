@@ -236,7 +236,7 @@ public class QueryEngineTestDataPopulator {
                 // create up to maxTweets random tweets for this user
                 int totalTweets = rnd1.nextInt(maxTweets);
                 for (int k = 1; k <= totalTweets; k++) {
-                    // Create timestamp to store along with the tweet so we can
+                    // Create timestamp to store along with the tweet, so we can
                     // query, index and report on it
                     ts = getTimeStamp();
                     Key tweetKey = new Key(namespace, "tweets", username + ":" + k);

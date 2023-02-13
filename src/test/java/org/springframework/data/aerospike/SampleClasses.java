@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
+import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.aerospike.annotation.Expiration;
@@ -32,7 +33,7 @@ import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.PersistenceConstructor;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.annotation.TypeAlias;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.convert.ReadingConverter;
@@ -188,16 +189,16 @@ public class SampleClasses {
     public static class CustomTypeWithListAndMapImmutable {
 
         @Id
-        final String id;
-        final List<Object> listOfObjects;
-        final Map<String, Object> mapWithObjectValue;
+        String id;
+        List<Object> listOfObjects;
+        Map<String, Object> mapWithObjectValue;
     }
 
     @Document
     @Value
     public static class CustomTypeWithCustomTypeImmutable {
 
-        final ImmutableListAndMap field;
+        ImmutableListAndMap field;
     }
 
     @Document
@@ -308,7 +309,7 @@ public class SampleClasses {
         final String field1;
         final int field2;
 
-        @PersistenceConstructor
+        @PersistenceCreator
         public SimpleClassWithPersistenceConstructor(long id, String field1, int field2) {
             this.id = id;
             this.field1 = field1;
@@ -330,8 +331,8 @@ public class SampleClasses {
     @Value
     public static class ImmutableListAndMap {
 
-        final List<Object> listOfObjects;
-        final Map<String, Object> mapWithObjectValue;
+        List<Object> listOfObjects;
+        Map<String, Object> mapWithObjectValue;
     }
 
     @Data
@@ -395,7 +396,7 @@ public class SampleClasses {
     public static class VersionedClass {
 
         @Version
-        public Long version;// do not change to primitive type. See #72 issue
+        public Long version; // do not change to primitive type. See #72 issue
         public String field;
         @Id
         private String id;
@@ -406,7 +407,7 @@ public class SampleClasses {
             this.version = version;
         }
 
-        @PersistenceConstructor
+        @PersistenceCreator
         public VersionedClass(String id, String field) {
             this.id = id;
             this.field = field;
@@ -418,13 +419,12 @@ public class SampleClasses {
 
         @Id
         private final String id;
-
         @Version
         public long version;
 
-        public String field;
+        public final String field;
 
-        @PersistenceConstructor
+        @PersistenceCreator
         public VersionedClassWithAllArgsConstructor(String id, String field, long version) {
             this.id = id;
             this.field = field;
@@ -453,7 +453,7 @@ public class SampleClasses {
     public static class CustomCollectionClassToDelete {
 
         @Id
-        private String id;
+        String id;
 
     }
 
@@ -535,7 +535,7 @@ public class SampleClasses {
     public static class StringToSomeIdConverter implements Converter<String, SomeId> {
 
         @Override
-        public SomeId convert(String id) {
+        public SomeId convert(@NotNull String id) {
             String[] parts = StringUtils.split(id, "-");
             assert parts != null;
             return new SomeId(parts[0], parts[1]);
@@ -559,7 +559,7 @@ public class SampleClasses {
             this(id, 0);
         }
 
-        @PersistenceConstructor
+        @PersistenceCreator
         public DocumentWithTouchOnRead(String id, int field) {
             this.id = id;
             this.field = field;
@@ -583,12 +583,12 @@ public class SampleClasses {
     public static class DocumentWithExpirationAnnotationAndPersistenceConstructor {
 
         @Id
-        private final String id;
+        String id;
 
         @Expiration
-        private final Long expiration;
+        Long expiration;
 
-        @PersistenceConstructor
+        @PersistenceCreator
         public DocumentWithExpirationAnnotationAndPersistenceConstructor(String id, Long expiration) {
             this.id = id;
             this.expiration = expiration;
@@ -662,7 +662,7 @@ public class SampleClasses {
         @Version
         private long version;
 
-        @PersistenceConstructor
+        @PersistenceCreator
         public DocumentWithExpirationOneDay(String id) {
             this.id = id;
         }
@@ -728,7 +728,7 @@ public class SampleClasses {
             this.data = "some-initial-data";
         }
 
-        @PersistenceConstructor
+        @PersistenceCreator
         public DocumentWithCompositeKey(CompositeKey id, String data) {
             this.id = id;
             this.data = data;

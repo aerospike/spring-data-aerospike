@@ -56,7 +56,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
                 }))
             .forEach(Mono::block);
 
-        assertThat(errorsCount.get()).isLessThanOrEqualTo(4);// depending on the timing all 5 requests can succeed on
+        assertThat(errorsCount.get()).isLessThanOrEqualTo(4); // depending on the timing all 5 requests can succeed on
         // Aerospike Server
 
         assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();

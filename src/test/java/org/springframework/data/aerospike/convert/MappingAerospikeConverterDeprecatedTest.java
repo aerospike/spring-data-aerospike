@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Peter Milne
  * @author Jean Mercier
  */
-//TODO: cleanup me and move needed tests to MappingAerospikeConverterTest
+// TODO: cleanup me and move needed tests to MappingAerospikeConverterTest
 public class MappingAerospikeConverterDeprecatedTest {
 
     private static final String AEROSPIKE_KEY = "AerospikeKey";
@@ -96,7 +96,7 @@ public class MappingAerospikeConverterDeprecatedTest {
         address.city = "New York";
         address.street = "Broadway";
 
-        Map<String, Object> bins = new HashMap<String, Object>() {
+        Map<String, Object> bins = new HashMap<>() {
             {
                 put("city", "New York");
                 put("street", "Broadway");
@@ -110,7 +110,7 @@ public class MappingAerospikeConverterDeprecatedTest {
         assertThat(convertedAddress).isEqualTo(address);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Test
     public void writesMapTypeCorrectly() {
         ClassWithMapProperty foo = new ClassWithMapProperty();
@@ -133,7 +133,7 @@ public class MappingAerospikeConverterDeprecatedTest {
         converter.write(value, result);
 
         Object object = getBinValue("sampleEnum", result.getBins());
-        //all Enums are saved in form of String in the DB
+        // all Enums are saved in form of String in the DB
         assertThat(object).isInstanceOf(String.class);
         assertThat(SampleEnum.valueOf(object.toString())).isEqualTo(SampleEnum.FIRST);
     }
@@ -157,7 +157,7 @@ public class MappingAerospikeConverterDeprecatedTest {
     @SuppressWarnings("serial")
     @Test
     public void readsEnumsCorrectly() {
-        Map<String, Object> bins = new HashMap<String, Object>() {
+        Map<String, Object> bins = new HashMap<>() {
             {
                 put("sampleEnum", SampleEnum.FIRST);
             }
@@ -173,7 +173,7 @@ public class MappingAerospikeConverterDeprecatedTest {
     @SuppressWarnings("serial")
     @Test
     public void readsEnumCollectionsCorrectly() {
-        Map<String, Object> bins = new HashMap<String, Object>() {
+        Map<String, Object> bins = new HashMap<>() {
             {
                 put("sampleEnum", SampleEnum.FIRST);
                 put("enums", List.of(SampleEnum.FIRST));
@@ -210,7 +210,7 @@ public class MappingAerospikeConverterDeprecatedTest {
     @SuppressWarnings("serial")
     @Test
     public void considersFieldNameAnnotationWhenReading() {
-        Map<String, Object> bins = new HashMap<String, Object>() {
+        Map<String, Object> bins = new HashMap<>() {
             {
                 put("id", "id1");
                 put("birthDate", null);
@@ -245,14 +245,14 @@ public class MappingAerospikeConverterDeprecatedTest {
     @SuppressWarnings("serial")
     @Test
     public void convertsCustomEmptyMapCorrectly() {
-        final Map<String, Object> map = new HashMap<String, Object>() {
+        final Map<String, Object> map = new HashMap<>() {
             {
                 put("city", "New York");
                 put("street", "Broadway");
             }
         };
 
-        Map<String, Object> bins = new HashMap<String, Object>() {
+        Map<String, Object> bins = new HashMap<>() {
             {
                 put("map", map);
             }

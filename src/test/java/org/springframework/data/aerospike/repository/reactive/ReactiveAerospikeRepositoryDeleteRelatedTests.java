@@ -77,7 +77,7 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
     @Test
     @SuppressWarnings("ConstantConditions")
     public void deleteByIdPublisher_ShouldRejectsNullObject() {
-        //noinspection unchecked
+        //noinspection unchecked,rawtypes
         assertThatThrownBy(() -> customerRepo.deleteById((Publisher) null).block())
             .isInstanceOf(IllegalArgumentException.class);
     }

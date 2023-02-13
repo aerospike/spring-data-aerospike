@@ -61,6 +61,7 @@ public class QualifierTests extends BaseQueryEngineTests {
                 .setFilterOperation(LT)
                 .setValue1(Value.get(26))
             );
+            //noinspection resource
             assertThatThrownBy(() -> queryEngine.select(namespace, SET_NAME, null, qualifier))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("disabled by default");
@@ -551,6 +552,7 @@ public class QualifierTests extends BaseQueryEngineTests {
                 @SuppressWarnings("unchecked")
                 Map<Long, ?> ageColorMap = (Map<Long, ?>) rec.record.getMap(binName);
                 // This is always a one item map
+                //noinspection OptionalGetWithoutIsPresent
                 return ageColorMap.keySet().stream().filter(val -> val != SKIP_LONG_VALUE).findFirst().get();
             })
             .collect(Collectors.groupingBy(k -> k, countingInt()));
@@ -581,6 +583,7 @@ public class QualifierTests extends BaseQueryEngineTests {
                 @SuppressWarnings("unchecked")
                 Map<?, Long> ageColorMap = (Map<?, Long>) rec.record.getMap(binName);
                 // This is always a one item map
+                //noinspection OptionalGetWithoutIsPresent
                 return ageColorMap.values().stream().filter(val -> val != SKIP_LONG_VALUE).findFirst().get();
             })
             .collect(Collectors.groupingBy(k -> k, countingInt()));

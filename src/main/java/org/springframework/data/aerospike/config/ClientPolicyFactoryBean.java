@@ -79,7 +79,7 @@ public class ClientPolicyFactoryBean implements FactoryBean<ClientPolicy> {
     }
 
     /**
-     * Configures the tend interval, in milliseconds, between cluster tends, by maintenance thread.
+     * Configures the tendInterval, in milliseconds, between cluster tends, by maintenance thread.
      *
      * @param tendInterval The tendInterval configuration value.
      */

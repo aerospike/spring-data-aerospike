@@ -46,7 +46,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
         awaitTenSecondsUntil(() ->
             assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
-        assertThat(errors.get()).isLessThanOrEqualTo(4);// depending on the timing all 5 requests can succeed on
+        assertThat(errors.get()).isLessThanOrEqualTo(4); // depending on the timing all 5 requests can succeed on
         // Aerospike Server
     }
 

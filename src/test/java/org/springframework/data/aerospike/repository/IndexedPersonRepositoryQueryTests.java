@@ -204,7 +204,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         Slice<IndexedPerson> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1));
 
         assertThat(slice.hasContent()).isTrue();
-        assertThat(slice.hasNext()).isFalse();//TODO: not implemented yet. should be true instead
+        assertThat(slice.hasNext()).isFalse(); // TODO: not implemented yet. should be true instead
         assertThat(slice.getContent()).containsAnyOf(dave, carter, boyd, leroi).hasSize(1);
     }
 
@@ -226,7 +226,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
         assertThat(first.hasContent()).isTrue();
         assertThat(first.getNumberOfElements()).isEqualTo(1);
-        assertThat(first.hasNext()).isFalse();//TODO: not implemented yet. should be true instead
+        assertThat(first.hasNext()).isFalse(); // TODO: not implemented yet. should be true instead
         assertThat(first.isFirst()).isTrue();
 
         Slice<IndexedPerson> last = repository.findByAgeGreaterThan(40, PageRequest.of(3, 1, Sort.by("age")));

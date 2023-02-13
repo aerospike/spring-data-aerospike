@@ -143,6 +143,7 @@ public class SimpleReactiveAerospikeRepositoryTest {
     public void testFindAllByIdPublisher() {
         Map<String, Customer> id2person = testCustomers.stream().collect(toMap(Customer::getId, person -> person));
         when(metadata.getJavaType()).thenReturn(Customer.class);
+        //noinspection SuspiciousMethodCalls
         when(operations.findById(any(String.class), eq(Customer.class)))
             .then(invocation -> Mono.just(id2person.get(invocation.getArgument(0))));
 

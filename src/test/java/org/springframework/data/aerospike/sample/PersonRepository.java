@@ -141,7 +141,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities with age greater than the given numeric parameter
      *
      * @param age      integer to compare with
-     * @param pageable
+     * @param pageable Pageable
      */
     Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
 
@@ -149,7 +149,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities with age greater than the given numeric parameter
      *
      * @param age      long to compare with, [Long.MIN_VALUE..Long.MAX_VALUE-1]
-     * @param pageable
+     * @param pageable Pageable
      */
     Slice<P> findByAgeGreaterThan(long age, Pageable pageable);
 

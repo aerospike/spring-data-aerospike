@@ -49,7 +49,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public void assertNoScansForSet(String setName) {
         List<ScanJob> jobs = getScans();
-        List<ScanJob> jobsForSet = jobs.stream().filter(job -> setName.equals(job.set)).collect(Collectors.toList());
+        List<ScanJob> jobsForSet = jobs.stream().filter(job -> setName.equals(job.set)).toList();
         jobsForSet.forEach(job -> assertThat(job.getStatus()).isEqualTo("done(ok)"));
     }
 

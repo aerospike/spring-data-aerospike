@@ -258,6 +258,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
 
     @Test
     void GenericType() {
+        //noinspection rawtypes
         @SuppressWarnings("unchecked") GenericType<GenericType<String>> object = new GenericType("my-id", "string");
 
         assertWriteAndRead(object, "GenericType", "my-id",
