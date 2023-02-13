@@ -42,9 +42,13 @@ import java.util.Map.Entry;
  */
 public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 
-    private final AerospikeConverter converter;
-    private final IAerospikeClient client;
-    private final String namespace;
+	private final AerospikeConverter converter;
+	private final IAerospikeClient client;
+	private final String namespace;
+	@SuppressWarnings("FieldCanBeLocal")
+    private final WritePolicy insertPolicy;
+    @SuppressWarnings("FieldCanBeLocal")
+	private final WritePolicy updatePolicy;
 
     /**
      * Creates a new {@link AerospikeKeyValueAdapter} using the given {@link IAerospikeClient} and
@@ -57,6 +61,12 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
         this.client = client;
         this.converter = converter;
         this.namespace = namespace;
+        this.insertPolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+            .recordExistsAction(RecordExistsAction.CREATE_ONLY)
+            .build();
+        this.updatePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+            .recordExistsAction(RecordExistsAction.UPDATE_ONLY)
+            .build();
     }
 
     @SuppressWarnings("NullableProblems")
