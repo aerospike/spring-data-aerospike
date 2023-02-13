@@ -215,8 +215,9 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
         return targetClass.isAssignableFrom(value.getClass()) ? value : conversionService.convert(value, targetClass);
     }
 
-    private ConvertingPropertyAccessor<Object> getConvertingPropertyAccessor(AerospikePersistentEntity<?> entity,
-                                                                             RecordReadingPropertyValueProvider recordReadingPropertyValueProvider) {
+    private ConvertingPropertyAccessor<Object> getConvertingPropertyAccessor(
+        AerospikePersistentEntity<?> entity,
+        RecordReadingPropertyValueProvider recordReadingPropertyValueProvider) {
         EntityInstantiator instantiator = entityInstantiators.getInstantiatorFor(entity);
         Object instance = instantiator.createInstance(entity, new PersistentEntityParameterValueProvider<>(entity,
             recordReadingPropertyValueProvider, null));

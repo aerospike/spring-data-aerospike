@@ -142,8 +142,8 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     }
 
     private boolean isNotWritable(AerospikePersistentProperty property) {
-        return property.isIdProperty() || property.isExpirationProperty() || property.isVersionProperty() ||
-            !property.isWritable();
+        return property.isIdProperty() || property.isExpirationProperty() || property.isVersionProperty()
+            || !property.isWritable();
     }
 
     private Object getValueToWrite(Object value, TypeInformation<?> type) {
