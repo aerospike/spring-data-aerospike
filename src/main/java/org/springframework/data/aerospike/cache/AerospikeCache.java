@@ -77,7 +77,6 @@ public class AerospikeCache implements Cache {
      *
      * @param key The key to delete.
      */
-    @SuppressWarnings("NullableProblems")
     @Override
     public void evict(Object key) {
         client.delete(null, getKey(key));
@@ -88,7 +87,6 @@ public class AerospikeCache implements Cache {
      *
      * @return The cache's name.
      */
-    @SuppressWarnings("NullableProblems")
     @Override
     public String getName() {
         return name;
@@ -99,7 +97,6 @@ public class AerospikeCache implements Cache {
      *
      * @return The aerospike client.
      */
-    @SuppressWarnings("NullableProblems")
     @Override
     public Object getNativeCache() {
         return client;
@@ -141,7 +138,6 @@ public class AerospikeCache implements Cache {
      * @return The value (bins) to which this cache maps the specified key (which may be null itself), or also null if
      * the cache contains no mapping for this key.
      */
-    @SuppressWarnings("NullableProblems")
     @Override
     public <T> T get(Object key, Class<T> type) {
         Key dbKey = getKey(key);
@@ -163,7 +159,6 @@ public class AerospikeCache implements Cache {
      * may also hold a cached null value. A straight null being returned means that the cache contains no mapping for
      * this key.
      */
-    @SuppressWarnings("NullableProblems")
     @Override
     public ValueWrapper get(Object key) {
         Object value = get(key, Object.class);
@@ -176,7 +171,6 @@ public class AerospikeCache implements Cache {
      * @param key   The key to write.
      * @param value The value to write.
      */
-    @SuppressWarnings("NullableProblems")
     @Override
     public void put(Object key, Object value) {
         serializeAndPut(writePolicyForPut, key, value);
@@ -189,7 +183,6 @@ public class AerospikeCache implements Cache {
      * @param value The value (bins) to write.
      * @return In case the key already exists return the existing value, else return null.
      */
-    @SuppressWarnings("NullableProblems")
     @Override
     public ValueWrapper putIfAbsent(Object key, Object value) {
         ValueWrapper valueWrapper = get(key);

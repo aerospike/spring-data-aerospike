@@ -44,7 +44,6 @@ public abstract class BaseAerospikePersistenceEntityIndexCreator
     private final Set<IndexesEvent> initialIndexes = new HashSet<>();
     private final AtomicBoolean initialized = new AtomicBoolean(false);
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void onApplicationEvent(MappingContextEvent<?, ?> event) {
         if (!createIndexesOnStartup) {

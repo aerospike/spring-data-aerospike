@@ -30,13 +30,11 @@ import org.w3c.dom.Element;
  */
 public class ClientPolicyBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Class<?> getBeanClass(Element element) {
         return ClientPolicyFactoryBean.class;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected void doParse(Element element, BeanDefinitionBuilder builder) {
         ParsingUtils.setPropertyValue(builder, element, "maxThreads");

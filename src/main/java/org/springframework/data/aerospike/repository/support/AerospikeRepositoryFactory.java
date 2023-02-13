@@ -90,21 +90,18 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
         return new PersistentEntityInformation<>((AerospikePersistentEntity<T>) entity);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
         EntityInformation<?, Object> entityInformation = getEntityInformation(repositoryInformation.getDomainType());
         return super.getTargetRepositoryViaReflection(repositoryInformation, entityInformation, aerospikeOperations);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
         return isQueryDslRepository(metadata.getRepositoryInterface()) ? QuerydslKeyValueRepository.class
             : SimpleKeyValueRepository.class;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
         Key key,
@@ -147,7 +144,6 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
             this.queryCreator = queryCreator;
         }
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata,
                                             ProjectionFactory projectionFactory,

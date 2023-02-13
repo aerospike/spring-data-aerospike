@@ -33,13 +33,11 @@ public class AerospikeTypeAliasAccessor implements TypeAliasAccessor<Map<String,
         this.typeKey = TYPE_KEY;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Alias readAliasFrom(Map<String, Object> source) {
         return Alias.ofNullable(source.get(typeKey));
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void writeTypeTo(Map<String, Object> sink, Object alias) {
         if (typeKey != null) {

@@ -33,13 +33,11 @@ public class StubParameterAccessor implements AerospikeParameterAccessor {
         this.values = values;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Pageable getPageable() {
         return null;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Sort getSort() {
         return null;

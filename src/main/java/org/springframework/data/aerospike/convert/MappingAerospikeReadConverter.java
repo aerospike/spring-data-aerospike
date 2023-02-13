@@ -77,7 +77,6 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
         return source.getClass().isArray() ? CollectionUtils.arrayToList(source) : Collections.singleton(source);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public <R> R read(Class<R> targetClass, final AerospikeReadData data) {
         if (data == null) {
@@ -265,7 +264,6 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
             this.source = source;
         }
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public <T> T getPropertyValue(AerospikePersistentProperty property) {
             if (key != null && property.isIdProperty()) {

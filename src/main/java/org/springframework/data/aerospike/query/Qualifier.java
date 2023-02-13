@@ -174,7 +174,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
         return internalMap.remove(key);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void putAll(Map<? extends String, ?> m) {
         internalMap.putAll(m);

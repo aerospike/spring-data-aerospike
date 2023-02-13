@@ -69,7 +69,6 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
             .build();
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Object put(Object id, Object item, String keyspace) {
         AerospikeWriteData data = AerospikeWriteData.forWrite(namespace);
@@ -78,13 +77,11 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
         return item;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public boolean contains(Object id, String keyspace) {
         return client.exists(null, makeKey(keyspace, id.toString()));
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Object get(Object id, String keyspace) {
         Key key = makeKey(keyspace, id.toString());
@@ -96,7 +93,6 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
         return converter.read(Object.class, data);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Object delete(Object id, String keyspace) {
         Key key = new Key(namespace, keyspace, id.toString());
@@ -110,13 +106,11 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
         return object;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Collection<?> getAllOf(String keyspace) {
         return null;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void deleteAllOf(String keyspace) {
         // "set-config:context=namespace;id=namespace_name;set=set_name;set-delete=true;"
@@ -132,19 +126,16 @@ public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
     public void destroy() {
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Collection<?> find(KeyValueQuery<?> query, String keyspace) {
         return super.find(query, keyspace);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public CloseableIterator<Entry<Object, Object>> entries(String keyspace) {
         return null;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public long count(String keyspace) {
         return 0;

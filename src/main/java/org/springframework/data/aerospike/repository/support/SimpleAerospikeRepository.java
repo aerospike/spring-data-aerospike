@@ -43,13 +43,11 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         this.operations = operations;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Optional<T> findById(ID id) {
         return Optional.ofNullable(operations.findById(id, entityInformation.getJavaType()));
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public <S extends T> S save(S entity) {
         Assert.notNull(entity, "Cannot save NULL entity");
@@ -58,7 +56,6 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         return entity;
     }
 
-    @SuppressWarnings("NullableProblems")
     public <S extends T> List<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "The given Iterable of entities not be null!");
 
@@ -70,27 +67,23 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         return result;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void delete(T entity) {
         operations.delete(entity);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void deleteAllById(Iterable<? extends ID> iterable) {
         Assert.notNull(iterable, "The given Iterable must not be null!");
         iterable.forEach(this::deleteById);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Iterable<T> findAll(Sort sort) {
         Stream<T> findResults = operations.findAll(sort, 0, 0, entityInformation.getJavaType());
         return findResults::iterator;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Page<T> findAll(Pageable pageable) {
         if (pageable == null) {
@@ -108,19 +101,16 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         return new PageImpl<>(content.collect(Collectors.toList()), pageable, totalCount);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public boolean existsById(ID id) {
         return operations.exists(id, entityInformation.getJavaType());
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public List<T> findAll() {
         return operations.findAll(entityInformation.getJavaType()).collect(Collectors.toList());
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public Iterable<T> findAllById(Iterable<ID> ids) {
         return operations.findByIds(ids, entityInformation.getJavaType());
@@ -131,7 +121,6 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         return operations.count(entityInformation.getJavaType());
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void deleteById(ID id) {
         Assert.notNull(id, "The given id must not be null!");

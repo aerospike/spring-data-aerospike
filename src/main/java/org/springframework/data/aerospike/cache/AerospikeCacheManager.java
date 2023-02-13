@@ -82,7 +82,6 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
         this.initialPerCacheConfiguration = initialPerCacheConfiguration;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Collection<? extends Cache> loadCaches() {
         List<AerospikeCache> caches = new ArrayList<>();
@@ -92,13 +91,11 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
         return caches;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Cache getMissingCache(String name) {
         return createCache(name);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Cache decorateCache(Cache cache) {
         if (isCacheAlreadyDecorated(cache)) {

@@ -29,13 +29,11 @@ import org.w3c.dom.Element;
  */
 public class QueryPolicyBeanDefinitionParser extends AbstractSingleBeanDefinitionParser {
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Class<?> getBeanClass(Element element) {
         return QueryPolicyFactoryBean.class;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected void doParse(Element element, BeanDefinitionBuilder builder) {
         ParsingUtils.setPropertyValue(builder, element, "max-concurrent-threads");

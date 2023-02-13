@@ -52,7 +52,6 @@ public class AerospikeMappingContext
         this.fieldNamingStrategy = fieldNamingStrategy == null ? DEFAULT_NAMING_STRATEGY : fieldNamingStrategy;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected <T> BasicAerospikePersistentEntity<?> createPersistentEntity(TypeInformation<T> typeInformation) {
         BasicAerospikePersistentEntity<T> entity = new BasicAerospikePersistentEntity<>(typeInformation);
@@ -62,7 +61,6 @@ public class AerospikeMappingContext
         return entity;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected AerospikePersistentProperty createPersistentProperty(Property property,
                                                                    BasicAerospikePersistentEntity<?> owner,
@@ -70,7 +68,6 @@ public class AerospikeMappingContext
         return new CachingAerospikePersistentProperty(property, owner, simpleTypeHolder, fieldNamingStrategy);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.context = applicationContext;

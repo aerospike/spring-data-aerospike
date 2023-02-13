@@ -32,31 +32,26 @@ import java.util.Collections;
  */
 public class AerospikeRepositoryConfigurationExtension extends BaseAerospikeRepositoryConfigurationExtension {
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public String getModuleName() {
         return "Aerospike";
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected String getModulePrefix() {
         return "aerospike";
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public String getRepositoryFactoryBeanClassName() {
         return AerospikeRepositoryFactoryBean.class.getName();
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Collection<Class<? extends Annotation>> getIdentifyingAnnotations() {
         return Collections.singleton(Document.class);
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected Collection<Class<?>> getIdentifyingTypes() {
         return Collections.singleton(AerospikeRepository.class);

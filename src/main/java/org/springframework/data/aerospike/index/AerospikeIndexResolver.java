@@ -68,7 +68,6 @@ public class AerospikeIndexResolver implements EnvironmentAware {
             annotation.collectionType().name().toLowerCase());
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public void setEnvironment(Environment environment) {
         this.environment = environment;

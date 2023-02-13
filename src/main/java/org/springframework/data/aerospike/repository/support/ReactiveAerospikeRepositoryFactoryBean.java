@@ -35,7 +35,6 @@ public class ReactiveAerospikeRepositoryFactoryBean<T extends Repository<S, ID>,
         this.operations = operations;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     protected RepositoryFactorySupport createRepositoryFactory() {
         return new ReactiveAerospikeRepositoryFactory(this.operations, this.queryCreator);

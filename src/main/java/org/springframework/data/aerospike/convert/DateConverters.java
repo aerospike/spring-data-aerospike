@@ -77,7 +77,6 @@ public final class DateConverters {
     public enum DateToLongConverter implements Converter<Date, Long> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public Long convert(Date source) {
             return source == null ? null : source.getTime();
@@ -88,7 +87,6 @@ public final class DateConverters {
     public enum Java8LocalDateTimeToLongConverter implements Converter<java.time.LocalDateTime, Long> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public Long convert(java.time.LocalDateTime source) {
             return source == null ? null : source.atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
@@ -99,7 +97,6 @@ public final class DateConverters {
     public enum CalendarToLongConverter implements Converter<Calendar, Long> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public Long convert(Calendar source) {
             return source == null ? null : source.getTimeInMillis() / 1000;
@@ -110,7 +107,6 @@ public final class DateConverters {
     public enum NumberToDateConverter implements Converter<Number, Date> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public Date convert(Number source) {
             if (source == null) {
@@ -127,7 +123,6 @@ public final class DateConverters {
     public enum NumberToJava8LocalDateTimeConverter implements Converter<Number, java.time.LocalDateTime> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public java.time.LocalDateTime convert(Number source) {
             if (source == null) {
@@ -142,7 +137,6 @@ public final class DateConverters {
     public enum NumberToCalendarConverter implements Converter<Number, Calendar> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public Calendar convert(Number source) {
             if (source == null) {
@@ -159,7 +153,6 @@ public final class DateConverters {
     public enum LocalDateToLongConverter implements Converter<LocalDate, Long> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public Long convert(LocalDate source) {
             return source == null ? null : source.toDate().getTime();
@@ -170,7 +163,6 @@ public final class DateConverters {
     public enum LocalDateTimeToLongConverter implements Converter<LocalDateTime, Long> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public Long convert(LocalDateTime source) {
             return source == null ? null : source.toDate().getTime();
@@ -181,7 +173,6 @@ public final class DateConverters {
     public enum DateTimeToLongConverter implements Converter<DateTime, Long> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public Long convert(DateTime source) {
             return source == null ? null : source.toDate().getTime();
@@ -192,7 +183,6 @@ public final class DateConverters {
     public enum DateMidnightToLongConverter implements Converter<DateMidnight, Long> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public Long convert(DateMidnight source) {
             return source == null ? null : source.toDate().getTime();
@@ -204,7 +194,7 @@ public final class DateConverters {
         INSTANCE;
 
         @Override
-        public LocalDate convert(@SuppressWarnings("NullableProblems") Number source) {
+        public LocalDate convert( Number source) {
             return source == null ? null : new LocalDate(source.longValue());
         }
     }
@@ -213,7 +203,6 @@ public final class DateConverters {
     public enum NumberToLocalDateTimeConverter implements Converter<Number, LocalDateTime> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public LocalDateTime convert(Number source) {
             return source == null ? null : new LocalDateTime(source.longValue());
@@ -224,7 +213,6 @@ public final class DateConverters {
     public enum NumberToDateTimeConverter implements Converter<Number, DateTime> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public DateTime convert(Number source) {
             return source == null ? null : new DateTime(source.longValue());
@@ -235,7 +223,6 @@ public final class DateConverters {
     public enum NumberToDateMidnightConverter implements Converter<Number, DateMidnight> {
         INSTANCE;
 
-        @SuppressWarnings("NullableProblems")
         @Override
         public DateMidnight convert(Number source) {
             return source == null ? null : new DateMidnight(source.longValue());
