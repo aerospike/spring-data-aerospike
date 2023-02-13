@@ -304,7 +304,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         Query query = criteria == null ? null : new Query(criteria).with(sort);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Created query " + query);
+            LOG.debug("Created query {}", query);
         }
 
         return query;

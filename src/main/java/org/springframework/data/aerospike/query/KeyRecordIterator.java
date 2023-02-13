@@ -34,7 +34,7 @@ import java.util.Map;
  *
  * @author peter
  */
-//TODO: split if-else logic to three different iterators (Anastasiia Smirnova)
+// TODO: split if-else logic to three different iterators (Anastasiia Smirnova)
 public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 
     private static final String META_DATA = "meta_data";
@@ -113,7 +113,7 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
                 }
             }
             Long generation = (Long) meta.get(GENERATION);
-            //TODO: there is probably a bug, since TTL is not an expiration date! (Anastasiia Smirnova)
+            // TODO: there is probably a bug, since TTL is not an expiration date! (Anastasiia Smirnova)
             Long ttl = (Long) meta.get(EXPIRY);
             Record record = new Record(binMap, generation.intValue(), ttl.intValue());
             Key key = new Key(namespace, (byte[]) meta.get(DIGEST), (String) meta.get(SET_NAME), null);

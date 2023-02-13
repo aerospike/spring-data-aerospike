@@ -85,7 +85,7 @@ public class QueryEngine {
         /*
          * singleton using primary key
          */
-        //TODO: if filter is provided together with KeyQualifier it is completely ignored (Anastasiia Smirnova)
+        // TODO: if filter is provided together with KeyQualifier it is completely ignored (Anastasiia Smirnova)
         if (qualifiers != null && qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier kq) {
             Key key = kq.makeKey(namespace, set);
             Record record = getRecord(null, key, binNames);

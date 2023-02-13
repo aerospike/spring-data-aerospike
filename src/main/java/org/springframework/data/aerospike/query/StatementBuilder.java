@@ -93,7 +93,7 @@ public class StatementBuilder {
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
         if (qualifier.getField() == null) return false;
 
-        //TODO: skips check on index-type and index-collection-type
+        // TODO: skips check on index-type and index-collection-type
         return indexesCache.hasIndexFor(new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField()));
     }
 }

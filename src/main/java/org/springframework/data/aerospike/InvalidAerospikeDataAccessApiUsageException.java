@@ -17,13 +17,15 @@ package org.springframework.data.aerospike;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
+import java.io.Serial;
+
 /**
  * @author Peter Milne
  * @author Jean Mercier
  */
 public class InvalidAerospikeDataAccessApiUsageException extends InvalidDataAccessApiUsageException {
 
-    @SuppressWarnings("MissingSerialAnnotation")
+    @Serial
     private static final long serialVersionUID = -5449729113380096389L;
 
     public InvalidAerospikeDataAccessApiUsageException(String msg) {

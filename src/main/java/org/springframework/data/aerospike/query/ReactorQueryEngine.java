@@ -82,7 +82,7 @@ public class ReactorQueryEngine {
         /*
          * singleton using primary key
          */
-        //TODO: if filter is provided together with KeyQualifier it is completely ignored (Anastasiia Smirnova)
+        // TODO: if filter is provided together with KeyQualifier it is completely ignored (Anastasiia Smirnova)
         if (qualifiers != null && qualifiers.length == 1 && qualifiers[0] instanceof KeyQualifier kq) {
             Key key = kq.makeKey(namespace, set);
             return Flux.from(getRecord(null, key, binNames))

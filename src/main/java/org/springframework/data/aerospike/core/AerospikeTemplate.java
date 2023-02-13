@@ -155,8 +155,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public boolean indexExists(String indexName) {
         Assert.notNull(indexName, "Index name must not be null!");
-        log.warn(
-            "`indexExists` operation is deprecated. Please stop using it as it will be removed in next major release.");
+        log.warn("`indexExists` operation is deprecated. Please stop using it as it will be removed " +
+            "in next major release.");
 
         try {
             Node[] nodes = client.getNodes();

@@ -121,7 +121,7 @@ public class AerospikeCache implements Cache {
                 if (Objects.nonNull(value)) {
                     put(key, value);
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 throw new Cache.ValueRetrievalException(key, valueLoader, e);
             }
         }
