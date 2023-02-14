@@ -21,7 +21,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.repository.query.AerospikePartTreeQuery;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
 import org.springframework.data.keyvalue.core.KeyValueOperations;
-import org.springframework.data.keyvalue.repository.support.QuerydslKeyValueRepository;
+import org.springframework.data.keyvalue.repository.support.QuerydslKeyValuePredicateExecutor;
 import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.projection.ProjectionFactory;
@@ -98,7 +98,7 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
 
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
-        return isQueryDslRepository(metadata.getRepositoryInterface()) ? QuerydslKeyValueRepository.class
+        return isQueryDslRepository(metadata.getRepositoryInterface()) ? QuerydslKeyValuePredicateExecutor.class
             : SimpleKeyValueRepository.class;
     }
 

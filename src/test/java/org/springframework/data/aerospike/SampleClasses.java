@@ -504,7 +504,7 @@ public class SampleClasses {
             Collection<Bin> bins = new ArrayList<>();
             bins.add(new Bin("fs", user.name.firstName));
             bins.add(new Bin("ls", user.name.lastName));
-            return new AerospikeWriteData(new Key("custom-namespace", "custom-set", Long.toString(user.id)), bins, 0);
+            return new AerospikeWriteData(new Key("custom-namespace", "custom-set", Long.toString(user.id)), bins, 0, null);
         }
     }
 

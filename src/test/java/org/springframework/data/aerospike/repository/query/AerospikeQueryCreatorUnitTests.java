@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository.query;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -20,11 +21,17 @@ public class AerospikeQueryCreatorUnitTests {
     MappingContext<?, AerospikePersistentProperty> context;
     @Mock
     AerospikeConverter converter;
+    AutoCloseable openMocks;
 
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        openMocks = MockitoAnnotations.openMocks(this);
         context = new AerospikeMappingContext();
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        openMocks.close();
     }
 
     @Test

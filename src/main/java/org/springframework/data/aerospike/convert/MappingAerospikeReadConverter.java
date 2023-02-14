@@ -113,7 +113,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 
             PreferredConstructor<?, AerospikePersistentProperty> constructor = entity.getPersistenceConstructor();
 
-            if (constructor.isConstructorParameter(persistentProperty)) {
+            if (constructor.isCreatorParameter(persistentProperty)) {
                 return;
             }
 

@@ -19,7 +19,7 @@ import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.PersistenceConstructor;
+import org.springframework.data.annotation.PersistenceCreator;
 
 @Builder
 @Value
@@ -31,7 +31,7 @@ public class CompositeObject {
     int intValue;
     SimpleObject simpleObject;
 
-    @PersistenceConstructor
+    @PersistenceCreator
     public CompositeObject(String id, int intValue, SimpleObject simpleObject) {
         this.id = id;
         this.intValue = intValue;

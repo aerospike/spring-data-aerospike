@@ -67,8 +67,10 @@ public class WritePolicyBuilderTest {
             .sendKey(SEND_KEY)
             .build();
 
-        assertThat(policy).isEqualToIgnoringGivenFields(source,
-            "generationPolicy", "generation", "expiration", "recordExistsAction", "sendKey");
+        assertThat(policy).usingRecursiveComparison()
+            .ignoringFields("generationPolicy", "generation", "expiration", "recordExistsAction",
+                "sendKey")
+            .isEqualTo(source);
 
         assertThat(policy.generationPolicy).isEqualTo(GENERATION_POLICY);
         assertThat(policy.generation).isEqualTo(GENERATION);
