@@ -39,7 +39,9 @@ import java.util.Map.Entry;
  * {@link KeyValueTemplate}.
  *
  * @author Oliver Gierke
+ * @deprecated Use {@link AerospikeTemplate} instead
  */
+@Deprecated
 public class AerospikeKeyValueAdapter extends AbstractKeyValueAdapter {
 
     private final AerospikeConverter converter;

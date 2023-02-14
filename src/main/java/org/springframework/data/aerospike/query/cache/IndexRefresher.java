@@ -30,7 +30,7 @@ import java.util.Arrays;
  */
 public class IndexRefresher {
 
-    private final Logger log = LoggerFactory.getLogger(IndexesCacheHolder.class);
+    private final Logger log = LoggerFactory.getLogger(IndexRefresher.class);
 
     private final IAerospikeClient client;
     private final InfoPolicy infoPolicy;

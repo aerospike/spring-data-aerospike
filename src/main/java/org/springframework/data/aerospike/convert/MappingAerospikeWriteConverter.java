@@ -26,7 +26,6 @@ import org.springframework.data.convert.TypeMapper;
 import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -76,7 +75,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             return;
         }
 
-        TypeInformation<?> type = ClassTypeInformation.from(source.getClass());
+        TypeInformation<?> type = TypeInformation.of(source.getClass());
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
         ConvertingPropertyAccessor<?> accessor =
             new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
@@ -163,7 +162,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     }
 
     private Object getNonSimpleValueToWrite(Object value, TypeInformation<?> type) {
-        TypeInformation<?> valueType = ClassTypeInformation.from(value.getClass());
+        TypeInformation<?> valueType = TypeInformation.of(value.getClass());
 
         if (valueType.isCollectionLike()) {
             return convertCollection(asCollection(value), type);

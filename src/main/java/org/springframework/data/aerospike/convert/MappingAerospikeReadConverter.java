@@ -35,7 +35,6 @@ import org.springframework.data.mapping.model.EntityInstantiator;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.mapping.model.PersistentEntityParameterValueProvider;
 import org.springframework.data.mapping.model.PropertyValueProvider;
-import org.springframework.data.util.ClassTypeInformation;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -85,7 +84,7 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
 
         Map<String, Object> aeroRecord = data.getAeroRecord();
         TypeInformation<? extends R> typeToUse =
-            typeMapper.readType(aeroRecord, ClassTypeInformation.from(targetClass));
+            typeMapper.readType(aeroRecord, TypeInformation.of(targetClass));
         Class<? extends R> rawType = typeToUse.getType();
         if (conversions.hasCustomReadTarget(AerospikeReadData.class, rawType)) {
             return conversionService.convert(data, rawType);
