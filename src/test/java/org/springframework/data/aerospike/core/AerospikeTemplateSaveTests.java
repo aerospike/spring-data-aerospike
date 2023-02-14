@@ -169,8 +169,8 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         VersionedClass actual = template.findById(id, VersionedClass.class);
 
         assertThat(actual.field).isNotEqualTo(initial.field);
-        assertThat(actual.version).isNotEqualTo(initial.version);
-        assertThat(actual.version).isEqualTo(initial.version + numberOfConcurrentSaves);
+        assertThat(actual.version).isNotEqualTo(initial.version)
+            .isEqualTo(initial.version + numberOfConcurrentSaves);
     }
 
     @Test

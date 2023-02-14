@@ -97,7 +97,6 @@ public interface AbstractFindByEntitiesTest {
             .entityKeys(Customer.class, emptyList())
             .build();
 
-
         GroupedEntities batchGroupedEntities = findByIds(groupedKeys);
 
         assertThat(batchGroupedEntities.getEntitiesByClass(Person.class))

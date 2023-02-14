@@ -417,12 +417,11 @@ public class SampleClasses {
     @Getter
     public static class VersionedClassWithAllArgsConstructor {
 
+        public final String field;
         @Id
         private final String id;
         @Version
         public long version;
-
-        public final String field;
 
         @PersistenceCreator
         public VersionedClassWithAllArgsConstructor(String id, String field, long version) {
@@ -454,7 +453,6 @@ public class SampleClasses {
 
         @Id
         String id;
-
     }
 
     @Data
@@ -683,7 +681,6 @@ public class SampleClasses {
     public static class DocumentWithExpressionInCollection {
 
         public static final String COLLECTION_PREFIX = "set-prefix-";
-
     }
 
     @Document

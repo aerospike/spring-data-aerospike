@@ -30,7 +30,6 @@ public class AsyncUtils {
         } finally {
             pool.shutdownNow();
         }
-
     }
 
     private static Runnable withCountDownLatch(Runnable task, CountDownLatch countDownLatch) {

@@ -31,12 +31,12 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
 
     @BeforeAll
     public void beforeAllSetUp() {
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age",
-            IndexType.NUMERIC);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName",
-            IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName"
-            , IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index",
+            "age", IndexType.NUMERIC);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index",
+            "lastName", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index",
+            "firstName", IndexType.STRING);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .subscribeOn(Schedulers.parallel())
             .collectList().block();
 
-        assertThat(actual).hasSize(0);
+        assertThat(actual).isEmpty();
     }
 
     @Test
@@ -244,7 +244,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .subscribeOn(Schedulers.parallel())
             .collectList().block();
 
-        assertThat(result).hasSize(0);
+        assertThat(result).isEmpty();
     }
 
     @Test

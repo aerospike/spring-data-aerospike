@@ -23,7 +23,7 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
     void NullObjectIfAerospikeDataNull() {
         SimpleClass actual = converter.read(SimpleClass.class, null);
 
-        assertThat(actual).isEqualTo(null);
+        assertThat(actual).isNull();
     }
 
     @Test

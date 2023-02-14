@@ -11,8 +11,6 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.parser.PartTree;
 
-import java.lang.reflect.Method;
-
 /**
  * @author Peter Milne
  * @author Jean Mercier
@@ -20,7 +18,6 @@ import java.lang.reflect.Method;
 public class AerospikeQueryCreatorUnitTests {
 
     MappingContext<?, AerospikePersistentProperty> context;
-    Method findByFirstname, findByFirstnameAndFriend, findByFirstnameNotNull, findByFirstNameIn;
     @Mock
     AerospikeConverter converter;
 

@@ -6,7 +6,8 @@ import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import reactor.core.scheduler.Schedulers;
 
-public class ReactiveAerospikeTemplateFindByEntitiesTest extends BaseReactiveIntegrationTests implements AbstractFindByEntitiesTest {
+public class ReactiveAerospikeTemplateFindByEntitiesTest
+    extends BaseReactiveIntegrationTests implements AbstractFindByEntitiesTest {
 
     @Override
     public <T> void save(T obj) {

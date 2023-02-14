@@ -20,7 +20,6 @@ import org.springframework.data.aerospike.repository.AerospikeRepository;
 /**
  * @author Taras Danylchuk
  */
-
 public interface AutoIndexedDocumentRepository extends AerospikeRepository<AutoIndexedDocument, String> {
 
 }

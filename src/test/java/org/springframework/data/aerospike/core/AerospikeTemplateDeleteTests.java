@@ -114,7 +114,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         // it completes
         await().atMost(TEN_SECONDS)
             .untilAsserted(() -> assertThat(template.findByIds(Arrays.asList(id1, id2),
-                CustomCollectionClassToDelete.class)).hasSize(0));
+                CustomCollectionClassToDelete.class)).isEmpty());
     }
 
     @Test

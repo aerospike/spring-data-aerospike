@@ -30,5 +30,4 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     protected IndexesCache indexesCache;
     @Autowired
     protected IndexRefresher indexRefresher;
-
 }

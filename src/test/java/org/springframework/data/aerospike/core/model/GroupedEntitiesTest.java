@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.core.model;
 
-
 import org.junit.Test;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;

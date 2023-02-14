@@ -94,7 +94,6 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
                 Person.class
             );
 
-
         assertThat(petyaCount).isEqualTo(1);
     }
 

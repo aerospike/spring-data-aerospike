@@ -108,14 +108,12 @@ public class CustomerRepositoriesIntegrationTests extends BaseBlockingIntegratio
             .build());
 
         List<Customer> results = repository.findByGroup('d');
-        assertThat(results).hasSize(2);
-        assertThat(results).containsOnly(second, third);
+        assertThat(results).hasSize(2).containsOnly(second, third);
 
         results = repository.findByGroup('c');
-        assertThat(results).hasSize(1);
-        assertThat(results).containsOnly(first);
+        assertThat(results).hasSize(1).containsOnly(first);
 
         results = repository.findByGroup('e');
-        assertThat(results).hasSize(0);
+        assertThat(results).isEmpty();
     }
 }

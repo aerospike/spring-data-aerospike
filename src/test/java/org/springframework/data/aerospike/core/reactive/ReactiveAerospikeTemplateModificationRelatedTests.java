@@ -11,7 +11,6 @@ import reactor.test.StepVerifier;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * Tests for save related methods in {@link ReactiveAerospikeTemplate}.
  *
@@ -43,7 +42,8 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
         StepVerifier.create(created).expectNext(one).verifyComplete();
 
         // when
-        Mono<Person> appended = reactiveTemplate.append(one, "firstName", "tya").subscribeOn(Schedulers.parallel());
+        Mono<Person> appended = reactiveTemplate.append(one, "firstName", "tya")
+            .subscribeOn(Schedulers.parallel());
 
         // then
         Person expected = Person.builder().id(id).firstName("Nastya").build();

@@ -117,7 +117,6 @@ public class SimpleReactiveAerospikeRepositoryTest {
         assertThat(result).isEqualTo(testCustomer);
     }
 
-
     @Test
     public void testFindAll() {
         when(metadata.getJavaType()).thenReturn(Customer.class);

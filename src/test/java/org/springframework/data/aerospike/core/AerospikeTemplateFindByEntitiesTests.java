@@ -4,7 +4,8 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 
-public class AerospikeTemplateFindByEntitiesTests extends BaseBlockingIntegrationTests implements AbstractFindByEntitiesTest {
+public class AerospikeTemplateFindByEntitiesTests
+    extends BaseBlockingIntegrationTests implements AbstractFindByEntitiesTest {
 
     @Override
     public <T> void save(T obj) {
