@@ -140,10 +140,10 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
         } else if (propertyType.isCollectionLike()) {
             /*
              * Byte arrays should not be converted or waste time on unnecessary convert collection flow -
-             * if the source type is byte[] and the target class is also byte[] ("[B").
+             * if the source type is byte[] and the target class is also byte[].
              * If target is a List<Byte> then convert as a collection.
              */
-            if (source instanceof byte[] && targetClass.getName().equals("[B")) {
+            if (source instanceof byte[] && targetClass == byte[].class) {
                 return (T) source;
             }
             return convertCollection(asCollection(source), propertyType);
