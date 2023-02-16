@@ -17,6 +17,12 @@ package org.springframework.data.aerospike;
 
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 
+/**
+ * @deprecated since Aerospike Server ver. 6.1.0.1. Creating secondary index no longer throws an exception if the index
+ * already exists.
+ * <p>Use {@link org.springframework.data.aerospike.repository.AerospikeRepository#indexExists(String)}
+ * for secondary index existence checks.</p>
+ */
 public class IndexAlreadyExistsException extends InvalidDataAccessResourceUsageException {
 
     public IndexAlreadyExistsException(String msg, Throwable cause) {

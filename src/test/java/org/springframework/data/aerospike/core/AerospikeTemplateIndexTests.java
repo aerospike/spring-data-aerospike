@@ -53,6 +53,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     @Test
     public void createIndex_allCreateIndexConcurrentAttemptsShouldNotFailIfIndexAlreadyExists() {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
+        assertThat(template.indexExists(INDEX_TEST_1)).isTrue();
 
         awaitTenSecondsUntil(() ->
             assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
@@ -73,6 +74,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     public void createIndex_createsIndex() {
         String setName = template.getSetName(IndexedDocument.class);
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
+        assertThat(template.indexExists(INDEX_TEST_1)).isTrue();
 
         awaitTenSecondsUntil(() ->
             assertThat(additionalAerospikeTestOperations.getIndexes(setName))
@@ -82,8 +84,9 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void createIndex_shouldNoThrowExceptionIfIndexAlreadyExists() {
+    public void createIndex_shouldNotThrowExceptionIfIndexAlreadyExists() {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
+        assertThat(template.indexExists(INDEX_TEST_1)).isTrue();
 
         awaitTenSecondsUntil(() -> assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
 
