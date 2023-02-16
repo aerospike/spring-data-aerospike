@@ -19,18 +19,22 @@ import java.util.stream.Collectors;
 public class IndexUtils {
 
     public static void dropIndex(IAerospikeClient client, String namespace, String setName, String indexName) {
-        waitTillComplete(() -> client.dropIndex(null, namespace, setName, indexName));
+        // ignoring a certain ResultCode is relevant for Aerospike Server prior to ver. 6.1.0.1
+        ignoreErrorAndWait(ResultCode.INDEX_NOTFOUND, () -> client.dropIndex(null, namespace, setName, indexName));
     }
 
     public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
                                    String binName, IndexType indexType) {
-        waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType));
+        // ignoring a certain ResultCode is relevant for Aerospike Server prior to ver. 6.1.0.1
+        ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName,
+            indexName, binName, indexType));
     }
 
     public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
                                    String binName, IndexType indexType, IndexCollectionType collectionType) {
-        waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType,
-            collectionType));
+        // ignoring a certain ResultCode is relevant for Aerospike Server prior to ver. 6.1.0.1
+        ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName,
+            indexName, binName, indexType, collectionType));
     }
 
     public static List<Index> getIndexes(IAerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
@@ -41,6 +45,10 @@ public class IndexUtils {
             .collect(Collectors.toList());
     }
 
+    /**
+     * @deprecated since Aerospike Server ver. 6.1.0.1.
+     * Use {@link org.springframework.data.aerospike.core.AerospikeTemplate#indexExists(String)}
+     */
     public static boolean indexExists(IAerospikeClient client, String namespace, String indexName) {
         Node node = getNode(client);
         String response = Info.request(node, "sindex/" + namespace + '/' + indexName);
@@ -61,5 +69,19 @@ public class IndexUtils {
             throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
         }
         return nodes[0];
+    }
+
+    private static void ignoreErrorAndWait(int errorCodeToSkip, Supplier<IndexTask> supplier) {
+        try {
+            IndexTask task = supplier.get();
+            if (task == null) {
+                throw new IllegalStateException("Task can not be null");
+            }
+            task.waitTillComplete();
+        } catch (AerospikeException e) {
+            if (e.getResultCode() != errorCodeToSkip) {
+                throw e;
+            }
+        }
     }
 }

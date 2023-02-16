@@ -17,9 +17,11 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
+import com.aerospike.client.Info;
 import com.aerospike.client.Key;
 import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
+import com.aerospike.client.ResultCode;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
@@ -57,6 +59,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
@@ -564,6 +568,48 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return reactorClient.dropIndex(null, this.namespace, setName, indexName)
             .then(reactorIndexRefresher.refreshIndexes())
             .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public <T> Mono<Boolean> indexExists(String indexName) {
+        Assert.notNull(indexName, "Index name must not be null!");
+
+        try {
+            Node[] nodes = reactorClient.getAerospikeClient().getNodes();
+            for (Node node : nodes) {
+                String response = Info.request(node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
+                if (response == null) throw new AerospikeException("Null node response");
+
+                if (response.equals("true")) {
+                    return Mono.just(true);
+                } else if (response.equals("false")) {
+                    return Mono.just(false);
+                } else {
+                    String regex = "^FAIL:(-?\\d+).*$";
+                    Matcher matcher = Pattern.compile(regex).matcher(response);
+                    if (matcher.matches()) {
+                        int reason = 0;
+                        try {
+                            reason = Integer.parseInt(matcher.group(1));
+                        } catch (NumberFormatException e) {
+                            throw new AerospikeException("Unexpected node response, unable to parse ResultCode: " +
+                                response);
+                        }
+
+                        if (reason == ResultCode.INVALID_NAMESPACE) {
+                            continue;
+                        } else {
+                            throw new AerospikeException(reason);
+                        }
+                    } else {
+                        throw new AerospikeException("Unexpected node response: " + response);
+                    }
+                }
+            }
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+        return Mono.just(false);
     }
 
     @Override

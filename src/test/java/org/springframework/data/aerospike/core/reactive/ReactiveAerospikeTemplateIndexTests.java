@@ -56,10 +56,8 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
                 }))
             .forEach(Mono::block);
 
-        assertThat(errorsCount.get()).isLessThanOrEqualTo(4); // depending on the timing all 5 requests can succeed on
-        // Aerospike Server
-
-        assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
+        assertThat(errorsCount.get()).isLessThanOrEqualTo(4); // depending on the timing
+        assertThat(reactiveTemplate.indexExists(INDEX_TEST_1).toFuture().getNow(false)).isTrue();
     }
 
     @Test
@@ -100,8 +98,8 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
             .block();
 
         awaitTenSecondsUntil(() -> {
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_2)).isTrue();
+            assertThat(reactiveTemplate.indexExists(INDEX_TEST_1).toFuture().getNow(false)).isTrue();
+            assertThat(reactiveTemplate.indexExists(INDEX_TEST_2).toFuture().getNow(false)).isTrue();
         });
     }
 
@@ -115,8 +113,8 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
             .block();
 
         awaitTenSecondsUntil(() -> {
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_2)).isTrue();
+            assertThat(reactiveTemplate.indexExists(INDEX_TEST_1).toFuture().getNow(false)).isTrue();
+            assertThat(reactiveTemplate.indexExists(INDEX_TEST_2).toFuture().getNow(false)).isTrue();
         });
     }
 
@@ -177,7 +175,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
 
         reactiveTemplate.deleteIndex(IndexedDocument.class, INDEX_TEST_1).block();
 
-        assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isFalse();
+        assertThat(reactiveTemplate.indexExists(INDEX_TEST_1).toFuture().getNow(false)).isFalse();
     }
 
     @Test

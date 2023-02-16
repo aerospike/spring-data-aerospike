@@ -157,13 +157,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public boolean indexExists(String indexName) {
         Assert.notNull(indexName, "Index name must not be null!");
-        boolean res = false;
 
         try {
             Node[] nodes = client.getNodes();
             for (Node node : nodes) {
                 String response = Info.request(node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
-                if (response == null) throw new AerospikeException(ResultCode.CLIENT_ERROR, "Null node response");
+                if (response == null) throw new AerospikeException("Null node response");
 
                 if (response.equals("true")) {
                     return true;
@@ -194,7 +193,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         } catch (AerospikeException e) {
             throw translateError(e);
         }
-        return res;
+        return false;
     }
 
     @Override

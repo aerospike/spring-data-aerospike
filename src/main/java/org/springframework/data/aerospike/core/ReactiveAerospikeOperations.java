@@ -441,4 +441,12 @@ public interface ReactiveAerospikeOperations {
      * @param indexName   The index name. Must not be {@literal null}.
      */
     <T> Mono<Void> deleteIndex(Class<T> entityClass, String indexName);
+
+    /**
+     * Check whether an index with the specified name exists in Aerospike.
+     *
+     * @param indexName The Aerospike index name. Must not be {@literal null}.
+     * @return true if exists
+     */
+    <T> Mono<Boolean> indexExists(String indexName);
 }

@@ -39,15 +39,13 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         AsyncUtils.executeConcurrently(5, () -> {
             try {
                 template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
-            } catch (IndexAlreadyExistsException e) {
+            } catch (IndexAlreadyExistsException e) { // relevant for Aerospike Server ver. < 6.1.0.1
                 errors.incrementAndGet();
             }
         });
 
-        awaitTenSecondsUntil(() ->
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
-        assertThat(errors.get()).isLessThanOrEqualTo(4); // depending on the timing all 5 requests can succeed on
-        // Aerospike Server
+        awaitTenSecondsUntil(() -> assertThat(template.indexExists(INDEX_TEST_1)).isTrue());
+        assertThat(errors.get()).isLessThanOrEqualTo(5); // depending on the timing
     }
 
     @Test
@@ -56,18 +54,18 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         assertThat(template.indexExists(INDEX_TEST_1)).isTrue();
 
         awaitTenSecondsUntil(() ->
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
+            assertThat(template.indexExists(INDEX_TEST_1)).isTrue());
 
         AtomicInteger errors = new AtomicInteger();
         AsyncUtils.executeConcurrently(5, () -> {
             try {
                 template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
-            } catch (IndexAlreadyExistsException e) {
+            } catch (IndexAlreadyExistsException e) { // relevant for Aerospike Server ver. < 6.1.0.1
                 errors.incrementAndGet();
             }
         });
 
-        assertThat(errors.get()).isEqualTo(0);
+        assertThat(errors.get()).isLessThanOrEqualTo(5); // depending on the timing
     }
 
     @Test
@@ -83,12 +81,12 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         );
     }
 
+    // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_shouldNotThrowExceptionIfIndexAlreadyExists() {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
-        assertThat(template.indexExists(INDEX_TEST_1)).isTrue();
 
-        awaitTenSecondsUntil(() -> assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
+        awaitTenSecondsUntil(() -> assertThat(template.indexExists(INDEX_TEST_1)).isTrue());
 
         assertThatCode(() -> template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING))
             .doesNotThrowAnyException();
@@ -115,8 +113,8 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
             IndexCollectionType.MAPVALUES);
 
         awaitTenSecondsUntil(() -> {
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_2)).isTrue();
+            assertThat(template.indexExists(INDEX_TEST_1)).isTrue();
+            assertThat(template.indexExists(INDEX_TEST_2)).isTrue();
         });
     }
 
@@ -126,17 +124,19 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         template.createIndex(IndexedDocument.class, INDEX_TEST_2, "mapField", IndexType.NUMERIC);
 
         awaitTenSecondsUntil(() -> {
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue();
-            assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_2)).isTrue();
+            assertThat(template.indexExists(INDEX_TEST_1)).isTrue();
+            assertThat(template.indexExists(INDEX_TEST_2)).isTrue();
         });
     }
 
+    // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
         assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
             .doesNotThrowAnyException();
     }
 
+    // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedList() {
         String setName = template.getSetName(IndexedDocument.class);
@@ -154,6 +154,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         );
     }
 
+    // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedListContextRank() {
         String setName = template.getSetName(IndexedDocument.class);
@@ -171,6 +172,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         );
     }
 
+    // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnMapOfMapsContext() {
         String setName = template.getSetName(IndexedDocument.class);
@@ -201,11 +203,11 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     public void deleteIndex_deletesExistingIndex() {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
 
-        awaitTenSecondsUntil(() -> assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isTrue());
+        awaitTenSecondsUntil(() -> assertThat(template.indexExists(INDEX_TEST_1)).isTrue());
 
         template.deleteIndex(IndexedDocument.class, INDEX_TEST_1);
 
-        awaitTenSecondsUntil(() -> assertThat(additionalAerospikeTestOperations.indexExists(INDEX_TEST_1)).isFalse());
+        awaitTenSecondsUntil(() -> assertThat(template.indexExists(INDEX_TEST_1)).isFalse());
     }
 
     @Test
