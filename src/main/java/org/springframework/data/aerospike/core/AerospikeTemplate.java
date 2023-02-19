@@ -180,9 +180,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                                 response);
                         }
 
-                        if (reason == ResultCode.INVALID_NAMESPACE) {
-                            continue;
-                        } else {
+                        if (reason != ResultCode.INVALID_NAMESPACE) {
                             throw new AerospikeException(reason);
                         }
                     } else {
