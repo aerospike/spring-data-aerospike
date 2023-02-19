@@ -82,7 +82,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         );
     }
 
-    // relevant for Aerospike Server ver. >= 6.1.0.1
+    // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_shouldNotThrowExceptionIfIndexAlreadyExists() {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
@@ -132,7 +132,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         });
     }
 
-    // relevant for Aerospike Server ver. >= 6.1.0.1
+    // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
@@ -141,7 +141,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         }
     }
 
-    // relevant for Aerospike Server ver. >= 6.1.0.1
+    // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedList() {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
@@ -161,7 +161,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         }
     }
 
-    // relevant for Aerospike Server ver. >= 6.1.0.1
+    // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedListContextRank() {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
@@ -181,7 +181,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         }
     }
 
-    // relevant for Aerospike Server ver. >= 6.1.0.1
+    // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnMapOfMapsContext() {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {

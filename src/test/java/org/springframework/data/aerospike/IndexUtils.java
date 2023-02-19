@@ -72,13 +72,13 @@ public class IndexUtils {
     }
 
     public static String getServerVersion(IAerospikeClient client) {
-        String versionString = Info.request(null, client.getCluster().getRandomNode(), "version");
+        String versionString = Info.request(client.getCluster().getRandomNode(), "version");
         return versionString.substring(versionString.lastIndexOf(' ') + 1);
     }
 
     /**
      * Since Aerospike Server ver. 6.1.0.1 attempting to create a secondary index which already exists or to drop a
-     * non-existing secondary index now returns success/OK instead of an exception.
+     * non-existing secondary index now returns success/OK instead of an error.
      */
     public static boolean isDropCreateBehaviorUpdated(IAerospikeClient client) {
         return ModuleDescriptor.Version.parse(IndexUtils.getServerVersion(client))

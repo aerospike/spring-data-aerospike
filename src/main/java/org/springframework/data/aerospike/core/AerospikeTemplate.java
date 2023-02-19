@@ -172,7 +172,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                     String regex = "^FAIL:(-?\\d+).*$";
                     Matcher matcher = Pattern.compile(regex).matcher(response);
                     if (matcher.matches()) {
-                        int reason = 0;
+                        int reason;
                         try {
                             reason = Integer.parseInt(matcher.group(1));
                         } catch (NumberFormatException e) {
@@ -180,6 +180,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                                 response);
                         }
 
+                        // as for Server ver. >= 6.1.0.1 the response containing ResultCode.INVALID_NAMESPACE
+                        // means that the request should be sent to another node
                         if (reason != ResultCode.INVALID_NAMESPACE) {
                             throw new AerospikeException(reason);
                         }
