@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.IndexAlreadyExistsException;
+import org.springframework.data.aerospike.IndexUtils;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
 
@@ -84,12 +85,14 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_shouldNotThrowExceptionIfIndexAlreadyExists() {
-        template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
+        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
+            template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
 
-        awaitTenSecondsUntil(() -> assertThat(template.indexExists(INDEX_TEST_1)).isTrue());
+            awaitTenSecondsUntil(() -> assertThat(template.indexExists(INDEX_TEST_1)).isTrue());
 
-        assertThatCode(() -> template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING))
-            .doesNotThrowAnyException();
+            assertThatCode(() -> template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING))
+                .doesNotThrowAnyException();
+        }
     }
 
     @Test
@@ -132,71 +135,79 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
-        assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
-            .doesNotThrowAnyException();
+        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
+            assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
+                .doesNotThrowAnyException();
+        }
     }
 
     // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedList() {
-        String setName = template.getSetName(IndexedDocument.class);
-        template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING,
-            IndexCollectionType.LIST, CTX.listIndex(1));
+        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
+            String setName = template.getSetName(IndexedDocument.class);
+            template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING,
+                IndexCollectionType.LIST, CTX.listIndex(1));
 
-        awaitTenSecondsUntil(() -> {
-                CTX ctx = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
-                    .filter(o -> o.getName().equals(INDEX_TEST_1))
-                    .findFirst().orElse(null)).getCTX()[0];
+            awaitTenSecondsUntil(() -> {
+                    CTX ctx = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
+                        .filter(o -> o.getName().equals(INDEX_TEST_1))
+                        .findFirst().orElse(null)).getCTX()[0];
 
-                assertThat(ctx.id).isEqualTo(CTX.listIndex(1).id);
-                assertThat(ctx.value.toLong()).isEqualTo(CTX.listIndex(1).value.toLong());
-            }
-        );
+                    assertThat(ctx.id).isEqualTo(CTX.listIndex(1).id);
+                    assertThat(ctx.value.toLong()).isEqualTo(CTX.listIndex(1).value.toLong());
+                }
+            );
+        }
     }
 
     // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedListContextRank() {
-        String setName = template.getSetName(IndexedDocument.class);
-        template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING,
-            IndexCollectionType.LIST, CTX.listRank(-1));
+        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
+            String setName = template.getSetName(IndexedDocument.class);
+            template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING,
+                IndexCollectionType.LIST, CTX.listRank(-1));
 
-        awaitTenSecondsUntil(() -> {
-                CTX ctx = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
-                    .filter(o -> o.getName().equals(INDEX_TEST_1))
-                    .findFirst().orElse(null)).getCTX()[0];
+            awaitTenSecondsUntil(() -> {
+                    CTX ctx = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
+                        .filter(o -> o.getName().equals(INDEX_TEST_1))
+                        .findFirst().orElse(null)).getCTX()[0];
 
-                assertThat(ctx.id).isEqualTo(CTX.listRank(-1).id);
-                assertThat(ctx.value.toLong()).isEqualTo(CTX.listRank(-1).value.toLong());
-            }
-        );
+                    assertThat(ctx.id).isEqualTo(CTX.listRank(-1).id);
+                    assertThat(ctx.value.toLong()).isEqualTo(CTX.listRank(-1).value.toLong());
+                }
+            );
+        }
     }
 
     // relevant for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnMapOfMapsContext() {
-        String setName = template.getSetName(IndexedDocument.class);
+        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
+            String setName = template.getSetName(IndexedDocument.class);
 
-        CTX[] ctx = new CTX[]{
-            CTX.mapKey(com.aerospike.client.Value.get("key1")),
-            CTX.mapKey(com.aerospike.client.Value.get("innerKey2"))
-        };
-        template.createIndex(IndexedDocument.class, INDEX_TEST_1, "mapOfLists", IndexType.STRING,
-            IndexCollectionType.MAPKEYS, ctx);
+            CTX[] ctx = new CTX[]{
+                CTX.mapKey(com.aerospike.client.Value.get("key1")),
+                CTX.mapKey(com.aerospike.client.Value.get("innerKey2"))
+            };
+            template.createIndex(IndexedDocument.class, INDEX_TEST_1, "mapOfLists", IndexType.STRING,
+                IndexCollectionType.MAPKEYS, ctx);
 
-        awaitTenSecondsUntil(() -> {
-                CTX[] ctxResponse =
-                    Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
-                        .filter(o -> o.getName().equals(INDEX_TEST_1))
-                        .findFirst().orElse(null)).getCTX();
+            awaitTenSecondsUntil(() -> {
+                    CTX[] ctxResponse =
+                        Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
+                            .filter(o -> o.getName().equals(INDEX_TEST_1))
+                            .findFirst().orElse(null)).getCTX();
 
-                assertThat(ctx.length).isEqualTo(ctxResponse.length);
-                assertThat(ctx[0].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
-                assertThat(ctx[1].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
-                assertThat(ctx[0].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
-                assertThat(ctx[1].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
-            }
-        );
+                    assertThat(ctx.length).isEqualTo(ctxResponse.length);
+                    assertThat(ctx[0].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
+                    assertThat(ctx[1].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
+                    assertThat(ctx[0].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
+                    assertThat(ctx[1].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
+                }
+            );
+        }
     }
 
     @Test
