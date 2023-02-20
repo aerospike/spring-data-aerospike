@@ -165,9 +165,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 String response = Info.request(node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
                 if (response == null) throw new AerospikeException("Null node response");
 
-                if (response.equals("true")) {
+                if (response.equalsIgnoreCase("true")) {
                     return true;
-                } else if (response.equals("false")) {
+                } else if (response.equalsIgnoreCase("false")) {
                     return false;
                 } else {
                     Matcher matcher = INDEX_EXISTS_REGEX_PATTERN.matcher(response);

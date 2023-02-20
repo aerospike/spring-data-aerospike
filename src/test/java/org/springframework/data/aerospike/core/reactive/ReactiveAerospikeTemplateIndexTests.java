@@ -202,10 +202,10 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. < 6.1.0.1
     @Test
     public void deleteIndex_throwsExceptionIfIndexDoesNotExist() {
-            if (!IndexUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (!IndexUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
             assertThatThrownBy(() -> reactiveTemplate.deleteIndex(IndexedDocument.class, "not-existing-index").block())
                 .isInstanceOf(IndexNotFoundException.class);
-            }
+        }
     }
 
     @Test

@@ -572,7 +572,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Boolean> indexExists(String indexName) {
+    public Mono<Boolean> indexExists(String indexName) {
         Assert.notNull(indexName, "Index name must not be null!");
 
         try {
@@ -581,9 +581,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 String response = Info.request(node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
                 if (response == null) throw new AerospikeException("Null node response");
 
-                if (response.equals("true")) {
+                if (response.equalsIgnoreCase("true")) {
                     return Mono.just(true);
-                } else if (response.equals("false")) {
+                } else if (response.equalsIgnoreCase("false")) {
                     return Mono.just(false);
                 } else {
                     Matcher matcher = INDEX_EXISTS_REGEX_PATTERN.matcher(response);

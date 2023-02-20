@@ -446,7 +446,7 @@ public interface ReactiveAerospikeOperations {
      * Check whether an index with the specified name exists in Aerospike.
      *
      * @param indexName The Aerospike index name. Must not be {@literal null}.
-     * @return true if exists
+     * @return true if exists.
      */
-    <T> Mono<Boolean> indexExists(String indexName);
+    Mono<Boolean> indexExists(String indexName);
 }
