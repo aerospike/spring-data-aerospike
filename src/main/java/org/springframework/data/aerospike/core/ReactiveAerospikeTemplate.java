@@ -586,7 +586,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 } else if (response.equals("false")) {
                     return Mono.just(false);
                 } else {
-                    String regex = "^FAIL:(-?\\d+).*$";
                     Matcher matcher = INDEX_EXISTS_REGEX_PATTERN.matcher(response);
                     if (matcher.matches()) {
                         int reason;
