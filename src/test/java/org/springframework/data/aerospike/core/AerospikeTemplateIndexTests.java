@@ -90,8 +90,8 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
             awaitTenSecondsUntil(() -> assertThat(template.indexExists(INDEX_TEST_1)).isTrue());
 
-            assertThatCode(() -> template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING))
-                .doesNotThrowAnyException();
+            assertThatCode(() -> template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField",
+                IndexType.STRING)).doesNotThrowAnyException();
         }
     }
 
@@ -203,8 +203,10 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
                     assertThat(ctx.length).isEqualTo(ctxResponse.length);
                     assertThat(ctx[0].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
                     assertThat(ctx[1].id).isIn(ctxResponse[0].id, ctxResponse[1].id);
-                    assertThat(ctx[0].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
-                    assertThat(ctx[1].value.toLong()).isIn(ctxResponse[0].value.toLong(), ctxResponse[1].value.toLong());
+                    assertThat(ctx[0].value.toLong()).isIn(ctxResponse[0].value.toLong(),
+                        ctxResponse[1].value.toLong());
+                    assertThat(ctx[1].value.toLong()).isIn(ctxResponse[0].value.toLong(),
+                        ctxResponse[1].value.toLong());
                 }
             );
         }

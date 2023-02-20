@@ -25,7 +25,7 @@ public class IndexUtils {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
             waitTillComplete(() -> client.dropIndex(null, namespace, setName, indexName));
         } else {
-            // ignoring ResultCode.INDEX_NOTFOUND is relevant for Aerospike Server prior to ver. 6.1.0.1
+            // ignoring ResultCode.INDEX_NOTFOUND for Aerospike Server prior to ver. 6.1.0.1
             ignoreErrorAndWait(ResultCode.INDEX_NOTFOUND, () -> client.dropIndex(null, namespace, setName, indexName));
         }
     }
@@ -35,7 +35,7 @@ public class IndexUtils {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
             waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType));
         } else {
-            // ignoring ResultCode.INDEX_ALREADY_EXISTS is relevant for Aerospike Server prior to ver. 6.1.0.1
+            // ignoring ResultCode.INDEX_ALREADY_EXISTS for Aerospike Server prior to ver. 6.1.0.1
             ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName,
                 indexName, binName, indexType));
         }
@@ -47,14 +47,14 @@ public class IndexUtils {
             waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType,
                 collectionType));
         } else {
-            // ignoring ResultCode.INDEX_ALREADY_EXISTS is relevant for Aerospike Server prior to ver. 6.1.0.1
+            // ignoring ResultCode.INDEX_ALREADY_EXISTS for Aerospike Server prior to ver. 6.1.0.1
             ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName,
                 indexName, binName, indexType, collectionType));
         }
     }
 
     public static List<Index> getIndexes(IAerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
-        Node node = getNode(client);
+        Node node = client.getCluster().getRandomNode();
         String response = Info.request(node, "sindex-list:ns=" + namespace + ";b64=true");
         return Arrays.stream(response.split(";"))
             .map(indexInfoParser::parse)
@@ -66,7 +66,7 @@ public class IndexUtils {
      * {@link org.springframework.data.aerospike.core.AerospikeTemplate#indexExists(String)}
      */
     public static boolean indexExists(IAerospikeClient client, String namespace, String indexName) {
-        Node node = getNode(client);
+        Node node = client.getCluster().getRandomNode();
         String response = Info.request(node, "sindex/" + namespace + '/' + indexName);
         return !response.startsWith("FAIL:201");
     }
@@ -88,17 +88,9 @@ public class IndexUtils {
     private static void waitTillComplete(Supplier<IndexTask> supplier) {
         IndexTask task = supplier.get();
         if (task == null) {
-            throw new IllegalStateException("task can not be null");
+            throw new IllegalStateException("Task can not be null");
         }
         task.waitTillComplete();
-    }
-
-    private static Node getNode(IAerospikeClient client) {
-        Node[] nodes = client.getNodes();
-        if (nodes.length == 0) {
-            throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
-        }
-        return nodes[0];
     }
 
     private static void ignoreErrorAndWait(int errorCodeToSkip, Supplier<IndexTask> supplier) {

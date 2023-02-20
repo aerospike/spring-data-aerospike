@@ -76,6 +76,7 @@ import static org.springframework.data.aerospike.core.OperationUtils.operations;
 @Slf4j
 public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations {
 
+    private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
     private final IAerospikeReactorClient reactorClient;
     private final ReactorQueryEngine queryEngine;
     private final ReactorIndexRefresher reactorIndexRefresher;
@@ -586,9 +587,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                     return Mono.just(false);
                 } else {
                     String regex = "^FAIL:(-?\\d+).*$";
-                    Matcher matcher = Pattern.compile(regex).matcher(response);
+                    Matcher matcher = INDEX_EXISTS_REGEX_PATTERN.matcher(response);
                     if (matcher.matches()) {
-                        int reason = 0;
+                        int reason;
                         try {
                             reason = Integer.parseInt(matcher.group(1));
                         } catch (NumberFormatException e) {
@@ -596,9 +597,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                                 response);
                         }
 
-                        if (reason == ResultCode.INVALID_NAMESPACE) {
-                            continue;
-                        } else {
+                        // as for Server ver. >= 6.1.0.1 the response containing ResultCode.INVALID_NAMESPACE
+                        // means that the request should be sent to another node
+                        if (reason != ResultCode.INVALID_NAMESPACE) {
                             throw new AerospikeException(reason);
                         }
                     } else {

@@ -23,6 +23,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
  * <p>Use {@link org.springframework.data.aerospike.repository.AerospikeRepository#indexExists(String)}
  * for secondary index existence checks.</p>
  */
+@Deprecated
 public class IndexAlreadyExistsException extends InvalidDataAccessResourceUsageException {
 
     public IndexAlreadyExistsException(String msg, Throwable cause) {

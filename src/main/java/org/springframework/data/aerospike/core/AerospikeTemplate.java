@@ -84,6 +84,7 @@ import static org.springframework.data.aerospike.core.OperationUtils.operations;
 @Slf4j
 public class AerospikeTemplate extends BaseAerospikeTemplate implements AerospikeOperations {
 
+    private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
     private final IAerospikeClient client;
     private final QueryEngine queryEngine;
     private final IndexRefresher indexRefresher;
@@ -169,8 +170,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 } else if (response.equals("false")) {
                     return false;
                 } else {
-                    String regex = "^FAIL:(-?\\d+).*$";
-                    Matcher matcher = Pattern.compile(regex).matcher(response);
+                    Matcher matcher = INDEX_EXISTS_REGEX_PATTERN.matcher(response);
                     if (matcher.matches()) {
                         int reason;
                         try {

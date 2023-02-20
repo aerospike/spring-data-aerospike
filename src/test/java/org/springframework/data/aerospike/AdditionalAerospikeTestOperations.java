@@ -115,6 +115,7 @@ public abstract class AdditionalAerospikeTestOperations {
     // This will not guarantee the correct answer from Aerospike Server for all cases.
     // Also, it requests index status only from one Aerospike node, which is OK for tests, and NOT OK for Production
     // cluster.
+    @Deprecated
     public boolean indexExists(String indexName) {
         return IndexUtils.indexExists(client, getNamespace(), indexName);
     }

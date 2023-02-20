@@ -22,6 +22,7 @@ import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.CollectionUtils;
+import org.springframework.data.aerospike.IndexUtils;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -184,26 +185,28 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 
     @Test
     public void selectWithGeoWithin() {
-        withIndex(namespace, INDEXED_GEO_SET, "geo_index", GEO_BIN_NAME, IndexType.GEO2DSPHERE, () -> {
-            double lon = -122.0;
-            double lat = 37.5;
-            double radius = 50000.0;
-            String rgnstr = String.format("{ \"type\": \"AeroCircle\", "
-                    + "\"coordinates\": [[%.8f, %.8f], %f] }",
-                lon, lat, radius);
+        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
+            withIndex(namespace, INDEXED_GEO_SET, "geo_index", GEO_BIN_NAME, IndexType.GEO2DSPHERE, () -> {
+                double lon = -122.0;
+                double lat = 37.5;
+                double radius = 50000.0;
+                String rgnstr = String.format("{ \"type\": \"AeroCircle\", "
+                        + "\"coordinates\": [[%.8f, %.8f], %f] }",
+                    lon, lat, radius);
 
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
-                .setField(GEO_BIN_NAME)
-                .setFilterOperation(FilterOperation.GEO_WITHIN)
-                .setValue1(Value.getAsGeoJSON(rgnstr))
-            );
-            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_GEO_SET, null, qualifier);
+                Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+                    .setField(GEO_BIN_NAME)
+                    .setFilterOperation(FilterOperation.GEO_WITHIN)
+                    .setValue1(Value.getAsGeoJSON(rgnstr))
+                );
+                KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_GEO_SET, null, qualifier);
 
-            assertThat(iterator).toIterable()
-                .isNotEmpty()
-                .allSatisfy(rec -> assertThat(rec.record.generation).isGreaterThanOrEqualTo(1));
-            additionalAerospikeTestOperations.assertNoScansForSet(INDEXED_GEO_SET);
-        });
+                assertThat(iterator).toIterable()
+                    .isNotEmpty()
+                    .allSatisfy(rec -> assertThat(rec.record.generation).isGreaterThanOrEqualTo(1));
+                additionalAerospikeTestOperations.assertNoScansForSet(INDEXED_GEO_SET);
+            });
+        }
     }
 
     @Test
