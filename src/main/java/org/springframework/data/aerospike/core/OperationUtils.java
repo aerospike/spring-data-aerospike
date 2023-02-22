@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Operation;
 import com.aerospike.client.Value;
+import org.springframework.lang.Nullable;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -42,17 +43,25 @@ public class OperationUtils {
 
     static Operation[] operations(Bin[] bins,
                                   Function<Bin, Operation> binToOperation,
+                                  @Nullable Operation[] precedingOperations,
                                   Operation... additionalOperations) {
-        Operation[] operations = new Operation[bins.length + additionalOperations.length];
+        int precedingOpsLength = precedingOperations == null ? 0 : precedingOperations.length;
+        Operation[] operations = new Operation[precedingOpsLength + bins.length + additionalOperations.length];
         int i = 0;
+        if (precedingOpsLength > 0) {
+            for (Operation precedingOp : precedingOperations) {
+                operations[i] = precedingOp;
+                i++;
+            }
+        }
         for (Bin bin : bins) {
             operations[i] = binToOperation.apply(bin);
             i++;
         }
-        for (Operation additionalOp : additionalOperations) {
-            operations[i] = additionalOp;
-            i++;
-        }
+            for (Operation additionalOp : additionalOperations) {
+                operations[i] = additionalOp;
+                i++;
+            }
         return operations;
     }
 }

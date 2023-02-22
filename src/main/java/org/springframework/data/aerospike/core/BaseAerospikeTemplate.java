@@ -196,9 +196,10 @@ abstract class BaseAerospikeTemplate {
     WritePolicy expectGenerationCasAwareSavePolicy(AerospikeWriteData data) {
         RecordExistsAction recordExistsAction = data.getVersion()
             .filter(v -> v > 0L)
-            .map(v -> RecordExistsAction.REPLACE_ONLY)//Updating existing document with generation
+            .map(v -> RecordExistsAction.UPDATE_ONLY) // updating existing document with generation,
+            //  cannot use REPLACE_ONLY due to bin convergence feature restrictions
             .orElse(
-                RecordExistsAction.CREATE_ONLY);// create new document. if exists we should fail with optimistic locking
+                RecordExistsAction.CREATE_ONLY); // create new document,if exists we should fail with optimistic locking
         return expectGenerationSavePolicy(data, recordExistsAction);
     }
 

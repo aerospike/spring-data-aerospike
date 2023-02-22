@@ -77,11 +77,11 @@ public interface AerospikeOperations {
      * Save a document.
      * <p>
      * If the document has version property - CAS algorithm is used for updating record. Version property is used for
-     * deciding whether to create new record or update existing. If the version is set to zero - new record will be created,
-     * creation will fail is such record already exists. If version is greater than zero - existing record will be
-     * updated with {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY} policy taking into consideration
-     * the version property of the document. Version property will be updated with the server's version after successful
-     * operation.
+     * deciding whether to create a new record or update an existing one. If the version is set to zero - new record
+     * will be created, creation will fail is such record already exists. If version is greater than zero - existing
+     * record will be updated with {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY} policy taking
+     * into consideration the version property of the document. Version property will be updated with the server's
+     * version after successful operation.
      * <p>
      * If the document does not have version property - record is updated with
      * {@link com.aerospike.client.policy.RecordExistsAction#REPLACE} policy. This means that when such record does not
@@ -118,9 +118,9 @@ public interface AerospikeOperations {
     <T> void update(T document);
 
     /**
-     * Update a document specific fields based on a given collection of fields. using
-     * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy - You can instantiate the document with
-     * only relevant fields and specify the list of fields that you want to update. taking into consideration the
+     * Update document's specific fields based on a given collection of fields using
+     * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy. You can instantiate the document with
+     * only the relevant fields and specify the list of fields that you want to update. Taking into consideration the
      * version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.

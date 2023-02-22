@@ -60,6 +60,11 @@ public class WritePolicyBuilder {
         return this;
     }
 
+    public WritePolicyBuilder failOnFilteredOut(boolean failOnFilteredOut) {
+        policy.failOnFilteredOut = failOnFilteredOut;
+        return this;
+    }
+
     public WritePolicy build() {
         validate();
         return new WritePolicy(policy);

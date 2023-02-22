@@ -206,11 +206,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         if (entity.hasVersionProperty()) {
             WritePolicy policy = expectGenerationCasAwareSavePolicy(data);
 
-            doPersistWithVersionAndHandleCasError(document, data, policy);
+            // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
+            doPersistWithVersionAndHandleCasError(document, data, policy, true);
         } else {
-            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.REPLACE);
+            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE);
 
-            doPersistAndHandleError(data, policy);
+            // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, new Operation[]{Operation.delete()});
+            doPersistAndHandleError(data, policy, operations);
         }
     }
 
@@ -221,7 +224,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         AerospikeWriteData data = writeData(document);
 
-        doPersistAndHandleError(data, policy);
+        Operation[] operations = operations(data.getBinsAsArray(), Operation::put, new Operation[]{});
+        doPersistAndHandleError(data, policy, operations);
     }
 
     @Override
@@ -247,7 +251,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             // generation
             doPersistWithVersionAndHandleError(document, data, policy);
         } else {
-            doPersistAndHandleError(data, policy);
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, new Operation[]{});
+            doPersistAndHandleError(data, policy, operations);
         }
     }
 
@@ -258,13 +263,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         AerospikeWriteData data = writeData(document);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
-            WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.REPLACE_ONLY);
+            WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            doPersistWithVersionAndHandleCasError(document, data, policy);
+            // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
+            doPersistWithVersionAndHandleCasError(document, data, policy, true);
         } else {
-            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.REPLACE_ONLY);
+            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            doPersistAndHandleError(data, policy);
+            // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
+            Operation[] operations = Stream.concat(Stream.of(Operation.delete()), data.getBins().stream()
+                .map(Operation::put)).toArray(Operation[]::new);
+            doPersistAndHandleError(data, policy, operations);
         }
     }
 
@@ -277,11 +286,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         if (entity.hasVersionProperty()) {
             WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            doPersistWithVersionAndHandleCasError(document, data, policy);
+            doPersistWithVersionAndHandleCasError(document, data, policy, false);
         } else {
             WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            doPersistAndHandleError(data, policy);
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null);
+            doPersistAndHandleError(data, policy, operations);
         }
     }
 
@@ -765,17 +775,18 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    private void doPersistAndHandleError(AerospikeWriteData data, WritePolicy policy) {
+    private void doPersistAndHandleError(AerospikeWriteData data, WritePolicy policy, Operation[] operations) {
         try {
-            put(data, policy);
+            client.operate(policy, data.getKey(), operations);
         } catch (AerospikeException e) {
             throw translateError(e);
         }
     }
 
-    private <T> void doPersistWithVersionAndHandleCasError(T document, AerospikeWriteData data, WritePolicy policy) {
+    private <T> void doPersistWithVersionAndHandleCasError(T document, AerospikeWriteData data, WritePolicy policy,
+                                                           boolean firstlyDeleteBins) {
         try {
-            Record newAeroRecord = putAndGetHeader(data, policy);
+            Record newAeroRecord = putAndGetHeader(data, policy, firstlyDeleteBins);
             updateVersion(document, newAeroRecord);
         } catch (AerospikeException e) {
             throw translateCasError(e);
@@ -784,21 +795,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private <T> void doPersistWithVersionAndHandleError(T document, AerospikeWriteData data, WritePolicy policy) {
         try {
-            Record newAeroRecord = putAndGetHeader(data, policy);
+            Record newAeroRecord = putAndGetHeader(data, policy, false);
             updateVersion(document, newAeroRecord);
         } catch (AerospikeException e) {
             throw translateError(e);
         }
     }
 
-    private void put(AerospikeWriteData data, WritePolicy policy) {
-        Key key = data.getKey();
-        Bin[] bins = data.getBinsAsArray();
-
-        client.put(policy, key, bins);
-    }
-
-    private Record putAndGetHeader(AerospikeWriteData data, WritePolicy policy) {
+    private Record putAndGetHeader(AerospikeWriteData data, WritePolicy policy, boolean firstlyDeleteBins) {
         Key key = data.getKey();
         Bin[] bins = data.getBinsAsArray();
 
@@ -807,7 +811,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 "Cannot put and get header on a document with no bins and \"@_class\" bin disabled.");
         }
 
-        Operation[] operations = operations(bins, Operation::put, Operation.getHeader());
+        Operation[] operations = firstlyDeleteBins ? operations(bins, Operation::put,
+            new Operation[]{Operation.delete()}, Operation.getHeader())
+            : operations(bins, Operation::put, null, Operation.getHeader());
 
         return client.operate(policy, key, operations);
     }

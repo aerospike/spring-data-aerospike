@@ -102,12 +102,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
             WritePolicy policy = expectGenerationCasAwareSavePolicy(data);
+            // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
+                new Operation[]{Operation.delete()});
 
-            return doPersistWithVersionAndHandleCasError(document, data, policy);
+            return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
         } else {
-            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.REPLACE);
+            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE);
+            // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
+                new Operation[]{Operation.delete()});
 
-            return doPersistAndHandleError(document, data, policy);
+            return doPersistAndHandleError(document, data, policy, operations);
         }
     }
 
@@ -132,9 +138,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             // value in the original document
             // also we do not want to handle aerospike error codes as cas aware error codes as we are ignoring
             // generation
-            return doPersistWithVersionAndHandleError(document, data, policy);
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null, Operation.getHeader());
+            return doPersistWithVersionAndHandleError(document, data, policy, operations);
         } else {
-            return doPersistAndHandleError(document, data, policy);
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null);
+            return doPersistAndHandleError(document, data, policy, operations);
         }
     }
 
@@ -145,13 +153,19 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikeWriteData data = writeData(document);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
-            WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.REPLACE_ONLY);
+            WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            return doPersistWithVersionAndHandleCasError(document, data, policy);
+            // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
+                new Operation[]{Operation.delete()}, Operation.getHeader());
+            return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
         } else {
-            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.REPLACE_ONLY);
+            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            return doPersistAndHandleError(document, data, policy);
+            // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
+                new Operation[]{Operation.delete()});
+            return doPersistAndHandleError(document, data, policy, operations);
         }
     }
 
@@ -164,11 +178,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (entity.hasVersionProperty()) {
             WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            return doPersistWithVersionAndHandleCasError(document, data, policy);
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null, Operation.getHeader());
+            return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
         } else {
             WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            return doPersistAndHandleError(document, data, policy);
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null);
+            return doPersistAndHandleError(document, data, policy, operations);
         }
     }
 
@@ -617,28 +633,29 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return reactorClient;
     }
 
-    private <T> Mono<T> doPersistAndHandleError(T document, AerospikeWriteData data, WritePolicy policy) {
+    private <T> Mono<T> doPersistAndHandleError(T document, AerospikeWriteData data, WritePolicy policy,
+                                                Operation[] operations) {
         return reactorClient
-            .put(policy, data.getKey(), data.getBinsAsArray())
+            .operate(policy, data.getKey(), operations)
             .map(docKey -> document)
             .onErrorMap(this::translateError);
     }
 
-    private <T> Mono<T> doPersistWithVersionAndHandleCasError(T document, AerospikeWriteData data, WritePolicy policy) {
-        return putAndGetHeader(data, policy)
+    private <T> Mono<T> doPersistWithVersionAndHandleCasError(T document, AerospikeWriteData data, WritePolicy policy,
+                                                              Operation[] operations) {
+        return putAndGetHeader(data, policy, operations)
             .map(newRecord -> updateVersion(document, newRecord))
             .onErrorMap(AerospikeException.class, this::translateCasError);
     }
 
-    private <T> Mono<T> doPersistWithVersionAndHandleError(T document, AerospikeWriteData data, WritePolicy policy) {
-        return putAndGetHeader(data, policy)
+    private <T> Mono<T> doPersistWithVersionAndHandleError(T document, AerospikeWriteData data, WritePolicy policy,
+                                                           Operation[] operations) {
+        return putAndGetHeader(data, policy, operations)
             .map(newRecord -> updateVersion(document, newRecord))
             .onErrorMap(AerospikeException.class, this::translateError);
     }
 
-    private Mono<Record> putAndGetHeader(AerospikeWriteData data, WritePolicy policy) {
-        Operation[] operations = operations(data.getBinsAsArray(), Operation::put, Operation.getHeader());
-
+    private Mono<Record> putAndGetHeader(AerospikeWriteData data, WritePolicy policy, Operation[] operations) {
         return reactorClient.operate(policy, data.getKey(), operations)
             .map(keyRecord -> keyRecord.record);
     }

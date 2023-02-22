@@ -46,7 +46,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void updatesEvenIfDocumentNotChanged() {
-        Person person = new Person(id, "Wolfgan", 11);
+        Person person = new Person(id, "Wolfgang", 11);
         template.insert(person);
 
         template.update(person);
@@ -68,6 +68,34 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             assertThat(doc.getAge()).isEqualTo(32);
         });
     }
+
+//    @Test
+//    public void updatesMultipleFieldsWithBinConvergence() {
+//        Node node = Utils.getRandomNode(client.getNodes());
+//        String response = Info.request(node, "set-config:context=xdr;src-id=31");
+//        assertThat(response.equalsIgnoreCase("ok")).isTrue();
+//
+//        response = Info.request(node, "set-config:context=xdr;dc=DC1;namespace=" + namespace + ";ship-bin-luts=true");
+//        assertThat(response.equalsIgnoreCase("ok")).isTrue();
+//
+//        response = Info.request(node, "set-config:context=xdr;dc=DC1;namespace=" + namespace +
+//            ";bin-policy=changed-or-specified");
+//        assertThat(response.equalsIgnoreCase("ok")).isTrue();
+//
+//        response = Info.request(node, "set-config:context=namespace;id=" + namespace + ";" +
+//            "conflict-resolve-writes=true");
+//        assertThat(response.equalsIgnoreCase("ok")).isTrue();
+//
+//        Person person = new Person(id, null, 0);
+//        template.insert(person);
+//
+//        template.update(new Person(id, "Andrew", 32));
+//
+//        assertThat(template.findById(id, Person.class)).satisfies(doc -> {
+//            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+//            assertThat(doc.getAge()).isEqualTo(32);
+//        });
+//    }
 
     @Test
     public void updateSpecificFields() {
