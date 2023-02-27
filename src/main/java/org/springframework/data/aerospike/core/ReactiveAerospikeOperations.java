@@ -54,13 +54,15 @@ public interface ReactiveAerospikeOperations {
      * If document has version property - CAS algorithm is used for updating record. Version property is used for
      * deciding whether to create new record or update existing. If version is set to zero - new record will be created,
      * creation will fail is such record already exists. If version is greater than zero - existing record will be
-     * updated with {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY} policy taking into consideration
-     * the version property of the document. Version property will be updated with the server's version after successful
-     * operation.
+     * updated with {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with removing
+     * bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking
+     * into consideration the version property of the document. Version property will be updated with the server's
+     * version after successful operation.
      * <p>
      * If document does not have version property - record is updated with
-     * {@link com.aerospike.client.policy.RecordExistsAction#REPLACE} policy. This means that when such record does not
-     * exist it will be created, otherwise updated - an "upsert".
+     * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE} policy combined with removing bins at first
+     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such
+     * record does not exist it will be created, otherwise updated - an "upsert".
      *
      * @param document The document to save. Must not be {@literal null}.
      * @return A Mono of the new saved document.
@@ -86,8 +88,10 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> insert(T document);
 
     /**
-     * Reactively update document using {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY} policy
-     * taking into consideration the version property of the document if it is present.
+     * Reactively update document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
+     * combined with removing bins at first (analogous to
+     * {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the version
+     * property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *

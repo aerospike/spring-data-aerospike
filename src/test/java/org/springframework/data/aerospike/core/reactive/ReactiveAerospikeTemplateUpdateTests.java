@@ -26,7 +26,7 @@ import static reactor.test.StepVerifier.create;
 public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegrationTests {
 
     @Test
-    public void shouldThrowExceptionOnUpdateForNonexistingKey() {
+    public void shouldThrowExceptionOnUpdateForNonExistingKey() {
         create(reactiveTemplate.update(new Person(id, "svenfirstName", 11)))
             .expectError(DataRetrievalFailureException.class)
             .verify();
