@@ -212,7 +212,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE);
 
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
-            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, new Operation[]{Operation.delete()});
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
+                Operation.array(Operation.delete()));
             doPersistAndHandleError(data, policy, operations);
         }
     }
@@ -224,7 +225,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         AerospikeWriteData data = writeData(document);
 
-        Operation[] operations = operations(data.getBinsAsArray(), Operation::put, new Operation[]{});
+        Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
         doPersistAndHandleError(data, policy, operations);
     }
 
@@ -251,7 +252,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             // generation
             doPersistWithVersionAndHandleError(document, data, policy);
         } else {
-            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, new Operation[]{});
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             doPersistAndHandleError(data, policy, operations);
         }
     }
@@ -812,8 +813,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
 
         Operation[] operations = firstlyDeleteBins ? operations(bins, Operation::put,
-            new Operation[]{Operation.delete()}, Operation.getHeader())
-            : operations(bins, Operation::put, null, Operation.getHeader());
+            Operation.array(Operation.delete()), Operation.array(Operation.getHeader()))
+            : operations(bins, Operation::put, null, Operation.array(Operation.getHeader()));
 
         return client.operate(policy, key, operations);
     }

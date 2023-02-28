@@ -138,7 +138,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             // value in the original document
             // also we do not want to handle aerospike error codes as cas aware error codes as we are ignoring
             // generation
-            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null, Operation.getHeader());
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null,
+                Operation.array(Operation.getHeader()));
             return doPersistWithVersionAndHandleError(document, data, policy, operations);
         } else {
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null);
@@ -157,7 +158,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
             // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
-                new Operation[]{Operation.delete()}, Operation.getHeader());
+                new Operation[]{Operation.delete()}, Operation.array(Operation.getHeader()));
             return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
         } else {
             WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
@@ -178,7 +179,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (entity.hasVersionProperty()) {
             WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null, Operation.getHeader());
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null,
+                Operation.array(Operation.getHeader()));
             return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
         } else {
             WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);

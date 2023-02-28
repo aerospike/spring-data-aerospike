@@ -237,7 +237,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
                     template.save(toUpdate);
                 } catch (ConcurrencyFailureException e) {
-                    //try again
+                    // try again
                     run();
                 }
             }
