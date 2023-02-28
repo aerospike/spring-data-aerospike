@@ -104,14 +104,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             WritePolicy policy = expectGenerationCasAwareSavePolicy(data);
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
-                new Operation[]{Operation.delete()});
+                Operation.array(Operation.delete()));
 
             return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
         } else {
             WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE);
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
-                new Operation[]{Operation.delete()});
+                Operation.array(Operation.delete()));
 
             return doPersistAndHandleError(document, data, policy, operations);
         }
@@ -158,14 +158,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
             // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
-                new Operation[]{Operation.delete()}, Operation.array(Operation.getHeader()));
+                Operation.array(Operation.delete()), Operation.array(Operation.getHeader()));
             return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
         } else {
             WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
             // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
-                new Operation[]{Operation.delete()});
+                Operation.array(Operation.delete()));
             return doPersistAndHandleError(document, data, policy, operations);
         }
     }

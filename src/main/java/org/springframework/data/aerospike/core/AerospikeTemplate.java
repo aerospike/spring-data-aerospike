@@ -291,7 +291,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         } else {
             WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null);
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             doPersistAndHandleError(data, policy, operations);
         }
     }

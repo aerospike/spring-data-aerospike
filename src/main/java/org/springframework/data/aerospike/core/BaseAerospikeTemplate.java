@@ -199,7 +199,8 @@ abstract class BaseAerospikeTemplate {
             .map(v -> RecordExistsAction.UPDATE_ONLY) // updating existing document with generation,
             // cannot use REPLACE_ONLY due to bin convergence feature restrictions
             .orElse(
-                RecordExistsAction.CREATE_ONLY); // create new document,if exists we should fail with optimistic locking
+                RecordExistsAction.CREATE_ONLY); // create new document,
+        // if exists we should fail with optimistic locking
         return expectGenerationSavePolicy(data, recordExistsAction);
     }
 
