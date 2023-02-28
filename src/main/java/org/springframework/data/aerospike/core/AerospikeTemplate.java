@@ -545,7 +545,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         statement.setSetName(entity.getSetName());
         statement.setNamespace(this.namespace);
         ResultSet resultSet;
-        if (arguments != null && arguments.size() > 0)
+        if (arguments != null && !arguments.isEmpty())
             resultSet = this.client.queryAggregate(null, statement, module,
                 function, arguments.toArray(new Value[0]));
         else

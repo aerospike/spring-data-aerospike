@@ -142,7 +142,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 Operation.array(Operation.getHeader()));
             return doPersistWithVersionAndHandleError(document, data, policy, operations);
         } else {
-            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null);
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             return doPersistAndHandleError(document, data, policy, operations);
         }
     }
@@ -185,7 +185,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         } else {
             WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
 
-            Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null);
+            Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             return doPersistAndHandleError(document, data, policy, operations);
         }
     }
