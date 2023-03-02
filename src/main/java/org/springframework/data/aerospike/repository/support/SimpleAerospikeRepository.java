@@ -23,7 +23,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 
@@ -32,7 +31,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, ID>, CrudRepository<T, ID> {
+public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, ID> {
 
     private final AerospikeOperations operations;
     private final EntityInformation<T, ID> entityInformation;

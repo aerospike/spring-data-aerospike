@@ -21,7 +21,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.CrudRepository;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +33,7 @@ import java.util.stream.Stream;
  * @author Peter Milne
  * @author Jean Mercier
  */
-public interface PersonRepository<P extends Person> extends AerospikeRepository<P, String>, CrudRepository<P, String> {
+public interface PersonRepository<P extends Person> extends AerospikeRepository<P, String> {
 
     List<P> findByLastName(String lastName);
 

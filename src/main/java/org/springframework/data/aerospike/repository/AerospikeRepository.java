@@ -16,6 +16,7 @@
 package org.springframework.data.aerospike.repository;
 
 import com.aerospike.client.query.IndexType;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.Repository;
 
@@ -26,7 +27,7 @@ import org.springframework.data.repository.Repository;
  * @author Peter Milne
  * @author Jean Mercier
  */
-public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T, ID> {
+public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T, ID>, CrudRepository<T, ID> {
 
     /**
      * Create an index with the specified name.
