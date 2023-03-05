@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>4.0.0</version>
+    <version>4.1.0</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
@@ -16,25 +16,25 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>3.0.1</version>
+        <version>3.0.2</version>
     </parent>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.0.1</springdata.commons>
-        <springdata.keyvalue>3.0.1</springdata.keyvalue>
+        <springdata.commons>3.0.2</springdata.commons>
+        <springdata.keyvalue>3.0.2</springdata.keyvalue>
         <spring-cloud-starter-bootstrap>4.0.1</spring-cloud-starter-bootstrap>
-        <spring-boot-starter-test>3.0.2</spring-boot-starter-test>
-        <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
+        <spring-boot-starter-test>3.0.3</spring-boot-starter-test>
+        <maven.javadoc.plugin>3.5.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike>6.1.6</aerospike>
+        <aerospike>6.1.7</aerospike>
         <aerospike-reactor>6.1.2</aerospike-reactor>
-        <reactor-test>3.4.24</reactor-test>
-        <embedded-aerospike>2.2.14</embedded-aerospike>
+        <reactor-test>3.5.3</reactor-test>
+        <embedded-aerospike>2.3.1</embedded-aerospike>
         <jodatime>2.12.2</jodatime>
-        <lombok>1.18.24</lombok>
+        <lombok>1.18.26</lombok>
         <awaitility>4.2.0</awaitility>
         <logback.test>1.4.5</logback.test>
         <hibernate.validator>8.0.0.Final</hibernate.validator>
