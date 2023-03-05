@@ -36,7 +36,6 @@ The documentation for this project can be found on [javadoc.io](https://www.java
 | Spring Data Aerospike | Spring Boot  | Aerospike Client | Aerospike Reactor Client | Aerospike Server |
 |:----------------------|:-------------|:-----------------|:-------------------------|:-----------------|
 | 4.1.x                 | 3.0.x        | 6.1.x            | 6.1.x                    | 5.2.x.x +        |
-| 4.0.x                 | 3.0.x        | 6.1.x            | 6.1.x                    | 5.2.x.x +        |
 | 3.5.x                 | 2.7.x        | 6.1.x            | 6.1.x                    | 5.2.x.x +        |
 | 3.4.x                 | 2.6.x        | 5.1.x            | 5.1.x                    | 5.2.x.x +        |
 | 3.3.x                 | 2.5.x        | 5.1.x            | 5.1.x                    | 5.2.x.x +        |
