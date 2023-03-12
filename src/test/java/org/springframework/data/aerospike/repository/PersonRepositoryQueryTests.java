@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.IndexUtils;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
@@ -279,6 +280,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         repository.save(dave);
         carter.setFriend(dave);
         repository.save(carter);
+        assertThat(dave.getAge()).isEqualTo(42);
 
         List<Person> result = repository.findByFriendAge(42);
 
@@ -645,18 +647,48 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         setFriendsToNull(oliver, dave, carter);
     }
 
-    // TODO: there is a ticket for that, FMWK-53
-    /*
-	@Ignore("Searching by association not Supported Yet!" )
     @Test
-	public void findPersonByShippingAddressesCorrectly() {
+    public void findPersonsByAddress() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Address address = new Address("Foo Street 1", "C0123", "Bar");
+            dave.setAddress(address);
+            repository.save(dave);
 
-		Address address = new Address("Foo Street 1", "C0123", "Bar");
-	    dave.setShippingAddresses(new HashSet<Address>(asList(address)));
+            List<Person> persons = repository.findByAddress(address);
+            assertThat(persons).containsOnly(dave);
+        }
+    }
 
-		repository.save(dave);
-		Person person = repository.findByShippingAddresses(address);
-		assertThat(repository.findByShippingAddresses(address), is(dave));
-	}
-     */
+    @Test
+    public void findPersonsByFriend() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            alicia.setAddress(new Address("Foo Street 1", "C0123", "Bar"));
+            repository.save(alicia);
+            oliver.setFriend(alicia);
+            repository.save(oliver);
+
+            List<Person> persons = repository.findByFriend(alicia);
+            assertThat(persons).containsOnly(oliver);
+        }
+    }
+
+    @Test
+    public void findPersonsByFriendAddress() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Address address = new Address("Foo Street 1", "C0123", "Bar");
+            dave.setAddress(address);
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddress(address);
+
+            assertThat(result)
+                .hasSize(1)
+                .containsExactly(carter);
+
+            setFriendsToNull(carter);
+        }
+    }
 }

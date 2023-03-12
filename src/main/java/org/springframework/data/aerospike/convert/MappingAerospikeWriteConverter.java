@@ -32,10 +32,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.utility.TimeUtils.unixTimeToOffsetInSeconds;
@@ -118,13 +118,13 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
     private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
                                                   ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
-        Map<String, Object> target = new HashMap<>();
+        Map<String, Object> target = new TreeMap<>();
         typeMapper.writeType(type, target);
         entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property -> {
 
             Object value = accessor.getProperty(property);
 			/*
-				For custom type bins - for example a nested POJO (Person has a friend field which is also a person),
+				For custom type bins - for example a nested POJO (Person has a friend field which is also a Person),
 				We want to keep non-writable types (@Id, @Expiration, @Version...) as they are.
 				This is not relevant for records, only for custom type bins.
 			 */
@@ -144,7 +144,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             || !property.isWritable();
     }
 
-    private Object getValueToWrite(Object value, TypeInformation<?> type) {
+    Object getValueToWrite(Object value, TypeInformation<?> type) {
         if (value == null) {
             return null;
         } else if (type == null || conversions.isSimpleType(value.getClass())) {
@@ -192,7 +192,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         Assert.notNull(source, "Given map must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
-        return source.entrySet().stream().collect(HashMap::new, (m, e) -> {
+        return source.entrySet().stream().collect(TreeMap::new, (m, e) -> {
             Object key = e.getKey();
             Object value = e.getValue();
             if (!conversions.isSimpleType(key.getClass())) {
@@ -208,7 +208,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
             Object convertedValue = getValueToWrite(value, type.getMapValueType());
             m.put(simpleKey, convertedValue);
-        }, HashMap::putAll);
+        }, TreeMap::putAll);
     }
 
     private Map<String, Object> convertCustomType(Object source, TypeInformation<?> type) {

@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -80,9 +79,19 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByAgeBetween(int from, int to);
 
-    @SuppressWarnings("rawtypes")
-    Person findByShippingAddresses(Set address);
+    /**
+     * Find all entities that satisfy the condition "have a friend equal to the given argument"
+     * (find by POJO)
+     *
+     * @param friend - Friend to check for equality
+     */
+    List<P> findByFriend(Person friend);
 
+    /**
+     * Find all entities that satisfy the condition "have address equal to the given argument" (find by POJO)
+     *
+     * @param address - Address to check for equality
+     */
     List<P> findByAddress(Address address);
 
     List<P> findByAddressZipCode(String zipCode);
@@ -279,6 +288,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit, inclusive
      */
     List<P> findByFriendAgeBetween(int from, int to);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the address equal to the given argument"
+     * (find by inner POJO)
+     *
+     * @param address - Address to check for equality
+     */
+    List<P> findByFriendAddress(Address address);
 
     /**
      * Find all entities that satisfy the condition "have the list which contains the given string"

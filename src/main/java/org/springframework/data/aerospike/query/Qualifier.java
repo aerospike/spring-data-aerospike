@@ -22,10 +22,15 @@ import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
 import lombok.Data;
+import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
+import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +55,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
     @Serial
     private static final long serialVersionUID = -2689196529952712849L;
     protected final Map<String, Object> internalMap;
+    private final MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
+        new AerospikeCustomConversions(Collections.emptyList()), new AerospikeTypeAliasAccessor());
 
     public Qualifier(QualifierBuilder builder) {
         internalMap = new HashMap<>();
@@ -103,7 +110,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
     public Exp toFilterExp() {
         try {
-            return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
+            return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap, converter);
         } catch (Exception e) {
             throw new AerospikeException(
                 e.getMessage().isEmpty() ? "FilterExpression unsupported operation: " + getOperation() :

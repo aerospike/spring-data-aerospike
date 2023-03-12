@@ -15,8 +15,12 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
 
     Flux<IndexedPerson> findByAgeBetween(int from, int to);
 
-    Flux<IndexedPerson> findByAddress(Address address);
-
+    /**
+     * Find all entities that satisfy the condition "have address with zip code equal to the given argument"
+     * (find by POJO field)
+     *
+     * @param zipCode - Zip code to check for equality
+     */
     Flux<IndexedPerson> findByAddressZipCode(String zipCode);
 
     Flux<IndexedPerson> findPersonByFirstName(String firstName);

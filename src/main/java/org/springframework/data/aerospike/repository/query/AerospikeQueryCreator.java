@@ -69,7 +69,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         String fieldName = property.getFieldName();
         IgnoreCaseType ignoreCase = part.shouldIgnoreCase();
         FilterOperation op;
-        Object v1 = parameters.next(), v2 = null, v3 = null;
+        Object v1 = parameters.next(), v2 = null;
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder();
 
         switch (part.getType()) {
@@ -119,7 +119,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                 throw new IllegalArgumentException("Unsupported keyword!");
         }
 
-        // TODO: further refactoring
         // Customization for collection/map query
         TypeInformation<?> propertyType = property.getTypeInformation();
         if (propertyType.isCollectionLike()) {
@@ -244,7 +243,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         default:
                             break;
                     }
-
+                    fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
+                    qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
+                } else if (isPojo(part, property)) { // if it is POJO
+                    // if it is a POJO compared for equality it already has op == FilterOperation.EQ
                     fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
                     qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
                 }
@@ -273,6 +275,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     private boolean isPojoField(Part part, AerospikePersistentProperty property) {
         return Arrays.stream(part.getProperty().getType().getDeclaredFields())
             .anyMatch(f -> f.getName().equals(property.getName()));
+    }
+
+    private boolean isPojo(Part part, AerospikePersistentProperty property) {
+        return part.getProperty().getType().getSimpleName().equalsIgnoreCase(property.getName());
     }
 
     @Override

@@ -192,7 +192,10 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findPersonsByAddressZipCode() {
-        List<IndexedPerson> results = reactiveRepository.findByAddressZipCode("C0123")
+        String zipCode = "C0123";
+        assertThat(dave.getAddress().getZipCode()).isEqualTo(zipCode);
+
+        List<IndexedPerson> results = reactiveRepository.findByAddressZipCode(zipCode)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(dave);
