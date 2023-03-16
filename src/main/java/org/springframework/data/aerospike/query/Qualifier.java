@@ -45,6 +45,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     protected static final String VALUE1 = "value1";
     protected static final String VALUE2 = "value2";
     protected static final String VALUE3 = "value3";
+    protected static final String DOT_PATH = "dotPath";
     protected static final String CONVERTER = "converter";
     protected static final String QUALIFIERS = "qualifiers";
     protected static final String OPERATION = "operation";
@@ -311,6 +312,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return this;
         }
 
+        public void setDotPath(String dotPath) {
+            this.map.put(DOT_PATH, dotPath);
+        }
+
         public QualifierBuilder setConverter(MappingAerospikeConverter converter) {
             this.map.put(CONVERTER, converter);
             return this;
@@ -322,10 +327,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
         public boolean hasValue2() {
             return this.map.containsKey(VALUE2) && this.map.get(VALUE2) != null;
-        }
-
-        public boolean hasValue3() {
-            return this.map.containsKey(VALUE3) && this.map.get(VALUE3) != null;
         }
 
         public Qualifier build() {

@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cdt.ListReturnType;
 import com.aerospike.client.cdt.MapReturnType;
 import com.aerospike.client.command.ParticleType;
@@ -13,13 +14,16 @@ import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
+import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
 import static org.springframework.data.aerospike.query.Qualifier.FIELD;
 import static org.springframework.data.aerospike.query.Qualifier.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
@@ -281,10 +285,28 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name)
             return switch (getValue1(map).getType()) {
-                case ParticleType.STRING -> Exp.eq(
-                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(getValue1(map).toString()));
+                case ParticleType.STRING -> {
+                    String dotPath = getDotPath(map);
+                    String[] dotPathArr;
+                    if (StringUtils.hasLength(dotPath)) {
+                        dotPathArr = dotPath.split("\\.");
+                    } else {
+                        throw new RuntimeException("MAP_VALUE_EQ_BY_KEY: dotPath has not been set correctly");
+                    }
+
+                    Exp mapExp;
+                    if (dotPathArr.length > 3) {
+                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
+                            Exp.val(getValue2(map).toString()),
+                            Exp.mapBin(getField(map)), dotPathToCtx(dotPathArr));
+                    } else {
+                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
+                            Exp.val(getValue2(map).toString()),
+                            Exp.mapBin(getField(map)));
+                    }
+
+                    yield Exp.eq(mapExp, Exp.val(getValue1(map).toString()));
+                }
                 case ParticleType.INTEGER -> Exp.eq(
                     MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
                         Exp.mapBin(getField(map))),
@@ -847,6 +869,13 @@ public enum FilterOperation {
         }
     };
 
+    private static CTX[] dotPathToCtx(String[] dotPathArray) {
+        List<CTX> list = Arrays.stream(dotPathArray).map(str -> CTX.mapKey(Value.get(str))).collect(Collectors.toList());
+        list.remove(0); // first element is bin name
+        list.remove(list.size() - 1); // last element is the key we already have
+        return list.toArray(CTX[]::new);
+    }
+
     private static Exp toExp(Object value) {
         Exp res;
 
@@ -907,6 +936,10 @@ public enum FilterOperation {
 
     protected Value getValue3(Map<String, Object> map) {
         return (Value) map.get(VALUE3);
+    }
+
+    protected String getDotPath(Map<String, Object> map) {
+        return (String) map.get(DOT_PATH);
     }
 
     protected MappingAerospikeConverter getConverter(Map<String, Object> map) {

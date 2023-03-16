@@ -297,6 +297,22 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendAddress(Address address);
 
     /**
+     * Find all entities that satisfy the condition "have a friend with the address with zipCode equal to the given
+     * argument" (find by POJO field)
+     *
+     * @param zipCode - Zip code to check for equality
+     */
+    List<P> findByFriendAddressZipCode(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend who has a friend with the address with zipCode equal
+     * to the given argument" (find by POJO field)
+     *
+     * @param zipCode - Zip code to check for equality
+     */
+    List<P> findByFriendFriendAddressZipCode(String zipCode);
+
+    /**
      * Find all entities that satisfy the condition "have the list which contains the given string"
      * <p>
      * List name in this case is Strings

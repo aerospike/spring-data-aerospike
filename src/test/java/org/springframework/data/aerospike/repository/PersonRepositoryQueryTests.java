@@ -424,22 +424,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findByFirstnameNotIn_forEmptyResult() {
         Set<String> allFirstNames = all.stream().map(Person::getFirstName).collect(Collectors.toSet());
-//		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(allFirstNames))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Unsupported keyword!");
-
-//		assertThat(result).isEmpty();
     }
 
     @Test
     public void findByFirstnameNotIn_forExistingResult() {
-//		Stream<Person> result = repository.findByFirstnameNotIn(Collections.singleton("Alicia"));
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(Collections.singleton("Alicia")))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Unsupported keyword!");
-
-//		assertThat(result).contains(dave, donny, oliver, carter, boyd, stefan, leroi, leroi2);
     }
 
     @Test
@@ -690,5 +684,46 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
             setFriendsToNull(carter);
         }
+    }
+
+    @Test
+    public void findPersonsByFriendAddressZipCode() {
+        String zipCode = "C0123";
+        Address address = new Address("Foo Street 1", zipCode, "Bar");
+        dave.setAddress(address);
+        repository.save(dave);
+
+        carter.setFriend(dave);
+        repository.save(carter);
+
+        List<Person> result = repository.findByFriendAddressZipCode(zipCode);
+
+        assertThat(result)
+            .hasSize(1)
+            .containsExactly(carter);
+
+        setFriendsToNull(carter);
+    }
+
+    @Test
+    public void findPersonsByFriendFriendAddressZipCode() {
+        String zipCode = "C0123";
+        Address address = new Address("Foo Street 1", zipCode, "Bar");
+        dave.setAddress(address);
+        repository.save(dave);
+
+        carter.setFriend(dave);
+        repository.save(carter);
+
+        oliver.setFriend(carter);
+        repository.save(oliver);
+
+        List<Person> result = repository.findByFriendFriendAddressZipCode(zipCode);
+
+        assertThat(result)
+            .hasSize(1)
+            .containsExactly(oliver);
+
+        setFriendsToNull(carter, oliver);
     }
 }
