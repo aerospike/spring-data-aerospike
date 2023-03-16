@@ -17,7 +17,7 @@ public class UsersTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void usersInterupted() {
+    public void usersInterrupted() {
         try (KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null)) {
             int counter = 0;
             while (it.hasNext()) {

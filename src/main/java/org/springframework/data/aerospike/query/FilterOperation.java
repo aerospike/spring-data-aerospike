@@ -19,6 +19,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
 import static org.springframework.data.aerospike.query.Qualifier.FIELD;
 import static org.springframework.data.aerospike.query.Qualifier.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
@@ -31,7 +32,7 @@ public enum FilterOperation {
 
     AND {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             Qualifier[] qs = (Qualifier[]) map.get(QUALIFIERS);
             Exp[] childrenExp = new Exp[qs.length];
             for (int i = 0; i < qs.length; i++) {
@@ -47,7 +48,7 @@ public enum FilterOperation {
     },
     OR {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             Qualifier[] qs = (Qualifier[]) map.get(QUALIFIERS);
             Exp[] childrenExp = new Exp[qs.length];
             for (int i = 0; i < qs.length; i++) {
@@ -63,7 +64,7 @@ public enum FilterOperation {
     },
     IN {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             // Convert IN to a collection of OR as Aerospike has no support for IN query
             Value val = getValue1(map);
             int valType = val.getType();
@@ -91,35 +92,26 @@ public enum FilterOperation {
     },
     EQ {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
-            Exp exp;
+        public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
-            int valType = val.getType();
-            switch (valType) {
-                case ParticleType.INTEGER:
-                    exp = Exp.eq(Exp.intBin(getField(map)), Exp.val(val.toLong()));
-                    break;
-                case ParticleType.STRING:
+            return switch (val.getType()) {
+                case ParticleType.INTEGER -> Exp.eq(Exp.intBin(getField(map)), Exp.val(val.toLong()));
+                case ParticleType.STRING -> {
                     if (ignoreCase(map)) {
                         String equalsRegexp = QualifierRegexpBuilder.getStringEquals(getValue1(map).toString());
-                        exp = Exp.regexCompare(equalsRegexp, RegexFlag.ICASE, Exp.stringBin(getField(map)));
+                        yield Exp.regexCompare(equalsRegexp, RegexFlag.ICASE, Exp.stringBin(getField(map)));
                     } else {
-                        exp = Exp.eq(Exp.stringBin(getField(map)), Exp.val(val.toString()));
+                        yield Exp.eq(Exp.stringBin(getField(map)), Exp.val(val.toString()));
                     }
-                    break;
-                case ParticleType.JBLOB:
-                    exp = Exp.eq(
-                        Exp.mapBin(getField(map)),
-                        toExp(
-                            converter.toWritableValue(val.getObject(), TypeInformation.of(val.getObject().getClass()))
+                }
+                case ParticleType.JBLOB -> Exp.eq(
+                    Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
+                            val.getObject(), TypeInformation.of(val.getObject().getClass())
                         )
-                    );
-                    break;
-                default:
-                    throw new AerospikeException("FilterExpression unsupported particle type: " + valType);
-            }
-
-            return exp;
+                    )
+                );
+                default -> throw new AerospikeException("FilterExpression unsupported particle type: " + val.getType());
+            };
         }
 
         @Override
@@ -137,7 +129,7 @@ public enum FilterOperation {
     },
     NOTEQ {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
             int valType = val.getType();
             Exp exp;
@@ -157,7 +149,7 @@ public enum FilterOperation {
     },
     GT {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.gt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
             }
@@ -177,7 +169,7 @@ public enum FilterOperation {
     },
     GTEQ {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
             }
@@ -194,7 +186,7 @@ public enum FilterOperation {
     },
     LT {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.lt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
             }
@@ -213,7 +205,7 @@ public enum FilterOperation {
     },
     LTEQ {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.le(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
             }
@@ -230,7 +222,7 @@ public enum FilterOperation {
     },
     BETWEEN {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() == ParticleType.INTEGER && getValue2(map).getType() == ParticleType.INTEGER) {
                 return Exp.and(
                     Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong())),
@@ -250,7 +242,7 @@ public enum FilterOperation {
     },
     STARTS_WITH {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             String startWithRegexp = QualifierRegexpBuilder.getStartsWith(getValue1(map).toString());
             return Exp.regexCompare(startWithRegexp, regexFlags(map), Exp.stringBin(getField(map)));
         }
@@ -262,7 +254,7 @@ public enum FilterOperation {
     },
     ENDS_WITH {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             String endWithRegexp = QualifierRegexpBuilder.getEndsWith(getValue1(map).toString());
             return Exp.regexCompare(endWithRegexp, regexFlags(map), Exp.stringBin(getField(map)));
         }
@@ -274,7 +266,7 @@ public enum FilterOperation {
     },
     CONTAINING {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             String containingRegexp = QualifierRegexpBuilder.getContaining(getValue1(map).toString());
             return Exp.regexCompare(containingRegexp, regexFlags(map), Exp.stringBin(getField(map)));
         }
@@ -286,36 +278,28 @@ public enum FilterOperation {
     },
     MAP_VALUE_EQ_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name)
-            Exp exp;
-            switch (getValue1(map).getType()) {
-                case ParticleType.STRING:
-                    exp = Exp.eq(
-                        MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map))),
-                        Exp.val(getValue1(map).toString()));
-                    break;
-                case ParticleType.INTEGER:
-                    exp = Exp.eq(
-                        MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map))),
-                        Exp.val(getValue1(map).toLong()));
-                    break;
-                case ParticleType.JBLOB:
+            return switch (getValue1(map).getType()) {
+                case ParticleType.STRING -> Exp.eq(
+                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map))),
+                    Exp.val(getValue1(map).toString()));
+                case ParticleType.INTEGER -> Exp.eq(
+                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map))),
+                    Exp.val(getValue1(map).toLong()));
+                case ParticleType.JBLOB -> {
                     Object obj = getValue1(map).getObject();
-                    exp = Exp.eq(
+                    yield Exp.eq(
                         MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, Exp.val(getValue2(map).toString()),
                             Exp.mapBin(getField(map))),
-                        toExp(converter.toWritableValue(obj, TypeInformation.of(obj.getClass()))));
-                    break;
-                default:
-                    throw new AerospikeException(
-                        "FilterExpression unsupported type: expected String or Long (FilterOperation " +
-                            "MAP_VALUE_EQ_BY_KEY)");
-            }
-
-            return exp;
+                        toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass()))));
+                }
+                default -> throw new AerospikeException(
+                    "FilterExpression unsupported type: expected String or Long (FilterOperation " +
+                        "MAP_VALUE_EQ_BY_KEY)");
+            };
         }
 
         /**
@@ -323,51 +307,40 @@ public enum FilterOperation {
          */
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            Filter filter;
-
-            switch (getValue1(map).getType()) {
-                case ParticleType.STRING:
+            return switch (getValue1(map).getType()) {
+                case ParticleType.STRING -> {
                     // There is no case-insensitive string comparison filter.
-                    if (ignoreCase(map)) return null;
-                    filter = Filter.contains(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toString());
-                    break;
-                case ParticleType.INTEGER:
-                    filter = Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
+                    if ((!ignoreCase(map))) {
+                        yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toString());
+                    } else {
+                        yield null;
+                    }
+                }
+                case ParticleType.INTEGER ->
+                    Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
                         getValue1(map).toLong());
-                    break;
-                default:
-                    throw new AerospikeException(
-                        "FilterExpression unsupported type: expected String or Long (FilterOperation " +
-                            "MAP_VALUE_EQ_BY_KEY)");
-            }
-
-            return filter;
+                default -> throw new AerospikeException(
+                    "FilterExpression unsupported type: expected String or Long (FilterOperation " +
+                        "MAP_VALUE_EQ_BY_KEY)");
+            };
         }
     },
     MAP_VALUE_NOTEQ_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
-            Exp exp;
-            switch (getValue1(map).getType()) {
-                case ParticleType.STRING:
-                    exp = Exp.ne(
-                        MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map))),
-                        Exp.val(getValue1(map).toString()));
-                    break;
-                case ParticleType.INTEGER:
-                    exp = Exp.ne(
-                        MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map))),
-                        Exp.val(getValue1(map).toLong()));
-                    break;
-                default:
-                    throw new AerospikeException(
-                        "FilterExpression unsupported type: expected String or Long (FilterOperation " +
-                            "MAP_VALUE_NOTEQ_BY_KEY)");
-            }
-
-            return exp;
+        public Exp filterExp(Map<String, Object> map) {
+            return switch (getValue1(map).getType()) {
+                case ParticleType.STRING -> Exp.ne(
+                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map))),
+                    Exp.val(getValue1(map).toString()));
+                case ParticleType.INTEGER -> Exp.ne(
+                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map))),
+                    Exp.val(getValue1(map).toLong()));
+                default -> throw new AerospikeException(
+                    "FilterExpression unsupported type: expected String or Long (FilterOperation " +
+                        "MAP_VALUE_NOTEQ_BY_KEY)");
+            };
         }
 
         @Override
@@ -377,7 +350,7 @@ public enum FilterOperation {
     },
     MAP_VALUE_GT_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name)
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.gt(
@@ -408,7 +381,7 @@ public enum FilterOperation {
     },
     MAP_VALUE_GTEQ_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name)
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.ge(
@@ -436,7 +409,7 @@ public enum FilterOperation {
     },
     MAP_VALUE_LT_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name)
             if (getValue1(map).getType() == ParticleType.INTEGER) {
                 return Exp.lt(
@@ -467,7 +440,7 @@ public enum FilterOperation {
     },
     MAP_VALUE_LTEQ_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name)
             if (getValue1(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
@@ -496,7 +469,7 @@ public enum FilterOperation {
     },
     MAP_VALUES_BETWEEN_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name), VALUE3 contains upper limit
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue3(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
@@ -533,7 +506,7 @@ public enum FilterOperation {
     },
     MAP_VALUE_STARTS_WITH_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             String startWithRegexp = QualifierRegexpBuilder.getStartsWith(getValue1(map).toString());
 
             return Exp.regexCompare(startWithRegexp, regexFlags(map),
@@ -549,7 +522,7 @@ public enum FilterOperation {
     },
     MAP_VALUE_ENDS_WITH_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             String endWithRegexp = QualifierRegexpBuilder.getEndsWith(getValue1(map).toString());
 
             return Exp.regexCompare(endWithRegexp, regexFlags(map),
@@ -565,7 +538,7 @@ public enum FilterOperation {
     },
     MAP_VALUE_CONTAINING_BY_KEY {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             String containingRegexp = QualifierRegexpBuilder.getContaining(getValue1(map).toString());
             return Exp.regexCompare(containingRegexp, regexFlags(map),
                 MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
@@ -580,30 +553,22 @@ public enum FilterOperation {
     },
     MAP_KEYS_CONTAIN {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
-            Exp exp;
-            switch (getValue1(map).getType()) {
-                case ParticleType.STRING:
-                    exp = Exp.gt(
-                        MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toString()),
-                            Exp.mapBin(getField(map))),
-                        Exp.val(0)
-                    );
-                    break;
-                case ParticleType.INTEGER:
-                    exp = Exp.gt(
-                        MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toLong()),
-                            Exp.mapBin(getField(map))),
-                        Exp.val(0)
-                    );
-                    break;
-                default:
-                    throw new AerospikeException(
-                        "FilterExpression unsupported type: expected String or Long (FilterOperation " +
-                            "MAP_KEYS_CONTAINS)");
-            }
-
-            return exp;
+        public Exp filterExp(Map<String, Object> map) {
+            return switch (getValue1(map).getType()) {
+                case ParticleType.STRING -> Exp.gt(
+                    MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toString()),
+                        Exp.mapBin(getField(map))),
+                    Exp.val(0)
+                );
+                case ParticleType.INTEGER -> Exp.gt(
+                    MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toLong()),
+                        Exp.mapBin(getField(map))),
+                    Exp.val(0)
+                );
+                default -> throw new AerospikeException(
+                    "FilterExpression unsupported type: expected String or Long (FilterOperation " +
+                        "MAP_KEYS_CONTAINS)");
+            };
         }
 
         @Override
@@ -613,30 +578,22 @@ public enum FilterOperation {
     },
     MAP_VALUES_CONTAIN {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
-            Exp exp;
-            switch (getValue1(map).getType()) {
-                case ParticleType.STRING:
-                    exp = Exp.gt(
-                        MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toString()),
-                            Exp.mapBin(getField(map))),
-                        Exp.val(0)
-                    );
-                    break;
-                case ParticleType.INTEGER:
-                    exp = Exp.gt(
-                        MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()),
-                            Exp.mapBin(getField(map))),
-                        Exp.val(0)
-                    );
-                    break;
-                default:
-                    throw new AerospikeException(
-                        "FilterExpression unsupported type: expected String or Long (FilterOperation " +
-                            "MAP_VALUES_CONTAINS)");
-            }
-
-            return exp;
+        public Exp filterExp(Map<String, Object> map) {
+            return switch (getValue1(map).getType()) {
+                case ParticleType.STRING -> Exp.gt(
+                    MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toString()),
+                        Exp.mapBin(getField(map))),
+                    Exp.val(0)
+                );
+                case ParticleType.INTEGER -> Exp.gt(
+                    MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()),
+                        Exp.mapBin(getField(map))),
+                    Exp.val(0)
+                );
+                default -> throw new AerospikeException(
+                    "FilterExpression unsupported type: expected String or Long (FilterOperation " +
+                        "MAP_VALUES_CONTAINS)");
+            };
         }
 
         @Override
@@ -646,7 +603,7 @@ public enum FilterOperation {
     },
     MAP_KEYS_BETWEEN {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
                     "FilterExpression unsupported type: expected Long (FilterOperation MAP_KEYS_BETWEEN)");
@@ -675,7 +632,7 @@ public enum FilterOperation {
     },
     MAP_VALUES_BETWEEN {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
                     "FilterExpression unsupported type: expected Long (FilterOperation MAP_VALUES_BETWEEN)");
@@ -708,7 +665,7 @@ public enum FilterOperation {
     },
     GEO_WITHIN {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             return Exp.geoCompare(Exp.geoBin(getField(map)), Exp.geo(getValue1(map).toString()));
         }
 
@@ -719,29 +676,21 @@ public enum FilterOperation {
     },
     LIST_CONTAINS {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
-            Exp exp;
-            switch (getValue1(map).getType()) {
-                case ParticleType.STRING:
-                    exp = Exp.gt(
-                        ListExp.getByValue(ListReturnType.COUNT, Exp.val(getValue1(map).toString()),
-                            Exp.listBin(getField(map))),
-                        Exp.val(0)
-                    );
-                    break;
-                case ParticleType.INTEGER:
-                    exp = Exp.gt(
-                        ListExp.getByValue(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()),
-                            Exp.listBin(getField(map))),
-                        Exp.val(0)
-                    );
-                    break;
-                default:
-                    throw new AerospikeException(
-                        "FilterExpression unsupported type: expected String or Long (FilterOperation LIST_CONTAINS)");
-            }
-
-            return exp;
+        public Exp filterExp(Map<String, Object> map) {
+            return switch (getValue1(map).getType()) {
+                case ParticleType.STRING -> Exp.gt(
+                    ListExp.getByValue(ListReturnType.COUNT, Exp.val(getValue1(map).toString()),
+                        Exp.listBin(getField(map))),
+                    Exp.val(0)
+                );
+                case ParticleType.INTEGER -> Exp.gt(
+                    ListExp.getByValue(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()),
+                        Exp.listBin(getField(map))),
+                    Exp.val(0)
+                );
+                default -> throw new AerospikeException(
+                    "FilterExpression unsupported type: expected String or Long (FilterOperation LIST_CONTAINS)");
+            };
         }
 
         @Override
@@ -756,7 +705,7 @@ public enum FilterOperation {
     },
     LIST_VALUE_BETWEEN {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
                     "FilterExpression unsupported type: expected Long (FilterOperation LIST_BETWEEN)");
@@ -787,7 +736,7 @@ public enum FilterOperation {
     },
     LIST_VALUE_GT {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
                 throw new AerospikeException(
                     "FilterExpression unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1] (FilterOperation " +
@@ -815,7 +764,7 @@ public enum FilterOperation {
     },
     LIST_VALUE_GTEQ {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
                     "FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_GTEQ)");
@@ -840,7 +789,7 @@ public enum FilterOperation {
     },
     LIST_VALUE_LT {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
                 throw new AerospikeException(
                     "FilterExpression unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE] (FilterOperation " +
@@ -868,7 +817,7 @@ public enum FilterOperation {
     },
     LIST_VALUE_LTEQ {
         @Override
-        public Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter) {
+        public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
                     "FilterExpression unsupported type: expected Long (FilterOperation LIST_VALUE_LTEQ)");
@@ -932,7 +881,7 @@ public enum FilterOperation {
         MAP_VALUES_BETWEEN_BY_KEY
     );
 
-    public abstract Exp filterExp(Map<String, Object> map, MappingAerospikeConverter converter);
+    public abstract Exp filterExp(Map<String, Object> map);
 
     public abstract Filter sIndexFilter(Map<String, Object> map);
 
@@ -960,16 +909,18 @@ public enum FilterOperation {
         return (Value) map.get(VALUE3);
     }
 
+    protected MappingAerospikeConverter getConverter(Map<String, Object> map) {
+        return (MappingAerospikeConverter) map.get(CONVERTER);
+    }
+
     protected Filter collectionContains(IndexCollectionType collectionType, Map<String, Object> map) {
         Value val = getValue1(map);
         int valType = val.getType();
-        switch (valType) {
-            case ParticleType.INTEGER:
-                return Filter.contains(getField(map), collectionType, val.toLong());
-            case ParticleType.STRING:
-                return Filter.contains(getField(map), collectionType, val.toString());
-        }
-        return null;
+        return switch (valType) {
+            case ParticleType.INTEGER -> Filter.contains(getField(map), collectionType, val.toLong());
+            case ParticleType.STRING -> Filter.contains(getField(map), collectionType, val.toString());
+            default -> null;
+        };
     }
 
     protected Filter collectionRange(IndexCollectionType collectionType, Map<String, Object> map) {

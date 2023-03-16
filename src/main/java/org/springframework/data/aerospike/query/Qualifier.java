@@ -22,15 +22,11 @@ import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
 import lombok.Data;
-import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
-import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
-import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -49,14 +45,13 @@ public class Qualifier implements Map<String, Object>, Serializable {
     protected static final String VALUE1 = "value1";
     protected static final String VALUE2 = "value2";
     protected static final String VALUE3 = "value3";
+    protected static final String CONVERTER = "converter";
     protected static final String QUALIFIERS = "qualifiers";
     protected static final String OPERATION = "operation";
     protected static final String AS_FILTER = "queryAsFilter";
     @Serial
     private static final long serialVersionUID = -2689196529952712849L;
     protected final Map<String, Object> internalMap;
-    private final MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-        new AerospikeCustomConversions(Collections.emptyList()), new AerospikeTypeAliasAccessor());
 
     public Qualifier(QualifierBuilder builder) {
         internalMap = new HashMap<>();
@@ -110,7 +105,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
     public Exp toFilterExp() {
         try {
-            return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap, converter);
+            return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
         } catch (Exception e) {
             throw new AerospikeException(
                 e.getMessage().isEmpty() ? "FilterExpression unsupported operation: " + getOperation() :
@@ -313,6 +308,11 @@ public class Qualifier implements Map<String, Object>, Serializable {
         @SuppressWarnings("UnusedReturnValue")
         public QualifierBuilder setValue3(Value value3) {
             this.map.put(VALUE3, value3);
+            return this;
+        }
+
+        public QualifierBuilder setConverter(MappingAerospikeConverter converter) {
+            this.map.put(CONVERTER, converter);
             return this;
         }
 

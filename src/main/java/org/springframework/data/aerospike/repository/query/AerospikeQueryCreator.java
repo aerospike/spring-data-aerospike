@@ -19,6 +19,9 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
+import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -34,7 +37,7 @@ import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.TypeInformation;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -45,6 +48,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
     private static final Logger LOG = LoggerFactory.getLogger(AerospikeQueryCreator.class);
     private final MappingContext<?, AerospikePersistentProperty> context;
+    private final AerospikeCustomConversions conversions = new AerospikeCustomConversions(Collections.emptyList());
+    private final MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
+        conversions, new AerospikeTypeAliasAccessor());
 
     public AerospikeQueryCreator(PartTree tree, ParameterAccessor parameters) {
         super(tree, parameters);
@@ -207,7 +213,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         "Not enough parameters (propertyType: Map, filterOperation: " + op + ")");
                 }
             } else { // if it is neither a collection nor a map
-                if (part.getProperty().hasNext() && isPojoField(part, property)) { // if it is a POJO field
+                if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)
                     switch (op) {
                         case EQ:
                             op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
@@ -245,7 +251,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                     }
                     fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
                     qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
-                } else if (isPojo(part, property)) { // if it is POJO
+                } else if (isPojo(part)) { // if it is a first level POJO or a Map
                     // if it is a POJO compared for equality it already has op == FilterOperation.EQ
                     fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
                     qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
@@ -255,7 +261,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
         qb.setField(fieldName)
             .setFilterOperation(op)
-            .setIgnoreCase(ignoreCaseToBoolean(part));
+            .setIgnoreCase(ignoreCaseToBoolean(part))
+            .setConverter(converter);
 
         setNotNullQbValues(qb, v1, v2);
 
@@ -272,13 +279,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         qb.setValue2(Value.get(key)); // contains key
     }
 
-    private boolean isPojoField(Part part, AerospikePersistentProperty property) {
-        return Arrays.stream(part.getProperty().getType().getDeclaredFields())
-            .anyMatch(f -> f.getName().equals(property.getName()));
-    }
-
-    private boolean isPojo(Part part, AerospikePersistentProperty property) {
-        return part.getProperty().getType().getSimpleName().equalsIgnoreCase(property.getName());
+    private boolean isPojo(Part part) {
+        TypeInformation<?> type = TypeInformation.of(part.getProperty().getType());
+        // returns true if it is a POJO or a Map
+        return !conversions.isSimpleType(part.getProperty().getType()) && !type.isCollectionLike();
     }
 
     @Override

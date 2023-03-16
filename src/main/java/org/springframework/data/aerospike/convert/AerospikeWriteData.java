@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeMap;
 
 /**
  * Value object to carry data to be written in object conversion.
@@ -86,8 +85,7 @@ public class AerospikeWriteData {
     }
 
     public void addBin(String key, Object value) {
-        if (value instanceof Map m) {
-            TreeMap<String, Object> map = new TreeMap<>(m);
+        if (value instanceof Map<?, ?> map) {
             add(new Bin(key, map, MapOrder.KEY_ORDERED));
         } else {
             add(new Bin(key, value));

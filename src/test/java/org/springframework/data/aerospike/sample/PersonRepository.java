@@ -80,8 +80,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAgeBetween(int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have a friend equal to the given argument"
-     * (find by POJO)
+     * Find all entities that satisfy the condition "have a friend equal to the given argument" (find by POJO)
      *
      * @param friend - Friend to check for equality
      */
@@ -290,8 +289,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendAgeBetween(int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the address equal to the given argument"
-     * (find by inner POJO)
+     * Find all entities that satisfy the condition "have a friend with the address equal to the given argument" (find
+     * by inner POJO)
      *
      * @param address - Address to check for equality
      */
