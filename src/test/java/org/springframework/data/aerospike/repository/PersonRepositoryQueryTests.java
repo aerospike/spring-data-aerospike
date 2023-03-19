@@ -205,11 +205,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByAddressZipCodeContaining() {
-        carter.setAddress(new Address("Foo Street 2", 2, "C0124", "C0123"));
+        carter.setAddress(new Address("Foo Street 2", "C0124", "C0123"));
         repository.save(carter);
-        dave.setAddress(new Address("Foo Street 1", 1, "C0123", "Bar"));
+        dave.setAddress(new Address("Foo Street 1", "C0123", "Bar"));
         repository.save(dave);
-        boyd.setAddress(new Address(null, null, null, null));
+        boyd.setAddress(new Address(null, null, null));
         repository.save(boyd);
 
         List<Person> persons = repository.findByAddressZipCodeContaining("C0");
@@ -318,11 +318,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByAddressZipCode() {
-        carter.setAddress(new Address("Foo Street 2", 2, "C0124", "C0123"));
+        carter.setAddress(new Address("Foo Street 2", "C0124", "C0123"));
         repository.save(carter);
-        dave.setAddress(new Address("Foo Street 1", 1, "C0123", "Bar"));
+        dave.setAddress(new Address("Foo Street 1", "C0123", "Bar"));
         repository.save(dave);
-        boyd.setAddress(new Address(null, null, null, null));
+        boyd.setAddress(new Address(null, null, null));
         repository.save(boyd);
 
         List<Person> result = repository.findByAddressZipCode("C0123");
@@ -424,16 +424,22 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findByFirstnameNotIn_forEmptyResult() {
         Set<String> allFirstNames = all.stream().map(Person::getFirstName).collect(Collectors.toSet());
+//		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(allFirstNames))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Unsupported keyword!");
+
+//		assertThat(result).isEmpty();
     }
 
     @Test
     public void findByFirstnameNotIn_forExistingResult() {
+//		Stream<Person> result = repository.findByFirstnameNotIn(Collections.singleton("Alicia"));
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(Collections.singleton("Alicia")))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Unsupported keyword!");
+
+//		assertThat(result).contains(dave, donny, oliver, carter, boyd, stefan, leroi, leroi2);
     }
 
     @Test
