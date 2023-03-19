@@ -313,24 +313,24 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendFriendAddressZipCode(String zipCode);
 
     /**
-     * Find all entities that satisfy the condition "have a friend who has a friend (etc.) ... who has the address
-     * with zipCode equal to the given argument" (find by deeply nested POJO field)
+     * Find all entities that satisfy the condition "have a friend who has a friend (etc.) ... who has the address with
+     * zipCode equal to the given argument" (find by deeply nested POJO field)
      *
      * @param zipCode - Zip code to check for equality
      */
     List<P> findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendFriendAddressZipCode(String zipCode);
 
     /**
-     * Find all entities that satisfy the condition "have a friend who has a friend (etc.) ... who has the address
-     * with apartment number equal to the given argument" (find by deeply nested POJO field)
+     * Find all entities that satisfy the condition "have a friend who has a friend (etc.) ... who has the address with
+     * apartment number equal to the given argument" (find by deeply nested POJO field)
      *
      * @param apartment - Integer to check for equality
      */
     List<P> findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddressApartment(Integer apartment);
 
     /**
-     * Find all entities that satisfy the condition "have a friend who has a friend (etc.) ... who has the address
-     * equal to the given argument" (find by deeply nested POJO)
+     * Find all entities that satisfy the condition "have a friend who has a friend (etc.) ... who has the address equal
+     * to the given argument" (find by deeply nested POJO)
      *
      * @param address - Address to check for equality
      */

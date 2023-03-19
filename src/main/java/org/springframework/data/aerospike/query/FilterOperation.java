@@ -897,7 +897,7 @@ public enum FilterOperation {
     private static Exp toExp(Object value) {
         Exp res;
 
-        if (value instanceof Integer || value instanceof Long) {
+        if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long) {
             res = Exp.val(((Number) value).longValue());
         } else if (value instanceof Float || value instanceof Double) {
             res = Exp.val(((Number) value).doubleValue());
@@ -914,7 +914,8 @@ public enum FilterOperation {
         } else if (value instanceof Calendar) {
             res = Exp.val((Calendar) value);
         } else {
-            throw new RuntimeException("Unsupported type for converting: " + value.getClass().getCanonicalName());
+            throw new IllegalArgumentException("Unsupported type for converting: " + value.getClass()
+                .getCanonicalName());
         }
 
         return res;

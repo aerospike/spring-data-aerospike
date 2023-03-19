@@ -55,6 +55,7 @@ public class Person {
     private Address address;
     @Field("email")
     private String emailAddress;
+
     public Person(String id, String firstName) {
         this.id = id;
         this.firstName = firstName;
