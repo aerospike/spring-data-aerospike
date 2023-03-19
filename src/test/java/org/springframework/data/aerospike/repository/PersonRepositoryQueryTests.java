@@ -205,11 +205,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByAddressZipCodeContaining() {
-        carter.setAddress(new Address("Foo Street 2", "C0124", "C0123"));
+        carter.setAddress(new Address("Foo Street 2", 2, "C0124", "C0123"));
         repository.save(carter);
-        dave.setAddress(new Address("Foo Street 1", "C0123", "Bar"));
+        dave.setAddress(new Address("Foo Street 1", 1, "C0123", "Bar"));
         repository.save(dave);
-        boyd.setAddress(new Address(null, null, null));
+        boyd.setAddress(new Address(null, null, null, null));
         repository.save(boyd);
 
         List<Person> persons = repository.findByAddressZipCodeContaining("C0");
@@ -318,11 +318,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByAddressZipCode() {
-        carter.setAddress(new Address("Foo Street 2", "C0124", "C0123"));
+        carter.setAddress(new Address("Foo Street 2", 2, "C0124", "C0123"));
         repository.save(carter);
-        dave.setAddress(new Address("Foo Street 1", "C0123", "Bar"));
+        dave.setAddress(new Address("Foo Street 1", 1, "C0123", "Bar"));
         repository.save(dave);
-        boyd.setAddress(new Address(null, null, null));
+        boyd.setAddress(new Address(null, null, null, null));
         repository.save(boyd);
 
         List<Person> result = repository.findByAddressZipCode("C0123");
