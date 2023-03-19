@@ -291,10 +291,11 @@ public enum FilterOperation {
                 throw new RuntimeException("MAP_VALUE_EQ_BY_KEY: dotPath has not been set");
             }
 
+            boolean useCtx = dotPathArr.length > 2;
             Exp mapExp;
             return switch (getValue1(map).getType()) {
                 case ParticleType.STRING -> {
-                    if (dotPathArr.length > 3) {
+                    if (useCtx) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
                             Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
                             Exp.mapBin(getField(map)), dotPathToCtx(dotPathArr));
@@ -307,7 +308,7 @@ public enum FilterOperation {
                     yield Exp.eq(mapExp, Exp.val(getValue1(map).toString()));
                 }
                 case ParticleType.INTEGER -> {
-                    if (dotPathArr.length > 3) {
+                    if (useCtx) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
                             Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
                             Exp.mapBin(getField(map)), dotPathToCtx(dotPathArr));
@@ -321,7 +322,7 @@ public enum FilterOperation {
                 }
                 case ParticleType.JBLOB -> {
                     Object obj = getValue1(map).getObject();
-                    if (dotPathArr.length > 3) {
+                    if (useCtx) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
                             Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
                             Exp.mapBin(getField(map)), dotPathToCtx(dotPathArr));
@@ -346,18 +347,38 @@ public enum FilterOperation {
          */
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
+            String dotPath = getDotPath(map);
+            String[] dotPathArr;
+            if (StringUtils.hasLength(dotPath)) {
+                dotPathArr = dotPath.split("\\.");
+            } else {
+                throw new RuntimeException("MAP_VALUE_EQ_BY_KEY: dotPath has not been set");
+            }
+
             return switch (getValue1(map).getType()) {
                 case ParticleType.STRING -> {
                     // There is no case-insensitive string comparison filter.
                     if ((!ignoreCase(map))) {
-                        yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toString());
+                        if (dotPathArr.length > 3) {
+                            yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES,
+                                getValue1(map).toString(), dotPathToCtx(dotPathArr));
+                        } else {
+                            yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES,
+                                getValue1(map).toString());
+                        }
                     } else {
                         yield null;
                     }
                 }
-                case ParticleType.INTEGER ->
-                    Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
-                        getValue1(map).toLong());
+                case ParticleType.INTEGER -> {
+                    if (dotPathArr.length > 3) {
+                        yield Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
+                            getValue1(map).toLong(), dotPathToCtx(dotPathArr));
+                    } else {
+                        yield Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
+                            getValue1(map).toLong());
+                    }
+                }
                 default -> throw new AerospikeException(
                     "FilterExpression unsupported type: expected String or Long (FilterOperation " +
                         "MAP_VALUE_EQ_BY_KEY)");

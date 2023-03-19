@@ -157,6 +157,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         case EQ:
                             op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
                             setQbValuesForMapByKey(qb, v1, next);
+                            qb.setDotPath(part.getProperty().toDotPath());
                             break;
                         case NOTEQ:
                             op = FilterOperation.MAP_VALUE_NOTEQ_BY_KEY;
@@ -220,6 +221,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                             break;
                         case NOTEQ:
                             op = FilterOperation.MAP_VALUE_NOTEQ_BY_KEY;
+                            qb.setDotPath(part.getProperty().toDotPath());
                             break;
                         case GT:
                             op = FilterOperation.MAP_VALUE_GT_BY_KEY;

@@ -205,14 +205,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByAddressZipCodeContaining() {
-        carter.setAddress(new Address("Foo Street 2", 2, "C0124", "C0123"));
+        carter.setAddress(new Address("Foo Street 2", 2, "C10124", "C0123"));
         repository.save(carter);
-        dave.setAddress(new Address("Foo Street 1", 1, "C0123", "Bar"));
+        dave.setAddress(new Address("Foo Street 1", 1, "C10123", "Bar"));
         repository.save(dave);
         boyd.setAddress(new Address(null, null, null, null));
         repository.save(boyd);
 
-        List<Person> persons = repository.findByAddressZipCodeContaining("C0");
+        List<Person> persons = repository.findByAddressZipCodeContaining("C10");
 
         assertThat(persons).containsExactlyInAnyOrder(carter, dave);
     }
@@ -318,14 +318,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByAddressZipCode() {
-        carter.setAddress(new Address("Foo Street 2", 2, "C0124", "C0123"));
+        String zipCode = "C012345";
+        carter.setAddress(new Address("Foo Street 2", 2, "C012344", "C0123"));
         repository.save(carter);
-        dave.setAddress(new Address("Foo Street 1", 1, "C0123", "Bar"));
+        dave.setAddress(new Address("Foo Street 1", 1, zipCode, "Bar"));
         repository.save(dave);
         boyd.setAddress(new Address(null, null, null, null));
         repository.save(boyd);
 
-        List<Person> result = repository.findByAddressZipCode("C0123");
+        List<Person> result = repository.findByAddressZipCode(zipCode);
 
         assertThat(result)
             .hasSize(1)
@@ -578,7 +579,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void findPersonsByFirstnameStartsWith() {
         List<Person> result = repository.findByFirstNameStartsWith("D");
 
-        assertThat(result).containsOnly(dave, donny);
+        assertThat(result).containsOnly(dave, donny, douglas);
     }
 
     @Test
@@ -694,7 +695,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByFriendAddressZipCode() {
-        String zipCode = "C0123";
+        String zipCode = "C012345";
         Address address = new Address("Foo Street 1", 1, zipCode, "Bar");
         dave.setAddress(address);
         repository.save(dave);

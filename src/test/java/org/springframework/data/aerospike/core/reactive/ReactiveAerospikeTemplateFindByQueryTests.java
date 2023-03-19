@@ -577,11 +577,11 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     public void findPersonsByAddressZipCode() {
         List<Person> persons = IntStream.rangeClosed(1, 5)
             .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews")
-                .address(new Address("Foo Street " + id, id, "C012" + id, "City" + id)).build())
+                .address(new Address("Foo Street " + id, id, "C0123" + id, "City" + id)).build())
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByAddressZipCode", "C0123");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByAddressZipCode", "C01233");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())

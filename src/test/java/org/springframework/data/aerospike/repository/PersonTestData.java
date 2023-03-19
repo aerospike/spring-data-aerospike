@@ -36,9 +36,9 @@ public class PersonTestData {
         .ints(Arrays.asList(500, 550, 990)).build();
     public static final Person alicia = Person.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30)
         .ints(Arrays.asList(550, 600, 990)).build();
-    public static final Person matias = Person.builder().id(nextId()).firstName("Matias").lastName("Craft").age(44)
+    public static final Person matias = Person.builder().id(nextId()).firstName("Matias").lastName("Craft").age(24)
         .build();
-    public static final Person douglas = Person.builder().id(nextId()).firstName("Douglas").lastName("Ford").age(52)
+    public static final Person douglas = Person.builder().id(nextId()).firstName("Douglas").lastName("Ford").age(25)
         .build();
     public static final List<Person> all = Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi, leroi2,
         alicia, matias, douglas);
