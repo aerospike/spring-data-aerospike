@@ -283,21 +283,20 @@ public enum FilterOperation {
     MAP_VALUE_EQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            // VALUE2 contains key (field name)
+            String dotPath = getDotPath(map);
+            String[] dotPathArr;
+            if (StringUtils.hasLength(dotPath)) {
+                dotPathArr = dotPath.split("\\.");
+            } else {
+                throw new RuntimeException("MAP_VALUE_EQ_BY_KEY: dotPath has not been set");
+            }
+
+            Exp mapExp;
             return switch (getValue1(map).getType()) {
                 case ParticleType.STRING -> {
-                    String dotPath = getDotPath(map);
-                    String[] dotPathArr;
-                    if (StringUtils.hasLength(dotPath)) {
-                        dotPathArr = dotPath.split("\\.");
-                    } else {
-                        throw new RuntimeException("MAP_VALUE_EQ_BY_KEY: dotPath has not been set correctly");
-                    }
-
-                    Exp mapExp;
                     if (dotPathArr.length > 3) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
-                            Exp.val(getValue2(map).toString()),
+                            Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
                             Exp.mapBin(getField(map)), dotPathToCtx(dotPathArr));
                     } else {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
@@ -307,16 +306,34 @@ public enum FilterOperation {
 
                     yield Exp.eq(mapExp, Exp.val(getValue1(map).toString()));
                 }
-                case ParticleType.INTEGER -> Exp.eq(
-                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(getValue1(map).toLong()));
+                case ParticleType.INTEGER -> {
+                    if (dotPathArr.length > 3) {
+                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
+                            Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
+                            Exp.mapBin(getField(map)), dotPathToCtx(dotPathArr));
+                    } else {
+                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
+                            Exp.val(getValue2(map).toString()),
+                            Exp.mapBin(getField(map)));
+                    }
+
+                    yield Exp.eq(mapExp, Exp.val(getValue1(map).toLong()));
+                }
                 case ParticleType.JBLOB -> {
                     Object obj = getValue1(map).getObject();
-                    yield Exp.eq(
-                        MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map))),
-                        toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass()))));
+                    if (dotPathArr.length > 3) {
+                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
+                            Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
+                            Exp.mapBin(getField(map)), dotPathToCtx(dotPathArr));
+                    } else {
+                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
+                            Exp.val(getValue2(map).toString()),
+                            Exp.mapBin(getField(map)));
+                    }
+
+                    yield Exp.eq(mapExp,
+                        toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
+                    );
                 }
                 default -> throw new AerospikeException(
                     "FilterExpression unsupported type: expected String or Long (FilterOperation " +
@@ -870,7 +887,8 @@ public enum FilterOperation {
     };
 
     private static CTX[] dotPathToCtx(String[] dotPathArray) {
-        List<CTX> list = Arrays.stream(dotPathArray).map(str -> CTX.mapKey(Value.get(str))).collect(Collectors.toList());
+        List<CTX> list = Arrays.stream(dotPathArray).map(str -> CTX.mapKey(Value.get(str)))
+            .collect(Collectors.toList());
         list.remove(0); // first element is bin name
         list.remove(list.size() - 1); // last element is the key we already have
         return list.toArray(CTX[]::new);

@@ -47,6 +47,7 @@ public class Person {
     private Map<String, String> stringMap;
     private Map<String, Integer> intMap;
     private Person friend;
+    private Person bestFriend;
     private boolean active;
     private Date dateOfBirth;
     private List<String> strings;

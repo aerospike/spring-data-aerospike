@@ -16,7 +16,7 @@ public class PersonTestData {
 
     public static final Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42)
         .strings(Arrays.asList("str1", "str2"))
-        .address(new Address("Foo Street 1", "C0123", "Bar")).build();
+        .address(new Address("Foo Street 1", 1, "C0123", "Bar")).build();
     public static final Person donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39)
         .strings(Arrays.asList("str1", "str2", "str3")).build();
     public static final Person oliver = Person.builder().id(nextId()).firstName("Oliver August").lastName("Matthews")
@@ -24,10 +24,10 @@ public class PersonTestData {
         .build();
     public static final Person carter = Person.builder().id(nextId()).firstName("Carter").lastName("Beauford").age(49)
         .intMap(of("key1", 0, "key2", 1))
-        .address(new Address("Foo Street 2", "C0124", "C0123")).build();
+        .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
     public static final Person boyd = Person.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45)
         .stringMap(of("key1", "val1", "key2", "val2"))
-        .address(new Address(null, null, null)).build();
+        .address(new Address(null, null, null, null)).build();
     public static final Person stefan = Person.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34)
         .stringMap(of("key1", "val1", "key2", "val2", "key3", "val3")).build();
     public static final Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(41)
@@ -36,9 +36,12 @@ public class PersonTestData {
         .ints(Arrays.asList(500, 550, 990)).build();
     public static final Person alicia = Person.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30)
         .ints(Arrays.asList(550, 600, 990)).build();
-
+    public static final Person matias = Person.builder().id(nextId()).firstName("Matias").lastName("Craft").age(44)
+        .build();
+    public static final Person douglas = Person.builder().id(nextId()).firstName("Douglas").lastName("Ford").age(52)
+        .build();
     public static final List<Person> all = Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi, leroi2,
-        alicia);
+        alicia, matias, douglas);
 
     public static class Indexed {
 

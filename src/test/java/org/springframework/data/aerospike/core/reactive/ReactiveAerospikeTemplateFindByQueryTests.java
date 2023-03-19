@@ -577,7 +577,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     public void findPersonsByAddressZipCode() {
         List<Person> persons = IntStream.rangeClosed(1, 5)
             .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews")
-                .address(new Address("Foo Street " + id, "C012" + id, "City" + id)).build())
+                .address(new Address("Foo Street " + id, id, "C012" + id, "City" + id)).build())
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
@@ -595,7 +595,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     public void findByAddressZipCodeContaining() {
         List<Person> persons = IntStream.rangeClosed(1, 5)
             .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews")
-                .address(new Address("Foo Street " + id, "C012" + id, "City" + id)).build())
+                .address(new Address("Foo Street " + id, id, "C012" + id, "City" + id)).build())
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 

@@ -59,14 +59,14 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         .stringMap(Collections.singletonMap("key1", "val1"))
         .friend(new Person("id21", "TestPerson24", 54)).build();
     final Person zaipper = Person.builder().id(nextId()).firstName("Zaipper").lastName("Matthews").age(25)
-        .stringMap(Collections.singletonMap("key2", "val2")).address(new Address("Street 1", "C0121", "Sun City"))
+        .stringMap(Collections.singletonMap("key2", "val2")).address(new Address("Street 1", 1, "C0121", "Sun City"))
         .build();
     final Person knowlen = Person.builder().id(nextId()).firstName("knowlen").lastName("Matthews").age(26)
-        .intMap(Collections.singletonMap("key1", 11)).address(new Address("Street 2", "C0122", "Sun City")).build();
+        .intMap(Collections.singletonMap("key1", 11)).address(new Address("Street 2", 2,  "C0122", "Sun City")).build();
     final Person xylophone = Person.builder().id(nextId()).firstName("Xylophone").lastName("Matthews").age(27)
-        .intMap(Collections.singletonMap("key2", 22)).address(new Address("Street 3", "C0123", "Sun City")).build();
+        .intMap(Collections.singletonMap("key2", 22)).address(new Address("Street 3", 3, "C0123", "Sun City")).build();
     final Person mitch = Person.builder().id(nextId()).firstName("Mitch").lastName("Matthews").age(28)
-        .intMap(Collections.singletonMap("key3", 24)).address(new Address("Street 4", "C0124", "Sun City")).build();
+        .intMap(Collections.singletonMap("key3", 24)).address(new Address("Street 4", 4, "C0124", "Sun City")).build();
     final Person alister = Person.builder().id(nextId()).firstName("Alister").lastName("Matthews").age(29)
         .stringMap(Collections.singletonMap("key4", "val4")).build();
     final Person aabbot = Person.builder().id(nextId()).firstName("Aabbot").lastName("Matthews").age(30)

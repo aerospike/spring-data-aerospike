@@ -27,6 +27,7 @@ import lombok.Data;
 public class Address {
 
     private String street;
+    private Integer apartment;
     private String zipCode;
     private String city;
 }
