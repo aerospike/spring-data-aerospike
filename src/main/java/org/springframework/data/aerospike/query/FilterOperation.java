@@ -283,16 +283,11 @@ public enum FilterOperation {
     MAP_VALUE_EQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            String dotPath = getDotPath(map);
-            String[] dotPathArr;
-            if (StringUtils.hasLength(dotPath)) {
-                dotPathArr = dotPath.split("\\.");
-            } else {
-                throw new RuntimeException("MAP_VALUE_EQ_BY_KEY: dotPath has not been set");
-            }
-
-            boolean useCtx = dotPathArr.length > 2;
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                "MAP_VALUE_EQ_BY_KEY filter expression: dotPath has not been set");
+            final boolean useCtx = dotPathArr.length > 2;
             Exp mapExp;
+
             return switch (getValue1(map).getType()) {
                 case ParticleType.STRING -> {
                     if (useCtx) {
@@ -347,19 +342,15 @@ public enum FilterOperation {
          */
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            String dotPath = getDotPath(map);
-            String[] dotPathArr;
-            if (StringUtils.hasLength(dotPath)) {
-                dotPathArr = dotPath.split("\\.");
-            } else {
-                throw new RuntimeException("MAP_VALUE_EQ_BY_KEY: dotPath has not been set");
-            }
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                "MAP_VALUE_EQ_BY_KEY secondary index filter: dotPath has not been set");
+            final boolean useCtx = dotPathArr.length > 2;
 
             return switch (getValue1(map).getType()) {
                 case ParticleType.STRING -> {
                     // There is no case-insensitive string comparison filter.
                     if ((!ignoreCase(map))) {
-                        if (dotPathArr.length > 3) {
+                        if (useCtx) {
                             yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES,
                                 getValue1(map).toString(), dotPathToCtx(dotPathArr));
                         } else {
@@ -371,7 +362,7 @@ public enum FilterOperation {
                     }
                 }
                 case ParticleType.INTEGER -> {
-                    if (dotPathArr.length > 3) {
+                    if (useCtx) {
                         yield Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
                             getValue1(map).toLong(), dotPathToCtx(dotPathArr));
                     } else {
@@ -907,6 +898,22 @@ public enum FilterOperation {
         }
     };
 
+    private static String[] getDotPathArray(String dotPath, String errMsg) {
+        if (StringUtils.hasLength(dotPath)) {
+            return dotPath.split("\\.");
+        } else {
+            throw new IllegalArgumentException(errMsg);
+        }
+    }
+
+    /**
+     * FilterOperations that require both sIndexFilter and FilterExpression
+     */
+    public static final List<FilterOperation> dualFilterOperations = Arrays.asList(
+        MAP_VALUE_EQ_BY_KEY, MAP_VALUE_GT_BY_KEY, MAP_VALUE_GTEQ_BY_KEY, MAP_VALUE_LT_BY_KEY, MAP_VALUE_LTEQ_BY_KEY,
+        MAP_VALUES_BETWEEN_BY_KEY
+    );
+
     private static CTX[] dotPathToCtx(String[] dotPathArray) {
         List<CTX> list = Arrays.stream(dotPathArray).map(str -> CTX.mapKey(Value.get(str)))
             .collect(Collectors.toList());
@@ -941,14 +948,6 @@ public enum FilterOperation {
 
         return res;
     }
-
-    /**
-     * FilterOperations that require both sIndexFilter and FilterExpression
-     */
-    public static final List<FilterOperation> dualFilterOperations = Arrays.asList(
-        MAP_VALUE_EQ_BY_KEY, MAP_VALUE_GT_BY_KEY, MAP_VALUE_GTEQ_BY_KEY, MAP_VALUE_LT_BY_KEY, MAP_VALUE_LTEQ_BY_KEY,
-        MAP_VALUES_BETWEEN_BY_KEY
-    );
 
     public abstract Exp filterExp(Map<String, Object> map);
 
