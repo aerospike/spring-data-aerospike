@@ -915,11 +915,10 @@ public enum FilterOperation {
     );
 
     private static CTX[] dotPathToCtx(String[] dotPathArray) {
-        List<CTX> list = Arrays.stream(dotPathArray).map(str -> CTX.mapKey(Value.get(str)))
-            .collect(Collectors.toList());
-        list.remove(0); // first element is bin name
-        list.remove(list.size() - 1); // last element is the key we already have
-        return list.toArray(CTX[]::new);
+        return Arrays.stream(dotPathArray).map(str -> CTX.mapKey(Value.get(str)))
+            .skip(1) // first element is bin name
+            .limit(dotPathArray.length - 2L) // last element is the key we already have
+            .toArray(CTX[]::new);
     }
 
     private static Exp toExp(Object value) {
