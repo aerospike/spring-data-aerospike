@@ -21,15 +21,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
-import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
-import static org.springframework.data.aerospike.query.Qualifier.FIELD;
-import static org.springframework.data.aerospike.query.Qualifier.IGNORE_CASE;
-import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
-import static org.springframework.data.aerospike.query.Qualifier.QualifierRegexpBuilder;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE1;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE2;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE3;
+import static org.springframework.data.aerospike.query.Qualifier.*;
 
 public enum FilterOperation {
 
@@ -349,26 +341,16 @@ public enum FilterOperation {
                 case ParticleType.STRING -> {
                     // There is no case-insensitive string comparison filter.
                     if ((!ignoreCase(map))) {
-                        if (useCtx) {
-                            yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES,
-                                getValue1(map).toString(), dotPathToCtx(dotPathArr));
-                        } else {
-                            yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES,
-                                getValue1(map).toString());
-                        }
+                        yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES,
+                            getValue1(map).toString());
                     } else {
-                        yield null;
+                        throw new IllegalArgumentException(
+                            "MAP_VALUE_EQ_BY_KEY: case-insensitive string comparison filter is not supported");
                     }
                 }
-                case ParticleType.INTEGER -> {
-                    if (useCtx) {
-                        yield Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
-                            getValue1(map).toLong(), dotPathToCtx(dotPathArr));
-                    } else {
-                        yield Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
-                            getValue1(map).toLong());
-                    }
-                }
+                case ParticleType.INTEGER ->
+                    Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
+                        getValue1(map).toLong());
                 default -> throw new AerospikeException(
                     "FilterExpression unsupported type: expected String or Long (FilterOperation " +
                         "MAP_VALUE_EQ_BY_KEY)");
