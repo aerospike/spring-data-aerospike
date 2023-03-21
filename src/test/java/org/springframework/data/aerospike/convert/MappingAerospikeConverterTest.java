@@ -19,12 +19,14 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.Value;
+import lombok.Data;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.SampleClasses;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
+import java.lang.annotation.IncompleteAnnotationException;
 import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -121,6 +123,26 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
         User read = converter.read(User.class, AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(bins)));
 
         assertThat(read).isEqualTo(user);
+    }
+
+    @Test
+    public void shouldThrowExceptionIfIdAnnotationNotGiven() {
+        @Data
+        class TestName {
+
+            final String firstName;
+            final String lastName;
+        }
+
+        MappingAerospikeConverter converter =
+            getMappingAerospikeConverter(new UserToAerospikeWriteDataConverter(),
+                new AerospikeReadDataToUserConverter());
+
+        AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
+        TestName name = new TestName("Bob", "Dewey");
+
+        assertThatThrownBy(() -> converter.write(name, forWrite))
+            .isInstanceOf(IncompleteAnnotationException.class);
     }
 
     @Test
