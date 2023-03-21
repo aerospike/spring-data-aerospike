@@ -20,6 +20,7 @@ import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.convert.TypeMapper;
@@ -30,6 +31,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.lang.annotation.IncompleteAnnotationException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -86,6 +88,8 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             Assert.notNull(id, "Id must not be null!");
 
             data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
+        } else {
+            throw new IncompleteAnnotationException(Id.class, "Id"); // @Id annotation is mandatory
         }
 
         AerospikePersistentProperty versionProperty = entity.getVersionProperty();
