@@ -31,6 +31,7 @@ import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -83,11 +84,10 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
         AerospikePersistentProperty idProperty = entity.getIdProperty();
-        if (data.getKey() == null && data.getKey().userKey == null) {
+        if (!StringUtils.hasLength(data.getKey().userKey.toString())) {
             if (idProperty != null) {
                 String id = accessor.getProperty(idProperty, String.class);
                 Assert.notNull(id, "Id must not be null!");
-
                 data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
             } else {
                 // id is mandatory
