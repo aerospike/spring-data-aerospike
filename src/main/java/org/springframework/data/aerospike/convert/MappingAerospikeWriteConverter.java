@@ -15,12 +15,13 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
+import com.aerospike.client.ResultCode;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.convert.EntityWriter;
 import org.springframework.data.convert.TypeMapper;
@@ -31,7 +32,6 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
-import java.lang.annotation.IncompleteAnnotationException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -83,13 +83,16 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
         AerospikePersistentProperty idProperty = entity.getIdProperty();
-        if (idProperty != null) {
-            String id = accessor.getProperty(idProperty, String.class);
-            Assert.notNull(id, "Id must not be null!");
+        if (data.getKey() == null && data.getKey().userKey == null) {
+            if (idProperty != null) {
+                String id = accessor.getProperty(idProperty, String.class);
+                Assert.notNull(id, "Id must not be null!");
 
-            data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
-        } else {
-            throw new IncompleteAnnotationException(Id.class, "Id"); // @Id annotation is mandatory
+                data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
+            } else {
+                // id is mandatory
+                throw new AerospikeException(ResultCode.OP_NOT_APPLICABLE, "Id has not been provided");
+            }
         }
 
         AerospikePersistentProperty versionProperty = entity.getVersionProperty();

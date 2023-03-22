@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.cache;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
+import com.aerospike.client.Value;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import org.springframework.cache.Cache;
@@ -201,6 +202,7 @@ public class AerospikeCache implements Cache {
 
     private void serializeAndPut(WritePolicy writePolicy, Object key, Object value) {
         AerospikeWriteData data = AerospikeWriteData.forWrite(getKey(key).namespace);
+        data.setKey(new Key(data.getKey().namespace, data.getKey().setName, Value.get(key.toString())));
         aerospikeConverter.write(value, data);
         client.put(writePolicy, getKey(key), data.getBinsAsArray());
     }
