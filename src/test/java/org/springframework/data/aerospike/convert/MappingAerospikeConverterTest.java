@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.SampleClasses;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
-import java.lang.annotation.IncompleteAnnotationException;
 import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -142,7 +142,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
         TestName name = new TestName("Bob", "Dewey");
 
         assertThatThrownBy(() -> converter.write(name, forWrite))
-            .isInstanceOf(IncompleteAnnotationException.class);
+            .isInstanceOf(AerospikeException.class);
     }
 
     @Test
