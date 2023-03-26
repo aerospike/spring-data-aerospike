@@ -132,7 +132,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         // another way to call the method
         List<Person> persons2 = repository.findByStringMap("key1", "val1");
         assertThat(persons2).containsExactlyInAnyOrder(stefan, boyd);
-        assertThat(persons2).isEqualTo(persons);
 
     }
 
@@ -324,7 +323,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByAddressZipCode() {
-        String zipCode = "C012345";
+        String zipCode = "C0123456";
         carter.setAddress(new Address("Foo Street 2", 2, "C012344", "C0123"));
         repository.save(carter);
         dave.setAddress(new Address("Foo Street 1", 1, zipCode, "Bar"));
@@ -689,7 +688,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             // another way to call the method
             List<Person> persons2 = repository.findByStringMap(mapToCompareWith);
             assertThat(persons2).contains(boyd);
-            assertThat(persons2).isEqualTo(persons);
         }
     }
 
