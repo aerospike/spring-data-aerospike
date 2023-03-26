@@ -155,7 +155,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                 parameters.forEachRemaining(params::add);
 
                 if (params.size() == 1) { // value
-                    Object next = parameters.next();
+                    Object next = params.get(0);
                     switch (op) {
                         case EQ:
                             op = FilterOperation.MAP_VALUE_EQ_BY_KEY;

@@ -415,8 +415,31 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findPersonsByFirstname() {
         List<Person> result = repository.findByFirstName("Leroi");
-
         assertThat(result).hasSize(2).containsOnly(leroi, leroi2);
+
+        List<Person> result1 = repository.findByFirstNameIgnoreCase("lEroi");
+        assertThat(result1).hasSize(2).containsOnly(leroi, leroi2);
+
+        List<Person> result2 = repository.findByFirstName("lEroi");
+        assertThat(result2).hasSize(0);
+    }
+
+    @Test
+    public void findPersonsByFirstnameNot() {
+        List<Person> result = repository.findByFirstNameNot("Leroi");
+        assertThat(result).doesNotContain(leroi, leroi2);
+
+        List<Person> result1 = repository.findByFirstNameNotIgnoreCase("lEroi");
+        assertThat(result1).doesNotContain(leroi, leroi2);
+
+        List<Person> result2 = repository.findByFirstNameNot("lEroi");
+        assertThat(result2).contains(leroi, leroi2);
+    }
+
+    @Test
+    public void findPersonsByFirstnameGreaterThan() {
+        List<Person> result = repository.findByFirstNameGreaterThan("Leroa");
+        assertThat(result).contains(leroi, leroi2);
     }
 
     @Test
@@ -690,7 +713,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             assertThat(carter.getAddress()).isNotEqualTo(address);
 
             List<Person> persons = repository.findByAddressIsNot(address);
-            assertThat(persons).containsOnly(carter);
+            assertThat(persons).containsExactlyInAnyOrder(carter, boyd);
         }
     }
 
@@ -714,14 +737,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByAddressLessThanOrEquals() {
+    public void findPersonsByAddressLessThan() {
         if (IndexUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 2", 2, "C0124", "C0123");
             assertThat(dave.getAddress()).isNotEqualTo(address);
             assertThat(carter.getAddress()).isEqualTo(address);
 
-            List<Person> persons = repository.findByAddressLessThanEqual(address);
-            assertThat(persons).containsOnly(dave);
+            List<Person> persons = repository.findByAddressLessThan(address);
+            assertThat(persons).containsExactlyInAnyOrder(dave, boyd);
         }
     }
 
@@ -731,9 +754,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             assertThat(boyd.getStringMap()).isNotEmpty();
             assertThat(stefan.getStringMap()).isNotEmpty();
 
-            Map<String, String> mapToCompare = Map.of("Key1", "Val1", "Key2", "Val2");
+            Map<String, String> mapToCompare = Map.of("Key", "Val", "Key2", "Val2");
             List<Person> persons = repository.findByStringMapGreaterThan(mapToCompare);
-            assertThat(persons).containsOnly(carter);
+            assertThat(persons).containsExactlyInAnyOrder(boyd, stefan);
         }
     }
 

@@ -103,14 +103,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAddressIsNot(Address address);
 
     /**
-     * Find all entities that satisfy the condition "have Address with less elements or with a corresponding
+     * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding
      * key-value lower in ordering than in the given argument" (find by POJO).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
      *
      * @param address - Address to compare with
      */
-    List<P> findByAddressLessThanEqual(Address address);
+    List<P> findByAddressLessThan(Address address);
 
     List<P> findByAddressZipCode(String zipCode);
 
@@ -464,6 +464,17 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
     List<P> findByFirstName(String string);
+
+    List<P> findByFirstNameNot(String string);
+
+    /**
+     * Find all entities that satisfy the condition "have firstName higher in ordering than the given string".
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param string - String to compare with
+     */
+    List<P> findByFirstNameGreaterThan(String string);
 
     List<P> findByFirstNameAndAge(String string, int i);
 

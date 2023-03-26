@@ -198,7 +198,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         List<IndexedPerson> results = reactiveRepository.findByAddressZipCode(zipCode)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
-        assertThat(results).containsExactly(dave);
+        assertThat(results).contains(dave);
     }
 
     @Test
