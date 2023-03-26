@@ -15,10 +15,12 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.Value;
+import lombok.Data;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
@@ -121,6 +123,26 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
         User read = converter.read(User.class, AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(bins)));
 
         assertThat(read).isEqualTo(user);
+    }
+
+    @Test
+    public void shouldThrowExceptionIfIdAnnotationNotGiven() {
+        @Data
+        class TestName {
+
+            final String firstName;
+            final String lastName;
+        }
+
+        MappingAerospikeConverter converter =
+            getMappingAerospikeConverter(new UserToAerospikeWriteDataConverter(),
+                new AerospikeReadDataToUserConverter());
+
+        AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
+        TestName name = new TestName("Bob", "Dewey");
+
+        assertThatThrownBy(() -> converter.write(name, forWrite))
+            .isInstanceOf(AerospikeException.class);
     }
 
     @Test

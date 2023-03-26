@@ -15,7 +15,9 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
+import com.aerospike.client.ResultCode;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
@@ -81,11 +83,15 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
         AerospikePersistentProperty idProperty = entity.getIdProperty();
-        if (idProperty != null) {
-            String id = accessor.getProperty(idProperty, String.class);
-            Assert.notNull(id, "Id must not be null!");
-
-            data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
+        if (data.getKey().userKey.getObject() == null || data.getKey().userKey.getObject().toString().isEmpty()) {
+            if (idProperty != null) {
+                String id = accessor.getProperty(idProperty, String.class);
+                Assert.notNull(id, "Id must not be null!");
+                data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
+            } else {
+                // id is mandatory
+                throw new AerospikeException(ResultCode.OP_NOT_APPLICABLE, "Id has not been provided");
+            }
         }
 
         AerospikePersistentProperty versionProperty = entity.getVersionProperty();
