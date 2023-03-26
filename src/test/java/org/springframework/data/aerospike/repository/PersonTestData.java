@@ -20,14 +20,13 @@ public class PersonTestData {
     public static final Person donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39)
         .strings(Arrays.asList("str1", "str2", "str3")).build();
     public static final Person oliver = Person.builder().id(nextId()).firstName("Oliver August").lastName("Matthews")
-        .age(4)
-        .build();
+        .age(4).build();
     public static final Person carter = Person.builder().id(nextId()).firstName("Carter").lastName("Beauford").age(49)
         .intMap(of("key1", 0, "key2", 1))
         .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
     public static final Person boyd = Person.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45)
-        .stringMap(of("key1", "val1", "key2", "val2"))
-        .address(new Address(null, null, null, null)).build();
+        .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
+        .build();
     public static final Person stefan = Person.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34)
         .stringMap(of("key1", "val1", "key2", "val2", "key3", "val3")).build();
     public static final Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(41)

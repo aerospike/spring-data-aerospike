@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -210,8 +209,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                             break;
                     }
                 } else {
-                    throw new AerospikeException(
-                        "Not enough parameters (propertyType: Map, filterOperation: " + op + ")");
+                    fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
+                    qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
                 }
             } else { // if it is neither a collection nor a map
                 if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)

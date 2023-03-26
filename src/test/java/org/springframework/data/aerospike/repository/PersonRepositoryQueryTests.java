@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -126,8 +127,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<Person> persons = repository.findByStringMapEquals("key1", "val1");
+        assertThat(persons).containsExactlyInAnyOrder(stefan, boyd);
 
-        assertThat(persons).contains(stefan, boyd);
+        // another way to call the method
+        List<Person> persons2 = repository.findByStringMap("key1", "val1");
+        assertThat(persons2).containsExactlyInAnyOrder(stefan, boyd);
+        assertThat(persons2).isEqualTo(persons);
+
     }
 
     @Test
@@ -649,6 +655,22 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findPersonsByStringMap() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Map<String, String> mapToCompareWith = Map.of("key1", "val1", "key2", "val2");
+            assertThat(boyd.getStringMap()).isEqualTo(mapToCompareWith);
+
+            List<Person> persons = repository.findByStringMapEquals(mapToCompareWith);
+            assertThat(persons).contains(boyd);
+
+            // another way to call the method
+            List<Person> persons2 = repository.findByStringMap(mapToCompareWith);
+            assertThat(persons2).contains(boyd);
+            assertThat(persons2).isEqualTo(persons);
+        }
+    }
+
+    @Test
     public void findPersonsByAddress() {
         if (IndexUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
@@ -657,6 +679,61 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
             List<Person> persons = repository.findByAddress(address);
             assertThat(persons).containsOnly(dave);
+        }
+    }
+
+    @Test
+    public void findPersonsByAddressNotEquals() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
+            assertThat(dave.getAddress()).isEqualTo(address);
+            assertThat(carter.getAddress()).isNotEqualTo(address);
+
+            List<Person> persons = repository.findByAddressIsNot(address);
+            assertThat(persons).containsOnly(carter);
+        }
+    }
+
+    @Test
+    public void findPersonsByIntMapNotEquals() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);
+            assertThat(leroi.getIntMap()).isEqualTo(mapToCompareWith);
+            assertThat(carter.getIntMap()).isEqualTo(mapToCompareWith);
+
+            carter.setIntMap(Map.of("key1", 1, "key2", 2));
+            repository.save(carter);
+            assertThat(carter.getIntMap()).isNotEqualTo(mapToCompareWith);
+
+            List<Person> persons = repository.findByIntMapIsNot(mapToCompareWith);
+            assertThat(persons).contains(carter);
+
+            carter.setIntMap(mapToCompareWith);
+            repository.save(carter);
+        }
+    }
+
+    @Test
+    public void findPersonsByAddressLessThanOrEquals() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Address address = new Address("Foo Street 2", 2, "C0124", "C0123");
+            assertThat(dave.getAddress()).isNotEqualTo(address);
+            assertThat(carter.getAddress()).isEqualTo(address);
+
+            List<Person> persons = repository.findByAddressLessThanEqual(address);
+            assertThat(persons).containsOnly(dave);
+        }
+    }
+
+    @Test
+    public void findPersonsByStringMapGreaterThan() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            assertThat(boyd.getStringMap()).isNotEmpty();
+            assertThat(stefan.getStringMap()).isNotEmpty();
+
+            Map<String, String> mapToCompare = Map.of("Key1", "Val1", "Key2", "Val2");
+            List<Person> persons = repository.findByStringMapGreaterThan(mapToCompare);
+            assertThat(persons).containsOnly(carter);
         }
     }
 
