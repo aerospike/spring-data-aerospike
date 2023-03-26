@@ -36,8 +36,10 @@ import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.TypeInformation;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Peter Milne
@@ -149,9 +151,11 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             }
         } else {
             if (propertyType.isMap()) {
-                if (parameters.hasNext()) {
-                    Object next = parameters.next();
+                List<Object> params = new ArrayList<>();
+                parameters.forEachRemaining(params::add);
 
+                if (params.size() == 1) { // value
+                    Object next = parameters.next();
                     switch (op) {
                         case EQ:
                             op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
@@ -208,9 +212,12 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                             qb.setValue3(Value.get(next)); // contains upper limit (inclusive)
                             break;
                     }
-                } else {
-                    fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
+                } else if (params.size() == 0) {
+                    fieldName = part.getProperty().getSegment(); // Map bin name, later passed to Exp.mapBin()
                     qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
+                } else {
+                    throw new IllegalArgumentException(
+                        "Expected not more than 2 arguments (propertyType: Map, filterOperation: " + op + ")");
                 }
             } else { // if it is neither a collection nor a map
                 if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)
