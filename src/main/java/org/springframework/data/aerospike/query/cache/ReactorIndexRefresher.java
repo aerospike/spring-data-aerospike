@@ -52,7 +52,7 @@ public class ReactorIndexRefresher {
             }).then();
     }
 
-    public void clearCache() {
-        indexesCacheUpdater.update(IndexesInfo.empty());
+    public Mono<Void> clearCache() {
+        return Mono.fromRunnable(() -> indexesCacheUpdater.update(IndexesInfo.empty()));
     }
 }
