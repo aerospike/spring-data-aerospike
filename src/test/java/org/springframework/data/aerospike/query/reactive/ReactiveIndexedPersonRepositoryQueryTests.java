@@ -86,6 +86,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_values_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_keys_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_values_index");
+        reactorIndexRefresher.clearCache();
+
     }
 
     @Test

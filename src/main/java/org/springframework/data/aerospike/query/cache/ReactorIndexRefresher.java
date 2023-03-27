@@ -51,4 +51,8 @@ public class ReactorIndexRefresher {
                 log.debug("Loaded indexes: {}", cache.indexes);
             }).then();
     }
+
+    public void clearCache() {
+        indexesCacheUpdater.update(IndexesInfo.empty());
+    }
 }

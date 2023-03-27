@@ -57,4 +57,8 @@ public class IndexRefresher {
         log.debug("Loaded indexes: {}", cache.indexes);
         this.indexesCacheUpdater.update(cache);
     }
+
+    public void clearCache() {
+        indexesCacheUpdater.update(IndexesInfo.empty());
+    }
 }

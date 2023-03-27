@@ -46,6 +46,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void beforeAll() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         repository.saveAll(all);
+        indexRefresher.clearCache();
     }
 
     @Test

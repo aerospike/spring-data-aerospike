@@ -6,6 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.config.ReactiveTestConfig;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 
 import java.io.Serializable;
 
@@ -23,6 +24,8 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     protected ReactiveAerospikeTemplate reactiveTemplate;
     @Autowired
     protected IAerospikeReactorClient reactorClient;
+    @Autowired
+    protected ReactorIndexRefresher reactorIndexRefresher;
 
     protected <T> T findById(Serializable id, Class<T> type) {
         return reactiveTemplate.findById(id, type).block();
