@@ -51,4 +51,8 @@ public class ReactorIndexRefresher {
                 log.debug("Loaded indexes: {}", cache.indexes);
             }).then();
     }
+
+    public Mono<Void> clearCache() {
+        return Mono.fromRunnable(() -> indexesCacheUpdater.update(IndexesInfo.empty()));
+    }
 }

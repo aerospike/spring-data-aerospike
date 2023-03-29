@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +36,10 @@ import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.TypeInformation;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author Peter Milne
@@ -150,9 +151,11 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             }
         } else {
             if (propertyType.isMap()) {
-                if (parameters.hasNext()) {
-                    Object next = parameters.next();
+                List<Object> params = new ArrayList<>();
+                parameters.forEachRemaining(params::add);
 
+                if (params.size() == 1) { // value
+                    Object next = params.get(0);
                     switch (op) {
                         case EQ:
                             op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
@@ -209,9 +212,12 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                             qb.setValue3(Value.get(next)); // contains upper limit (inclusive)
                             break;
                     }
+                } else if (params.size() == 0) {
+                    fieldName = part.getProperty().getSegment(); // Map bin name, later passed to Exp.mapBin()
+                    qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
                 } else {
-                    throw new AerospikeException(
-                        "Not enough parameters (propertyType: Map, filterOperation: " + op + ")");
+                    throw new IllegalArgumentException(
+                        "Expected not more than 2 arguments (propertyType: Map, filterOperation: " + op + ")");
                 }
             } else { // if it is neither a collection nor a map
                 if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)

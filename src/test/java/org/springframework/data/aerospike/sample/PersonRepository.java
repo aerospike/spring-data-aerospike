@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -92,6 +93,24 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param address - Address to check for equality
      */
     List<P> findByAddress(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have existing address not equal to the given argument" (find by
+     * POJO)
+     *
+     * @param address - Address to compare with
+     */
+    List<P> findByAddressIsNot(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding
+     * key-value lower in ordering than in the given argument" (find by POJO).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param address - Address to compare with
+     */
+    List<P> findByAddressLessThan(Address address);
 
     List<P> findByAddressZipCode(String zipCode);
 
@@ -191,7 +210,47 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key   Map key
      * @param value Value of the key
      */
+    List<P> findByStringMap(String key, String value);
+
+
+    /**
+     * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by map)
+     *
+     * @param map Map to compare stringMap with
+     */
+    List<P> findByStringMapEquals(Map<String, String> map);
+
+    /**
+     * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by map)
+     *
+     * @param map Map to compare stringMap with
+     */
+    List<P> findByStringMap(Map<String, String> map);
+
+    /**
+     * Find all entities that satisfy the condition "have stringMap with more elements or with a corresponding
+     * key-value higher in ordering than in the given argument" (find by POJO).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param map - Map to compare with
+     */
+    List<P> findByStringMapGreaterThan(Map<String, String> map);
+
+    /**
+     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+     *
+     * @param key   Map key
+     * @param value Value of the key
+     */
     List<P> findByIntMapEquals(String key, int value);
+
+    /**
+     * Find all entities with existing intMap not equal to the given argument
+     *
+     * @param map Map to compare intMap with
+     */
+    List<P> findByIntMapIsNot(Map<String, Integer> map);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and NOT the given value"
@@ -256,8 +315,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendAge(int value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the age NOT equal to the given integer" (find by
-     * POJO field)
+     * Find all entities that satisfy the condition "have a friend with the existing age NOT equal to the given integer"
+     * (find by POJO field)
      *
      * @param value - number to check for inequality
      */
@@ -405,6 +464,17 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
     List<P> findByFirstName(String string);
+
+    List<P> findByFirstNameNot(String string);
+
+    /**
+     * Find all entities that satisfy the condition "have firstName higher in ordering than the given string".
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param string - String to compare with
+     */
+    List<P> findByFirstNameGreaterThan(String string);
 
     List<P> findByFirstNameAndAge(String string, int i);
 

@@ -60,9 +60,9 @@ public class StatementBuilder {
             Qualifier qualifier = qualifiers[i];
 
             if (qualifier == null) continue;
-            if (qualifier.getOperation() ==
-                FilterOperation.AND) { // no sense to use secondary index in case of OR as it requires to enlarge
-                // selection to more than 1 field
+            if (qualifier.getOperation() == FilterOperation.AND) {
+                // no sense to use secondary index in case of OR
+                // as it requires to enlarge selection to more than 1 field
                 for (Qualifier q : qualifier.getQualifiers()) {
                     if (q != null && isIndexedBin(stmt, q)) {
                         Filter filter = q.asFilter();

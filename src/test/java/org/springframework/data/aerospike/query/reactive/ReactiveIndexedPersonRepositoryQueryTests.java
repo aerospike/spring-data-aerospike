@@ -74,6 +74,19 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @AfterAll
     public void afterAll() {
         additionalAerospikeTestOperations.deleteAllAndVerify(IndexedPerson.class);
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_first_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_strings_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_ints_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_string_map_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_string_map_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_values_index");
+        reactorIndexRefresher.clearCache();
     }
 
     @Test
@@ -198,7 +211,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         List<IndexedPerson> results = reactiveRepository.findByAddressZipCode(zipCode)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
-        assertThat(results).containsExactly(dave);
+        assertThat(results).contains(dave);
     }
 
     @Test

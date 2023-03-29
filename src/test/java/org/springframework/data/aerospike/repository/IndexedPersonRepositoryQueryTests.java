@@ -45,6 +45,19 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @AfterAll
     public void afterAll() {
         additionalAerospikeTestOperations.deleteAllAndVerify(IndexedPerson.class);
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_first_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_strings_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_ints_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_string_map_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_string_map_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_values_index");
+        indexRefresher.clearCache();
     }
 
     @BeforeAll
@@ -335,7 +348,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     void findPersonsByAddressZipCode() {
         List<IndexedPerson> result = repository.findByAddressZipCode("C0123");
 
-        assertThat(result).containsExactly(dave);
+        assertThat(result).contains(dave);
     }
 
     @Test

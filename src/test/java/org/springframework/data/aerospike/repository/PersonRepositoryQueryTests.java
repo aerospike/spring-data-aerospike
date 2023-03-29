@@ -20,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void beforeAll() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         repository.saveAll(all);
+        indexRefresher.clearCache();
     }
 
     @Test
@@ -126,8 +128,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<Person> persons = repository.findByStringMapEquals("key1", "val1");
+        assertThat(persons).containsExactlyInAnyOrder(stefan, boyd);
 
-        assertThat(persons).contains(stefan, boyd);
+        // another way to call the method
+        List<Person> persons2 = repository.findByStringMap("key1", "val1");
+        assertThat(persons2).containsExactlyInAnyOrder(stefan, boyd);
+
     }
 
     @Test
@@ -318,7 +324,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByAddressZipCode() {
-        String zipCode = "C012345";
+        String zipCode = "C0123456";
         carter.setAddress(new Address("Foo Street 2", 2, "C012344", "C0123"));
         repository.save(carter);
         dave.setAddress(new Address("Foo Street 1", 1, zipCode, "Bar"));
@@ -409,8 +415,31 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findPersonsByFirstname() {
         List<Person> result = repository.findByFirstName("Leroi");
-
         assertThat(result).hasSize(2).containsOnly(leroi, leroi2);
+
+        List<Person> result1 = repository.findByFirstNameIgnoreCase("lEroi");
+        assertThat(result1).hasSize(2).containsOnly(leroi, leroi2);
+
+        List<Person> result2 = repository.findByFirstName("lEroi");
+        assertThat(result2).hasSize(0);
+    }
+
+    @Test
+    public void findPersonsByFirstnameNot() {
+        List<Person> result = repository.findByFirstNameNot("Leroi");
+        assertThat(result).doesNotContain(leroi, leroi2);
+
+        List<Person> result1 = repository.findByFirstNameNotIgnoreCase("lEroi");
+        assertThat(result1).doesNotContain(leroi, leroi2);
+
+        List<Person> result2 = repository.findByFirstNameNot("lEroi");
+        assertThat(result2).contains(leroi, leroi2);
+    }
+
+    @Test
+    public void findPersonsByFirstnameGreaterThan() {
+        List<Person> result = repository.findByFirstNameGreaterThan("Leroa");
+        assertThat(result).contains(leroi, leroi2);
     }
 
     @Test
@@ -649,6 +678,21 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findPersonsByStringMap() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Map<String, String> mapToCompareWith = Map.of("key1", "val1", "key2", "val2");
+            assertThat(boyd.getStringMap()).isEqualTo(mapToCompareWith);
+
+            List<Person> persons = repository.findByStringMapEquals(mapToCompareWith);
+            assertThat(persons).contains(boyd);
+
+            // another way to call the method
+            List<Person> persons2 = repository.findByStringMap(mapToCompareWith);
+            assertThat(persons2).contains(boyd);
+        }
+    }
+
+    @Test
     public void findPersonsByAddress() {
         if (IndexUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
@@ -657,6 +701,61 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
             List<Person> persons = repository.findByAddress(address);
             assertThat(persons).containsOnly(dave);
+        }
+    }
+
+    @Test
+    public void findPersonsByAddressNotEquals() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
+            assertThat(dave.getAddress()).isEqualTo(address);
+            assertThat(carter.getAddress()).isNotEqualTo(address);
+
+            List<Person> persons = repository.findByAddressIsNot(address);
+            assertThat(persons).containsExactlyInAnyOrder(carter, boyd);
+        }
+    }
+
+    @Test
+    public void findPersonsByIntMapNotEquals() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);
+            assertThat(leroi.getIntMap()).isEqualTo(mapToCompareWith);
+            assertThat(carter.getIntMap()).isEqualTo(mapToCompareWith);
+
+            carter.setIntMap(Map.of("key1", 1, "key2", 2));
+            repository.save(carter);
+            assertThat(carter.getIntMap()).isNotEqualTo(mapToCompareWith);
+
+            List<Person> persons = repository.findByIntMapIsNot(mapToCompareWith);
+            assertThat(persons).contains(carter);
+
+            carter.setIntMap(mapToCompareWith);
+            repository.save(carter);
+        }
+    }
+
+    @Test
+    public void findPersonsByAddressLessThan() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Address address = new Address("Foo Street 2", 2, "C0124", "C0123");
+            assertThat(dave.getAddress()).isNotEqualTo(address);
+            assertThat(carter.getAddress()).isEqualTo(address);
+
+            List<Person> persons = repository.findByAddressLessThan(address);
+            assertThat(persons).containsExactlyInAnyOrder(dave, boyd);
+        }
+    }
+
+    @Test
+    public void findPersonsByStringMapGreaterThan() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            assertThat(boyd.getStringMap()).isNotEmpty();
+            assertThat(stefan.getStringMap()).isNotEmpty();
+
+            Map<String, String> mapToCompare = Map.of("Key", "Val", "Key2", "Val2");
+            List<Person> persons = repository.findByStringMapGreaterThan(mapToCompare);
+            assertThat(persons).containsExactlyInAnyOrder(boyd, stefan);
         }
     }
 
