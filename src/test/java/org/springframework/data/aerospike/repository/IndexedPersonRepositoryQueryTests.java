@@ -1,5 +1,7 @@
 package org.springframework.data.aerospike.repository;
 
+import com.aerospike.client.Value;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterAll;
@@ -57,6 +59,12 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_values_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_keys_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_friend_address_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_friend_address_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_friend_bestFriend_address_keys_index");
         indexRefresher.clearCache();
     }
 
@@ -88,6 +96,15 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
             "indexed_person_address_keys_index", "address", IndexType.STRING, IndexCollectionType.MAPKEYS);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
             "indexed_person_address_values_index", "address", IndexType.STRING, IndexCollectionType.MAPVALUES);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
+            "indexed_person_friend_address_keys_index", "friend", IndexType.STRING,
+            IndexCollectionType.MAPKEYS, CTX.mapKey(Value.get("address")));
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
+            "indexed_person_friend_address_values_index", "friend", IndexType.STRING,
+            IndexCollectionType.MAPVALUES, CTX.mapValue(Value.get("address")));
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
+            "indexed_person_friend_bestFriend_address_keys_index", "friend", IndexType.STRING,
+            IndexCollectionType.MAPKEYS, CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address")));
         indexRefresher.refreshIndexes();
     }
 
@@ -307,7 +324,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("key1",
             CriteriaDefinition.AerospikeMapCriteria.KEY);
-
         assertThat(persons).contains(stefan, boyd);
     }
 
@@ -318,7 +334,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("val1",
             CriteriaDefinition.AerospikeMapCriteria.VALUE);
-
         assertThat(persons).contains(stefan, boyd);
     }
 
@@ -328,7 +343,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(leroi.getIntMap()).containsValue(0);
 
         Iterable<IndexedPerson> result = repository.findByIntMapEquals("key1", 0);
-
         assertThat(result).contains(leroi);
     }
 
@@ -340,15 +354,51 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<IndexedPerson> persons = repository.findByStringMapEquals("key1", "val1");
-
         assertThat(persons).contains(stefan, boyd);
     }
 
     @Test
     void findPersonsByAddressZipCode() {
+        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
         List<IndexedPerson> result = repository.findByAddressZipCode("C0123");
-
         assertThat(result).contains(dave);
+    }
+
+    @Test
+    void findPersonsByFriendAddressZipCode() {
+        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
+        carter.setFriend(dave);
+        repository.save(carter);
+
+        List<IndexedPerson> result = repository.findByFriendAddressZipCode("C0123");
+        assertThat(result).contains(carter);
+        setFriendsToNull(carter);
+    }
+
+    @Test
+    void findPersonsByFriendBestFriendAddressZipCode() {
+        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
+        carter.setBestFriend(dave);
+        repository.save(carter);
+        donny.setFriend(carter);
+        repository.save(donny);
+
+        List<IndexedPerson> result = repository.findByFriendBestFriendAddressZipCode("C0123");
+        assertThat(result).contains(donny);
+        setFriendsToNull(carter, donny);
+    }
+
+    @Test
+    void findPersonsByFriendBestFriendAddressApartment() {
+        assertThat(dave.getAddress().getApartment()).isEqualTo(1);
+        carter.setBestFriend(dave);
+        repository.save(carter);
+        donny.setFriend(carter);
+        repository.save(donny);
+
+        List<IndexedPerson> result = repository.findByFriendBestFriendAddressApartment(1);
+        assertThat(result).contains(donny);
+        setFriendsToNull(carter, donny);
     }
 
     @Test
@@ -357,7 +407,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
 
         List<IndexedPerson> persons = repository.findByIntMapGreaterThan("key2", 0);
-
         assertThat(persons).contains(leroi);
     }
 
@@ -367,7 +416,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
 
         List<IndexedPerson> persons = repository.findByIntMapLessThanEqual("key2", 1);
-
         assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
     }
 
@@ -379,7 +427,17 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
 
         List<IndexedPerson> persons = repository.findByIntMapBetween("key2", 0, 1);
-
         assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
+    }
+
+    private void setFriendsToNull(IndexedPerson... persons) {
+        for (IndexedPerson person : persons) {
+            person.setFriend(null);
+            repository.save(person);
+        }
+        for (IndexedPerson person : persons) {
+            person.setBestFriend(null);
+            repository.save(person);
+        }
     }
 }

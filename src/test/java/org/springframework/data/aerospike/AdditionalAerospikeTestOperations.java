@@ -4,6 +4,7 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -90,6 +91,12 @@ public abstract class AdditionalAerospikeTestOperations {
         Awaitility.await()
             .atMost(Duration.ofSeconds(10))
             .until(() -> isEntityClassSetEmpty(entityClass));
+    }
+
+    public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName,
+                                           IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
+        IndexUtils.createIndex(client, getNamespace(), getSetName(entityClass), indexName, binName, indexType,
+            indexCollectionType, ctx);
     }
 
     public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName,

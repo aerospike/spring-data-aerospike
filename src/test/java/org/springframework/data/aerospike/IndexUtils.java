@@ -4,6 +4,7 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Info;
 import com.aerospike.client.ResultCode;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
@@ -31,7 +32,7 @@ public class IndexUtils {
         }
     }
 
-    public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
+public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
                                    String binName, IndexType indexType) {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
             waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType));
@@ -51,6 +52,19 @@ public class IndexUtils {
             // ignoring ResultCode.INDEX_ALREADY_EXISTS for Aerospike Server prior to ver. 6.1.0.1
             ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName,
                 indexName, binName, indexType, collectionType));
+        }
+    }
+
+    public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
+                                   String binName, IndexType indexType, IndexCollectionType collectionType,
+                                   CTX[] ctx) {
+        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
+            waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType,
+                collectionType, ctx));
+        } else {
+            // ignoring ResultCode.INDEX_ALREADY_EXISTS for Aerospike Server prior to ver. 6.1.0.1
+            ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName,
+                indexName, binName, indexType, collectionType, ctx));
         }
     }
 

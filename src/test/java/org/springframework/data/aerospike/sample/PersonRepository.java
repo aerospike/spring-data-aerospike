@@ -103,8 +103,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAddressIsNot(Address address);
 
     /**
-     * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding
-     * key-value lower in ordering than in the given argument" (find by POJO).
+     * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding key-value
+     * lower in ordering than in the given argument" (find by POJO).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
      *
@@ -228,8 +228,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMap(Map<String, String> map);
 
     /**
-     * Find all entities that satisfy the condition "have stringMap with more elements or with a corresponding
-     * key-value higher in ordering than in the given argument" (find by POJO).
+     * Find all entities that satisfy the condition "have stringMap with more elements or with a corresponding key-value
+     * higher in ordering than in the given argument" (find by POJO).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
      *
@@ -357,11 +357,27 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities that satisfy the condition "have a friend with the address with zipCode equal to the given
-     * argument" (find by POJO field)
+     * argument" (find by nested POJO field)
      *
      * @param zipCode - Zip code to check for equality
      */
     List<P> findByFriendAddressZipCode(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with zipCode
+     * equal to the given argument" (find by nested POJO field)
+     *
+     * @param zipCode - Zip code to check for equality
+     */
+    List<P> findByFriendBestFriendAddressZipCode(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with apartment
+     * equal to the given argument" (find by nested POJO field)
+     *
+     * @param apartment - Apartment number to check for equality
+     */
+    List<P> findByFriendBestFriendAddressApartment(Integer apartment);
 
     /**
      * Find all entities that satisfy the condition "have a friend who has a friend with the address with zipCode equal
