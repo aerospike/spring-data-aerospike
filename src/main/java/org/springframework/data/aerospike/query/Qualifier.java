@@ -239,16 +239,12 @@ public class Qualifier implements Map<String, Object>, Serializable {
          */
         private static String getRegexp(String base, FilterOperation op) {
             String escapedBase = escapeBRERegexp(base);
-            if (op == FilterOperation.STARTS_WITH) {
-                return "^" + escapedBase;
-            }
-            if (op == FilterOperation.ENDS_WITH) {
-                return escapedBase + "$";
-            }
-            if (op == FilterOperation.EQ) {
-                return "^" + escapedBase + "$";
-            }
-            return escapedBase;
+            return switch (op) {
+                case STARTS_WITH -> "^" + escapedBase;
+                case ENDS_WITH -> escapedBase + "$";
+                case EQ -> "^" + escapedBase + "$";
+                default -> escapedBase;
+            };
         }
 
         public static String getStartsWith(String base) {

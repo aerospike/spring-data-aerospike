@@ -171,6 +171,18 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByMapKeyValueLike() {
+        assertThat(stefan.getStringMap()).containsKey("key1");
+        assertThat(stefan.getStringMap()).containsValue("val1");
+        assertThat(boyd.getStringMap()).containsKey("key1");
+        assertThat(boyd.getStringMap()).containsValue("val1");
+
+        List<Person> persons = repository.findByStringMapLike("key1", ".*al1$");
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
     void findByMapKeyValueGreaterThan() {
         assertThat(leroi.getIntMap()).containsKey("key2");
         assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
@@ -207,6 +219,21 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> persons = repository.findByFirstNameContaining("er");
 
         assertThat(persons).containsExactlyInAnyOrder(carter, oliver, leroi, leroi2);
+    }
+
+    @Test
+    void findByFirstNameLikeWithWildcard() {
+        List<Person> persons = repository.findByFirstNameLike("Ca.*er");
+        assertThat(persons).contains(carter);
+
+        List<Person> persons0 = repository.findByFirstNameLikeIgnoreCase("CART.*er");
+        assertThat(persons0).contains(carter);
+
+        List<Person> persons1 = repository.findByFirstNameLike(".*ve.*");
+        assertThat(persons1).contains(dave, oliver);
+
+        List<Person> persons2 = repository.findByFirstNameLike("Carr.*er");
+        assertThat(persons2).isEmpty();
     }
 
     @Test
@@ -613,18 +640,29 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByFriendFirstnameStartsWith() {
-        dave.setFriend(oliver);
-        repository.save(dave);
+        stefan.setFriend(oliver);
+        repository.save(stefan);
         carter.setFriend(dave);
         repository.save(carter);
 
         List<Person> result = repository.findByFriendFirstNameStartsWith("D");
-
         assertThat(result)
             .hasSize(1)
             .containsExactly(carter);
 
-        setFriendsToNull(dave, carter);
+        setFriendsToNull(stefan, carter);
+    }
+
+    @Test
+    public void findPersonsByFriendLastNameLike() {
+        oliver.setFriend(dave);
+        repository.save(oliver);
+        carter.setFriend(stefan);
+        repository.save(carter);
+
+        List<Person> result = repository.findByFriendLastNameLike(".*tthe.*");
+        assertThat(result).contains(oliver);
+        setFriendsToNull(oliver, carter);
     }
 
     @Test

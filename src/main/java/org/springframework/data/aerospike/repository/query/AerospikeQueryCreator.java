@@ -99,6 +99,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                 v2 = parameters.next();
                 break;
             case LIKE:
+                op = FilterOperation.LIKE;
+                break;
             case STARTING_WITH:
                 op = FilterOperation.STARTS_WITH;
                 break;
@@ -186,6 +188,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                             op = FilterOperation.MAP_VALUE_STARTS_WITH_BY_KEY;
                             setQbValuesForMapByKey(qb, v1, next);
                             break;
+                        case LIKE:
+                            op = FilterOperation.MAP_VALUE_LIKE_BY_KEY;
+                            setQbValuesForMapByKey(qb, v1, next);
+                            break;
                         case ENDS_WITH:
                             op = FilterOperation.MAP_VALUE_ENDS_WITH_BY_KEY;
                             setQbValuesForMapByKey(qb, v1, next);
@@ -227,7 +233,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                             break;
                         case NOTEQ:
                             op = FilterOperation.MAP_VALUE_NOTEQ_BY_KEY;
-                            qb.setDotPath(part.getProperty().toDotPath());
                             break;
                         case GT:
                             op = FilterOperation.MAP_VALUE_GT_BY_KEY;
@@ -248,6 +253,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         case STARTS_WITH:
                             op = FilterOperation.MAP_VALUE_STARTS_WITH_BY_KEY;
                             break;
+                        case LIKE:
+                            op = FilterOperation.MAP_VALUE_LIKE_BY_KEY;
+                            break;
                         case ENDS_WITH:
                             op = FilterOperation.MAP_VALUE_ENDS_WITH_BY_KEY;
                             break;
@@ -260,7 +268,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                     fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
                     qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
                     qb.setDotPath(part.getProperty().toDotPath());
-                } else if (isPojo(part)) { // if it is a first level POJO or a Map
+                } else if (isPojo(part)) { // if it is a first level POJO
                     // if it is a POJO compared for equality it already has op == FilterOperation.EQ
                     fieldName = part.getProperty().getSegment(); // POJO name, later passed to Exp.mapBin()
                     qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
