@@ -49,6 +49,17 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         indexRefresher.clearCache();
     }
 
+    private void setFriendsToNull(Person... persons) {
+        for (Person person : persons) {
+            person.setFriend(null);
+            repository.save(person);
+        }
+        for (Person person : persons) {
+            person.setBestFriend(null);
+            repository.save(person);
+        }
+    }
+
     @Test
     void findByListContainingString_forExistingResult() {
         assertThat(repository.findByStringsContaining("str1")).containsOnly(dave, donny);
@@ -75,6 +86,22 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> persons = repository.findByIntsContaining(7777);
 
         assertThat(persons).isEmpty();
+    }
+
+    @Test
+    void findByActiveTrue() {
+        boolean initialState = dave.isActive();
+        if (!initialState) {
+            dave.setActive(true);
+            repository.save(dave);
+        }
+        List<Person> persons = repository.findPersonsByActive(true);
+        assertThat(persons).contains(dave);
+
+        if (!initialState) {
+            dave.setActive(false);
+            repository.save(dave);
+        }
     }
 
     @Test
@@ -279,7 +306,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByLastname() {
+    public void findPersonsByLastName() {
         List<Person> result = repository.findByLastName("Beauford");
 
         assertThat(result)
@@ -288,7 +315,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsSomeFieldsByLastnameProjection() {
+    public void findPersonsSomeFieldsByLastNameProjection() {
         List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
 
         assertThat(result)
@@ -297,7 +324,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findDynamicTypeByLastnameDynamicProjection() {
+    public void findDynamicTypeByLastNameDynamicProjection() {
         List<PersonSomeFields> result = repository.findByLastName("Beauford", PersonSomeFields.class);
 
         assertThat(result)
@@ -322,13 +349,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .containsExactly(carter);
 
         setFriendsToNull(oliver, dave, carter);
-    }
-
-    private void setFriendsToNull(Person... persons) {
-        for (Person person : persons) {
-            person.setFriend(null);
-            repository.save(person);
-        }
     }
 
     @Test
@@ -440,7 +460,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstname() {
+    public void findPersonsByFirstName() {
         List<Person> result = repository.findByFirstName("Leroi");
         assertThat(result).hasSize(2).containsOnly(leroi, leroi2);
 
@@ -452,7 +472,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstnameNot() {
+    public void findPersonsByFirstNameNot() {
         List<Person> result = repository.findByFirstNameNot("Leroi");
         assertThat(result).doesNotContain(leroi, leroi2);
 
@@ -464,13 +484,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstnameGreaterThan() {
+    public void findPersonsByFirstNameGreaterThan() {
         List<Person> result = repository.findByFirstNameGreaterThan("Leroa");
         assertThat(result).contains(leroi, leroi2);
     }
 
     @Test
-    public void findByLastnameNot_forExistingResult() {
+    public void findByLastNameNot_forExistingResult() {
         Stream<Person> result = repository.findByLastNameNot("Moore");
 
         assertThat(result)
@@ -479,7 +499,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findByFirstnameNotIn_forEmptyResult() {
+    public void findByFirstNameNotIn_forEmptyResult() {
         Set<String> allFirstNames = all.stream().map(Person::getFirstName).collect(Collectors.toSet());
 //		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(allFirstNames))
@@ -490,7 +510,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findByFirstnameNotIn_forExistingResult() {
+    public void findByFirstNameNotIn_forExistingResult() {
 //		Stream<Person> result = repository.findByFirstnameNotIn(Collections.singleton("Alicia"));
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(Collections.singleton("Alicia")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -500,14 +520,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findByFirstnameIn_forEmptyResult() {
+    public void findByFirstNameIn_forEmptyResult() {
         Stream<Person> result = repository.findByFirstNameIn(Arrays.asList("Anastasiia", "Daniil"));
 
         assertThat(result).isEmpty();
     }
 
     @Test
-    public void findByFirstnameIn_forExistingResult() {
+    public void findByFirstNameIn_forExistingResult() {
         Stream<Person> result = repository.findByFirstNameIn(Arrays.asList("Alicia", "Stefan"));
 
         assertThat(result).contains(alicia, stefan);
@@ -623,7 +643,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstnameAndByAge() {
+    public void findPersonsByFirstNameAndByAge() {
         List<Person> result = repository.findByFirstNameAndAge("Leroi", 25);
         assertThat(result).containsOnly(leroi2);
 
@@ -632,14 +652,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstnameStartsWith() {
+    public void findPersonsByFirstNameStartsWith() {
         List<Person> result = repository.findByFirstNameStartsWith("D");
 
         assertThat(result).containsOnly(dave, donny, douglas);
     }
 
     @Test
-    public void findPersonsByFriendFirstnameStartsWith() {
+    public void findPersonsByFriendFirstNameStartsWith() {
         stefan.setFriend(oliver);
         repository.save(stefan);
         carter.setFriend(dave);
