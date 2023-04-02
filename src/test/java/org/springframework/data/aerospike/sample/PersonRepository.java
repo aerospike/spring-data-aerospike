@@ -146,6 +146,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findPersonByFirstName(String firstName);
 
+    List<P> findPersonsByActive(boolean isActive);
+
+    List<P> findPersonsByActiveAndFirstName(boolean isActive, String firstName);
+
     @SuppressWarnings("UnusedReturnValue")
     long countByLastName(String lastName);
 
