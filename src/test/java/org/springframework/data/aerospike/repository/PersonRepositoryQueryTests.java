@@ -249,7 +249,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByFirstNameLikeWithWildcard() {
+    void findByFirstNameLike() { // with a wildcard
         List<Person> persons = repository.findByFirstNameLike("Ca.*er");
         assertThat(persons).contains(carter);
 
