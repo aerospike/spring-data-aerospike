@@ -168,7 +168,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findsPersonsByLastname() {
+    public void findsPersonsByLastName() {
         List<IndexedPerson> result = repository.findByLastName("Beauford");
 
         assertThat(result)
@@ -177,8 +177,19 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findsPersonsByFirstname() {
+    public void findsPersonsByFirstName() {
         List<IndexedPerson> result = repository.findByFirstName("Leroi");
+
+        assertThat(result)
+            .containsOnly(leroi, leroi2)
+            .hasSize(2);
+    }
+
+    @Test
+    public void findsPersonsByActiveAndFirstName() {
+        assertThat(leroi.isActive()).isFalse();
+        assertThat(leroi2.isActive()).isFalse();
+        List<IndexedPerson> result = repository.findPersonsByActiveAndFirstName(false, "Leroi");
 
         assertThat(result)
             .containsOnly(leroi, leroi2)
@@ -260,7 +271,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findsPersonsByFirstnameAndByAge() {
+    public void findsPersonsByFirstNameAndByAge() {
         List<IndexedPerson> result = repository.findByFirstNameAndAge("Leroi", 25);
         assertThat(result).containsOnly(leroi2);
 
