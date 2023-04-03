@@ -204,7 +204,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(boyd.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
-        List<Person> persons = repository.findByStringMapLike("key1", ".*al1$");
+        List<Person> persons = repository.findByStringMapLike("key1", "^.*al1$");
 
         assertThat(persons).contains(stefan, boyd);
     }
