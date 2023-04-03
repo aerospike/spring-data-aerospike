@@ -52,8 +52,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByLastNameOrderByFirstNameDesc(String lastName);
 
     /**
-     * Find all entities with firstName matching the given regex.
-     * POSIX Extended Regular Expression syntax is used to interpret the regex.
+     * Find all entities with firstName matching the given regex. POSIX Extended Regular Expression syntax is used to
+     * interpret the regex.
      *
      * @param firstNameRegex Regex to find matching firstName
      */
@@ -510,8 +510,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendFirstNameStartsWith(String string);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with lastName matching the giving regex".
-     * POSIX Extended Regular Expression syntax is used to interpret the regex.
+     * Find all entities that satisfy the condition "have a friend with lastName matching the giving regex". POSIX
+     * Extended Regular Expression syntax is used to interpret the regex.
      *
      * @param lastNameRegex Regex to find matching lastName
      */
