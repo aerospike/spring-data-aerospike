@@ -56,7 +56,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * POSIX Extended Regular Expression syntax is used to interpret the regex.
      *
      * @param firstNameRegex Regex to find matching firstName
-     * @return
      */
     List<P> findByFirstNameLike(String firstNameRegex);
 
