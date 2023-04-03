@@ -51,7 +51,15 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByLastNameOrderByFirstNameDesc(String lastName);
 
-    List<P> findByFirstNameLike(String firstName);
+    /**
+     * Find all entities with firstName matching the given regex. POSIX Extended Regular Expression syntax is used to
+     * interpret the regex.
+     *
+     * @param firstNameRegex Regex to find matching firstName
+     */
+    List<P> findByFirstNameLike(String firstNameRegex);
+
+    List<P> findByFirstNameLikeIgnoreCase(String firstNameRegex);
 
     List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
 
@@ -103,8 +111,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAddressIsNot(Address address);
 
     /**
-     * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding
-     * key-value lower in ordering than in the given argument" (find by POJO).
+     * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding key-value
+     * lower in ordering than in the given argument" (find by POJO).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
      *
@@ -232,8 +240,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMap(Map<String, String> map);
 
     /**
-     * Find all entities that satisfy the condition "have stringMap with more elements or with a corresponding
-     * key-value higher in ordering than in the given argument" (find by POJO).
+     * Find all entities that satisfy the condition "have stringMap with more elements or with a corresponding key-value
+     * higher in ordering than in the given argument" (find by POJO).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
      *
@@ -265,42 +273,53 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntMapIsNot(String key, int value);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that starts with the given
+     * Find all entities that satisfy the condition "have the given map key and the value that starts with the given
      * string"
      *
      * @param key             Map key
-     * @param valueStartsWith String to check if value starts with it
+     * @param valueStartsWith String to check if map value starts with it
      */
     List<P> findByStringMapStartsWith(String key, String valueStartsWith);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that contains the given string"
+     * Find all entities that satisfy the condition "have the given map key and the value matching the given regex"
+     * POSIX Extended Regular Expression syntax is used to interpret the regex.
+     *
+     * @param key        Map key
+     * @param valueRegex Regex to find matching map value
+     */
+    List<P> findByStringMapLike(String key, String valueRegex);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and the value that contains the given
+     * string"
      *
      * @param key       Map key
-     * @param valuePart String to check if value contains it
+     * @param valuePart String to check if map value contains it
      */
     List<P> findByStringMapContaining(String key, String valuePart);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given
+     * Find all entities that satisfy the condition "have the given map key and the value that is greater than the given
      * integer"
      *
      * @param key         Map key
-     * @param greaterThan integer to check if value is greater than it
+     * @param greaterThan integer to check if map value is greater than it
      */
     List<P> findByIntMapGreaterThan(String key, int greaterThan);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to
+     * Find all entities that satisfy the condition "have the given map key and the value that is less than or equal to
      * the given integer"
      *
      * @param key               Map key
-     * @param lessThanOrEqualTo integer to check if value satisfies the condition
+     * @param lessThanOrEqualTo integer to check if map value satisfies the condition
      */
     List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
+     * Find all entities that satisfy the condition "have the given map key and the value in between the given
+     * integers"
      *
      * @param key  Map key
      * @param from the lower limit for the map value, inclusive
@@ -489,6 +508,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFirstNameStartsWith(String string);
 
     List<P> findByFriendFirstNameStartsWith(String string);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with lastName matching the giving regex". POSIX
+     * Extended Regular Expression syntax is used to interpret the regex.
+     *
+     * @param lastNameRegex Regex to find matching lastName
+     */
+    List<P> findByFriendLastNameLike(String lastNameRegex);
 
     Iterable<P> findByAgeBetweenOrderByLastName(int i, int j);
 }
