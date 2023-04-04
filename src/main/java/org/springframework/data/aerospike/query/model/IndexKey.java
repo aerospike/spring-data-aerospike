@@ -15,9 +15,11 @@
  */
 package org.springframework.data.aerospike.query.model;
 
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -30,6 +32,7 @@ public class IndexKey {
     private final String field;
     private final IndexType type;
     private final IndexCollectionType collectionType;
+    private CTX[] ctx;
 
     public IndexKey(String namespace, String set, String field, IndexType type, IndexCollectionType collectionType) {
         this.namespace = namespace;
@@ -37,6 +40,16 @@ public class IndexKey {
         this.field = field;
         this.type = type;
         this.collectionType = collectionType;
+    }
+
+    public IndexKey(String namespace, String set, String field, IndexType type, IndexCollectionType collectionType,
+                    CTX[] ctx) {
+        this.namespace = namespace;
+        this.set = set;
+        this.field = field;
+        this.type = type;
+        this.collectionType = collectionType;
+        this.ctx = ctx;
     }
 
     public String getNamespace() {
@@ -59,6 +72,10 @@ public class IndexKey {
         return collectionType;
     }
 
+    public CTX[] getCTX() {
+        return ctx;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -68,12 +85,13 @@ public class IndexKey {
             Objects.equals(set, indexKey.set) &&
             Objects.equals(field, indexKey.field) &&
             type == indexKey.type &&
-            collectionType == indexKey.collectionType;
+            collectionType == indexKey.collectionType &&
+            ctx == indexKey.ctx;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(namespace, set, field, type, collectionType);
+        return Objects.hash(namespace, set, field, type, collectionType, ctx);
     }
 
     @Override
@@ -84,6 +102,7 @@ public class IndexKey {
             ", field='" + field + '\'' +
             ", type=" + type +
             ", collectionType=" + collectionType +
+            ", ctx=" + Arrays.toString(ctx) +
             '}';
     }
 }

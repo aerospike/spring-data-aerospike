@@ -147,6 +147,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByRegDate(LocalDate date);
 
+    List<P> findByRegDateBefore(LocalDate date);
+
     List<P> findByCreatedAtAfter(Date date);
 
     Stream<P> findByLastNameNot(String lastName);
@@ -296,7 +298,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapLike(String key, String valueRegex);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and the value that contains the given
+     * Find all entities that satisfy the condition "have the given map key and the value containing the given
      * string"
      *
      * @param key       Map key
@@ -331,6 +333,25 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   the upper limit for the map value, inclusive
      */
     List<P> findByIntMapBetween(String key, int from, int to);
+
+    /**
+     * Find all entities that satisfy the condition "have a bestFriend who has a friend with the given map key and the
+     * value in between the given integers (deeply nested)"
+     *
+     * @param key  Map key
+     * @param from the lower limit for the map value, inclusive
+     * @param to   the upper limit for the map value, inclusive
+     */
+    List<P> findByBestFriendFriendIntMapBetween(String key, int from, int to);
+
+    /**
+     * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value
+     * in between the given integers (deeply nested)"
+     *
+     * @param from the lower limit for the map value, inclusive
+     * @param to   the upper limit for the map value, inclusive
+     */
+    List<P> findByBestFriendFriendAddressApartmentBetween(int from, int to);
 
     List<P> findByFriendLastName(String value);
 
@@ -385,11 +406,27 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities that satisfy the condition "have a friend with the address with zipCode equal to the given
-     * argument" (find by POJO field)
+     * argument" (find by nested POJO field)
      *
      * @param zipCode - Zip code to check for equality
      */
     List<P> findByFriendAddressZipCode(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with zipCode
+     * equal to the given argument" (find by nested POJO field)
+     *
+     * @param zipCode - Zip code to check for equality
+     */
+    List<P> findByFriendBestFriendAddressZipCode(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with apartment
+     * equal to the given argument" (find by nested POJO field)
+     *
+     * @param apartment - Apartment number to check for equality
+     */
+    List<P> findByFriendBestFriendAddressApartment(Integer apartment);
 
     /**
      * Find all entities that satisfy the condition "have a friend who has a friend with the address with zipCode equal
