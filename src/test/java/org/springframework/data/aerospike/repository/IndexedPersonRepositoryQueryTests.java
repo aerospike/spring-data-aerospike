@@ -60,11 +60,11 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_keys_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_values_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_friend_address_keys_index");
+            "indexed_person_friend_address_zipCode");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_friend_address_values_index");
+            "indexed_person_friend_bestFriend_address_zipCode");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_friend_bestFriend_address_keys_index");
+            "indexed_person_friend_bestFriend_address_apartment");
         indexRefresher.clearCache();
     }
 
@@ -97,14 +97,22 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
             "indexed_person_address_values_index", "address", IndexType.STRING, IndexCollectionType.MAPVALUES);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_friend_address_keys_index", "friend", IndexType.STRING,
-            IndexCollectionType.MAPKEYS, CTX.mapKey(Value.get("address")));
+            "indexed_person_friend_address_zipCode", "friend", IndexType.STRING,
+            IndexCollectionType.DEFAULT, CTX.mapKey(Value.get("address")), CTX.mapKey(Value.get("zipCode")));
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_friend_address_values_index", "friend", IndexType.STRING,
-            IndexCollectionType.MAPVALUES, CTX.mapValue(Value.get("address")));
+            "indexed_person_friend_bestFriend_address_zipCode", "friend", IndexType.STRING,
+            IndexCollectionType.DEFAULT, CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address")),
+            CTX.mapKey(Value.get("zipCode")));
+//        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
+//            "indexed_person_friend_bestFriend_address_apartment", "friend", IndexType.NUMERIC,
+//            IndexCollectionType.DEFAULT, CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address")),
+//            CTX.mapKey(Value.get("apartment")));
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_friend_bestFriend_address_keys_index", "friend", IndexType.STRING,
+            "indexed_person_friend_bestFriend_address_apartment_keys", "friend", IndexType.NUMERIC,
             IndexCollectionType.MAPKEYS, CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address")));
+//        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
+//            "indexed_person_friend_bestFriend_address_apartment_values", "friend", IndexType.NUMERIC,
+//            IndexCollectionType.MAPVALUES, CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address")));
         indexRefresher.refreshIndexes();
     }
 

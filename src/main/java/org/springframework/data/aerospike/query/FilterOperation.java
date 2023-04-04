@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
 import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
@@ -343,7 +344,7 @@ public enum FilterOperation {
                     if (useCtx) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
                             Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr, false));
                     } else {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
                             Exp.val(getValue2(map).toString()),
@@ -356,7 +357,7 @@ public enum FilterOperation {
                     if (useCtx) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
                             Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr, false));
                     } else {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
                             Exp.val(getValue2(map).toString()),
@@ -370,7 +371,7 @@ public enum FilterOperation {
                     if (useCtx) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
                             Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr, false));
                     } else {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
                             Exp.val(getValue2(map).toString()),
@@ -402,8 +403,7 @@ public enum FilterOperation {
                             "MAP_VALUE_EQ_BY_KEY sIndexFilter: case insensitive comparison is not supported");
                     }
                     if (useCtx) {
-                        yield Filter.contains(getField(map), IndexCollectionType.MAPKEYS,
-                            dotPathArr[dotPathArr.length - 1], dotPathToCtxMapKeys(dotPathArr));
+                        yield Filter.equal(getField(map), getValue1(map).toString(), dotPathToCtxMapKeys(dotPathArr, true));
                     } else {
                         yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES,
                             getValue1(map).toString());
@@ -412,7 +412,8 @@ public enum FilterOperation {
                 case ParticleType.INTEGER -> {
                     if (useCtx) {
                         yield Filter.contains(getField(map), IndexCollectionType.MAPKEYS,
-                            dotPathArr[dotPathArr.length - 1], dotPathToCtxMapKeys(dotPathArr));
+                            dotPathArr[dotPathArr.length - 1], dotPathToCtxMapKeys(dotPathArr, false));
+//                        yield Filter.equal(getField(map), getValue1(map).toLong(), dotPathToCtxMapKeys(dotPathArr, true));
                     } else {
                         yield Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
                             getValue1(map).toLong());
@@ -440,7 +441,7 @@ public enum FilterOperation {
                     if (useCtx) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
                             Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr, false));
                     } else {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
                             Exp.val(getValue2(map).toString()),
@@ -453,7 +454,7 @@ public enum FilterOperation {
                     if (useCtx) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
                             Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr, false));
                     } else {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
                             Exp.val(getValue2(map).toString()),
@@ -467,7 +468,7 @@ public enum FilterOperation {
                     if (useCtx) {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
                             Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr, false));
                     } else {
                         mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
                             Exp.val(getValue2(map).toString()),
@@ -995,11 +996,16 @@ public enum FilterOperation {
         MAP_VALUES_BETWEEN_BY_KEY
     );
 
-    private static CTX[] dotPathToCtxMapKeys(String[] dotPathArray) {
-        return Arrays.stream(dotPathArray).map(str -> CTX.mapKey(Value.get(str)))
-            .skip(1) // first element is bin name
-            .limit(dotPathArray.length - 2L) // last element is the key we already have
-            .toArray(CTX[]::new);
+    private static CTX[] dotPathToCtxMapKeys(String[] dotPathArray, boolean inclLastElement) {
+        Stream<CTX> stream = Arrays.stream(dotPathArray).map(str -> CTX.mapKey(Value.get(str)))
+            .skip(1); // first element is bin name
+
+        if (inclLastElement) {
+            return stream.toArray(CTX[]::new);
+        } else {
+            return stream.limit(dotPathArray.length - 2L) // last element is the key we already have
+                .toArray(CTX[]::new);
+        }
     }
 
     private static Exp toExp(Object value) {
