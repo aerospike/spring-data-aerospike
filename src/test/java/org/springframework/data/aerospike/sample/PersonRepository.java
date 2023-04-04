@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -140,7 +141,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 //	List<P> findByCreatedAtLessThanManually(Date date);
 
-    List<P> findByCreatedAtBefore(Date date);
+    List<P> findByDateOfBirthBefore(Date date);
+
+    List<P> findByDateOfBirthAfter(Date date);
+
+    List<P> findByRegDate(LocalDate date);
 
     List<P> findByCreatedAtAfter(Date date);
 

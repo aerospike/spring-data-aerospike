@@ -7,9 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
-import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.parser.PartTree;
 
 /**
@@ -18,7 +16,7 @@ import org.springframework.data.repository.query.parser.PartTree;
  */
 public class AerospikeQueryCreatorUnitTests {
 
-    MappingContext<?, AerospikePersistentProperty> context;
+    AerospikeMappingContext context;
     @Mock
     AerospikeConverter converter;
     AutoCloseable openMocks;

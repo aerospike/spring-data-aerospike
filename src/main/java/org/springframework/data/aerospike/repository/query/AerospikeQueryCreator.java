@@ -28,7 +28,6 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyPath;
-import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
@@ -40,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Peter Milne
@@ -48,10 +48,9 @@ import java.util.List;
 public class AerospikeQueryCreator extends AbstractQueryCreator<Query, AerospikeCriteria> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AerospikeQueryCreator.class);
-    private final MappingContext<?, AerospikePersistentProperty> context;
+    private final AerospikeMappingContext context;
     private final AerospikeCustomConversions conversions = new AerospikeCustomConversions(Collections.emptyList());
-    private final MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-        conversions, new AerospikeTypeAliasAccessor());
+    private final MappingAerospikeConverter converter = getMappingAerospikeConverter(conversions);
 
     public AerospikeQueryCreator(PartTree tree, ParameterAccessor parameters) {
         super(tree, parameters);
@@ -59,9 +58,16 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     }
 
     public AerospikeQueryCreator(PartTree tree, ParameterAccessor parameters,
-                                 MappingContext<?, AerospikePersistentProperty> context) {
+                                 AerospikeMappingContext context) {
         super(tree, parameters);
         this.context = context;
+    }
+
+    private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
+        MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
+            conversions, new AerospikeTypeAliasAccessor());
+        converter.afterPropertiesSet();
+        return converter;
     }
 
     @Override
@@ -78,6 +84,13 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         FilterOperation op;
         Object v1 = parameters.next(), v2 = null;
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder();
+
+        // converting if necessary (e.g., Date to Long so that a filter expression or a sIndex filter can be built)
+        final Object value = v1;
+        Optional<Class<?>> basicTargetType = conversions.getCustomWriteTarget(v1.getClass());
+        v1 = basicTargetType
+            .<Object>map(aClass -> converter.getConversionService().convert(value, aClass))
+            .orElse(v1);
 
         switch (part.getType()) {
             case AFTER:

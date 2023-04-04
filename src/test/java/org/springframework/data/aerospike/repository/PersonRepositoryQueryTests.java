@@ -17,8 +17,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -239,6 +241,34 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> persons = repository.findByIntMapBetween("key2", 0, 1);
 
         assertThat(persons).contains(leroi);
+    }
+
+    @Test
+    void findByDateOfBirthBefore() {
+        dave.setDateOfBirth(new Date());
+        repository.save(dave);
+
+        List<Person> persons = repository.findByDateOfBirthBefore(new Date());
+        assertThat(persons).contains(dave);
+    }
+
+    @Test
+    void findByDateOfBirthAfter() {
+        dave.setDateOfBirth(new Date());
+        repository.save(dave);
+
+        List<Person> persons = repository.findByDateOfBirthAfter(new Date(126230400));
+        assertThat(persons).contains(dave);
+    }
+
+    @Test
+    void findByRegDate() {
+        LocalDate date = LocalDate.of(1982, 3, 10);
+        carter.setRegDate(date);
+        repository.save(carter);
+
+        List<Person> persons = repository.findByRegDate(date);
+        assertThat(persons).contains(carter);
     }
 
     @Test

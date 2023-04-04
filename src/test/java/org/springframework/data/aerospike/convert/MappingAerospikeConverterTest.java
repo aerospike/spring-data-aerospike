@@ -126,7 +126,7 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
     }
 
     @Test
-    public void shouldThrowExceptionIfIdAnnotationNotGiven() {
+    public void shouldThrowExceptionIfIdAnnotationIsNotGiven() {
         @Data
         class TestName {
 
