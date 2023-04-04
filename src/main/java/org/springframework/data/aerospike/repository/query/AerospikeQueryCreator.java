@@ -31,7 +31,6 @@ import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
-import org.springframework.data.repository.query.parser.Part.IgnoreCaseType;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.TypeInformation;
 
@@ -80,7 +79,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
     private AerospikeCriteria create(Part part, AerospikePersistentProperty property, Iterator<?> parameters) {
         String fieldName = property.getFieldName();
-        IgnoreCaseType ignoreCase = part.shouldIgnoreCase();
         FilterOperation op;
         Object v1 = parameters.next(), v2 = null;
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder();
