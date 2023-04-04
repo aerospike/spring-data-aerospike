@@ -23,6 +23,7 @@ import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.annotation.Id;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ public class Person {
     private Person bestFriend;
     private boolean active;
     private Date dateOfBirth;
+    private LocalDate regDate;
     private List<String> strings;
     private List<Integer> ints;
     private Address address;

@@ -17,8 +17,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +51,17 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         indexRefresher.clearCache();
     }
 
+    private void setFriendsToNull(Person... persons) {
+        for (Person person : persons) {
+            person.setFriend(null);
+            repository.save(person);
+        }
+        for (Person person : persons) {
+            person.setBestFriend(null);
+            repository.save(person);
+        }
+    }
+
     @Test
     void findByListContainingString_forExistingResult() {
         assertThat(repository.findByStringsContaining("str1")).containsOnly(dave, donny);
@@ -75,6 +88,22 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> persons = repository.findByIntsContaining(7777);
 
         assertThat(persons).isEmpty();
+    }
+
+    @Test
+    void findByActiveTrue() {
+        boolean initialState = dave.isActive();
+        if (!initialState) {
+            dave.setActive(true);
+            repository.save(dave);
+        }
+        List<Person> persons = repository.findPersonsByActive(true);
+        assertThat(persons).contains(dave);
+
+        if (!initialState) {
+            dave.setActive(false);
+            repository.save(dave);
+        }
     }
 
     @Test
@@ -171,6 +200,18 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByMapKeyValueLike() {
+        assertThat(stefan.getStringMap()).containsKey("key1");
+        assertThat(stefan.getStringMap()).containsValue("val1");
+        assertThat(boyd.getStringMap()).containsKey("key1");
+        assertThat(boyd.getStringMap()).containsValue("val1");
+
+        List<Person> persons = repository.findByStringMapLike("key1", "^.*al1$");
+
+        assertThat(persons).contains(stefan, boyd);
+    }
+
+    @Test
     void findByMapKeyValueGreaterThan() {
         assertThat(leroi.getIntMap()).containsKey("key2");
         assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
@@ -203,10 +244,53 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByDateOfBirthBefore() {
+        dave.setDateOfBirth(new Date());
+        repository.save(dave);
+
+        List<Person> persons = repository.findByDateOfBirthBefore(new Date());
+        assertThat(persons).contains(dave);
+    }
+
+    @Test
+    void findByDateOfBirthAfter() {
+        dave.setDateOfBirth(new Date());
+        repository.save(dave);
+
+        List<Person> persons = repository.findByDateOfBirthAfter(new Date(126230400));
+        assertThat(persons).contains(dave);
+    }
+
+    @Test
+    void findByRegDate() {
+        LocalDate date = LocalDate.of(1982, 3, 10);
+        carter.setRegDate(date);
+        repository.save(carter);
+
+        List<Person> persons = repository.findByRegDate(date);
+        assertThat(persons).contains(carter);
+    }
+
+    @Test
     void findByFirstNameContaining() {
         List<Person> persons = repository.findByFirstNameContaining("er");
 
         assertThat(persons).containsExactlyInAnyOrder(carter, oliver, leroi, leroi2);
+    }
+
+    @Test
+    void findByFirstNameLike() { // with a wildcard
+        List<Person> persons = repository.findByFirstNameLike("Ca.*er");
+        assertThat(persons).contains(carter);
+
+        List<Person> persons0 = repository.findByFirstNameLikeIgnoreCase("CART.*er");
+        assertThat(persons0).contains(carter);
+
+        List<Person> persons1 = repository.findByFirstNameLike(".*ve.*");
+        assertThat(persons1).contains(dave, oliver);
+
+        List<Person> persons2 = repository.findByFirstNameLike("Carr.*er");
+        assertThat(persons2).isEmpty();
     }
 
     @Test
@@ -252,7 +336,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByLastname() {
+    public void findPersonsByLastName() {
         List<Person> result = repository.findByLastName("Beauford");
 
         assertThat(result)
@@ -261,7 +345,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsSomeFieldsByLastnameProjection() {
+    public void findPersonsSomeFieldsByLastNameProjection() {
         List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
 
         assertThat(result)
@@ -270,7 +354,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findDynamicTypeByLastnameDynamicProjection() {
+    public void findDynamicTypeByLastNameDynamicProjection() {
         List<PersonSomeFields> result = repository.findByLastName("Beauford", PersonSomeFields.class);
 
         assertThat(result)
@@ -295,13 +379,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .containsExactly(carter);
 
         setFriendsToNull(oliver, dave, carter);
-    }
-
-    private void setFriendsToNull(Person... persons) {
-        for (Person person : persons) {
-            person.setFriend(null);
-            repository.save(person);
-        }
     }
 
     @Test
@@ -413,7 +490,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstname() {
+    public void findPersonsByFirstName() {
         List<Person> result = repository.findByFirstName("Leroi");
         assertThat(result).hasSize(2).containsOnly(leroi, leroi2);
 
@@ -425,7 +502,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstnameNot() {
+    public void findPersonsByFirstNameNot() {
         List<Person> result = repository.findByFirstNameNot("Leroi");
         assertThat(result).doesNotContain(leroi, leroi2);
 
@@ -437,13 +514,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstnameGreaterThan() {
+    public void findPersonsByFirstNameGreaterThan() {
         List<Person> result = repository.findByFirstNameGreaterThan("Leroa");
         assertThat(result).contains(leroi, leroi2);
     }
 
     @Test
-    public void findByLastnameNot_forExistingResult() {
+    public void findByLastNameNot_forExistingResult() {
         Stream<Person> result = repository.findByLastNameNot("Moore");
 
         assertThat(result)
@@ -452,7 +529,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findByFirstnameNotIn_forEmptyResult() {
+    public void findByFirstNameNotIn_forEmptyResult() {
         Set<String> allFirstNames = all.stream().map(Person::getFirstName).collect(Collectors.toSet());
 //		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(allFirstNames))
@@ -463,7 +540,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findByFirstnameNotIn_forExistingResult() {
+    public void findByFirstNameNotIn_forExistingResult() {
 //		Stream<Person> result = repository.findByFirstnameNotIn(Collections.singleton("Alicia"));
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(Collections.singleton("Alicia")))
             .isInstanceOf(IllegalArgumentException.class)
@@ -473,14 +550,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findByFirstnameIn_forEmptyResult() {
+    public void findByFirstNameIn_forEmptyResult() {
         Stream<Person> result = repository.findByFirstNameIn(Arrays.asList("Anastasiia", "Daniil"));
 
         assertThat(result).isEmpty();
     }
 
     @Test
-    public void findByFirstnameIn_forExistingResult() {
+    public void findByFirstNameIn_forExistingResult() {
         Stream<Person> result = repository.findByFirstNameIn(Arrays.asList("Alicia", "Stefan"));
 
         assertThat(result).contains(alicia, stefan);
@@ -596,7 +673,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstnameAndByAge() {
+    public void findPersonsByFirstNameAndByAge() {
         List<Person> result = repository.findByFirstNameAndAge("Leroi", 25);
         assertThat(result).containsOnly(leroi2);
 
@@ -605,26 +682,37 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByFirstnameStartsWith() {
+    public void findPersonsByFirstNameStartsWith() {
         List<Person> result = repository.findByFirstNameStartsWith("D");
 
         assertThat(result).containsOnly(dave, donny, douglas);
     }
 
     @Test
-    public void findPersonsByFriendFirstnameStartsWith() {
-        dave.setFriend(oliver);
-        repository.save(dave);
+    public void findPersonsByFriendFirstNameStartsWith() {
+        stefan.setFriend(oliver);
+        repository.save(stefan);
         carter.setFriend(dave);
         repository.save(carter);
 
         List<Person> result = repository.findByFriendFirstNameStartsWith("D");
-
         assertThat(result)
             .hasSize(1)
             .containsExactly(carter);
 
-        setFriendsToNull(dave, carter);
+        setFriendsToNull(stefan, carter);
+    }
+
+    @Test
+    public void findPersonsByFriendLastNameLike() {
+        oliver.setFriend(dave);
+        repository.save(oliver);
+        carter.setFriend(stefan);
+        repository.save(carter);
+
+        List<Person> result = repository.findByFriendLastNameLike(".*tthe.*");
+        assertThat(result).contains(oliver);
+        setFriendsToNull(oliver, carter);
     }
 
     @Test

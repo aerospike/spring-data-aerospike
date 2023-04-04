@@ -326,6 +326,21 @@ public enum FilterOperation {
             return null; // String secondary index does not support "contains" queries
         }
     },
+    LIKE {
+        @Override
+        public Exp filterExp(Map<String, Object> map) {
+            int flags = RegexFlag.EXTENDED;
+            if (ignoreCase(map)) {
+                flags = RegexFlag.EXTENDED | RegexFlag.ICASE;
+            }
+            return Exp.regexCompare(getValue1(map).toString(), flags, Exp.stringBin(getField(map)));
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> map) {
+            return null; // not supported
+        }
+    },
     MAP_VALUE_EQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
@@ -702,6 +717,24 @@ public enum FilterOperation {
             String startWithRegexp = QualifierRegexpBuilder.getStartsWith(getValue1(map).toString());
 
             return Exp.regexCompare(startWithRegexp, regexFlags(map),
+                MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
+                    Exp.mapBin(getField(map)))
+            );
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> map) {
+            return null; // String secondary index does not support "contains" queries
+        }
+    },
+    MAP_VALUE_LIKE_BY_KEY {
+        @Override
+        public Exp filterExp(Map<String, Object> map) {
+            int flags = RegexFlag.EXTENDED;
+            if (ignoreCase(map)) {
+                flags = RegexFlag.EXTENDED | RegexFlag.ICASE;
+            }
+            return Exp.regexCompare(getValue1(map).toString(), flags,
                 MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
                     Exp.mapBin(getField(map)))
             );

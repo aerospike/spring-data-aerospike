@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -51,7 +52,15 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByLastNameOrderByFirstNameDesc(String lastName);
 
-    List<P> findByFirstNameLike(String firstName);
+    /**
+     * Find all entities with firstName matching the given regex. POSIX Extended Regular Expression syntax is used to
+     * interpret the regex.
+     *
+     * @param firstNameRegex Regex to find matching firstName
+     */
+    List<P> findByFirstNameLike(String firstNameRegex);
+
+    List<P> findByFirstNameLikeIgnoreCase(String firstNameRegex);
 
     List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
 
@@ -132,7 +141,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
 //	List<P> findByCreatedAtLessThanManually(Date date);
 
-    List<P> findByCreatedAtBefore(Date date);
+    List<P> findByDateOfBirthBefore(Date date);
+
+    List<P> findByDateOfBirthAfter(Date date);
+
+    List<P> findByRegDate(LocalDate date);
 
     List<P> findByCreatedAtAfter(Date date);
 
@@ -145,6 +158,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAgeIn(ArrayList<Integer> ages);
 
     List<P> findPersonByFirstName(String firstName);
+
+    List<P> findPersonsByActive(boolean isActive);
+
+    List<P> findPersonsByActiveAndFirstName(boolean isActive, String firstName);
 
     @SuppressWarnings("UnusedReturnValue")
     long countByLastName(String lastName);
@@ -265,16 +282,25 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * string"
      *
      * @param key             Map key
-     * @param valueStartsWith String to check if value starts with it
+     * @param valueStartsWith String to check if map value starts with it
      */
     List<P> findByStringMapStartsWith(String key, String valueStartsWith);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and the value that contains the given
+     * Find all entities that satisfy the condition "have the given map key and the value matching the given regex"
+     * POSIX Extended Regular Expression syntax is used to interpret the regex.
+     *
+     * @param key        Map key
+     * @param valueRegex Regex to find matching map value
+     */
+    List<P> findByStringMapLike(String key, String valueRegex);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and the value containing the given
      * string"
      *
      * @param key       Map key
-     * @param valuePart String to check if value contains it
+     * @param valuePart String to check if map value contains it
      */
     List<P> findByStringMapContaining(String key, String valuePart);
 
@@ -283,7 +309,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * integer"
      *
      * @param key         Map key
-     * @param greaterThan integer to check if value is greater than it
+     * @param greaterThan integer to check if map value is greater than it
      */
     List<P> findByIntMapGreaterThan(String key, int greaterThan);
 
@@ -292,7 +318,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * the given integer"
      *
      * @param key               Map key
-     * @param lessThanOrEqualTo integer to check if value satisfies the condition
+     * @param lessThanOrEqualTo integer to check if map value satisfies the condition
      */
     List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
 
@@ -316,6 +342,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByBestFriendFriendIntMapBetween(String key, int from, int to);
 
+    /**
+     * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value
+     * in between the given integers (deeply nested)"
+     *
+     * @param from the lower limit for the map value, inclusive
+     * @param to   the upper limit for the map value, inclusive
+     */
     List<P> findByBestFriendFriendAddressApartmentBetween(int from, int to);
 
     List<P> findByFriendLastName(String value);
@@ -515,6 +548,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFirstNameStartsWith(String string);
 
     List<P> findByFriendFirstNameStartsWith(String string);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with lastName matching the giving regex". POSIX
+     * Extended Regular Expression syntax is used to interpret the regex.
+     *
+     * @param lastNameRegex Regex to find matching lastName
+     */
+    List<P> findByFriendLastNameLike(String lastNameRegex);
 
     Iterable<P> findByAgeBetweenOrderByLastName(int i, int j);
 }
