@@ -147,6 +147,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByRegDate(LocalDate date);
 
+    List<P> findByRegDateBefore(LocalDate date);
+
     List<P> findByCreatedAtAfter(Date date);
 
     Stream<P> findByLastNameNot(String lastName);
