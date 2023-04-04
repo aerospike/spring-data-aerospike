@@ -213,6 +213,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                             qb.setValue3(Value.get(next)); // contains upper limit (inclusive)
                             break;
                     }
+                    fieldName = part.getProperty().getSegment(); // Map bin name, later passed to Exp.mapBin()
+                    qb.setDotPath(part.getProperty().toDotPath() + "." + Value.get(v1));
                 } else if (params.size() == 0) {
                     fieldName = part.getProperty().getSegment(); // Map bin name, later passed to Exp.mapBin()
                     qb.setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)

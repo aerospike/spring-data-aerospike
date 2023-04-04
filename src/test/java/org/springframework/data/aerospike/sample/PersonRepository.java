@@ -261,7 +261,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntMapIsNot(String key, int value);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that starts with the given
+     * Find all entities that satisfy the condition "have the given map key and the value that starts with the given
      * string"
      *
      * @param key             Map key
@@ -270,7 +270,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapStartsWith(String key, String valueStartsWith);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that contains the given string"
+     * Find all entities that satisfy the condition "have the given map key and the value that contains the given
+     * string"
      *
      * @param key       Map key
      * @param valuePart String to check if value contains it
@@ -278,7 +279,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapContaining(String key, String valuePart);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given
+     * Find all entities that satisfy the condition "have the given map key and the value that is greater than the given
      * integer"
      *
      * @param key         Map key
@@ -287,7 +288,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntMapGreaterThan(String key, int greaterThan);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to
+     * Find all entities that satisfy the condition "have the given map key and the value that is less than or equal to
      * the given integer"
      *
      * @param key               Map key
@@ -296,13 +297,26 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
+     * Find all entities that satisfy the condition "have the given map key and the value in between the given
+     * integers"
      *
      * @param key  Map key
      * @param from the lower limit for the map value, inclusive
      * @param to   the upper limit for the map value, inclusive
      */
     List<P> findByIntMapBetween(String key, int from, int to);
+
+    /**
+     * Find all entities that satisfy the condition "have a bestFriend who has a friend with the given map key and the
+     * value in between the given integers (deeply nested)"
+     *
+     * @param key  Map key
+     * @param from the lower limit for the map value, inclusive
+     * @param to   the upper limit for the map value, inclusive
+     */
+    List<P> findByBestFriendFriendIntMapBetween(String key, int from, int to);
+
+    List<P> findByBestFriendFriendAddressApartmentBetween(int from, int to);
 
     List<P> findByFriendLastName(String value);
 

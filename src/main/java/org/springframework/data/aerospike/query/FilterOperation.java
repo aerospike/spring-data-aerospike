@@ -398,12 +398,10 @@ public enum FilterOperation {
             return switch (getValue1(map).getType()) {
                 case ParticleType.STRING -> {
                     if (ignoreCase(map)) { // there is no case-insensitive string comparison filter
-                        throw new IllegalArgumentException(
-                            "MAP_VALUE_EQ_BY_KEY sIndexFilter: case insensitive comparison is not supported");
+                        yield null; // MAP_VALUE_EQ_BY_KEY sIndexFilter: case-insensitive comparison is not supported
                     }
                     if (useCtx) {
-                        yield Filter.contains(getField(map), IndexCollectionType.MAPKEYS,
-                            dotPathArr[dotPathArr.length - 1], dotPathToCtxMapKeys(dotPathArr));
+                        yield null; // currently not supported
                     } else {
                         yield Filter.contains(getField(map), IndexCollectionType.MAPVALUES,
                             getValue1(map).toString());
@@ -411,8 +409,7 @@ public enum FilterOperation {
                 }
                 case ParticleType.INTEGER -> {
                     if (useCtx) {
-                        yield Filter.contains(getField(map), IndexCollectionType.MAPKEYS,
-                            dotPathArr[dotPathArr.length - 1], dotPathToCtxMapKeys(dotPathArr));
+                        yield null; // currently not supported
                     } else {
                         yield Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
                             getValue1(map).toLong());
@@ -446,7 +443,6 @@ public enum FilterOperation {
                             Exp.val(getValue2(map).toString()),
                             Exp.mapBin(getField(map)));
                     }
-
                     yield Exp.ne(mapExp, Exp.val(getValue1(map).toString()));
                 }
                 case ParticleType.INTEGER -> {
@@ -459,7 +455,6 @@ public enum FilterOperation {
                             Exp.val(getValue2(map).toString()),
                             Exp.mapBin(getField(map)));
                     }
-
                     yield Exp.ne(mapExp, Exp.val(getValue1(map).toLong()));
                 }
                 case ParticleType.JBLOB -> {
@@ -473,7 +468,6 @@ public enum FilterOperation {
                             Exp.val(getValue2(map).toString()),
                             Exp.mapBin(getField(map)));
                     }
-
                     yield Exp.ne(mapExp,
                         toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
                     );
@@ -493,11 +487,17 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name)
             if (getValue1(map).getType() == ParticleType.INTEGER) {
-                return Exp.gt(
-                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(getValue1(map).toLong())
-                );
+                String[] dotPathArr = getDotPathArray(getDotPath(map),
+                    "MAP_VALUE_GT_BY_KEY filter expression: dotPath has not been set");
+                Exp mapExp;
+                if (dotPathArr.length > 2) {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                } else {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)));
+                }
+                return Exp.gt(mapExp, Exp.val(getValue1(map).toLong()));
             }
             throw new AerospikeException(
                 "MAP_VALUE_GT_BY_KEY FilterExpression unsupported type: expected Long");
@@ -514,8 +514,14 @@ public enum FilterOperation {
                     "MAP_VALUE_GT_BY_KEY sIndexFilter unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
             }
 
-            return Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong() + 1,
-                Long.MAX_VALUE);
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                "MAP_VALUE_GT_BY_KEY secondary index filter: dotPath has not been set");
+            if (dotPathArr.length > 2) {
+                return null; // currently not supported
+            } else {
+                return Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong() + 1,
+                    Long.MAX_VALUE);
+            }
         }
     },
     MAP_VALUE_GTEQ_BY_KEY {
@@ -523,10 +529,17 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name)
             if (getValue1(map).getType() == ParticleType.INTEGER) {
-                return Exp.ge(
-                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(getValue1(map).toLong())
+                String[] dotPathArr = getDotPathArray(getDotPath(map),
+                    "MAP_VALUE_GTEQ_BY_KEY filter expression: dotPath has not been set");
+                Exp mapExp;
+                if (dotPathArr.length > 2) {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                } else {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)));
+                }
+                return Exp.ge(mapExp, Exp.val(getValue1(map).toLong())
                 );
             }
             throw new AerospikeException(
@@ -543,19 +556,33 @@ public enum FilterOperation {
                     "MAP_VALUE_GTEQ_BY_KEY sIndexFilter unsupported type: expected Long");
             }
 
-            return Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(), Long.MAX_VALUE);
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                "MAP_VALUE_GTEQ_BY_KEY secondary index filter: dotPath has not been set");
+            if (dotPathArr.length > 2) {
+                return null; // currently not supported
+            } else {
+                return Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
+                    Long.MAX_VALUE);
+            }
         }
     },
     MAP_VALUE_LT_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                "MAP_VALUE_LT_BY_KEY filter expression: dotPath has not been set");
+
             // VALUE2 contains key (field name)
             if (getValue1(map).getType() == ParticleType.INTEGER) {
-                return Exp.lt(
-                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(getValue1(map).toLong())
-                );
+                Exp mapExp;
+                if (dotPathArr.length > 2) {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                } else {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)));
+                }
+                return Exp.lt(mapExp, Exp.val(getValue1(map).toLong()));
             }
             throw new AerospikeException(
                 "MAP_VALUE_LT_BY_KEY FilterExpression unsupported type: expected Long");
@@ -572,24 +599,36 @@ public enum FilterOperation {
                     "MAP_VALUE_LT_BY_KEY sIndexFilter unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE]");
             }
 
-            return Filter.range(getField(map), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
-                getValue1(map).toLong() - 1);
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                "MAP_VALUE_LT_BY_KEY secondary index filter: dotPath has not been set");
+            if (dotPathArr.length > 2) {
+                return null; // currently not supported
+            } else {
+                return Filter.range(getField(map), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
+                    getValue1(map).toLong() - 1);
+            }
         }
     },
     MAP_VALUE_LTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name)
-            if (getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() == ParticleType.INTEGER) {
+                String[] dotPathArr = getDotPathArray(getDotPath(map),
+                    "MAP_VALUE_LTEQ_BY_KEY filter expression: dotPath has not been set");
+                Exp mapExp;
+                if (dotPathArr.length > 2) {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                } else {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)));
+                }
+                return Exp.le(mapExp, Exp.val(getValue1(map).toLong()));
+            } else {
                 throw new AerospikeException(
                     "MAP_VALUE_LTEQ_BY_KEY FilterExpression unsupported type: expected Long");
             }
-
-            return Exp.le(
-                MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                    Exp.mapBin(getField(map))),
-                Exp.val(getValue1(map).toLong())
-            );
         }
 
         /**
@@ -602,7 +641,14 @@ public enum FilterOperation {
                     "MAP_VALUE_LTEQ_BY_KEY sIndexFilter unsupported type: expected Long");
             }
 
-            return Filter.range(getField(map), IndexCollectionType.MAPVALUES, Long.MIN_VALUE, getValue1(map).toLong());
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                "MAP_VALUE_LTEQ_BY_KEY secondary index filter: dotPath has not been set");
+            if (dotPathArr.length > 2) {
+                return null; // currently not supported
+            } else {
+                return Filter.range(getField(map), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
+                    getValue1(map).toLong());
+            }
         }
     },
     MAP_VALUES_BETWEEN_BY_KEY {
@@ -614,17 +660,19 @@ public enum FilterOperation {
                     "MAP_VALUES_BETWEEN_BY_KEY FilterExpression unsupported type: expected Long");
             }
 
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                "MAP_VALUES_BETWEEN_BY_KEY filter expression: dotPath has not been set");
+            Exp mapExp;
+            if (dotPathArr.length > 2) {
+                mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                    Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+            } else {
+                mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                    Exp.mapBin(getField(map)));
+            }
             return Exp.and(
-                Exp.ge(
-                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(getValue1(map).toLong())
-                ),
-                Exp.le(
-                    MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(getValue3(map).toLong())
-                )
+                Exp.ge(mapExp, Exp.val(getValue1(map).toLong())),
+                Exp.le(mapExp, Exp.val(getValue3(map).toLong()))
             );
         }
 
@@ -638,8 +686,14 @@ public enum FilterOperation {
                     "MAP_VALUES_BETWEEN_BY_KEY sIndex filter unsupported type: expected Long");
             }
 
-            return Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
-                getValue3(map).toLong());
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                "MAP_VALUES_BETWEEN_BY_KEY secondary index filter: dotPath has not been set");
+            if (dotPathArr.length > 2) {
+                return null; // currently not supported
+            } else {
+                return Filter.range(getField(map), IndexCollectionType.MAPVALUES, getValue1(map).toLong(),
+                    getValue3(map).toLong());
+            }
         }
     },
     MAP_VALUE_STARTS_WITH_BY_KEY {

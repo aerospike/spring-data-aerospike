@@ -430,6 +430,38 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
     }
 
+    @Test
+    void findByBestFriendFriendIntMapKeyValueBetween() {
+        assertThat(leroi.getIntMap()).containsKey("key2");
+        assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
+
+        carter.setFriend(leroi);
+        repository.save(carter);
+        leroi2.setBestFriend(carter);
+
+        repository.save(leroi2);
+
+        List<IndexedPerson> persons = repository.findByBestFriendFriendIntMapBetween("key2", 0, 1);
+        assertThat(persons).contains(leroi2);
+
+        setFriendsToNull(carter, leroi2);
+    }
+
+    @Test
+    void findByBestFriendFriendAddressApartmentBetween() {
+        assertThat(carter.getAddress().getApartment()).isEqualTo(2);
+
+        leroi.setFriend(carter);
+        repository.save(leroi);
+        leroi2.setBestFriend(leroi);
+        repository.save(leroi2);
+
+        List<IndexedPerson> persons = repository.findByBestFriendFriendAddressApartmentBetween(1, 2);
+        assertThat(persons).contains(leroi2);
+
+        setFriendsToNull(leroi, leroi2);
+    }
+
     private void setFriendsToNull(IndexedPerson... persons) {
         for (IndexedPerson person : persons) {
             person.setFriend(null);
