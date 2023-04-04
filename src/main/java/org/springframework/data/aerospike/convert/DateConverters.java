@@ -57,7 +57,9 @@ public final class DateConverters {
         converters.add(NumberToDateConverter.INSTANCE);
         converters.add(NumberToCalendarConverter.INSTANCE);
         converters.add(Java8LocalDateTimeToLongConverter.INSTANCE);
+        converters.add(Java8LocalDateToLongConverter.INSTANCE);
         converters.add(NumberToJava8LocalDateTimeConverter.INSTANCE);
+        converters.add(NumberToJava8LocalDateConverter.INSTANCE);
 
         if (JODA_TIME_IS_PRESENT) {
             converters.add(LocalDateToLongConverter.INSTANCE);
@@ -90,6 +92,16 @@ public final class DateConverters {
         @Override
         public Long convert(java.time.LocalDateTime source) {
             return source == null ? null : source.atZone(ZoneOffset.UTC).toInstant().toEpochMilli();
+        }
+    }
+
+    @WritingConverter
+    public enum Java8LocalDateToLongConverter implements Converter<java.time.LocalDate, Long> {
+        INSTANCE;
+
+        @Override
+        public Long convert(java.time.LocalDate source) {
+            return source == null ? null : source.toEpochDay();
         }
     }
 
@@ -130,6 +142,20 @@ public final class DateConverters {
             }
 
             return java.time.LocalDateTime.ofInstant(Instant.ofEpochMilli(source.longValue()), ZoneOffset.UTC);
+        }
+    }
+
+    @ReadingConverter
+    public enum NumberToJava8LocalDateConverter implements Converter<Number, java.time.LocalDate> {
+        INSTANCE;
+
+        @Override
+        public java.time.LocalDate convert(Number source) {
+            if (source == null) {
+                return null;
+            }
+
+            return java.time.LocalDate.ofEpochDay(source.longValue());
         }
     }
 
