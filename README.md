@@ -58,7 +58,7 @@ Add the Maven dependency:
 <dependency>
   <groupId>com.aerospike</groupId>
   <artifactId>spring-data-aerospike</artifactId>
-  <version>4.0.0</version>
+  <version>4.2.0</version>
 </dependency>
 ```
 
