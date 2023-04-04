@@ -250,6 +250,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> persons = repository.findByDateOfBirthBefore(new Date());
         assertThat(persons).contains(dave);
+
+        dave.setDateOfBirth(null);
+        repository.save(dave);
     }
 
     @Test
@@ -259,16 +262,22 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> persons = repository.findByDateOfBirthAfter(new Date(126230400));
         assertThat(persons).contains(dave);
+
+        dave.setDateOfBirth(null);
+        repository.save(dave);
     }
 
     @Test
     void findByRegDate() {
-        LocalDate date = LocalDate.of(1982, 3, 10);
+        LocalDate date = LocalDate.of(1970, 3, 10);
         carter.setRegDate(date);
         repository.save(carter);
 
         List<Person> persons = repository.findByRegDate(date);
         assertThat(persons).contains(carter);
+
+        carter.setRegDate(null);
+        repository.save(carter);
     }
 
     @Test
