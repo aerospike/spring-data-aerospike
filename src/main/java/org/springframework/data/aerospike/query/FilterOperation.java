@@ -725,8 +725,8 @@ public enum FilterOperation {
             // + 1L to the valueEnd since the valueEnd is exclusive
             Exp upperLimit = Exp.val(getValue2(map).toLong() + 1L);
 
-            // Long.MAX_VALUE will not be processed correctly if given as an inclusive parameter as it will cause
-            // overflow
+            // Long.MAX_VALUE will not be processed correctly if given as an inclusive parameter
+            // as it will cause overflow
             if (getValue2(map).toLong() == Long.MAX_VALUE) upperLimit = null;
 
 
@@ -754,8 +754,8 @@ public enum FilterOperation {
             // + 1L to the valueEnd since the valueEnd is exclusive (both begin and values should be included).
             Exp upperLimit = Exp.val(getValue2(map).toLong() + 1L);
 
-            // Long.MAX_VALUE will not be processed correctly if given as an inclusive parameter as it will cause
-            // overflow
+            // Long.MAX_VALUE will not be processed correctly if given as an inclusive parameter
+            // as it will cause overflow
             if (getValue2(map).toLong() == Long.MAX_VALUE) upperLimit = null;
 
 
