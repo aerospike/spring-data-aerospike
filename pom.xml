@@ -28,7 +28,7 @@
         <spring-cloud-starter-bootstrap>4.0.1</spring-cloud-starter-bootstrap>
         <spring-boot-starter-test>3.0.5</spring-boot-starter-test>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
-        <maven.gpg.plugin>1.6</maven.gpg.plugin>
+        <maven.gpg.plugin>3.0.1</maven.gpg.plugin>
         <aerospike>6.1.8</aerospike>
         <aerospike-reactor>6.1.2</aerospike-reactor>
         <reactor-test>3.5.4</reactor-test>
