@@ -26,7 +26,6 @@ public class IndexesInfo {
 
     public final Map<IndexKey, Index> indexes;
     public final Set<IndexedField> indexedFields;
-//    public final Map<IndexedField, List<IndexKey>> indexedFields;
 
     private IndexesInfo(Map<IndexKey, Index> indexes) {
         this.indexes = Collections.unmodifiableMap(indexes);
@@ -34,13 +33,6 @@ public class IndexesInfo {
             .map(key -> new IndexedField(key.getNamespace(), key.getSet(), key.getField()))
             .distinct() // TODO: since we skip check on index type and index collection type in StatementBuilder
             .collect(Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
-//        this.indexedFields = indexes.keySet().stream()
-//            .map(key -> new IndexedField(key.getNamespace(), key.getSet(), key.getField()))
-//            .distinct() // TODO: since we skip check on index type and index collection type in StatementBuilder
-//            .collect(Collectors.collectingAndThen(Collectors.toUnmodifiableMap());
-        // after we have a Map<IndexedField, List<IndexKey>>
-        // and can access a List of Indexkeys
-        // we still cannot determine which of them should be used
     }
 
     public static IndexesInfo empty() {
