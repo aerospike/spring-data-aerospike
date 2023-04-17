@@ -77,9 +77,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     }
 
     private AerospikeCriteria create(Part part, AerospikePersistentProperty property, Iterator<?> parameters) {
-        String fieldName = property.getFieldName();
         Object v1 = parameters.next();
-        Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder();
 
         // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
         final Object value = v1;
@@ -111,9 +109,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     }
 
     public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object v1, Object v2,
-                                Iterator<?> parameters, FilterOperation op) {
+                                         Iterator<?> parameters, FilterOperation op) {
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder();
-        String fieldName = part.getProperty().getSegment(); // Map bin name, later passed to Exp.mapBin());
+        String fieldName = part.getProperty().getSegment(); // Map bin name, later passed to Exp.mapBin()
         String dotPath = null;
         Object v3 = null;
 
@@ -122,9 +120,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         } else if (property.isMap()) {
             List<Object> params = new ArrayList<>();
             parameters.forEachRemaining(params::add);
-            Object nextParam = params.get(0);
 
             if (params.size() == 1) { // value
+                Object nextParam = params.get(0);
                 if (op == FilterOperation.CONTAINING) {
                     if (nextParam instanceof CriteriaDefinition.AerospikeMapCriteria onMap) {
                         switch (onMap) {
@@ -147,7 +145,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                     }
                     dotPath = part.getProperty().toDotPath() + "." + Value.get(v1);
                 }
-            } else if (params.size() == 0) {
+            } else if (params.isEmpty()) {
                 v2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
             } else {
                 throw new IllegalArgumentException(
