@@ -95,47 +95,6 @@ public enum FilterOperation {
         }
     },
     EQ {
-//        @Override
-//        public QualifierBuilder qualifierBuilder(Part part, AerospikePersistentProperty property, Object v1,
-//                                                 Iterator<?> parameters, boolean isPojo) {
-//            QualifierBuilder qb = new Qualifier.QualifierBuilder();
-//
-//            if (property.isMap()) {
-//                FilterOperation op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
-//                List<Object> params = new ArrayList<>();
-//                parameters.forEachRemaining(params::add);
-//
-//                qb.setFilterOperation(op)
-//                    .setValue1(Value.get(params.get(0))) // contains value
-//                    .setField(part.getProperty().getSegment()); // Map bin name, later passed to Exp.mapBin());
-//
-//                if (params.size() == 1) { // value
-//                    qb.setValue2(Value.get(v1)) // contains key
-////                        .setDotPath(part.getProperty().toDotPath());
-//                        .setDotPath(part.getProperty().toDotPath() + "." + Value.get(v1));
-//                } else if (params.size() == 0) {
-//                    qb.setValue2(Value.get(property.getFieldName())) // VALUE2 contains key (field name)
-//                        .setField(part.getProperty().getSegment()); // Map bin name, later passed to Exp.mapBin()
-//
-//                } else {
-//                    throw new IllegalArgumentException(
-//                        "Expected not more than 2 arguments (propertyType: Map, filterOperation: " + op + ")");
-//                }
-//            } else { // if it is neither a collection nor a map
-//                if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)
-//                    qb.setFilterOperation(op)
-//                        .setField(part.getProperty().getSegment()) // POJO name, later passed to Exp.mapBin()
-//                        .setValue2(Value.get(property.getFieldName())) // VALUE2 contains key (field name)
-//                        .setDotPath(part.getProperty().toDotPath());
-//                } else if (isPojo) { // if it is a first level POJO
-//                    // if it is a POJO compared for equality it already has op == FilterOperation.EQ
-//                    qb.setField(part.getProperty().getSegment()) // POJO name, later passed to Exp.mapBin()
-//                        .setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
-//                }
-//            }
-//            return qb;
-//        }
-
         @Override
         public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
@@ -1161,9 +1120,6 @@ public enum FilterOperation {
     public abstract Exp filterExp(Map<String, Object> map);
 
     public abstract Filter sIndexFilter(Map<String, Object> map);
-
-//    public abstract QualifierBuilder qualifierBuilder(Part part, AerospikePersistentProperty property, Object v1,
-//                                                      Iterator<?> parameters, boolean isPojo);
 
     protected String getField(Map<String, Object> map) {
         return (String) map.get(FIELD);
