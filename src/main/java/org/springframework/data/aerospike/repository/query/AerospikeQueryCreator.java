@@ -129,10 +129,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                     if (nextParam instanceof CriteriaDefinition.AerospikeMapCriteria onMap) {
                         switch (onMap) {
                             case KEY -> op = FilterOperation.MAP_KEYS_CONTAIN;
-                            case VALUE -> op = FilterOperation.MAP_VALUES_CONTAIN;
+                            case VALUE -> op = FilterOperation.MAP_VAL_CONTAIN;
                         }
                     } else {
-                        op = FilterOperation.MAP_VALUE_CONTAINING_BY_KEY;
+                        op = FilterOperation.MAP_VAL_CONTAINING_BY_KEY;
                         setQbValuesForMapByKey(qb, v1, nextParam);
                     }
                 } else {
@@ -179,10 +179,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
     private FilterOperation getCorrespondingMapValueFilterOperationOrFail(FilterOperation op) {
         try {
-            return FilterOperation.valueOf("MAP_VALUE_" + op + "_BY_KEY");
+            return FilterOperation.valueOf("MAP_VAL_" + op + "_BY_KEY");
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
-                "Cannot find corresponding MAP_VALUE_..._BY_KEY FilterOperation for '" + op + "'");
+                "Cannot find corresponding MAP_VAL_..._BY_KEY FilterOperation for '" + op + "'");
         }
     }
 

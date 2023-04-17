@@ -518,7 +518,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
         Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
+            .setFilterOperation(FilterOperation.MAP_VAL_CONTAIN)
             .setValue1(Value.get(searchColor))
         );
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -572,7 +572,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(FilterOperation.MAP_VALUES_BETWEEN)
+            .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
             .setValue2(Value.get(ageEnd));
         Qualifier qualifier = new Qualifier(qb);
