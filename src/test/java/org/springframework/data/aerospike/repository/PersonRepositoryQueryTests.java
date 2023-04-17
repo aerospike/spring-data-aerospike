@@ -54,9 +54,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     private void setFriendsToNull(Person... persons) {
         for (Person person : persons) {
             person.setFriend(null);
-            repository.save(person);
-        }
-        for (Person person : persons) {
             person.setBestFriend(null);
             repository.save(person);
         }
@@ -543,7 +540,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 //		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(allFirstNames))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Unsupported keyword!");
+            .hasMessage("Unsupported keyword 'NOT_IN (1): [IsNotIn, NotIn]'");
 
 //		assertThat(result).isEmpty();
     }
@@ -553,7 +550,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 //		Stream<Person> result = repository.findByFirstnameNotIn(Collections.singleton("Alicia"));
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(Collections.singleton("Alicia")))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Unsupported keyword!");
+            .hasMessage("Unsupported keyword 'NOT_IN (1): [IsNotIn, NotIn]'");
 
 //		assertThat(result).contains(dave, donny, oliver, carter, boyd, stefan, leroi, leroi2);
     }

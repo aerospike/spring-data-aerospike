@@ -13,6 +13,7 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.query.Qualifier.QualifierBuilder;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.StringUtils;
 
@@ -79,7 +80,7 @@ public enum FilterOperation {
             Exp[] listElementsExp = new Exp[inList.size()];
 
             for (int i = 0; i < inList.size(); i++) {
-                listElementsExp[i] = new Qualifier(new Qualifier.QualifierBuilder()
+                listElementsExp[i] = new Qualifier(new QualifierBuilder()
                     .setField(getField(map))
                     .setFilterOperation(FilterOperation.EQ)
                     .setValue1(Value.get(inList.get(i)))
@@ -94,6 +95,47 @@ public enum FilterOperation {
         }
     },
     EQ {
+//        @Override
+//        public QualifierBuilder qualifierBuilder(Part part, AerospikePersistentProperty property, Object v1,
+//                                                 Iterator<?> parameters, boolean isPojo) {
+//            QualifierBuilder qb = new Qualifier.QualifierBuilder();
+//
+//            if (property.isMap()) {
+//                FilterOperation op = FilterOperation.MAP_VALUE_EQ_BY_KEY;
+//                List<Object> params = new ArrayList<>();
+//                parameters.forEachRemaining(params::add);
+//
+//                qb.setFilterOperation(op)
+//                    .setValue1(Value.get(params.get(0))) // contains value
+//                    .setField(part.getProperty().getSegment()); // Map bin name, later passed to Exp.mapBin());
+//
+//                if (params.size() == 1) { // value
+//                    qb.setValue2(Value.get(v1)) // contains key
+////                        .setDotPath(part.getProperty().toDotPath());
+//                        .setDotPath(part.getProperty().toDotPath() + "." + Value.get(v1));
+//                } else if (params.size() == 0) {
+//                    qb.setValue2(Value.get(property.getFieldName())) // VALUE2 contains key (field name)
+//                        .setField(part.getProperty().getSegment()); // Map bin name, later passed to Exp.mapBin()
+//
+//                } else {
+//                    throw new IllegalArgumentException(
+//                        "Expected not more than 2 arguments (propertyType: Map, filterOperation: " + op + ")");
+//                }
+//            } else { // if it is neither a collection nor a map
+//                if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)
+//                    qb.setFilterOperation(op)
+//                        .setField(part.getProperty().getSegment()) // POJO name, later passed to Exp.mapBin()
+//                        .setValue2(Value.get(property.getFieldName())) // VALUE2 contains key (field name)
+//                        .setDotPath(part.getProperty().toDotPath());
+//                } else if (isPojo) { // if it is a first level POJO
+//                    // if it is a POJO compared for equality it already has op == FilterOperation.EQ
+//                    qb.setField(part.getProperty().getSegment()) // POJO name, later passed to Exp.mapBin()
+//                        .setValue2(Value.get(property.getFieldName())); // VALUE2 contains key (field name)
+//                }
+//            }
+//            return qb;
+//        }
+
         @Override
         public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
@@ -666,17 +708,17 @@ public enum FilterOperation {
             }
         }
     },
-    MAP_VALUES_BETWEEN_BY_KEY {
+    MAP_VALUE_BETWEEN_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name), VALUE3 contains upper limit
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue3(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
-                    "MAP_VALUES_BETWEEN_BY_KEY FilterExpression unsupported type: expected Long");
+                    "MAP_VALUE_BETWEEN_BY_KEY FilterExpression unsupported type: expected Long");
             }
 
             String[] dotPathArr = getDotPathArray(getDotPath(map),
-                "MAP_VALUES_BETWEEN_BY_KEY filter expression: dotPath has not been set");
+                "MAP_VALUE_BETWEEN_BY_KEY filter expression: dotPath has not been set");
             Exp mapExp;
             if (dotPathArr.length > 2) {
                 mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
@@ -698,11 +740,11 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue3(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
-                    "MAP_VALUES_BETWEEN_BY_KEY sIndex filter unsupported type: expected Long");
+                    "MAP_VALUE_BETWEEN_BY_KEY sIndex filter unsupported type: expected Long");
             }
 
             String[] dotPathArr = getDotPathArray(getDotPath(map),
-                "MAP_VALUES_BETWEEN_BY_KEY secondary index filter: dotPath has not been set");
+                "MAP_VALUE_BETWEEN_BY_KEY secondary index filter: dotPath has not been set");
             if (dotPathArr.length > 2) {
                 return null; // currently not supported
             } else {
@@ -897,7 +939,7 @@ public enum FilterOperation {
             return geoWithinRadius(IndexCollectionType.DEFAULT, map);
         }
     },
-    LIST_CONTAINS {
+    LIST_VAL_CONTAINING {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             return switch (getValue1(map).getType()) {
@@ -912,7 +954,7 @@ public enum FilterOperation {
                     Exp.val(0)
                 );
                 default -> throw new AerospikeException(
-                    "LIST_CONTAINS FilterExpression unsupported type: expected String or Long");
+                    "LIST_VAL_CONTAINING FilterExpression unsupported type: expected String or Long");
             };
         }
 
@@ -920,18 +962,18 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.STRING && getValue1(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
-                    "LIST_CONTAINS sIndexFilter unsupported type: expected String or Long");
+                    "LIST_VAL_CONTAINING sIndexFilter unsupported type: expected String or Long");
             }
 
             return collectionContains(IndexCollectionType.LIST, map);
         }
     },
-    LIST_VALUE_BETWEEN {
+    LIST_VAL_BETWEEN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
-                    "LIST_BETWEEN FilterExpression unsupported type: expected Long");
+                    "LIST_VAL_BETWEEN FilterExpression unsupported type: expected Long");
             }
 
             // + 1L to the valueEnd since the valueEnd is exclusive
@@ -951,18 +993,18 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
-                    "LIST_BETWEEN sIndexFilter unsupported type: expected Long");
+                    "LIST_VAL_BETWEEN sIndexFilter unsupported type: expected Long");
             }
 
             return collectionRange(IndexCollectionType.LIST, map);
         }
     },
-    LIST_VALUE_GT {
+    LIST_VAL_GT {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
                 throw new AerospikeException(
-                    "LIST_VALUE_GT FilterExpression unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
+                    "LIST_VAL_GT FilterExpression unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
             }
 
             return Exp.gt(
@@ -977,18 +1019,18 @@ public enum FilterOperation {
             // Long.MAX_VALUE shall not be given as + 1 will cause overflow
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
                 throw new AerospikeException(
-                    "LIST_VALUE_GT sIndexFilter unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
+                    "LIST_VAL_GT sIndexFilter unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
             }
 
             return Filter.range(getField(map), IndexCollectionType.LIST, getValue1(map).toLong() + 1, Long.MAX_VALUE);
         }
     },
-    LIST_VALUE_GTEQ {
+    LIST_VAL_GTEQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
-                    "LIST_VALUE_GTEQ FilterExpression unsupported type: expected Long");
+                    "LIST_VAL_GTEQ FilterExpression unsupported type: expected Long");
             }
 
             return Exp.gt(
@@ -1002,18 +1044,18 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
-                    "LIST_VALUE_GTEQ sIndexFilter unsupported type: expected Long");
+                    "LIST_VAL_GTEQ sIndexFilter unsupported type: expected Long");
             }
 
             return Filter.range(getField(map), IndexCollectionType.LIST, getValue1(map).toLong(), Long.MAX_VALUE);
         }
     },
-    LIST_VALUE_LT {
+    LIST_VAL_LT {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
                 throw new AerospikeException(
-                    "LIST_VALUE_LT FilterExpression unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE]");
+                    "LIST_VAL_LT FilterExpression unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE]");
             }
 
             return Exp.gt(
@@ -1028,18 +1070,18 @@ public enum FilterOperation {
             // Long.MIN_VALUE shall not be given as - 1 will cause overflow
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
                 throw new AerospikeException(
-                    "LIST_VALUE_LT sIndexFilter unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE]");
+                    "LIST_VAL_LT sIndexFilter unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE]");
             }
 
             return Filter.range(getField(map), IndexCollectionType.LIST, Long.MIN_VALUE, getValue1(map).toLong() - 1);
         }
     },
-    LIST_VALUE_LTEQ {
+    LIST_VAL_LTEQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
-                    "LIST_VALUE_LTEQ FilterExpression unsupported type: expected Long");
+                    "LIST_VAL_LTEQ FilterExpression unsupported type: expected Long");
             }
 
             // + 1L to the valueEnd since the valueEnd is exclusive
@@ -1059,7 +1101,7 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
                 throw new AerospikeException(
-                    "LIST_VALUE_LTEQ sIndexFilter unsupported type: expected Long");
+                    "LIST_VAL_LTEQ sIndexFilter unsupported type: expected Long");
             }
 
             return Filter.range(getField(map), IndexCollectionType.LIST, Long.MIN_VALUE, getValue1(map).toLong());
@@ -1079,7 +1121,7 @@ public enum FilterOperation {
      */
     public static final List<FilterOperation> dualFilterOperations = Arrays.asList(
         MAP_VALUE_EQ_BY_KEY, MAP_VALUE_GT_BY_KEY, MAP_VALUE_GTEQ_BY_KEY, MAP_VALUE_LT_BY_KEY, MAP_VALUE_LTEQ_BY_KEY,
-        MAP_VALUES_BETWEEN_BY_KEY
+        MAP_VALUE_BETWEEN_BY_KEY
     );
 
     private static CTX[] dotPathToCtxMapKeys(String[] dotPathArray) {
@@ -1119,6 +1161,9 @@ public enum FilterOperation {
     public abstract Exp filterExp(Map<String, Object> map);
 
     public abstract Filter sIndexFilter(Map<String, Object> map);
+
+//    public abstract QualifierBuilder qualifierBuilder(Part part, AerospikePersistentProperty property, Object v1,
+//                                                      Iterator<?> parameters, boolean isPojo);
 
     protected String getField(Map<String, Object> map) {
         return (String) map.get(FIELD);
