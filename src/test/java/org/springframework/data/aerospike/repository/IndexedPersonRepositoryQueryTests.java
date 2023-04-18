@@ -476,9 +476,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     private void setFriendsToNull(IndexedPerson... persons) {
         for (IndexedPerson person : persons) {
             person.setFriend(null);
-            repository.save(person);
-        }
-        for (IndexedPerson person : persons) {
             person.setBestFriend(null);
             repository.save(person);
         }

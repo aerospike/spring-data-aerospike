@@ -325,6 +325,14 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return this.map.containsKey(VALUE2) && this.map.get(VALUE2) != null;
         }
 
+        public boolean hasValue3() {
+            return this.map.containsKey(VALUE3) && this.map.get(VALUE3) != null;
+        }
+
+        public boolean hasDotPath() {
+            return this.map.containsKey(DOT_PATH) && this.map.get(DOT_PATH) != null;
+        }
+
         public Qualifier build() {
             return new Qualifier(this);
         }
