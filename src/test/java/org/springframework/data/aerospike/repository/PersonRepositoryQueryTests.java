@@ -163,7 +163,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByMapKeyValueNotEquals() {
+    void findByMapKeyValueNotEqual() {
         assertThat(leroi.getIntMap()).containsKey("key1");
         assertThat(!leroi.getIntMap().containsValue(22)).isTrue();
 
@@ -772,6 +772,44 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findPersonsByStringsList() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            List<String> listToCompareWith = List.of("str1", "str2");
+            assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
+
+            List<Person> persons = repository.findByStringsEquals(listToCompareWith);
+            assertThat(persons).contains(dave);
+
+            // another way to call the method
+            List<Person> persons2 = repository.findByStrings(listToCompareWith);
+            assertThat(persons2).contains(dave);
+        }
+    }
+
+    @Test
+    public void findPersonsByStringsListNotEqual() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            List<String> listToCompareWith = List.of("str1", "str2");
+            assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
+            assertThat(carter.getStrings()).isNotEqualTo(listToCompareWith);
+
+            List<Person> persons = repository.findByStringsIsNot(listToCompareWith);
+            assertThat(persons).contains(carter);
+        }
+    }
+
+    @Test
+    public void findPersonsByStringsListLessThan() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            List<String> listToCompareWith = List.of("str1", "str2");
+            assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
+
+            List<Person> persons = repository.findByStringsLessThan(listToCompareWith);
+            assertThat(persons).contains(dave);
+        }
+    }
+
+    @Test
     public void findPersonsByStringMap() {
         if (IndexUtils.isFindByPojoSupported(client)) {
             Map<String, String> mapToCompareWith = Map.of("key1", "val1", "key2", "val2");
@@ -799,7 +837,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByAddressNotEquals() {
+    public void findPersonsByAddressNotEqual() {
         if (IndexUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             assertThat(dave.getAddress()).isEqualTo(address);
@@ -811,7 +849,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonsByIntMapNotEquals() {
+    public void findPersonsByIntMapNotEqual() {
         if (IndexUtils.isFindByPojoSupported(client)) {
             Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);
             assertThat(leroi.getIntMap()).isEqualTo(mapToCompareWith);

@@ -116,7 +116,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         Object v3 = null;
 
         if (property.isCollectionLike()) {
-            op = getCorrespondingListFilterOperationOrFail(op);
+            if (!(v1 instanceof List<?>)) {
+                op = getCorrespondingListFilterOperationOrFail(op);
+            }
         } else if (property.isMap()) {
             List<Object> params = new ArrayList<>();
             parameters.forEachRemaining(params::add);

@@ -114,6 +114,12 @@ public enum FilterOperation {
                         )
                     )
                 );
+                case ParticleType.LIST -> Exp.eq(
+                    Exp.listBin(getField(map)), toExp(getConverter(map).toWritableValue(
+                            val.getObject(), TypeInformation.of(val.getObject().getClass())
+                        )
+                    )
+                );
                 default ->
                     throw new AerospikeException("EQ FilterExpression unsupported particle type: " + val.getType());
             };
@@ -152,6 +158,12 @@ public enum FilterOperation {
                         )
                     )
                 );
+                case ParticleType.LIST -> Exp.ne(
+                    Exp.listBin(getField(map)), toExp(getConverter(map).toWritableValue(
+                            val.getObject(), TypeInformation.of(val.getObject().getClass())
+                        )
+                    )
+                );
                 default ->
                     throw new AerospikeException("NOTEQ FilterExpression unsupported particle type: " + val.getType());
             };
@@ -171,6 +183,12 @@ public enum FilterOperation {
                 case ParticleType.STRING -> Exp.gt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
                 case ParticleType.JBLOB, ParticleType.MAP -> Exp.gt(
                     Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
+                            val.getObject(), TypeInformation.of(val.getObject().getClass())
+                        )
+                    )
+                );
+                case ParticleType.LIST -> Exp.gt(
+                    Exp.listBin(getField(map)), toExp(getConverter(map).toWritableValue(
                             val.getObject(), TypeInformation.of(val.getObject().getClass())
                         )
                     )
@@ -204,6 +222,12 @@ public enum FilterOperation {
                         )
                     )
                 );
+                case ParticleType.LIST -> Exp.ge(
+                    Exp.listBin(getField(map)), toExp(getConverter(map).toWritableValue(
+                            val.getObject(), TypeInformation.of(val.getObject().getClass())
+                        )
+                    )
+                );
                 default ->
                     throw new AerospikeException("GTEQ FilterExpression unsupported particle type: " + val.getType());
             };
@@ -226,6 +250,12 @@ public enum FilterOperation {
                 case ParticleType.STRING -> Exp.lt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
                 case ParticleType.JBLOB, ParticleType.MAP -> Exp.lt(
                     Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
+                            val.getObject(), TypeInformation.of(val.getObject().getClass())
+                        )
+                    )
+                );
+                case ParticleType.LIST -> Exp.lt(
+                    Exp.listBin(getField(map)), toExp(getConverter(map).toWritableValue(
                             val.getObject(), TypeInformation.of(val.getObject().getClass())
                         )
                     )
@@ -254,6 +284,12 @@ public enum FilterOperation {
                 case ParticleType.STRING -> Exp.le(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
                 case ParticleType.JBLOB, ParticleType.MAP -> Exp.le(
                     Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
+                            val.getObject(), TypeInformation.of(val.getObject().getClass())
+                        )
+                    )
+                );
+                case ParticleType.LIST -> Exp.le(
+                    Exp.listBin(getField(map)), toExp(getConverter(map).toWritableValue(
                             val.getObject(), TypeInformation.of(val.getObject().getClass())
                         )
                     )
