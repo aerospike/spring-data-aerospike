@@ -208,18 +208,18 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Page<P> findByAddressIn(List<Address> address, Pageable page);
 
     /**
-     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by list)
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
      *
-     * @param list List to compare strings with
+     * @param collection Collection to compare strings with
      */
-    List<P> findByStringsEquals(List<String> list);
+    List<P> findByStringsEquals(Collection<String> collection);
 
     /**
-     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by list)
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
      *
-     * @param list List to compare strings with
+     * @param collection Collection to compare strings with
      */
-    List<P> findByStrings(List<String> list);
+    List<P> findByStrings(Collection<String> collection);
 
     /**
      * Find all entities with existing strings list not equal to the given argument
