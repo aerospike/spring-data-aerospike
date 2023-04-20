@@ -109,15 +109,15 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         };
     }
 
-    public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object arg1, Object arg2,
+    public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
                                          Iterator<?> parameters, FilterOperation op) {
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder();
         String fieldName = part.getProperty().getSegment(); // Map bin name, later passed to Exp.mapBin()
         String dotPath = null;
-        Object arg3 = null;
+        Object value3 = null;
 
         if (property.isCollectionLike()) {
-            if (!(arg1 instanceof Collection<?>)) { // if arg is a Collection preserving the initial FilterOperation
+            if (!(value1 instanceof Collection<?>)) { // preserving the initial FilterOperation if arg is a Collection
                 op = getCorrespondingListFilterOperationOrFail(op);
             }
         } else if (property.isMap()) {
@@ -134,22 +134,22 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         }
                     } else {
                         op = FilterOperation.MAP_VAL_CONTAINING_BY_KEY;
-                        setQbValuesForMapByKey(qb, arg1, nextParam);
+                        setQbValuesForMapByKey(qb, value1, nextParam);
                     }
                 } else {
                     if (op == FilterOperation.BETWEEN) {
                         op = getCorrespondingMapValueFilterOperationOrFail(op);
-                        qb.setValue2(Value.get(arg1)); // contains key
-                        qb.setValue1(Value.get(arg2)); // contains lower limit (inclusive)
+                        qb.setValue2(Value.get(value1)); // contains key
+                        qb.setValue1(Value.get(value2)); // contains lower limit (inclusive)
                         qb.setValue3(Value.get(nextParam)); // contains upper limit (inclusive)
                     } else {
                         op = getCorrespondingMapValueFilterOperationOrFail(op);
-                        setQbValuesForMapByKey(qb, arg1, nextParam);
+                        setQbValuesForMapByKey(qb, value1, nextParam);
                     }
-                    dotPath = part.getProperty().toDotPath() + "." + Value.get(arg1);
+                    dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
                 }
             } else if (params.isEmpty()) {
-                arg2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+                value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
             } else {
                 throw new IllegalArgumentException(
                     "Expected not more than 2 arguments (propertyType: Map, filterOperation: " + op + ")");
@@ -157,14 +157,14 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         } else { // if it is neither a collection nor a map
             if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)
                 if (op == FilterOperation.BETWEEN) {
-                    arg3 = Value.get(arg2); // contains upper limit
+                    value3 = Value.get(value2); // contains upper limit
                 }
                 op = getCorrespondingMapValueFilterOperationOrFail(op);
-                arg2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+                value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
                 dotPath = part.getProperty().toDotPath();
             } else if (isPojo(part)) { // if it is a first level POJO
                 // if it is a POJO compared for equality it already has op == FilterOperation.EQ
-                arg2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+                value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
             }
         }
 
@@ -173,7 +173,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             .setIgnoreCase(ignoreCaseToBoolean(part))
             .setConverter(converter);
 
-        setNotNullQbValues(qb, arg1, arg2, arg3, dotPath);
+        setNotNullQbValues(qb, value1, value2, value3, dotPath);
 
         return new AerospikeCriteria(qb);
     }

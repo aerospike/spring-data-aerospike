@@ -239,6 +239,16 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringsLessThan(List<String> list);
 
     /**
+     * Find all entities that satisfy the condition "have strings set with fewer elements or with a corresponding
+     * element lower in ordering than in the given argument" (find by collection).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param collection - Collection to compare with
+     */
+    List<P> findByIntSetGreaterThanEqual(Collection<Integer> collection);
+
+    /**
      * Find all entities containing the given map element (key or value depending on the given criteria)
      *
      * @param element  map element

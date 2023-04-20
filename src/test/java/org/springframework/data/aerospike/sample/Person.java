@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Peter Milne
@@ -54,6 +55,7 @@ public class Person {
     private LocalDate regDate;
     private List<String> strings;
     private List<Integer> ints;
+    private Set<Integer> intSet;
     private Address address;
     @Field("email")
     private String emailAddress;

@@ -792,19 +792,35 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             List<String> listToCompareWith = List.of("str1", "str2");
             assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
             assertThat(carter.getStrings()).isNotEqualTo(listToCompareWith);
+            assertThat(donny.getStrings()).isNotEqualTo(listToCompareWith);
 
             List<Person> persons = repository.findByStringsIsNot(listToCompareWith);
-            assertThat(persons).contains(carter);
+            assertThat(persons).contains(carter, donny);
         }
     }
 
     @Test
     public void findPersonsByStringsListLessThan() {
         if (IndexUtils.isFindByPojoSupported(client)) {
-            List<String> listToCompareWith = List.of("str1", "str2");
-            assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
+            List<String> listToCompareWith = List.of("str1", "str2", "str3");
+            List<String> listWithFewerElements = List.of("str1", "str2");
+            assertThat(donny.getStrings()).isEqualTo(listToCompareWith);
+            assertThat(dave.getStrings()).isEqualTo(listWithFewerElements);
 
             List<Person> persons = repository.findByStringsLessThan(listToCompareWith);
+            assertThat(persons).contains(dave);
+        }
+    }
+
+    @Test
+    public void findPersonsByStringsListGreaterThanOrEqual() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Set<Integer> setToCompareWith = Set.of(0, 1, 2, 3, 4);
+            dave.setIntSet(setToCompareWith);
+            repository.save(dave);
+            assertThat(dave.getIntSet()).isEqualTo(setToCompareWith);
+
+            List<Person> persons = repository.findByIntSetGreaterThanEqual(setToCompareWith);
             assertThat(persons).contains(dave);
         }
     }
