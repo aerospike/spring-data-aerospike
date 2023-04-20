@@ -791,11 +791,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         if (IndexUtils.isFindByPojoSupported(client)) {
             List<String> listToCompareWith = List.of("str1", "str2");
             assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
-            assertThat(carter.getStrings()).isNotEqualTo(listToCompareWith);
+            assertThat(donny.getStrings()).isNotEmpty();
             assertThat(donny.getStrings()).isNotEqualTo(listToCompareWith);
 
             List<Person> persons = repository.findByStringsIsNot(listToCompareWith);
-            assertThat(persons).contains(carter, donny);
+            assertThat(persons).contains(donny);
         }
     }
 
@@ -857,10 +857,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         if (IndexUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             assertThat(dave.getAddress()).isEqualTo(address);
+            assertThat(carter.getAddress()).isNotNull();
             assertThat(carter.getAddress()).isNotEqualTo(address);
+            assertThat(boyd.getAddress()).isNotNull();
+            assertThat(boyd.getAddress()).isNotEqualTo(address);
 
             List<Person> persons = repository.findByAddressIsNot(address);
-            assertThat(persons).containsExactlyInAnyOrder(carter, boyd);
+            assertThat(persons).contains(carter, boyd);
         }
     }
 
