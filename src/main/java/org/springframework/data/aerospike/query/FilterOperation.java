@@ -136,18 +136,24 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
             return switch (val.getType()) {
-                case ParticleType.INTEGER -> Exp.ne(Exp.intBin(getField(map)), Exp.val(val.toLong()));
+                // Exp.ne() does not return null bins, so Exp.not(Exp.binExists()) has to be added
+                case ParticleType.INTEGER -> {
+                    Exp ne = Exp.ne(Exp.intBin(getField(map)), Exp.val(val.toLong()));
+                    yield Exp.or(Exp.not(Exp.binExists(getField(map))), ne);
+                }
                 case ParticleType.STRING -> {
                     if (ignoreCase(map)) {
                         String equalsRegexp = QualifierRegexpBuilder.getStringEquals(getValue1(map).toString());
-                        yield Exp.not(Exp.regexCompare(equalsRegexp, RegexFlag.ICASE, Exp.stringBin(getField(map))));
+                        Exp regexCompare = Exp.not(Exp.regexCompare(equalsRegexp, RegexFlag.ICASE, Exp.stringBin(getField(map))));
+                        yield Exp.or(Exp.not(Exp.binExists(getField(map))), regexCompare);
                     } else {
-                        yield Exp.ne(Exp.stringBin(getField(map)), Exp.val(val.toString()));
+                        Exp ne = Exp.ne(Exp.stringBin(getField(map)), Exp.val(val.toString()));
+                        yield Exp.or(Exp.not(Exp.binExists(getField(map))), ne);
                     }
                 }
-                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ne);
-                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::mapBin);
-                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::listBin);
+                case ParticleType.JBLOB -> getFilterExpNoteq(getConverter(map), val, getField(map), Exp::ne);
+                case ParticleType.MAP -> getFilterExpNoteq(getConverter(map), val, getField(map), Exp::ne, Exp::mapBin);
+                case ParticleType.LIST -> getFilterExpNoteq(getConverter(map), val, getField(map), Exp::ne, Exp::listBin);
                 default ->
                     throw new AerospikeException("NOTEQ FilterExpression unsupported particle type: " + val.getType());
             };
@@ -980,6 +986,30 @@ public enum FilterOperation {
             val.getObject(), TypeInformation.of(val.getObject().getClass())
         );
         return operator.apply(binExp.apply(field), toExp(convertedValue));
+    }
+
+    private static Exp getFilterExpNoteq(MappingAerospikeConverter converter, Value val, String field,
+                                    BinaryOperator<Exp> operator) {
+        Object convertedValue = converter.toWritableValue(
+            val.getObject(), TypeInformation.of(val.getObject().getClass())
+        );
+        Function<String, Exp> binExp;
+        if (convertedValue instanceof List<?>) {
+            // Collection comes as JBLOB and gets converted to a List
+            binExp = Exp::listBin;
+        } else {
+            // custom objects are converted into Maps
+            binExp = Exp::mapBin;
+        }
+        return Exp.or(Exp.not(Exp.binExists(field)), operator.apply(binExp.apply(field), toExp(convertedValue)));
+    }
+
+    private static Exp getFilterExpNoteq(MappingAerospikeConverter converter, Value val, String field,
+                                    BinaryOperator<Exp> operator, Function<String, Exp> binExp) {
+        Object convertedValue = converter.toWritableValue(
+            val.getObject(), TypeInformation.of(val.getObject().getClass())
+        );
+        return Exp.or(Exp.not(Exp.binExists(field)), operator.apply(binExp.apply(field), toExp(convertedValue)));
     }
 
     private static String[] getDotPathArray(String dotPath, String errMsg) {

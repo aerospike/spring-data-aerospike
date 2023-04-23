@@ -791,11 +791,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         if (IndexUtils.isFindByPojoSupported(client)) {
             List<String> listToCompareWith = List.of("str1", "str2");
             assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
-            assertThat(donny.getStrings()).isNotEmpty();
             assertThat(donny.getStrings()).isNotEqualTo(listToCompareWith);
+            assertThat(oliver.getStrings()).isNullOrEmpty();
 
             List<Person> persons = repository.findByStringsIsNot(listToCompareWith);
-            assertThat(persons).contains(donny);
+            assertThat(persons).contains(donny, oliver);
         }
     }
 
@@ -873,13 +873,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);
             assertThat(leroi.getIntMap()).isEqualTo(mapToCompareWith);
             assertThat(carter.getIntMap()).isEqualTo(mapToCompareWith);
+            assertThat(boyd.getIntMap()).isNullOrEmpty();
 
             carter.setIntMap(Map.of("key1", 1, "key2", 2));
             repository.save(carter);
             assertThat(carter.getIntMap()).isNotEqualTo(mapToCompareWith);
 
             List<Person> persons = repository.findByIntMapIsNot(mapToCompareWith);
-            assertThat(persons).contains(carter);
+            assertThat(persons).contains(carter, boyd);
 
             carter.setIntMap(mapToCompareWith);
             repository.save(carter);
