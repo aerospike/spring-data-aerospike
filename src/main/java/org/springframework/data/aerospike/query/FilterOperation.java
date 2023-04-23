@@ -375,7 +375,7 @@ public enum FilterOperation {
     MAP_VAL_NOTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return getFilterExpMapValEqOrFail(map, Exp::ne, "MAP_VAL_NOTEQ_BY_KEY");
+            return getFilterExpMapValNotEqOrFail(map, Exp::ne, "MAP_VAL_NOTEQ_BY_KEY");
         }
 
         @Override
@@ -909,6 +909,15 @@ public enum FilterOperation {
     }
 
     private static Exp getFilterExpMapValEqOrFail(Map<String, Object> map, BinaryOperator<Exp> operator, String opName) {
+        return getFilterExpMapValEqOrFail(map, operator, opName, false);
+    }
+
+    private static Exp getFilterExpMapValNotEqOrFail(Map<String, Object> map, BinaryOperator<Exp> operator, String opName) {
+        return getFilterExpMapValEqOrFail(map, operator, opName, true);
+    }
+
+    private static Exp getFilterExpMapValEqOrFail(Map<String, Object> map, BinaryOperator<Exp> operator, String opName,
+                                                  boolean notEq) {
         String[] dotPathArr = getDotPathArray(getDotPath(map),
             opName + " filter expression: dotPath has not been set");
         final boolean useCtx = dotPathArr.length > 2;
@@ -929,8 +938,12 @@ public enum FilterOperation {
                         Exp.val(getValue2(map).toString()),
                         Exp.mapBin(getField(map)));
                 }
-
-                yield operator.apply(mapExp, Exp.val(getValue1(map).toString()));
+                if (notEq) {
+                    Exp ne = operator.apply(mapExp, Exp.val(getValue1(map).toString()));
+                    yield Exp.or(Exp.not(Exp.binExists(getField(map))), ne);
+                } else {
+                    yield operator.apply(mapExp, Exp.val(getValue1(map).toString()));
+                }
             }
             case ParticleType.INTEGER -> {
                 if (useCtx) {
@@ -942,8 +955,12 @@ public enum FilterOperation {
                         Exp.val(getValue2(map).toString()),
                         Exp.mapBin(getField(map)));
                 }
-
-                yield operator.apply(mapExp, Exp.val(getValue1(map).toLong()));
+                if (notEq) {
+                    Exp ne = operator.apply(mapExp, Exp.val(getValue1(map).toLong()));
+                    yield Exp.or(Exp.not(Exp.binExists(getField(map))), ne);
+                } else {
+                    yield operator.apply(mapExp, Exp.val(getValue1(map).toLong()));
+                }
             }
             case ParticleType.JBLOB -> {
                 Object obj = getValue1(map).getObject();
@@ -956,10 +973,16 @@ public enum FilterOperation {
                         Exp.val(getValue2(map).toString()),
                         Exp.mapBin(getField(map)));
                 }
-
-                yield operator.apply(mapExp,
-                    toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
-                );
+                if (notEq) {
+                    Exp ne = operator.apply(mapExp,
+                        toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
+                    );
+                    yield Exp.or(Exp.not(Exp.binExists(getField(map))), ne);
+                } else {
+                    yield operator.apply(mapExp,
+                        toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
+                    );
+                }
             }
             default -> throw new AerospikeException(
                 opName + " FilterExpression unsupported type: " + getValue1(map).getType());

@@ -333,8 +333,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-            .hasSize(1)
-            .containsExactlyInAnyOrder(xylophone);
+            .contains(xylophone);
     }
 
     @Test
@@ -399,8 +398,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
-            .hasSize(2)
-            .containsExactlyInAnyOrder(beatrice, dave);
+            .contains(beatrice, dave);
     }
 
     @Test

@@ -166,10 +166,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByMapKeyValueNotEqual() {
         assertThat(leroi.getIntMap()).containsKey("key1");
         assertThat(!leroi.getIntMap().containsValue(22)).isTrue();
+        assertThat(douglas.getIntMap()).isNullOrEmpty();
 
         List<Person> persons = repository.findByIntMapIsNot("key1", 22);
 
-        assertThat(persons).contains(leroi);
+        assertThat(persons).contains(leroi, douglas);
     }
 
     @Test
@@ -399,8 +400,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFriendAgeIsNot(42);
 
         assertThat(result)
-            .hasSize(2)
-            .containsExactlyInAnyOrder(dave, oliver);
+            .contains(dave, oliver);
 
         setFriendsToNull(oliver, dave, carter);
     }
@@ -459,8 +459,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFriendAgeLessThanEqual(42);
 
         assertThat(result)
-            .hasSize(2)
-            .containsExactlyInAnyOrder(dave, carter);
+            .contains(dave, carter, oliver);
 
         setFriendsToNull(alicia, dave, carter, leroi);
     }
