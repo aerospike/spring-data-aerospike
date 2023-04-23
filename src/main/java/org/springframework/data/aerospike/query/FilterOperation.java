@@ -21,6 +21,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
 
 import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
 import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
@@ -108,12 +110,9 @@ public enum FilterOperation {
                         yield Exp.eq(Exp.stringBin(getField(map)), Exp.val(val.toString()));
                     }
                 }
-                case ParticleType.JBLOB, ParticleType.MAP -> Exp.eq(
-                    Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
-                            val.getObject(), TypeInformation.of(val.getObject().getClass())
-                        )
-                    )
-                );
+                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::eq);
+                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::eq, Exp::mapBin);
+                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::eq, Exp::listBin);
                 default ->
                     throw new AerospikeException("EQ FilterExpression unsupported particle type: " + val.getType());
             };
@@ -146,12 +145,9 @@ public enum FilterOperation {
                         yield Exp.ne(Exp.stringBin(getField(map)), Exp.val(val.toString()));
                     }
                 }
-                case ParticleType.JBLOB, ParticleType.MAP -> Exp.ne(
-                    Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
-                            val.getObject(), TypeInformation.of(val.getObject().getClass())
-                        )
-                    )
-                );
+                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ne);
+                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::mapBin);
+                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::listBin);
                 default ->
                     throw new AerospikeException("NOTEQ FilterExpression unsupported particle type: " + val.getType());
             };
@@ -169,12 +165,9 @@ public enum FilterOperation {
             return switch (val.getType()) {
                 case ParticleType.INTEGER -> Exp.gt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case ParticleType.STRING -> Exp.gt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case ParticleType.JBLOB, ParticleType.MAP -> Exp.gt(
-                    Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
-                            val.getObject(), TypeInformation.of(val.getObject().getClass())
-                        )
-                    )
-                );
+                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::gt);
+                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::mapBin);
+                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::listBin);
                 default ->
                     throw new AerospikeException("GT FilterExpression unsupported particle type: " + val.getType());
             };
@@ -198,12 +191,9 @@ public enum FilterOperation {
             return switch (val.getType()) {
                 case ParticleType.INTEGER -> Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case ParticleType.STRING -> Exp.ge(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case ParticleType.JBLOB, ParticleType.MAP -> Exp.ge(
-                    Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
-                            val.getObject(), TypeInformation.of(val.getObject().getClass())
-                        )
-                    )
-                );
+                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ge);
+                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::mapBin);
+                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::listBin);
                 default ->
                     throw new AerospikeException("GTEQ FilterExpression unsupported particle type: " + val.getType());
             };
@@ -224,12 +214,9 @@ public enum FilterOperation {
             return switch (val.getType()) {
                 case ParticleType.INTEGER -> Exp.lt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case ParticleType.STRING -> Exp.lt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case ParticleType.JBLOB, ParticleType.MAP -> Exp.lt(
-                    Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
-                            val.getObject(), TypeInformation.of(val.getObject().getClass())
-                        )
-                    )
-                );
+                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::lt);
+                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::mapBin);
+                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::listBin);
                 default ->
                     throw new AerospikeException("LT FilterExpression unsupported particle type: " + val.getType());
             };
@@ -252,12 +239,9 @@ public enum FilterOperation {
             return switch (val.getType()) {
                 case ParticleType.INTEGER -> Exp.le(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case ParticleType.STRING -> Exp.le(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case ParticleType.JBLOB, ParticleType.MAP -> Exp.le(
-                    Exp.mapBin(getField(map)), toExp(getConverter(map).toWritableValue(
-                            val.getObject(), TypeInformation.of(val.getObject().getClass())
-                        )
-                    )
-                );
+                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::le);
+                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::mapBin);
+                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::listBin);
                 default ->
                     throw new AerospikeException("LTEQ FilterExpression unsupported particle type: " + val.getType());
             };
@@ -345,61 +329,7 @@ public enum FilterOperation {
     MAP_VAL_EQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            String[] dotPathArr = getDotPathArray(getDotPath(map),
-                "MAP_VAL_EQ_BY_KEY filter expression: dotPath has not been set");
-            final boolean useCtx = dotPathArr.length > 2;
-            Exp mapExp;
-
-            return switch (getValue1(map).getType()) {
-                case ParticleType.STRING -> {
-                    if (ignoreCase(map)) {
-                        throw new IllegalArgumentException(
-                            "MAP_VAL_EQ_BY_KEY FilterExpression: case insensitive comparison is not supported");
-                    }
-                    if (useCtx) {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
-                            Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                    } else {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
-                            Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map)));
-                    }
-
-                    yield Exp.eq(mapExp, Exp.val(getValue1(map).toString()));
-                }
-                case ParticleType.INTEGER -> {
-                    if (useCtx) {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
-                            Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                    } else {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
-                            Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map)));
-                    }
-
-                    yield Exp.eq(mapExp, Exp.val(getValue1(map).toLong()));
-                }
-                case ParticleType.JBLOB -> {
-                    Object obj = getValue1(map).getObject();
-                    if (useCtx) {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
-                            Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                    } else {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
-                            Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map)));
-                    }
-
-                    yield Exp.eq(mapExp,
-                        toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
-                    );
-                }
-                default -> throw new AerospikeException(
-                    "MAP_VAL_EQ_BY_KEY FilterExpression unsupported type: " + getValue1(map).getType());
-            };
+            return getFilterExpMapValEqOrFail(map, Exp::eq, "MAP_VAL_EQ_BY_KEY");
         }
 
         /**
@@ -439,58 +369,7 @@ public enum FilterOperation {
     MAP_VAL_NOTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            String[] dotPathArr = getDotPathArray(getDotPath(map),
-                "MAP_VAL_NOTEQ_BY_KEY filter expression: dotPath has not been set");
-            final boolean useCtx = dotPathArr.length > 2;
-            Exp mapExp;
-
-            return switch (getValue1(map).getType()) {
-                case ParticleType.STRING -> {
-                    if (ignoreCase(map)) {
-                        throw new IllegalArgumentException(
-                            "MAP_VAL_NOTEQ_BY_KEY FilterExpression: case insensitive comparison is not supported");
-                    }
-                    if (useCtx) {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
-                            Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                    } else {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
-                            Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map)));
-                    }
-                    yield Exp.ne(mapExp, Exp.val(getValue1(map).toString()));
-                }
-                case ParticleType.INTEGER -> {
-                    if (useCtx) {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
-                            Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                    } else {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
-                            Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map)));
-                    }
-                    yield Exp.ne(mapExp, Exp.val(getValue1(map).toLong()));
-                }
-                case ParticleType.JBLOB -> {
-                    Object obj = getValue1(map).getObject();
-                    if (useCtx) {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
-                            Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                            Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                    } else {
-                        mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
-                            Exp.val(getValue2(map).toString()),
-                            Exp.mapBin(getField(map)));
-                    }
-                    yield Exp.ne(mapExp,
-                        toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
-                    );
-                }
-                default -> throw new AerospikeException(
-                    "MAP_VAL_NOTEQ_BY_KEY FilterExpression unsupported type: " + getValue1(map).getType());
-            };
+            return getFilterExpMapValEqOrFail(map, Exp::ne, "MAP_VAL_NOTEQ_BY_KEY");
         }
 
         @Override
@@ -501,22 +380,7 @@ public enum FilterOperation {
     MAP_VAL_GT_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            // VALUE2 contains key (field name)
-            if (getValue1(map).getType() == ParticleType.INTEGER) {
-                String[] dotPathArr = getDotPathArray(getDotPath(map),
-                    "MAP_VAL_GT_BY_KEY filter expression: dotPath has not been set");
-                Exp mapExp;
-                if (dotPathArr.length > 2) {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                } else {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map)));
-                }
-                return Exp.gt(mapExp, Exp.val(getValue1(map).toLong()));
-            }
-            throw new AerospikeException(
-                "MAP_VAL_GT_BY_KEY FilterExpression unsupported type: expected Long");
+            return getFilterExpMapValOrFail(map, Exp::gt, "MAP_VAL_GT_BY_KEY");
         }
 
         /**
@@ -543,23 +407,7 @@ public enum FilterOperation {
     MAP_VAL_GTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            // VALUE2 contains key (field name)
-            if (getValue1(map).getType() == ParticleType.INTEGER) {
-                String[] dotPathArr = getDotPathArray(getDotPath(map),
-                    "MAP_VAL_GTEQ_BY_KEY filter expression: dotPath has not been set");
-                Exp mapExp;
-                if (dotPathArr.length > 2) {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                } else {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map)));
-                }
-                return Exp.ge(mapExp, Exp.val(getValue1(map).toLong())
-                );
-            }
-            throw new AerospikeException(
-                "MAP_VAL_GTEQ_BY_KEY FilterExpression unsupported type: expected Long");
+            return getFilterExpMapValOrFail(map, Exp::ge, "MAP_VAL_GTEQ_BY_KEY");
         }
 
         /**
@@ -585,23 +433,7 @@ public enum FilterOperation {
     MAP_VAL_LT_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            String[] dotPathArr = getDotPathArray(getDotPath(map),
-                "MAP_VAL_LT_BY_KEY filter expression: dotPath has not been set");
-
-            // VALUE2 contains key (field name)
-            if (getValue1(map).getType() == ParticleType.INTEGER) {
-                Exp mapExp;
-                if (dotPathArr.length > 2) {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                } else {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map)));
-                }
-                return Exp.lt(mapExp, Exp.val(getValue1(map).toLong()));
-            }
-            throw new AerospikeException(
-                "MAP_VAL_LT_BY_KEY FilterExpression unsupported type: expected Long");
+            return getFilterExpMapValOrFail(map, Exp::lt, "MAP_VAL_LT_BY_KEY");
         }
 
         /**
@@ -628,23 +460,7 @@ public enum FilterOperation {
     MAP_VAL_LTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            // VALUE2 contains key (field name)
-            if (getValue1(map).getType() == ParticleType.INTEGER) {
-                String[] dotPathArr = getDotPathArray(getDotPath(map),
-                    "MAP_VAL_LTEQ_BY_KEY filter expression: dotPath has not been set");
-                Exp mapExp;
-                if (dotPathArr.length > 2) {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
-                } else {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map)));
-                }
-                return Exp.le(mapExp, Exp.val(getValue1(map).toLong()));
-            } else {
-                throw new AerospikeException(
-                    "MAP_VAL_LTEQ_BY_KEY FilterExpression unsupported type: expected Long");
-            }
+            return getFilterExpMapValOrFail(map, Exp::le, "MAP_VAL_LTEQ_BY_KEY");
         }
 
         /**
@@ -1067,6 +883,105 @@ public enum FilterOperation {
         }
     };
 
+    private static Exp getFilterExpMapValOrFail(Map<String, Object> map, BinaryOperator<Exp> operator, String opName) {
+        if (getValue1(map).getType() == ParticleType.INTEGER) {
+            String[] dotPathArr = getDotPathArray(getDotPath(map),
+                opName + " filter expression: dotPath has not been set");
+            Exp mapExp;
+            // VALUE2 contains key (field name)
+            if (dotPathArr.length > 2) {
+                mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                    Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+            } else {
+                mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                    Exp.mapBin(getField(map)));
+            }
+            return operator.apply(mapExp, Exp.val(getValue1(map).toLong()));
+        }
+        throw new AerospikeException(
+            opName + " FilterExpression unsupported type: expected Long");
+    }
+
+    private static Exp getFilterExpMapValEqOrFail(Map<String, Object> map, BinaryOperator<Exp> operator, String opName) {
+        String[] dotPathArr = getDotPathArray(getDotPath(map),
+            opName + " filter expression: dotPath has not been set");
+        final boolean useCtx = dotPathArr.length > 2;
+        Exp mapExp;
+
+        return switch (getValue1(map).getType()) {
+            case ParticleType.STRING -> {
+                if (ignoreCase(map)) {
+                    throw new IllegalArgumentException(
+                        opName + " FilterExpression: case insensitive comparison is not supported");
+                }
+                if (useCtx) {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
+                        Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
+                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                } else {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
+                        Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)));
+                }
+
+                yield operator.apply(mapExp, Exp.val(getValue1(map).toString()));
+            }
+            case ParticleType.INTEGER -> {
+                if (useCtx) {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
+                        Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
+                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                } else {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
+                        Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)));
+                }
+
+                yield operator.apply(mapExp, Exp.val(getValue1(map).toLong()));
+            }
+            case ParticleType.JBLOB -> {
+                Object obj = getValue1(map).getObject();
+                if (useCtx) {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
+                        Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
+                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+                } else {
+                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
+                        Exp.val(getValue2(map).toString()),
+                        Exp.mapBin(getField(map)));
+                }
+
+                yield operator.apply(mapExp,
+                    toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
+                );
+            }
+            default -> throw new AerospikeException(
+                opName + " FilterExpression unsupported type: " + getValue1(map).getType());
+        };
+    }
+
+    private static Exp getFilterExp(MappingAerospikeConverter converter, Value val, String field,
+                                    BinaryOperator<Exp> function) {
+        Object convertedValue = converter.toWritableValue(
+            val.getObject(), TypeInformation.of(val.getObject().getClass())
+        );
+        if (convertedValue instanceof List<?>) {
+            // Collection comes as JBLOB and gets converted to a List
+            return function.apply(Exp.listBin(field), toExp(convertedValue));
+        } else {
+            // custom objects are converted into Maps
+            return function.apply(Exp.mapBin(field), toExp(convertedValue));
+        }
+    }
+
+    private static Exp getFilterExp(MappingAerospikeConverter converter, Value val, String field,
+                                    BinaryOperator<Exp> operator, Function<String, Exp> binExp) {
+        Object convertedValue = converter.toWritableValue(
+            val.getObject(), TypeInformation.of(val.getObject().getClass())
+        );
+        return operator.apply(binExp.apply(field), toExp(convertedValue));
+    }
+
     private static String[] getDotPathArray(String dotPath, String errMsg) {
         if (StringUtils.hasLength(dotPath)) {
             return dotPath.split("\\.");
@@ -1121,35 +1036,35 @@ public enum FilterOperation {
 
     public abstract Filter sIndexFilter(Map<String, Object> map);
 
-    protected String getField(Map<String, Object> map) {
+    protected static String getField(Map<String, Object> map) {
         return (String) map.get(FIELD);
     }
 
-    protected Boolean ignoreCase(Map<String, Object> map) {
+    protected static Boolean ignoreCase(Map<String, Object> map) {
         return (Boolean) map.getOrDefault(IGNORE_CASE, false);
     }
 
-    protected int regexFlags(Map<String, Object> map) {
+    protected static int regexFlags(Map<String, Object> map) {
         return ignoreCase(map) ? RegexFlag.ICASE : RegexFlag.NONE;
     }
 
-    protected Value getValue1(Map<String, Object> map) {
+    protected static Value getValue1(Map<String, Object> map) {
         return (Value) map.get(VALUE1);
     }
 
-    protected Value getValue2(Map<String, Object> map) {
+    protected static Value getValue2(Map<String, Object> map) {
         return (Value) map.get(VALUE2);
     }
 
-    protected Value getValue3(Map<String, Object> map) {
+    protected static Value getValue3(Map<String, Object> map) {
         return (Value) map.get(VALUE3);
     }
 
-    protected String getDotPath(Map<String, Object> map) {
+    protected static String getDotPath(Map<String, Object> map) {
         return (String) map.get(DOT_PATH);
     }
 
-    protected MappingAerospikeConverter getConverter(Map<String, Object> map) {
+    protected static MappingAerospikeConverter getConverter(Map<String, Object> map) {
         return (MappingAerospikeConverter) map.get(CONVERTER);
     }
 

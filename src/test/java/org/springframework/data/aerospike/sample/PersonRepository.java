@@ -208,6 +208,47 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Page<P> findByAddressIn(List<Address> address, Pageable page);
 
     /**
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
+     *
+     * @param collection Collection to compare strings with
+     */
+    List<P> findByStringsEquals(Collection<String> collection);
+
+    /**
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
+     *
+     * @param collection Collection to compare strings with
+     */
+    List<P> findByStrings(Collection<String> collection);
+
+    /**
+     * Find all entities with existing strings list not equal to the given argument
+     *
+     * @param list List to compare strings list with
+     */
+    List<P> findByStringsIsNot(List<String> list);
+
+    /**
+     * Find all entities that satisfy the condition "have strings list with fewer elements or with a corresponding
+     * element lower in ordering than in the given argument" (find by list).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param list - List to compare with
+     */
+    List<P> findByStringsLessThan(List<String> list);
+
+    /**
+     * Find all entities that satisfy the condition "have strings set with fewer elements or with a corresponding
+     * element lower in ordering than in the given argument" (find by collection).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param collection - Collection to compare with
+     */
+    List<P> findByIntSetGreaterThanEqual(Collection<Integer> collection);
+
+    /**
      * Find all entities containing the given map element (key or value depending on the given criteria)
      *
      * @param element  map element
@@ -231,7 +272,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByStringMap(String key, String value);
 
-
     /**
      * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by map)
      *
@@ -248,7 +288,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities that satisfy the condition "have stringMap with more elements or with a corresponding key-value
-     * higher in ordering than in the given argument" (find by POJO).
+     * higher in ordering than in the given argument" (find by map).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
      *
@@ -298,8 +338,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapLike(String key, String valueRegex);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and the value containing the given
-     * string"
+     * Find all entities that satisfy the condition "have the given map key and the value containing the given string"
      *
      * @param key       Map key
      * @param valuePart String to check if map value contains it
@@ -346,7 +385,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value
-     * in between the given integers (deeply nested)"
+     * between the given integers (deeply nested)"
      *
      * @param from the lower limit for the map value, inclusive
      * @param to   the upper limit for the map value, inclusive
