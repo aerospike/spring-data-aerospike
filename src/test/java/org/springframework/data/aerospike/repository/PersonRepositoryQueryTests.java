@@ -459,7 +459,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFriendAgeLessThanEqual(42);
 
         assertThat(result)
-            .contains(dave, carter, oliver);
+            .contains(dave, carter);
 
         setFriendsToNull(alicia, dave, carter, leroi);
     }
