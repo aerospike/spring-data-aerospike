@@ -1044,7 +1044,7 @@ public enum FilterOperation {
         return (Boolean) map.getOrDefault(IGNORE_CASE, false);
     }
 
-    protected int regexFlags(Map<String, Object> map) {
+    protected static int regexFlags(Map<String, Object> map) {
         return ignoreCase(map) ? RegexFlag.ICASE : RegexFlag.NONE;
     }
 
@@ -1056,7 +1056,7 @@ public enum FilterOperation {
         return (Value) map.get(VALUE2);
     }
 
-    protected Value getValue3(Map<String, Object> map) {
+    protected static Value getValue3(Map<String, Object> map) {
         return (Value) map.get(VALUE3);
     }
 
