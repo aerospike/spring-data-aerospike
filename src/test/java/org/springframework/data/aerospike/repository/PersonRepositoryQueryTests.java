@@ -31,13 +31,41 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.repository.PersonTestData.*;
+import static org.springframework.data.aerospike.AsCollections.of;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Autowired
     PersonRepository<Person> repository;
+    static final Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42)
+        .strings(Arrays.asList("str1", "str2"))
+        .address(new Address("Foo Street 1", 1, "C0123", "Bar")).build();
+    static final Person donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39)
+        .strings(Arrays.asList("str1", "str2", "str3")).build();
+    static final Person oliver = Person.builder().id(nextId()).firstName("Oliver August").lastName("Matthews")
+        .age(14).build();
+    static final Person carter = Person.builder().id(nextId()).firstName("Carter").lastName("Beauford").age(49)
+        .intMap(of("key1", 0, "key2", 1))
+        .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
+    static final Person boyd = Person.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45)
+        .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
+        .build();
+    static final Person stefan = Person.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34)
+        .stringMap(of("key1", "val1", "key2", "val2", "key3", "val3")).build();
+    static final Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(41)
+        .intMap(of("key1", 0, "key2", 1)).build();
+    static final Person leroi2 = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25)
+        .ints(Arrays.asList(500, 550, 990)).build();
+    static final Person alicia = Person.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30)
+        .ints(Arrays.asList(550, 600, 990)).build();
+    static final Person matias = Person.builder().id(nextId()).firstName("Matias").lastName("Craft").age(24)
+        .build();
+    static final Person douglas = Person.builder().id(nextId()).firstName("Douglas").lastName("Ford").age(25)
+        .build();
+    public static final List<Person> allPersons = Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi,
+        leroi2,
+        alicia, matias, douglas);
 
     @AfterAll
     public void afterAll() {
@@ -47,7 +75,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @BeforeAll
     public void beforeAll() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
-        repository.saveAll(all);
+        repository.saveAll(allPersons);
         indexRefresher.clearCache();
     }
 
@@ -61,6 +89,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByListContainingString_forExistingResult() {
+        oliver.setAge(449); // for testing, temp
+        repository.save(oliver);
+
+        carter.setLastName("Matthews"); // for testing, temp
+        repository.save(carter);
+
         assertThat(repository.findByStringsContaining("str1")).containsOnly(dave, donny);
         assertThat(repository.findByStringsContaining("str2")).containsOnly(dave, donny);
         assertThat(repository.findByStringsContaining("str3")).containsOnly(donny);
@@ -328,7 +362,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = (List<Person>) repository.findAll();
 
         assertThat(result)
-            .containsExactlyInAnyOrderElementsOf(all);
+            .containsExactlyInAnyOrderElementsOf(allPersons);
     }
 
     @Test
@@ -474,7 +508,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
             assertThat(result)
                 .doesNotContain(dave)
-                .hasSize(all.size() - 1);
+                .hasSize(allPersons.size() - 1);
         } finally {
             repository.save(dave);
         }
@@ -489,7 +523,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
             assertThat(result)
                 .doesNotContain(dave)
-                .hasSize(all.size() - 1);
+                .hasSize(allPersons.size() - 1);
         } finally {
             repository.save(dave);
         }
@@ -536,7 +570,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findByFirstNameNotIn_forEmptyResult() {
-        Set<String> allFirstNames = all.stream().map(Person::getFirstName).collect(Collectors.toSet());
+        Set<String> allFirstNames = allPersons.stream().map(Person::getFirstName).collect(Collectors.toSet());
 //		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(allFirstNames))
             .isInstanceOf(IllegalArgumentException.class)
@@ -1019,7 +1053,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(1)
             .containsExactly(douglas);
 
-        setFriendsToNull(all.toArray(Person[]::new));
+        setFriendsToNull(allPersons.toArray(Person[]::new));
     }
 
     @Test
@@ -1056,7 +1090,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(1)
             .containsExactly(matias);
 
-        setFriendsToNull(all.toArray(Person[]::new));
+        setFriendsToNull(allPersons.toArray(Person[]::new));
     }
 
     @Test
@@ -1095,7 +1129,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
                 .hasSize(1)
                 .containsExactly(leroi2);
 
-            setFriendsToNull(all.toArray(Person[]::new));
+            setFriendsToNull(allPersons.toArray(Person[]::new));
         }
     }
 }

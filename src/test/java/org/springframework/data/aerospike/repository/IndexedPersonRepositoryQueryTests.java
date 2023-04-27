@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.repository.PersonTestData.Indexed;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.IndexedPersonRepository;
 import org.springframework.data.aerospike.sample.Person;
@@ -28,21 +28,40 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.alicia;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.boyd;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.carter;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.dave;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.donny;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.leroi;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.leroi2;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.oliver;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.stefan;
+import static org.springframework.data.aerospike.AsCollections.of;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Autowired
     IndexedPersonRepository repository;
+    static final IndexedPerson dave = IndexedPerson.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42)
+        .strings(Arrays.asList("str1", "str2"))
+        .address(new Address("Foo Street 1", 1, "C0123", "Bar")).build();
+    static final IndexedPerson donny = IndexedPerson.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39)
+        .strings(Arrays.asList("str1", "str2", "str3")).build();
+    static final IndexedPerson oliver = IndexedPerson.builder().id(nextId()).firstName("Oliver August").lastName("Matthews")
+        .age(14).build();
+    static final IndexedPerson carter = IndexedPerson.builder().id(nextId()).firstName("Carter").lastName("Beauford").age(49)
+        .intMap(of("key1", 0, "key2", 1))
+        .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
+    static final IndexedPerson boyd = IndexedPerson.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45)
+        .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
+        .build();
+    static final IndexedPerson stefan = IndexedPerson.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34)
+        .stringMap(of("key1", "val1", "key2", "val2", "key3", "val3")).build();
+    static final IndexedPerson leroi = IndexedPerson.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(41)
+        .intMap(of("key1", 0, "key2", 1)).build();
+    static final IndexedPerson leroi2 = IndexedPerson.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25)
+        .ints(Arrays.asList(500, 550, 990)).build();
+    static final IndexedPerson alicia = IndexedPerson.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30)
+        .ints(Arrays.asList(550, 600, 990)).build();
+    static final IndexedPerson matias = IndexedPerson.builder().id(nextId()).firstName("Matias").lastName("Craft").age(24)
+        .build();
+    static final IndexedPerson douglas = IndexedPerson.builder().id(nextId()).firstName("Douglas").lastName("Ford").age(25)
+        .build();
+    public static final List<IndexedPerson> allIndexedPersons = Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi,
+        leroi2, alicia, matias, douglas);
 
     @AfterAll
     public void afterAll() {
@@ -72,7 +91,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     public void beforeAll() {
         additionalAerospikeTestOperations.deleteAllAndVerify(IndexedPerson.class);
 
-        repository.saveAll(Indexed.all);
+        repository.saveAll(allIndexedPersons);
 
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_last_name_index"
             , "lastName", IndexType.STRING);

@@ -8,67 +8,78 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.repository.PersonTestData;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.ReactiveIndexedPersonRepository;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.alicia;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.boyd;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.carter;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.dave;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.donny;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.leroi;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.leroi2;
-import static org.springframework.data.aerospike.repository.PersonTestData.Indexed.stefan;
+import static org.springframework.data.aerospike.AsCollections.of;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveIntegrationTests {
 
     @Autowired
     ReactiveIndexedPersonRepository reactiveRepository;
+    static final IndexedPerson dave = IndexedPerson.builder().id(nextId()).firstName("Dave").lastName("Matthews")
+        .age(42).strings(Arrays.asList("str1", "str2"))
+        .address(new Address("Foo Street 1", 1, "C0123", "Bar")).build();
+    static final IndexedPerson donny = IndexedPerson.builder().id(nextId()).firstName("Donny").lastName("Macintire")
+        .age(39).strings(Arrays.asList("str1", "str2", "str3")).build();
+    static final IndexedPerson oliver = IndexedPerson.builder().id(nextId()).firstName("Oliver August")
+        .lastName("Matthews").age(14).build();
+    static final IndexedPerson carter = IndexedPerson.builder().id(nextId()).firstName("Carter").lastName("Beauford")
+        .age(49).intMap(of("key1", 0, "key2", 1))
+        .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
+    static final IndexedPerson boyd = IndexedPerson.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45)
+        .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
+        .build();
+    static final IndexedPerson stefan = IndexedPerson.builder().id(nextId()).firstName("Stefan").lastName("Lessard")
+        .age(34).stringMap(of("key1", "val1", "key2", "val2", "key3", "val3")).build();
+    static final IndexedPerson leroi = IndexedPerson.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(41)
+        .intMap(of("key1", 0, "key2", 1)).build();
+    static final IndexedPerson leroi2 = IndexedPerson.builder().id(nextId()).firstName("Leroi").lastName("Moore")
+        .age(25).ints(Arrays.asList(500, 550, 990)).build();
+    static final IndexedPerson alicia = IndexedPerson.builder().id(nextId()).firstName("Alicia").lastName("Keys")
+        .age(30).ints(Arrays.asList(550, 600, 990)).build();
+    static final IndexedPerson matias = IndexedPerson.builder().id(nextId()).firstName("Matias").lastName("Craft")
+        .age(24).build();
+    static final IndexedPerson douglas = IndexedPerson.builder().id(nextId()).firstName("Douglas").lastName("Ford")
+        .age(25).build();
+    public static final List<IndexedPerson> allIndexedPersons = Arrays.asList(oliver, dave, donny, carter, boyd,
+        stefan, leroi, leroi2, alicia, matias, douglas);
 
     @BeforeAll
     public void beforeAll() {
         reactiveRepository.deleteAll().block();
 
-        reactiveRepository.saveAll(PersonTestData.Indexed.all).subscribeOn(Schedulers.parallel()).collectList().block();
+        reactiveRepository.saveAll(allIndexedPersons).subscribeOn(Schedulers.parallel()).collectList().block();
 
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_last_name_index", "lastName",
-                IndexType.STRING)
-            .block();
+            IndexType.STRING).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_first_name_index", "firstName",
-                IndexType.STRING)
-            .block();
+            IndexType.STRING).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_age_index", "age", IndexType.NUMERIC).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_strings_index", "strings", IndexType.STRING
-                , IndexCollectionType.LIST)
-            .block();
+            , IndexCollectionType.LIST).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_ints_index", "ints", IndexType.NUMERIC,
-                IndexCollectionType.LIST)
-            .block();
+            IndexCollectionType.LIST).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_string_map_keys_index", "stringMap",
-                IndexType.STRING, IndexCollectionType.MAPKEYS)
-            .block();
+            IndexType.STRING, IndexCollectionType.MAPKEYS).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_string_map_values_index", "stringMap",
-                IndexType.STRING, IndexCollectionType.MAPVALUES)
-            .block();
+            IndexType.STRING, IndexCollectionType.MAPVALUES).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_int_map_keys_index", "intMap",
-                IndexType.STRING, IndexCollectionType.MAPKEYS)
-            .block();
+            IndexType.STRING, IndexCollectionType.MAPKEYS).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_int_map_values_index", "intMap",
-                IndexType.NUMERIC, IndexCollectionType.MAPVALUES)
-            .block();
+            IndexType.NUMERIC, IndexCollectionType.MAPVALUES).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_address_keys_index", "address",
-                IndexType.STRING, IndexCollectionType.MAPKEYS)
-            .block();
+            IndexType.STRING, IndexCollectionType.MAPKEYS).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_address_values_index", "address",
-                IndexType.STRING, IndexCollectionType.MAPVALUES)
-            .block();
+            IndexType.STRING, IndexCollectionType.MAPVALUES).block();
     }
 
     @AfterAll
