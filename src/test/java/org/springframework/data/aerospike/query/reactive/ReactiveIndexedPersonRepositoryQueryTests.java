@@ -70,6 +70,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
             IndexType.STRING, IndexCollectionType.MAPKEYS).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_address_values_index", "address",
             IndexType.STRING, IndexCollectionType.MAPVALUES).block();
+        reactorIndexRefresher.refreshIndexes();
     }
 
     @AfterAll
