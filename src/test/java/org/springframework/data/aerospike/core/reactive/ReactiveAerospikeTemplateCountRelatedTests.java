@@ -35,10 +35,14 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
 
     @Test
     public void count_shouldFindAllItemsByGivenCriteria() {
-        reactiveTemplate.insert(new Person(nextId(), "vasili", 50)).block();
-        reactiveTemplate.insert(new Person(nextId(), "vasili", 51)).block();
-        reactiveTemplate.insert(new Person(nextId(), "vasili", 52)).block();
-        reactiveTemplate.insert(new Person(nextId(), "petya", 52)).block();
+        String id1 = nextId();
+        reactiveTemplate.insert(new Person(id1, "vasili", 50)).block();
+        String id2 = nextId();
+        reactiveTemplate.insert(new Person(id2, "vasili", 51)).block();
+        String id3 = nextId();
+        reactiveTemplate.insert(new Person(id3, "vasili", 52)).block();
+        String id4 = nextId();
+        reactiveTemplate.insert(new Person(id4, "petya", 52)).block();
 
         Qualifier.QualifierBuilder qbVasya1 = new Qualifier.QualifierBuilder()
             .setField("firstName")
@@ -78,13 +82,21 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
             .subscribeOn(Schedulers.parallel())
             .block();
         assertThat(petyaCount).isEqualTo(1);
+
+        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class)); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class)); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class)); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id4, Person.class)); // cleanup
     }
 
     @Test
     public void count_shouldFindAllItemsByGivenCriteriaAndRespectsIgnoreCase() {
-        reactiveTemplate.insert(new Person(nextId(), "VaSili", 50)).block();
-        reactiveTemplate.insert(new Person(nextId(), "vasILI", 51)).block();
-        reactiveTemplate.insert(new Person(nextId(), "vasili", 52)).block();
+        String id1 = nextId();
+        reactiveTemplate.insert(new Person(id1, "VaSili", 50)).block();
+        String id2 = nextId();
+        reactiveTemplate.insert(new Person(id2, "vasILI", 51)).block();
+        String id3 = nextId();
+        reactiveTemplate.insert(new Person(id3, "vasili", 52)).block();
 
         Qualifier.QualifierBuilder qbVasya1 = new Qualifier.QualifierBuilder()
             .setField("firstName")
@@ -105,6 +117,10 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
         assertThat(reactiveTemplate.count(query2, Person.class)
             .subscribeOn(Schedulers.parallel())
             .block()).isEqualTo(1);
+
+        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class)); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class)); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class)); // cleanup
     }
 
     @Test
@@ -129,14 +145,23 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
 
     @Test
     public void count_shouldCountAllByPassingEntityClass() {
-        reactiveTemplate.insert(new Person(nextId(), "vasili", 50)).subscribeOn(Schedulers.parallel()).block();
-        reactiveTemplate.insert(new Person(nextId(), "vasili", 51)).subscribeOn(Schedulers.parallel()).block();
-        reactiveTemplate.insert(new Person(nextId(), "vasili", 52)).subscribeOn(Schedulers.parallel()).block();
-        reactiveTemplate.insert(new Person(nextId(), "petya", 52)).subscribeOn(Schedulers.parallel()).block();
+        String id1 = nextId();
+        reactiveTemplate.insert(new Person(id1, "vasili", 50)).subscribeOn(Schedulers.parallel()).block();
+        String id2 = nextId();
+        reactiveTemplate.insert(new Person(id2, "vasili", 51)).subscribeOn(Schedulers.parallel()).block();
+        String id3 = nextId();
+        reactiveTemplate.insert(new Person(id3, "vasili", 52)).subscribeOn(Schedulers.parallel()).block();
+        String id4 = nextId();
+        reactiveTemplate.insert(new Person(id4, "petya", 52)).subscribeOn(Schedulers.parallel()).block();
 
         Awaitility.await()
             .atMost(Duration.ofSeconds(15))
             .until(() -> isCountExactlyNum(4L));
+
+        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class)); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class)); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class)); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id4, Person.class)); // cleanup
     }
 
     @SuppressWarnings("SameParameterValue")

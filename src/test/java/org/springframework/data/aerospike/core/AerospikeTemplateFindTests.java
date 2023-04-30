@@ -38,25 +38,22 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
     public void findById_shouldReadVersionedClassWithAllArgsConstructor() {
         VersionedClassWithAllArgsConstructor inserted = new VersionedClassWithAllArgsConstructor(id, "foobar", 0L);
         template.insert(inserted);
-
         assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class).version).isEqualTo(1L);
-
         template.update(new VersionedClassWithAllArgsConstructor(id, "foobar1", inserted.version));
-
-        assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class).version).isEqualTo(2L);
+        VersionedClassWithAllArgsConstructor result = template.findById(id, VersionedClassWithAllArgsConstructor.class);
+        assertThat(result.version).isEqualTo(2L);
+        template.delete(result); // cleanup
     }
 
     @Test
     public void findById_shouldReturnNullForNonExistingKey() {
         Person one = template.findById("person-non-existing-key", Person.class);
-
         assertThat(one).isNull();
     }
 
     @Test
     public void findById_shouldReturnNullForNonExistingKeyIfTouchOnReadSetToTrue() {
         DocumentWithTouchOnRead one = template.findById("non-existing-key", DocumentWithTouchOnRead.class);
-
         assertThat(one).isNull();
     }
 
@@ -66,8 +63,8 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
         template.save(doc);
 
         DocumentWithTouchOnRead actual = template.findById(doc.getId(), DocumentWithTouchOnRead.class);
-
         assertThat(actual.getVersion()).isEqualTo(doc.getVersion() + 1);
+        template.delete(actual); // cleanup
     }
 
     @Test
@@ -78,6 +75,7 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
 
         Person person1 = template.findById("Person", Person.class);
         assertThat(person1).isNull();
+        template.delete(person); // cleanup
     }
 
     @Test
@@ -88,10 +86,10 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
         template.save(secondPerson);
 
         List<String> ids = Arrays.asList(nextId(), firstPerson.getId(), secondPerson.getId());
-
         List<Person> actual = template.findByIds(ids, Person.class);
-
         assertThat(actual).containsExactly(firstPerson, secondPerson);
+        template.delete(firstPerson); // cleanup
+        template.delete(secondPerson); //cleanup
     }
 
 
@@ -115,8 +113,8 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
             new Bin("age", 56));
 
         Person result = template.findById(id, Person.class);
-
         assertThat(result.getFirstName()).isEqualTo("Dave");
         assertThat(result.getAge()).isEqualTo(56);
+        template.delete(result);
     }
 }

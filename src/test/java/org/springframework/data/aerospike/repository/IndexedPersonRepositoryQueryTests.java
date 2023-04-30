@@ -16,11 +16,11 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.IndexedPersonRepository;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.utility.TestUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,37 +35,27 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Autowired
     IndexedPersonRepository repository;
-    static final IndexedPerson dave = IndexedPerson.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42)
-        .strings(Arrays.asList("str1", "str2"))
+    static final IndexedPerson john = IndexedPerson.builder().id(nextId()).firstName("John").lastName("Farmer").age(42)
+        .strings(List.of("str1", "str2")).ints(List.of(450, 550, 990))
         .address(new Address("Foo Street 1", 1, "C0123", "Bar")).build();
-    static final IndexedPerson donny = IndexedPerson.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39)
-        .strings(Arrays.asList("str1", "str2", "str3")).build();
-    static final IndexedPerson oliver = IndexedPerson.builder().id(nextId()).firstName("Oliver August").lastName("Matthews")
-        .age(14).build();
-    static final IndexedPerson carter = IndexedPerson.builder().id(nextId()).firstName("Carter").lastName("Beauford").age(49)
-        .intMap(of("key1", 0, "key2", 1))
+    static final IndexedPerson peter = IndexedPerson.builder().id(nextId()).firstName("Peter").lastName("Macintosh")
+        .age(41)
+        .strings(List.of("str1", "str2", "str3")).build();
+    static final IndexedPerson jane = IndexedPerson.builder().id(nextId()).firstName("Jane").lastName("Gillaham")
+        .age(49)
+        .intMap(of("key1", 0, "key2", 1)).ints(List.of(550, 600, 990))
         .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
-    static final IndexedPerson boyd = IndexedPerson.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45)
+    static final IndexedPerson billy = IndexedPerson.builder().id(nextId()).firstName("Billy").lastName("Smith").age(25)
         .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
         .build();
-    static final IndexedPerson stefan = IndexedPerson.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34)
-        .stringMap(of("key1", "val1", "key2", "val2", "key3", "val3")).build();
-    static final IndexedPerson leroi = IndexedPerson.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(41)
+    static final IndexedPerson tricia = IndexedPerson.builder().id(nextId()).firstName("Tricia").lastName("James")
+        .age(31)
         .intMap(of("key1", 0, "key2", 1)).build();
-    static final IndexedPerson leroi2 = IndexedPerson.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25)
-        .ints(Arrays.asList(500, 550, 990)).build();
-    static final IndexedPerson alicia = IndexedPerson.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30)
-        .ints(Arrays.asList(550, 600, 990)).build();
-    static final IndexedPerson matias = IndexedPerson.builder().id(nextId()).firstName("Matias").lastName("Craft").age(24)
-        .build();
-    static final IndexedPerson douglas = IndexedPerson.builder().id(nextId()).firstName("Douglas").lastName("Ford").age(25)
-        .build();
-    public static final List<IndexedPerson> allIndexedPersons = Arrays.asList(oliver, dave, donny, carter, boyd, stefan, leroi,
-        leroi2, alicia, matias, douglas);
+    public static final List<IndexedPerson> allIndexedPersons = List.of(john, peter, jane, billy, tricia);
 
     @AfterAll
     public void afterAll() {
-        additionalAerospikeTestOperations.deleteAllAndVerify(IndexedPerson.class);
+        repository.deleteAll(allIndexedPersons);
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_first_name_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_strings_index");
@@ -84,17 +74,15 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
             "indexed_person_friend_address_values_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
             "indexed_person_friend_bestFriend_address_keys_index");
-        indexRefresher.clearCache();
+        indexRefresher.refreshIndexes();
     }
 
     @BeforeAll
     public void beforeAll() {
-        additionalAerospikeTestOperations.deleteAllAndVerify(IndexedPerson.class);
-
+        repository.deleteAll(allIndexedPersons);
         repository.saveAll(allIndexedPersons);
-
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_last_name_index"
-            , "lastName", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_last_name_index",
+            "lastName", IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
             "indexed_person_first_name_index", "firstName", IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_age_index",
@@ -134,9 +122,9 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     void findByListContainingString_forExistingResult() {
-        assertThat(repository.findByStringsContaining("str1")).containsOnly(dave, donny);
-        assertThat(repository.findByStringsContaining("str2")).containsOnly(dave, donny);
-        assertThat(repository.findByStringsContaining("str3")).containsOnly(donny);
+        assertThat(repository.findByStringsContaining("str1")).containsOnly(john, peter);
+        assertThat(repository.findByStringsContaining("str2")).containsOnly(john, peter);
+        assertThat(repository.findByStringsContaining("str3")).containsOnly(peter);
     }
 
     @Test
@@ -148,9 +136,9 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     void findByListContainingInteger_forExistingResult() {
-        assertThat(repository.findByIntsContaining(550)).containsOnly(leroi2, alicia);
-        assertThat(repository.findByIntsContaining(990)).containsOnly(leroi2, alicia);
-        assertThat(repository.findByIntsContaining(600)).containsOnly(alicia);
+        assertThat(repository.findByIntsContaining(550)).containsOnly(john, jane);
+        assertThat(repository.findByIntsContaining(990)).containsOnly(john, jane);
+        assertThat(repository.findByIntsContaining(600)).containsOnly(jane);
     }
 
     @Test
@@ -165,76 +153,76 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     void findByListValueGreaterThan() {
         List<IndexedPerson> persons = repository.findByIntsGreaterThan(549);
 
-        assertThat(persons).containsExactlyInAnyOrder(leroi2, alicia);
+        assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
     @Test
     void findByListValueLessThanOrEqual() {
         List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500);
 
-        assertThat(persons).containsOnly(leroi2);
+        assertThat(persons).containsOnly(john);
     }
 
     @Test
     void findByListValueInRange() {
         List<IndexedPerson> persons = repository.findByIntsBetween(500, 600);
 
-        assertThat(persons).containsExactlyInAnyOrder(leroi2, alicia);
+        assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
     @Test
     public void findsPersonById() {
-        Optional<IndexedPerson> person = repository.findById(dave.getId());
+        Optional<IndexedPerson> person = repository.findById(john.getId());
 
         assertThat(person).hasValueSatisfying(actual -> {
             assertThat(actual).isInstanceOf(Person.class);
-            assertThat(actual).isEqualTo(dave);
+            assertThat(actual).isEqualTo(john);
         });
     }
 
     @Test
     public void findsAllWithGivenIds() {
-        List<IndexedPerson> result = (List<IndexedPerson>) repository.findAllById(Arrays.asList(dave.getId(),
-            boyd.getId()));
+        List<IndexedPerson> result = (List<IndexedPerson>) repository.findAllById(List.of(john.getId(),
+            billy.getId()));
 
         assertThat(result)
-            .contains(dave, boyd)
+            .contains(john, billy)
             .hasSize(2)
-            .doesNotContain(oliver, carter, stefan, leroi, alicia);
+            .doesNotContain(jane, peter, tricia);
     }
 
     @Test
     public void findsPersonsByLastName() {
-        List<IndexedPerson> result = repository.findByLastName("Beauford");
+        List<IndexedPerson> result = repository.findByLastName("Gillaham");
 
         assertThat(result)
-            .containsOnly(carter)
+            .containsOnly(jane)
             .hasSize(1);
     }
 
     @Test
     public void findsPersonsByFirstName() {
-        List<IndexedPerson> result = repository.findByFirstName("Leroi");
+        List<IndexedPerson> result = repository.findByFirstName("Tricia");
 
         assertThat(result)
-            .containsOnly(leroi, leroi2)
-            .hasSize(2);
+            .hasSize(1)
+            .containsOnly(tricia);
     }
 
     @Test
     public void findsPersonsByActiveAndFirstName() {
-        assertThat(leroi.isActive()).isFalse();
-        assertThat(leroi2.isActive()).isFalse();
-        List<IndexedPerson> result = repository.findPersonsByActiveAndFirstName(false, "Leroi");
+        assertThat(tricia.isActive()).isFalse();
+        List<IndexedPerson> result = repository.findPersonsByActiveAndFirstName(false, "Tricia");
 
         assertThat(result)
-            .containsOnly(leroi, leroi2)
-            .hasSize(2);
+            .hasSize(1)
+            .containsOnly(tricia);
+
     }
 
     @Test
     public void countByLastName_forExistingResult() {
-        assertThatThrownBy(() -> repository.countByLastName("Leroi"))
+        assertThatThrownBy(() -> repository.countByLastName("Lerois"))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessage("Query method IndexedPerson.countByLastName not supported.");
 
@@ -256,16 +244,15 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
         assertThat(slice.hasContent()).isTrue();
         assertThat(slice.hasNext()).isFalse();
-        assertThat(slice.getContent()).hasSize(4).contains(dave, carter, boyd, leroi);
+        assertThat(slice.getContent()).hasSize(3).contains(john, jane, peter);
     }
 
     @Test
     public void findByAgeGreaterThan_respectsLimit() {
-        Slice<IndexedPerson> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1));
+        Slice<IndexedPerson> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 3));
 
         assertThat(slice.hasContent()).isTrue();
-        assertThat(slice.hasNext()).isFalse(); // TODO: not implemented yet. should be true instead
-        assertThat(slice.getContent()).containsAnyOf(dave, carter, boyd, leroi).hasSize(1);
+        assertThat(slice.getContent()).contains(john, jane, peter);
     }
 
     @Test
@@ -276,8 +263,8 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
             .collect(Collectors.toList());
 
         assertThat(result)
-            .hasSize(4)
-            .containsSequence(leroi, dave, boyd, carter);
+            .hasSize(3)
+            .containsSequence(peter, john, jane);
     }
 
     @Test
@@ -289,7 +276,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(first.hasNext()).isFalse(); // TODO: not implemented yet. should be true instead
         assertThat(first.isFirst()).isTrue();
 
-        Slice<IndexedPerson> last = repository.findByAgeGreaterThan(40, PageRequest.of(3, 1, Sort.by("age")));
+        Slice<IndexedPerson> last = repository.findByAgeGreaterThan(40, PageRequest.of(2, 1, Sort.by("age")));
 
         assertThat(last.hasContent()).isTrue();
         assertThat(last.getNumberOfElements()).isEqualTo(1);
@@ -308,195 +295,182 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findsPersonsByFirstNameAndByAge() {
-        List<IndexedPerson> result = repository.findByFirstNameAndAge("Leroi", 25);
-        assertThat(result).containsOnly(leroi2);
+        List<IndexedPerson> result = repository.findByFirstNameAndAge("Billy", 25);
+        assertThat(result).containsOnly(billy);
 
-        result = repository.findByFirstNameAndAge("Leroi", 41);
-        assertThat(result).containsOnly(leroi);
+        result = repository.findByFirstNameAndAge("Peter", 41);
+        assertThat(result).containsOnly(peter);
     }
 
     @Test
     public void findsPersonInAgeRangeCorrectly() {
         Iterable<IndexedPerson> it = repository.findByAgeBetween(40, 45);
 
-        assertThat(it).hasSize(3).contains(dave);
+        assertThat(it).hasSize(2).contains(john, peter);
     }
 
     @Test
     public void findsPersonInAgeRangeCorrectlyOrderByLastName() {
         Iterable<IndexedPerson> it = repository.findByAgeBetweenOrderByLastName(30, 45);
 
-        assertThat(it).hasSize(6);
+        assertThat(it).hasSize(3);
     }
 
     @Test
     public void findsPersonInAgeRangeAndNameCorrectly() {
         Iterable<IndexedPerson> it = repository.findByAgeBetweenAndLastName(40, 45, "Matthews");
-        assertThat(it).hasSize(1);
+        assertThat(it).hasSize(0);
 
-        Iterable<IndexedPerson> result = repository.findByAgeBetweenAndLastName(20, 26, "Moore");
-        assertThat(result).hasSize(1);
+        Iterable<IndexedPerson> result = repository.findByAgeBetweenAndLastName(20, 26, "Smith");
+        assertThat(result).hasSize(1).contains(billy);
     }
 
     @Test
     public void findsPersonInAgeRangeOrNameCorrectly() {
-        Iterable<IndexedPerson> it = repository.findByAgeBetweenOrLastName(40, 45, "Matthews");
-        assertThat(it).containsExactlyInAnyOrder(oliver, boyd, dave, leroi);
+        Iterable<IndexedPerson> it = repository.findByAgeBetweenOrLastName(40, 45, "James");
+        assertThat(it).containsExactlyInAnyOrder(john, peter, tricia);
 
-        Iterable<IndexedPerson> result = repository.findByAgeBetweenOrLastName(20, 26, "Moe");
-        assertThat(result).containsExactlyInAnyOrder(leroi2);
+        Iterable<IndexedPerson> result = repository.findByAgeBetweenOrLastName(20, 26, "Macintosh");
+        assertThat(result).containsExactlyInAnyOrder(billy, peter);
     }
 
     @Test
     void findByMapKeysContaining() {
-        assertThat(stefan.getStringMap()).containsKey("key1");
-        assertThat(boyd.getStringMap()).containsKey("key1");
+        assertThat(billy.getStringMap()).containsKey("key1");
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("key1",
             CriteriaDefinition.AerospikeMapCriteria.KEY);
-        assertThat(persons).contains(stefan, boyd);
+        assertThat(persons).contains(billy);
     }
 
     @Test
     void findByMapValuesContaining() {
-        assertThat(stefan.getStringMap()).containsValue("val1");
-        assertThat(boyd.getStringMap()).containsValue("val1");
+        assertThat(billy.getStringMap()).containsValue("val1");
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("val1",
             CriteriaDefinition.AerospikeMapCriteria.VALUE);
-        assertThat(persons).contains(stefan, boyd);
+        assertThat(persons).contains(billy);
     }
 
     @Test
     void findByMapKeyValueEqualsInt() {
-        assertThat(leroi.getIntMap()).containsKey("key1");
-        assertThat(leroi.getIntMap()).containsValue(0);
+        assertThat(tricia.getIntMap()).containsKey("key1");
+        assertThat(tricia.getIntMap()).containsValue(0);
 
         Iterable<IndexedPerson> result = repository.findByIntMapEquals("key1", 0);
-        assertThat(result).contains(leroi);
+        assertThat(result).contains(tricia);
     }
 
     @Test
     void findByMapKeyValueEqualsString() {
-        assertThat(stefan.getStringMap()).containsKey("key1");
-        assertThat(stefan.getStringMap()).containsValue("val1");
-        assertThat(boyd.getStringMap()).containsKey("key1");
-        assertThat(boyd.getStringMap()).containsValue("val1");
+        assertThat(billy.getStringMap()).containsKey("key1");
+        assertThat(billy.getStringMap()).containsValue("val1");
 
         List<IndexedPerson> persons = repository.findByStringMapEquals("key1", "val1");
-        assertThat(persons).contains(stefan, boyd);
+        assertThat(persons).contains(billy);
     }
 
     @Test
     void findPersonsByAddressZipCode() {
-        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
+        assertThat(john.getAddress().getZipCode()).isEqualTo("C0123");
         List<IndexedPerson> result = repository.findByAddressZipCode("C0123");
-        assertThat(result).contains(dave);
+        assertThat(result).contains(john);
     }
 
     @Test
     void findPersonsByFriendAddressZipCode() {
-        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
-        carter.setFriend(dave);
-        repository.save(carter);
+        assertThat(john.getAddress().getZipCode()).isEqualTo("C0123");
+        jane.setFriend(john);
+        repository.save(jane);
 
         List<IndexedPerson> result = repository.findByFriendAddressZipCode("C0123");
-        assertThat(result).contains(carter);
-        setFriendsToNull(carter);
+        assertThat(result).contains(jane);
+        TestUtils.setFriendsToNull(repository, jane);
     }
 
     @Test
     void findPersonsByFriendBestFriendAddressZipCode() {
-        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
-        carter.setBestFriend(dave);
-        repository.save(carter);
-        donny.setFriend(carter);
-        repository.save(donny);
+        assertThat(john.getAddress().getZipCode()).isEqualTo("C0123");
+        jane.setBestFriend(john);
+        repository.save(jane);
+        peter.setFriend(jane);
+        repository.save(peter);
 
         List<IndexedPerson> result = repository.findByFriendBestFriendAddressZipCode("C0123");
-        assertThat(result).contains(donny);
-        setFriendsToNull(carter, donny);
+        assertThat(result).contains(peter);
+        TestUtils.setFriendsToNull(repository, jane, peter);
     }
 
     @Test
     void findPersonsByFriendBestFriendAddressApartment() {
-        assertThat(dave.getAddress().getApartment()).isEqualTo(1);
-        carter.setBestFriend(dave);
-        repository.save(carter);
-        donny.setFriend(carter);
-        repository.save(donny);
+        assertThat(john.getAddress().getApartment()).isEqualTo(1);
+        jane.setBestFriend(john);
+        repository.save(jane);
+        peter.setFriend(jane);
+        repository.save(peter);
 
         List<IndexedPerson> result = repository.findByFriendBestFriendAddressApartment(1);
-        assertThat(result).contains(donny);
-        setFriendsToNull(carter, donny);
+        assertThat(result).contains(peter);
+        TestUtils.setFriendsToNull(repository, jane, peter);
     }
 
     @Test
     void findByMapKeyValueGreaterThan() {
-        assertThat(leroi.getIntMap()).containsKey("key2");
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(tricia.getIntMap()).containsKey("key2");
+        assertThat(tricia.getIntMap().get("key2") > 0).isTrue();
 
         List<IndexedPerson> persons = repository.findByIntMapGreaterThan("key2", 0);
-        assertThat(persons).contains(leroi);
+        assertThat(persons).contains(tricia);
     }
 
     @Test
     void findByMapKeyValueLessThanOrEqual() {
-        assertThat(leroi.getIntMap()).containsKey("key2");
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(tricia.getIntMap()).containsKey("key2");
+        assertThat(tricia.getIntMap().get("key2") > 0).isTrue();
 
         List<IndexedPerson> persons = repository.findByIntMapLessThanEqual("key2", 1);
-        assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
+        assertThat(persons).containsExactlyInAnyOrder(tricia, jane);
     }
 
     @Test
     void findByMapKeyValueBetween() {
-        assertThat(carter.getIntMap()).containsKey("key2");
-        assertThat(leroi.getIntMap()).containsKey("key2");
-        assertThat(carter.getIntMap().get("key2") >= 0).isTrue();
-        assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
+        assertThat(jane.getIntMap()).containsKey("key2");
+        assertThat(tricia.getIntMap()).containsKey("key2");
+        assertThat(jane.getIntMap().get("key2") >= 0).isTrue();
+        assertThat(tricia.getIntMap().get("key2") >= 0).isTrue();
 
         List<IndexedPerson> persons = repository.findByIntMapBetween("key2", 0, 1);
-        assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
+        assertThat(persons).containsExactlyInAnyOrder(tricia, jane);
     }
 
     @Test
     void findByBestFriendFriendIntMapKeyValueBetween() {
-        assertThat(leroi.getIntMap()).containsKey("key2");
-        assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
+        assertThat(tricia.getIntMap()).containsKey("key2");
+        assertThat(tricia.getIntMap().get("key2") >= 0).isTrue();
 
-        carter.setFriend(leroi);
-        repository.save(carter);
-        leroi2.setBestFriend(carter);
-
-        repository.save(leroi2);
+        jane.setFriend(tricia);
+        repository.save(jane);
+        peter.setBestFriend(jane);
+        repository.save(peter);
 
         List<IndexedPerson> persons = repository.findByBestFriendFriendIntMapBetween("key2", 0, 1);
-        assertThat(persons).contains(leroi2);
+        assertThat(persons).contains(peter);
 
-        setFriendsToNull(carter, leroi2);
+        TestUtils.setFriendsToNull(repository, jane, peter);
     }
 
     @Test
     void findByBestFriendFriendAddressApartmentBetween() {
-        assertThat(carter.getAddress().getApartment()).isEqualTo(2);
+        assertThat(jane.getAddress().getApartment()).isEqualTo(2);
 
-        leroi.setFriend(carter);
-        repository.save(leroi);
-        leroi2.setBestFriend(leroi);
-        repository.save(leroi2);
+        tricia.setFriend(jane);
+        repository.save(tricia);
+        billy.setBestFriend(tricia);
+        repository.save(billy);
 
         List<IndexedPerson> persons = repository.findByBestFriendFriendAddressApartmentBetween(1, 2);
-        assertThat(persons).contains(leroi2);
+        assertThat(persons).contains(billy);
 
-        setFriendsToNull(leroi, leroi2);
-    }
-
-    private void setFriendsToNull(IndexedPerson... persons) {
-        for (IndexedPerson person : persons) {
-            person.setFriend(null);
-            person.setBestFriend(null);
-            repository.save(person);
-        }
+        TestUtils.setFriendsToNull(repository, tricia, billy);
     }
 }

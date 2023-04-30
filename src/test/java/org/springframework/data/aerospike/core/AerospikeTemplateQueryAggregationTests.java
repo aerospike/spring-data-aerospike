@@ -23,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrationTests {
 
+    Person firstPerson, secondPerson, thirdPerson;
+
     @BeforeAll
     public void setUp() {
         // Register UDFs
@@ -40,21 +42,21 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
 
         // Insert data
-        Person firstPerson = Person.builder()
+        firstPerson = Person.builder()
             .id(nextId())
             .firstName("first")
             .lastName("lastName1")
             .emailAddress("gmail.com")
             .age(40)
             .build();
-        Person secondPerson = Person.builder()
+        secondPerson = Person.builder()
             .id(nextId())
             .firstName("second")
             .lastName("lastName2")
             .emailAddress("gmail.com")
             .age(50)
             .build();
-        Person thirdPerson = Person.builder()
+        thirdPerson = Person.builder()
             .id(nextId())
             .firstName("second")
             .lastName("lastName2")
@@ -76,7 +78,9 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
         LuaConfig.SourceDirectory = System.getProperty("lua.dir", "udf");
 
         // Clean existing data
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
+        template.delete(firstPerson);
+        template.delete(secondPerson);
+        template.delete(thirdPerson);
     }
 
     @Test

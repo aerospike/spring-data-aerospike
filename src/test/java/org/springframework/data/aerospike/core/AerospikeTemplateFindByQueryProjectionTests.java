@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,16 +49,19 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
 
     @BeforeAll
     public void beforeAllSetUp() {
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
-
+        template.delete(all);
         template.insertAll(all);
-
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age",
             IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName"
             , IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName",
             IndexType.STRING);
+    }
+
+    @AfterAll
+    public void afterAll() {
+        template.delete(all);
     }
 
     @Override
