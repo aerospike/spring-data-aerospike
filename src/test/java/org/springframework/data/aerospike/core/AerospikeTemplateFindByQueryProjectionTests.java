@@ -44,12 +44,12 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     final Person aabbot = Person.builder()
         .id(nextId()).firstName("Aabbot").lastName("Matthews").emailAddress("aabbot@gmail.com").age(30).build();
 
-    final List<Person> all = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister,
+    final List<Person> allPersons = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister,
         aabbot);
 
     @BeforeAll
     public void beforeAllSetUp() {
-        template.insertAll(all);
+        template.insertAll(allPersons);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age",
             IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName"
@@ -60,7 +60,9 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
 
     @AfterAll
     public void afterAll() {
-        template.delete(all);
+        for (Person person : allPersons) {
+            template.delete(person);
+        }
     }
 
     @Override
@@ -111,6 +113,6 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     public void findAll_findsAllExistingDocumentsProjection() {
         Stream<PersonSomeFields> result = template.findAll(Person.class, PersonSomeFields.class);
 
-        assertThat(result).containsAll(all.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
+        assertThat(result).containsAll(allPersons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
     }
 }

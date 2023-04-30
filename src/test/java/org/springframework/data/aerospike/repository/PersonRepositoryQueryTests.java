@@ -338,7 +338,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findAll() {
         List<Person> result = (List<Person>) repository.findAll();
-        assertThat(result).containsAll(allPersons);
+        assertThat(result).containsExactlyInAnyOrderElementsOf(allPersons);
     }
 
     @Test
@@ -482,7 +482,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             List<Person> result = (List<Person>) repository.findAll();
             assertThat(result)
                 .doesNotContain(dave)
-                .contains(donny, oliver, alicia, carter, boyd, stefan, leroi, leroi2, matias, douglas);
+                .containsExactlyInAnyOrderElementsOf(
+                    allPersons.stream().filter(person -> !person.equals(dave)).collect(Collectors.toList())
+                );
         } finally {
             repository.save(dave);
         }
