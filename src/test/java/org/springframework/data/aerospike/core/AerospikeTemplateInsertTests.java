@@ -196,6 +196,8 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .collect(Collectors.toList()), Person.class);
 
         assertThat(result).hasSameElementsAs(persons);
-        template.delete(result); // cleanup
+        for (Person person : result) {
+            template.delete(person); // cleanup
+        }
     }
 }

@@ -30,11 +30,12 @@ public class AerospikeTemplatePrependTests extends BaseBlockingIntegrationTests 
     public void shouldPrepend() {
         Person one = Person.builder().id(id).firstName("tya").build();
         template.insert(one);
-
         Person appended = template.prepend(one, "firstName", "Nas");
 
         assertThat(appended.getFirstName()).isEqualTo("Nastya");
-        assertThat(template.findById(id, Person.class).getFirstName()).isEqualTo("Nastya");
+        Person result = template.findById(id, Person.class);
+        assertThat(result.getFirstName()).isEqualTo("Nastya");
+        template.delete(result); // cleanup
     }
 
     @Test
@@ -52,5 +53,6 @@ public class AerospikeTemplatePrependTests extends BaseBlockingIntegrationTests 
         Person actual = template.findById(id, Person.class);
         assertThat(actual.getFirstName()).isEqualTo("Nastya");
         assertThat(actual.getEmailAddress()).isEqualTo("nastya@gmail.com");
+        template.delete(actual);
     }
 }

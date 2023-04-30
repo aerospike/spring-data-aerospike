@@ -49,7 +49,6 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
 
     @BeforeAll
     public void beforeAllSetUp() {
-        template.delete(all);
         template.insertAll(all);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age",
             IndexType.NUMERIC);
