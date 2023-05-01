@@ -49,9 +49,9 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     public void beforeAll() {
         reactiveRepository.deleteAll(allIndexedPersons).block();
         reactiveRepository.saveAll(allIndexedPersons).subscribeOn(Schedulers.parallel()).collectList().block();
-        reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_last_name_index", "lastName",
-            IndexType.STRING).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_first_name_index", "firstName",
+            IndexType.STRING).block();
+        reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_last_name_index", "lastName",
             IndexType.STRING).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_age_index", "age", IndexType.NUMERIC).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_strings_index", "strings", IndexType.STRING
@@ -76,8 +76,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @AfterAll
     public void afterAll() {
         additionalAerospikeTestOperations.deleteAllAndVerify(IndexedPerson.class);
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_first_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_strings_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_ints_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,

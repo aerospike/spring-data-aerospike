@@ -61,16 +61,17 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public static final List<Person> allPersons = List.of(dave, donny, oliver, alicia, carter, boyd, stefan,
         leroi, leroi2, matias, douglas);
 
+    @BeforeAll
+    public void beforeAll() {
+        indexRefresher.refreshIndexes();
+//        indexRefresher.clearCache();
+        repository.deleteAll(allPersons);
+        repository.saveAll(allPersons);
+    }
+
     @AfterAll
     public void afterAll() {
         repository.deleteAll(allPersons);
-    }
-
-    @BeforeAll
-    public void beforeAll() {
-        indexRefresher.clearCache();
-        repository.deleteAll(allPersons);
-        repository.saveAll(allPersons);
     }
 
     @Test

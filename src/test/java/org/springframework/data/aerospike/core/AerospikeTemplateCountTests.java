@@ -17,8 +17,10 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.Value;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
@@ -32,7 +34,13 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
+
+    @BeforeAll
+    public void beforeAll() {
+        indexRefresher.refreshIndexes();
+    }
 
     @Override
     @BeforeEach

@@ -411,7 +411,7 @@ public interface AerospikeOperations {
     <T, S> Stream<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass);
 
     /**
-     * Return the amount of documents in a query results. set name will be determined by the given entityClass.
+     * Return the amount of documents in query results. Set name will be determined by the given entityClass.
      *
      * @param query       The query that provides the result set for count.
      * @param entityClass entityClass The class to extract the Aerospike set from. Must not be {@literal null}.

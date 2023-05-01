@@ -39,52 +39,25 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         .strings(List.of("str1", "str2")).ints(List.of(450, 550, 990))
         .address(new Address("Foo Street 1", 1, "C0123", "Bar")).build();
     static final IndexedPerson peter = IndexedPerson.builder().id(nextId()).firstName("Peter").lastName("Macintosh")
-        .age(41)
-        .strings(List.of("str1", "str2", "str3")).build();
+        .age(41).strings(List.of("str1", "str2", "str3")).build();
     static final IndexedPerson jane = IndexedPerson.builder().id(nextId()).firstName("Jane").lastName("Gillaham")
-        .age(49)
-        .intMap(of("key1", 0, "key2", 1)).ints(List.of(550, 600, 990))
+        .age(49).intMap(of("key1", 0, "key2", 1)).ints(List.of(550, 600, 990))
         .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
     static final IndexedPerson billy = IndexedPerson.builder().id(nextId()).firstName("Billy").lastName("Smith").age(25)
         .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
         .build();
     static final IndexedPerson tricia = IndexedPerson.builder().id(nextId()).firstName("Tricia").lastName("James")
-        .age(31)
-        .intMap(of("key1", 0, "key2", 1)).build();
+        .age(31).intMap(of("key1", 0, "key2", 1)).build();
     public static final List<IndexedPerson> allIndexedPersons = List.of(john, peter, jane, billy, tricia);
-
-    @AfterAll
-    public void afterAll() {
-        repository.deleteAll(allIndexedPersons);
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_first_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_strings_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_ints_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_string_map_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_string_map_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_friend_address_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_friend_address_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_friend_bestFriend_address_keys_index");
-        indexRefresher.refreshIndexes();
-    }
 
     @BeforeAll
     public void beforeAll() {
         repository.deleteAll(allIndexedPersons);
         repository.saveAll(allIndexedPersons);
+        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_first_name_index",
+            "firstName", IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_last_name_index",
             "lastName", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_first_name_index", "firstName", IndexType.STRING);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_age_index",
             "age", IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_strings_index",
@@ -115,6 +88,30 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         indexRefresher.refreshIndexes();
     }
 
+    @AfterAll
+    public void afterAll() {
+        repository.deleteAll(allIndexedPersons);
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_first_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_strings_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_ints_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_string_map_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_string_map_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_friend_address_keys_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_friend_address_values_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "indexed_person_friend_bestFriend_address_keys_index");
+        indexRefresher.refreshIndexes();
+    }
+
     @AfterEach
     public void assertNoScans() {
         additionalAerospikeTestOperations.assertNoScansForSet(template.getSetName(IndexedPerson.class));
@@ -130,7 +127,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @Test
     void findByListContainingString_forEmptyResult() {
         List<IndexedPerson> persons = repository.findByStringsContaining("str5");
-
         assertThat(persons).isEmpty();
     }
 
@@ -144,7 +140,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @Test
     void findByListContainingInteger_forEmptyResult() {
         List<IndexedPerson> persons = repository.findByIntsContaining(7777);
-
         assertThat(persons).isEmpty();
     }
 
@@ -152,21 +147,18 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @Test
     void findByListValueGreaterThan() {
         List<IndexedPerson> persons = repository.findByIntsGreaterThan(549);
-
         assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
     @Test
     void findByListValueLessThanOrEqual() {
         List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500);
-
         assertThat(persons).containsOnly(john);
     }
 
     @Test
     void findByListValueInRange() {
         List<IndexedPerson> persons = repository.findByIntsBetween(500, 600);
-
         assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
@@ -217,7 +209,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(result)
             .hasSize(1)
             .containsOnly(tricia);
-
     }
 
     @Test
@@ -225,8 +216,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThatThrownBy(() -> repository.countByLastName("Lerois"))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessage("Query method IndexedPerson.countByLastName not supported.");
-
-//		assertThat(result).isEqualTo(2);
     }
 
     @Test
@@ -234,8 +223,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThatThrownBy(() -> repository.countByLastName("Smirnova"))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessage("Query method IndexedPerson.countByLastName not supported.");
-
-//		assertThat(result).isEqualTo(0);
     }
 
     @Test
@@ -305,14 +292,12 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findsPersonInAgeRangeCorrectly() {
         Iterable<IndexedPerson> it = repository.findByAgeBetween(40, 45);
-
         assertThat(it).hasSize(2).contains(john, peter);
     }
 
     @Test
     public void findsPersonInAgeRangeCorrectlyOrderByLastName() {
         Iterable<IndexedPerson> it = repository.findByAgeBetweenOrderByLastName(30, 45);
-
         assertThat(it).hasSize(3);
     }
 

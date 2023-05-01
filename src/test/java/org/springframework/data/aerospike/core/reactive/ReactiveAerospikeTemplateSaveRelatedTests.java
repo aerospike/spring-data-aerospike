@@ -94,7 +94,9 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         person.setFirstName(null);
         reactiveTemplate.save(person).subscribeOn(Schedulers.parallel()).block();
 
-        assertThat(findById(id, Person.class).getFirstName()).isNull();
+        Person result = findById(id, Person.class);
+        assertThat(result.getFirstName()).isNull();
+        reactiveTemplate.delete(result); // cleanup
     }
 
     @Test
