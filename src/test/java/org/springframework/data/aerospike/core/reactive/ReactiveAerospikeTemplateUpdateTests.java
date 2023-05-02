@@ -168,7 +168,6 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         VersionedClass document = new VersionedClass(id, "foobar");
         reactiveTemplate.insert(document).block();
         assertThat(findById(id, VersionedClass.class).version).isEqualTo(1);
-        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
 
         document = new VersionedClass(id, "foobar1", document.version);
         List<String> fields = new ArrayList<>();
@@ -178,7 +177,6 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.field).isEqualTo("foobar1");
             assertThat(doc.version).isEqualTo(2);
         });
-        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
 
         document = new VersionedClass(id, "foobar2", document.version);
         reactiveTemplate.update(document, fields).block();
