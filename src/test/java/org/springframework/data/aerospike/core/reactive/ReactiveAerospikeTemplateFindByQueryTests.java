@@ -68,7 +68,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result).hasSameElementsAs(persons);
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -95,7 +95,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsAnyElementsOf(allUsers);
 
         for (Person user : allUsers) {
-            reactiveTemplate.delete(user); // cleanup
+            reactiveTemplate.delete(user).block(); // cleanup
         }
     }
 
@@ -114,7 +114,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsAnyElementsOf(allUsers);
 
         for (Person user : allUsers) {
-            reactiveTemplate.delete(user); // cleanup
+            reactiveTemplate.delete(user).block(); // cleanup
         }
     }
 
@@ -141,7 +141,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactly("Chris", "Dave", "Josh");
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -165,7 +165,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactly("Chris", "Dave", "Josh", "Kate", "Nicole");
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -197,7 +197,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(allUsers);
 
         for (Person user : allUsers) {
-            reactiveTemplate.delete(user); // cleanup
+            reactiveTemplate.delete(user).block(); // cleanup
         }
     }
 
@@ -219,7 +219,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyElementsOf(allUsers);
 
         for (Person user : allUsers) {
-            reactiveTemplate.delete(user); // cleanup
+            reactiveTemplate.delete(user).block(); // cleanup
         }
     }
 
@@ -242,7 +242,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyElementsOf(allUsers);
 
         for (Person user : allUsers) {
-            reactiveTemplate.delete(user); // cleanup
+            reactiveTemplate.delete(user).block(); // cleanup
         }
     }
 
@@ -265,7 +265,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(allUsers.subList(4, 10));
 
         for (Person user : allUsers) {
-            reactiveTemplate.delete(user); // cleanup
+            reactiveTemplate.delete(user).block(); // cleanup
         }
     }
 
@@ -310,7 +310,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -332,7 +332,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(1, 2));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -354,7 +354,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 5));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -376,7 +376,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(1, 6));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -398,7 +398,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(5, 7));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -421,7 +421,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -444,7 +444,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -466,7 +466,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -488,7 +488,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -510,7 +510,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(1, 2));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -532,7 +532,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -554,7 +554,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(3, 4));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -576,7 +576,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -598,7 +598,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(4, 5));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -620,7 +620,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 4));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -642,7 +642,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(4, 5));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -664,7 +664,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 4));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -686,7 +686,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(4, 5));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -708,7 +708,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -730,7 +730,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 }

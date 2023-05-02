@@ -96,7 +96,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
 
         Person result = findById(id, Person.class);
         assertThat(result.getFirstName()).isNull();
-        reactiveTemplate.delete(result); // cleanup
+        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test

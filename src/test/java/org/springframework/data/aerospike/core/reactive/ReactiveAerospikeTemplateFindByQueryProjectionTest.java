@@ -63,7 +63,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .hasSameElementsAs(persons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
 
         for (Person person : persons) {
-            reactiveTemplate.delete(person); // cleanup
+            reactiveTemplate.delete(person).block(); // cleanup
         }
     }
 
@@ -84,7 +84,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .containsAnyElementsOf(allUsers.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
 
         for (Person user : allUsers) {
-            reactiveTemplate.delete(user); // cleanup
+            reactiveTemplate.delete(user).block(); // cleanup
         }
     }
 
@@ -119,7 +119,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
                 .collect(Collectors.toList()));
 
         for (Person user : allUsers) {
-            reactiveTemplate.delete(user); // cleanup
+            reactiveTemplate.delete(user).block(); // cleanup
         }
     }
 
@@ -143,7 +143,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
                 allUsers.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()).subList(4, 10));
 
         for (Person user : allUsers) {
-            reactiveTemplate.delete(user); // cleanup
+            reactiveTemplate.delete(user).block(); // cleanup
         }
     }
 

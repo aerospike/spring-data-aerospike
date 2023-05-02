@@ -83,10 +83,10 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
             .block();
         assertThat(petyaCount).isEqualTo(1);
 
-        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id4, Person.class).block()); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()).block(); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()).block(); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()).block(); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id4, Person.class).block()).block(); // cleanup
     }
 
     @Test
@@ -118,9 +118,9 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
             .subscribeOn(Schedulers.parallel())
             .block()).isEqualTo(1);
 
-        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()).block(); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()).block(); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()).block(); // cleanup
     }
 
     @Test
@@ -158,10 +158,10 @@ public class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveInte
             .atMost(Duration.ofSeconds(15))
             .until(() -> isCountExactlyNum(4L));
 
-        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id4, Person.class).block()); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()).block(); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()).block(); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()).block(); // cleanup
+        reactiveTemplate.delete(reactiveTemplate.findById(id4, Person.class).block()).block(); // cleanup
     }
 
     @SuppressWarnings("SameParameterValue")

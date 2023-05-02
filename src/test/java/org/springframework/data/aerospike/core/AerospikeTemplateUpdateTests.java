@@ -186,7 +186,6 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             assertThat(doc.version).isEqualTo(3);
         });
         template.delete(result); // cleanup
-
     }
 
     @Test

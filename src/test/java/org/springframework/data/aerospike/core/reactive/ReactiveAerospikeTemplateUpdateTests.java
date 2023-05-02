@@ -40,7 +40,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
 
         Person result = findById(id, Person.class);
         assertThat(result.getAge()).isEqualTo(11);
-        reactiveTemplate.delete(result); // cleanup
+        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test
@@ -54,7 +54,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.getFirstName()).isEqualTo("Andrew");
             assertThat(doc.getAge()).isEqualTo(32);
         });
-        reactiveTemplate.delete(result); // cleanup
+        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test
@@ -72,7 +72,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.getAge()).isEqualTo(41);
             assertThat(doc.getWaist()).isEqualTo(20);
         });
-        reactiveTemplate.delete(result); // cleanup
+        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test
@@ -87,7 +87,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         assertThatThrownBy(() -> reactiveTemplate.update(Person.builder().id(id).age(41).build(), fields).block())
             .isInstanceOf(RecoverableDataAccessException.class)
             .hasMessageContaining("field doesn't exists");
-        reactiveTemplate.delete(findById(id, Person.class)); // cleanup
+        reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
     }
 
     @Test
@@ -109,7 +109,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.getWaist()).isEqualTo(20);
             assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
         });
-        reactiveTemplate.delete(result); // cleanup
+        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test
@@ -131,7 +131,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.getWaist()).isEqualTo(20);
             assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
         });
-        reactiveTemplate.delete(result); // cleanup
+        reactiveTemplate.delete(result).block(); // cleanup
 
     }
 
@@ -160,7 +160,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.field).isEqualTo("foobar2");
             assertThat(doc.version).isEqualTo(3);
         });
-        reactiveTemplate.delete(document); // cleanup
+        reactiveTemplate.delete(document).block(); // cleanup
     }
 
     @Test
@@ -168,7 +168,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         VersionedClass document = new VersionedClass(id, "foobar");
         reactiveTemplate.insert(document).block();
         assertThat(findById(id, VersionedClass.class).version).isEqualTo(1);
-        reactiveTemplate.delete(findById(id, VersionedClass.class)); // cleanup
+        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
 
         document = new VersionedClass(id, "foobar1", document.version);
         List<String> fields = new ArrayList<>();
@@ -178,7 +178,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.field).isEqualTo("foobar1");
             assertThat(doc.version).isEqualTo(2);
         });
-        reactiveTemplate.delete(findById(id, VersionedClass.class)); // cleanup
+        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
 
         document = new VersionedClass(id, "foobar2", document.version);
         reactiveTemplate.update(document, fields).block();
@@ -186,7 +186,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.field).isEqualTo("foobar2");
             assertThat(doc.version).isEqualTo(3);
         });
-        reactiveTemplate.delete(findById(id, VersionedClass.class)); // cleanup
+        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -201,7 +201,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.version).isEqualTo(2);
         });
 
-        reactiveTemplate.delete(findById(id, VersionedClass.class)); // cleanup
+        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -216,7 +216,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             .verifyComplete();
         VersionedClass actual = findById(id, VersionedClass.class);
         assertThat(actual.version).isEqualTo(3);
-        reactiveTemplate.delete(actual); // cleanup
+        reactiveTemplate.delete(actual).block(); // cleanup
     }
 
     @Test
@@ -240,7 +240,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         });
 
         assertThat(optimisticLock.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
-        reactiveTemplate.delete(findById(id, VersionedClass.class)); // cleanup
+        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -259,7 +259,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
 
         Person actual = findById(id, Person.class);
         assertThat(actual.getFirstName()).startsWith("value-");
-        reactiveTemplate.delete(actual); // cleanup
+        reactiveTemplate.delete(actual).block(); // cleanup
     }
 
     @Test
@@ -292,7 +292,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         Person personWithList2 = findById(id, Person.class);
         assertThat(personWithList2).isEqualTo(personWithList);
         assertThat(personWithList2.getStrings()).hasSize(4);
-        reactiveTemplate.delete(findById(id, Person.class)); // cleanup
+        reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
     }
 
     @Test
@@ -325,6 +325,6 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         assertThat(personWithList2).isEqualTo(personWithList);
         assertThat(personWithList2.getStringMap()).hasSize(4);
         assertThat(personWithList2.getStringMap().get("key4")).isEqualTo("Added something new");
-        reactiveTemplate.delete(findById(id, Person.class)); // cleanup
+        reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
     }
 }
