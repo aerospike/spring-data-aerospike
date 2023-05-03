@@ -46,6 +46,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
     @BeforeEach
     public void setUp() {
         super.setUp();
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
     }
 
     @Test
