@@ -64,7 +64,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @BeforeAll
     public void beforeAll() {
         indexRefresher.refreshIndexes();
-//        indexRefresher.clearCache();
         repository.deleteAll(allPersons);
         repository.saveAll(allPersons);
     }

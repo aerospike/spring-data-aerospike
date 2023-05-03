@@ -65,9 +65,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collectList().block();
         assertThat(result).hasSameElementsAs(persons);
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -92,9 +90,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(5)
             .containsAnyElementsOf(allUsers);
 
-        for (Person user : allUsers) {
-            reactiveTemplate.delete(user).block(); // cleanup
-        }
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -111,9 +107,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(5)
             .containsAnyElementsOf(allUsers);
 
-        for (Person user : allUsers) {
-            reactiveTemplate.delete(user).block(); // cleanup
-        }
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -138,9 +132,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(3)
             .containsExactly("Chris", "Dave", "Josh");
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -162,9 +154,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(5)
             .containsExactly("Chris", "Dave", "Josh", "Kate", "Nicole");
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -194,9 +184,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(10)
             .containsExactlyInAnyOrderElementsOf(allUsers);
 
-        for (Person user : allUsers) {
-            reactiveTemplate.delete(user).block(); // cleanup
-        }
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -216,9 +204,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(10)
             .containsExactlyElementsOf(allUsers);
 
-        for (Person user : allUsers) {
-            reactiveTemplate.delete(user).block(); // cleanup
-        }
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -239,9 +225,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(10)
             .containsExactlyElementsOf(allUsers);
 
-        for (Person user : allUsers) {
-            reactiveTemplate.delete(user).block(); // cleanup
-        }
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -262,9 +246,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(6)
             .containsExactlyInAnyOrderElementsOf(allUsers.subList(4, 10));
 
-        for (Person user : allUsers) {
-            reactiveTemplate.delete(user).block(); // cleanup
-        }
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -307,9 +289,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -329,9 +309,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(1, 2));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -351,9 +329,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(5)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 5));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -373,9 +349,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(5)
             .containsExactlyInAnyOrderElementsOf(persons.subList(1, 6));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -395,9 +369,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(2)
             .containsExactlyInAnyOrderElementsOf(persons.subList(5, 7));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -418,9 +390,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -441,9 +411,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -463,9 +431,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -485,9 +451,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -507,9 +471,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(1, 2));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -529,9 +491,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -551,9 +511,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(3, 4));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -573,9 +531,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -595,9 +551,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(4, 5));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -617,9 +571,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(4)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 4));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -639,9 +591,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(4, 5));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -661,9 +611,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(4)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 4));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -683,9 +631,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(4, 5));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -705,9 +651,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -727,8 +671,6 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
 
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 }
