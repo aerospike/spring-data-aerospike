@@ -211,9 +211,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     @Test
     public void deleteIndex_deletesExistingIndex() {
         reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING).block();
-
         reactiveTemplate.deleteIndex(IndexedDocument.class, INDEX_TEST_1).block();
-
         assertThat(reactiveTemplate.indexExists(INDEX_TEST_1).toFuture().getNow(false)).isFalse();
     }
 

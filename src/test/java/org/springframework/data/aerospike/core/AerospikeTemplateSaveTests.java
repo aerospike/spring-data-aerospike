@@ -118,7 +118,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         person.setFirstName(null);
         template.save(person);
 
-        assertThat(template.findById(id, Person.class).getFirstName()).isNull();
+        Person result = template.findById(id, Person.class);
+        assertThat(result.getFirstName()).isNull();
+        template.delete(result); // cleanup
     }
 
     @Test

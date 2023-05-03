@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,13 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
     @BeforeEach
     public void setUp() {
         super.setUp();
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
+    }
+
+    @AfterAll
+    public void afterAll() {
+        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_age_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_last_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_first_name_index");
     }
 
     @Test
@@ -52,13 +59,18 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .collectList().block();
         assertThat(result)
             .hasSameElementsAs(persons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
+
+        for (Person person : persons) {
+            reactiveTemplate.delete(person).block(); // cleanup
+        }
     }
 
     @Test
     public void findInRange_shouldFindLimitedNumberOfDocumentsProjection() {
         List<Person> allUsers = IntStream.range(20, 27)
             .mapToObj(id ->
-                new Person(nextId(), "Firstname", "Lastname")).collect(Collectors.toList());
+                Person.builder().id(nextId()).firstName("Firstname").lastName("Lastname").build())
+            .collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
         List<PersonSomeFields> actual = reactiveTemplate.findInRange(0, 5, Sort.unsorted(), Person.class,
@@ -68,6 +80,10 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
         assertThat(actual)
             .hasSize(5)
             .containsAnyElementsOf(allUsers.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
+
+        for (Person user : allUsers) {
+            reactiveTemplate.delete(user).block(); // cleanup
+        }
     }
 
     @Test
@@ -85,7 +101,9 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
     @Test
     public void findByFilterEqualProjection() {
         List<Person> allUsers = IntStream.rangeClosed(1, 10)
-            .mapToObj(id -> new Person(nextId(), "Dave", "Matthews")).collect(Collectors.toList());
+            .mapToObj(id ->
+                Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").build())
+            .collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
         Query query = QueryUtils.createQueryForMethodWithArgs("findPersonByFirstName", "Dave");
@@ -97,6 +115,10 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .hasSize(10)
             .containsExactlyInAnyOrderElementsOf(allUsers.stream().map(Person::toPersonSomeFields)
                 .collect(Collectors.toList()));
+
+        for (Person user : allUsers) {
+            reactiveTemplate.delete(user).block(); // cleanup
+        }
     }
 
     @Test
@@ -117,6 +139,10 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .hasSize(6)
             .containsExactlyInAnyOrderElementsOf(
                 allUsers.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()).subList(4, 10));
+
+        for (Person user : allUsers) {
+            reactiveTemplate.delete(user).block(); // cleanup
+        }
     }
 
     @Test

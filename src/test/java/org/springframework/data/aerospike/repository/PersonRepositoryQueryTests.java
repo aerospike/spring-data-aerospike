@@ -12,13 +12,13 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
+import org.springframework.data.aerospike.utility.TestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -31,32 +31,47 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.repository.PersonTestData.*;
+import static org.springframework.data.aerospike.AsCollections.of;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Autowired
     PersonRepository<Person> repository;
-
-    @AfterAll
-    public void afterAll() {
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
-    }
+    static final Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42)
+        .strings(List.of("str1", "str2")).address(new Address("Foo Street 1", 1, "C0123", "Bar"))
+        .build();
+    static final Person donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39)
+        .strings(List.of("str1", "str2", "str3")).stringMap(of("key1", "val1")).build();
+    static final Person oliver = Person.builder().id(nextId()).firstName("Oliver August").lastName("Matthews").age(14)
+        .ints(List.of(425, 550, 990)).build();
+    static final Person alicia = Person.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30)
+        .ints(List.of(550, 600, 990)).build();
+    static final Person carter = Person.builder().id(nextId()).firstName("Carter").lastName("Beauford").age(49)
+        .intMap(of("key1", 0, "key2", 1))
+        .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
+    static final Person boyd = Person.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45)
+        .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
+        .build();
+    static final Person stefan = Person.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34).build();
+    static final Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(44).build();
+    static final Person leroi2 = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25).build();
+    static final Person matias = Person.builder().id(nextId()).firstName("Matias").lastName("Craft").age(24).build();
+    static final Person douglas = Person.builder().id(nextId()).firstName("Douglas").lastName("Ford").age(25).build();
+    public static final List<Person> allPersons = List.of(dave, donny, oliver, alicia, carter, boyd, stefan,
+        leroi, leroi2, matias, douglas);
 
     @BeforeAll
     public void beforeAll() {
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
-        repository.saveAll(all);
-        indexRefresher.clearCache();
+        indexRefresher.refreshIndexes();
+//        indexRefresher.clearCache();
+        repository.deleteAll(allPersons);
+        repository.saveAll(allPersons);
     }
 
-    private void setFriendsToNull(Person... persons) {
-        for (Person person : persons) {
-            person.setFriend(null);
-            person.setBestFriend(null);
-            repository.save(person);
-        }
+    @AfterAll
+    public void afterAll() {
+        repository.deleteAll(allPersons);
     }
 
     @Test
@@ -69,14 +84,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     void findByListContainingString_forEmptyResult() {
         List<Person> persons = repository.findByStringsContaining("str5");
-
         assertThat(persons).isEmpty();
     }
 
     @Test
     void findByListContainingInteger_forExistingResult() {
-        assertThat(repository.findByIntsContaining(550)).containsOnly(leroi2, alicia);
-        assertThat(repository.findByIntsContaining(990)).containsOnly(leroi2, alicia);
+        assertThat(repository.findByIntsContaining(550)).containsOnly(oliver, alicia);
+        assertThat(repository.findByIntsContaining(990)).containsOnly(oliver, alicia);
         assertThat(repository.findByIntsContaining(600)).containsOnly(alicia);
     }
 
@@ -107,137 +121,137 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByListValueGreaterThan() {
         List<Person> persons = repository.findByIntsGreaterThan(549);
 
-        assertThat(persons).containsOnly(leroi2, alicia);
+        assertThat(persons).containsOnly(oliver, alicia);
     }
 
     @Test
     void findByListValueLessThanOrEqual() {
         List<Person> persons = repository.findByIntsLessThanEqual(500);
 
-        assertThat(persons).containsOnly(leroi2);
+        assertThat(persons).containsOnly(oliver);
     }
 
     @Test
     void findByListValueInRange() {
         List<Person> persons = repository.findByIntsBetween(500, 600);
 
-        assertThat(persons).containsExactlyInAnyOrder(leroi2, alicia);
+        assertThat(persons).containsExactlyInAnyOrder(oliver, alicia);
     }
 
     @Test
     void findByMapKeysContaining() {
-        assertThat(stefan.getStringMap()).containsKey("key1");
+        assertThat(donny.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsKey("key1");
 
         List<Person> persons = repository.findByStringMapContaining("key1",
             CriteriaDefinition.AerospikeMapCriteria.KEY);
 
-        assertThat(persons).contains(stefan, boyd);
+        assertThat(persons).contains(donny, boyd);
     }
 
     @Test
     void findByMapValuesContaining() {
-        assertThat(stefan.getStringMap()).containsValue("val1");
+        assertThat(donny.getStringMap()).containsValue("val1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<Person> persons = repository.findByStringMapContaining("val1",
             CriteriaDefinition.AerospikeMapCriteria.VALUE);
 
-        assertThat(persons).contains(stefan, boyd);
+        assertThat(persons).contains(donny, boyd);
     }
 
     @Test
     void findByMapKeyValueEquals() {
-        assertThat(stefan.getStringMap()).containsKey("key1");
-        assertThat(stefan.getStringMap()).containsValue("val1");
+        assertThat(donny.getStringMap()).containsKey("key1");
+        assertThat(donny.getStringMap()).containsValue("val1");
         assertThat(boyd.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<Person> persons = repository.findByStringMapEquals("key1", "val1");
-        assertThat(persons).containsExactlyInAnyOrder(stefan, boyd);
+        assertThat(persons).containsExactlyInAnyOrder(donny, boyd);
 
         // another way to call the method
         List<Person> persons2 = repository.findByStringMap("key1", "val1");
-        assertThat(persons2).containsExactlyInAnyOrder(stefan, boyd);
+        assertThat(persons2).containsExactlyInAnyOrder(donny, boyd);
 
     }
 
     @Test
     void findByMapKeyValueNotEqual() {
-        assertThat(leroi.getIntMap()).containsKey("key1");
-        assertThat(!leroi.getIntMap().containsValue(22)).isTrue();
+        assertThat(carter.getIntMap()).containsKey("key1");
+        assertThat(!carter.getIntMap().containsValue(22)).isTrue();
 
         List<Person> persons = repository.findByIntMapIsNot("key1", 22);
 
-        assertThat(persons).contains(leroi);
+        assertThat(persons).contains(carter);
     }
 
     @Test
     void findByMapKeyValueContains() {
-        assertThat(stefan.getStringMap()).containsKey("key1");
-        assertThat(stefan.getStringMap()).containsValue("val1");
+        assertThat(donny.getStringMap()).containsKey("key1");
+        assertThat(donny.getStringMap()).containsValue("val1");
         assertThat(boyd.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<Person> persons = repository.findByStringMapContaining("key1", "al");
 
-        assertThat(persons).contains(stefan, boyd);
+        assertThat(persons).contains(donny, boyd);
     }
 
     @Test
     void findByMapKeyValueStartsWith() {
-        assertThat(stefan.getStringMap()).containsKey("key1");
-        assertThat(stefan.getStringMap()).containsValue("val1");
+        assertThat(donny.getStringMap()).containsKey("key1");
+        assertThat(donny.getStringMap()).containsValue("val1");
         assertThat(boyd.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<Person> persons = repository.findByStringMapStartsWith("key1", "val");
 
-        assertThat(persons).contains(stefan, boyd);
+        assertThat(persons).contains(donny, boyd);
     }
 
     @Test
     void findByMapKeyValueLike() {
-        assertThat(stefan.getStringMap()).containsKey("key1");
-        assertThat(stefan.getStringMap()).containsValue("val1");
+        assertThat(donny.getStringMap()).containsKey("key1");
+        assertThat(donny.getStringMap()).containsValue("val1");
         assertThat(boyd.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<Person> persons = repository.findByStringMapLike("key1", "^.*al1$");
 
-        assertThat(persons).contains(stefan, boyd);
+        assertThat(persons).contains(donny, boyd);
     }
 
     @Test
     void findByMapKeyValueGreaterThan() {
-        assertThat(leroi.getIntMap()).containsKey("key2");
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(carter.getIntMap()).containsKey("key2");
+        assertThat(carter.getIntMap().get("key2") > 0).isTrue();
 
         List<Person> persons = repository.findByIntMapGreaterThan("key2", 0);
 
-        assertThat(persons).contains(leroi);
+        assertThat(persons).containsExactly(carter);
     }
 
     @Test
     void findByMapKeyValueLessThanOrEqual() {
-        assertThat(leroi.getIntMap()).containsKey("key2");
-        assertThat(leroi.getIntMap().get("key2") > 0).isTrue();
+        assertThat(carter.getIntMap()).containsKey("key2");
+        assertThat(carter.getIntMap().get("key2") > 0).isTrue();
 
         List<Person> persons = repository.findByIntMapLessThanEqual("key2", 1);
 
-        assertThat(persons).containsExactlyInAnyOrder(leroi, carter);
+        assertThat(persons).containsExactly(carter);
     }
 
     @Test
     void findByMapKeyValueBetween() {
-        assertThat(leroi.getIntMap()).containsKey("key1");
-        assertThat(leroi.getIntMap()).containsKey("key2");
-        assertThat(leroi.getIntMap().get("key1") >= 0).isTrue();
-        assertThat(leroi.getIntMap().get("key2") >= 0).isTrue();
+        assertThat(carter.getIntMap()).containsKey("key1");
+        assertThat(carter.getIntMap()).containsKey("key2");
+        assertThat(carter.getIntMap().get("key1") >= 0).isTrue();
+        assertThat(carter.getIntMap().get("key2") >= 0).isTrue();
 
         List<Person> persons = repository.findByIntMapBetween("key2", 0, 1);
 
-        assertThat(persons).contains(leroi);
+        assertThat(persons).contains(carter);
     }
 
     @Test
@@ -280,7 +294,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     void findByFirstNameContaining() {
         List<Person> persons = repository.findByFirstNameContaining("er");
-
         assertThat(persons).containsExactlyInAnyOrder(carter, oliver, leroi, leroi2);
     }
 
@@ -324,21 +337,19 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findAllMusicians() {
+    public void findAll() {
         List<Person> result = (List<Person>) repository.findAll();
-
-        assertThat(result)
-            .containsExactlyInAnyOrderElementsOf(all);
+        assertThat(result).containsExactlyInAnyOrderElementsOf(allPersons);
     }
 
     @Test
     public void findAllWithGivenIds() {
-        List<Person> result = (List<Person>) repository.findAllById(Arrays.asList(dave.getId(), boyd.getId()));
+        List<Person> result = (List<Person>) repository.findAllById(List.of(dave.getId(), boyd.getId()));
 
         assertThat(result)
             .hasSize(2)
             .contains(dave)
-            .doesNotContain(oliver, carter, stefan, leroi, alicia);
+            .doesNotContain(oliver, carter, alicia);
     }
 
     @Test
@@ -384,7 +395,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(1)
             .containsExactly(carter);
 
-        setFriendsToNull(oliver, dave, carter);
+        TestUtils.setFriendsToNull(repository, oliver, dave, carter);
     }
 
     @Test
@@ -402,7 +413,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(2)
             .containsExactlyInAnyOrder(dave, oliver);
 
-        setFriendsToNull(oliver, dave, carter);
+        TestUtils.setFriendsToNull(repository, oliver, dave, carter);
     }
 
     @Test
@@ -442,7 +453,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(2)
             .containsExactlyInAnyOrder(alicia, leroi);
 
-        setFriendsToNull(alicia, dave, carter, leroi);
+        TestUtils.setFriendsToNull(repository, alicia, dave, carter, leroi);
     }
 
     @Test
@@ -462,19 +473,19 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(2)
             .containsExactlyInAnyOrder(dave, carter);
 
-        setFriendsToNull(alicia, dave, carter, leroi);
+        TestUtils.setFriendsToNull(repository, alicia, dave, carter, leroi);
     }
 
     @Test
     public void findAll_doesNotFindDeletedPersonByEntity() {
         try {
             repository.delete(dave);
-
             List<Person> result = (List<Person>) repository.findAll();
-
             assertThat(result)
                 .doesNotContain(dave)
-                .hasSize(all.size() - 1);
+                .containsExactlyInAnyOrderElementsOf(
+                    allPersons.stream().filter(person -> !person.equals(dave)).collect(Collectors.toList())
+                );
         } finally {
             repository.save(dave);
         }
@@ -484,12 +495,10 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void findAll_doesNotFindDeletedPersonById() {
         try {
             repository.deleteById(dave.getId());
-
             List<Person> result = (List<Person>) repository.findAll();
-
             assertThat(result)
                 .doesNotContain(dave)
-                .hasSize(all.size() - 1);
+                .hasSize(allPersons.size() - 1);
         } finally {
             repository.save(dave);
         }
@@ -536,7 +545,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findByFirstNameNotIn_forEmptyResult() {
-        Set<String> allFirstNames = all.stream().map(Person::getFirstName).collect(Collectors.toSet());
+        Set<String> allFirstNames = allPersons.stream().map(Person::getFirstName).collect(Collectors.toSet());
 //		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
         assertThatThrownBy(() -> repository.findByFirstNameNotIn(allFirstNames))
             .isInstanceOf(IllegalArgumentException.class)
@@ -557,14 +566,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findByFirstNameIn_forEmptyResult() {
-        Stream<Person> result = repository.findByFirstNameIn(Arrays.asList("Anastasiia", "Daniil"));
+        Stream<Person> result = repository.findByFirstNameIn(List.of("Anastasiia", "Daniil"));
 
         assertThat(result).isEmpty();
     }
 
     @Test
     public void findByFirstNameIn_forExistingResult() {
-        Stream<Person> result = repository.findByFirstNameIn(Arrays.asList("Alicia", "Stefan"));
+        Stream<Person> result = repository.findByFirstNameIn(List.of("Alicia", "Stefan"));
 
         assertThat(result).contains(alicia, stefan);
     }
@@ -628,7 +637,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         assertThat(result)
             .hasSize(4)
-            .containsSequence(leroi, dave, boyd, carter);
+            .containsSequence(dave, leroi, boyd, carter);
     }
 
     @Test
@@ -659,19 +668,19 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findByLastNameStartsWithOrderByAgeAsc_respectsLimitAndOffset() {
-        Page<Person> first = repository.findByLastNameStartsWithOrderByAgeAsc("Moo", PageRequest.of(0, 1));
+        Page<Person> first = repository.findByLastNameStartsWithOrderByAgeAsc("Mo", PageRequest.of(0, 1));
 
         assertThat(first.getNumberOfElements()).isEqualTo(1);
         assertThat(first.getTotalPages()).isEqualTo(2);
         assertThat(first.get()).hasSize(1).containsOnly(leroi2);
 
-        Page<Person> last = repository.findByLastNameStartsWithOrderByAgeAsc("Moo", first.nextPageable());
+        Page<Person> last = repository.findByLastNameStartsWithOrderByAgeAsc("Mo", first.nextPageable());
 
         assertThat(last.getTotalPages()).isEqualTo(2);
         assertThat(last.getNumberOfElements()).isEqualTo(1);
         assertThat(last.get()).hasSize(1).containsAnyOf(leroi);
 
-        Page<Person> all = repository.findByLastNameStartsWithOrderByAgeAsc("Moo", PageRequest.of(0, 5));
+        Page<Person> all = repository.findByLastNameStartsWithOrderByAgeAsc("Mo", PageRequest.of(0, 5));
 
         assertThat(all.getTotalPages()).isEqualTo(1);
         assertThat(all.getNumberOfElements()).isEqualTo(2);
@@ -683,7 +692,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByFirstNameAndAge("Leroi", 25);
         assertThat(result).containsOnly(leroi2);
 
-        result = repository.findByFirstNameAndAge("Leroi", 41);
+        result = repository.findByFirstNameAndAge("Leroi", 44);
         assertThat(result).containsOnly(leroi);
     }
 
@@ -706,7 +715,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(1)
             .containsExactly(carter);
 
-        setFriendsToNull(stefan, carter);
+        TestUtils.setFriendsToNull(repository, stefan, carter);
     }
 
     @Test
@@ -718,7 +727,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> result = repository.findByFriendLastNameLike(".*tthe.*");
         assertThat(result).contains(oliver);
-        setFriendsToNull(oliver, carter);
+        TestUtils.setFriendsToNull(repository, oliver, carter);
     }
 
     @Test
@@ -768,7 +777,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(1)
             .containsExactly(carter);
 
-        setFriendsToNull(oliver, dave, carter);
+        TestUtils.setFriendsToNull(repository, oliver, dave, carter);
     }
 
     @Test
@@ -871,15 +880,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void findPersonsByIntMapNotEqual() {
         if (IndexUtils.isFindByPojoSupported(client)) {
             Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);
-            assertThat(leroi.getIntMap()).isEqualTo(mapToCompareWith);
             assertThat(carter.getIntMap()).isEqualTo(mapToCompareWith);
 
             carter.setIntMap(Map.of("key1", 1, "key2", 2));
             repository.save(carter);
             assertThat(carter.getIntMap()).isNotEqualTo(mapToCompareWith);
 
-            List<Person> persons = repository.findByIntMapIsNot(mapToCompareWith);
-            assertThat(persons).contains(carter);
+            assertThat(repository.findByIntMapIsNot(mapToCompareWith)).contains(carter);
 
             carter.setIntMap(mapToCompareWith);
             repository.save(carter);
@@ -902,11 +909,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void findPersonsByStringMapGreaterThan() {
         if (IndexUtils.isFindByPojoSupported(client)) {
             assertThat(boyd.getStringMap()).isNotEmpty();
-            assertThat(stefan.getStringMap()).isNotEmpty();
+            assertThat(donny.getStringMap()).isNotEmpty();
 
             Map<String, String> mapToCompare = Map.of("Key", "Val", "Key2", "Val2");
             List<Person> persons = repository.findByStringMapGreaterThan(mapToCompare);
-            assertThat(persons).containsExactlyInAnyOrder(boyd, stefan);
+            assertThat(persons).containsExactlyInAnyOrder(boyd);
         }
     }
 
@@ -939,7 +946,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
                 .hasSize(1)
                 .containsExactly(carter);
 
-            setFriendsToNull(carter);
+            TestUtils.setFriendsToNull(repository, carter);
         }
     }
 
@@ -959,7 +966,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(1)
             .containsExactly(carter);
 
-        setFriendsToNull(carter);
+        TestUtils.setFriendsToNull(repository, carter);
     }
 
     @Test
@@ -980,7 +987,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(1)
             .containsExactly(oliver);
 
-        setFriendsToNull(carter, oliver);
+        TestUtils.setFriendsToNull(repository, carter, oliver);
     }
 
     @Test
@@ -1019,7 +1026,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(1)
             .containsExactly(douglas);
 
-        setFriendsToNull(all.toArray(Person[]::new));
+        TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));
     }
 
     @Test
@@ -1056,7 +1063,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .hasSize(1)
             .containsExactly(matias);
 
-        setFriendsToNull(all.toArray(Person[]::new));
+        TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));
     }
 
     @Test
@@ -1095,7 +1102,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
                 .hasSize(1)
                 .containsExactly(leroi2);
 
-            setFriendsToNull(all.toArray(Person[]::new));
+            TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));
         }
     }
 }

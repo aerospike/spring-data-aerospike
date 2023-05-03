@@ -208,11 +208,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Page<P> findByAddressIn(List<Address> address, Pageable page);
 
     /**
-     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by list)
      *
-     * @param collection Collection to compare strings with
+     * @param list List to compare strings with
      */
-    List<P> findByStringsEquals(Collection<String> collection);
+    List<P> findByStringsEquals(List<String> list);
 
     /**
      * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
@@ -540,17 +540,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param integer upper limit, inclusive
      */
     List<P> findByIntsLessThanEqual(int integer);
-
-    /**
-     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
-     * given long"
-     * <p>
-     * List name in this case is Ints
-     * </p>
-     *
-     * @param number upper limit, inclusive
-     */
-    List<P> findByIntsLessThanEqual(long number);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value in the given range"

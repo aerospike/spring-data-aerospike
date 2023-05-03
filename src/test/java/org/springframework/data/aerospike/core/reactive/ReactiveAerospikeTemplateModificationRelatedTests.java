@@ -32,6 +32,8 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
         StepVerifier.create(updated)
             .expectNext(Person.builder().id(id).age(26).build())
             .verifyComplete();
+        Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class);
+        reactiveTemplate.delete(storedPerson.block()).block();
     }
 
     @Test
@@ -51,6 +53,7 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
 
         Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class);
         StepVerifier.create(storedPerson).expectNext(expected).verifyComplete();
+        reactiveTemplate.delete(storedPerson.block()).block();
     }
 
     @Test
@@ -73,6 +76,7 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
 
         Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class).subscribeOn(Schedulers.parallel());
         StepVerifier.create(storedPerson).expectNext(expected).verifyComplete();
+        reactiveTemplate.delete(storedPerson.block()).block();
     }
 
     @Test
@@ -92,6 +96,7 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
 
         Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class);
         StepVerifier.create(storedPerson).expectNext(expected).verifyComplete();
+        reactiveTemplate.delete(storedPerson.block()).block();
     }
 
     @Test
@@ -114,5 +119,6 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
 
         Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class).subscribeOn(Schedulers.parallel());
         StepVerifier.create(storedPerson).expectNext(expected).verifyComplete();
+        reactiveTemplate.delete(storedPerson.block()).block();
     }
 }

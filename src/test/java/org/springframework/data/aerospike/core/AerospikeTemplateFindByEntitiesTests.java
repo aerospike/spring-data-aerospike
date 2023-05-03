@@ -13,6 +13,11 @@ public class AerospikeTemplateFindByEntitiesTests
     }
 
     @Override
+    public <T> void delete(T obj) {
+        template.delete(obj);
+    }
+
+    @Override
     public GroupedEntities findByIds(GroupedKeys groupedKeys) {
         return template.findByIds(groupedKeys);
     }
