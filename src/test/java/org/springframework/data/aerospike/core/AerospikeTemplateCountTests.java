@@ -46,15 +46,17 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
     @BeforeEach
     public void setUp() {
         super.setUp();
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
     }
 
     @Test
     public void countFindsAllItemsByGivenCriteria() {
         template.insert(new Person(id, "vasili", 50));
-        template.insert(new Person(nextId(), "vasili", 51));
-        template.insert(new Person(nextId(), "vasili", 52));
-        template.insert(new Person(nextId(), "petya", 52));
+        String id2 = nextId();
+        template.insert(new Person(id2, "vasili", 51));
+        String id3 = nextId();
+        template.insert(new Person(id3, "vasili", 52));
+        String id4 = nextId();
+        template.insert(new Person(id4, "petya", 52));
 
         long vasyaCount = template.count
             (new Query
@@ -103,13 +105,20 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
             );
 
         assertThat(petyaCount).isEqualTo(1);
+
+        template.delete(template.findById(id, Person.class));
+        template.delete(template.findById(id2, Person.class));
+        template.delete(template.findById(id3, Person.class));
+        template.delete(template.findById(id4, Person.class));
     }
 
     @Test
     public void countFindsAllItemsByGivenCriteriaAndRespectsIgnoreCase() {
         template.insert(new Person(id, "VaSili", 50));
-        template.insert(new Person(nextId(), "vasILI", 51));
-        template.insert(new Person(nextId(), "vasili", 52));
+        String id2 = nextId();
+        template.insert(new Person(id2, "vasILI", 51));
+        String id3 = nextId();
+        template.insert(new Person(id3, "vasili", 52));
 
         Query query1 = new Query
             (new AerospikeCriteria
@@ -133,6 +142,10 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
             );
 
         assertThat(template.count(query2, Person.class)).isEqualTo(1);
+
+        template.delete(template.findById(id, Person.class));
+        template.delete(template.findById(id2, Person.class));
+        template.delete(template.findById(id3, Person.class));
     }
 
     @Test
@@ -168,13 +181,21 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
     @Test
     void countForObjects() {
         template.insert(new Person(id, "vasili", 50));
-        template.insert(new Person(nextId(), "vasili", 51));
-        template.insert(new Person(nextId(), "vasili", 52));
-        template.insert(new Person(nextId(), "petya", 52));
+        String id2 = nextId();
+        template.insert(new Person(id2, "vasili", 51));
+        String id3 = nextId();
+        template.insert(new Person(id3, "vasili", 52));
+        String id4 = nextId();
+        template.insert(new Person(id4, "petya", 52));
 
         Awaitility.await()
             .atMost(Duration.ofSeconds(15))
             .until(() -> isCountExactlyNum(4L));
+
+        template.delete(template.findById(id, Person.class));
+        template.delete(template.findById(id2, Person.class));
+        template.delete(template.findById(id3, Person.class));
+        template.delete(template.findById(id4, Person.class));
     }
 
     @SuppressWarnings("SameParameterValue")

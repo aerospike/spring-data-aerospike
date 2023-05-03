@@ -44,12 +44,10 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @BeforeEach
     public void setUp() {
         super.setUp();
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
     }
 
     @AfterAll
     public void afterAll() {
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_age_index");
         additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_last_name_index");
         additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_first_name_index");

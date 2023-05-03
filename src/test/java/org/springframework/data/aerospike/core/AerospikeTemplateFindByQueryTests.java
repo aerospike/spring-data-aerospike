@@ -73,8 +73,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     final Person aabbot = Person.builder().id(nextId()).firstName("Aabbot").lastName("Matthews").age(30)
         .stringMap(Collections.singletonMap("key4", "val5")).build();
     final List<Person> allPersons = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch,
-        alister,
-        aabbot);
+        alister, aabbot);
 
     @BeforeAll
     public void beforeAllSetUp() {

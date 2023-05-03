@@ -75,7 +75,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @AfterAll
     public void afterAll() {
-        additionalAerospikeTestOperations.deleteAllAndVerify(IndexedPerson.class);
+        reactiveRepository.deleteAll(allIndexedPersons).block();
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_first_name_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
         additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_strings_index");

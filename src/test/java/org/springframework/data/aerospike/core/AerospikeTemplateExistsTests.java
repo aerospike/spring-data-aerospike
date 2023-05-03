@@ -29,6 +29,7 @@ public class AerospikeTemplateExistsTests extends BaseBlockingIntegrationTests {
         template.insert(one);
 
         assertThat(template.exists(id, Person.class)).isTrue();
+        template.delete(one);
     }
 
     @Test
