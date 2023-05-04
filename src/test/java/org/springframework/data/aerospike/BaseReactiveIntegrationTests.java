@@ -37,6 +37,6 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     protected void deleteAll(Collection<Person> persons) {
         Flux.fromIterable(persons)
             .doOnNext(person -> reactiveTemplate.delete(person).block())
-            .subscribe();
+            .blockLast();
     }
 }
