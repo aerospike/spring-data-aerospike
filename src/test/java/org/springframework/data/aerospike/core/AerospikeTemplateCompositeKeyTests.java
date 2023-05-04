@@ -44,7 +44,6 @@ public class AerospikeTemplateCompositeKeyTests extends BaseBlockingIntegrationT
     @Test
     public void delete() {
         boolean deleted = template.delete(document.getId(), DocumentWithCompositeKey.class);
-
         assertThat(deleted).isTrue();
     }
 
