@@ -17,7 +17,7 @@ import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPL
 import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
 import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
 
-public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConverterTest {
+public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeConverterTest {
 
     @Test
     void NullObjectIfAerospikeDataNull() {
@@ -218,11 +218,11 @@ public class MappingAerospikeConverterTypesTest extends BaseMappingAerospikeConv
     void EnumProperties() {
         List<TYPES> list = list(TYPES.FIRST, TYPES.SECOND);
         EnumSet<TYPES> set = EnumSet.allOf(TYPES.class);
-        EnumMap<TYPES, String> map = new EnumMap<TYPES, String>(of(TYPES.FIRST, "a", TYPES.SECOND, "b"));
-        EnumProperties object = new EnumProperties("id", TYPES.SECOND, list, set, map);
+        EnumMap<TYPES, String> map = new EnumMap<>(of(TYPES.FIRST, "a", TYPES.SECOND, "b"));
+        ClassWithEnumProperties object = new ClassWithEnumProperties("id", TYPES.SECOND, list, set, map);
 
         assertWriteAndRead(object, "EnumProperties", "id",
-            new Bin("@_class", EnumProperties.class.getName()),
+            new Bin("@_class", ClassWithEnumProperties.class.getName()),
             new Bin("type", "SECOND"),
             new Bin("list", list("FIRST", "SECOND")),
             new Bin("set", list("FIRST", "SECOND", "THIRD")),

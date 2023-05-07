@@ -24,6 +24,7 @@ import lombok.Data;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.aerospike.SampleClasses;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
@@ -31,9 +32,11 @@ import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,7 +51,7 @@ import static org.springframework.data.aerospike.assertions.KeyAssert.assertThat
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
 
-public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverterTest {
+public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverterTest {
 
     @SuppressWarnings("SameParameterValue")
     private static int toRecordExpiration(int expiration) {
@@ -361,5 +364,59 @@ public class MappingAerospikeConverterTest extends BaseMappingAerospikeConverter
         DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
 
         assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1}));
+    }
+
+    @Test
+    public void getConversionService() {
+        MappingAerospikeConverter mappingAerospikeConverter =
+            getMappingAerospikeConverter(new AerospikeTypeAliasAccessor());
+        assertThat(mappingAerospikeConverter.getConversionService()).isNotNull()
+            .isInstanceOf(DefaultConversionService.class);
+    }
+
+    @Test
+    public void shouldConvertAddressCorrectlyToAerospikeData() {
+        Address address = new Address(new Street("Broadway", 30), 3);
+
+        AerospikeWriteData dbObject = AerospikeWriteData.forWrite(NAMESPACE);
+        dbObject.setKey(new Key(NAMESPACE, "Address", 90));
+        converter.write(address, dbObject);
+
+        Collection<Bin> bins = dbObject.getBins();
+        assertThat(bins).contains(
+            new Bin("@_class", "org.springframework.data.aerospike.SampleClasses$Address"),
+            new Bin("street",
+                Map.of(
+                    "@_class", "org.springframework.data.aerospike.SampleClasses$Street",
+                    "name", "Broadway",
+                    "number", 30
+                )
+            ),
+            new Bin("apartment", 3)
+        );
+
+        Object streetBin = getBinValue("street", dbObject.getBins());
+        assertThat(streetBin).isInstanceOf(TreeMap.class);
+    }
+
+    @Test
+    public void shouldConvertAerospikeDataToAddressCorrectly() {
+        Address address = new Address(new Street("Broadway", 30), 3);
+
+        Map<String, Object> bins = new TreeMap<>() {
+            {
+                put("street", Map.of(
+                        "name", "Broadway",
+                        "number", 30
+                    )
+                );
+                put("apartment", 3);
+            }
+        };
+
+        AerospikeReadData dbObject = AerospikeReadData.forRead(new Key(NAMESPACE, "Address", 90), aeroRecord(bins));
+        Address convertedAddress = converter.read(Address.class, dbObject);
+
+        assertThat(convertedAddress).isEqualTo(address);
     }
 }

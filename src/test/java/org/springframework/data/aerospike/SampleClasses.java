@@ -465,9 +465,10 @@ public class SampleClasses {
     }
 
     @AllArgsConstructor
+    @NoArgsConstructor
     @Document
     @Data
-    public static class EnumProperties {
+    public static class ClassWithEnumProperties {
 
         @Id
         String id;
