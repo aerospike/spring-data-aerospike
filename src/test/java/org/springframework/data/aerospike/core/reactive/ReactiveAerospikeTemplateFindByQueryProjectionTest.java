@@ -59,10 +59,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .collectList().block();
         assertThat(result)
             .hasSameElementsAs(persons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
-
-        for (Person person : persons) {
-            reactiveTemplate.delete(person).block(); // cleanup
-        }
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -80,10 +77,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
         assertThat(actual)
             .hasSize(5)
             .containsAnyElementsOf(allUsers.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
-
-        for (Person user : allUsers) {
-            reactiveTemplate.delete(user).block(); // cleanup
-        }
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -115,10 +109,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .hasSize(10)
             .containsExactlyInAnyOrderElementsOf(allUsers.stream().map(Person::toPersonSomeFields)
                 .collect(Collectors.toList()));
-
-        for (Person user : allUsers) {
-            reactiveTemplate.delete(user).block(); // cleanup
-        }
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -139,10 +130,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .hasSize(6)
             .containsExactlyInAnyOrderElementsOf(
                 allUsers.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()).subList(4, 10));
-
-        for (Person user : allUsers) {
-            reactiveTemplate.delete(user).block(); // cleanup
-        }
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -152,7 +140,6 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
         List<PersonSomeFields> actual = reactiveTemplate.find(query, Person.class, PersonSomeFields.class)
             .subscribeOn(Schedulers.parallel())
             .collectList().block();
-
         assertThat(actual).isEmpty();
     }
 }

@@ -7,8 +7,11 @@ import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.config.ReactiveTestConfig;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
+import org.springframework.data.aerospike.sample.Person;
+import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 @SpringBootTest(
     classes = {ReactiveTestConfig.class, CommonTestConfig.class},
@@ -29,5 +32,9 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
 
     protected <T> T findById(Serializable id, Class<T> type) {
         return reactiveTemplate.findById(id, type).block();
+    }
+
+    protected void deleteAll(Collection<Person> persons) {
+        Flux.fromIterable(persons).flatMap(person -> reactiveTemplate.delete(person)).blockLast();
     }
 }

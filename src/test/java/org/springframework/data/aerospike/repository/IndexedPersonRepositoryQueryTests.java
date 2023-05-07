@@ -400,6 +400,12 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
+    public void findPersonsByFirstNameLessThan() {
+        List<IndexedPerson> result = repository.findByFirstNameGreaterThan("Bill");
+        assertThat(result).containsAll(allIndexedPersons);
+    }
+
+    @Test
     void findByMapKeyValueGreaterThan() {
         assertThat(tricia.getIntMap()).containsKey("key2");
         assertThat(tricia.getIntMap().get("key2") > 0).isTrue();

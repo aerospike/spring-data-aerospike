@@ -177,8 +177,7 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MAX_VALUE shall not be given as + 1 will cause overflow
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
-                throw new AerospikeException(
-                    "GT sIndexFilter unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
+                return null;
             }
 
             return Filter.range(getField(map), getValue1(map).toLong() + 1, Long.MAX_VALUE);
@@ -202,7 +201,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException("GTEQ sIndexFilter unsupported type: expected Long");
+                return null;
             }
             return Filter.range(getField(map), getValue1(map).toLong(), Long.MAX_VALUE);
         }
@@ -226,8 +225,7 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MIN_VALUE shall not be given as - 1 will cause overflow
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
-                throw new AerospikeException(
-                    "LT sIndexFilter unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE]");
+                return null;
             }
             return Filter.range(getField(map), Long.MIN_VALUE, getValue1(map).toLong() - 1);
         }
@@ -250,7 +248,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException("LTEQ sIndexFilter unsupported type: expected Long");
+                return null;
             }
             return Filter.range(getField(map), Long.MIN_VALUE, getValue1(map).toLong());
         }
@@ -270,7 +268,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException("BETWEEN sIndexFilter unsupported type: expected Long");
+                return null;
             }
             return Filter.range(getField(map), getValue1(map).toLong(), getValue2(map).toLong());
         }
@@ -361,8 +359,7 @@ public enum FilterOperation {
                             getValue1(map).toLong());
                     }
                 }
-                default -> throw new AerospikeException(
-                    "MAP_VAL_EQ_BY_KEY FilterExpression unsupported type: " + getValue1(map).getType());
+                default -> null;
             };
         }
     },
@@ -390,8 +387,7 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MAX_VALUE shall not be given as + 1 will cause overflow
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
-                throw new AerospikeException(
-                    "MAP_VAL_GT_BY_KEY sIndexFilter unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
+                return null;
             }
 
             String[] dotPathArr = getDotPathArray(getDotPath(map),
@@ -416,8 +412,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException(
-                    "MAP_VAL_GTEQ_BY_KEY sIndexFilter unsupported type: expected Long");
+                return null;
             }
 
             String[] dotPathArr = getDotPathArray(getDotPath(map),
@@ -443,8 +438,7 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MIN_VALUE shall not be given as - 1 will cause overflow
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
-                throw new AerospikeException(
-                    "MAP_VAL_LT_BY_KEY sIndexFilter unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE]");
+                return null;
             }
 
             String[] dotPathArr = getDotPathArray(getDotPath(map),
@@ -469,8 +463,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException(
-                    "MAP_VAL_LTEQ_BY_KEY sIndexFilter unsupported type: expected Long");
+                return null;
             }
 
             String[] dotPathArr = getDotPathArray(getDotPath(map),
@@ -514,8 +507,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue3(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException(
-                    "MAP_VAL_BETWEEN_BY_KEY sIndex filter unsupported type: expected Long");
+                return null;
             }
 
             String[] dotPathArr = getDotPathArray(getDotPath(map),
@@ -697,8 +689,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException(
-                    "MAP_VAL_BETWEEN sIndex filter unsupported type: expected Long");
+                return null;
             }
             return collectionRange(IndexCollectionType.MAPVALUES, map);
         }
@@ -736,8 +727,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.STRING && getValue1(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException(
-                    "LIST_VAL_CONTAINING sIndexFilter unsupported type: expected String or Long");
+                return null;
             }
 
             return collectionContains(IndexCollectionType.LIST, map);
@@ -767,8 +757,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException(
-                    "LIST_VAL_BETWEEN sIndexFilter unsupported type: expected Long");
+                return null;
             }
 
             return collectionRange(IndexCollectionType.LIST, map);
@@ -793,8 +782,7 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MAX_VALUE shall not be given as + 1 will cause overflow
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
-                throw new AerospikeException(
-                    "LIST_VAL_GT sIndexFilter unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
+                return null;
             }
 
             return Filter.range(getField(map), IndexCollectionType.LIST, getValue1(map).toLong() + 1, Long.MAX_VALUE);
@@ -818,8 +806,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException(
-                    "LIST_VAL_GTEQ sIndexFilter unsupported type: expected Long");
+                return null;
             }
 
             return Filter.range(getField(map), IndexCollectionType.LIST, getValue1(map).toLong(), Long.MAX_VALUE);
@@ -844,8 +831,7 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MIN_VALUE shall not be given as - 1 will cause overflow
             if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
-                throw new AerospikeException(
-                    "LIST_VAL_LT sIndexFilter unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE]");
+                return null;
             }
 
             return Filter.range(getField(map), IndexCollectionType.LIST, Long.MIN_VALUE, getValue1(map).toLong() - 1);
@@ -875,8 +861,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             if (getValue1(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException(
-                    "LIST_VAL_LTEQ sIndexFilter unsupported type: expected Long");
+                return null;
             }
 
             return Filter.range(getField(map), IndexCollectionType.LIST, Long.MIN_VALUE, getValue1(map).toLong());
