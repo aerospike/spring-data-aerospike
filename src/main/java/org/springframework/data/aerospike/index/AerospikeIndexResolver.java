@@ -58,6 +58,7 @@ public class AerospikeIndexResolver implements EnvironmentAware {
             .name(indexName)
             .type(annotation.type())
             .collectionType(annotation.collectionType())
+//            .ctx(ctx)
             .build();
     }
 

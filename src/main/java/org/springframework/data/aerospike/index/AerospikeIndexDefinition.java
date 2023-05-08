@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.index;
 
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.Builder;
@@ -38,4 +39,5 @@ public class AerospikeIndexDefinition {
     IndexCollectionType collectionType;
     @NonNull
     Class<?> entityClass;
+    CTX[] ctx;
 }

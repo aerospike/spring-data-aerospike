@@ -49,7 +49,7 @@ public class AerospikePersistenceEntityIndexCreator extends BaseAerospikePersist
         try {
             // TODO: add ctx (@Indexed with ctx support)
             template.createIndex(index.getEntityClass(), index.getName(),
-                index.getFieldName(), index.getType(), index.getCollectionType());
+                index.getFieldName(), index.getType(), index.getCollectionType(), index.getCtx());
             log.info("Installed aerospike index: {} successfully.", index);
         } catch (IndexAlreadyExistsException e) {
             log.info("Skipping index [{}] creation. Index with the same name already exists. {}", index,

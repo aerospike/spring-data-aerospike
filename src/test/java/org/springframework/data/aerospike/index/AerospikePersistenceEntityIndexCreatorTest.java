@@ -35,6 +35,7 @@ class AerospikePersistenceEntityIndexCreatorTest {
         .entityClass(targetClass)
         .type(type)
         .collectionType(collectionType)
+        .ctx(null)
         .build();
 
     @Test

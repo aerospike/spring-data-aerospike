@@ -63,4 +63,5 @@ public @interface Indexed {
      * Secondary index collection type.
      */
     IndexCollectionType collectionType() default IndexCollectionType.DEFAULT;
+    String ctx() default "";
 }

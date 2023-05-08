@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.experimental.UtilityClass;
@@ -56,6 +57,11 @@ public class AutoIndexedDocumentAssert {
 
     private static Index index(String namespace, String setName, String name, String bin, IndexType indexType,
                                IndexCollectionType collectionType) {
+        return index(namespace, setName, name, bin, indexType, collectionType, new CTX[0]);
+    }
+
+    private static Index index(String namespace, String setName, String name, String bin, IndexType indexType,
+                               IndexCollectionType collectionType, CTX[] ctx) {
         return Index.builder()
             .namespace(namespace)
             .set(setName)
@@ -63,6 +69,7 @@ public class AutoIndexedDocumentAssert {
             .bin(bin)
             .indexType(indexType)
             .indexCollectionType(collectionType)
+            .ctx(ctx)
             .build();
     }
 }
