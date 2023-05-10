@@ -29,7 +29,7 @@
         <spring-boot-starter-test>3.0.5</spring-boot-starter-test>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike>6.1.8</aerospike>
+        <aerospike>6.1.9</aerospike>
         <aerospike-reactor>6.1.2</aerospike-reactor>
         <reactor-test>3.5.4</reactor-test>
         <embedded-aerospike>2.3.2</embedded-aerospike>
