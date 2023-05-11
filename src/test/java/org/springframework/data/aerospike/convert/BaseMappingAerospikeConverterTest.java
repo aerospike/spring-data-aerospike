@@ -62,4 +62,14 @@ public abstract class BaseMappingAerospikeConverterTest {
 
         return applicationContext;
     }
+
+    protected static Object getBinValue(String name, Collection<Bin> bins) {
+        if (bins == null || bins.isEmpty())
+            return null;
+
+        return bins.stream()
+            .filter(bin -> bin.name.equals(name))
+            .map(bin -> bin.value.getObject())
+            .findFirst().orElse(null);
+    }
 }
