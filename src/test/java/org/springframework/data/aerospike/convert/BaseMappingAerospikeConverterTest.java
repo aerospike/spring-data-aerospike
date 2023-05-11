@@ -72,5 +72,4 @@ public abstract class BaseMappingAerospikeConverterTest {
             .map(bin -> bin.value.getObject())
             .findFirst().orElse(null);
     }
-
 }
