@@ -56,9 +56,7 @@ public class StatementBuilder {
         /*
          *  query with filters
          */
-        for (int i = 0; i < qualifiers.length; i++) {
-            Qualifier qualifier = qualifiers[i];
-
+        for (Qualifier qualifier : qualifiers) {
             if (qualifier == null) continue;
             if (qualifier.getOperation() == FilterOperation.AND) {
                 // no sense to use secondary index in case of OR
@@ -93,7 +91,6 @@ public class StatementBuilder {
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
         if (qualifier.getField() == null) return false;
 
-        // TODO: skips check on index-type and index-collection-type
         return indexesCache.hasIndexFor(new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField()));
     }
 }
