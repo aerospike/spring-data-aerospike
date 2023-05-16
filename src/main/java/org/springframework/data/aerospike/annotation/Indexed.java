@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.springframework.data.aerospike.annotation;
 
 import com.aerospike.client.cdt.CTX;
@@ -55,6 +54,11 @@ public @interface Indexed {
     String name() default "";
 
     /**
+     * If bin name is not provided, the annotated field name will be used.
+     */
+    String bin() default "";
+
+    /**
      * Underlying data type of secondary index.
      */
     IndexType type();
@@ -63,5 +67,6 @@ public @interface Indexed {
      * Secondary index collection type.
      */
     IndexCollectionType collectionType() default IndexCollectionType.DEFAULT;
+
     String ctx() default "";
 }

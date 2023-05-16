@@ -56,8 +56,6 @@ public class Person {
     private List<String> strings;
     private List<Integer> ints;
     private Set<Integer> intSet;
-//    @Indexed(type = IndexType.STRING, collectionType = IndexCollectionType.MAPKEYS, ctx = "CTX.mapKey(Value.get" +
-//        "(\"address\"))", ctx = "Q1RYLm1hcEtleShWYWx1ZS5nZXQoImFkZHJlc3MiKSk=")
     private Address address;
     @Field("email")
     private String emailAddress;

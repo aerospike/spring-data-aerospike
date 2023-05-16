@@ -32,7 +32,7 @@ public class AerospikeIndexDefinition {
     @NonNull
     String name;
     @NonNull
-    String fieldName;
+    String bin;
     @NonNull
     IndexType type;
     @NonNull
