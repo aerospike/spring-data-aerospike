@@ -68,5 +68,61 @@ public @interface Indexed {
      */
     IndexCollectionType collectionType() default IndexCollectionType.DEFAULT;
 
+    /**
+     * Context is provided using the following DSL.
+     * <br>
+     * <table border="1">
+     *   <tr>
+     *     <td> a </td> <td> Map key “a” </td>
+     *   </tr>
+     *   <tr>
+     *     <td> "a" </td> <td> Map key “a” </td>
+     *   </tr>
+     *   <tr>
+     *     <td> "1" </td> <td> Map key (String) “1” </td>
+     *   </tr>
+     *   <tr>
+     *     <td> 1 </td> <td> Map key (int) 1 </td>
+     *   </tr>
+     *   <tr>
+     *     <td> {1} </td> <td> Map index 1 </td>
+     *   </tr>
+     *   <tr>
+     *     <td> {=1} </td> <td> Map value (int) 1 </td>
+     *   </tr>
+     *   <tr>
+     *     <td> {=bb} </td> <td> Map value “bb” </td>
+     *   </tr>
+     *   <tr>
+     *     <td> {="1"} </td> <td> Map value (String) “1” </td>
+     *   </tr>
+     *     <td> {#1} </td> <td> Map rank 1 </td>
+     *   </tr>
+     *   <tr>
+     *     <td> [1] </td> <td> List index 1 </td>
+     *   </tr>
+     *   <tr>
+     *     <td> [=1] </td> <td> List value 1 </td>
+     *   </tr>
+     *   <tr>
+     *     <td> [#1] </td> <td> List rank 1 </td>
+     * </table>
+     * <br>
+     * Examples of complex contexts:
+     * <table border="1">
+     *   <tr>
+     *     <td> a.aa.aaa </td> <td> [mapKey("a"), mapKey("aa"), mapKey("aaa")] </td>
+     *   </tr>
+     *   <tr>
+     *     <td> a.55 </td> <td> [mapKey("a"), mapKey(55)] </td>
+     *   </tr>
+     *   <tr>
+     *     <td> a.aa.{=222} </td> <td> [mapKey("a"), mapKey("aa"),mapValue(222)] </td>
+     *   </tr>
+     *   <tr>
+     *     <td> ab.cd.[-1]."10" </td> <td> [mapKey("ab"), mapKey("cd"),listIndex(-1), mapKey("10")] </td>
+     *   </tr>
+     * </table>
+     */
     String ctx() default "";
 }
