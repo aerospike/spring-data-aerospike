@@ -221,7 +221,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         EnumMap<TYPES, String> map = new EnumMap<TYPES, String/**/>(of(TYPES.FIRST, "a", TYPES.SECOND, "b"));
         ClassWithEnumProperties object = new ClassWithEnumProperties("id", TYPES.SECOND, list, set, map);
 
-        assertWriteAndRead(object, "EnumProperties", "id",
+        assertWriteAndRead(object, "ClassWithEnumProperties", "id",
             new Bin("@_class", ClassWithEnumProperties.class.getName()),
             new Bin("type", "SECOND"),
             new Bin("list", list("FIRST", "SECOND")),

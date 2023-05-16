@@ -25,23 +25,23 @@ public class AutoIndexedDocumentAssert {
         List<Index> indexes = operations.getIndexes(setName);
 
         assertThat(indexes).containsExactlyInAnyOrder(
-            index(namespace, setName, setName + "_someField_string_default", "someField", IndexType.STRING, null),
-            index(namespace, setName, setName + "_shortName_string_default", "shortName", IndexType.STRING, null),
-            index(namespace, setName, "overridden_index_name", "customIndexName", IndexType.NUMERIC, null),
-            index(namespace, setName, "pre_created_index", "preCreatedIndex", IndexType.NUMERIC, null),
-            index(namespace, setName, "placeholder_index1", "placeHolderIdx", IndexType.STRING, null),
+            index(namespace, setName, setName + "_someField_string_default", "someField", IndexType.STRING, null, null),
+            index(namespace, setName, setName + "_shortName_string_default", "shortName", IndexType.STRING, null, null),
+            index(namespace, setName, "overridden_index_name", "customIndexName", IndexType.NUMERIC, null, null),
+            index(namespace, setName, "pre_created_index", "preCreatedIndex", IndexType.NUMERIC, null, null),
+            index(namespace, setName, "placeholder_index1", "placeHolderIdx", IndexType.STRING, null, null),
             index(namespace, setName, setName + "_listOfStrings_string_list", "listOfStrings", IndexType.STRING,
-                IndexCollectionType.LIST),
+                IndexCollectionType.LIST, null),
             index(namespace, setName, setName + "_listOfInts_numeric_list", "listOfInts", IndexType.NUMERIC,
-                IndexCollectionType.LIST),
+                IndexCollectionType.LIST, null),
             index(namespace, setName, setName + "_mapOfStrKeys_string_mapkeys", "mapOfStrKeys", IndexType.STRING,
-                IndexCollectionType.MAPKEYS),
+                IndexCollectionType.MAPKEYS, null),
             index(namespace, setName, setName + "_mapOfStrVals_string_mapvalues", "mapOfStrVals", IndexType.STRING,
-                IndexCollectionType.MAPVALUES),
+                IndexCollectionType.MAPVALUES, null),
             index(namespace, setName, setName + "_mapOfIntKeys_numeric_mapkeys", "mapOfIntKeys", IndexType.NUMERIC,
-                IndexCollectionType.MAPKEYS),
+                IndexCollectionType.MAPKEYS, null),
             index(namespace, setName, setName + "_mapOfIntVals_numeric_mapvalues", "mapOfIntVals", IndexType.NUMERIC,
-                IndexCollectionType.MAPVALUES)
+                IndexCollectionType.MAPVALUES, null)
         );
     }
 
@@ -51,7 +51,7 @@ public class AutoIndexedDocumentAssert {
         List<Index> indexes = operations.getIndexes(setName);
 
         assertThat(indexes).containsExactlyInAnyOrder(
-            index(namespace, setName, "config-package-document-index", "indexedField", IndexType.STRING, null)
+            index(namespace, setName, "config-package-document-index", "indexedField", IndexType.STRING, null, null)
         );
     }
 
