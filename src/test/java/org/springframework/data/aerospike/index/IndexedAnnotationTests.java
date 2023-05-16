@@ -87,6 +87,9 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
         assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, template.getSetName(TestPerson.class),
             "friend"))).isTrue();
 
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "test_person_friend_address_keys_index");
+        indexRefresher.refreshIndexes();
     }
 
     @Test
@@ -95,7 +98,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
 
             @Id
             String id;
-            @Indexed(type = IndexType.STRING, name = "test_person_friend_address_keys_index", bin = "friend",
+            @Indexed(type = IndexType.STRING, name = "test_person_many_dots_index", bin = "friend",
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "ab....cd..")
             // CTX.mapKey(Value.get("ab")), CTX.mapKey(Value.get("cd"))
             Address address;
@@ -105,7 +108,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
         assertThat(
             additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)).stream()
                 .filter(index -> index.getName()
-                    .equals("test_person_friend_address_keys_index")
+                    .equals("test_person_many_dots_index")
                     &&
                     CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("ab")),
                         CTX.mapKey(Value.get("cd"))}))
@@ -115,6 +118,8 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
         assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, template.getSetName(TestPerson.class),
             "friend"))).isTrue();
 
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "test_person_many_dots_index");
+        indexRefresher.refreshIndexes();
     }
 
     @Test

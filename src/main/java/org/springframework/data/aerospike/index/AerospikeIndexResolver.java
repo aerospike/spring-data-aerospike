@@ -101,6 +101,7 @@ public class AerospikeIndexResolver implements EnvironmentAware {
                 }
                 from = to + 1;
             }
+            if (from < (ctxString.length())) contexts.add(ctxString.substring(from));
         } else {
             contexts.add(ctxString);
         }
