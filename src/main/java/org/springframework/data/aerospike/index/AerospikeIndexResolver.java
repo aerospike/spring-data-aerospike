@@ -98,6 +98,8 @@ public class AerospikeIndexResolver implements EnvironmentAware {
                 String substr = ctxString.substring(from, to);
                 if (substr.length() > 0) {
                     contexts.add(substr);
+                } else {
+                    throw new IllegalArgumentException("@Indexed annotation '" + ctxString + "': empty context given");
                 }
                 from = to + 1;
             }
@@ -105,7 +107,6 @@ public class AerospikeIndexResolver implements EnvironmentAware {
         } else {
             contexts.add(ctxString);
         }
-
         return contexts.stream().map(this::toCtx).filter(Objects::nonNull).toArray(CTX[]::new);
     }
 
@@ -133,8 +134,7 @@ public class AerospikeIndexResolver implements EnvironmentAware {
                 return processSingleCtx(singleCtx, CtxType.LIST);
             }
             default -> {
-                int length = singleCtx.length();
-                Object res = isInDoubleQuotes(singleCtx) ? singleCtx.substring(1, length - 1) :
+                Object res = isInDoubleQuotes(singleCtx) ? singleCtx.substring(1, singleCtx.length() - 1) :
                     parseIntOrReturnStr(singleCtx);
                 return CTX.mapKey(Value.get(res));
             }
@@ -146,16 +146,21 @@ public class AerospikeIndexResolver implements EnvironmentAware {
         Object res;
         int length = singleCtx.length();
 
-        if (length < 3 || singleCtx.charAt(length - 1) != ctxType.closingChar) {
-            return null;
+        if (length < 3) {
+            throw new IllegalArgumentException("@Indexed annotation: context string '" + singleCtx +
+                "' has no content");
+        }
+        if (singleCtx.charAt(length - 1) != ctxType.closingChar) {
+            throw new IllegalArgumentException("@Indexed annotation: brackets mismatch, " +
+                "expecting '" + ctxType.closingChar + "', got '" + singleCtx.charAt(length - 1) + "' instead");
         }
 
         if (singleCtx.charAt(1) == '=' && length > 3) {
             substr = singleCtx.substring(2, length - 1);
             res = isInDoubleQuotes(substr) ? substr.substring(1, substr.length() - 1) : parseIntOrReturnStr(substr);
             return switch (ctxType) {
-                case MAP ->  CTX.mapValue(Value.get(res));
-                case LIST ->  CTX.listValue(Value.get(res));
+                case MAP -> CTX.mapValue(Value.get(res));
+                case LIST -> CTX.listValue(Value.get(res));
             };
         }
 

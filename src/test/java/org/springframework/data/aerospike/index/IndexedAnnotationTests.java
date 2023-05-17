@@ -100,26 +100,47 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
             String id;
             @Indexed(type = IndexType.STRING, name = "test_person_many_dots_index", bin = "friend",
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "ab....cd..")
-            // CTX.mapKey(Value.get("ab")), CTX.mapKey(Value.get("cd"))
             Address address;
         }
         indexRefresher.refreshIndexes();
 
-        assertThat(
-            additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)).stream()
-                .filter(index -> index.getName()
-                    .equals("test_person_many_dots_index")
-                    &&
-                    CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("ab")),
-                        CTX.mapKey(Value.get("cd"))}))
-                )
-                .count()
-        ).isEqualTo(1L);
-        assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, template.getSetName(TestPerson.class),
-            "friend"))).isTrue();
+        assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("@Indexed annotation 'ab....cd..': empty context given");
+    }
 
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "test_person_many_dots_index");
+    @Test
+    void usingIndexedAnnotationTooSmallContextLength() {
+        class TestPerson {
+
+            @Id
+            String id;
+            @Indexed(type = IndexType.STRING, name = "test_person_too_small_context_length_index", bin = "friend",
+                collectionType = IndexCollectionType.MAPKEYS, ctx = "ab.[]")
+            Address address;
+        }
         indexRefresher.refreshIndexes();
+
+        assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("@Indexed annotation: context string '[]' has no content");
+    }
+
+    @Test
+    void usingIndexedAnnotationWrongClosingBracket() {
+        class TestPerson {
+
+            @Id
+            String id;
+            @Indexed(type = IndexType.STRING, name = "test_person_wrong_closing_bracket_index", bin = "friend",
+                collectionType = IndexCollectionType.MAPKEYS, ctx = "ab.{cd]")
+            Address address;
+        }
+        indexRefresher.refreshIndexes();
+
+        assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("@Indexed annotation: brackets mismatch, expecting '}', got ']' instead");
     }
 
     @Test
