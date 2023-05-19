@@ -58,6 +58,7 @@ import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
 
 public class SampleClasses {
 
+    public static final int EXPIRATION_NEVER_EXPIRE = -1;
     public static final int EXPIRATION_ONE_SECOND = 1;
     public static final int EXPIRATION_ONE_MINUTE = 60;
 
@@ -612,6 +613,16 @@ public class SampleClasses {
 
     @Document(expiration = EXPIRATION_ONE_SECOND, expirationUnit = TimeUnit.MINUTES)
     public static class DocumentWithExpirationUnit {
+
+    }
+
+    @Document(expiration = EXPIRATION_NEVER_EXPIRE, expirationUnit = TimeUnit.DAYS)
+    public static class DocumentWithNeverExpireAndExpirationUnit {
+
+    }
+
+    @Document(expiration = EXPIRATION_NEVER_EXPIRE)
+    public static class DocumentWithNeverExpireAndWithoutExpirationUnit {
 
     }
 
