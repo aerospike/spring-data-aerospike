@@ -600,7 +600,7 @@ public enum FilterOperation {
                     Exp.val(0)
                 );
                 default -> throw new AerospikeException(
-                    "MAP_KEYS_CONTAINS FilterExpression unsupported type: expected String or Long");
+                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: expected String or Long");
             };
         }
 
@@ -609,7 +609,7 @@ public enum FilterOperation {
             return collectionContains(IndexCollectionType.MAPKEYS, map);
         }
     },
-    MAP_VAL_CONTAIN {
+    MAP_VALUES_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             return switch (getValue1(map).getType()) {
@@ -624,7 +624,7 @@ public enum FilterOperation {
                     Exp.val(0)
                 );
                 default -> throw new AerospikeException(
-                    "MAP_VAL_CONTAIN FilterExpression unsupported type: expected String or Long");
+                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: expected String or Long");
             };
         }
 

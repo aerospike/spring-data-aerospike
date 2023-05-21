@@ -351,7 +351,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(billy.getStringMap()).containsKey("key1");
         assertThat(billy.getStringMap()).containsValue("val1");
 
-        List<IndexedPerson> persons = repository.findByStringMapEquals("key1", "val1");
+        List<IndexedPerson> persons = repository.findByStringMapContaining("key1", "val1");
         assertThat(persons).contains(billy);
     }
 

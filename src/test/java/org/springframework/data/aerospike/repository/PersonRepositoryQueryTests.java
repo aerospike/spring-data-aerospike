@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE_CONTAINING;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
@@ -166,13 +167,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(boyd.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
-        List<Person> persons = repository.findByStringMapEquals("key1", "val1");
+        List<Person> persons = repository.findByStringMapContaining("key1", "val1");
         assertThat(persons).containsExactlyInAnyOrder(donny, boyd);
 
-        // another way to call the method
-        List<Person> persons2 = repository.findByStringMap("key1", "val1");
-        assertThat(persons2).containsExactlyInAnyOrder(donny, boyd);
+        List<Person> persons2 = repository.findByStringMapContaining("key1", "val1", "key2", "val2");
+        assertThat(persons2).containsExactly(boyd);
 
+        List<Person> persons3 = repository.findByStringMapContaining("key1", "val1", "key2", "val2", "key3", "value3");
+        assertThat(persons3).isEmpty();
     }
 
     @Test
@@ -192,9 +194,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(boyd.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
-        List<Person> persons = repository.findByStringMapContaining("key1", "al");
-
+        List<Person> persons = repository.findByStringMapContaining("key1", "al", VALUE_CONTAINING);
         assertThat(persons).contains(donny, boyd);
+
+        List<Person> persons2 = repository.findByStringMapContaining("key1", "al", "key2", "va", VALUE_CONTAINING);
+        assertThat(persons2).contains(boyd);
     }
 
     @Test
@@ -781,17 +785,17 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByStringsList() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
-            List<String> listToCompareWith = List.of("str1", "str2");
-            assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
+//        if (IndexUtils.isFindByPojoSupported(client)) {
+        List<String> listToCompareWith = List.of("str1", "str2");
+        assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
 
-            List<Person> persons = repository.findByStringsEquals(listToCompareWith);
-            assertThat(persons).contains(dave);
+        List<Person> persons = repository.findByStringsEquals(listToCompareWith);
+        assertThat(persons).contains(dave);
 
-            // another way to call the method
-            List<Person> persons2 = repository.findByStrings(listToCompareWith);
-            assertThat(persons2).contains(dave);
-        }
+        // another way to call the method
+        List<Person> persons2 = repository.findByStrings(listToCompareWith);
+        assertThat(persons2).contains(dave);
+//        }
     }
 
     @Test

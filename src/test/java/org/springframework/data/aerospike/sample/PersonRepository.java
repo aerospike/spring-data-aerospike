@@ -249,28 +249,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntSetGreaterThanEqual(Collection<Integer> collection);
 
     /**
-     * Find all entities containing the given map element (key or value depending on the given criteria)
+     * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param element  map element
-     * @param criteria KEY or VALUE
+     * @param element   map element
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
-    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
-
-    /**
-     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
-     *
-     * @param key   Map key
-     * @param value Value of the key
-     */
-    List<P> findByStringMapEquals(String key, String value);
-
-    /**
-     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
-     *
-     * @param key   Map key
-     * @param value Value of the key
-     */
-    List<P> findByStringMap(String key, String value);
+    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by map)
@@ -338,12 +323,60 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapLike(String key, String valueRegex);
 
     /**
+     * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
+     *
+     * @param key   Map key
+     * @param value String to check if map value equals it
+     */
+    List<P> findByStringMapContaining(String key, String value);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key3 and the value3 equal to the given strings"
+     *
+     * @param key1   Map key for the first key-value pair
+     * @param value1 String to check if map value equals it using key1
+     * @param key2   Map key for the second key-value pair
+     * @param value2 String to check if map value equals it using key2
+     */
+    List<P> findByStringMapContaining(String key1, String value1, String key2, String value2);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map keys and the values equal to the given strings"
+     *
+     * @param key1   Map key for the first key-value pair
+     * @param value1 String to check if map value equals it using key1
+     * @param key2   Map key for the second key-value pair
+     * @param value2 String to check if map value equals it using key2
+     * @param key3   Map key for the third key-value pair
+     * @param value3 String to check if map value equals it using key3
+     */
+    List<P> findByStringMapContaining(String key1, String value1, String key2, String value2,
+                                      String key3, String value3);
+
+    /**
      * Find all entities that satisfy the condition "have the given map key and the value containing the given string"
      *
      * @param key       Map key
-     * @param valuePart String to check if map value contains it
+     * @param value     String to check if map value equals to it or contains it
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE_CONTAINING},
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#KEY_CONTAINING} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#KEY_VALUE_CONTAINING}
      */
-    List<P> findByStringMapContaining(String key, String valuePart);
+    List<P> findByStringMapContaining(String key, String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and the value containing the given string"
+     *
+     * @param key1      Map key for the first key-value pair
+     * @param value1    String to check if map value equals it using key1
+     * @param key2      Map key for the second key-value pair
+     * @param value2    String to check if map value equals it using key2
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE_CONTAINING},
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#KEY_CONTAINING} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#KEY_VALUE_CONTAINING}
+     */
+    List<P> findByStringMapContaining(String key1, String value1, String key2, String value2,
+                                      CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value that is greater than the given
