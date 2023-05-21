@@ -416,14 +416,14 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapKeyValueEquals() {
+    public void findByMapKeyValueContaining() {
         List<Person> persons = IntStream.rangeClosed(1, 5)
             .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews")
                 .stringMap(Collections.singletonMap("key" + id, "val" + id)).build())
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapEquals", "key1", "val1");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1", "val1");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())

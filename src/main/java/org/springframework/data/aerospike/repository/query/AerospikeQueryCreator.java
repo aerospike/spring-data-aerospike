@@ -180,8 +180,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         Qualifier[] qualifiers = new Qualifier[params.size() / 2]; // arguments size must be even number
                         for (int i = 0, j = 0; i < params.size(); i += 2) {
                             setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
-                            Qualifier qualifier = setQualifierBuilderValues(qb, fieldName, op, part, params.get(i), value2,
-                                value3, dotPath).build();
+                            Qualifier qualifier = setQualifierBuilderValues(qb, fieldName, op, part, params.get(i),
+                                value2, value3, dotPath).build();
                             qualifiers[j++] = qualifier;
                         }
 

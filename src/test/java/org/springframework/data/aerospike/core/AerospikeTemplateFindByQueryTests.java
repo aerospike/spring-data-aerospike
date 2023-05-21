@@ -302,8 +302,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findByMapKeyValueEquals() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapEquals", "key1", "val1");
+    public void findByMapKeyValueContaining() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1", "val1");
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)

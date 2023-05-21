@@ -338,11 +338,11 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    void findByMapKeyValueEqualsInt() {
+    void findByMapKeyValueContainingInt() {
         assertThat(tricia.getIntMap()).containsKey("key1");
         assertThat(tricia.getIntMap()).containsValue(0);
 
-        Iterable<IndexedPerson> result = repository.findByIntMapEquals("key1", 0);
+        Iterable<IndexedPerson> result = repository.findByIntMapContaining("key1", 0);
         assertThat(result).contains(tricia);
     }
 

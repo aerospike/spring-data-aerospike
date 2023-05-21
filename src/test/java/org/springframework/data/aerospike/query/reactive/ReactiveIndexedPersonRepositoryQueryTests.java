@@ -181,13 +181,13 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapKeyValueEqualsString() {
+    public void findByMapKeyValueContainingString() {
         assertThat(petra.getStringMap().containsKey("key1")).isTrue();
         assertThat(petra.getStringMap().containsValue("val1")).isTrue();
         assertThat(jack.getStringMap().containsKey("key1")).isTrue();
         assertThat(jack.getStringMap().containsValue("val1")).isTrue();
 
-        List<IndexedPerson> results = reactiveRepository.findByStringMapEquals("key1", "val1")
+        List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("key1", "val1")
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(petra, jack);
@@ -205,13 +205,13 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByMapKeyValueEqualsInt() {
+    public void findByMapKeyValueContainingInt() {
         assertThat(emilien.getIntMap().containsKey("key1")).isTrue();
         assertThat(emilien.getIntMap().get("key1") == 0).isTrue();
         assertThat(lilly.getIntMap().containsKey("key1")).isTrue();
         assertThat(lilly.getIntMap().get("key1") == 0).isFalse();
 
-        List<IndexedPerson> results = reactiveRepository.findByIntMapEquals("key1", 0)
+        List<IndexedPerson> results = reactiveRepository.findByIntMapContaining("key1", 0)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(emilien);

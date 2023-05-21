@@ -287,7 +287,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key   Map key
      * @param value Value of the key
      */
-    List<P> findByIntMapEquals(String key, int value);
+    List<P> findByIntMapContaining(String key, int value);
 
     /**
      * Find all entities with existing intMap not equal to the given argument
