@@ -290,6 +290,16 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntMapContaining(String key, int value);
 
     /**
+     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+     *
+     * @param key1   Map key 1
+     * @param value1 Value of key1
+     * @param key2   Map key 2
+     * @param value2 Value of key2
+     */
+    List<P> findByIntMapContaining(String key1, int value1, String key2, int value2);
+
+    /**
      * Find all entities with existing intMap not equal to the given argument
      *
      * @param map Map to compare intMap with
