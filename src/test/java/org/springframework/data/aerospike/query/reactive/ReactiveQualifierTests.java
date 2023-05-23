@@ -523,7 +523,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(MAP_VAL_CONTAIN)
+            .setFilterOperation(MAP_VALUES_CONTAIN)
             .setValue1(Value.get(searchColor))
         );
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);

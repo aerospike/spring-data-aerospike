@@ -38,6 +38,7 @@ public interface CriteriaDefinition {
 
     enum AerospikeMapCriteria {
         KEY,
-        VALUE
+        VALUE,
+        VALUE_CONTAINING
     }
 }

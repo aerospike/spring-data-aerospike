@@ -249,28 +249,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntSetGreaterThanEqual(Collection<Integer> collection);
 
     /**
-     * Find all entities containing the given map element (key or value depending on the given criteria)
+     * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param element  map element
-     * @param criteria KEY or VALUE
+     * @param element   map element
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
-    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
-
-    /**
-     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
-     *
-     * @param key   Map key
-     * @param value Value of the key
-     */
-    List<P> findByStringMapEquals(String key, String value);
-
-    /**
-     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
-     *
-     * @param key   Map key
-     * @param value Value of the key
-     */
-    List<P> findByStringMap(String key, String value);
+    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by map)
@@ -302,7 +287,17 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key   Map key
      * @param value Value of the key
      */
-    List<P> findByIntMapEquals(String key, int value);
+    List<P> findByIntMapContaining(String key, int value);
+
+    /**
+     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+     *
+     * @param key1   Map key 1
+     * @param value1 Value of key1
+     * @param key2   Map key 2
+     * @param value2 Value of key2
+     */
+    List<P> findByIntMapContaining(String key1, int value1, String key2, int value2);
 
     /**
      * Find all entities with existing intMap not equal to the given argument
@@ -338,12 +333,67 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapLike(String key, String valueRegex);
 
     /**
+     * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
+     *
+     * @param key   Map key
+     * @param value String to check if map value equals it
+     */
+    List<P> findByStringMapContaining(String key, String value);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key3 and the value3 equal to the given strings"
+     *
+     * @param key1   Map key for the first key-value pair
+     * @param value1 String to check if map value equals it using key1
+     * @param key2   Map key for the second key-value pair
+     * @param value2 String to check if map value equals it using key2
+     */
+    List<P> findByStringMapContaining(String key1, String value1, String key2, String value2);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map keys and the values equal to the given strings"
+     *
+     * @param key1   Map key for the first key-value pair
+     * @param value1 String to check if map value equals it using key1
+     * @param key2   Map key for the second key-value pair
+     * @param value2 String to check if map value equals it using key2
+     * @param key3   Map key for the third key-value pair
+     * @param value3 String to check if map value equals it using key3
+     */
+    List<P> findByStringMapContaining(String key1, String value1, String key2, String value2,
+                                      String key3, String value3);
+
+    /**
+     * Find all entities that satisfy the condition "contains the given map keys"
+     *
+     * @param key1      First key
+     * @param key2      Second key
+     * @param key3      Third key
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY}
+     */
+    List<P> findByStringMapContaining(String key1, String key2, String key3,
+                                      CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
      * Find all entities that satisfy the condition "have the given map key and the value containing the given string"
      *
      * @param key       Map key
-     * @param valuePart String to check if map value contains it
+     * @param value     String to check if map value equals to it or contains it
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE_CONTAINING}
      */
-    List<P> findByStringMapContaining(String key, String valuePart);
+    List<P> findByStringMapContaining(String key, String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and the value containing the given string"
+     *
+     * @param key1      Map key for the first key-value pair
+     * @param value1    String to check if map value equals it using key1
+     * @param key2      Map key for the second key-value pair
+     * @param value2    String to check if map value equals it using key2
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE_CONTAINING}
+     */
+    List<P> findByStringMapContaining(String key1, String value1, String key2, String value2,
+                                      CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value that is greater than the given
@@ -520,6 +570,29 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsContaining(int integer);
 
     /**
+     * Find all entities that satisfy the condition "have the list which contains the given integers"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param integer1 number to check
+     * @param integer2 number to check
+     */
+    List<P> findByIntsContaining(int integer1, int integer2);
+
+    /**
+     * Find all entities that satisfy the condition "have the list which contains the given integers"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param integer1 number to check
+     * @param integer2 number to check
+     * @param integer3 number to check
+     */
+    List<P> findByIntsContaining(int integer1, int integer2, int integer3);
+
+    /**
      * Find all entities that satisfy the condition "have at least one list value which is greater than the given
      * integer"
      * <p>
@@ -551,6 +624,16 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit, inclusive
      */
     List<P> findByIntsBetween(int from, int to);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one list value in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    List<P> findByStringsBetween(String from, String to);
 
     List<P> findTop3ByLastNameStartingWith(String lastName);
 

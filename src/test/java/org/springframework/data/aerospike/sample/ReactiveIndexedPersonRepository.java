@@ -35,7 +35,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param key   Map key
      * @param value Value of the key
      */
-    Flux<IndexedPerson> findByStringMapEquals(String key, String value);
+    Flux<IndexedPerson> findByStringMapContaining(String key, String value);
 
     /**
      * Find all entities that satisfy the condition "have exactly the given map key and the given value"
@@ -43,7 +43,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param key   Map key
      * @param value Value of the key
      */
-    Flux<IndexedPerson> findByIntMapEquals(String key, int value);
+    Flux<IndexedPerson> findByIntMapContaining(String key, int value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given
