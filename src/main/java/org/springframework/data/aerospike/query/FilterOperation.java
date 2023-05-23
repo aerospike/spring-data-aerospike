@@ -25,7 +25,6 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 import static com.aerospike.client.command.ParticleType.INTEGER;
-import static com.aerospike.client.command.ParticleType.NULL;
 import static com.aerospike.client.command.ParticleType.STRING;
 import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
 import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
@@ -752,13 +751,10 @@ public enum FilterOperation {
                         Exp.listBin(getField(map))),
                     Exp.val(0)
                 );
-            } else if ((getValue1(map).getType() == STRING || getValue1(map).getType() == NULL)
-                && (getValue2(map).getType() == STRING || getValue2(map).getType() == NULL)) {
+            } else if (getValue1(map).getType() == STRING && getValue2(map).getType() == STRING) {
                 return Exp.gt(
-                    ListExp.getByValueRange(ListReturnType.COUNT,
-                        getValue1(map).getType() == NULL ? null : Exp.val(getValue1(map).toString()),
-                        getValue2(map).getType() == NULL ? null : Exp.val(getValue2(map).toString()),
-                    Exp.listBin(getField(map))),
+                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toString()),
+                        Exp.val(getValue2(map).toString()), Exp.listBin(getField(map))),
                     Exp.val(0)
                 );
             } else {

@@ -143,16 +143,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     void findByStringListValueInRange() {
         List<Person> persons;
-        persons = repository.findByStringsBetween("str1", "str2");
-        assertThat(persons).containsExactlyInAnyOrder(donny, dave);
-
-        persons = repository.findByStringsBetween("str1", null); // greater than "str1"
-        assertThat(persons).containsExactlyInAnyOrder(donny, dave);
-
-        persons = repository.findByStringsBetween(null, "str2"); // less than or equal to "str2"
-        assertThat(persons).containsExactlyInAnyOrder(donny, dave);
-
-        persons = repository.findByStringsBetween(null, null); // everything
+        persons = repository.findByStringsBetween("str1", "str3"); // upper limit is exclusive
         assertThat(persons).containsExactlyInAnyOrder(donny, dave);
 
         persons = repository.findByStringsBetween("str3", "str3"); // upper limit is exclusive
