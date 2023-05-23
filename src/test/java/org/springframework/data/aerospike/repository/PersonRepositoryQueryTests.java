@@ -822,17 +822,17 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByStringsList() {
-//        if (IndexUtils.isFindByPojoSupported(client)) {
-        List<String> listToCompareWith = List.of("str1", "str2");
-        assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            List<String> listToCompareWith = List.of("str1", "str2");
+            assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
 
-        List<Person> persons = repository.findByStringsEquals(listToCompareWith);
-        assertThat(persons).contains(dave);
+            List<Person> persons = repository.findByStringsEquals(listToCompareWith);
+            assertThat(persons).contains(dave);
 
-        // another way to call the method
-        List<Person> persons2 = repository.findByStrings(listToCompareWith);
-        assertThat(persons2).contains(dave);
-//        }
+            // another way to call the method
+            List<Person> persons2 = repository.findByStrings(listToCompareWith);
+            assertThat(persons2).contains(dave);
+        }
     }
 
     @Test

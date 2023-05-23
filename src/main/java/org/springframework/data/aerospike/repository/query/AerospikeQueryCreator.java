@@ -130,7 +130,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                 List<Object> params = new ArrayList<>();
                 parameters.forEachRemaining(params::add);
 
-                if (params.size() >= 1
+                if (!params.isEmpty()
                     && !(params.get(params.size() - 1) instanceof CriteriaDefinition.AerospikeMapCriteria)) {
                     op = LIST_VAL_CONTAINING;
                     params.add(0, value1); // value1 stores the first parameter
@@ -194,7 +194,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                     params.add(0, value1); // value1 stores the first parameter
                     if (op == MAP_VAL_CONTAINING_BY_KEY || op == MAP_VAL_EQ_BY_KEY) {
                         if (params.size() > 2) {
-                            if ((params.size() & 1) != 0) {
+                            if ((params.size() & 1) != 0) { // if params.size() is an odd number
                                 throw new IllegalArgumentException("FindByMapContaining: expected either 1, 2 " +
                                     "or even number of key/value arguments, instead got " + params.size());
                             }
