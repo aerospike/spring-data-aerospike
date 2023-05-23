@@ -41,6 +41,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.aerospike.query.FilterOperation.LIST_VAL_CONTAINING;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_CONTAINING_BY_KEY;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_EQ_BY_KEY;
+
 /**
  * @author Peter Milne
  * @author Jean Mercier
@@ -83,10 +89,12 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
         // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
         final Object value = v1;
-        Optional<Class<?>> basicTargetType = conversions.getCustomWriteTarget(v1.getClass());
-        v1 = basicTargetType
-            .<Object>map(aClass -> converter.getConversionService().convert(value, aClass))
-            .orElse(v1);
+        if (v1 != null) {
+            Optional<Class<?>> basicTargetType = conversions.getCustomWriteTarget(v1.getClass());
+            v1 = basicTargetType
+                .<Object>map(aClass -> converter.getConversionService().convert(value, aClass))
+                .orElse(v1);
+        }
 
         return switch (part.getType()) {
             case AFTER, GREATER_THAN -> getCriteria(part, property, v1, null, parameters, FilterOperation.GT);
@@ -118,6 +126,18 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         Object value3 = null;
 
         if (property.isCollectionLike()) {
+            if (op == FilterOperation.CONTAINING) {
+                List<Object> params = new ArrayList<>();
+                parameters.forEachRemaining(params::add);
+
+                if (params.size() >= 1
+                    && !(params.get(params.size() - 1) instanceof CriteriaDefinition.AerospikeMapCriteria)) {
+                    op = LIST_VAL_CONTAINING;
+                    params.add(0, value1); // value1 stores the first parameter
+                    return aerospikeCriteriaAndConcatenated(params, qb, part, fieldName, op, dotPath);
+                }
+            }
+
             if (!(value1 instanceof Collection<?>)) { // preserving the initial FilterOperation if arg is a Collection
                 op = getCorrespondingListFilterOperationOrFail(op);
             }
@@ -125,13 +145,13 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             List<Object> params = new ArrayList<>();
             parameters.forEachRemaining(params::add);
 
-            if (params.size() == 1) { // 2 arguments (values) provided, the first one is stored in value1
+            if (params.size() == 1) { // 2 parameters (values) provided, the first one is stored in value1
                 Object nextParam = params.get(0);
                 if (op == FilterOperation.CONTAINING) {
                     if (nextParam instanceof CriteriaDefinition.AerospikeMapCriteria onMap) {
                         switch (onMap) {
-                            case KEY -> op = FilterOperation.MAP_KEYS_CONTAIN;
-                            case VALUE -> op = FilterOperation.MAP_VALUES_CONTAIN;
+                            case KEY -> op = MAP_KEYS_CONTAIN;
+                            case VALUE -> op = MAP_VALUES_CONTAIN;
                         }
                     } else {
                         op = FilterOperation.MAP_VAL_EQ_BY_KEY;
@@ -161,9 +181,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                 if (op == FilterOperation.CONTAINING) {
                     if (params.get(params.size() - 1) instanceof CriteriaDefinition.AerospikeMapCriteria onMap) {
                         switch (onMap) {
-//                            case KEY_CONTAINING -> op = FilterOperation.MAP_KEY_CONTAINING;
-                            case VALUE_CONTAINING -> op = FilterOperation.MAP_VAL_CONTAINING_BY_KEY;
-//                            case KEY_VALUE_CONTAINING -> op = FilterOperation.MAP_KEY_VALUE_CONTAINING;
+                            case KEY -> op = MAP_KEYS_CONTAIN;
+                            case VALUE -> op = MAP_VALUES_CONTAIN;
+                            case VALUE_CONTAINING -> op = MAP_VAL_CONTAINING_BY_KEY;
                         }
                         params = params.stream().limit(params.size() - 1).collect(Collectors.toList());
                     } else {
@@ -171,27 +191,19 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
                     }
 
-                    params.add(0, value1); // value1 stores the first argument hence adding it to the 1st position
-                    if ((params.size() & 1) != 0) {
-                        throw new IllegalArgumentException("FindByMapContaining: expected either 1, 2 or even number " +
-                            "of arguments, instead got " + params.size() + " arguments");
-                    }
-                    if (params.size() > 2) {
-                        Qualifier[] qualifiers = new Qualifier[params.size() / 2]; // arguments size must be even number
-                        for (int i = 0, j = 0; i < params.size(); i += 2) {
-                            setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
-                            Qualifier qualifier = setQualifierBuilderValues(qb, fieldName, op, part, params.get(i),
-                                value2, value3, dotPath).build();
-                            qualifiers[j++] = qualifier;
+                    params.add(0, value1); // value1 stores the first parameter
+                    if (op == MAP_VAL_CONTAINING_BY_KEY || op == MAP_VAL_EQ_BY_KEY) {
+                        if (params.size() > 2) {
+                            if ((params.size() & 1) != 0) {
+                                throw new IllegalArgumentException("FindByMapContaining: expected either 1, 2 " +
+                                    "or even number of key/value arguments, instead got " + params.size());
+                            }
+                            return aerospikeCriteriaAndConcatenated(params, qb, part, fieldName, op, dotPath, true);
+                        } else if (params.size() == 2) {
+                            setQbValuesForMapByKey(qb, params.get(0), params.get(1));
                         }
-
-                        return new AerospikeCriteria(
-                            new Qualifier.QualifierBuilder()
-                                .setQualifiers(qualifiers)
-                                .setFilterOperation(FilterOperation.AND)
-                        );
-                    } else if (params.size() == 2) {
-                        setQbValuesForMapByKey(qb, params.get(0), params.get(1));
+                    } else {
+                        return aerospikeCriteriaAndConcatenated(params, qb, part, fieldName, op, dotPath);
                     }
                 } else {
                     String paramsString = params.stream().map(Object::toString).collect(Collectors.joining(", "));
@@ -216,6 +228,48 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
         return new AerospikeCriteria(
             setQualifierBuilderValues(qb, fieldName, op, part, value1, value2, value3, dotPath)
+        );
+    }
+
+
+    private AerospikeCriteria aerospikeCriteriaAndConcatenated(List<Object> params, Qualifier.QualifierBuilder qb,
+                                                               Part part, String fieldName, FilterOperation op,
+                                                               String dotPath) {
+        return aerospikeCriteriaAndConcatenated(params, qb, part, fieldName, op, dotPath, false);
+    }
+
+    private AerospikeCriteria aerospikeCriteriaAndConcatenated(List<Object> params, Qualifier.QualifierBuilder qb,
+                                                               Part part, String fieldName, FilterOperation op,
+                                                               String dotPath, boolean containingMapKeyValuePairs) {
+        Qualifier[] qualifiers;
+        if (containingMapKeyValuePairs) {
+            qualifiers = new Qualifier[params.size() / 2]; // keys/values qty must be even
+            for (int i = 0, j = 0; i < params.size(); i += 2) {
+                setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
+                Qualifier qualifier = setQualifierBuilderValues(qb, fieldName, op, part, params.get(i),
+                    null, null, dotPath).build();
+                qualifiers[j++] = qualifier;
+            }
+
+            return new AerospikeCriteria(
+                new Qualifier.QualifierBuilder()
+                    .setQualifiers(qualifiers)
+                    .setFilterOperation(FilterOperation.AND)
+            );
+        } else {
+            qualifiers = new Qualifier[params.size()];
+            for (int i = 0; i < params.size(); i++) {
+                setQbValuesForMapByKey(qb, params.get(i), params.get(i));
+                Qualifier qualifier = setQualifierBuilderValues(qb, fieldName, op, part, params.get(i),
+                    null, null, dotPath).build();
+                qualifiers[i] = qualifier;
+            }
+        }
+
+        return new AerospikeCriteria(
+            new Qualifier.QualifierBuilder()
+                .setQualifiers(qualifiers)
+                .setFilterOperation(FilterOperation.AND)
         );
     }
 

@@ -24,6 +24,9 @@ import java.util.Map;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
+import static com.aerospike.client.command.ParticleType.INTEGER;
+import static com.aerospike.client.command.ParticleType.NULL;
+import static com.aerospike.client.command.ParticleType.STRING;
 import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
 import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
 import static org.springframework.data.aerospike.query.Qualifier.FIELD;
@@ -101,8 +104,8 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
             return switch (val.getType()) {
-                case ParticleType.INTEGER -> Exp.eq(Exp.intBin(getField(map)), Exp.val(val.toLong()));
-                case ParticleType.STRING -> {
+                case INTEGER -> Exp.eq(Exp.intBin(getField(map)), Exp.val(val.toLong()));
+                case STRING -> {
                     if (ignoreCase(map)) {
                         String equalsRegexp = QualifierRegexpBuilder.getStringEquals(getValue1(map).toString());
                         yield Exp.regexCompare(equalsRegexp, RegexFlag.ICASE, Exp.stringBin(getField(map)));
@@ -120,7 +123,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() == ParticleType.INTEGER) {
+            if (getValue1(map).getType() == INTEGER) {
                 return Filter.equal(getField(map), getValue1(map).toLong());
             } else {
                 // There is no case-insensitive string comparison filter.
@@ -136,8 +139,8 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
             return switch (val.getType()) {
-                case ParticleType.INTEGER -> Exp.ne(Exp.intBin(getField(map)), Exp.val(val.toLong()));
-                case ParticleType.STRING -> {
+                case INTEGER -> Exp.ne(Exp.intBin(getField(map)), Exp.val(val.toLong()));
+                case STRING -> {
                     if (ignoreCase(map)) {
                         String equalsRegexp = QualifierRegexpBuilder.getStringEquals(getValue1(map).toString());
                         yield Exp.not(Exp.regexCompare(equalsRegexp, RegexFlag.ICASE, Exp.stringBin(getField(map))));
@@ -163,8 +166,8 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
             return switch (val.getType()) {
-                case ParticleType.INTEGER -> Exp.gt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
-                case ParticleType.STRING -> Exp.gt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
+                case INTEGER -> Exp.gt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
+                case STRING -> Exp.gt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
                 case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::gt);
                 case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::mapBin);
                 case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::listBin);
@@ -176,7 +179,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MAX_VALUE shall not be given as + 1 will cause overflow
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
+            if (getValue1(map).getType() != INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
                 return null;
             }
 
@@ -188,8 +191,8 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
             return switch (val.getType()) {
-                case ParticleType.INTEGER -> Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
-                case ParticleType.STRING -> Exp.ge(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
+                case INTEGER -> Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
+                case STRING -> Exp.ge(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
                 case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ge);
                 case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::mapBin);
                 case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::listBin);
@@ -200,7 +203,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER) {
                 return null;
             }
             return Filter.range(getField(map), getValue1(map).toLong(), Long.MAX_VALUE);
@@ -211,8 +214,8 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
             return switch (val.getType()) {
-                case ParticleType.INTEGER -> Exp.lt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
-                case ParticleType.STRING -> Exp.lt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
+                case INTEGER -> Exp.lt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
+                case STRING -> Exp.lt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
                 case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::lt);
                 case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::mapBin);
                 case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::listBin);
@@ -224,7 +227,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MIN_VALUE shall not be given as - 1 will cause overflow
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
+            if (getValue1(map).getType() != INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
                 return null;
             }
             return Filter.range(getField(map), Long.MIN_VALUE, getValue1(map).toLong() - 1);
@@ -235,8 +238,8 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> map) {
             Value val = getValue1(map);
             return switch (val.getType()) {
-                case ParticleType.INTEGER -> Exp.le(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
-                case ParticleType.STRING -> Exp.le(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
+                case INTEGER -> Exp.le(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
+                case STRING -> Exp.le(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
                 case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::le);
                 case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::mapBin);
                 case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::listBin);
@@ -247,7 +250,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER) {
                 return null;
             }
             return Filter.range(getField(map), Long.MIN_VALUE, getValue1(map).toLong());
@@ -256,7 +259,7 @@ public enum FilterOperation {
     BETWEEN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() == ParticleType.INTEGER && getValue2(map).getType() == ParticleType.INTEGER) {
+            if (getValue1(map).getType() == INTEGER && getValue2(map).getType() == INTEGER) {
                 return Exp.and(
                     Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong())),
                     Exp.le(Exp.intBin(getField(map)), Exp.val(getValue2(map).toLong()))
@@ -267,7 +270,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER || getValue2(map).getType() != INTEGER) {
                 return null;
             }
             return Filter.range(getField(map), getValue1(map).toLong(), getValue2(map).toLong());
@@ -340,7 +343,7 @@ public enum FilterOperation {
             final boolean useCtx = dotPathArr.length > 2;
 
             return switch (getValue1(map).getType()) {
-                case ParticleType.STRING -> {
+                case STRING -> {
                     if (ignoreCase(map)) { // there is no case-insensitive string comparison filter
                         yield null; // MAP_VALUE_EQ_BY_KEY sIndexFilter: case-insensitive comparison is not supported
                     }
@@ -351,7 +354,7 @@ public enum FilterOperation {
                             getValue1(map).toString());
                     }
                 }
-                case ParticleType.INTEGER -> {
+                case INTEGER -> {
                     if (useCtx) {
                         yield null; // currently not supported
                     } else {
@@ -386,7 +389,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MAX_VALUE shall not be given as + 1 will cause overflow
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
+            if (getValue1(map).getType() != INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
                 return null;
             }
 
@@ -411,7 +414,7 @@ public enum FilterOperation {
          */
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER) {
                 return null;
             }
 
@@ -437,7 +440,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MIN_VALUE shall not be given as - 1 will cause overflow
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
+            if (getValue1(map).getType() != INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
                 return null;
             }
 
@@ -462,7 +465,7 @@ public enum FilterOperation {
          */
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER) {
                 return null;
             }
 
@@ -480,7 +483,7 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             // VALUE2 contains key (field name), VALUE3 contains upper limit
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue3(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER || getValue3(map).getType() != INTEGER) {
                 throw new AerospikeException(
                     "MAP_VAL_BETWEEN_BY_KEY FilterExpression unsupported type: expected Long");
             }
@@ -506,7 +509,7 @@ public enum FilterOperation {
          */
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue3(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER || getValue3(map).getType() != INTEGER) {
                 return null;
             }
 
@@ -589,12 +592,12 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             return switch (getValue1(map).getType()) {
-                case ParticleType.STRING -> Exp.gt(
+                case STRING -> Exp.gt(
                     MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toString()),
                         Exp.mapBin(getField(map))),
                     Exp.val(0)
                 );
-                case ParticleType.INTEGER -> Exp.gt(
+                case INTEGER -> Exp.gt(
                     MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toLong()),
                         Exp.mapBin(getField(map))),
                     Exp.val(0)
@@ -613,12 +616,12 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             return switch (getValue1(map).getType()) {
-                case ParticleType.STRING -> Exp.gt(
+                case STRING -> Exp.gt(
                     MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toString()),
                         Exp.mapBin(getField(map))),
                     Exp.val(0)
                 );
-                case ParticleType.INTEGER -> Exp.gt(
+                case INTEGER -> Exp.gt(
                     MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()),
                         Exp.mapBin(getField(map))),
                     Exp.val(0)
@@ -636,7 +639,7 @@ public enum FilterOperation {
     MAP_KEYS_BETWEEN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER || getValue2(map).getType() != INTEGER) {
                 throw new AerospikeException(
                     "MAP_KEYS_BETWEEN FilterExpression unsupported type: expected Long");
             }
@@ -665,7 +668,7 @@ public enum FilterOperation {
     MAP_VAL_BETWEEN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER || getValue2(map).getType() != INTEGER) {
                 throw new AerospikeException(
                     "MAP_VAL_BETWEEN FilterExpression unsupported type: expected Long");
             }
@@ -688,7 +691,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER || getValue2(map).getType() != INTEGER) {
                 return null;
             }
             return collectionRange(IndexCollectionType.MAPVALUES, map);
@@ -709,12 +712,12 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             return switch (getValue1(map).getType()) {
-                case ParticleType.STRING -> Exp.gt(
+                case STRING -> Exp.gt(
                     ListExp.getByValue(ListReturnType.COUNT, Exp.val(getValue1(map).toString()),
                         Exp.listBin(getField(map))),
                     Exp.val(0)
                 );
-                case ParticleType.INTEGER -> Exp.gt(
+                case INTEGER -> Exp.gt(
                     ListExp.getByValue(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()),
                         Exp.listBin(getField(map))),
                     Exp.val(0)
@@ -726,7 +729,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.STRING && getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != STRING && getValue1(map).getType() != INTEGER) {
                 return null;
             }
 
@@ -736,37 +739,48 @@ public enum FilterOperation {
     LIST_VAL_BETWEEN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
-                throw new AerospikeException(
-                    "LIST_VAL_BETWEEN FilterExpression unsupported type: expected Long");
-            }
+            if (getValue1(map).getType() == INTEGER && getValue2(map).getType() == INTEGER) {
+                // + 1L to the valueEnd since it is exclusive
+                Exp upperLimit = Exp.val(getValue2(map).toLong() + 1L);
 
-            // + 1L to the valueEnd since the valueEnd is exclusive
-            Exp upperLimit = Exp.val(getValue2(map).toLong() + 1L);
+                // Long.MAX_VALUE will not be processed correctly if given as an inclusive parameter
+                // because it will cause overflow
+                if (getValue2(map).toLong() == Long.MAX_VALUE) upperLimit = null;
 
-            // Long.MAX_VALUE will not be processed correctly if given an inclusive parameter as it will cause overflow
-            if (getValue2(map).toLong() == Long.MAX_VALUE) upperLimit = null;
-
-            return Exp.gt(
-                ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), upperLimit,
+                return Exp.gt(
+                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()), upperLimit,
+                        Exp.listBin(getField(map))),
+                    Exp.val(0)
+                );
+            } else if ((getValue1(map).getType() == STRING || getValue1(map).getType() == NULL)
+                && (getValue2(map).getType() == STRING || getValue2(map).getType() == NULL)) {
+                return Exp.gt(
+                    ListExp.getByValueRange(ListReturnType.COUNT,
+                        getValue1(map).getType() == NULL ? null : Exp.val(getValue1(map).toString()),
+                        getValue2(map).getType() == NULL ? null : Exp.val(getValue2(map).toString()),
                     Exp.listBin(getField(map))),
-                Exp.val(0)
-            );
+                    Exp.val(0)
+                );
+            } else {
+                throw new AerospikeException(
+                    "LIST_VAL_BETWEEN FilterExpression unsupported type: expected Long, String or null, got "
+                        + getValue1(map).getType() + " and " + getValue2(map).getType());
+            }
         }
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue2(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER || getValue2(map).getType() != INTEGER) {
                 return null;
             }
 
-            return collectionRange(IndexCollectionType.LIST, map);
+            return collectionRange(IndexCollectionType.LIST, map); // both limits are inclusive
         }
     },
     LIST_VAL_GT {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
+            if (getValue1(map).getType() != INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
                 throw new AerospikeException(
                     "LIST_VAL_GT FilterExpression unsupported type: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
             }
@@ -781,7 +795,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MAX_VALUE shall not be given as + 1 will cause overflow
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
+            if (getValue1(map).getType() != INTEGER || getValue1(map).toLong() == Long.MAX_VALUE) {
                 return null;
             }
 
@@ -791,7 +805,7 @@ public enum FilterOperation {
     LIST_VAL_GTEQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER) {
                 throw new AerospikeException(
                     "LIST_VAL_GTEQ FilterExpression unsupported type: expected Long");
             }
@@ -805,7 +819,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER) {
                 return null;
             }
 
@@ -815,7 +829,7 @@ public enum FilterOperation {
     LIST_VAL_LT {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
+            if (getValue1(map).getType() != INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
                 throw new AerospikeException(
                     "LIST_VAL_LT FilterExpression unsupported type: expected [Long.MIN_VALUE+1..Long.MAX_VALUE]");
             }
@@ -830,7 +844,7 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
             // Long.MIN_VALUE shall not be given as - 1 will cause overflow
-            if (getValue1(map).getType() != ParticleType.INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
+            if (getValue1(map).getType() != INTEGER || getValue1(map).toLong() == Long.MIN_VALUE) {
                 return null;
             }
 
@@ -840,7 +854,7 @@ public enum FilterOperation {
     LIST_VAL_LTEQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER) {
                 throw new AerospikeException(
                     "LIST_VAL_LTEQ FilterExpression unsupported type: expected Long");
             }
@@ -860,7 +874,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> map) {
-            if (getValue1(map).getType() != ParticleType.INTEGER) {
+            if (getValue1(map).getType() != INTEGER) {
                 return null;
             }
 
@@ -869,7 +883,7 @@ public enum FilterOperation {
     };
 
     private static Exp getFilterExpMapValOrFail(Map<String, Object> map, BinaryOperator<Exp> operator, String opName) {
-        if (getValue1(map).getType() == ParticleType.INTEGER) {
+        if (getValue1(map).getType() == INTEGER) {
             String[] dotPathArr = getDotPathArray(getDotPath(map),
                 opName + " filter expression: dotPath has not been set");
             Exp mapExp;
@@ -894,7 +908,7 @@ public enum FilterOperation {
         Exp mapExp;
 
         return switch (getValue1(map).getType()) {
-            case ParticleType.STRING -> {
+            case STRING -> {
                 if (ignoreCase(map)) {
                     throw new IllegalArgumentException(
                         opName + " FilterExpression: case insensitive comparison is not supported");
@@ -911,7 +925,7 @@ public enum FilterOperation {
 
                 yield operator.apply(mapExp, Exp.val(getValue1(map).toString()));
             }
-            case ParticleType.INTEGER -> {
+            case INTEGER -> {
                 if (useCtx) {
                     mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT,
                         Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
@@ -1034,11 +1048,11 @@ public enum FilterOperation {
     }
 
     protected static Value getValue1(Map<String, Object> map) {
-        return (Value) map.get(VALUE1);
+        return Value.get(map.get(VALUE1));
     }
 
     protected static Value getValue2(Map<String, Object> map) {
-        return (Value) map.get(VALUE2);
+        return Value.get(map.get(VALUE2));
     }
 
     protected static Value getValue3(Map<String, Object> map) {
@@ -1057,8 +1071,8 @@ public enum FilterOperation {
         Value val = getValue1(map);
         int valType = val.getType();
         return switch (valType) {
-            case ParticleType.INTEGER -> Filter.contains(getField(map), collectionType, val.toLong());
-            case ParticleType.STRING -> Filter.contains(getField(map), collectionType, val.toString());
+            case INTEGER -> Filter.contains(getField(map), collectionType, val.toLong());
+            case STRING -> Filter.contains(getField(map), collectionType, val.toString());
             default -> null;
         };
     }

@@ -28,7 +28,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     static final IndexedPerson alain = IndexedPerson.builder().id(nextId()).firstName("Alain").lastName("Sebastian")
         .age(42).strings(Arrays.asList("str1", "str2"))
         .address(new Address("Foo Street 1", 1, "C0123", "Bar")).build();
-    static final IndexedPerson jack = IndexedPerson.builder().id(nextId()).firstName("Jack").lastName("Kerouac").age(45)
+    static final IndexedPerson luc = IndexedPerson.builder().id(nextId()).firstName("Luc").lastName("Besson").age(39)
         .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
         .build();
     static final IndexedPerson lilly = IndexedPerson.builder().id(nextId()).firstName("Lilly").lastName("Bertineau")
@@ -42,7 +42,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     static final IndexedPerson emilien = IndexedPerson.builder().id(nextId()).firstName("Emilien")
         .lastName("Coutant-Kerbalec").age(30)
         .intMap(of("key1", 0, "key2", 1)).ints(Arrays.asList(450, 550, 990)).build();
-    public static final List<IndexedPerson> allIndexedPersons = Arrays.asList(alain, jack, lilly, daniel, petra,
+    public static final List<IndexedPerson> allIndexedPersons = Arrays.asList(alain, luc, lilly, daniel, petra,
         emilien);
 
     @BeforeAll
@@ -157,10 +157,10 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findsPersonInAgeRangeCorrectly() {
-        List<IndexedPerson> results = reactiveRepository.findByAgeBetween(40, 45)
+        List<IndexedPerson> results = reactiveRepository.findByAgeBetween(39, 45)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
-        assertThat(results).hasSize(2).contains(alain, jack);
+        assertThat(results).hasSize(2).contains(alain, luc);
     }
 
     @Test
@@ -168,7 +168,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("key1",
             CriteriaDefinition.AerospikeMapCriteria.KEY).subscribeOn(Schedulers.parallel()).collectList().block();
 
-        assertThat(results).contains(jack, petra);
+        assertThat(results).contains(luc, petra);
     }
 
     @Test
@@ -177,20 +177,20 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
                 CriteriaDefinition.AerospikeMapCriteria.VALUE)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
-        assertThat(results).contains(jack, petra);
+        assertThat(results).contains(luc, petra);
     }
 
     @Test
     public void findByMapKeyValueContainingString() {
         assertThat(petra.getStringMap().containsKey("key1")).isTrue();
         assertThat(petra.getStringMap().containsValue("val1")).isTrue();
-        assertThat(jack.getStringMap().containsKey("key1")).isTrue();
-        assertThat(jack.getStringMap().containsValue("val1")).isTrue();
+        assertThat(luc.getStringMap().containsKey("key1")).isTrue();
+        assertThat(luc.getStringMap().containsValue("val1")).isTrue();
 
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("key1", "val1")
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
-        assertThat(results).contains(petra, jack);
+        assertThat(results).contains(petra, luc);
     }
 
     @Test

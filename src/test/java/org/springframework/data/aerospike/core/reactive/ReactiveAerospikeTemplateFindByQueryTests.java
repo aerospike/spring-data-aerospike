@@ -44,6 +44,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @Override
     @BeforeEach
     public void setUp() {
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         super.setUp();
     }
 
@@ -523,7 +524,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key3", "al");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key3", "val3");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
