@@ -64,6 +64,22 @@ public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests 
     }
 
     @Test
+    public void shouldReturnNeverExpireForDocumentWithNeverExpireAndWithoutExpirationUnit() {
+        BasicAerospikePersistentEntity<?> persistentEntity =
+            context.getRequiredPersistentEntity(DocumentWithNeverExpireAndWithoutExpirationUnit.class);
+
+        assertThat(persistentEntity.getExpiration()).isEqualTo(EXPIRATION_NEVER_EXPIRE);
+    }
+
+    @Test
+    public void shouldReturnNeverExpireForDocumentWithNeverExpireAndExpirationUnit() {
+        BasicAerospikePersistentEntity<?> persistentEntity =
+            context.getRequiredPersistentEntity(DocumentWithNeverExpireAndExpirationUnit.class);
+
+        assertThat(persistentEntity.getExpiration()).isEqualTo(EXPIRATION_NEVER_EXPIRE);
+    }
+
+    @Test
     public void shouldReturnZeroForDocumentWithoutAnnotation() {
         BasicAerospikePersistentEntity<?> persistentEntity =
             context.getRequiredPersistentEntity(DocumentWithoutAnnotation.class);

@@ -64,6 +64,10 @@ public class BasicAerospikePersistentEntity<T>
             }
 
             int expirationValue = getExpirationValue(annotation);
+            if (expirationValue <= 0) {
+                return expirationValue;
+            }
+
             return (int) annotation.expirationUnit().toSeconds(expirationValue);
         });
         this.isTouchOnRead = Lazy.of(() -> {
