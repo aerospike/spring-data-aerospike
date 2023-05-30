@@ -92,22 +92,6 @@ public class AerospikeIndexResolver implements EnvironmentAware {
         if (!StringUtils.hasLength(ctxString)) return null;
 
         List<String> contexts = new ArrayList<>();
-//        int from = 0, to;
-//        if (ctxString.contains(".")) {
-//            while ((to = ctxString.indexOf('.', from)) >= 0) {
-//                String substr = ctxString.substring(from, to);
-//                if (substr.length() > 0) {
-//                    contexts.add(substr);
-//                } else {
-//                    throw new IllegalArgumentException("@Indexed annotation '" + ctxString + "': empty context
-//                    given");
-//                }
-//                from = to + 1;
-//            }
-//            if (from < (ctxString.length())) contexts.add(ctxString.substring(from));
-//        } else {
-//            contexts.add(ctxString);
-//        }
         String[] ctxArr = ctxString.split("\\.");
         if (ctxArr.length == 0) {
             contexts.add(ctxString);
