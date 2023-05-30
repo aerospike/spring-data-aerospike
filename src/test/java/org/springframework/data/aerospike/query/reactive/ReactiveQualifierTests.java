@@ -460,7 +460,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setField(binName)
             .setFilterOperation(LIST_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd));
+            .setValue2(Value.get(ageEnd + 1));
         Qualifier AgeRangeQualifier = new Qualifier(qb);
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
         StepVerifier.create(flux.collectList())
@@ -554,7 +554,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setField(binName)
             .setFilterOperation(MAP_KEYS_BETWEEN)
             .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd));
+            .setValue2(Value.get(ageEnd + 1L));
         Qualifier AgeRangeQualifier = new Qualifier(qb);
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
         StepVerifier.create(flux.collectList())
@@ -599,7 +599,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setField(binName)
             .setFilterOperation(MAP_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd));
+            .setValue2(Value.get(ageEnd + 1));
         Qualifier AgeRangeQualifier = new Qualifier(qb);
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
         StepVerifier.create(flux.collectList())

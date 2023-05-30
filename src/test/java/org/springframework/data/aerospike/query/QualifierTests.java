@@ -470,7 +470,7 @@ public class QualifierTests extends BaseQueryEngineTests {
             .setField(binName)
             .setFilterOperation(FilterOperation.LIST_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd));
+            .setValue2(Value.get(ageEnd + 1L));
         Qualifier qualifier = new Qualifier(qb);
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -543,7 +543,7 @@ public class QualifierTests extends BaseQueryEngineTests {
             .setField(binName)
             .setFilterOperation(FilterOperation.MAP_KEYS_BETWEEN)
             .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd));
+            .setValue2(Value.get(ageEnd + 1L));
         Qualifier qualifier = new Qualifier(qb);
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -574,7 +574,7 @@ public class QualifierTests extends BaseQueryEngineTests {
             .setField(binName)
             .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd));
+            .setValue2(Value.get(ageEnd + 1L));
         Qualifier qualifier = new Qualifier(qb);
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 

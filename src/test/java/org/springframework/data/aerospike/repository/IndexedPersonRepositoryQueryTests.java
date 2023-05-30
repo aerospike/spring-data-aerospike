@@ -433,7 +433,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(jane.getIntMap().get("key2") >= 0).isTrue();
         assertThat(tricia.getIntMap().get("key2") >= 0).isTrue();
 
-        List<IndexedPerson> persons = repository.findByIntMapBetween("key2", 0, 1);
+        List<IndexedPerson> persons = repository.findByIntMapBetween("key2", 0, 2);
         assertThat(persons).containsExactlyInAnyOrder(tricia, jane);
     }
 
@@ -447,7 +447,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         peter.setBestFriend(jane);
         repository.save(peter);
 
-        List<IndexedPerson> persons = repository.findByBestFriendFriendIntMapBetween("key2", 0, 1);
+        List<IndexedPerson> persons = repository.findByBestFriendFriendIntMapBetween("key2", 0, 2);
         assertThat(persons).contains(peter);
 
         TestUtils.setFriendsToNull(repository, jane, peter);
@@ -462,7 +462,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         billy.setBestFriend(tricia);
         repository.save(billy);
 
-        List<IndexedPerson> persons = repository.findByBestFriendFriendAddressApartmentBetween(1, 2);
+        List<IndexedPerson> persons = repository.findByBestFriendFriendAddressApartmentBetween(1, 3);
         assertThat(persons).contains(billy);
 
         TestUtils.setFriendsToNull(repository, tricia, billy);
