@@ -59,13 +59,13 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void usingIndexedAnnotationWithComplexCtx() {
+    void usingIndexedAnnotationWithComplexCtxSingleQuotes() {
         class TestPerson {
 
             @Id
             String id;
             @Indexed(type = IndexType.STRING, name = "test_person_friend_address_keys_index", bin = "friend",
-                collectionType = IndexCollectionType.MAPKEYS, ctx = "ab.cd.\"10\".{#5}.{=\"1\"}.[-1].[#100].[=20]")
+                collectionType = IndexCollectionType.MAPKEYS, ctx = "ab.cd.'10'.{#5}.{='1'}.[-1].[#100].[=20]")
             // CTX.mapKey(Value.get("ab")), CTX.mapKey(Value.get("cd")), CTX.mapKey(Value.get("10")), CTX.mapRank(5),
             // CTX.mapValue(Value.get("1")), CTX.listIndex(-1), CTX.listRank(100), CTX.listValue(Value.get(20))
             Address address;
@@ -81,6 +81,37 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                         CTX.mapKey(Value.get("cd")), CTX.mapKey(Value.get("10")), CTX.mapRank(5),
                         CTX.mapValue(Value.get("1")), CTX.listIndex(-1), CTX.listRank(100),
                         CTX.listValue(Value.get(20))}))
+                )
+                .count()
+        ).isEqualTo(1L);
+        assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, template.getSetName(TestPerson.class),
+            "friend"))).isTrue();
+
+        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+            "test_person_friend_address_keys_index");
+        indexRefresher.refreshIndexes();
+    }
+
+    @Test
+    void usingIndexedAnnotationWithCtxDoubleQuotes() {
+        class TestPerson {
+
+            @Id
+            String id;
+            @Indexed(type = IndexType.STRING, name = "test_person_friend_address_keys_index", bin = "friend",
+                collectionType = IndexCollectionType.MAPKEYS, ctx = "\"10\".{=\"1\"}")
+            // CTX.mapKey(Value.get("10")), CTX.mapValue(Value.get("1"))
+            Address address;
+        }
+        indexRefresher.refreshIndexes();
+
+        assertThat(
+            additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)).stream()
+                .filter(index -> index.getName()
+                    .equals("test_person_friend_address_keys_index")
+                    &&
+                    CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("10")),
+                        CTX.mapValue(Value.get("1"))}))
                 )
                 .count()
         ).isEqualTo(1L);

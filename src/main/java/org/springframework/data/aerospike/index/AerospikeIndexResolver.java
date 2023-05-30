@@ -134,7 +134,7 @@ public class AerospikeIndexResolver implements EnvironmentAware {
                 return processSingleCtx(singleCtx, CtxType.LIST);
             }
             default -> {
-                Object res = isInDoubleQuotes(singleCtx) ? singleCtx.substring(1, singleCtx.length() - 1) :
+                Object res = isInDoubleOrSingleQuotes(singleCtx) ? singleCtx.substring(1, singleCtx.length() - 1) :
                     parseIntOrReturnStr(singleCtx);
                 return CTX.mapKey(Value.get(res));
             }
@@ -157,7 +157,8 @@ public class AerospikeIndexResolver implements EnvironmentAware {
 
         if (singleCtx.charAt(1) == '=' && length > 3) {
             substr = singleCtx.substring(2, length - 1);
-            res = isInDoubleQuotes(substr) ? substr.substring(1, substr.length() - 1) : parseIntOrReturnStr(substr);
+            res = isInDoubleOrSingleQuotes(substr) ? substr.substring(1, substr.length() - 1) :
+                parseIntOrReturnStr(substr);
             return switch (ctxType) {
                 case MAP -> CTX.mapValue(Value.get(res));
                 case LIST -> CTX.listValue(Value.get(res));
@@ -204,7 +205,8 @@ public class AerospikeIndexResolver implements EnvironmentAware {
         return res;
     }
 
-    private static boolean isInDoubleQuotes(String str) {
-        return str.length() > 2 && str.charAt(0) == '"' && str.charAt(str.length() - 1) == '"';
+    private static boolean isInDoubleOrSingleQuotes(String str) {
+        return str.length() > 2 && (str.charAt(0) == '"' || str.charAt(0) == '\'')
+            && (str.charAt(str.length() - 1) == '"' || str.charAt(str.length() - 1) == '\'');
     }
 }
