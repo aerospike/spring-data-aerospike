@@ -518,7 +518,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
         Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(FilterOperation.MAP_VAL_CONTAIN)
+            .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
             .setValue1(Value.get(searchColor))
         );
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);

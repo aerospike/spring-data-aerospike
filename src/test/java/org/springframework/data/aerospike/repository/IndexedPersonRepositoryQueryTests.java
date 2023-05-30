@@ -338,12 +338,15 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    void findByMapKeyValueEqualsInt() {
+    void findByMapKeyValueContainingInt() {
         assertThat(tricia.getIntMap()).containsKey("key1");
         assertThat(tricia.getIntMap()).containsValue(0);
 
-        Iterable<IndexedPerson> result = repository.findByIntMapEquals("key1", 0);
+        Iterable<IndexedPerson> result = repository.findByIntMapContaining("key1", 0);
         assertThat(result).contains(tricia);
+
+        Iterable<IndexedPerson> result2 = repository.findByIntMapContaining("key1", 0, "key2", 1);
+        assertThat(result2).contains(tricia);
     }
 
     @Test
@@ -351,7 +354,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(billy.getStringMap()).containsKey("key1");
         assertThat(billy.getStringMap()).containsValue("val1");
 
-        List<IndexedPerson> persons = repository.findByStringMapEquals("key1", "val1");
+        List<IndexedPerson> persons = repository.findByStringMapContaining("key1", "val1");
         assertThat(persons).contains(billy);
     }
 
