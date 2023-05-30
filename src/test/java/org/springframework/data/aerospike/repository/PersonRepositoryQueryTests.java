@@ -120,23 +120,58 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByListValueGreaterThan() {
-        List<Person> persons = repository.findByIntsGreaterThan(549);
-
+    void findByListValueGreaterThanNumber() {
+        List<Person> persons;
+        persons = repository.findByIntsGreaterThan(549);
         assertThat(persons).containsOnly(oliver, alicia);
+
+        persons = repository.findByIntsGreaterThan(Long.MIN_VALUE);
+        assertThat(persons).containsOnly(oliver, alicia);
+
+        persons = repository.findByIntsGreaterThan(Long.MAX_VALUE - 1);
+        assertThat(persons).isEmpty();
+
+        assertThatThrownBy(() -> repository.findByIntsGreaterThan(Long.MAX_VALUE))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("LIST_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
     }
 
     @Test
-    void findByListValueLessThanOrEqual() {
-        List<Person> persons = repository.findByIntsLessThanEqual(500);
+    void findByListValueGreaterThanString() {
+        List<Person> persons;
+        persons = repository.findByStringsGreaterThan("str0");
+        assertThat(persons).containsOnly(dave, donny);
 
+        persons = repository.findByStringsGreaterThan("");
+        assertThat(persons).containsOnly(dave, donny);
+
+        persons = repository.findByStringsGreaterThan("t");
+        assertThat(persons).isEmpty();
+    }
+
+    @Test
+    void findByListValueLessThanOrEqualNumber() {
+        List<Person> persons;
+        persons = repository.findByIntsLessThanEqual(500);
         assertThat(persons).containsOnly(oliver);
+
+        persons = repository.findByIntsLessThanEqual(Long.MAX_VALUE - 1);
+        assertThat(persons).containsOnly(oliver, alicia);
+
+        assertThatThrownBy(() -> repository.findByIntsLessThanEqual(Long.MAX_VALUE))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("LIST_VAL_LTEQ FilterExpression unsupported value: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
+    }
+
+    @Test
+    void findByListValueLessThanOrEqualString() {
+        List<Person> persons = repository.findByStringsLessThanEqual("str4");
+        assertThat(persons).containsOnly(dave, donny);
     }
 
     @Test
     void findByIntegerListValueInRange() {
         List<Person> persons = repository.findByIntsBetween(500, 600);
-
         assertThat(persons).containsExactlyInAnyOrder(oliver, alicia);
     }
 
@@ -276,13 +311,19 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     void findByMapKeyValueBetween() {
         assertThat(carter.getIntMap()).containsKey("key1");
-        assertThat(carter.getIntMap()).containsKey("key2");
         assertThat(carter.getIntMap().get("key1") >= 0).isTrue();
-        assertThat(carter.getIntMap().get("key2") >= 0).isTrue();
 
-        List<Person> persons = repository.findByIntMapBetween("key2", 0, 1);
-
+        List<Person> persons;
+        persons = repository.findByIntMapBetween("key1", 0, 1);
         assertThat(persons).contains(carter);
+
+        assertThat(donny.getStringMap()).containsKey("key1");
+        assertThat(boyd.getStringMap()).containsKey("key1");
+        assertThat(donny.getStringMap().get("key1").equals("val1")).isTrue();
+        assertThat(boyd.getStringMap().get("key1").equals("val1")).isTrue();
+
+        persons = repository.findByStringMapBetween("key1", "val1", "val2");
+        assertThat(persons).contains(boyd, donny);
     }
 
     @Test
@@ -772,9 +813,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonInAgeRangeCorrectly() {
-        Iterable<Person> it = repository.findByAgeBetween(40, 45);
-
+        Iterable<Person> it;
+        it = repository.findByAgeBetween(40, 45);
         assertThat(it).hasSize(3).contains(dave);
+
+        it = repository.findByFirstNameBetween("Dave", "David");
+        assertThat(it).hasSize(1).contains(dave);
     }
 
     @Test

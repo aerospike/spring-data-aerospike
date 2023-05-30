@@ -16,7 +16,6 @@
  */
 package org.springframework.data.aerospike.query;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
@@ -95,23 +94,11 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     public Filter asFilter() {
-        try {
-            return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
-        } catch (Exception e) {
-            throw new AerospikeException(
-                e.getMessage().isEmpty() ? "Secondary index filter unsupported operation: " + getOperation() :
-                    e.getMessage());
-        }
+        return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
     }
 
     public Exp toFilterExp() {
-        try {
-            return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
-        } catch (Exception e) {
-            throw new AerospikeException(
-                e.getMessage().isEmpty() ? "FilterExpression unsupported operation: " + getOperation() :
-                    e.getMessage());
-        }
+        return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
     }
 
     protected String luaFieldString(String field) {

@@ -90,6 +90,16 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAgeBetween(int from, int to);
 
     /**
+     * Find all entities that satisfy the condition "have the first name in the range between the given strings"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param from the lower limit for the map value, inclusive
+     * @param to   the upper limit for the map value, exclusive
+     */
+    List<P> findByFirstNameBetween(String from, String to);
+
+    /**
      * Find all entities that satisfy the condition "have a friend equal to the given argument" (find by POJO)
      *
      * @param friend - Friend to check for equality
@@ -213,6 +223,30 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param list List to compare strings with
      */
     List<P> findByStringsEquals(List<String> list);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is greater than the given
+     * String"
+     * <p>
+     * List name in this case is Strings
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param value lower limit, exclusive
+     */
+    List<P> findByStringsGreaterThan(String value);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to
+     * the given String"
+     * <p>
+     * List name in this case is Strings
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param value lower limit, inclusive
+     */
+    List<P> findByStringsLessThanEqual(String value);
 
     /**
      * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
@@ -414,31 +448,43 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and the value in between the given
+     * Find all entities that satisfy the condition "have the given map key and the value in the range between the given
      * integers"
      *
      * @param key  Map key
      * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, inclusive
+     * @param to   the upper limit for the map value, exclusive
      */
     List<P> findByIntMapBetween(String key, int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have a bestFriend who has a friend with the given map key and the
-     * value in between the given integers (deeply nested)"
+     * Find all entities that satisfy the condition "have the given map key and the value in the range between the given
+     * strings"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
      *
      * @param key  Map key
      * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, inclusive
+     * @param to   the upper limit for the map value, exclusive
+     */
+    List<P> findByStringMapBetween(String key, String from, String to);
+
+    /**
+     * Find all entities that satisfy the condition "have a bestFriend who has a friend with the given map key and the
+     * value in the range between the given integers (deeply nested)"
+     *
+     * @param key  Map key
+     * @param from the lower limit for the map value, inclusive
+     * @param to   the upper limit for the map value, exclusive
      */
     List<P> findByBestFriendFriendIntMapBetween(String key, int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value
-     * between the given integers (deeply nested)"
+     * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value in
+     * the range between the given integers (deeply nested)"
      *
      * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, inclusive
+     * @param to   the upper limit for the map value, exclusive
      */
     List<P> findByBestFriendFriendAddressApartmentBetween(int from, int to);
 
@@ -481,7 +527,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * field)
      *
      * @param from lower limit, inclusive
-     * @param to   upper limit, inclusive
+     * @param to   upper limit, exclusive
      */
     List<P> findByFriendAgeBetween(int from, int to);
 
@@ -599,9 +645,20 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
-     * @param integer upper limit, exclusive
+     * @param integer lower limit, exclusive
      */
     List<P> findByIntsGreaterThan(int integer);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is greater than the given
+     * long value"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param value lower limit, exclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     */
+    List<P> findByIntsGreaterThan(long value);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
@@ -615,13 +672,24 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsLessThanEqual(int integer);
 
     /**
+     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
+     * given long value"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param value upper limit, inclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     */
+    List<P> findByIntsLessThanEqual(long value);
+
+    /**
      * Find all entities that satisfy the condition "have at least one list value in the given range"
      * <p>
      * List name in this case is Ints
      * </p>
      *
      * @param from lower limit, inclusive
-     * @param to   upper limit, inclusive
+     * @param to   upper limit, exclusive
      */
     List<P> findByIntsBetween(int from, int to);
 
