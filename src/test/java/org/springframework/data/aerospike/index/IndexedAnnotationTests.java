@@ -137,7 +137,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
 
         assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("@Indexed annotation 'ab....cd..': empty context given");
+            .hasMessage("@Indexed annotation 'ab....cd..' contains empty context");
     }
 
     @Test
