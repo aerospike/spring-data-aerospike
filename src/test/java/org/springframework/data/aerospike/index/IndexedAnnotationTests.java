@@ -53,7 +53,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                     CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("address"))}))
                 )
                 .count()
-        ).isEqualTo(0L);
+        ).isZero();
         assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, template.getSetName(TestPerson.class),
             "friend"))).isFalse();
     }
