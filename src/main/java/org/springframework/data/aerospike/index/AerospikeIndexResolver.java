@@ -25,12 +25,12 @@ import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -91,21 +91,15 @@ public class AerospikeIndexResolver implements EnvironmentAware {
     private CTX[] toCtxArray(String ctxString) {
         if (!StringUtils.hasLength(ctxString)) return null;
 
-        List<String> contexts = new ArrayList<>();
-        String[] ctxArr = ctxString.split("\\.");
-        if (ctxArr.length == 0) {
-            contexts.add(ctxString);
-        } else {
-            for (String part : ctxArr) {
-                if (part.length() > 0) {
-                    contexts.add(part);
-                } else {
-                    throw new IllegalArgumentException("@Indexed annotation '" + ctxString + "' contains empty " +
-                        "context");
-                }
-            }
+        String[] ctxTokens = ctxString.split("\\.");
+        CTX[] ctxArr = Arrays.stream(ctxTokens).filter(not(String::isEmpty))
+            .map(this::toCtx).filter(Objects::nonNull).toArray(CTX[]::new);
+
+        if (ctxTokens.length != ctxArr.length) {
+            throw new IllegalArgumentException("@Indexed annotation '" + ctxString + "' contains empty context");
         }
-        return contexts.stream().map(this::toCtx).filter(Objects::nonNull).toArray(CTX[]::new);
+
+        return ctxArr;
     }
 
     private enum CtxType {
@@ -140,10 +134,7 @@ public class AerospikeIndexResolver implements EnvironmentAware {
     }
 
     private CTX processSingleCtx(String singleCtx, CtxType ctxType) {
-        String substr;
-        Object res;
         int length = singleCtx.length();
-
         if (length < 3) {
             throw new IllegalArgumentException("@Indexed annotation: context string '" + singleCtx +
                 "' has no content");
@@ -153,43 +144,52 @@ public class AerospikeIndexResolver implements EnvironmentAware {
                 "expecting '" + ctxType.closingChar + "', got '" + singleCtx.charAt(length - 1) + "' instead");
         }
 
+        CTX result;
+        String substring = singleCtx.substring(2, length - 1);
         if (singleCtx.charAt(1) == '=' && length > 3) {
-            substr = singleCtx.substring(2, length - 1);
-            res = isInDoubleOrSingleQuotes(substr) ? substr.substring(1, substr.length() - 1) :
-                parseIntOrReturnStr(substr);
-            return switch (ctxType) {
-                case MAP -> CTX.mapValue(Value.get(res));
-                case LIST -> CTX.listValue(Value.get(res));
-            };
+            result = processCtxValue(substring, ctxType);
+        } else if (singleCtx.charAt(1) == '#' && length > 3) {
+            result = processCtxRank(substring, ctxType);
+        } else {
+            result = processCtxIndex(singleCtx, length, ctxType);
         }
 
-        if (singleCtx.charAt(1) == '#' && length > 3) {
-            substr = singleCtx.substring(2, length - 1);
-            int rank;
-            try {
-                rank = Integer.parseInt(substr);
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("@Indexed annotation " + ctxType + " rank: " +
-                    "expecting only integer values, got '" + substr + "' instead");
-            }
-            return switch (ctxType) {
-                case MAP -> CTX.mapRank(rank);
-                case LIST -> CTX.listRank(rank);
-            };
-        }
+        return result;
+    }
 
-        substr = singleCtx.substring(1, length - 1);
-        int idx;
-        try {
-            idx = Integer.parseInt(substr);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("@Indexed annotation " + ctxType + " index: " +
-                "expecting only integer values, got '" + substr + "' instead");
-        }
+    private CTX processCtxValue(String substring, CtxType ctxType) {
+        Object result = isInDoubleOrSingleQuotes(substring) ? substring.substring(1, substring.length() - 1) :
+            parseIntOrReturnStr(substring);
+        return switch (ctxType) {
+            case MAP -> CTX.mapValue(Value.get(result));
+            case LIST -> CTX.listValue(Value.get(result));
+        };
+    }
+
+    private CTX processCtxRank(String substring, CtxType ctxType) {
+        int rank = parseIntOrFail(substring, ctxType, "rank");
+        return switch (ctxType) {
+            case MAP -> CTX.mapRank(rank);
+            case LIST -> CTX.listRank(rank);
+        };
+    }
+
+    private CTX processCtxIndex(String singleCtx, int length, CtxType ctxType) {
+        String substring = singleCtx.substring(1, length - 1);
+        int idx = parseIntOrFail(substring, ctxType, "index");
         return switch (ctxType) {
             case MAP -> CTX.mapIndex(idx);
             case LIST -> CTX.listIndex(idx);
         };
+    }
+
+    private int parseIntOrFail(String substring, CtxType ctxType, String parameterName) {
+        try {
+            return Integer.parseInt(substring);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("@Indexed annotation " + ctxType + " " + parameterName + ": " +
+                "expecting only integer values, got '" + substring + "' instead");
+        }
     }
 
     private static Object parseIntOrReturnStr(String str) {
