@@ -260,7 +260,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
         assertThat(first.hasContent()).isTrue();
         assertThat(first.getNumberOfElements()).isEqualTo(1);
-        assertThat(first.hasNext()).isFalse(); // TODO: not implemented yet. should be true instead
+        assertThat(first.hasNext()).isFalse();
         assertThat(first.isFirst()).isTrue();
 
         Slice<IndexedPerson> last = repository.findByAgeGreaterThan(40, PageRequest.of(2, 1, Sort.by("age")));
