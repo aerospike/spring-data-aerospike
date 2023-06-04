@@ -38,7 +38,7 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     static final Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42)
-        .strings(List.of("str1", "str2")).address(new Address("Foo Street 1", 1, "C0123", "Bar"))
+        .strings(List.of("str0", "str1", "str2")).address(new Address("Foo Street 1", 1, "C0123", "Bar"))
         .build();
     static final Person donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39)
         .strings(List.of("str1", "str2", "str3")).stringMap(of("key1", "val1")).build();
@@ -145,6 +145,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         persons = repository.findByStringsGreaterThan("");
         assertThat(persons).containsOnly(dave, donny);
 
+        // ordering is by each byte in a String, so "t" > "str" because "t" > "s"
         persons = repository.findByStringsGreaterThan("t");
         assertThat(persons).isEmpty();
     }
@@ -158,15 +159,27 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         persons = repository.findByIntsLessThanEqual(Long.MAX_VALUE - 1);
         assertThat(persons).containsOnly(oliver, alicia);
 
-        assertThatThrownBy(() -> repository.findByIntsLessThanEqual(Long.MAX_VALUE))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("LIST_VAL_LTEQ FilterExpression unsupported value: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
+        persons = repository.findByIntsLessThanEqual(Long.MAX_VALUE);
+        assertThat(persons).containsOnly(oliver, alicia);
     }
 
     @Test
     void findByListValueLessThanOrEqualString() {
-        List<Person> persons = repository.findByStringsLessThanEqual("str4");
+        List<Person> persons;
+        persons = repository.findByStringsLessThanEqual("str4");
         assertThat(persons).containsOnly(dave, donny);
+
+        persons = repository.findByStringsLessThanEqual("str3");
+        assertThat(persons).containsOnly(dave, donny);
+
+        persons = repository.findByStringsLessThanEqual("str2");
+        assertThat(persons).containsOnly(dave, donny);
+
+        persons = repository.findByStringsLessThanEqual("str0");
+        assertThat(persons).containsOnly(dave);
+
+        persons = repository.findByStringsLessThanEqual("str");
+        assertThat(persons).isEmpty();
     }
 
     @Test
@@ -812,18 +825,31 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonInAgeRangeCorrectly() {
+    public void findPersonInRangeCorrectly() {
         Iterable<Person> it;
-        it = repository.findByAgeBetween(40, 45);
+        it = repository.findByAgeBetween(40, 46);
         assertThat(it).hasSize(3).contains(dave);
 
         it = repository.findByFirstNameBetween("Dave", "David");
         assertThat(it).hasSize(1).contains(dave);
+
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            assertThat(dave.getAddress()).isEqualTo(new Address("Foo Street 1", 1, "C0123", "Bar"));
+            Address address1 = new Address("Foo Street 1", 0, "C0123", "Bar");
+            Address address2 = new Address("Foo Street 2", 2, "C0124", "Bar");
+            it = repository.findByAddressBetween(address1, address2);
+            assertThat(it).hasSize(1).contains(dave);
+
+            address1 = new Address("Foo Street 0", 0, "C0122", "Bar");
+            address2 = new Address("Foo Street 0", 0, "C0123", "Bar");
+            it = repository.findByAddressBetween(address1, address2);
+            assertThat(it).isEmpty();
+        }
     }
 
     @Test
     public void findPersonInAgeRangeCorrectlyOrderByLastName() {
-        Iterable<Person> it = repository.findByAgeBetweenOrderByLastName(30, 45);
+        Iterable<Person> it = repository.findByAgeBetweenOrderByLastName(30, 46);
 
         assertThat(it).hasSize(6);
     }

@@ -221,8 +221,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                 value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
                 dotPath = part.getProperty().toDotPath();
             } else if (isPojo(part)) { // if it is a first level POJO
-                // if it is a POJO compared for equality it already has op == FilterOperation.EQ
-                value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+                if (op != FilterOperation.BETWEEN) {
+                    // if it is a POJO compared for equality it already has op == FilterOperation.EQ
+                    value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+                }
             }
         }
 

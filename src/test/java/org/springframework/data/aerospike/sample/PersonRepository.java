@@ -87,17 +87,33 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameAndLastName(String firstName, String lastName);
 
+    /**
+     * Find all entities that satisfy the condition "have age in the given range"
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
     List<P> findByAgeBetween(int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have the first name in the range between the given strings"
+     * Find all entities that satisfy the condition "have the first name in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
+     */
+    List<P> findByFirstNameBetween(String from, String to);
+
+    /**
+     * Find all entities that satisfy the condition "have address in the given range"
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
      *
-     * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, exclusive
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
      */
-    List<P> findByFirstNameBetween(String from, String to);
+    List<P> findByAddressBetween(Address from, Address to);
 
     /**
      * Find all entities that satisfy the condition "have a friend equal to the given argument" (find by POJO)
@@ -230,7 +246,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * <p>
      * List name in this case is Strings
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
      * @param value lower limit, exclusive
      */
@@ -242,7 +258,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * <p>
      * List name in this case is Strings
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
      * @param value lower limit, inclusive
      */
@@ -266,7 +282,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have strings list with fewer elements or with a corresponding
      * element lower in ordering than in the given argument" (find by list).
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
      * @param list - List to compare with
      */
@@ -309,7 +325,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have stringMap with more elements or with a corresponding key-value
      * higher in ordering than in the given argument" (find by map).
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
      *
      * @param map - Map to compare with
      */
@@ -452,8 +468,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * integers"
      *
      * @param key  Map key
-     * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, exclusive
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
      */
     List<P> findByIntMapBetween(String key, int from, int to);
 
@@ -461,11 +477,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have the given map key and the value in the range between the given
      * strings"
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
      * @param key  Map key
-     * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, exclusive
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
      */
     List<P> findByStringMapBetween(String key, String from, String to);
 
@@ -474,8 +490,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * value in the range between the given integers (deeply nested)"
      *
      * @param key  Map key
-     * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, exclusive
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
      */
     List<P> findByBestFriendFriendIntMapBetween(String key, int from, int to);
 
@@ -483,8 +499,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value in
      * the range between the given integers (deeply nested)"
      *
-     * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, exclusive
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
      */
     List<P> findByBestFriendFriendAddressApartmentBetween(int from, int to);
 
@@ -696,7 +712,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities that satisfy the condition "have at least one list value in the given range"
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
      * @param from lower limit, inclusive
      * @param to   upper limit, exclusive
@@ -714,7 +730,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities that satisfy the condition "have firstName higher in ordering than the given string".
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
      * @param string - String to compare with
      */
@@ -738,5 +754,12 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByFriendLastNameLike(String lastNameRegex);
 
-    Iterable<P> findByAgeBetweenOrderByLastName(int i, int j);
+
+    /**
+     * Find all entities that satisfy the condition "have age in the given range ordered by last name"
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    Iterable<P> findByAgeBetweenOrderByLastName(int from, int to);
 }

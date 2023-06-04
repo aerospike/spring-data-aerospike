@@ -4,7 +4,6 @@ import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cdt.ListReturnType;
 import com.aerospike.client.cdt.MapReturnType;
-import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.ListExp;
 import com.aerospike.client.exp.MapExp;
@@ -16,7 +15,6 @@ import org.springframework.data.aerospike.query.Qualifier.QualifierBuilder;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.StringUtils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
@@ -25,6 +23,9 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
 import static com.aerospike.client.command.ParticleType.INTEGER;
+import static com.aerospike.client.command.ParticleType.JBLOB;
+import static com.aerospike.client.command.ParticleType.LIST;
+import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.STRING;
 import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
 import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
@@ -76,9 +77,9 @@ public enum FilterOperation {
             // Convert IN to a collection of OR as Aerospike has no support for IN query
             Value val = getValue1(map);
             int valType = val.getType();
-            if (valType != ParticleType.LIST)
+            if (valType != LIST)
                 throw new IllegalArgumentException(
-                    "FilterOperation.IN expects List argument with type: " + ParticleType.LIST + ", but got: " +
+                    "FilterOperation.IN expects List argument with type: " + LIST + ", instead got: " +
                         valType);
             List<?> inList = (List<?>) val.getObject();
             Exp[] listElementsExp = new Exp[inList.size()];
@@ -112,9 +113,9 @@ public enum FilterOperation {
                         yield Exp.eq(Exp.stringBin(getField(map)), Exp.val(val.toString()));
                     }
                 }
-                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::eq);
-                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::eq, Exp::mapBin);
-                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::eq, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::eq);
+                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::eq, Exp::mapBin);
+                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::eq, Exp::listBin);
                 default -> throw new IllegalArgumentException("EQ FilterExpression unsupported particle type: " +
                     val.getClass().getSimpleName());
             };
@@ -147,9 +148,9 @@ public enum FilterOperation {
                         yield Exp.ne(Exp.stringBin(getField(map)), Exp.val(val.toString()));
                     }
                 }
-                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ne);
-                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::mapBin);
-                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ne);
+                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::mapBin);
+                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::listBin);
                 default -> throw new IllegalArgumentException("NOTEQ FilterExpression unsupported particle type: " +
                     val.getClass().getSimpleName());
             };
@@ -167,9 +168,9 @@ public enum FilterOperation {
             return switch (val.getType()) {
                 case INTEGER -> Exp.gt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case STRING -> Exp.gt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::gt);
-                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::mapBin);
-                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::gt);
+                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::mapBin);
+                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::listBin);
                 default -> throw new IllegalArgumentException("GT FilterExpression unsupported particle type: " +
                     val.getClass().getSimpleName());
             };
@@ -192,9 +193,9 @@ public enum FilterOperation {
             return switch (val.getType()) {
                 case INTEGER -> Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case STRING -> Exp.ge(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ge);
-                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::mapBin);
-                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ge);
+                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::mapBin);
+                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::listBin);
                 default -> throw new IllegalArgumentException("GTEQ FilterExpression unsupported particle type: " +
                     val.getClass().getSimpleName());
             };
@@ -215,9 +216,9 @@ public enum FilterOperation {
             return switch (val.getType()) {
                 case INTEGER -> Exp.lt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case STRING -> Exp.lt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::lt);
-                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::mapBin);
-                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::lt);
+                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::mapBin);
+                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::listBin);
                 default -> throw new IllegalArgumentException("LT FilterExpression unsupported particle type: " +
                     val.getClass().getSimpleName());
             };
@@ -239,9 +240,9 @@ public enum FilterOperation {
             return switch (val.getType()) {
                 case INTEGER -> Exp.le(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case STRING -> Exp.le(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case ParticleType.JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::le);
-                case ParticleType.MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::mapBin);
-                case ParticleType.LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::le);
+                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::mapBin);
+                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::listBin);
                 default -> throw new IllegalArgumentException("LTEQ FilterExpression unsupported particle type: " +
                     val.getClass().getSimpleName());
             };
@@ -258,19 +259,33 @@ public enum FilterOperation {
     BETWEEN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() == INTEGER && getValue2(map).getType() == INTEGER) {
-                return Exp.and(
+            validateEquality(getValue1(map).getType(), getValue2(map).getType(), map, "BETWEEN");
+
+            return switch (getValue1(map).getType()) {
+                case INTEGER -> Exp.and(
                     Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong())),
-                    Exp.le(Exp.intBin(getField(map)), Exp.val(getValue2(map).toLong()))
+                    Exp.lt(Exp.intBin(getField(map)), Exp.val(getValue2(map).toLong()))
                 );
-            } else if (getValue1(map).getType() == STRING && getValue2(map).getType() == STRING) {
-                return Exp.and(
+                case STRING -> Exp.and(
                     Exp.ge(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString())),
                     Exp.lt(Exp.stringBin(getField(map)), Exp.val(getValue2(map).toString()))
                 );
-            }
-            throw new IllegalArgumentException("BETWEEN FilterExpression unsupported type: expected integer, long or" +
-                " String");
+                case JBLOB -> Exp.and(
+                    getFilterExp(getConverter(map), getValue1(map), getField(map), Exp::ge),
+                    getFilterExp(getConverter(map), getValue2(map), getField(map), Exp::lt)
+                );
+                case MAP -> Exp.and(
+                    getFilterExp(getConverter(map), getValue1(map), getField(map), Exp::ge, Exp::mapBin),
+                    getFilterExp(getConverter(map), getValue2(map), getField(map), Exp::lt, Exp::mapBin)
+                );
+                case LIST -> Exp.and(
+                    getFilterExp(getConverter(map), getValue1(map), getField(map), Exp::ge, Exp::listBin),
+                    getFilterExp(getConverter(map), getValue2(map), getField(map), Exp::lt, Exp::listBin)
+                );
+                default ->
+                    throw new IllegalArgumentException("BETWEEN: unexpected value of type " + getValue1(map).getClass()
+                        .getSimpleName());
+            };
         }
 
         @Override
@@ -491,21 +506,50 @@ public enum FilterOperation {
                 "MAP_VAL_BETWEEN_BY_KEY filter expression: dotPath has not been set");
 
             // VALUE2 contains key (field name), VALUE3 contains upper limit
-            if (getValue1(map).getType() != getValue3(map).getType()) {
-                throw new IllegalArgumentException("MAP_VAL_BETWEEN_BY_KEY: expected both parameters to have the same "
-                    + "type, instead got " + getValue1(map).getClass().getSimpleName() + " and " +
-                    getValue3(map).getClass().getSimpleName());
+            validateEquality(getValue1(map).getType(), getValue3(map).getType(), map, "MAP_VAL_BETWEEN_BY_KEY");
+
+            Exp value1, value2;
+            Exp.Type type;
+            switch (getValue1(map).getType()) {
+                case INTEGER -> {
+                    value1 = Exp.val(getValue1(map).toLong());
+                    value2 = Exp.val(getValue3(map).toLong());
+                    type = Exp.Type.INT;
+                }
+                case STRING -> {
+                    value1 = Exp.val(getValue1(map).toString());
+                    value2 = Exp.val(getValue3(map).toString());
+                    type = Exp.Type.STRING;
+                }
+                case JBLOB -> {
+                    if (isConvertedValueInstanceOfList(map)) {
+                        // Collection comes as JBLOB
+                        value1 = Exp.val((List<?>) getValue1(map));
+                        value2 = Exp.val((List<?>) getValue3(map));
+                        type = Exp.Type.LIST;
+                    } else {
+                        // custom objects are converted into Maps
+                        value1 = Exp.val((Map<?, ?>) getValue1(map));
+                        value2 = Exp.val((Map<?, ?>) getValue3(map));
+                        type = Exp.Type.MAP;
+                    }
+                }
+                case LIST -> {
+                    value1 = Exp.val((List<?>) getValue1(map));
+                    value2 = Exp.val((List<?>) getValue3(map));
+                    type = Exp.Type.LIST;
+                }
+                case MAP -> {
+                    value1 = Exp.val((Map<?, ?>) getValue1(map));
+                    value2 = Exp.val((Map<?, ?>) getValue3(map));
+                    type = Exp.Type.MAP;
+                }
+                default -> throw new IllegalArgumentException(
+                    "MAP_VAL_BETWEEN_BY_KEY FilterExpression unsupported type: expected integer, long or String, " +
+                        "instead got " + getValue1(map).getClass().getSimpleName());
             }
 
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> mapValBetweenByKey(map, dotPathArr, Exp.Type.INT, Exp.val(getValue1(map).toLong()),
-                    Exp.val(getValue3(map).toLong()));
-                case STRING -> mapValBetweenByKey(map, dotPathArr, Exp.Type.STRING, Exp.val(getValue1(map).toString()),
-                    Exp.val(getValue3(map).toString()));
-                default -> throw new IllegalArgumentException(
-                    "MAP_VAL_BETWEEN_BY_KEY FilterExpression unsupported arguments type: expected integer, long or " +
-                        "String, instead got " + getValue1(map).getClass().getSimpleName());
-            };
+            return mapValBetweenByKey(map, dotPathArr, type, value1, value2);
         }
 
         private Exp mapValBetweenByKey(Map<String, Object> map, String[] dotPathArr, Exp.Type type, Exp lowerLimit,
@@ -612,20 +656,38 @@ public enum FilterOperation {
     MAP_KEYS_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> Exp.gt(
-                    MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toLong()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(0)
-                );
-                case STRING -> Exp.gt(
-                    MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue1(map).toString()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(0)
-                );
+
+            Exp value;
+            switch (getValue1(map).getType()) {
+                case INTEGER -> {
+                    value = Exp.val(getValue1(map).toLong());
+                }
+                case STRING -> {
+                    value = Exp.val(getValue1(map).toString());
+                }
+                case JBLOB -> {
+                    if (isConvertedValueInstanceOfList(map)) {
+                        // Collection comes as JBLOB
+                        value = Exp.val((List<?>) getValue1(map));
+                    } else {
+                        // custom objects are converted into Maps
+                        value = Exp.val((Map<?, ?>) getValue1(map));
+                    }
+                }
+                case LIST -> {
+                    value = Exp.val((List<?>) getValue1(map));
+                }
+                case MAP -> {
+                    value = Exp.val((Map<?, ?>) getValue1(map));
+                }
                 default -> throw new IllegalArgumentException(
-                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: expected integer, long or String");
-            };
+                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: expected integer, long or String, " +
+                        "instead got " + getValue1(map).getClass().getSimpleName());
+            }
+
+            return Exp.gt(
+                MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(map))),
+                Exp.val(0));
         }
 
         @Override
@@ -636,20 +698,37 @@ public enum FilterOperation {
     MAP_VALUES_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> Exp.gt(
-                    MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(0)
-                );
-                case STRING -> Exp.gt(
-                    MapExp.getByValue(MapReturnType.COUNT, Exp.val(getValue1(map).toString()),
-                        Exp.mapBin(getField(map))),
-                    Exp.val(0)
-                );
+            Exp value;
+            switch (getValue1(map).getType()) {
+                case INTEGER -> {
+                    value = Exp.val(getValue1(map).toLong());
+                }
+                case STRING -> {
+                    value = Exp.val(getValue1(map).toString());
+                }
+                case JBLOB -> {
+                    if (isConvertedValueInstanceOfList(map)) {
+                        // Collection comes as JBLOB
+                        value = Exp.val((List<?>) getValue1(map));
+                    } else {
+                        // custom objects are converted into Maps
+                        value = Exp.val((Map<?, ?>) getValue1(map));
+                    }
+                }
+                case LIST -> {
+                    value = Exp.val((List<?>) getValue1(map));
+                }
+                case MAP -> {
+                    value = Exp.val((Map<?, ?>) getValue1(map));
+                }
                 default -> throw new IllegalArgumentException(
-                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: expected integer, long or String");
-            };
+                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: expected integer, long or String, " +
+                        "instead got " + getValue1(map).getClass().getSimpleName());
+            }
+
+            return Exp.gt(
+                MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(map))),
+                Exp.val(0));
         }
 
         @Override
@@ -660,20 +739,45 @@ public enum FilterOperation {
     MAP_KEYS_BETWEEN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> Exp.gt(
-                    MapExp.getByKeyRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()),
-                        Exp.val(getValue2(map).toLong()), Exp.mapBin(getField(map))),
-                    Exp.val(0)
-                );
-                case STRING -> Exp.gt(
-                    MapExp.getByKeyRange(MapReturnType.COUNT, Exp.val(getValue1(map).toString()),
-                        Exp.val(getValue2(map).toString()), Exp.mapBin(getField(map))),
-                    Exp.val(0)
-                );
+            validateEquality(getValue1(map).getType(), getValue2(map).getType(), map, "MAP_KEYS_BETWEEN");
+
+            Exp value1, value2;
+            switch (getValue1(map).getType()) {
+                case INTEGER -> {
+                    value1 = Exp.val(getValue1(map).toLong());
+                    value2 = Exp.val(getValue2(map).toLong());
+                }
+                case STRING -> {
+                    value1 = Exp.val(getValue1(map).toString());
+                    value2 = Exp.val(getValue2(map).toString());
+                }
+                case JBLOB -> {
+                    if (isConvertedValueInstanceOfList(map)) {
+                        // Collection comes as JBLOB
+                        value1 = Exp.val((List<?>) getValue1(map));
+                        value2 = Exp.val((List<?>) getValue1(map));
+                    } else {
+                        // custom objects are converted into Maps
+                        value1 = Exp.val((Map<?, ?>) getValue1(map));
+                        value2 = Exp.val((Map<?, ?>) getValue1(map));
+                    }
+                }
+                case LIST -> {
+                    value1 = Exp.val((List<?>) getValue1(map));
+                    value2 = Exp.val((List<?>) getValue2(map));
+                }
+                case MAP -> {
+                    value1 = Exp.val((Map<?, ?>) getValue1(map));
+                    value2 = Exp.val((Map<?, ?>) getValue2(map));
+                }
                 default -> throw new IllegalArgumentException(
-                    "MAP_KEYS_BETWEEN FilterExpression unsupported type: expected integer, long or String");
-            };
+                    "MAP_KEYS_BETWEEN FilterExpression unsupported type: expected integer, long or String, instead got "
+                        + getValue1(map).getClass().getSimpleName());
+            }
+
+            return Exp.gt(
+                MapExp.getByKeyRange(MapReturnType.COUNT, value1, value2, Exp.mapBin(getField(map))),
+                Exp.val(0));
         }
 
         @Override
@@ -684,20 +788,45 @@ public enum FilterOperation {
     MAP_VAL_BETWEEN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> Exp.gt(
-                    MapExp.getByValueRange(MapReturnType.COUNT, Exp.val(getValue1(map).toLong()),
-                        Exp.val(getValue2(map).toLong()), Exp.mapBin(getField(map))),
-                    Exp.val(0)
-                );
-                case STRING -> Exp.gt(
-                    MapExp.getByValueRange(MapReturnType.COUNT, Exp.val(getValue1(map).toString()),
-                        Exp.val(getValue2(map).toString()), Exp.mapBin(getField(map))),
-                    Exp.val(0)
-                );
+            validateEquality(getValue1(map).getType(), getValue2(map).getType(), map, "MAP_VAL_BETWEEN");
+
+            Exp value1, value2;
+            switch (getValue1(map).getType()) {
+                case INTEGER -> {
+                    value1 = Exp.val(getValue1(map).toLong());
+                    value2 = Exp.val(getValue2(map).toLong());
+                }
+                case STRING -> {
+                    value1 = Exp.val(getValue1(map).toString());
+                    value2 = Exp.val(getValue2(map).toString());
+                }
+                case JBLOB -> {
+                    if (isConvertedValueInstanceOfList(map)) {
+                        // Collection comes as JBLOB
+                        value1 = Exp.val((List<?>) getValue1(map));
+                        value2 = Exp.val((List<?>) getValue1(map));
+                    } else {
+                        // custom objects are converted into Maps
+                        value1 = Exp.val((Map<?, ?>) getValue1(map));
+                        value2 = Exp.val((Map<?, ?>) getValue1(map));
+                    }
+                }
+                case LIST -> {
+                    value1 = Exp.val((List<?>) getValue1(map));
+                    value2 = Exp.val((List<?>) getValue2(map));
+                }
+                case MAP -> {
+                    value1 = Exp.val((Map<?, ?>) getValue1(map));
+                    value2 = Exp.val((Map<?, ?>) getValue2(map));
+                }
                 default -> throw new IllegalArgumentException(
-                    "MAP_VAL_BETWEEN FilterExpression unsupported type: expected integer, long or String");
-            };
+                    "MAP_VAL_BETWEEN FilterExpression unsupported type: expected integer, long or String, instead got "
+                        + getValue1(map).getClass().getSimpleName());
+            }
+
+            return Exp.gt(
+                MapExp.getByValueRange(MapReturnType.COUNT, value1, value2, Exp.mapBin(getField(map))),
+                Exp.val(0));
         }
 
         @Override
@@ -722,20 +851,37 @@ public enum FilterOperation {
     LIST_VAL_CONTAINING {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> Exp.gt(
-                    ListExp.getByValue(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()),
-                        Exp.listBin(getField(map))),
-                    Exp.val(0)
-                );
-                case STRING -> Exp.gt(
-                    ListExp.getByValue(ListReturnType.COUNT, Exp.val(getValue1(map).toString()),
-                        Exp.listBin(getField(map))),
-                    Exp.val(0)
-                );
+            Exp value;
+            switch (getValue1(map).getType()) {
+                case INTEGER -> {
+                    value = Exp.val(getValue1(map).toLong());
+                }
+                case STRING -> {
+                    value = Exp.val(getValue1(map).toString());
+                }
+                case JBLOB -> {
+                    if (isConvertedValueInstanceOfList(map)) {
+                        // Collection comes as JBLOB
+                        value = Exp.val((List<?>) getValue1(map));
+                    } else {
+                        // custom objects are converted into Maps
+                        value = Exp.val((Map<?, ?>) getValue1(map));
+                    }
+                }
+                case LIST -> {
+                    value = Exp.val((List<?>) getValue1(map));
+                }
+                case MAP -> {
+                    value = Exp.val((Map<?, ?>) getValue1(map));
+                }
                 default -> throw new IllegalArgumentException(
-                    "LIST_VAL_CONTAINING FilterExpression unsupported type: expected integer, long or String");
-            };
+                    "LIST_VAL_CONTAINING FilterExpression unsupported type: expected integer, long or String, " +
+                        "instead got " + getValue1(map).getClass().getSimpleName());
+            }
+
+            return Exp.gt(
+                ListExp.getByValue(ListReturnType.COUNT, value, Exp.listBin(getField(map))),
+                Exp.val(0));
         }
 
         @Override
@@ -750,26 +896,45 @@ public enum FilterOperation {
     LIST_VAL_BETWEEN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            if (getValue1(map).getType() != getValue2(map).getType()) {
-                throw new IllegalArgumentException("LIST_VAL_BETWEEN: expected both parameters to have the same type, "
-                    + "instead got " + getValue1(map).getClass().getSimpleName() + " and " +
-                    getValue2(map).getClass().getSimpleName());
-            }
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> Exp.gt(
-                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()),
-                        Exp.val(getValue2(map).toLong()), Exp.listBin(getField(map))),
-                    Exp.val(0)
-                );
-                case STRING -> Exp.gt(
-                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toString()),
-                        Exp.val(getValue2(map).toString()), Exp.listBin(getField(map))),
-                    Exp.val(0)
-                );
+            validateEquality(getValue1(map).getType(), getValue2(map).getType(), map, "LIST_VAL_BETWEEN");
+
+            Exp value1, value2;
+            switch (getValue1(map).getType()) {
+                case INTEGER -> {
+                    value1 = Exp.val(getValue1(map).toLong());
+                    value2 = Exp.val(getValue2(map).toLong());
+                }
+                case STRING -> {
+                    value1 = Exp.val(getValue1(map).toString());
+                    value2 = Exp.val(getValue2(map).toString());
+                }
+                case JBLOB -> {
+                    if (isConvertedValueInstanceOfList(map)) {
+                        // Collection comes as JBLOB
+                        value1 = Exp.val((List<?>) getValue1(map));
+                        value2 = Exp.val((List<?>) getValue1(map));
+                    } else {
+                        // custom objects are converted into Maps
+                        value1 = Exp.val((Map<?, ?>) getValue1(map));
+                        value2 = Exp.val((Map<?, ?>) getValue1(map));
+                    }
+                }
+                case LIST -> {
+                    value1 = Exp.val((List<?>) getValue1(map));
+                    value2 = Exp.val((List<?>) getValue2(map));
+                }
+                case MAP -> {
+                    value1 = Exp.val((Map<?, ?>) getValue1(map));
+                    value2 = Exp.val((Map<?, ?>) getValue2(map));
+                }
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_BETWEEN FilterExpression unsupported type: expected integer, long or String, instead got "
                         + getValue1(map).getClass().getSimpleName());
-            };
+            }
+
+            return Exp.gt(
+                ListExp.getByValueRange(ListReturnType.COUNT, value1, value2, Exp.listBin(getField(map))),
+                Exp.val(0));
         }
 
         @Override
@@ -784,33 +949,42 @@ public enum FilterOperation {
     LIST_VAL_GT {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> {
-                    if (getValue1(map).toLong() == Long.MAX_VALUE) {
-                        throw new IllegalArgumentException(
-                            "LIST_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE.." +
-                                "Long.MAX_VALUE-1]");
+            if (getValue1(map).getType() == INTEGER) {
+                if (getValue1(map).toLong() == Long.MAX_VALUE) {
+                    throw new IllegalArgumentException(
+                        "LIST_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE.." +
+                            "Long.MAX_VALUE-1]");
+                }
+
+                return Exp.gt(
+                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong() + 1L),
+                        null, Exp.listBin(getField(map))),
+                    Exp.val(0)
+                );
+            } else {
+                Exp value = switch (getValue1(map).getType()) {
+                    case STRING -> Exp.val(getValue1(map).toString());
+                    case JBLOB -> {
+                        if (isConvertedValueInstanceOfList(map)) {
+                            // Collection comes as JBLOB
+                            yield Exp.val((List<?>) getValue1(map));
+                        } else {
+                            // custom objects are converted into Maps
+                            yield Exp.val((Map<?, ?>) getValue1(map));
+                        }
                     }
+                    case LIST -> Exp.val((List<?>) getValue1(map));
+                    case MAP -> Exp.val((Map<?, ?>) getValue1(map));
+                    default -> throw new IllegalArgumentException(
+                        "LIST_VAL_GT FilterExpression unsupported type: expected integer, long or String, instead got "
+                            + getValue1(map).getClass().getSimpleName());
+                };
 
-                    yield Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong() + 1L),
-                            null, Exp.listBin(getField(map))),
-                        Exp.val(0)
-                    );
-                }
-                case STRING -> {
-                    String lowerLimitIncremented = incrementStringWithMinimalByte(getValue1(map).toString());
-
-                    yield Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(lowerLimitIncremented),
-                            null, Exp.listBin(getField(map))),
-                        Exp.val(0)
-                    );
-                }
-                default -> throw new IllegalArgumentException(
-                    "LIST_VAL_GT FilterExpression unsupported type: expected integer, long or String, instead got "
-                        + getValue1(map).getClass().getSimpleName());
-            };
+                Exp rangeIncludingValue = ListExp.getByValueRange(ListReturnType.COUNT, value, null,
+                    Exp.listBin(getField(map)));
+                Exp valueOnly = ListExp.getByValue(ListReturnType.COUNT, value, Exp.listBin(getField(map)));
+                return Exp.gt(Exp.sub(rangeIncludingValue, valueOnly), Exp.val(0));
+            }
         }
 
         @Override
@@ -826,21 +1000,28 @@ public enum FilterOperation {
     LIST_VAL_GTEQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> Exp.gt(
-                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toLong()),
-                        null, Exp.listBin(getField(map))),
-                    Exp.val(0)
-                );
-                case STRING -> Exp.gt(
-                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue1(map).toString()),
-                        null, Exp.listBin(getField(map))),
-                    Exp.val(0)
-                );
+            Exp value = switch (getValue1(map).getType()) {
+                case INTEGER -> Exp.val(getValue1(map).toLong());
+                case STRING -> Exp.val(getValue1(map).toString());
+                case JBLOB -> {
+                    if (isConvertedValueInstanceOfList(map)) {
+                        // Collection comes as JBLOB
+                        yield Exp.val((List<?>) getValue1(map));
+                    } else {
+                        // custom objects are converted into Maps
+                        yield Exp.val((Map<?, ?>) getValue1(map));
+                    }
+                }
+                case LIST -> Exp.val((List<?>) getValue1(map));
+                case MAP -> Exp.val((Map<?, ?>) getValue1(map));
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_GTEQ FilterExpression unsupported type: expected integer, long or String, instead got "
                         + getValue1(map).getClass().getSimpleName());
             };
+
+            return Exp.gt(
+                ListExp.getByValueRange(ListReturnType.COUNT, value, null, Exp.listBin(getField(map))),
+                Exp.val(0));
         }
 
         @Override
@@ -855,7 +1036,7 @@ public enum FilterOperation {
     LIST_VAL_LT {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return switch (getValue1(map).getType()) {
+            Exp value = switch (getValue1(map).getType()) {
                 case INTEGER -> {
                     if (getValue1(map).toLong() == Long.MIN_VALUE) {
                         throw new IllegalArgumentException(
@@ -863,21 +1044,28 @@ public enum FilterOperation {
                                 "Long.MAX_VALUE]");
                     }
 
-                    yield Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, null,
-                            Exp.val(getValue1(map).toLong()), Exp.listBin(getField(map))),
-                        Exp.val(0)
-                    );
+                    yield Exp.val(getValue1(map).toLong());
                 }
-                case STRING -> Exp.gt(
-                    ListExp.getByValueRange(ListReturnType.COUNT, null,
-                        Exp.val(getValue1(map).toString()), Exp.listBin(getField(map))),
-                    Exp.val(0)
-                );
+                case STRING -> Exp.val(getValue1(map).toString());
+                case JBLOB -> {
+                    if (isConvertedValueInstanceOfList(map)) {
+                        // Collection comes as JBLOB
+                        yield Exp.val((List<?>) getValue1(map));
+                    } else {
+                        // custom objects are converted into Maps
+                        yield Exp.val((Map<?, ?>) getValue1(map));
+                    }
+                }
+                case LIST -> Exp.val((List<?>) getValue1(map));
+                case MAP -> Exp.val((Map<?, ?>) getValue1(map));
                 default -> throw new IllegalArgumentException(
-                    "LIST_VAL_LT FilterExpression unsupported type: expected integer, long or String, instead got "
+                    "LIST_VAL_GTEQ FilterExpression unsupported type: expected integer, long or String, instead got "
                         + getValue1(map).getClass().getSimpleName());
             };
+
+            return Exp.gt(
+                ListExp.getByValueRange(ListReturnType.COUNT, null, value, Exp.listBin(getField(map))),
+                Exp.val(0));
         }
 
         @Override
@@ -893,37 +1081,42 @@ public enum FilterOperation {
     LIST_VAL_LTEQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            return switch (getValue1(map).getType()) {
-                case INTEGER -> {
-                    long lowerLimit, upperLimit;
-                    if (getValue1(map).toLong() == Long.MAX_VALUE) {
-                        throw new IllegalArgumentException(
-                            "LIST_VAL_LTEQ FilterExpression unsupported value: expected [Long.MIN_VALUE.." +
-                                "Long.MAX_VALUE-1]");
-                    } else {
-                        lowerLimit = Long.MIN_VALUE;
-                        upperLimit = getValue1(map).toLong() + 1L;
+            if (getValue1(map).getType() == INTEGER) {
+                Exp upperLimit;
+                if (getValue1(map).toLong() == Long.MAX_VALUE) {
+                    upperLimit = Exp.inf();
+                } else {
+                    upperLimit = Exp.val(getValue1(map).toLong() + 1L);
+                }
+
+                return Exp.gt(
+                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(Long.MIN_VALUE),
+                        upperLimit, Exp.listBin(getField(map))),
+                    Exp.val(0));
+            } else {
+                Exp value = switch (getValue1(map).getType()) {
+                    case STRING -> Exp.val(getValue1(map).toString());
+                    case JBLOB -> {
+                        if (isConvertedValueInstanceOfList(map)) {
+                            // Collection comes as JBLOB
+                            yield Exp.val((List<?>) getValue1(map));
+                        } else {
+                            // custom objects are converted into Maps
+                            yield Exp.val((Map<?, ?>) getValue1(map));
+                        }
                     }
+                    case LIST -> Exp.val((List<?>) getValue1(map));
+                    case MAP -> Exp.val((Map<?, ?>) getValue1(map));
+                    default -> throw new IllegalArgumentException(
+                        "LIST_VAL_LTEQ FilterExpression unsupported type: expected integer, long or String, instead " +
+                            "got " + getValue1(map).getClass().getSimpleName());
+                };
 
-                    yield Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(lowerLimit),
-                            Exp.val(upperLimit), Exp.listBin(getField(map))),
-                        Exp.val(0)
-                    );
-                }
-                case STRING -> {
-                    String lowerLimitIncremented = incrementStringWithMinimalByte(getValue1(map).toString());
-
-                    yield Exp.gt(
-                        ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(""),
-                            Exp.val(lowerLimitIncremented), Exp.listBin(getField(map))),
-                        Exp.val(0)
-                    );
-                }
-                default -> throw new IllegalArgumentException(
-                    "LIST_VAL_LTEQ FilterExpression unsupported type: expected integer, long or String, instead got "
-                        + getValue1(map).getClass().getSimpleName());
-            };
+                Exp rangeIncludingValue = ListExp.getByValueRange(ListReturnType.COUNT, null, value,
+                    Exp.listBin(getField(map)));
+                Exp valueOnly = ListExp.getByValue(ListReturnType.COUNT, value, Exp.listBin(getField(map)));
+                return Exp.gt(Exp.add(rangeIncludingValue, valueOnly), Exp.val(0));
+            }
         }
 
         @Override
@@ -936,12 +1129,12 @@ public enum FilterOperation {
         }
     };
 
-    private static String incrementStringWithMinimalByte(String str) {
-        byte[] byteArr = str.getBytes(StandardCharsets.UTF_8);
-        byte[] newByteArr = new byte[byteArr.length + 1];
-        System.arraycopy(byteArr, 0, newByteArr, 0, byteArr.length);
-        newByteArr[newByteArr.length - 1] = (byte) 0b00000000;
-        return new String(newByteArr, StandardCharsets.UTF_8);
+    private static void validateEquality(int type1, int type2, Map<String, Object> map, String opName) {
+        if (type1 != type2) {
+            throw new IllegalArgumentException(opName + ": expected both parameters to have the same "
+                + "type, instead got " + getValue1(map).getClass().getSimpleName() + " and " +
+                getValue2(map).getClass().getSimpleName());
+        }
     }
 
     /**
@@ -969,6 +1162,17 @@ public enum FilterOperation {
         return switch (getValue1(map).getType()) {
             case INTEGER -> operator.apply(mapExp, Exp.val(getValue1(map).toLong()));
             case STRING -> operator.apply(mapExp, Exp.val(getValue1(map).toString()));
+            case JBLOB -> {
+                if (isConvertedValueInstanceOfList(map)) {
+                    // Collection comes as JBLOB
+                    yield operator.apply(mapExp, Exp.val((List<?>) getValue1(map)));
+                } else {
+                    // custom objects are converted into Maps
+                    yield operator.apply(mapExp, Exp.val((Map<?, ?>) getValue1(map)));
+                }
+            }
+            case LIST -> operator.apply(mapExp, Exp.val((List<?>) getValue1(map)));
+            case MAP -> operator.apply(mapExp, Exp.val((Map<?, ?>) getValue1(map)));
             default -> throw new IllegalArgumentException(
                 opName + " FilterExpression unsupported type: " + getValue1(map).getClass().getSimpleName()
                     + ", expected integer, long or String");
@@ -1013,26 +1217,48 @@ public enum FilterOperation {
 
                 yield operator.apply(mapExp, Exp.val(getValue1(map).toString()));
             }
-            case ParticleType.JBLOB -> {
-                Object obj = getValue1(map).getObject();
-                if (useCtx) {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
-                        Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
-                        Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+            case JBLOB -> {
+                if (isConvertedValueInstanceOfList(map)) {
+                    // Collection comes as JBLOB
+                    yield getMapVal(map, dotPathArr, operator, Exp.Type.LIST, useCtx);
                 } else {
-                    mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP,
-                        Exp.val(getValue2(map).toString()),
-                        Exp.mapBin(getField(map)));
+                    // custom objects are converted into Maps
+                    yield getMapVal(map, dotPathArr, operator, Exp.Type.MAP, useCtx);
                 }
-
-                yield operator.apply(mapExp,
-                    toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
-                );
             }
+            case LIST -> getMapVal(map, dotPathArr, operator, Exp.Type.LIST, useCtx);
+            case MAP -> getMapVal(map, dotPathArr, operator, Exp.Type.MAP, useCtx);
             default -> throw new IllegalArgumentException(
-                opName + " FilterExpression unsupported type: " + getValue1(map).getType()
-                    + ", expected integer, long, String or Object");
+                opName + " FilterExpression unsupported type: " + getValue1(map).getClass().getSimpleName()
+                    + ", expected integer, long, String, Map or Object");
         };
+    }
+
+    private static boolean isConvertedValueInstanceOfList(Map<String, Object> map) {
+        Object convertedValue = getConverter(map).toWritableValue(
+            getValue1(map).getObject(), TypeInformation.of(getValue1(map).getObject().getClass())
+        );
+
+        return convertedValue instanceof List<?>;
+    }
+
+    private static Exp getMapVal(Map<String, Object> map, String[] dotPathArr,
+                                 BinaryOperator<Exp> operator, Exp.Type expType, boolean useCtx) {
+        Object obj = getValue1(map).getObject();
+        Exp mapExp;
+        if (useCtx) {
+            mapExp = MapExp.getByKey(MapReturnType.VALUE, expType,
+                Exp.val(getValue2(map).toString()), // VALUE2 contains key (field name)
+                Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
+        } else {
+            mapExp = MapExp.getByKey(MapReturnType.VALUE, expType,
+                Exp.val(getValue2(map).toString()),
+                Exp.mapBin(getField(map)));
+        }
+
+        return operator.apply(mapExp,
+            toExp(getConverter(map).toWritableValue(obj, TypeInformation.of(obj.getClass())))
+        );
     }
 
     private static Exp getFilterExp(MappingAerospikeConverter converter, Value val, String field,
@@ -1041,7 +1267,7 @@ public enum FilterOperation {
             val.getObject(), TypeInformation.of(val.getObject().getClass())
         );
         if (convertedValue instanceof List<?>) {
-            // Collection comes as JBLOB and gets converted to a List
+            // Collection comes as JBLOB
             return function.apply(Exp.listBin(field), toExp(convertedValue));
         } else {
             // custom objects are converted into Maps

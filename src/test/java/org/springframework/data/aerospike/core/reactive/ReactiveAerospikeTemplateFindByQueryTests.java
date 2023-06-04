@@ -238,7 +238,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 30);
+        // upper limit is exclusive
+        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
