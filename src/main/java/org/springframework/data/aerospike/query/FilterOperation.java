@@ -522,26 +522,28 @@ public enum FilterOperation {
                     type = Exp.Type.STRING;
                 }
                 case JBLOB -> {
-                    if (isConvertedValueInstanceOfList(map)) {
+                    Object convertedValue1 = getConvertedValue(map, FilterOperation::getValue1);
+                    Object convertedValue3 = getConvertedValue(map, FilterOperation::getValue3);
+                    if (convertedValue1 instanceof List<?>) {
                         // Collection comes as JBLOB
-                        value1 = Exp.val((List<?>) getValue1(map));
-                        value2 = Exp.val((List<?>) getValue3(map));
+                        value1 = Exp.val((List<?>) convertedValue1);
+                        value2 = Exp.val((List<?>) convertedValue3);
                         type = Exp.Type.LIST;
                     } else {
                         // custom objects are converted into Maps
-                        value1 = Exp.val((Map<?, ?>) getValue1(map));
-                        value2 = Exp.val((Map<?, ?>) getValue3(map));
+                        value1 = Exp.val((Map<?, ?>) convertedValue1);
+                        value2 = Exp.val((Map<?, ?>) convertedValue3);
                         type = Exp.Type.MAP;
                     }
                 }
                 case LIST -> {
-                    value1 = Exp.val((List<?>) getValue1(map));
-                    value2 = Exp.val((List<?>) getValue3(map));
+                    value1 = Exp.val((List<?>) getValue1(map).getObject());
+                    value2 = Exp.val((List<?>) getValue3(map).getObject());
                     type = Exp.Type.LIST;
                 }
                 case MAP -> {
-                    value1 = Exp.val((Map<?, ?>) getValue1(map));
-                    value2 = Exp.val((Map<?, ?>) getValue3(map));
+                    value1 = Exp.val((Map<?, ?>) getValue1(map).getObject());
+                    value2 = Exp.val((Map<?, ?>) getValue3(map).getObject());
                     type = Exp.Type.MAP;
                 }
                 default -> throw new IllegalArgumentException(
@@ -552,7 +554,7 @@ public enum FilterOperation {
             return mapValBetweenByKey(map, dotPathArr, type, value1, value2);
         }
 
-        private Exp mapValBetweenByKey(Map<String, Object> map, String[] dotPathArr, Exp.Type type, Exp lowerLimit,
+        private static Exp mapValBetweenByKey(Map<String, Object> map, String[] dotPathArr, Exp.Type type, Exp lowerLimit,
                                        Exp upperLimit) {
             Exp mapExp;
             if (dotPathArr.length > 2) {
@@ -666,19 +668,20 @@ public enum FilterOperation {
                     value = Exp.val(getValue1(map).toString());
                 }
                 case JBLOB -> {
-                    if (isConvertedValueInstanceOfList(map)) {
+                    Object convertedValue = getConvertedValue(map, FilterOperation::getValue1);
+                    if (convertedValue instanceof List<?>) {
                         // Collection comes as JBLOB
-                        value = Exp.val((List<?>) getValue1(map));
+                        value = Exp.val((List<?>) convertedValue);
                     } else {
                         // custom objects are converted into Maps
-                        value = Exp.val((Map<?, ?>) getValue1(map));
+                        value = Exp.val((Map<?, ?>) convertedValue);
                     }
                 }
                 case LIST -> {
-                    value = Exp.val((List<?>) getValue1(map));
+                    value = Exp.val((List<?>) getValue1(map).getObject());
                 }
                 case MAP -> {
-                    value = Exp.val((Map<?, ?>) getValue1(map));
+                    value = Exp.val((Map<?, ?>) getValue1(map).getObject());
                 }
                 default -> throw new IllegalArgumentException(
                     "MAP_KEYS_CONTAIN FilterExpression unsupported type: expected integer, long or String, " +
@@ -707,19 +710,20 @@ public enum FilterOperation {
                     value = Exp.val(getValue1(map).toString());
                 }
                 case JBLOB -> {
-                    if (isConvertedValueInstanceOfList(map)) {
+                    Object convertedValue = getConvertedValue(map, FilterOperation::getValue1);
+                    if (convertedValue instanceof List<?>) {
                         // Collection comes as JBLOB
-                        value = Exp.val((List<?>) getValue1(map));
+                        value = Exp.val((List<?>) convertedValue);
                     } else {
                         // custom objects are converted into Maps
-                        value = Exp.val((Map<?, ?>) getValue1(map));
+                        value = Exp.val((Map<?, ?>) convertedValue);
                     }
                 }
                 case LIST -> {
-                    value = Exp.val((List<?>) getValue1(map));
+                    value = Exp.val((List<?>) getValue1(map).getObject());
                 }
                 case MAP -> {
-                    value = Exp.val((Map<?, ?>) getValue1(map));
+                    value = Exp.val((Map<?, ?>) getValue1(map).getObject());
                 }
                 default -> throw new IllegalArgumentException(
                     "MAP_VALUES_CONTAIN FilterExpression unsupported type: expected integer, long or String, " +
@@ -752,23 +756,25 @@ public enum FilterOperation {
                     value2 = Exp.val(getValue2(map).toString());
                 }
                 case JBLOB -> {
-                    if (isConvertedValueInstanceOfList(map)) {
+                    Object convertedValue1 = getConvertedValue(map, FilterOperation::getValue1);
+                    Object convertedValue2 = getConvertedValue(map, FilterOperation::getValue2);
+                    if (convertedValue1 instanceof List<?>) {
                         // Collection comes as JBLOB
-                        value1 = Exp.val((List<?>) getValue1(map));
-                        value2 = Exp.val((List<?>) getValue1(map));
+                        value1 = Exp.val((List<?>) convertedValue1);
+                        value2 = Exp.val((List<?>) convertedValue2);
                     } else {
                         // custom objects are converted into Maps
-                        value1 = Exp.val((Map<?, ?>) getValue1(map));
-                        value2 = Exp.val((Map<?, ?>) getValue1(map));
+                        value1 = Exp.val((Map<?, ?>) convertedValue1);
+                        value2 = Exp.val((Map<?, ?>) convertedValue2);
                     }
                 }
                 case LIST -> {
-                    value1 = Exp.val((List<?>) getValue1(map));
-                    value2 = Exp.val((List<?>) getValue2(map));
+                    value1 = Exp.val((List<?>) getValue1(map).getObject());
+                    value2 = Exp.val((List<?>) getValue2(map).getObject());
                 }
                 case MAP -> {
-                    value1 = Exp.val((Map<?, ?>) getValue1(map));
-                    value2 = Exp.val((Map<?, ?>) getValue2(map));
+                    value1 = Exp.val((Map<?, ?>) getValue1(map).getObject());
+                    value2 = Exp.val((Map<?, ?>) getValue2(map).getObject());
                 }
                 default -> throw new IllegalArgumentException(
                     "MAP_KEYS_BETWEEN FilterExpression unsupported type: expected integer, long or String, instead got "
@@ -801,23 +807,25 @@ public enum FilterOperation {
                     value2 = Exp.val(getValue2(map).toString());
                 }
                 case JBLOB -> {
-                    if (isConvertedValueInstanceOfList(map)) {
+                    Object convertedValue1 = getConvertedValue(map, FilterOperation::getValue1);
+                    Object convertedValue2 = getConvertedValue(map, FilterOperation::getValue2);
+                    if (convertedValue1 instanceof List<?>) {
                         // Collection comes as JBLOB
-                        value1 = Exp.val((List<?>) getValue1(map));
-                        value2 = Exp.val((List<?>) getValue1(map));
+                        value1 = Exp.val((List<?>) convertedValue1);
+                        value2 = Exp.val((List<?>) convertedValue2);
                     } else {
                         // custom objects are converted into Maps
-                        value1 = Exp.val((Map<?, ?>) getValue1(map));
-                        value2 = Exp.val((Map<?, ?>) getValue1(map));
+                        value1 = Exp.val((Map<?, ?>) convertedValue1);
+                        value2 = Exp.val((Map<?, ?>) convertedValue2);
                     }
                 }
                 case LIST -> {
-                    value1 = Exp.val((List<?>) getValue1(map));
-                    value2 = Exp.val((List<?>) getValue2(map));
+                    value1 = Exp.val((List<?>) getValue1(map).getObject());
+                    value2 = Exp.val((List<?>) getValue2(map).getObject());
                 }
                 case MAP -> {
-                    value1 = Exp.val((Map<?, ?>) getValue1(map));
-                    value2 = Exp.val((Map<?, ?>) getValue2(map));
+                    value1 = Exp.val((Map<?, ?>) getValue1(map).getObject());
+                    value2 = Exp.val((Map<?, ?>) getValue2(map).getObject());
                 }
                 default -> throw new IllegalArgumentException(
                     "MAP_VAL_BETWEEN FilterExpression unsupported type: expected integer, long or String, instead got "
@@ -860,19 +868,20 @@ public enum FilterOperation {
                     value = Exp.val(getValue1(map).toString());
                 }
                 case JBLOB -> {
-                    if (isConvertedValueInstanceOfList(map)) {
+                    Object convertedValue = getConvertedValue(map, FilterOperation::getValue1);
+                    if (convertedValue instanceof List<?>) {
                         // Collection comes as JBLOB
-                        value = Exp.val((List<?>) getValue1(map));
+                        value = Exp.val((List<?>) convertedValue);
                     } else {
                         // custom objects are converted into Maps
-                        value = Exp.val((Map<?, ?>) getValue1(map));
+                        value = Exp.val((Map<?, ?>) convertedValue);
                     }
                 }
                 case LIST -> {
-                    value = Exp.val((List<?>) getValue1(map));
+                    value = Exp.val((List<?>) getValue1(map).getObject());
                 }
                 case MAP -> {
-                    value = Exp.val((Map<?, ?>) getValue1(map));
+                    value = Exp.val((Map<?, ?>) getValue1(map).getObject());
                 }
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_CONTAINING FilterExpression unsupported type: expected integer, long or String, " +
@@ -909,23 +918,25 @@ public enum FilterOperation {
                     value2 = Exp.val(getValue2(map).toString());
                 }
                 case JBLOB -> {
-                    if (isConvertedValueInstanceOfList(map)) {
+                    Object convertedValue1 = getConvertedValue(map, FilterOperation::getValue1);
+                    Object convertedValue2 = getConvertedValue(map, FilterOperation::getValue2);
+                    if (convertedValue1 instanceof List<?>) {
                         // Collection comes as JBLOB
-                        value1 = Exp.val((List<?>) getValue1(map));
-                        value2 = Exp.val((List<?>) getValue1(map));
+                        value1 = Exp.val((List<?>) convertedValue1);
+                        value2 = Exp.val((List<?>) convertedValue2);
                     } else {
                         // custom objects are converted into Maps
-                        value1 = Exp.val((Map<?, ?>) getValue1(map));
-                        value2 = Exp.val((Map<?, ?>) getValue1(map));
+                        value1 = Exp.val((Map<?, ?>) convertedValue1);
+                        value2 = Exp.val((Map<?, ?>) convertedValue2);
                     }
                 }
                 case LIST -> {
-                    value1 = Exp.val((List<?>) getValue1(map));
-                    value2 = Exp.val((List<?>) getValue2(map));
+                    value1 = Exp.val((List<?>) getValue1(map).getObject());
+                    value2 = Exp.val((List<?>) getValue2(map).getObject());
                 }
                 case MAP -> {
-                    value1 = Exp.val((Map<?, ?>) getValue1(map));
-                    value2 = Exp.val((Map<?, ?>) getValue2(map));
+                    value1 = Exp.val((Map<?, ?>) getValue1(map).getObject());
+                    value2 = Exp.val((Map<?, ?>) getValue2(map).getObject());
                 }
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_BETWEEN FilterExpression unsupported type: expected integer, long or String, instead got "
@@ -965,16 +976,17 @@ public enum FilterOperation {
                 Exp value = switch (getValue1(map).getType()) {
                     case STRING -> Exp.val(getValue1(map).toString());
                     case JBLOB -> {
-                        if (isConvertedValueInstanceOfList(map)) {
+                        Object convertedValue = getConvertedValue(map, FilterOperation::getValue1);
+                        if (convertedValue instanceof List<?>) {
                             // Collection comes as JBLOB
-                            yield Exp.val((List<?>) getValue1(map));
+                            yield Exp.val((List<?>) convertedValue);
                         } else {
                             // custom objects are converted into Maps
-                            yield Exp.val((Map<?, ?>) getValue1(map));
+                            yield Exp.val((Map<?, ?>) convertedValue);
                         }
                     }
-                    case LIST -> Exp.val((List<?>) getValue1(map));
-                    case MAP -> Exp.val((Map<?, ?>) getValue1(map));
+                    case LIST -> Exp.val((List<?>) getValue1(map).getObject());
+                    case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
                     default -> throw new IllegalArgumentException(
                         "LIST_VAL_GT FilterExpression unsupported type: expected integer, long or String, instead got "
                             + getValue1(map).getClass().getSimpleName());
@@ -1004,16 +1016,17 @@ public enum FilterOperation {
                 case INTEGER -> Exp.val(getValue1(map).toLong());
                 case STRING -> Exp.val(getValue1(map).toString());
                 case JBLOB -> {
-                    if (isConvertedValueInstanceOfList(map)) {
+                    Object convertedValue = getConvertedValue(map, FilterOperation::getValue1);
+                    if (convertedValue instanceof List<?>) {
                         // Collection comes as JBLOB
-                        yield Exp.val((List<?>) getValue1(map));
+                        yield Exp.val((List<?>) convertedValue);
                     } else {
                         // custom objects are converted into Maps
-                        yield Exp.val((Map<?, ?>) getValue1(map));
+                        yield Exp.val((Map<?, ?>) convertedValue);
                     }
                 }
-                case LIST -> Exp.val((List<?>) getValue1(map));
-                case MAP -> Exp.val((Map<?, ?>) getValue1(map));
+                case LIST -> Exp.val((List<?>) getValue1(map).getObject());
+                case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_GTEQ FilterExpression unsupported type: expected integer, long or String, instead got "
                         + getValue1(map).getClass().getSimpleName());
@@ -1048,16 +1061,17 @@ public enum FilterOperation {
                 }
                 case STRING -> Exp.val(getValue1(map).toString());
                 case JBLOB -> {
-                    if (isConvertedValueInstanceOfList(map)) {
+                    Object convertedValue = getConvertedValue(map, FilterOperation::getValue1);
+                    if (convertedValue instanceof List<?>) {
                         // Collection comes as JBLOB
-                        yield Exp.val((List<?>) getValue1(map));
+                        yield Exp.val((List<?>) convertedValue);
                     } else {
                         // custom objects are converted into Maps
-                        yield Exp.val((Map<?, ?>) getValue1(map));
+                        yield Exp.val((Map<?, ?>) convertedValue);
                     }
                 }
-                case LIST -> Exp.val((List<?>) getValue1(map));
-                case MAP -> Exp.val((Map<?, ?>) getValue1(map));
+                case LIST -> Exp.val((List<?>) getValue1(map).getObject());
+                case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_GTEQ FilterExpression unsupported type: expected integer, long or String, instead got "
                         + getValue1(map).getClass().getSimpleName());
@@ -1097,16 +1111,17 @@ public enum FilterOperation {
                 Exp value = switch (getValue1(map).getType()) {
                     case STRING -> Exp.val(getValue1(map).toString());
                     case JBLOB -> {
-                        if (isConvertedValueInstanceOfList(map)) {
+                        Object convertedValue = getConvertedValue(map, FilterOperation::getValue1);
+                        if (convertedValue instanceof List<?>) {
                             // Collection comes as JBLOB
-                            yield Exp.val((List<?>) getValue1(map));
+                            yield Exp.val((List<?>) convertedValue);
                         } else {
                             // custom objects are converted into Maps
-                            yield Exp.val((Map<?, ?>) getValue1(map));
+                            yield Exp.val((Map<?, ?>) convertedValue);
                         }
                     }
-                    case LIST -> Exp.val((List<?>) getValue1(map));
-                    case MAP -> Exp.val((Map<?, ?>) getValue1(map));
+                    case LIST -> Exp.val((List<?>) getValue1(map).getObject());
+                    case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
                     default -> throw new IllegalArgumentException(
                         "LIST_VAL_LTEQ FilterExpression unsupported type: expected integer, long or String, instead " +
                             "got " + getValue1(map).getClass().getSimpleName());
@@ -1151,6 +1166,7 @@ public enum FilterOperation {
         Exp mapExp;
 
         // VALUE2 contains key (field name)
+        // currently only String Map keys are supported
         if (dotPathArr.length > 2) {
             mapExp = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.INT, Exp.val(getValue2(map).toString()),
                 Exp.mapBin(getField(map)), dotPathToCtxMapKeys(dotPathArr));
@@ -1163,16 +1179,17 @@ public enum FilterOperation {
             case INTEGER -> operator.apply(mapExp, Exp.val(getValue1(map).toLong()));
             case STRING -> operator.apply(mapExp, Exp.val(getValue1(map).toString()));
             case JBLOB -> {
-                if (isConvertedValueInstanceOfList(map)) {
+                Object convertedValue = getConvertedValue(map, FilterOperation::getValue1);
+                if (convertedValue instanceof List<?>) {
                     // Collection comes as JBLOB
-                    yield operator.apply(mapExp, Exp.val((List<?>) getValue1(map)));
+                    yield operator.apply(mapExp, Exp.val((List<?>) convertedValue));
                 } else {
                     // custom objects are converted into Maps
-                    yield operator.apply(mapExp, Exp.val((Map<?, ?>) getValue1(map)));
+                    yield operator.apply(mapExp, Exp.val((Map<?, ?>) convertedValue));
                 }
             }
-            case LIST -> operator.apply(mapExp, Exp.val((List<?>) getValue1(map)));
-            case MAP -> operator.apply(mapExp, Exp.val((Map<?, ?>) getValue1(map)));
+            case LIST -> operator.apply(mapExp, Exp.val((List<?>) getValue1(map).getObject()));
+            case MAP -> operator.apply(mapExp, Exp.val((Map<?, ?>) getValue1(map).getObject()));
             default -> throw new IllegalArgumentException(
                 opName + " FilterExpression unsupported type: " + getValue1(map).getClass().getSimpleName()
                     + ", expected integer, long or String");
@@ -1218,7 +1235,7 @@ public enum FilterOperation {
                 yield operator.apply(mapExp, Exp.val(getValue1(map).toString()));
             }
             case JBLOB -> {
-                if (isConvertedValueInstanceOfList(map)) {
+                if (getConvertedValue(map, FilterOperation::getValue1) instanceof List<?>) {
                     // Collection comes as JBLOB
                     yield getMapVal(map, dotPathArr, operator, Exp.Type.LIST, useCtx);
                 } else {
@@ -1234,12 +1251,10 @@ public enum FilterOperation {
         };
     }
 
-    private static boolean isConvertedValueInstanceOfList(Map<String, Object> map) {
-        Object convertedValue = getConverter(map).toWritableValue(
-            getValue1(map).getObject(), TypeInformation.of(getValue1(map).getObject().getClass())
+    private static Object getConvertedValue(Map<String, Object> map, Function<Map<String, Object>, Value> function) {
+        return getConverter(map).toWritableValue(
+            function.apply(map).getObject(), TypeInformation.of(function.apply(map).getObject().getClass())
         );
-
-        return convertedValue instanceof List<?>;
     }
 
     private static Exp getMapVal(Map<String, Object> map, String[] dotPathArr,

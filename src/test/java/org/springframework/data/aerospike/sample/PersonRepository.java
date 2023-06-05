@@ -248,21 +248,23 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
-     * @param value lower limit, exclusive
+     * @param string         lower limit, exclusive
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    List<P> findByStringsGreaterThan(String value);
+    List<P> findByStringsGreaterThan(String string, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
 
     /**
-     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to
-     * the given String"
+     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
+     * given String"
      * <p>
      * List name in this case is Strings
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
-     * @param value lower limit, inclusive
+     * @param string         lower limit, inclusive
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    List<P> findByStringsLessThanEqual(String value);
+    List<P> findByStringsLessThanEqual(String string, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
 
     /**
      * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
@@ -289,8 +291,18 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringsLessThan(List<String> list);
 
     /**
-     * Find all entities that satisfy the condition "have strings set with fewer elements or with a corresponding
-     * element lower in ordering than in the given argument" (find by collection).
+     * Find all entities that satisfy the condition "have integers list with more elements or with a corresponding
+     * element higher in ordering than in the given argument" (find by list).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param list - List to compare with
+     */
+    List<P> findByIntsGreaterThan(List<Integer> list);
+
+    /**
+     * Find all entities that satisfy the condition "have strings set with more elements or with a corresponding element
+     * higher in ordering than in the given argument" (find by collection).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
      *
@@ -472,6 +484,16 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit for the map value, exclusive
      */
     List<P> findByIntMapBetween(String key, int from, int to);
+
+    /**
+     * Find all entities that satisfy the condition "have the map in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
+     */
+    List<P> findByIntMapBetween(Map<String, Integer> from, Map<String, Integer> to);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value in the range between the given
@@ -661,20 +683,88 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
-     * @param integer lower limit, exclusive
+     * @param integer        lower limit, exclusive
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    List<P> findByIntsGreaterThan(int integer);
+    List<P> findByIntsGreaterThan(int integer, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
 
     /**
-     * Find all entities that satisfy the condition "have at least one list value which is greater than the given
-     * long value"
+     * Find all entities that satisfy the condition "have at least one list value which is greater than the given long
+     * value"
      * <p>
      * List name in this case is Ints
      * </p>
      *
-     * @param value lower limit, exclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     * @param value          lower limit, exclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    List<P> findByIntsGreaterThan(long value);
+    List<P> findByIntsGreaterThan(long value, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is greater than the given list
+     * of integers"
+     * <p>
+     * ListOfIntLists is a list of lists
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param list           List element to compare with
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
+     */
+    List<P> findByListOfIntListsGreaterThan(List<Integer> list,
+                                            CriteriaDefinition.AerospikeMapCriteria valueCriterion);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is less than the given map"
+     * <p>
+     * ListOfIntMaps is a list of maps
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param map            List element to compare with
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
+     */
+    List<P> findByListOfIntMapsLessThan(Map<String, Integer> map,
+                                        CriteriaDefinition.AerospikeMapCriteria valueCriterion);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one map value (with the given key) which is greater
+     * than the given parameter (list of integers)"
+     * <p>
+     * MapOfIntLists is a map of lists
+     * </p>
+     *
+     * @param key   Map key
+     * @param value Map value to compare with
+     */
+    List<P> findByMapOfIntListsGreaterThan(String key, List<Integer> value);
+
+    /**
+     * Find all entities that satisfy the condition "have map in the given range"
+     * <p>
+     * Map name in this case is MapOfIntLists
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    List<P> findByMapOfIntListsBetween(Map<String, List<Integer>> from, Map<String, List<Integer>> to);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one map value (with the given key) which is greater
+     * than the given parameter (list of integers)"
+     * <p>
+     * MapOfIntLists is a map of lists
+     * </p>
+     *
+     * @param key   Map key
+     * @param value Map value to compare with
+     */
+    List<P> findByAddressesMapLessThan(String key, Address value);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
@@ -683,9 +773,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
-     * @param integer upper limit, inclusive
+     * @param integer        upper limit, inclusive
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    List<P> findByIntsLessThanEqual(int integer);
+    List<P> findByIntsLessThanEqual(int integer, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
@@ -694,9 +785,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
-     * @param value upper limit, inclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     * @param value          upper limit, inclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    List<P> findByIntsLessThanEqual(long value);
+    List<P> findByIntsLessThanEqual(long value, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value in the given range"
@@ -704,20 +796,48 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
+     * @param from           lower limit, inclusive
+     * @param to             upper limit, exclusive
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
+     */
+    List<P> findByIntsBetween(int from, int to, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
+
+    /**
+     * Find all entities that satisfy the condition "have list in the given range"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
      * @param from lower limit, inclusive
      * @param to   upper limit, exclusive
      */
-    List<P> findByIntsBetween(int from, int to);
+    List<P> findByIntsBetween(List<Integer> from, List<Integer> to);
+
+    /**
+     * Find all entities that satisfy the condition "have list in the given range"
+     * <p>
+     * List name in this case is Strings
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    List<P> findByStringsBetween(List<String> from, List<String> to);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value in the given range"
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
-     * @param from lower limit, inclusive
-     * @param to   upper limit, exclusive
+     * @param from           lower limit, inclusive
+     * @param to             upper limit, exclusive
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    List<P> findByStringsBetween(String from, String to);
+    List<P> findByStringsBetween(String from, String to, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
 
     List<P> findTop3ByLastNameStartingWith(String lastName);
 

@@ -29,6 +29,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
@@ -146,19 +147,19 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     void findByListValueGreaterThan() {
-        List<IndexedPerson> persons = repository.findByIntsGreaterThan(549);
+        List<IndexedPerson> persons = repository.findByIntsGreaterThan(549, VALUE);
         assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
     @Test
     void findByListValueLessThanOrEqual() {
-        List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500);
+        List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500, VALUE);
         assertThat(persons).containsOnly(john);
     }
 
     @Test
     void findByListValueInRange() {
-        List<IndexedPerson> persons = repository.findByIntsBetween(500, 600);
+        List<IndexedPerson> persons = repository.findByIntsBetween(500, 600, VALUE);
         assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
@@ -333,7 +334,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(billy.getStringMap()).containsValue("val1");
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("val1",
-            CriteriaDefinition.AerospikeMapCriteria.VALUE);
+            VALUE);
         assertThat(persons).contains(billy);
     }
 

@@ -48,6 +48,7 @@ public class Person {
     private Sex sex;
     private Map<String, String> stringMap;
     private Map<String, Integer> intMap;
+    private Map<String, List<Integer>> mapOfIntLists;
     private Person friend;
     private Person bestFriend;
     private boolean active;
@@ -55,8 +56,12 @@ public class Person {
     private LocalDate regDate;
     private List<String> strings;
     private List<Integer> ints;
+    private List<List<Integer>> listOfIntLists;
+    private List<Map<String, Integer>> listOfIntMaps;
     private Set<Integer> intSet;
     private Address address;
+    private List<Address> addressesList;
+    private Map<String, Address> addressesMap;
     @Field("email")
     private String emailAddress;
 
