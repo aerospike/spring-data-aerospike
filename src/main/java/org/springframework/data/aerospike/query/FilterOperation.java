@@ -103,22 +103,22 @@ public enum FilterOperation {
     EQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            Value val = getValue1(map);
-            return switch (val.getType()) {
-                case INTEGER -> Exp.eq(Exp.intBin(getField(map)), Exp.val(val.toLong()));
+            Value value = getValue1(map);
+            return switch (value.getType()) {
+                case INTEGER -> Exp.eq(Exp.intBin(getField(map)), Exp.val(value.toLong()));
                 case STRING -> {
                     if (ignoreCase(map)) {
                         String equalsRegexp = QualifierRegexpBuilder.getStringEquals(getValue1(map).toString());
                         yield Exp.regexCompare(equalsRegexp, RegexFlag.ICASE, Exp.stringBin(getField(map)));
                     } else {
-                        yield Exp.eq(Exp.stringBin(getField(map)), Exp.val(val.toString()));
+                        yield Exp.eq(Exp.stringBin(getField(map)), Exp.val(value.toString()));
                     }
                 }
-                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::eq);
-                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::eq, Exp::mapBin);
-                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::eq, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), value, getField(map), Exp::eq);
+                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(map), Exp::eq, Exp::mapBin);
+                case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(map), Exp::eq, Exp::listBin);
                 default -> throw new IllegalArgumentException("EQ FilterExpression unsupported particle type: " +
-                    val.getClass().getSimpleName());
+                    value.getClass().getSimpleName());
             };
         }
 
@@ -138,11 +138,11 @@ public enum FilterOperation {
     NOTEQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            Value val = getValue1(map);
-            return switch (val.getType()) {
-                // Exp.ne() does not return null bins, so Exp.not(Exp.binExists()) has to be added
+            Value value = getValue1(map);
+            return switch (value.getType()) {
+                // FMWK-175: Exp.ne() does not return null bins, so Exp.not(Exp.binExists()) is added
                 case INTEGER -> {
-                    Exp ne = Exp.ne(Exp.intBin(getField(map)), Exp.val(val.toLong()));
+                    Exp ne = Exp.ne(Exp.intBin(getField(map)), Exp.val(value.toLong()));
                     yield Exp.or(Exp.not(Exp.binExists(getField(map))), ne);
                 }
                 case STRING -> {
@@ -152,15 +152,15 @@ public enum FilterOperation {
                             Exp.stringBin(getField(map))));
                         yield Exp.or(Exp.not(Exp.binExists(getField(map))), regexCompare);
                     } else {
-                        Exp ne = Exp.ne(Exp.stringBin(getField(map)), Exp.val(val.toString()));
+                        Exp ne = Exp.ne(Exp.stringBin(getField(map)), Exp.val(value.toString()));
                         yield Exp.or(Exp.not(Exp.binExists(getField(map))), ne);
                     }
                 }
-                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ne);
-                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::mapBin);
-                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ne, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), value, getField(map), Exp::ne);
+                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(map), Exp::ne, Exp::mapBin);
+                case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(map), Exp::ne, Exp::listBin);
                 default -> throw new IllegalArgumentException("NOTEQ FilterExpression unsupported particle type: " +
-                    val.getClass().getSimpleName());
+                    value.getClass().getSimpleName());
             };
         }
 
@@ -172,15 +172,15 @@ public enum FilterOperation {
     GT {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            Value val = getValue1(map);
-            return switch (val.getType()) {
+            Value value = getValue1(map);
+            return switch (value.getType()) {
                 case INTEGER -> Exp.gt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case STRING -> Exp.gt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::gt);
-                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::mapBin);
-                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::gt, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), value, getField(map), Exp::gt);
+                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(map), Exp::gt, Exp::mapBin);
+                case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(map), Exp::gt, Exp::listBin);
                 default -> throw new IllegalArgumentException("GT FilterExpression unsupported particle type: " +
-                    val.getClass().getSimpleName());
+                    value.getClass().getSimpleName());
             };
         }
 
@@ -197,15 +197,15 @@ public enum FilterOperation {
     GTEQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            Value val = getValue1(map);
-            return switch (val.getType()) {
+            Value value = getValue1(map);
+            return switch (value.getType()) {
                 case INTEGER -> Exp.ge(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case STRING -> Exp.ge(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::ge);
-                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::mapBin);
-                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::ge, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), value, getField(map), Exp::ge);
+                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(map), Exp::ge, Exp::mapBin);
+                case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(map), Exp::ge, Exp::listBin);
                 default -> throw new IllegalArgumentException("GTEQ FilterExpression unsupported particle type: " +
-                    val.getClass().getSimpleName());
+                    value.getClass().getSimpleName());
             };
         }
 
@@ -220,15 +220,15 @@ public enum FilterOperation {
     LT {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            Value val = getValue1(map);
-            return switch (val.getType()) {
+            Value value = getValue1(map);
+            return switch (value.getType()) {
                 case INTEGER -> Exp.lt(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case STRING -> Exp.lt(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::lt);
-                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::mapBin);
-                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::lt, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), value, getField(map), Exp::lt);
+                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(map), Exp::lt, Exp::mapBin);
+                case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(map), Exp::lt, Exp::listBin);
                 default -> throw new IllegalArgumentException("LT FilterExpression unsupported particle type: " +
-                    val.getClass().getSimpleName());
+                    value.getClass().getSimpleName());
             };
         }
 
@@ -244,15 +244,15 @@ public enum FilterOperation {
     LTEQ {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            Value val = getValue1(map);
-            return switch (val.getType()) {
+            Value value = getValue1(map);
+            return switch (value.getType()) {
                 case INTEGER -> Exp.le(Exp.intBin(getField(map)), Exp.val(getValue1(map).toLong()));
                 case STRING -> Exp.le(Exp.stringBin(getField(map)), Exp.val(getValue1(map).toString()));
-                case JBLOB -> getFilterExp(getConverter(map), val, getField(map), Exp::le);
-                case MAP -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::mapBin);
-                case LIST -> getFilterExp(getConverter(map), val, getField(map), Exp::le, Exp::listBin);
+                case JBLOB -> getFilterExp(getConverter(map), value, getField(map), Exp::le);
+                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(map), Exp::le, Exp::mapBin);
+                case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(map), Exp::le, Exp::listBin);
                 default -> throw new IllegalArgumentException("LTEQ FilterExpression unsupported particle type: " +
-                    val.getClass().getSimpleName());
+                    value.getClass().getSimpleName());
             };
         }
 
@@ -283,12 +283,12 @@ public enum FilterOperation {
                     getFilterExp(getConverter(map), getValue2(map), getField(map), Exp::lt)
                 );
                 case MAP -> Exp.and(
-                    getFilterExp(getConverter(map), getValue1(map), getField(map), Exp::ge, Exp::mapBin),
-                    getFilterExp(getConverter(map), getValue2(map), getField(map), Exp::lt, Exp::mapBin)
+                    getFilterExp(Exp.val((Map<?, ?>) getValue1(map).getObject()), getField(map), Exp::ge, Exp::mapBin),
+                    getFilterExp(Exp.val((Map<?, ?>) getValue2(map).getObject()), getField(map), Exp::lt, Exp::mapBin)
                 );
                 case LIST -> Exp.and(
-                    getFilterExp(getConverter(map), getValue1(map), getField(map), Exp::ge, Exp::listBin),
-                    getFilterExp(getConverter(map), getValue2(map), getField(map), Exp::lt, Exp::listBin)
+                    getFilterExp(Exp.val((List<?>) getValue1(map).getObject()), getField(map), Exp::ge, Exp::listBin),
+                    getFilterExp(Exp.val((List<?>) getValue2(map).getObject()), getField(map), Exp::lt, Exp::listBin)
                 );
                 default ->
                     throw new IllegalArgumentException("BETWEEN: unexpected value of type " + getValue1(map).getClass()
@@ -1173,43 +1173,16 @@ public enum FilterOperation {
         );
         if (convertedValue instanceof List<?>) {
             // Collection comes as JBLOB
-            return function.apply(Exp.listBin(field), toExp(convertedValue));
+            return function.apply(Exp.listBin(field), Exp.val((List<?>) convertedValue));
         } else {
             // custom objects are converted into Maps
-            return function.apply(Exp.mapBin(field), toExp(convertedValue));
+            return function.apply(Exp.mapBin(field), Exp.val((Map<?, ?>) convertedValue));
         }
     }
 
-    private static Exp getFilterExp(MappingAerospikeConverter converter, Value val, String field,
+    private static Exp getFilterExp(Exp exp, String field,
                                     BinaryOperator<Exp> operator, Function<String, Exp> binExp) {
-        Object convertedValue = converter.toWritableValue(
-            val.getObject(), TypeInformation.of(val.getObject().getClass())
-        );
-        return operator.apply(binExp.apply(field), toExp(convertedValue));
-    }
-
-    private static Exp getFilterExpNoteq(MappingAerospikeConverter converter, Value val, String field,
-                                         BinaryOperator<Exp> operator) {
-        Object convertedValue = converter.toWritableValue(
-            val.getObject(), TypeInformation.of(val.getObject().getClass())
-        );
-        Function<String, Exp> binExp;
-        if (convertedValue instanceof List<?>) {
-            // Collection comes as JBLOB and gets converted to a List
-            binExp = Exp::listBin;
-        } else {
-            // custom objects are converted into Maps
-            binExp = Exp::mapBin;
-        }
-        return Exp.or(Exp.not(Exp.binExists(field)), operator.apply(binExp.apply(field), toExp(convertedValue)));
-    }
-
-    private static Exp getFilterExpNoteq(MappingAerospikeConverter converter, Value val, String field,
-                                         BinaryOperator<Exp> operator, Function<String, Exp> binExp) {
-        Object convertedValue = converter.toWritableValue(
-            val.getObject(), TypeInformation.of(val.getObject().getClass())
-        );
-        return Exp.or(Exp.not(Exp.binExists(field)), operator.apply(binExp.apply(field), toExp(convertedValue)));
+        return operator.apply(binExp.apply(field), exp);
     }
 
     private static String[] getDotPathArray(String dotPath, String errMsg) {
