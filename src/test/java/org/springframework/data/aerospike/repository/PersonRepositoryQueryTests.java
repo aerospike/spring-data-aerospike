@@ -7,7 +7,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.IndexUtils;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
@@ -32,13 +31,15 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE_CONTAINING;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     static final Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42)
-        .strings(List.of("str1", "str2")).address(new Address("Foo Street 1", 1, "C0123", "Bar"))
+        .strings(List.of("str0", "str1", "str2")).address(new Address("Foo Street 1", 1, "C0123", "Bar"))
         .build();
     static final Person donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39)
         .strings(List.of("str1", "str2", "str3")).stringMap(of("key1", "val1")).build();
@@ -104,6 +105,37 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByListContainingAddress() {
+        Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
+        Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
+        Address address3 = new Address("Foo Street 2", 1, "C0124", "Bar");
+        Address address4 = new Address("Foo Street 1234", 1, "C01245", "Bar");
+
+        List<Address> listOfAddresses1 = List.of(address1, address2, address3, address4);
+        List<Address> listOfAddresses2 = List.of(address1, address2, address3);
+        List<Address> listOfAddresses3 = List.of(address1, address2, address3);
+        List<Address> listOfAddresses4 = List.of(address4);
+        stefan.setAddressesList(listOfAddresses1);
+        repository.save(stefan);
+        douglas.setAddressesList(listOfAddresses2);
+        repository.save(douglas);
+        matias.setAddressesList(listOfAddresses3);
+        repository.save(matias);
+        leroi2.setAddressesList(listOfAddresses4);
+        repository.save(leroi2);
+
+        List<Person> persons;
+        persons = repository.findByAddressesListContaining(address4);
+        assertThat(persons).containsOnly(stefan, leroi2);
+
+        persons = repository.findByAddressesListContaining(address1);
+        assertThat(persons).containsOnly(stefan, douglas, matias);
+
+        persons = repository.findByAddressesListContaining(new Address("Foo Street 12345", 12345, "12345", "Bar12345"));
+        assertThat(persons).isEmpty();
+    }
+
+    @Test
     void findByActiveTrue() {
         boolean initialState = dave.isActive();
         if (!initialState) {
@@ -120,75 +152,255 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByListValueGreaterThan() {
-        List<Person> persons = repository.findByIntsGreaterThan(549);
+    void findByListValueLessThanOrEqualNumber() {
+        List<Person> persons;
+        persons = repository.findByIntsLessThanEqual(500, VALUE);
+        assertThat(persons).containsOnly(oliver);
 
+        persons = repository.findByIntsLessThanEqual(Long.MAX_VALUE - 1, VALUE);
+        assertThat(persons).containsOnly(oliver, alicia);
+
+        persons = repository.findByIntsLessThanEqual(Long.MAX_VALUE, VALUE);
         assertThat(persons).containsOnly(oliver, alicia);
     }
 
     @Test
-    void findByListValueLessThanOrEqual() {
-        List<Person> persons = repository.findByIntsLessThanEqual(500);
+    void findByListValueLessThanOrEqualString() {
+        List<Person> persons;
+        persons = repository.findByStringsLessThanEqual("str4", VALUE);
+        assertThat(persons).containsOnly(dave, donny);
 
-        assertThat(persons).containsOnly(oliver);
+        persons = repository.findByStringsLessThanEqual("str3", VALUE);
+        assertThat(persons).containsOnly(dave, donny);
+
+        persons = repository.findByStringsLessThanEqual("str2", VALUE);
+        assertThat(persons).containsOnly(dave, donny);
+
+        persons = repository.findByStringsLessThanEqual("str0", VALUE);
+        assertThat(persons).containsOnly(dave);
+
+        persons = repository.findByStringsLessThanEqual("str", VALUE);
+        assertThat(persons).isEmpty();
+    }
+
+    @Test
+    void findByListValueGreaterThanNumber() {
+        List<Person> persons;
+        persons = repository.findByIntsGreaterThan(549, VALUE);
+        assertThat(persons).containsOnly(oliver, alicia);
+
+        persons = repository.findByIntsGreaterThan(990, VALUE);
+        assertThat(persons).isEmpty();
+
+        persons = repository.findByIntsGreaterThan(Long.MIN_VALUE, VALUE);
+        assertThat(persons).containsOnly(oliver, alicia);
+
+        persons = repository.findByIntsGreaterThan(Long.MAX_VALUE - 1, VALUE);
+        assertThat(persons).isEmpty();
+
+        assertThatThrownBy(() -> repository.findByIntsGreaterThan(Long.MAX_VALUE, VALUE))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("LIST_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
+    }
+
+    @Test
+    void findByListValueGreaterThanString() {
+        List<Person> persons;
+        persons = repository.findByStringsGreaterThan("str0", VALUE);
+        assertThat(persons).containsOnly(dave, donny);
+
+        persons = repository.findByStringsGreaterThan("", VALUE);
+        assertThat(persons).containsOnly(dave, donny);
+
+        // ordering is by each byte in a String, so "t" > "str" because "t" > "s"
+        persons = repository.findByStringsGreaterThan("t", VALUE);
+        assertThat(persons).isEmpty();
+    }
+
+    @Test
+    void findByListValueGreaterThanList() {
+        List<List<Integer>> listOfLists1 = List.of(List.of(100), List.of(200), List.of(300), List.of(400));
+        List<List<Integer>> listOfLists2 = List.of(List.of(101), List.of(201), List.of(301), List.of(401));
+        List<List<Integer>> listOfLists3 = List.of(List.of(102), List.of(202), List.of(300), List.of(400));
+        List<List<Integer>> listOfLists4 = List.of(List.of(1000), List.of(2000), List.of(3000), List.of(4000));
+        stefan.setListOfIntLists(listOfLists1);
+        repository.save(stefan);
+        douglas.setListOfIntLists(listOfLists2);
+        repository.save(douglas);
+        matias.setListOfIntLists(listOfLists3);
+        repository.save(matias);
+        leroi2.setListOfIntLists(listOfLists4);
+        repository.save(leroi2);
+
+        List<Person> persons;
+        persons = repository.findByListOfIntListsGreaterThan(List.of(100), VALUE);
+        assertThat(persons).containsOnly(stefan, douglas, matias, leroi2);
+
+        persons = repository.findByListOfIntListsGreaterThan(List.of(400), VALUE);
+        assertThat(persons).containsOnly(douglas, leroi2);
+
+        persons = repository.findByListOfIntListsGreaterThan(List.of(401), VALUE);
+        assertThat(persons).containsOnly(leroi2);
+
+        persons = repository.findByListOfIntListsGreaterThan(List.of(4000), VALUE);
+        assertThat(persons).isEmpty();
+    }
+
+    @Test
+    void findByListValueGreaterThanMap() {
+        List<Map<String, Integer>> listOfMaps1 = List.of(Map.of("a", 100), Map.of("b", 200), Map.of("c", 300),
+            Map.of("d", 400));
+        List<Map<String, Integer>> listOfMaps2 = List.of(Map.of("a", 101), Map.of("b", 201), Map.of("c", 301),
+            Map.of("d", 401));
+        List<Map<String, Integer>> listOfMaps3 = List.of(Map.of("a", 102), Map.of("b", 202), Map.of("c", 300),
+            Map.of("d", 400));
+        List<Map<String, Integer>> listOfMaps4 = List.of(Map.of("a", 1000), Map.of("b", 2000), Map.of("c", 3000),
+            Map.of("d", 4000));
+        stefan.setListOfIntMaps(listOfMaps1);
+        repository.save(stefan);
+        douglas.setListOfIntMaps(listOfMaps2);
+        repository.save(douglas);
+        matias.setListOfIntMaps(listOfMaps3);
+        repository.save(matias);
+        leroi2.setListOfIntMaps(listOfMaps4);
+        repository.save(leroi2);
+
+        List<Person> persons;
+        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 1001), VALUE);
+        assertThat(persons).containsOnly(stefan, douglas, matias, leroi2);
+
+        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 400), VALUE);
+        assertThat(persons).containsOnly(stefan, douglas, matias);
+
+        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 102), VALUE);
+        assertThat(persons).containsOnly(stefan, douglas);
+
+        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 99), VALUE);
+        assertThat(persons).isEmpty();
+
+        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 0), VALUE);
+        assertThat(persons).isEmpty();
+    }
+
+    @Test
+    void findByGreaterThanList() {
+        List<Integer> listToCompare1 = List.of(100, 200, 300, 400);
+        List<Integer> listToCompare2 = List.of(425, 550);
+        List<Integer> listToCompare3 = List.of(426, 551, 991);
+        List<Integer> listToCompare4 = List.of(1000, 2000, 3000, 4000);
+        List<Integer> listToCompare5 = List.of(551, 601, 991);
+        List<Integer> listToCompare6 = List.of(550, 600, 990);
+
+        List<Person> persons;
+        persons = repository.findByIntsGreaterThan(listToCompare1);
+        assertThat(persons).containsOnly(oliver, alicia);
+
+        persons = repository.findByIntsGreaterThan(listToCompare2);
+        assertThat(persons).containsOnly(oliver, alicia);
+
+        persons = repository.findByIntsGreaterThan(listToCompare3);
+        assertThat(persons).containsOnly(alicia);
+
+        persons = repository.findByIntsGreaterThan(listToCompare4);
+        assertThat(persons).isEmpty();
+
+        persons = repository.findByIntsGreaterThan(listToCompare5);
+        assertThat(persons).isEmpty();
+
+        persons = repository.findByIntsGreaterThan(listToCompare6);
+        assertThat(persons).isEmpty();
     }
 
     @Test
     void findByIntegerListValueInRange() {
-        List<Person> persons = repository.findByIntsBetween(500, 600);
-
+        List<Person> persons = repository.findByIntsBetween(500, 600, VALUE);
         assertThat(persons).containsExactlyInAnyOrder(oliver, alicia);
     }
 
     @Test
     void findByStringListValueInRange() {
         List<Person> persons;
-        persons = repository.findByStringsBetween("str1", "str3"); // upper limit is exclusive
+        persons = repository.findByStringsBetween("str1", "str3", VALUE);
         assertThat(persons).containsExactlyInAnyOrder(donny, dave);
 
-        persons = repository.findByStringsBetween("str3", "str3"); // upper limit is exclusive
+        persons = repository.findByStringsBetween("str3", "str3", VALUE); // upper limit is exclusive
         assertThat(persons).isEmpty();
 
-        persons = repository.findByStringsBetween("str3", "str4");
+        persons = repository.findByStringsBetween("str3", "str4", VALUE);
         assertThat(persons).containsExactlyInAnyOrder(donny);
     }
 
     @Test
-    void findByMapKeysContaining() {
+    void findByIntegerListInRange() {
+        List<Integer> list1 = List.of(100, 200, 300);
+        List<Integer> list2 = List.of(1000, 2000, 3000);
+
+        List<Person> persons = repository.findByIntsBetween(list1, list2);
+        assertThat(persons).containsExactlyInAnyOrder(oliver, alicia);
+    }
+
+    @Test
+    void findByStringListInRange() {
+        List<String> list1 = List.of("str", "str1");
+        List<String> list2 = List.of("str55", "str65");
+
+        List<Person> persons = repository.findByStringsBetween(list1, list2);
+        assertThat(persons).containsExactlyInAnyOrder(dave, donny);
+    }
+
+    @Test
+    void findByMapKeysContainingString() {
         assertThat(donny.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsKey("key1");
 
-        List<Person> persons = repository.findByStringMapContaining("key1",
-            CriteriaDefinition.AerospikeMapCriteria.KEY);
+        List<Person> persons = repository.findByStringMapContaining("key1", KEY);
         assertThat(persons).contains(donny, boyd);
 
-        List<Person> persons2 = repository.findByStringMapContaining("key1", "key2",
-            CriteriaDefinition.AerospikeMapCriteria.KEY);
+        List<Person> persons2 = repository.findByStringMapContaining("key1", "key2", KEY);
         assertThat(persons2).contains(boyd);
 
-        List<Person> persons3 = repository.findByStringMapContaining("key1", "key2", "key3",
-            CriteriaDefinition.AerospikeMapCriteria.KEY);
+        List<Person> persons3 = repository.findByStringMapContaining("key1", "key2", "key3", KEY);
         assertThat(persons3).isEmpty();
     }
 
     @Test
-    void findByMapValuesContaining() {
+    void findByMapValuesContainingString() {
         assertThat(donny.getStringMap()).containsValue("val1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
-        List<Person> persons = repository.findByStringMapContaining("val1",
-            CriteriaDefinition.AerospikeMapCriteria.VALUE);
+        List<Person> persons = repository.findByStringMapContaining("val1", VALUE);
         assertThat(persons).contains(donny, boyd);
-        List<Person> persons2 = repository.findByStringMapContaining("val1", "val2",
-            CriteriaDefinition.AerospikeMapCriteria.VALUE);
+        List<Person> persons2 = repository.findByStringMapContaining("val1", "val2", VALUE);
         assertThat(persons2).contains(boyd);
-        List<Person> persons3 = repository.findByStringMapContaining("val1", "val2", "val3",
-            CriteriaDefinition.AerospikeMapCriteria.VALUE);
+        List<Person> persons3 = repository.findByStringMapContaining("val1", "val2", "val3", VALUE);
         assertThat(persons3).isEmpty();
     }
 
     @Test
-    void findByMapKeyValueEquals() {
+    void findByMapValuesContainingList() {
+        Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200));
+        Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(101), "1", List.of(201));
+        Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(201), "2", List.of(202));
+        Map<String, List<Integer>> mapOfLists4 = Map.of("2", List.of(1000), "3", List.of(2000));
+        stefan.setMapOfIntLists(mapOfLists1);
+        repository.save(stefan);
+        douglas.setMapOfIntLists(mapOfLists2);
+        repository.save(douglas);
+        matias.setMapOfIntLists(mapOfLists3);
+        repository.save(matias);
+        leroi2.setMapOfIntLists(mapOfLists4);
+        repository.save(leroi2);
+
+        List<Person> persons = repository.findByMapOfIntListsContaining(List.of(100), VALUE);
+        assertThat(persons).contains(stefan);
+        List<Person> persons2 = repository.findByMapOfIntListsContaining(List.of(201), VALUE);
+        assertThat(persons2).contains(douglas, matias);
+        List<Person> persons3 = repository.findByMapOfIntListsContaining(List.of(20000), VALUE);
+        assertThat(persons3).isEmpty();
+    }
+
+    @Test
+    void findByStringMapKeyValueEquals() {
         assertThat(donny.getStringMap()).containsKey("key1");
         assertThat(donny.getStringMap()).containsValue("val1");
         assertThat(boyd.getStringMap()).containsKey("key1");
@@ -206,13 +418,130 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByMapOfListsKeyValueEquals() {
+        Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200));
+        Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(100), "1", List.of(201));
+        Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(201), "2", List.of(202));
+        Map<String, List<Integer>> mapOfLists4 = Map.of("2", List.of(202), "3", List.of(2000));
+        stefan.setMapOfIntLists(mapOfLists1);
+        repository.save(stefan);
+        douglas.setMapOfIntLists(mapOfLists2);
+        repository.save(douglas);
+        matias.setMapOfIntLists(mapOfLists3);
+        repository.save(matias);
+        leroi2.setMapOfIntLists(mapOfLists4);
+        repository.save(leroi2);
+
+        List<Person> persons;
+        persons = repository.findByMapOfIntListsContaining("0", List.of(100));
+        assertThat(persons).containsExactlyInAnyOrder(stefan, douglas);
+
+        persons = repository.findByMapOfIntListsContaining("2", List.of(202));
+        assertThat(persons).containsExactlyInAnyOrder(matias, leroi2);
+
+        persons = repository.findByMapOfIntListsContaining("34", List.of(2000));
+        assertThat(persons).isEmpty();
+    }
+
+    @Test
+    void findByAddressesMapKeyValueEquals() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
+            Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
+            Address address3 = new Address("Foo Street 2", 1, "C0124", "Bar");
+            Address address4 = new Address("Foo Street 1234", 1, "C01245", "Bar");
+
+            Map<String, Address> mapOfAddresses1 = Map.of("a", address1);
+            Map<String, Address> mapOfAddresses2 = Map.of("b", address2, "a", address1);
+            Map<String, Address> mapOfAddresses3 = Map.of("c", address3, "a", address1);
+            Map<String, Address> mapOfAddresses4 = Map.of("d", address4, "a", address1, "b", address2);
+            stefan.setAddressesMap(mapOfAddresses1);
+            repository.save(stefan);
+            douglas.setAddressesMap(mapOfAddresses2);
+            repository.save(douglas);
+            matias.setAddressesMap(mapOfAddresses3);
+            repository.save(matias);
+            leroi2.setAddressesMap(mapOfAddresses4);
+            repository.save(leroi2);
+
+            List<Person> persons;
+            persons = repository.findByAddressesMapContaining("a", address1);
+            assertThat(persons).containsExactlyInAnyOrder(stefan, douglas, matias, leroi2);
+
+            persons = repository.findByAddressesMapContaining("b", address2);
+            assertThat(persons).containsExactly(douglas, leroi2);
+
+            persons = repository.findByAddressesMapContaining("cd", address3);
+            assertThat(persons).isEmpty();
+        }
+    }
+
+    @Test
     void findByMapKeyValueNotEqual() {
         assertThat(carter.getIntMap()).containsKey("key1");
         assertThat(!carter.getIntMap().containsValue(22)).isTrue();
 
         List<Person> persons = repository.findByIntMapIsNot("key1", 22);
-
         assertThat(persons).contains(carter);
+    }
+
+    @Test
+    void findByMapOfListsKeyValueNotEqual() {
+        Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200));
+        Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(100), "1", List.of(201));
+        Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(201), "2", List.of(202));
+        Map<String, List<Integer>> mapOfLists4 = Map.of("2", List.of(202), "3", List.of(2000));
+        stefan.setMapOfIntLists(mapOfLists1);
+        repository.save(stefan);
+        douglas.setMapOfIntLists(mapOfLists2);
+        repository.save(douglas);
+        matias.setMapOfIntLists(mapOfLists3);
+        repository.save(matias);
+        leroi2.setMapOfIntLists(mapOfLists4);
+        repository.save(leroi2);
+
+        List<Person> persons;
+        persons = repository.findByMapOfIntListsIsNot("2", List.of(100));
+        assertThat(persons).containsExactlyInAnyOrder(matias, leroi2);
+
+        persons = repository.findByMapOfIntListsIsNot("0", List.of(202));
+        assertThat(persons).containsExactlyInAnyOrder(stefan, douglas);
+
+        persons = repository.findByMapOfIntListsIsNot("34", List.of(2000));
+        assertThat(persons).isEmpty();
+    }
+
+    @Test
+    void findByAddressesMapKeyValueNotEqual() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
+            Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
+            Address address3 = new Address("Foo Street 2", 1, "C0124", "Bar");
+            Address address4 = new Address("Foo Street 1234", 1, "C01245", "Bar");
+
+            Map<String, Address> mapOfAddresses1 = Map.of("a", address1);
+            Map<String, Address> mapOfAddresses2 = Map.of("b", address2, "a", address1);
+            Map<String, Address> mapOfAddresses3 = Map.of("c", address3, "a", address1);
+            Map<String, Address> mapOfAddresses4 = Map.of("d", address4, "a", address1, "b", address2);
+            stefan.setAddressesMap(mapOfAddresses1);
+            repository.save(stefan);
+            douglas.setAddressesMap(mapOfAddresses2);
+            repository.save(douglas);
+            matias.setAddressesMap(mapOfAddresses3);
+            repository.save(matias);
+            leroi2.setAddressesMap(mapOfAddresses4);
+            repository.save(leroi2);
+
+            List<Person> persons;
+            persons = repository.findByAddressesMapIsNot("a", address1);
+            assertThat(persons).isEmpty();
+
+            persons = repository.findByAddressesMapIsNot("b", address1);
+            assertThat(persons).containsExactly(stefan, matias);
+
+            persons = repository.findByAddressesMapIsNot("cd", address3);
+            assertThat(persons).isEmpty();
+        }
     }
 
     @Test
@@ -237,7 +566,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<Person> persons = repository.findByStringMapStartsWith("key1", "val");
-
         assertThat(persons).contains(donny, boyd);
     }
 
@@ -249,7 +577,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(boyd.getStringMap()).containsValue("val1");
 
         List<Person> persons = repository.findByStringMapLike("key1", "^.*al1$");
-
         assertThat(persons).contains(donny, boyd);
     }
 
@@ -259,7 +586,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(carter.getIntMap().get("key2") > 0).isTrue();
 
         List<Person> persons = repository.findByIntMapGreaterThan("key2", 0);
-
         assertThat(persons).containsExactly(carter);
     }
 
@@ -269,20 +595,133 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(carter.getIntMap().get("key2") > 0).isTrue();
 
         List<Person> persons = repository.findByIntMapLessThanEqual("key2", 1);
-
         assertThat(persons).containsExactly(carter);
     }
 
     @Test
-    void findByMapKeyValueBetween() {
+    void findByMapKeyValueGreaterThanList() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200), "2", List.of(300),
+                "3", List.of(400));
+            Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(101), "1", List.of(201), "2", List.of(301),
+                "3", List.of(401));
+            Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(102), "2", List.of(202), "3", List.of(300),
+                "4", List.of(400));
+            Map<String, List<Integer>> mapOfLists4 = Map.of("2", List.of(1000), "3", List.of(2000), "4",
+                List.of(3000), "5", List.of(4000));
+            stefan.setMapOfIntLists(mapOfLists1);
+            repository.save(stefan);
+            douglas.setMapOfIntLists(mapOfLists2);
+            repository.save(douglas);
+            matias.setMapOfIntLists(mapOfLists3);
+            repository.save(matias);
+            leroi2.setMapOfIntLists(mapOfLists4);
+            repository.save(leroi2);
+
+            List<Person> persons;
+            persons = repository.findByMapOfIntListsGreaterThan("0", List.of(100));
+            assertThat(persons).isEmpty();
+
+            persons = repository.findByMapOfIntListsGreaterThan("1", List.of(102));
+            assertThat(persons).containsOnly(stefan, douglas);
+
+            persons = repository.findByMapOfIntListsGreaterThan("2", List.of(200));
+            assertThat(persons).containsOnly(stefan, douglas, matias, leroi2);
+
+            persons = repository.findByMapOfIntListsGreaterThan("3", List.of(2000));
+            assertThat(persons).isEmpty();
+        }
+    }
+
+    @Test
+    void findByMapKeyValueLessThanAddress() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Map<String, Address> mapOfAddresses1 = Map.of("a", new Address("Foo Street 1", 1, "C0123", "Bar"));
+            Map<String, Address> mapOfAddresses2 = Map.of("b", new Address("Foo Street 2", 1, "C0123", "Bar"));
+            Map<String, Address> mapOfAddresses3 = Map.of("c", new Address("Foo Street 2", 1, "C0124", "Bar"));
+            Map<String, Address> mapOfAddresses4 = Map.of("d", new Address("Foo Street 1234", 1, "C01245", "Bar"));
+            stefan.setAddressesMap(mapOfAddresses1);
+            repository.save(stefan);
+            douglas.setAddressesMap(mapOfAddresses2);
+            repository.save(douglas);
+            matias.setAddressesMap(mapOfAddresses3);
+            repository.save(matias);
+            leroi2.setAddressesMap(mapOfAddresses4);
+            repository.save(leroi2);
+
+            List<Person> persons;
+            persons = repository.findByAddressesMapLessThan("a", new Address("Foo Street 1", 1, "C0124", "Bar"));
+            assertThat(persons).containsOnly(stefan);
+
+            persons = repository.findByAddressesMapLessThan("b", new Address("Foo Street 3", 1, "C0123", "Bar"));
+            assertThat(persons).containsOnly(douglas);
+
+            persons = repository.findByAddressesMapLessThan("c", new Address("Foo Street 3", 2, "C0124", "Bar"));
+            assertThat(persons).containsOnly(matias);
+
+            persons = repository.findByAddressesMapLessThan("d", new Address("Foo Street 1234", 1, "C01245", "Bar"));
+            assertThat(persons).isEmpty();
+        }
+    }
+
+    @Test
+    void findByIntMapKeyValueBetween() {
         assertThat(carter.getIntMap()).containsKey("key1");
-        assertThat(carter.getIntMap()).containsKey("key2");
         assertThat(carter.getIntMap().get("key1") >= 0).isTrue();
-        assertThat(carter.getIntMap().get("key2") >= 0).isTrue();
 
-        List<Person> persons = repository.findByIntMapBetween("key2", 0, 1);
-
+        List<Person> persons;
+        persons = repository.findByIntMapBetween("key1", 0, 1);
         assertThat(persons).contains(carter);
+
+        assertThat(donny.getStringMap()).containsKey("key1");
+        assertThat(boyd.getStringMap()).containsKey("key1");
+        assertThat(donny.getStringMap().get("key1").equals("val1")).isTrue();
+        assertThat(boyd.getStringMap().get("key1").equals("val1")).isTrue();
+
+        persons = repository.findByStringMapBetween("key1", "val1", "val2");
+        assertThat(persons).contains(boyd, donny);
+    }
+
+    @Test
+    void findByIntMapBetween() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Map<String, Integer> map1 = Map.of("key", 0, "key1", 1);
+            Map<String, Integer> map2 = Map.of("key2", 2, "key3", 3);
+
+            List<Person> persons;
+            persons = repository.findByIntMapBetween(map1, map2);
+            assertThat(persons).contains(carter);
+        }
+    }
+
+    @Test
+    void findByMapOfListsBetween() {
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200));
+            Map<String, List<Integer>> mapOfLists2 = Map.of("2", List.of(301), "3", List.of(401));
+            Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(102), "2", List.of(202));
+            Map<String, List<Integer>> mapOfLists4 = Map.of("3", List.of(3000), "4", List.of(4000));
+            stefan.setMapOfIntLists(mapOfLists1);
+            repository.save(stefan);
+            douglas.setMapOfIntLists(mapOfLists2);
+            repository.save(douglas);
+            matias.setMapOfIntLists(mapOfLists3);
+            repository.save(matias);
+            leroi2.setMapOfIntLists(mapOfLists4);
+            repository.save(leroi2);
+
+            List<Person> persons;
+            persons = repository.findByMapOfIntListsBetween(Map.of("0", List.of(100), "1", List.of(200)),
+                Map.of("3", List.of(3000), "4", List.of(4001)));
+            assertThat(persons).contains(stefan, douglas, matias, leroi2);
+
+            persons = repository.findByMapOfIntListsBetween(Map.of("0", List.of(100), "1", List.of(200)),
+                Map.of("3", List.of(3000), "4", List.of(4000)));
+            assertThat(persons).contains(stefan, douglas, matias);
+
+            persons = repository.findByMapOfIntListsBetween(Map.of("5", List.of(4001)), Map.of("910", List.of(10000)));
+            assertThat(persons).isEmpty();
+        }
     }
 
     @Test
@@ -771,16 +1210,31 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonInAgeRangeCorrectly() {
-        Iterable<Person> it = repository.findByAgeBetween(40, 45);
-
+    public void findPersonInRangeCorrectly() {
+        Iterable<Person> it;
+        it = repository.findByAgeBetween(40, 46);
         assertThat(it).hasSize(3).contains(dave);
+
+        it = repository.findByFirstNameBetween("Dave", "David");
+        assertThat(it).hasSize(1).contains(dave);
+
+        if (IndexUtils.isFindByPojoSupported(client)) {
+            assertThat(dave.getAddress()).isEqualTo(new Address("Foo Street 1", 1, "C0123", "Bar"));
+            Address address1 = new Address("Foo Street 1", 0, "C0123", "Bar");
+            Address address2 = new Address("Foo Street 2", 2, "C0124", "Bar");
+            it = repository.findByAddressBetween(address1, address2);
+            assertThat(it).hasSize(1).contains(dave);
+
+            address1 = new Address("Foo Street 0", 0, "C0122", "Bar");
+            address2 = new Address("Foo Street 0", 0, "C0123", "Bar");
+            it = repository.findByAddressBetween(address1, address2);
+            assertThat(it).isEmpty();
+        }
     }
 
     @Test
     public void findPersonInAgeRangeCorrectlyOrderByLastName() {
-        Iterable<Person> it = repository.findByAgeBetweenOrderByLastName(30, 45);
-
+        Iterable<Person> it = repository.findByAgeBetweenOrderByLastName(30, 46);
         assertThat(it).hasSize(6);
     }
 
@@ -803,7 +1257,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         repository.save(carter);
 
         List<Person> result = repository.findByFriendAgeBetween(40, 45);
-
         assertThat(result)
             .hasSize(1)
             .containsExactly(carter);

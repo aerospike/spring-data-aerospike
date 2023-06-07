@@ -25,6 +25,7 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.repository.query.ParameterAccessor;
@@ -126,29 +127,40 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         Object value3 = null;
 
         if (property.isCollectionLike()) {
-            if (op == FilterOperation.CONTAINING) {
-                List<Object> params = new ArrayList<>();
-                parameters.forEachRemaining(params::add);
+            List<Object> params = new ArrayList<>();
+            parameters.forEachRemaining(params::add);
 
-                if (!params.isEmpty()
-                    && !(params.get(params.size() - 1) instanceof CriteriaDefinition.AerospikeMapCriteria)) {
+            if (!params.isEmpty()) {
+                Object nextParam = params.get(params.size() - 1);
+                if (op == FilterOperation.CONTAINING && !(nextParam instanceof AerospikeMapCriteria)) {
                     op = LIST_VAL_CONTAINING;
                     params.add(0, value1); // value1 stores the first parameter
                     return aerospikeCriteriaAndConcatenated(params, qb, part, fieldName, op, dotPath);
+                } else if (nextParam.equals(AerospikeMapCriteria.VALUE)) {
+                    op = getCorrespondingListFilterOperationOrFail(op);
                 }
-            }
-
-            if (!(value1 instanceof Collection<?>)) { // preserving the initial FilterOperation if arg is a Collection
-                op = getCorrespondingListFilterOperationOrFail(op);
+            } else if (!(value1 instanceof Collection<?>)) { // preserving the initial FilterOperation if Collection
+                switch (op) {
+                    // for these operations a parameter without AerospikeMapCriteria.VALUE flag must be Collection type
+                    case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> {
+                        throw new IllegalArgumentException("Expected to receive a Collection (got " +
+                            value1.getClass().getSimpleName() + " instead), please provide " +
+                            "an additional AerospikeMapCriteria.VALUE parameter for applying condition at values " +
+                            "level");
+                    }
+                    default -> {
+                        op = getCorrespondingListFilterOperationOrFail(op);
+                    }
+                }
             }
         } else if (property.isMap()) {
             List<Object> params = new ArrayList<>();
             parameters.forEachRemaining(params::add);
 
-            if (params.size() == 1) { // 2 parameters (values) provided, the first one is stored in value1
+            if (params.size() == 1) { // more than 1 parameter (values) provided, the first is stored in value1
                 Object nextParam = params.get(0);
                 if (op == FilterOperation.CONTAINING) {
-                    if (nextParam instanceof CriteriaDefinition.AerospikeMapCriteria onMap) {
+                    if (nextParam instanceof AerospikeMapCriteria onMap) {
                         switch (onMap) {
                             case KEY -> op = MAP_KEYS_CONTAIN;
                             case VALUE -> op = MAP_VALUES_CONTAIN;
@@ -159,7 +171,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         setQbValuesForMapByKey(qb, value1, nextParam);
                     }
                 } else {
-                    if (op == FilterOperation.BETWEEN) {
+                    if (op == FilterOperation.BETWEEN) { // BETWEEN for values by a certain key
                         op = getCorrespondingMapValueFilterOperationOrFail(op);
                         qb.setValue2(Value.get(value1)); // contains key
                         qb.setValue1(Value.get(value2)); // contains lower limit (inclusive)
@@ -176,10 +188,13 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                     dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
                 }
             } else if (params.isEmpty()) {
-                value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+                if (op != FilterOperation.BETWEEN) { // if not map in range (2 maps as parameters)
+                    // VALUE2 contains key (field name)
+                    value2 = Value.get(property.getFieldName());
+                }
             } else {
                 if (op == FilterOperation.CONTAINING) {
-                    if (params.get(params.size() - 1) instanceof CriteriaDefinition.AerospikeMapCriteria onMap) {
+                    if (params.get(params.size() - 1) instanceof AerospikeMapCriteria onMap) {
                         switch (onMap) {
                             case KEY -> op = MAP_KEYS_CONTAIN;
                             case VALUE -> op = MAP_VALUES_CONTAIN;
@@ -221,8 +236,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                 value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
                 dotPath = part.getProperty().toDotPath();
             } else if (isPojo(part)) { // if it is a first level POJO
-                // if it is a POJO compared for equality it already has op == FilterOperation.EQ
-                value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+                if (op != FilterOperation.BETWEEN) {
+                    // if it is a POJO compared for equality it already has op == FilterOperation.EQ
+                    value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+                }
             }
         }
 

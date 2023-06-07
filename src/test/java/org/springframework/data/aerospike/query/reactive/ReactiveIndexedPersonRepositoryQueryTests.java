@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveIntegrationTests {
@@ -109,7 +110,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByListValueGreaterThan() {
-        List<IndexedPerson> results = reactiveRepository.findByIntsGreaterThan(549)
+        List<IndexedPerson> results = reactiveRepository.findByIntsGreaterThan(549, VALUE)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
@@ -117,7 +118,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByListValueLessThanOrEqual() {
-        List<IndexedPerson> results = reactiveRepository.findByIntsLessThanEqual(500)
+        List<IndexedPerson> results = reactiveRepository.findByIntsLessThanEqual(500, VALUE)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
@@ -125,7 +126,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByListValueInRange() {
-        List<IndexedPerson> results = reactiveRepository.findByIntsBetween(500, 600)
+        List<IndexedPerson> results = reactiveRepository.findByIntsBetween(500, 600, VALUE)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
@@ -174,7 +175,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @Test
     public void findByMapValuesContaining() {
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("val1",
-                CriteriaDefinition.AerospikeMapCriteria.VALUE)
+                VALUE)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(luc, petra);

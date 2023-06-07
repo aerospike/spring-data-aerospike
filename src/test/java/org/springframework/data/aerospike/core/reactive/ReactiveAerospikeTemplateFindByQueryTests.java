@@ -238,7 +238,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 30);
+        // upper limit is exclusive
+        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -322,7 +323,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsLessThanEqual", 500);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsLessThanEqual", 500,
+            CriteriaDefinition.AerospikeMapCriteria.VALUE);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -342,7 +344,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 200, 600);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 200, 601,
+            CriteriaDefinition.AerospikeMapCriteria.VALUE);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -362,7 +365,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsGreaterThan", 549);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsGreaterThan", 549,
+            CriteriaDefinition.AerospikeMapCriteria.VALUE);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -624,7 +628,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeBetween", 42, 50);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeBetween", 42, 51);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())

@@ -141,7 +141,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findWithFilterRange() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 30);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
 
         Stream<Person> result = template.find(query, Person.class);
         assertThat(result).hasSize(6);
@@ -251,7 +251,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByListValueLessThanOrEqual() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsLessThanEqual", 25);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsLessThanEqual", 25,
+            CriteriaDefinition.AerospikeMapCriteria.VALUE);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -261,7 +262,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByListValueGreaterThan() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsGreaterThan", 10);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsGreaterThan", 10,
+            CriteriaDefinition.AerospikeMapCriteria.VALUE);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -271,7 +273,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByListValueInRange() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 10, 700);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 10, 700,
+            CriteriaDefinition.AerospikeMapCriteria.VALUE);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -333,7 +336,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByMapKeyValueBetween() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapBetween", "key3", 11, 24);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapBetween", "key3", 11, 25);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -404,7 +407,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findPersonsByFriendAgeRange() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeBetween", 50, 54);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeBetween", 50, 55);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
