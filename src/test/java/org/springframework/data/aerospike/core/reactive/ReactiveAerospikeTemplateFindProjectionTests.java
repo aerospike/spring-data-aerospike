@@ -42,6 +42,8 @@ public class ReactiveAerospikeTemplateFindProjectionTests extends BaseReactiveIn
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getEmailAddress()).isEqualTo("gmail.com");
+        reactiveTemplate.delete(firstPerson).block(); // cleanup
+        reactiveTemplate.delete(secondPerson).block(); //cleanup
     }
 
     @Test
@@ -69,6 +71,8 @@ public class ReactiveAerospikeTemplateFindProjectionTests extends BaseReactiveIn
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getMissingField()).isNull();
         assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
+        reactiveTemplate.delete(firstPerson).block(); // cleanup
+        reactiveTemplate.delete(secondPerson).block(); //cleanup
     }
 
     @Test
@@ -96,6 +100,8 @@ public class ReactiveAerospikeTemplateFindProjectionTests extends BaseReactiveIn
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getMissingField()).isNull();
         assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
+        reactiveTemplate.delete(firstPerson).block(); // cleanup
+        reactiveTemplate.delete(secondPerson).block(); //cleanup
     }
 
     @Test
@@ -115,6 +121,8 @@ public class ReactiveAerospikeTemplateFindProjectionTests extends BaseReactiveIn
         assertThat(actual).containsExactlyInAnyOrder(
             firstPerson.toPersonSomeFields(),
             secondPerson.toPersonSomeFields());
+        reactiveTemplate.delete(firstPerson).block(); // cleanup
+        reactiveTemplate.delete(secondPerson).block(); //cleanup
     }
 
     @Test

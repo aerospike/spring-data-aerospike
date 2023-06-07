@@ -48,8 +48,9 @@ public class RepositoriesIntegrationTests extends BaseBlockingIntegrationTests {
         repository.save(expected);
 
         Optional<CompositeObject> actual = repository.findById(expected.getId());
-
         assertThat(actual).hasValue(expected);
+        //noinspection OptionalGetWithoutIsPresent
+        repository.delete(actual.get());
     }
 
     @Test
@@ -62,7 +63,6 @@ public class RepositoriesIntegrationTests extends BaseBlockingIntegrationTests {
         assertThat(repository.findById(id)).isPresent();
 
         repository.delete(expected);
-
         assertThat(repository.findById(id)).isNotPresent();
     }
 }

@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,15 +44,13 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     final Person aabbot = Person.builder()
         .id(nextId()).firstName("Aabbot").lastName("Matthews").emailAddress("aabbot@gmail.com").age(30).build();
 
-    final List<Person> all = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister,
+    final List<Person> allPersons = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister,
         aabbot);
 
     @BeforeAll
     public void beforeAllSetUp() {
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
-
-        template.insertAll(all);
-
+        deleteAll(allPersons);
+        template.insertAll(allPersons);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age",
             IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName"
@@ -64,6 +63,14 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     @BeforeEach
     public void setUp() {
         super.setUp();
+    }
+
+    @AfterAll
+    public void afterAll() {
+        deleteAll(allPersons);
+        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_age_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_first_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_last_name_index");
     }
 
     @Test
@@ -108,6 +115,6 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     public void findAll_findsAllExistingDocumentsProjection() {
         Stream<PersonSomeFields> result = template.findAll(Person.class, PersonSomeFields.class);
 
-        assertThat(result).containsAll(all.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
+        assertThat(result).containsAll(allPersons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
     }
 }

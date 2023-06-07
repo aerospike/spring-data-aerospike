@@ -35,7 +35,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param key   Map key
      * @param value Value of the key
      */
-    Flux<IndexedPerson> findByStringMapEquals(String key, String value);
+    Flux<IndexedPerson> findByStringMapContaining(String key, String value);
 
     /**
      * Find all entities that satisfy the condition "have exactly the given map key and the given value"
@@ -43,7 +43,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param key   Map key
      * @param value Value of the key
      */
-    Flux<IndexedPerson> findByIntMapEquals(String key, int value);
+    Flux<IndexedPerson> findByIntMapContaining(String key, int value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given
@@ -135,8 +135,9 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * </p>
      *
      * @param integer upper limit, exclusive
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    Flux<IndexedPerson> findByIntsGreaterThan(int integer);
+    Flux<IndexedPerson> findByIntsGreaterThan(int integer, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
@@ -146,8 +147,9 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * </p>
      *
      * @param integer upper limit, inclusive
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    Flux<IndexedPerson> findByIntsLessThanEqual(int integer);
+    Flux<IndexedPerson> findByIntsLessThanEqual(int integer, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value in the given range"
@@ -157,8 +159,9 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      *
      * @param from lower limit, inclusive
      * @param to   upper limit, inclusive
+     * @param valueCriterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE} applying at values level
      */
-    Flux<IndexedPerson> findByIntsBetween(int from, int to);
+    Flux<IndexedPerson> findByIntsBetween(int from, int to, CriteriaDefinition.AerospikeMapCriteria valueCriterion);
 
     Flux<IndexedPerson> findByFirstName(String string);
 

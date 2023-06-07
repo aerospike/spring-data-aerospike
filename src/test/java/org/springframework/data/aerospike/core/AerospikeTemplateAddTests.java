@@ -34,21 +34,25 @@ public class AerospikeTemplateAddTests extends BaseBlockingIntegrationTests {
         Person updated = template.add(one, "age", 1);
 
         assertThat(updated.getAge()).isEqualTo(26);
-        assertThat(template.findById(id, Person.class)).isEqualTo(updated);
+        Person result = template.findById(id, Person.class);
+        assertThat(result).isEqualTo(updated);
+        template.delete(result);
     }
 
     @Test
     public void add_incrementsMultipleValues() {
-        Person customer = Person.builder().id(id).age(45).waist(90).build();
-        template.insert(customer);
+        Person person = Person.builder().id(id).age(45).waist(90).build();
+        template.insert(person);
 
         Map<String, Long> values = new HashMap<>();
         values.put("age", 10L);
         values.put("waist", 4L);
-        Person updated = template.add(customer, values);
+        Person updated = template.add(person, values);
 
         assertThat(updated.getAge()).isEqualTo(55);
         assertThat(updated.getWaist()).isEqualTo(94);
-        assertThat(template.findById(id, Person.class)).isEqualTo(updated);
+        Person result = template.findById(id, Person.class);
+        assertThat(result).isEqualTo(updated);
+        template.delete(result);
     }
 }

@@ -11,7 +11,6 @@ import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.IndexNotFoundException;
 import org.springframework.data.aerospike.IndexUtils;
 import org.springframework.data.aerospike.core.AerospikeTemplateIndexTests;
-import org.springframework.data.aerospike.core.AutoIndexedDocumentAssert;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
 import reactor.core.publisher.Mono;
@@ -211,15 +210,8 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     @Test
     public void deleteIndex_deletesExistingIndex() {
         reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING).block();
-
         reactiveTemplate.deleteIndex(IndexedDocument.class, INDEX_TEST_1).block();
-
         assertThat(reactiveTemplate.indexExists(INDEX_TEST_1).toFuture().getNow(false)).isFalse();
-    }
-
-    @Test
-    void indexedAnnotation_createsIndexes() {
-        AutoIndexedDocumentAssert.assertIndexesCreated(additionalAerospikeTestOperations, namespace);
     }
 
     @Value

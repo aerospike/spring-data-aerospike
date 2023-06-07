@@ -36,25 +36,25 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     public void updatesEvenIfDocumentNotChanged() {
         Person person = new Person(id, "Wolfgang", 11);
         reactiveTemplate.insert(person).block();
-
         reactiveTemplate.update(person).block();
 
         Person result = findById(id, Person.class);
-
         assertThat(result.getAge()).isEqualTo(11);
+        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test
     public void updatesMultipleFields() {
         Person person = new Person(id, null, 0);
         reactiveTemplate.insert(person).block();
-
         reactiveTemplate.update(new Person(id, "Andrew", 32)).block();
 
-        assertThat(findById(id, Person.class)).satisfies(doc -> {
+        Person result = findById(id, Person.class);
+        assertThat(result).satisfies(doc -> {
             assertThat(doc.getFirstName()).isEqualTo("Andrew");
             assertThat(doc.getAge()).isEqualTo(32);
         });
+        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test
@@ -66,11 +66,13 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         fields.add("age");
         reactiveTemplate.update(Person.builder().id(id).age(41).build(), fields).block();
 
-        assertThat(findById(id, Person.class)).satisfies(doc -> {
+        Person result = findById(id, Person.class);
+        assertThat(result).satisfies(doc -> {
             assertThat(doc.getFirstName()).isEqualTo("Andrew");
             assertThat(doc.getAge()).isEqualTo(41);
             assertThat(doc.getWaist()).isEqualTo(20);
         });
+        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test
@@ -85,6 +87,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         assertThatThrownBy(() -> reactiveTemplate.update(Person.builder().id(id).age(41).build(), fields).block())
             .isInstanceOf(RecoverableDataAccessException.class)
             .hasMessageContaining("field doesn't exists");
+        reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
     }
 
     @Test
@@ -99,12 +102,14 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         reactiveTemplate.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields)
             .block();
 
-        assertThat(findById(id, Person.class)).satisfies(doc -> {
+        Person result = findById(id, Person.class);
+        assertThat(result).satisfies(doc -> {
             assertThat(doc.getFirstName()).isEqualTo("Andrew");
             assertThat(doc.getAge()).isEqualTo(41);
             assertThat(doc.getWaist()).isEqualTo(20);
             assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
         });
+        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test
@@ -119,12 +124,15 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         reactiveTemplate.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), fields)
             .block();
 
-        assertThat(findById(id, Person.class)).satisfies(doc -> {
+        Person result = findById(id, Person.class);
+        assertThat(result).satisfies(doc -> {
             assertThat(doc.getFirstName()).isEqualTo("Andrew");
             assertThat(doc.getAge()).isEqualTo(41);
             assertThat(doc.getWaist()).isEqualTo(20);
             assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
         });
+        reactiveTemplate.delete(result).block(); // cleanup
+
     }
 
     @Test
@@ -152,6 +160,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.field).isEqualTo("foobar2");
             assertThat(doc.version).isEqualTo(3);
         });
+        reactiveTemplate.delete(document).block(); // cleanup
     }
 
     @Test
@@ -175,6 +184,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.field).isEqualTo("foobar2");
             assertThat(doc.version).isEqualTo(3);
         });
+        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -188,6 +198,8 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(doc.field).isNull();
             assertThat(doc.version).isEqualTo(2);
         });
+
+        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -202,6 +214,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             .verifyComplete();
         VersionedClass actual = findById(id, VersionedClass.class);
         assertThat(actual.version).isEqualTo(3);
+        reactiveTemplate.delete(actual).block(); // cleanup
     }
 
     @Test
@@ -225,6 +238,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         });
 
         assertThat(optimisticLock.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
+        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -243,6 +257,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
 
         Person actual = findById(id, Person.class);
         assertThat(actual.getFirstName()).startsWith("value-");
+        reactiveTemplate.delete(actual).block(); // cleanup
     }
 
     @Test
@@ -275,6 +290,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         Person personWithList2 = findById(id, Person.class);
         assertThat(personWithList2).isEqualTo(personWithList);
         assertThat(personWithList2.getStrings()).hasSize(4);
+        reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
     }
 
     @Test
@@ -307,5 +323,6 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         assertThat(personWithList2).isEqualTo(personWithList);
         assertThat(personWithList2.getStringMap()).hasSize(4);
         assertThat(personWithList2.getStringMap().get("key4")).isEqualTo("Added something new");
+        reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
     }
 }

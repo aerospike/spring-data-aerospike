@@ -32,7 +32,6 @@ public class AerospikeNamespaceHandler extends NamespaceHandlerSupport {
     @Override
     public void init() {
 
-        // TODO: add declarations and namespaces for other top-level configuration elements
         registerBeanDefinitionParser("client", new AerospikeClientBeanDefinitionParser());
         registerBeanDefinitionParser("clientPolicy", new ClientPolicyBeanDefinitionParser());
         registerBeanDefinitionParser("readPolicy", new ReadPolicyBeanDefinitionParser());

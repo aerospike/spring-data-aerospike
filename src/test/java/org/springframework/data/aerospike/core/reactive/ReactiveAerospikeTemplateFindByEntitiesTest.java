@@ -17,6 +17,13 @@ public class ReactiveAerospikeTemplateFindByEntitiesTest
     }
 
     @Override
+    public <T> void delete(T obj) {
+        reactiveTemplate.delete(obj)
+            .subscribeOn(Schedulers.parallel())
+            .block();
+    }
+
+    @Override
     public GroupedEntities findByIds(GroupedKeys groupedKeys) {
         return reactiveTemplate.findByIds(groupedKeys)
             .subscribeOn(Schedulers.parallel())

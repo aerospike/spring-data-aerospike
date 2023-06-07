@@ -33,6 +33,7 @@ public interface AbstractFindByEntitiesTest {
 
         assertThat(byIds.getEntitiesByClass(Person.class)).containsExactlyInAnyOrderElementsOf(persons);
         assertThat(byIds.getEntitiesByClass(Customer.class)).containsExactlyInAnyOrderElementsOf(customers);
+        deletePersons(persons); // cleanup
     }
 
     @Test
@@ -52,8 +53,8 @@ public interface AbstractFindByEntitiesTest {
             .build();
 
         GroupedEntities byIds = findByIds(groupedKeys);
-
         assertThat(byIds.containsEntities()).isFalse();
+        deletePersons(persons); // cleanup
     }
 
     @Test
@@ -66,6 +67,7 @@ public interface AbstractFindByEntitiesTest {
 
         assertThat(results.getEntitiesByClass(Person.class)).containsExactlyInAnyOrderElementsOf(persons);
         assertThat(results.getEntitiesByClass(Customer.class)).containsExactlyInAnyOrderElementsOf(customers);
+        deletePersons(persons); // cleanup
     }
 
     @Test
@@ -77,6 +79,7 @@ public interface AbstractFindByEntitiesTest {
 
         assertThat(results.getEntitiesByClass(Person.class)).containsExactlyInAnyOrderElementsOf(persons);
         assertThat(results.getEntitiesByClass(Customer.class)).containsExactlyInAnyOrderElementsOf(emptyList());
+        deletePersons(persons); // cleanup
     }
 
     @Test
@@ -88,6 +91,7 @@ public interface AbstractFindByEntitiesTest {
 
         assertThat(batchGroupedEntities.getEntitiesByClass(Person.class)).containsExactlyInAnyOrderElementsOf(persons);
         assertThat(batchGroupedEntities.getEntitiesByClass(Customer.class)).containsExactlyInAnyOrderElementsOf(emptyList());
+        deletePersons(persons); // cleanup
     }
 
     @Test
@@ -135,6 +139,7 @@ public interface AbstractFindByEntitiesTest {
         assertThatThrownBy(() -> findByIds(groupedKeys))
             .isInstanceOf(MappingException.class)
             .hasMessage("Couldn't find PersistentEntity for type class java.lang.String");
+        deletePersons(persons); // cleanup
     }
 
     @Test
@@ -203,7 +208,15 @@ public interface AbstractFindByEntitiesTest {
             .collect(Collectors.toList());
     }
 
+    default void deletePersons(List<Person> persons) {
+        for (Person person : persons) {
+            delete(person);
+        }
+    }
+
     <T> void save(T obj);
+
+    <T> void delete(T obj);
 
     GroupedEntities findByIds(GroupedKeys groupedKeys);
 }
