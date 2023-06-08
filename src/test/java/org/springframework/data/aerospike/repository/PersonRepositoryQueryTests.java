@@ -482,7 +482,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(!carter.getIntMap().containsValue(22)).isTrue();
 
         List<Person> persons = repository.findByIntMapIsNot("key1", 22);
-        assertThat(persons).contains(carter);
+        assertThat(persons).containsOnly(carter);
     }
 
     @Test
@@ -502,10 +502,10 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> persons;
         persons = repository.findByMapOfIntListsIsNot("2", List.of(100));
-        assertThat(persons).containsExactlyInAnyOrder(matias, leroi2);
+        assertThat(persons).containsOnly(matias, leroi2);
 
         persons = repository.findByMapOfIntListsIsNot("0", List.of(202));
-        assertThat(persons).containsExactlyInAnyOrder(stefan, douglas);
+        assertThat(persons).containsOnly(stefan, douglas);
 
         persons = repository.findByMapOfIntListsIsNot("34", List.of(2000));
         assertThat(persons).isEmpty();
@@ -1365,12 +1365,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         if (IndexUtils.isFindByPojoSupported(client)) {
             Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);
             assertThat(carter.getIntMap()).isEqualTo(mapToCompareWith);
+            assertThat(boyd.getIntMap()).isNullOrEmpty();
 
             carter.setIntMap(Map.of("key1", 1, "key2", 2));
             repository.save(carter);
             assertThat(carter.getIntMap()).isNotEqualTo(mapToCompareWith);
 
-            assertThat(repository.findByIntMapIsNot(mapToCompareWith)).contains(carter);
+            assertThat(repository.findByIntMapIsNot(mapToCompareWith)).contains(carter, boyd);
 
             carter.setIntMap(mapToCompareWith);
             repository.save(carter);
