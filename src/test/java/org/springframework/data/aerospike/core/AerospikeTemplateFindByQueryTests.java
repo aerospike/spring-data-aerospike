@@ -158,7 +158,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findWithStatement() {
         Statement aerospikeQuery = new Statement();
-        String[] bins = {"firstName", "lastName"}; //fields we want retrieved
+        String[] bins = {"firstName", "lastName"}; // fields we want retrieved
         aerospikeQuery.setNamespace(getNameSpace());
         aerospikeQuery.setSetName("Person");
         aerospikeQuery.setBinNames(bins);

@@ -55,25 +55,20 @@ When querying and updating `AerospikeTemplate` will use the converter to handle 
 [[mapping-configuration]]
 == Mapping Configuration
 
-Unless explicitly configured, an instance of `AerospikeMappingConverter` is created by default when creating a `AerospikeTemplate`. You can create your own instance of the `MappingAerospikeConverter` so as to tell it where to scan the classpath at startup your domain classes in order to extract metadata and construct indexes. Also, by creating your own instance you can register Spring converters to use for mapping specific classes to and from the database.
+Unless explicitly configured, an instance of `AerospikeMappingConverter` is created by default when creating a `AerospikeTemplate`. You can create your own instance of the `MappingAerospikeConverter` so as to tell it where to scan the classpath at startup your domain classes in order to extract metadata and construct indexes.
+Also, to have more control over the conversion process (if needed), you can register converters to use for mapping specific classes to and from the database.
 
-NOTE: AbstractAerospikeConfiguration will create a AerospikeTemplate instance and registered with the container under the name 'erospikeTemplate'.
-
-
-Spring's AerospikeDB namespace enables you to easily enable mapping functionality in XML
-
-.XML schema to configure AerospikeDB mapping support
-
+NOTE: AbstractAerospikeConfiguration will create a AerospikeTemplate instance and registered with the container under the name 'AerospikeTemplate'.
 
 [[mapping-usage-annotations]]
 === Mapping annotation overview
 
 The MappingAerospikeConverter can use metadata to drive the mapping of objects to documents. An overview of the annotations is provided below
 
-* `@Id` - applied at the field level to mark the field used for identiy purpose.
-* `@Field` - applied at the field level and described the name of the field as it will be represented in the AerospikeDB BSON document thus allowing the name to be different than the fieldname of the class.
+* `@Id` - applied at the field level to mark the field used for identity purpose.
+* `@Field` - applied at the field level, describes the name of the field as it will be represented in the AerospikeDB BSON document thus allowing the name to be different from the fieldname of the class.
 
-The mapping metadata infrastructure is defined in a seperate spring-data-commons project that is technology agnostic. Specific subclasses are using in the AerospikeDB support to support annotation based metadata. Other strategies are also possible to put in place if there is demand.
+The mapping metadata infrastructure is defined in a seperate spring-data-commons project that is technology-agnostic. Specific subclasses are using in the AerospikeDB support to support annotation based metadata. Other strategies are also possible to put in place if there is demand.
 
 Here is an example of a more complex mapping.
 

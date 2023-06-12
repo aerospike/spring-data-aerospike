@@ -21,8 +21,8 @@ NoSQL stores have taken the storage world by storm. It is a vast domain with a p
 
 The jumping off ground for learning about Aerospike is https://www.aerospike.com/[www.aerospike.com]. Here is a list of other useful resources:
 
-* The https://www.aerospike.com/docs/[docs] introduces Aerospike and contains links to getting started guides, reference documentation and tutorials.
-* The https://www.aerospike.com/docs/client/java/[java client] provides a convenient way to interact with a Aerospike instance in combination with the online https://www.aerospike.com:443/docs/client/java/start/index.html/[Getting started]
+* The https://www.aerospike.com/docs/[technical documentation] introduces Aerospike and contains links to getting started guides, reference documentation and tutorials.
+* The https://www.aerospike.com/docs/client/java/[java client documentation] provides a convenient way to interact with a Aerospike instance in combination with the online https://www.aerospike.com:443/docs/client/java/start/index.html/[Getting started]
 * https://www.aerospike.com/community/[Aerospike Community]
 
 [[requirements]]
