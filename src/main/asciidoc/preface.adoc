@@ -30,7 +30,7 @@ The jumping off ground for learning about Aerospike is https://www.aerospike.com
 
 Spring Data Aerospike 4.2.x binaries requires JDK level 17.0 and above, and https://spring.io/docs[Spring Framework] 5.3.x and above.
 
-In terms of servers, https://www.aerospike.com/download/server/[Aerospike] at least 5.2
+In terms of server, https://www.aerospike.com/download/server/[Aerospike] version at least 5.2
 
 == Additional Help Resources
 
