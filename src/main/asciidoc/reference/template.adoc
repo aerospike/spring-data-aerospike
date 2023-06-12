@@ -50,7 +50,7 @@ assertThat(result).hasSize(6);
 
 The simple case of using the save operation is to save a POJO.
 
-NOTE: For more information about Id property when inserting or saving see <<mapping.conventions.id-field, Mapping Conventions: Id Field>>.
+NOTE: For more information about Id property when inserting or saving see xref:mapping.adoc#mapping.conventions.id-field[Mapping Conventions: Id Field] for more information.
 
 [source, java]
 ----
