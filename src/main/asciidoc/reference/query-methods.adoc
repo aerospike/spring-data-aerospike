@@ -1,0 +1,77 @@
+== Query Methods
+
+Spring Data Aerospike supports defining queries by method name in the Repository interface so that the implementation is generated. The format of method names is fairly flexible, comprising a verb and criteria.
+
+Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`. For example, `countByLastName`, `findByFirstName` etc.
+
+[width="100%",cols="<12%,<25%,<25%",options="header",]
+|===
+|Keyword |Sample |Snippet
+|And |findByLastNameAndFirstName |...where x.lastName = ? and x.firstName = ?
+
+|Or |findByLastNameOrFirstName |...where x.lastName = ? or x.firstName = ?
+
+|Is, Equals |findByLastName, findByLastNameIs, findByLastNameEquals |...where x.lastName = ?
+
+|Between |findByDateOfBirthBetween |...where x.dateOfBirth between ? and ?
+
+|LessThan |findByAgeLessThan |...where x.age < ?
+
+|LessThanEqual |findByAgeLessThanEqual |...where x.age <= ?
+
+|GreaterThan |findByAgeGreaterThan |...where x.age > ?
+
+|GreaterThanEqual |findByAgeGreaterThanEqual |...where x.age >= ?
+
+|After |findByDateOfBirthAfter |...where x.dateOfBirth > ?
+
+|Before |findByDateOfBirthBefore |...where x.dateOfBirth < ?
+
+|Like |findByLastNameLike |...where x.lastName like ?
+
+|StartingWith |findByLastNameStartingWith |...where x.lastName like 'abc%'
+
+|EndingWith |findByLastNameEndingWith |...where x.lastName like '%abc'
+
+|Containing |findByLastNameContaining |...where x.lastName like '%abc%
+
+|OrderBy |findByLastNameOrderByFirstNameDesc |...where x.lastName = ? order by x.firstName desc
+
+|Not |findByLastNameNot |...where x.lastName <> ?
+
+|In |findByLastNameIn(Collection<String>) |...where x.lastName in ?
+
+|True |findByEnabledTrue() |...where x.enabled = true
+
+|False |findByOptOutFalse() |...where x.optOut = false
+
+|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
+|===
+
+An example of an interface with several query methods is:
+
+[source, java]
+----
+public interface PersonRepository extends AerospikeRepository<Person, Long> {
+    public List<Person> findByLastName(String lastName);
+    public List<Person> findByLastNameContaining(String lastName);
+    public List<Person> findByLastNameStartingWith(String lastName);
+    public List<Person> findByLastNameAndFirstNameContaining(String lastName, String firstName);
+    public List<Person> findByAgeBetween(long startAge, long endAge);
+    public Optional<Person> findById(Long id);
+}
+----
+
+Note that Java Dates are stored as type `long` in the database so search method should access them as if they are of type `long`. So if the class has a `DateOfBirth` field, instead of
+
+[source, java]
+----
+public List<Person> findByDateOfBirthBetween(Date startDate, Date endDate);
+----
+
+there might be a method like:
+
+[source, java]
+----
+public List<Person> findByDateOfBirthBetween(long startDate, long endDate);
+----
