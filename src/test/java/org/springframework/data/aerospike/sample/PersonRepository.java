@@ -185,11 +185,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByAgeIn(ArrayList<Integer> ages);
 
-    List<P> findPersonByFirstName(String firstName);
+    List<P> findByIsActive(boolean isActive);
 
-    List<P> findPersonsByActive(boolean isActive);
-
-    List<P> findPersonsByActiveAndFirstName(boolean isActive, String firstName);
+    List<P> findByIsActiveAndFirstName(boolean isActive, String firstName);
 
     @SuppressWarnings("UnusedReturnValue")
     long countByLastName(String lastName);
@@ -385,6 +383,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param value2 Value of key2
      */
     List<P> findByIntMapContaining(String key1, int value1, String key2, int value2);
+
+    /**
+     * Find all entities that satisfy the condition "have the map which contains the given boolean"
+     *
+     * @param key   Map key
+     * @param value Boolean to check
+     */
+    List<P> findByMapOfBooleanContaining(String key, boolean value);
 
     /**
      * Find all entities with existing intMap not equal to the given argument
@@ -721,6 +727,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param integer3 number to check
      */
     List<P> findByIntsContaining(int integer1, int integer2, int integer3);
+
+    /**
+     * Find all entities that satisfy the condition "have the list which contains the given boolean"
+     *
+     * @param value boolean to check
+     */
+    List<P> findByListOfBooleanContaining(boolean value);
 
     /**
      * Find all entities that satisfy the condition "have list that contains given Address".
