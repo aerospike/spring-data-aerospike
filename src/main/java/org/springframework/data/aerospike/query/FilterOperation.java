@@ -1100,33 +1100,37 @@ public enum FilterOperation {
             opName + " filter expression: dotPath has not been set");
         final boolean useCtx = dotPathArr.length > 2;
 
-        return switch (getValue1(map).getType()) {
-            case INTEGER -> getMapValEqExp(map, Exp.Type.INT, getValue1(map).toLong(), dotPathArr, operator,
+        Value value1 = getValue1(map) instanceof Value.BoolIntValue ?
+            new Value.BooleanValue((Boolean) getValue1(map).getObject()) :
+            getValue1(map);
+
+        return switch (value1.getType()) {
+            case INTEGER -> getMapValEqExp(map, Exp.Type.INT, value1.toLong(), dotPathArr, operator,
                 useCtx);
             case STRING -> {
                 if (ignoreCase(map)) {
                     throw new IllegalArgumentException(
                         opName + " FilterExpression: case insensitive comparison is not supported");
                 }
-                yield getMapValEqExp(map, Exp.Type.STRING, getValue1(map).toString(), dotPathArr, operator,
+                yield getMapValEqExp(map, Exp.Type.STRING, value1.toString(), dotPathArr, operator,
                     useCtx);
             }
-            case BOOL -> getMapValEqExp(map, Exp.Type.BOOL, getValue1(map).getObject(), dotPathArr, operator,
+            case BOOL -> getMapValEqExp(map, Exp.Type.BOOL, value1.getObject(), dotPathArr, operator,
                 useCtx);
             case JBLOB -> {
-                Object convertedValue = getConvertedValue(map, FilterOperation::getValue1);
+                Object convertedValue = getConvertedValue(map, value1);
                 // Collection comes as JBLOB, custom objects are converted into Maps
                 Exp.Type expType = convertedValue instanceof List<?> ? Exp.Type.LIST : Exp.Type.MAP;
 
                 yield getMapValEqExp(map, expType, convertedValue, dotPathArr, operator,
                     useCtx);
             }
-            case LIST -> getMapValEqExp(map, Exp.Type.LIST, getValue1(map).getObject(), dotPathArr, operator,
+            case LIST -> getMapValEqExp(map, Exp.Type.LIST, value1.getObject(), dotPathArr, operator,
                 useCtx);
-            case MAP -> getMapValEqExp(map, Exp.Type.MAP, getValue1(map).getObject(), dotPathArr, operator,
+            case MAP -> getMapValEqExp(map, Exp.Type.MAP, value1.getObject(), dotPathArr, operator,
                 useCtx);
             default -> throw new IllegalArgumentException(
-                opName + " FilterExpression unsupported type: " + getValue1(map).getClass().getSimpleName());
+                opName + " FilterExpression unsupported type: " + value1.getClass().getSimpleName());
         };
     }
 
@@ -1151,6 +1155,12 @@ public enum FilterOperation {
     private static Object getConvertedValue(Map<String, Object> map, Function<Map<String, Object>, Value> function) {
         return getConverter(map).toWritableValue(
             function.apply(map).getObject(), TypeInformation.of(function.apply(map).getObject().getClass())
+        );
+    }
+
+    private static Object getConvertedValue(Map<String, Object> map, Value value) {
+        return getConverter(map).toWritableValue(
+            value.getObject(), TypeInformation.of(value.getObject().getClass())
         );
     }
 

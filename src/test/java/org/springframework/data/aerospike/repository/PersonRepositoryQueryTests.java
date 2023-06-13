@@ -401,15 +401,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByMapContainingBoolean() {
-        boolean initialValue = Value.UseBoolBin;
-        Value.UseBoolBin = true;
         oliver.setMapOfBoolean(Map.of("test", true));
         repository.save(oliver);
         alicia.setMapOfBoolean(Map.of("test", true));
         repository.save(alicia);
 
         assertThat(repository.findByMapOfBooleanContaining("test", true)).containsOnly(oliver, alicia);
-        Value.UseBoolBin = initialValue;
     }
 
     @Test
