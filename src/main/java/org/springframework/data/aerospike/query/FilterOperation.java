@@ -794,6 +794,12 @@ public enum FilterOperation {
     LIST_VAL_CONTAINING {
         @Override
         public Exp filterExp(Map<String, Object> map) {
+            // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
+            // so converting to BooleanValue to process correctly
+            if (getValue1(map) instanceof Value.BoolIntValue) {
+                map.put(VALUE1, new Value.BooleanValue((Boolean) (getValue1(map).getObject())));
+            }
+
             Exp value = switch (getValue1(map).getType()) {
                 case INTEGER -> Exp.val(getValue1(map).toLong());
                 case STRING -> Exp.val(getValue1(map).toString());
@@ -1100,10 +1106,13 @@ public enum FilterOperation {
             opName + " filter expression: dotPath has not been set");
         final boolean useCtx = dotPathArr.length > 2;
 
-        Value value1 = getValue1(map) instanceof Value.BoolIntValue ?
-            new Value.BooleanValue((Boolean) getValue1(map).getObject()) :
-            getValue1(map);
+        // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
+        // so converting to BooleanValue to process correctly
+        if (getValue1(map) instanceof Value.BoolIntValue) {
+            map.put(VALUE1, new Value.BooleanValue((Boolean) getValue1(map).getObject()));
+        }
 
+        Value value1 = getValue1(map);
         return switch (value1.getType()) {
             case INTEGER -> getMapValEqExp(map, Exp.Type.INT, value1.toLong(), dotPathArr, operator,
                 useCtx);
