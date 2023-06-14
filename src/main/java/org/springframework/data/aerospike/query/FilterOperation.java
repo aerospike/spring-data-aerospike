@@ -681,8 +681,8 @@ public enum FilterOperation {
                 case LIST -> Exp.val((List<?>) getValue1(map).getObject());
                 case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
                 default -> throw new IllegalArgumentException(
-                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: " +
-                        "got " + getValue1(map).getClass().getSimpleName());
+                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
+                        getValue1(map).getClass().getSimpleName());
             };
 
             return Exp.gt(
@@ -705,8 +705,8 @@ public enum FilterOperation {
                 case LIST -> Exp.val((List<?>) getValue1(map).getObject());
                 case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
                 default -> throw new IllegalArgumentException(
-                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: " +
-                        "got " + getValue1(map).getClass().getSimpleName());
+                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
+                        getValue1(map).getClass().getSimpleName());
             };
 
             return Exp.gt(
@@ -989,8 +989,8 @@ public enum FilterOperation {
                     case LIST -> Exp.val((List<?>) getValue1(map).getObject());
                     case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
                     default -> throw new IllegalArgumentException(
-                        "LIST_VAL_LTEQ FilterExpression unsupported type: " +
-                            "got " + getValue1(map).getClass().getSimpleName());
+                        "LIST_VAL_LTEQ FilterExpression unsupported type: got " +
+                            getValue1(map).getClass().getSimpleName());
                 };
 
                 Exp rangeIncludingValue = ListExp.getByValueRange(ListReturnType.COUNT, null, value,
