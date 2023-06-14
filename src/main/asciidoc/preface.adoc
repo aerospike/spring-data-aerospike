@@ -17,7 +17,7 @@ To learn more about Spring, you can refer to the comprehensive (and sometimes di
 
 [[get-started:first-steps:nosql]]
 == Knowing NoSQL and Aerospike
-NoSQL stores have taken the storage world by storm. It is a vast domain with a plethora of solutions, terms and patterns (to make things worth even the term itself has multiple https://www.google.com/search?q=nosoql+acronym[meanings]). While some of the principles are common, it is crucial that the user is familiar to some degree with Aerospike key-value store operations that supply the mechanism for associating keys with a set of named values, similar to a row in standard RDBMS terminology.  The data layer in Aerospike Database is optimized to store data in solid state drives, RAM, or traditional rotational media. The database indices are stored in RAM for quick availability, and data writes are optimized through large block writes to reduce latency. The software also employs two sub-programs that are codenamed Defragmenter and Evictor. Defragmenter removes data blocks that have been deleted, and Evictor frees RAM space by removing references to expired records.
+NoSQL stores have taken the storage world by storm. It is a vast domain with a plethora of solutions, terms and patterns (to make things worth even the term itself has multiple https://www.google.com/search?q=nosoql+acronym[meanings]). While some principles are common, it is crucial that the user is familiar to some degree with Aerospike key-value store operations that supply the mechanism for associating keys with a set of named values, similar to a row in standard RDBMS terminology.  The data layer in Aerospike Database is optimized to store data in solid state drives, RAM, or traditional rotational media. The database indices are stored in RAM for quick availability, and data writes are optimized through large block writes to reduce latency. The software also employs two sub-programs that are codenamed Defragmenter and Evictor. Defragmenter removes data blocks that have been deleted, and Evictor frees RAM space by removing references to expired records.
 
 The jumping off ground for learning about Aerospike is https://www.aerospike.com/[www.aerospike.com]. Here is a list of other useful resources:
 
@@ -52,4 +52,4 @@ Developers post questions and answers on Stack Overflow. The two key tags to sea
 [[get-started:up-to-date]]
 ==== Following Development
 
-If you encounter a bug or want to suggest an improvement, please create a [Github issue]https://github.com/aerospike-community/spring-data-aerospike/issues.
+If you encounter a bug or want to suggest an improvement, please create an https://github.com/aerospike-community/spring-data-aerospike/issues[issue on GitHub].

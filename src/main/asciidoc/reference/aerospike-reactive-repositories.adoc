@@ -1,10 +1,10 @@
 [[aerospike.reactive.repositories]]
 = Reactive Aerospike repositories
 
-[[aerospike-repo-intro]]
+[[aerospike-reactive-repo-intro]]
 == Introduction
 
-This chapter will point out the specialties for reactive repository support for Aerospike. This builds on the core repository support explained in <<repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
+This chapter will point out the specialties for reactive repository support for Aerospike. This builds on the core repository support explained in <<aerospike.repositories, repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
 
 [[aerospike.reactive.repositories.libraries]]
 == Reactive Composition Libraries
