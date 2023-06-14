@@ -92,7 +92,7 @@ The heart of the cache layer, to define an AerospikeCacheManager you need:
 . defaultCacheConfiguration (AerospikeCacheConfiguration), a default cache configuration that applies when creating new caches. Cache configuration contains a namespace, a set (null by default meaning write directly to the namespace w/o specifying a set) and an expirationInSeconds (AKA TTL, default is 0 meaning use Aerospike server’s default).
 . Optional: initalPerCacheConfiguration (Map<String, AerospikeCacheConfiguration>), You can also specify a map of cache names and matching configuration, it will create the caches with the given matching configuration at the application startup.
 
-NOTE: A cache name is only a link to a cache configuration.
+NOTE: A cache name is only a link to the cache configuration.
 
 ==== Objects
 
