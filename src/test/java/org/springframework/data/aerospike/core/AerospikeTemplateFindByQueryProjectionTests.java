@@ -75,7 +75,7 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
 
     @Test
     public void findWithFilterEqualProjection() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findPersonByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
 
         Stream<PersonSomeFields> result = template.find(query, Person.class, PersonSomeFields.class);
 

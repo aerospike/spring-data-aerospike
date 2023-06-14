@@ -51,7 +51,9 @@ public class Person {
     private Map<String, List<Integer>> mapOfIntLists;
     private Person friend;
     private Person bestFriend;
-    private boolean active;
+    private boolean isActive;
+    private List<Boolean> listOfBoolean;
+    private Map<String, Boolean> mapOfBoolean;
     private Date dateOfBirth;
     private LocalDate regDate;
     private List<String> strings;

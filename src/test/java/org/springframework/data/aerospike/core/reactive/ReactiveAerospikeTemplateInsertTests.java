@@ -50,7 +50,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             .stringMap(Collections.singletonMap("k", "v"))
             .strings(Arrays.asList("a", "b", "c"))
             .friend(new Person(null, "Anna", 43))
-            .active(true)
+            .isActive(true)
             .sex(Person.Sex.MALE)
             .dateOfBirth(new Date())
             .build();
