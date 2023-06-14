@@ -1,0 +1,29 @@
+name: asciidoctor-ghpages
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.adoc'
+  push:
+    branches:
+      - main
+    paths:
+      - '**.adoc'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: asciidoctor-ghpages
+        uses: manoelcampos/asciidoctor-ghpages-action@v2
+        with:
+          asciidoctor_params: --attribute=nofooter
+          source_dir: ./src/main/asciidoc
+          ebook_main_adoc_file: index

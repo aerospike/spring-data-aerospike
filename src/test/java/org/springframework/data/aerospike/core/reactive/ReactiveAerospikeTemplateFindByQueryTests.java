@@ -177,7 +177,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .mapToObj(id -> new Person(nextId(), "Dave", "Matthews")).collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findPersonByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())

@@ -103,7 +103,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findWithFilterEqual() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findPersonByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
         Stream<Person> result = template.find(query, Person.class);
         assertThat(result).containsOnly(dave);
     }

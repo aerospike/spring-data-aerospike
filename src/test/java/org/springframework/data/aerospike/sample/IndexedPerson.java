@@ -38,7 +38,7 @@ public class IndexedPerson extends Person {
             .intMap(person.getIntMap())
             .stringMap(person.getStringMap())
             .friend(person.getFriend())
-            .active(person.isActive())
+            .isActive(person.isActive())
             .dateOfBirth(person.getDateOfBirth())
             .strings(person.getStrings())
             .ints(person.getInts())
