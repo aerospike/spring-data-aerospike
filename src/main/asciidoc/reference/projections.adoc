@@ -1,6 +1,8 @@
-== Projections with Aerospike
+= Projections with Aerospike
 
 Spring Data Aerospike supports Projections, a mechanism which allows you to fetch only relevant fields from Aerospike for a particular use case. This results in better performance, less network traffic and better understanding of what is required for the rest of the flow.
+
+include::../{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+2]
 
 For example, consider a Person class:
 

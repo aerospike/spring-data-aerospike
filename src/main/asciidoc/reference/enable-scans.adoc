@@ -1,0 +1,36 @@
+[[scan-operation]]
+= Scan Operation
+
+A scan can be an expensive operation as all records in the set must be read by the Aerospike server, and then the condition is applied to see if they match.
+
+Due to the cost of performing this operation, scans from Spring Data Aerospike are disabled by default.
+
+== Enabling Scan
+
+If the cost of the scans is acceptable to an organization, they can be enabled by setting `scansEnabled` to `true` in `AerospikeDataSettings`.
+
+One way to do this is to create a custom bean which overrides the default settings:
+
+[source,java]
+----
+@Configuration
+@EnableAerospikeRepositories(basePackageClasses = { PersonRepository.class})
+public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
+    @Override
+    protected Collection<Host> getHosts() {
+        return Collections.singleton(new Host("localhost", 3000));
+    }
+
+    @Override
+    protected String nameSpace() {
+        return "test";
+    }
+
+    @Bean
+    public AerospikeDataSettings aerospikeDataSettings() {
+        return AerospikeDataSettings.builder().scansEnabled(true).build();
+    }
+}
+----
+
+NOTE: Once this flag is enabled, scans run whenever needed with no warnings. This may or may not be optimal in a particular use case.

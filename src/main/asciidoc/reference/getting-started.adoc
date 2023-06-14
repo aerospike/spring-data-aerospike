@@ -1,6 +1,6 @@
-== Installation & Usage
+= Installation & Usage
 
-=== Getting Started
+== Getting Started
 
 To use Spring Data Aerospike in your project, the first step is to add it to your build process. For Maven, this is as simple as:
 
@@ -20,7 +20,7 @@ For Gradle:
 implementation group: 'com.aerospike', name: 'spring-data-aerospike', version: '4.2.0'
 ----
 
-=== Connecting to Aerospike DB
+== Connecting to Aerospike DB
 
 Connecting to the repository is easy with the help of the `AbstractAerospikeDataConfiguration` class.
 
@@ -45,7 +45,7 @@ public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
 The `AbstractAerospikeDataConfiguration` class exposes a number of beans which Spring Data Aerospike uses internally. Some of these, in particular the `AerospikeTemplate` bean, are useful in their own right if finer grained control over data access is needed. The primary information required by this configuration is how to connect to the cluster, provided through the `getHosts` and `nameSpace` calls.
 
-=== Creating Functionality
+== Creating Functionality
 
 The base functionality for using Spring Data is provided by the AerospikeRepository interface. This typically takes 2 parameters:
 
@@ -125,5 +125,5 @@ aql> select * from test.Person where pk = "1"
 There are 2 important things to notice here:
 
 [arabic]
-. The fully qualified path of the class is listed in each record. This is needed to instantiate the class correctly, especially in cases where the compile-time type and runtime type of the object differ. For example, where a field is declared as a super class but the instantiated class is a sub-class.
+. The fully qualified path of the class is listed in each record. This is needed to instantiate the class correctly, especially in cases where the compile-time type and runtime type of the object differ. For example, where a field is declared as a super class but the instantiated class is a subclass.
 . The `long` id field was turned into a `String` when stored in the database. All `@Id` fields must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application, but needs to be considered if using an external tool like `AQL` to view the data.

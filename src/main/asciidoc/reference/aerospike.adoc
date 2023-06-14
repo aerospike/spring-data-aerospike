@@ -3,13 +3,11 @@
 
 Aerospike support contains a wide range of features summarized below:
 
-* Spring configuration support using Java based @Configuration classes or an XML namespace for Aerospike driver instance and replica sets
-* AerospikeTemplate helper class that increases productivity performing common Aerospike operations
-* Exceptions translation into Spring's portable Data Access Exception hierarchy
 * Feature Rich Object Mapping integrated with Spring's Conversion Service
-* Annotation based mapping metadata but extensible to support other metadata formats
-* Java based Query, Criteria, and Update DSLs
 * Automatic implementation of Repository interfaces including support for custom finder methods
+* AerospikeTemplate helper class for performing common Aerospike operations
+* Exceptions translation into Spring's portable Data Access Exception hierarchy
+* Annotation based mapping metadata but extensible to support other metadata formats
 
 [[aerospike-getting-started]]
 == Getting Started

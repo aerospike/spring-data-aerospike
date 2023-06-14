@@ -1,8 +1,10 @@
-== Query Methods
+= Query Methods
 
 Spring Data Aerospike supports defining queries by method name in the Repository interface so that the implementation is generated. The format of method names is fairly flexible, comprising a verb and criteria.
 
 Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`. For example, `countByLastName`, `findByFirstName` etc.
+
+include::../{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
 
 [width="100%",cols="<12%,<25%,<25%",options="header",]
 |===

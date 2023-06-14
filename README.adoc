@@ -1,4 +1,4 @@
-== Spring Data Aerospike
+= Spring Data Aerospike
 
 :maven-image: https://img.shields.io/maven-central/v/com.aerospike/spring-data-aerospike.svg?maxAge=259200
 :maven-url: https://search.maven.org/#search%7Cga%7C1%7Ca%3A%22spring-data-aerospike%22

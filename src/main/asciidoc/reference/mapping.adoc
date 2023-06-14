@@ -3,8 +3,9 @@
 
 Rich mapping support is provided by the `AerospikeMappingConverter`. `AerospikeMappingConverter` has a rich metadata model that provides a full feature set of functionality to map domain objects to Aerospike clusters and objects.The mapping metadata model is populated using annotations on your domain objects. However, the infrastructure is not limited to using annotations as the only source of metadata information. The `AerospikeMappingConverter` also allows you to map objects without providing any additional metadata, by following a set of conventions.
 
-In this section we will describe the features of the `AerospikeMappingConverter`. How to use conventions for mapping objects to documents and how to override those conventions with annotation based mapping metadata.
+In this section we will describe the features of the `AerospikeMappingConverter`, how to use conventions for mapping objects to documents and how to override those conventions with annotation based mapping metadata.
 
+include::../{spring-data-commons-docs}/object-mapping.adoc[leveloffset=+1]
 
 [[mapping-conventions]]
 == Convention based Mapping
@@ -58,7 +59,9 @@ When querying and updating `AerospikeTemplate` will use the converter to handle 
 Unless explicitly configured, an instance of `AerospikeMappingConverter` is created by default when creating a `AerospikeTemplate`. You can create your own instance of the `MappingAerospikeConverter` so as to tell it where to scan the classpath at startup your domain classes in order to extract metadata and construct indexes.
 Also, to have more control over the conversion process (if needed), you can register converters to use for mapping specific classes to and from the database.
 
-NOTE: AbstractAerospikeConfiguration will create a AerospikeTemplate instance and registered with the container under the name 'AerospikeTemplate'.
+include::../{spring-data-commons-docs}/custom-conversions.adoc[leveloffset=+3]
+
+NOTE: AbstractAerospikeConfiguration will create a AerospikeTemplate instance and register with the container under the name 'AerospikeTemplate'.
 
 [[mapping-usage-annotations]]
 === Mapping annotation overview

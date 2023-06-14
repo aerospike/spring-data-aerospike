@@ -1,0 +1,122 @@
+= Secondary indexes
+
+A secondary index (SI) is a data structure that locates all the records in a namespace, or a set within it, based on a bin value in the record.
+When a value is updated in the indexed record, the secondary index automatically updates.
+
+You can read more about secondary index implementation and usage in Aerospike https://docs.aerospike.com/server/architecture/secondary-index[on the official documentation page].
+
+== Why Secondary Index
+
+Let's consider a simple query for finding by equality:
+
+[source,java]
+----
+public List<Person> personRepsitory.findByLastName(lastName);
+----
+
+Notice that findByLastName is not a simple lookup by key, but rather finding all records in a set.
+Aerospike has 2 ways of achieving this:
+
+[arabic]
+. Scanning all the records in the set and extracting the appropriate records.
+. Defining a secondary index on the field `lastName` and using this secondary index to satisfy the query.
+
+The second approach is far more efficient.
+Aerospike stores the secondary indexes in a memory structure, allowing exceptionally fast identification of the records that match.
+
+It relies on a secondary index having been created.
+
+== Ways to Create Secondary Indexes
+
+In SpringData Aerospike secondary indexes can either be created by systems administrators using the `asadm` tool, or by developers telling SpringData that such an index is necessary.
+
+There are two ways to accomplish this task with the help of SpringData Aerospike:
+
+[arabic]
+. Using AerospikeTemplate `createIndex` method.
+. Using `@Indexed` annotation on the necessary field of an entity.
+
+== Creating Secondary Index via AerospikeTemplate
+
+For more information about AerospikeTemplate see the <<aerospike.template, documentation page>>.
+
+Setting secondary index via AerospikeTemplate can be helpful , for example, in cases when an index creation does not change a lot.
+
+Here is an example of a numeric secondary index for `rating` field in `MovieDocument` entity:
+
+[source,java]
+----
+@Slf4j
+@Configuration
+public class AerospikeIndexConfiguration {
+
+    private static final String INDEX_NAME = "movie-rating-index";
+
+    @Bean
+    @ConditionalOnProperty(
+            value = "aerospike." + INDEX_NAME + ".create-on-startup",
+            havingValue = "true",
+            matchIfMissing = true)
+    public boolean createAerospikeIndex(AerospikeTemplate aerospikeTemplate) {
+        try {
+            aerospikeTemplate.createIndex(MovieDocument.class, INDEX_NAME, "rating", IndexType.NUMERIC);
+            log.info("Index {} was successfully created", INDEX_NAME);
+        } catch (Exception e) {
+            log.info("Index {} creation failed: {}", INDEX_NAME, e.getMessage());
+        }
+        return true;
+    }
+}
+----
+
+== Creating Secondary Index using @Indexed annotation
+
+You can use `@Indexed` annotation on the field where the index is required.
+Here is an example for the `Person` object:
+
+[source,java]
+----
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Document
+public class Person {
+    @Id
+    private long id;
+    private String firstName;
+    @Indexed(name = "lastName_idx", type = IndexType.STRING)
+    private String lastName;
+    private Date dateOfBirth;
+}
+----
+
+== Matching the Secondary Index
+
+NOTE: In Aerospike, secondary indexes are case-sensitive, they match the exact queries.
+
+Following the query from the example above, assume there was a new requirement to be able to find by `lastName`
+containing a String (rather than having an equality match):
+
+[source,java]
+----
+public List<Person> findByLastNameContaining(String lastName);
+----
+
+In this case `findByLastNameContaining` query this not be satisfied by the created secondary index.
+Aerospike would need to scan the data which can be an expensive operation as all records in the set must be read
+by the Aerospike server, and then the condition is applied to see if they match.
+
+Due to the cost of performing this operation, scans from Spring Data Aerospike are disabled by default.
+
+For the details on how to enable scans see <<scan-operation, Scan Operation>>.
+
+Following the query from the example above, assume there was a new requirement to be able to find by `firstName` with an exact match:
+
+[source,java]
+----
+public List<Person> findByLastName(String lastName);
+public List<Person> findByFirstName(String firstName);
+----
+
+In this case `firstName` is not marked as `@Indexed`, so SpringData Aerospike is not instructed to create an index on it.
+Hence, it will scan the repository (a costly operation which could be avoided by using an index).
