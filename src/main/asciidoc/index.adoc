@@ -37,7 +37,7 @@ include::reference/getting-started.adoc[]
 
 :leveloffset: +1
 
-General information:
+General SpringData information:
 
 include::{spring-data-commons-docs}/dependencies.adoc[]
 
