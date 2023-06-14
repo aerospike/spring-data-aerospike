@@ -81,7 +81,7 @@ In the AerospikeConfiguration we will create two types of Beans:
 
 Responsible for accessing an Aerospike database and perform database operations.
 
-[[cache-example-configuration-AerospikeCacheManager]]]
+[[cache-example-configuration-AerospikeCacheManager]]
 ==== AerospikeCacheManager
 
 The heart of the cache layer, to define an AerospikeCacheManager you need:
