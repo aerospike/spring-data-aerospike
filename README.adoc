@@ -24,12 +24,12 @@ database. Key functional areas of Spring Data Aerospike are a POJO
 centric model for interacting with an Aerospike DBCollection and easily
 writing a repository style data access layer.
 
-=== Documentation
+== Documentation
 
 The documentation for this project can be found on
 https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike[javadoc.io].
 
-=== Demo Projects
+== Demo Projects
 
 [arabic]
 . Demo project with detailed guides is located
@@ -37,7 +37,7 @@ https://github.com/aerospike-community/spring-data-aerospike-demo[here].
 . Demo project example with a step-by-step tutorial can be found
 https://github.com/aerospike-examples/simple-springboot-aerospike-demo[here].
 
-=== Getting Started blog posts
+== Getting Started blog posts
 
 [arabic]
 . https://medium.com/aerospike-developer-blog/simple-web-application-using-java-spring-boot-aerospike-database-and-docker-ad13795e0089?source=friends_link&sk=43d747f5f55e527248125eeb18748d92[Simple
@@ -55,7 +55,7 @@ Data Aerospike: Reactive Repositories]
 . https://medium.com/aerospike-developer-blog/spring-data-aerospike-projections-951382bc07b5?source=friends_link&sk=d0a3be4fd171bbc9e072d09ccbcf056f[Spring
 Data Aerospike - Projections]
 
-=== Spring Data Aerospike compatibility
+== Spring Data Aerospike compatibility
 
 [width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
@@ -85,9 +85,9 @@ Data Aerospike - Projections]
 |1.2.1.RELEASE |1.5.x |4.1.x | |
 |===
 
-=== Quick Start
+== Quick Start
 
-==== Maven configuration
+=== Maven configuration
 
 Add the Maven dependency:
 
@@ -114,7 +114,7 @@ project:
 Dependency will be provided for you by `spring-data-aerospike`, so no
 need to declare it additionally.
 
-==== AerospikeTemplate
+=== AerospikeTemplate
 
 `AerospikeTemplate` is the central support class for Aerospike database
 operations. It provides:
@@ -127,7 +127,7 @@ objects) and Aerospike specific ones.
 https://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions[technology-agnostic
 DAO exception hierarchy].
 
-==== Spring Data repositories
+=== Spring Data repositories
 
 To simplify the creation of data repositories Spring Data Aerospike
 provides a generic repository programming model. It will automatically
@@ -207,7 +207,7 @@ public class MyService {
 }
 ----
 
-=== Getting Help
+== Getting Help
 
 For a comprehensive treatment of all the Spring Data Aerospike features,
 please refer to:
@@ -222,7 +222,7 @@ Data Aerospike on Stackoverflow].
 If you are new to Spring as well as to Spring Data, look for information
 about https://projects.spring.io/[Spring projects].
 
-=== Contributing to Spring Data
+== Contributing to Spring Data
 
 Here are some ways for you to get involved in the community:
 
