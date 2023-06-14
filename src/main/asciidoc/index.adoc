@@ -1,6 +1,5 @@
 = Spring Data Aerospike - Reference Documentation
-Peter Milne, Jean Mercier, Anastasiia Smirnova
-:revnumber: +{version}+
+:revnumber: 4.2.0
 :revdate: {localdate}
 :toc:
 :toc-placement!:
@@ -15,6 +14,7 @@ toc::[]
 include::preface.adoc[]
 
 include::{spring-data-commons-docs}/dependencies.adoc[leveloffset=+1]
+
 include::{spring-data-commons-docs}/repositories.adoc[leveloffset=+1]
 
 [[reference-documentation]]
@@ -42,8 +42,11 @@ include::reference/getting-started.adoc[]
 :leveloffset: +1
 
 include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
+
 include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
+
 include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
+
 include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
 
 :leveloffset: -1
