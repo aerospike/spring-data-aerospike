@@ -205,7 +205,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findsPersonsByActiveAndFirstName() {
         assertThat(tricia.isActive()).isFalse();
-        List<IndexedPerson> result = repository.findPersonsByActiveAndFirstName(false, "Tricia");
+        List<IndexedPerson> result = repository.findByIsActiveAndFirstName(false, "Tricia");
 
         assertThat(result)
             .hasSize(1)

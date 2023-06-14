@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository;
 
+import com.aerospike.client.Value;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -105,6 +106,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByListContainingBoolean() {
+        oliver.setListOfBoolean(List.of(true));
+        repository.save(oliver);
+        alicia.setListOfBoolean(List.of(true));
+        repository.save(alicia);
+
+        assertThat(repository.findByListOfBooleanContaining(true)).containsOnly(oliver, alicia);
+    }
+
+    @Test
     void findByListContainingAddress() {
         Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
         Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
@@ -136,19 +147,31 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByActiveTrue() {
-        boolean initialState = dave.isActive();
-        if (!initialState) {
-            dave.setActive(true);
-            repository.save(dave);
-        }
-        List<Person> persons = repository.findPersonsByActive(true);
-        assertThat(persons).contains(dave);
+    void findByBooleanInt() {
+        boolean initialValue = Value.UseBoolBin;
+        Value.UseBoolBin = false; // save boolean as int
+        Person intBoolBinPerson = Person.builder().id(nextId()).isActive(true).firstName("Test").build();
+        repository.save(intBoolBinPerson);
 
-        if (!initialState) {
-            dave.setActive(false);
-            repository.save(dave);
-        }
+        List<Person> persons = repository.findByIsActive(true);
+        assertThat(persons).contains(intBoolBinPerson);
+
+        Value.UseBoolBin = initialValue; // set back to the default value
+        repository.delete(intBoolBinPerson);
+    }
+
+    @Test
+    void findByBoolean() {
+        boolean initialValue = Value.UseBoolBin;
+        Value.UseBoolBin = true; // save boolean as bool
+        Person intBoolBinPerson = Person.builder().id(nextId()).isActive(true).firstName("Test").build();
+        repository.save(intBoolBinPerson);
+
+        List<Person> persons = repository.findByIsActive(true);
+        assertThat(persons).contains(intBoolBinPerson);
+
+        Value.UseBoolBin = initialValue; // set back to the default value
+        repository.delete(intBoolBinPerson);
     }
 
     @Test
@@ -374,6 +397,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(persons2).contains(boyd);
         List<Person> persons3 = repository.findByStringMapContaining("val1", "val2", "val3", VALUE);
         assertThat(persons3).isEmpty();
+    }
+
+    @Test
+    void findByMapContainingBoolean() {
+        oliver.setMapOfBoolean(Map.of("test", true));
+        repository.save(oliver);
+        alicia.setMapOfBoolean(Map.of("test", true));
+        repository.save(alicia);
+
+        assertThat(repository.findByMapOfBooleanContaining("test", true)).containsOnly(oliver, alicia);
     }
 
     @Test
