@@ -52,4 +52,4 @@ Developers post questions and answers on Stack Overflow. The two key tags to sea
 [[get-started:up-to-date]]
 ==== Following Development
 
-If you encounter a bug or want to suggest an improvement, please create an https://github.com/aerospike-community/spring-data-aerospike/issues[issue on GitHub].
+If you encounter a bug or want to suggest an improvement, please create an https://github.com/aerospike/spring-data-aerospike/issues[issue on GitHub].

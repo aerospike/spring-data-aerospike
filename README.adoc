@@ -2,8 +2,8 @@
 
 :maven-image: https://img.shields.io/maven-central/v/com.aerospike/spring-data-aerospike.svg?maxAge=259200
 :maven-url: https://search.maven.org/#search%7Cga%7C1%7Ca%3A%22spring-data-aerospike%22
-:ci-image: https://github.com/aerospike-community/spring-data-aerospike/workflows/Build%20project/badge.svg
-:ci-url: https://github.com/aerospike-community/spring-data-aerospike/actions?query=branch%3Amain
+:ci-image: https://github.com/aerospike/spring-data-aerospike/workflows/Build%20project/badge.svg
+:ci-url: https://github.com/aerospike/spring-data-aerospike/actions?query=branch%3Amain
 :javadoc-image: https://javadoc.io/badge2/com.aerospike/spring-data-aerospike/javadoc.svg
 :javadoc-url: https://javadoc.io/doc/com.aerospike/spring-data-aerospike
 
@@ -213,7 +213,7 @@ For a comprehensive treatment of all the Spring Data Aerospike features,
 please refer to:
 
 * the
-https://github.com/aerospike-community/spring-data-aerospike/blob/main/src/main/asciidoc/index.adoc[User
+https://github.com/aerospike/spring-data-aerospike/blob/main/src/main/asciidoc/index.adoc[User
 Guide]
 * for more detailed questions, use
 https://stackoverflow.com/questions/tagged/spring-data-aerospike[Spring
@@ -231,14 +231,14 @@ on the
 https://stackoverflow.com/questions/tagged/spring-data-aerospike[spring-data-aerospike]
 tag by responding to questions and joining the debate.
 * Create
-https://github.com/aerospike-community/spring-data-aerospike/issues[Github
+https://github.com/aerospike/spring-data-aerospike/issues[GitHub
 issue] for bugs and new features and comment and vote on the ones that
 you are interested in.
-* Github is for social coding: if you want to write code, we encourage
+* GitHub is for social coding: if you want to write code, we encourage
 contributions through pull requests from
 https://help.github.com/forking/[forks of this repository]. If you want
-to contribute code this way, please reference a Github ticket as well
+to contribute code this way, please reference a GitHub ticket as well
 covering the specific issue you are addressing.
 * Watch for upcoming articles by
 https://www.aerospike.com/forms/subscribe-the-aerospike-standup/[subscribing]
-to Aerospike Standup.
+to Aerospike Stand-Up.
