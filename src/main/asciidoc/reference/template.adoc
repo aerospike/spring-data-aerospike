@@ -1,7 +1,7 @@
 [[aerospike.template]]
 == Aerospike Template
 
-Aerospike Template provides a set of features for interacting with the database. It allows lower level access than a Repository and also serves as the foundation for repositories.
+Aerospike Template provides a set of features for interacting with the database. It allows lower-level access than a Repository and also serves as the foundation for repositories.
 
 Template is the central support class for Aerospike database operations. It provides the following functionality:
 

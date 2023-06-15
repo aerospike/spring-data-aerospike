@@ -43,15 +43,15 @@ public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
 `@Configuration` tells Spring that this class contains configuration data, and `@EnableAerospikeRepositories` activates Aerospike repositories that can be used for data access. The parameter to this annotation tells Spring Data Aerospike where to look for the repositories. This can be a list of package names as strings using the `basePackages` value, or a list of classes through the `basePackageClass` value. If the latter is used (as in this example), the class is used to determine which package to scan, and all repositories in that package will be available for use. More details on repositories are below.
 
-The `AbstractAerospikeDataConfiguration` class exposes a number of beans which Spring Data Aerospike uses internally. Some of these, in particular the `AerospikeTemplate` bean, are useful in their own right if finer grained control over data access is needed. The primary information required by this configuration is how to connect to the cluster, provided through the `getHosts` and `nameSpace` calls.
+The `AbstractAerospikeDataConfiguration` class exposes a number of beans that Spring Data Aerospike uses internally. Some of these, in particular the `AerospikeTemplate` bean, are useful in their own right if finer-grained control over data access is needed. The primary information required by this configuration is how to connect to the cluster, provided through the `getHosts` and `nameSpace` calls.
 
 == Creating Functionality
 
 The base functionality for using Spring Data is provided by the AerospikeRepository interface. This typically takes 2 parameters:
 
 [arabic]
-. The type which this class manages, typically an entity class to be stored in the database.
-. The type of the ID for this class.
+. The type which this class manages is typically an entity class to be stored in the database.
+. The type of ID for this class.
 
 Application code typically extends this interface for each of the types to be managed, and methods can be added to the interface to determine how the application can access the data. For example, consider a class `Person` with a simple structure:
 
@@ -71,7 +71,7 @@ public class Person {
 }
 ----
 
-Note that this example uses the https://projectlombok.org/[Project Lombok] annotations to remove the need for explicit constructors and getters and setters. Normal POJOs which define these on their own can ignore the `@AllArgsConstructor`, `@NoArgsConstructor` and `@Data` annotations. The `@Document` annotation tells Spring Data Aerospike that this is a domain object to be persisted to the database, and `@Id` identifies the primary key of this class. The `@Field` annotation is used to create a shorter name for the bin in the Aerospike database (`dateOfBirth` will be stored in a bin called `dob` in this example).
+Note that this example uses the https://projectlombok.org/[Project Lombok] annotations to remove the need for explicit constructors and getters and setters. Normal POJOs which define these on their own can ignore the `@AllArgsConstructor`, `@NoArgsConstructor` and `@Data` annotations. The `@Document` annotation tells Spring Data Aerospike that this is a domain object to be persisted in the database, and `@Id` identifies the primary key of this class. The `@Field` annotation is used to create a shorter name for the bin in the Aerospike database (`dateOfBirth` will be stored in a bin called `dob` in this example).
 
 For the `Person` object to be persisted to Aerospike, you must create an interface with the desired methods for retrieving data. For example:
 
@@ -82,7 +82,7 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 }
 ----
 
-This defines a repository which can write `Person` entities as well as being able to query people by last name. The `AerospikeRepository` extends both `PagingAndSortingRepository` and `CrudRepository` so methods like `count()`, `findById()`, `save()` and `delete()` are there by default. For reactive users, use the `ReactiveAerospikeRepository` instead.
+This defines a repository that can write `Person` entities as well as being able to query people by last name. The `AerospikeRepository` extends both `PagingAndSortingRepository` and `CrudRepository` so methods like `count()`, `findById()`, `save()` and `delete()` are there by default. For reactive users, use the `ReactiveAerospikeRepository` instead.
 
 Note that this is just an interface and not an actual class. In the background, when your context gets initialized, actual implementations for your repository descriptions get created and you can access them through regular beans. This means you will save lots of boilerplate code while still exposing full CRUD semantics to your service layer and application.
 
@@ -126,4 +126,4 @@ There are 2 important things to notice here:
 
 [arabic]
 . The fully qualified path of the class is listed in each record. This is needed to instantiate the class correctly, especially in cases where the compile-time type and runtime type of the object differ. For example, where a field is declared as a super class but the instantiated class is a subclass.
-. The `long` id field was turned into a `String` when stored in the database. All `@Id` fields must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application, but needs to be considered if using an external tool like `AQL` to view the data.
+. The `long` id field was turned into a `String` when stored in the database. All `@Id` fields must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using an external tool like `AQL` to view the data.

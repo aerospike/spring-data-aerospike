@@ -1,6 +1,6 @@
 = Projections with Aerospike
 
-Spring Data Aerospike supports Projections, a mechanism which allows you to fetch only relevant fields from Aerospike for a particular use case. This results in better performance, less network traffic and better understanding of what is required for the rest of the flow.
+Spring Data Aerospike supports Projections, a mechanism that allows you to fetch only relevant fields from Aerospike for a particular use case. This results in better performance, less network traffic, and a better understanding of what is required for the rest of the flow.
 
 include::{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+2]
 
@@ -33,7 +33,7 @@ public class Person {
 }
 ----
 
-This is a moderately complex object, and a production object is likely to be more complex. The use case might call for a search box which shows the `firstName`, `lastName` and `dateOfBirth` fields, allowing the user to select a `Person` based on the criteria upon which the full object will be shown.
+This is a moderately complex object, and a production object is likely to be more complex. The use case might call for a search box that shows the `firstName`, `lastName` and `dateOfBirth` fields, allowing the user to select a `Person` based on the criteria upon which the full object will be shown.
 
 A simple projection of this object might be:
 [source, java]
@@ -71,6 +71,6 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 }
 ----
 
-Notice that the method name now dictates the return type of `SearchPerson` as well as changing the return value. When this method is executed, Aerospike loads the full `Person` objects out of storage, invokes the `toSearchPerson` on each person and returns the resulting `SearchPerson` instances. This reduces the required network bandwith to present these objects to the front end and simplifies logic.
+Notice that the method name now dictates the return type of `SearchPerson` as well as changing the return value. When this method is executed, Aerospike loads the full `Person` objects out of storage, invokes the `toSearchPerson` on each person and returns the resulting `SearchPerson` instances. This reduces the required network bandwidth to present these objects to the front end and simplifies logic.
 
 A blog post with more details on projections can be found https://medium.com/aerospike-developer-blog/spring-data-aerospike-projections-951382bc07b5[here].

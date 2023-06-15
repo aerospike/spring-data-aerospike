@@ -7,7 +7,7 @@ Aerospike support contains a wide range of features summarized below:
 * Automatic implementation of Repository interfaces including support for custom finder methods
 * AerospikeTemplate helper class for performing common Aerospike operations
 * Exceptions translation into Spring's portable Data Access Exception hierarchy
-* Annotation based mapping metadata but extensible to support other metadata formats
+* Annotation-based mapping metadata but extensible to support other metadata formats
 
 [[aerospike-getting-started]]
 == Getting Started
@@ -16,7 +16,7 @@ Spring Data Aerospike uses Java Client, Aerospike’s Java client enables you to
 
 The Java Client runs on any platform with Java 1.6 version and above.
 
-First you need to set up a running Aerospike server.
+First, you need to set up a running Aerospike server.
 
 To create a Spring project in STS go to File -> New -> Spring Template Project -> Simple Spring Utility Project -> press Yes when prompted. Then enter a project and a package name such as org.spring.aerospike.example.
 
@@ -68,7 +68,7 @@ You can either set up Spring Boot or Spring application. Basic setup of Spring B
 |1.2.1.RELEASE |1.5.x |4.1.x | |
 |===
 
-In case you do no want to use Spring Boot, the best way to manage Spring dependencies is declaring `spring-framework-bom` of needed version in `dependencyManagement` section of your `pom.xml`:
+In case you do not want to use Spring Boot, the best way to manage Spring dependencies is to declare `spring-framework-bom` of the needed version in the `dependencyManagement` section of your `pom.xml`:
 
 [source,xml]
 ----
@@ -164,7 +164,7 @@ Auditing support is not available in the current version.
 [[aerospike-template-intro]]
 == Introduction to AerospikeTemplate
 
-The template provides lower level access to the database and also serves as the foundation for repositories.
+The template provides lower-level access to the database and also serves as the foundation for repositories.
 For more information see xref:template.adoc#aerospike.template[AerospikeTemplate] for more information.
 
 

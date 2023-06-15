@@ -40,9 +40,9 @@ There are two ways to accomplish this task with the help of SpringData Aerospike
 
 For more information about AerospikeTemplate see the <<aerospike.template, documentation page>>.
 
-Setting secondary index via AerospikeTemplate can be helpful , for example, in cases when an index creation does not change a lot.
+Setting a secondary index via AerospikeTemplate can be helpful, for example, in cases when an index creation does not change a lot.
 
-Here is an example of a numeric secondary index for `rating` field in `MovieDocument` entity:
+Here is an example of a numeric secondary index for the `rating` field in the `MovieDocument` entity:
 
 [source,java]
 ----
@@ -72,7 +72,7 @@ public class AerospikeIndexConfiguration {
 == Creating Secondary Index using @Indexed annotation
 
 You can use `@Indexed` annotation on the field where the index is required.
-Here is an example for the `Person` object:
+Here is an example of the `Person` object:
 
 [source,java]
 ----
@@ -102,7 +102,7 @@ containing a String (rather than having an equality match):
 public List<Person> findByLastNameContaining(String lastName);
 ----
 
-In this case `findByLastNameContaining` query this not be satisfied by the created secondary index.
+In this case `findByLastNameContaining` query is not satisfied by the created secondary index.
 Aerospike would need to scan the data which can be an expensive operation as all records in the set must be read
 by the Aerospike server, and then the condition is applied to see if they match.
 
@@ -119,4 +119,4 @@ public List<Person> findByFirstName(String firstName);
 ----
 
 In this case `firstName` is not marked as `@Indexed`, so SpringData Aerospike is not instructed to create an index on it.
-Hence, it will scan the repository (a costly operation which could be avoided by using an index).
+Hence, it will scan the repository (a costly operation that could be avoided by using an index).
