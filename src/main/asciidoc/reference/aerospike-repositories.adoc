@@ -4,7 +4,7 @@
 [[aerospike-repo-intro]]
 == Introduction
 
-This chapter will point out the specialties for repository support for Aerospike. This builds on the core repository support explained in <<repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
+This chapter will point out the specialties for repository support for Aerospike. This builds on the https://docs.spring.io/spring-data/data-commons/docs/1.6.1.RELEASE/reference/html/repositories.html[core SpringData repository support], so make sure you've got a sound understanding of the basic concepts explained there.
 
 [[aerospike-repo-usage]]
 == Usage
@@ -30,7 +30,7 @@ public class Person {
 }
 ----
 ====
-We have a quite simple domain object here. The default serialization mechanism used in `AerospikeTemplate` (which is backing the repository support) regards properties named id as document id. Currently we support`String` and `long` as id-types.
+We have a quite simple domain object here. The default serialization mechanism used in `AerospikeTemplate` (which is backing the repository support) regards properties named id as document id. Currently, we support`String` and `long` as id-types.
 
 .Basic repository interface to persist Person entities
 ====
@@ -72,7 +72,7 @@ Right now this interface simply serves typing purposes but we will add additiona
 ----
 ====
 
-This namespace element will cause the base packages to be scanned for interfaces extending `AerospikeRepository` and create Spring beans for each of them found. By default the repositories will get a `AerospikeTemplate` Spring bean wired that is called `aerospikeTemplate`.
+This namespace element will cause the base packages to be scanned for interfaces extending `AerospikeRepository` and create Spring beans for each of them found. By default, the repositories will get an `AerospikeTemplate` Spring bean wired that is called `aerospikeTemplate`.
 
 If you'd rather like to go with JavaConfig use the `@EnableAerospikeRepositories` annotation. The annotation carries the very same attributes like the namespace element. If no base package is configured the infrastructure will scan the package of the annotated configuration class.
 
@@ -120,12 +120,12 @@ public class PersonRepositoryTests {
 ----
 ====
 
-The sample creates an application context with Spring's unit test support which will perform annotation based dependency injection into test cases. Inside the test method we simply use the repository to query the datastore. We hand the repository a `PageRequest` instance that requests the first page of persons at a page size of 10.
+The sample creates an application context with Spring's unit test support which will perform annotation-based dependency injection into test cases. Inside the test method, we simply use the repository to query the datastore. We hand the repository a `PageRequest` instance that requests the first page of persons at a page size of 10.
 
 [[aerospike.repositories.queries]]
 == Query methods
 
-Most of the data access operations you usually trigger on a repository result a query being executed against the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface
+Most of the data access operations you usually trigger on a repository result in a query being executed against the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface
 
 .PersonRepository with query methods
 ====
@@ -141,9 +141,9 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
  
  }
 ----
-<1> The method shows a query for all people with the given name. The query will be derived parsing the method name for constraints which can be concatenated with `And` and `Or`. 
+<1> The method shows a query for all people with the given name. The query will be derived by parsing the method name for constraints that can be concatenated with `And` and `Or`.
 <2> Applies pagination to a query. Just equip your method signature with a `Pageable` parameter and let the method return a `Page` instance and we will automatically page the query accordingly.
-<3> Shows that you can query based partial name searches. 
+<3> Shows that you can query-based partial name searches.
 ====
 [[aerospike.repositories.example]]
 
@@ -219,6 +219,4 @@ public class RepositoryExample {
 	}
 }
 ----
-
-
 

@@ -1,12 +1,11 @@
 = Spring Data Aerospike - Reference Documentation
-Peter Milne, Jean Mercier, Anastasiia Smirnova
-:revnumber: {version}
+:revnumber: 4.2.0
 :revdate: {localdate}
 :toc:
 :toc-placement!:
-:spring-data-commons-docs: https://github.com/spring-projects/spring-data-commons/src/main/asciidoc
+:spring-data-commons-docs: https://github.com/spring-projects/spring-data-commons/tree/main/src/main/asciidoc
 
-(C) 2018-2020 The original authors.
+(C) 2018-2023 The original authors.
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
@@ -14,30 +13,42 @@ toc::[]
 
 include::preface.adoc[]
 
-:leveloffset: +1
-include::{spring-data-commons-docs}/dependencies.adoc[]
-include::{spring-data-commons-docs}/repositories.adoc[]
-:leveloffset: -1
-
 [[reference-documentation]]
-= Reference documentation
+== Reference documentation
 
 :leveloffset: +1
+
 include::reference/introduction.adoc[]
 include::reference/aerospike.adoc[]
+include::reference/mapping.adoc[]
 include::reference/aerospike-repositories.adoc[]
 include::reference/aerospike-reactive-repositories.adoc[]
-include::reference/mapping.adoc[]
-include::reference/logging.adoc[]
+include::reference/template.adoc[]
+include::reference/query-methods.adoc[]
+include::reference/projections.adoc[]
+include::reference/secondary-indexes.adoc[]
+include::reference/caching.adoc[]
+include::reference/getting-started.adoc[]
+
 :leveloffset: -1
 
 [[appendix]]
-= Appendix
+== Appendix
 
-:numbered!:
 :leveloffset: +1
+
+General SpringData information:
+
+include::{spring-data-commons-docs}/dependencies.adoc[]
+
+include::{spring-data-commons-docs}/repositories.adoc[]
+
 include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
+
 include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
+
 include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
+
 include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
+
 :leveloffset: -1

@@ -1,0 +1,76 @@
+= Projections with Aerospike
+
+Spring Data Aerospike supports Projections, a mechanism that allows you to fetch only relevant fields from Aerospike for a particular use case. This results in better performance, less network traffic, and a better understanding of what is required for the rest of the flow.
+
+include::{spring-data-commons-docs}/repository-projections.adoc[leveloffset=+2]
+
+For example, consider a Person class:
+
+[source, java]
+----
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Document
+public class Person {
+    public enum Gender {
+        MALE, FEMALE;
+    }
+    @Id
+    private long id;
+    private String firstName;
+    @Indexed(name = "lastName_idx", type = IndexType.STRING)
+    private String lastName;
+    @Field("dob")
+    private Date dateOfBirth;
+    private long heightInCm;
+    private boolean enabled;
+    private Gender gender;
+    private String hairColor;
+    private String eyeColor;
+    private String passportNo;
+    private String passptCnty;
+}
+----
+
+This is a moderately complex object, and a production object is likely to be more complex. The use case might call for a search box that shows the `firstName`, `lastName` and `dateOfBirth` fields, allowing the user to select a `Person` based on the criteria upon which the full object will be shown.
+
+A simple projection of this object might be:
+[source, java]
+----
+@Data
+@Builder
+public class SearchPerson {
+    private String firstName;
+    private String lastName;
+    @Field("dob")
+    private Date dateOfBirth;
+}
+----
+
+To tell Spring Data how to create a `SearchPerson` it is necessary to create a method on the `Person` class:
+
+[source, java]
+----
+public SearchPerson toSearchPerson() {
+    return SearchPerson.builder()
+            .firstName(this.getFirstName())
+            .lastName(this.getLastName())
+            .dateOfBirth(this.getDateOfBirth())
+            .build();
+}
+----
+
+Now the repository interface can be extended to return this projection:
+
+[source, java]
+----
+public interface PersonRepository extends AerospikeRepository<Person, Long> {
+    public List<Person> findByLastName(String lastName);
+    public List<SearchPerson> findSearchPersonByLastName(String lastName);
+}
+----
+
+Notice that the method name now dictates the return type of `SearchPerson` as well as changing the return value. When this method is executed, Aerospike loads the full `Person` objects out of storage, invokes the `toSearchPerson` on each person and returns the resulting `SearchPerson` instances. This reduces the required network bandwidth to present these objects to the front end and simplifies logic.
+
+A blog post with more details on projections can be found https://medium.com/aerospike-developer-blog/spring-data-aerospike-projections-951382bc07b5[here].
