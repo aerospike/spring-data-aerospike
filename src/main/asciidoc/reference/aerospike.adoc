@@ -1,15 +1,13 @@
-[[aerospike.aerospike-3]]
+[[aerospike.functionality]]
 = Aerospike Support
 
-Aerospike support contains a wide range of features which are summarized below.
+Aerospike support contains a wide range of features summarized below:
 
-* Spring configuration support using Java based @Configuration classes or an XML namespace for a Aerospike driver instance and replica sets
-* AerospikeTemplate helper class that increases productivity performing common Aerospike operations.
-* Exception translation into Spring's portable Data Access Exception hierarchy
 * Feature Rich Object Mapping integrated with Spring's Conversion Service
-* Annotation based mapping metadata but extensible to support other metadata formats
-* Java based Query, Criteria, and Update DSLs
-* Automatic implementation of Repository interfaces including support for custom finder methods.
+* Automatic implementation of Repository interfaces including support for custom finder methods
+* AerospikeTemplate helper class for performing common Aerospike operations
+* Exceptions translation into Spring's portable Data Access Exception hierarchy
+* Annotation-based mapping metadata but extensible to support other metadata formats
 
 [[aerospike-getting-started]]
 == Getting Started
@@ -18,7 +16,7 @@ Spring Data Aerospike uses Java Client, Aerospike’s Java client enables you to
 
 The Java Client runs on any platform with Java 1.6 version and above.
 
-First you need to set up a running Aerospike server.
+First, you need to set up a running Aerospike server.
 
 To create a Spring project in STS go to File -> New -> Spring Template Project -> Simple Spring Utility Project -> press Yes when prompted. Then enter a project and a package name such as org.spring.aerospike.example.
 
@@ -33,32 +31,44 @@ Then add the following to `pom.xml` dependencies section.
   <dependency>
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>2.4.2.RELEASE</version>
+    <version>4.2.0</version>
   </dependency>
 
 </dependencies>
 ----
 
-You can either setup Spring Boot or Spring application. Basic setup of Spring Boot application is described under the following link: https://projects.spring.io/spring-boot.
+You can either set up Spring Boot or Spring application. Basic setup of Spring Boot application is described under the following link: https://projects.spring.io/spring-boot.
 
 .Spring Boot compatibility
+[width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
-|Spring-data-aerospike Version |Spring Boot Version
+|Spring Data Aerospike |Spring Boot |Aerospike Client |Aerospike Reactor Client |Aerospike Server
+|4.2.x |3.0.x |6.1.x |6.1.x |5.2.x.x +
 
-|2.4.2.RELEASE
-|2.3.x
+|4.1.x |3.0.x |6.1.x |6.1.x |5.2.x.x +
 
-|2.3.5.RELEASE
-|2.2.x
+|3.5.x |2.7.x |6.1.x |6.1.x |5.2.x.x +
 
-|2.1.1.RELEASE
-|2.1.x, 2.0.x
+|3.4.x |2.6.x |5.1.x |5.1.x |5.2.x.x +
 
-|1.2.1.RELEASE
-|1.5.x
+|3.3.x |2.5.x |5.1.x |5.1.x |5.2.x.x +
+
+|3.2.x |2.5.x |5.1.x |5.0.x |5.2.x.x +
+
+|3.0.x, 3.1.x |2.5.x |5.1.x |5.0.x |
+
+|2.5.x |2.5.x |4.4.x |4.4.x |
+
+|2.4.2.RELEASE |2.3.x |4.4.x |4.4.x |
+
+|2.3.5.RELEASE |2.2.x |4.4.x |4.4.x |
+
+|2.1.1.RELEASE |2.1.x, 2.0.x |4.4.x |3.2.x |
+
+|1.2.1.RELEASE |1.5.x |4.1.x | |
 |===
 
-In case you do no want to use Spring Boot, the best way to manage Spring dependencies is declaring `spring-framework-bom` of needed version in `dependencyManagement` section of your `pom.xml`:
+In case you do not want to use Spring Boot, the best way to manage Spring dependencies is to declare `spring-framework-bom` of the needed version in the `dependencyManagement` section of your `pom.xml`:
 
 [source,xml]
 ----
@@ -67,7 +77,7 @@ In case you do no want to use Spring Boot, the best way to manage Spring depende
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-framework-bom</artifactId>
-            <version>${place needed spring version here}</version>
+            <version>${place Spring version here}</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -151,24 +161,9 @@ Now you are ready to inject and use `PersonRepository` in your application.
 
 Auditing support is not available in the current version.
 
-[[aerospike-template]]
+[[aerospike-template-intro]]
 == Introduction to AerospikeTemplate
 
-The template provides lower level access to the underlying database and also serves as the foundation for repositories.
-Any time a repository is too high-level for you needs chances are good that the templates will serve you well.
-
-[[aerospike-template.instantiating]]
-=== Instantiating AerospikeTemplate
-
-If you are subclassing `AbstractAerospikeDataConfiguration` then bean `aerospikeTemplate` is already present in your context and you can use it.
-Otherwise you can instantiate it yourself, please, check how it can be done in `AbstractAerospikeDataConfiguration`.
-
-`AerospikeTemplate` provides basic operations with indexes: `createIndex`, `deleteIndex`, `indexExists`. For inserting documents `insert` can be used, for updating `update`.
-
-In case you need to use custom `WritePolicy` `persist` operation can be used. For CAS updates `save` operation must be used.
-
-To delete documents use `delete` methods, for loading documents you can use `findById` or `findByIds` operations. For indexed documents use `find` with provided `Query` object.
-
-
-
+The template provides lower-level access to the database and also serves as the foundation for repositories.
+For more information see xref:#aerospike.template[AerospikeTemplate] for more information.
 

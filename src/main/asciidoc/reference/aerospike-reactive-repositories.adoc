@@ -1,17 +1,17 @@
 [[aerospike.reactive.repositories]]
 = Reactive Aerospike repositories
 
-[[aerospike-repo-intro]]
+[[aerospike-reactive-repo-intro]]
 == Introduction
 
-This chapter will point out the specialties for reactive repository support for Aerospike. This builds on the core repository support explained in <<repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
+This chapter will point out the specialties for reactive repository support for Aerospike. This builds on the core repository support explained in <<aerospike.repositories, repositories>>. So make sure you've got a sound understanding of the basic concepts explained there.
 
 [[aerospike.reactive.repositories.libraries]]
 == Reactive Composition Libraries
 
 The reactive space offers various reactive composition libraries. The most common library is https://projectreactor.io/[Project Reactor].
 
-Spring Data Aerospike is built on top of the https://github.com/aerospike/aerospike-client-java/tree/master/extensions/reactor-client/[Aerospike Reactor Java Client Library], to provide maximal interoperability by relying on the https://www.reactive-streams.org/[Reactive Streams] initiative. Static APIs, such as `ReactiveAerospikeOperations`, are provided by using Project Reactor's `Flux` and `Mono` types. Project Reactor offers various adapters to convert reactive wrapper types  (`Flux` to `Observable` and vice versa).
+Spring Data Aerospike is built on top of the https://github.com/aerospike/aerospike-client-java-reactive[Aerospike Reactor Java Client Library], to provide maximal interoperability by relying on the https://www.reactive-streams.org/[Reactive Streams] initiative. Static APIs, such as `ReactiveAerospikeOperations`, are provided by using Project Reactor's `Flux` and `Mono` types. Project Reactor offers various adapters to convert reactive wrapper types  (`Flux` to `Observable` and vice versa).
 
 Spring Data's Repository abstraction is a dynamic API, mostly defined by you and your requirements as you declare query methods. Reactive Aerospike repositories can be implemented by using Project Reactor wrapper types by extending from the following library-specific repository interface:
 
@@ -21,7 +21,7 @@ Spring Data's Repository abstraction is a dynamic API, mostly defined by you and
 [[aerospike-reactive-repo-usage]]
 == Usage
 
-To access domain entities stored in an Aerospike you can use our sophisticated repository support that eases implementing those quite significantly. To do so, create an interface similar for your repository. Before you can do that, though, you need an entity, such as the entity defined in the following example:
+To access domain entities stored in an Aerospike you can use our sophisticated repository support that eases implementing those quite significantly. To do so, create an interface similar to your repository. Before you can do that, though, you need an entity, such as the entity defined in the following example:
 
 .Sample `Person` entity
 ====
@@ -39,7 +39,7 @@ public class Person {
 }
 ----
 ====
-We have a quite simple domain object here. The default serialization mechanism used in `ReactiveAerospikeTemplate` (which is backing the repository support) regards properties named id as document ID. Currently we support `String` and `long` as id-types. The following example shows how to create an interface that defines queries against the `Person` object from the preceding example:
+We have a quite simple domain object here. The default serialization mechanism used in `ReactiveAerospikeTemplate` (which is backing the repository support) regards properties named id as document ID. Currently, we support `String` and `long` as id-types. The following example shows how to create an interface that defines queries against the `Person` object from the preceding example:
 
 .Basic repository interface to persist Person entities
 ====
@@ -55,7 +55,7 @@ public interface ReactivePersonRepository extends ReactiveAerospikeRepository<Pe
 
 Right now this interface simply serves typing purposes but we will add additional methods to it later.
 
-For Java configuration, use the `@EnableReactiveAerospikeRepositories` annotation. The annotation carries the base packages attribute. This base packages to be scanned for interfaces extending `ReactiveAerospikeRepository` and create Spring beans for each of them found. If no base package is configured, the infrastructure scans the package of the annotated configuration class.
+For Java configuration, use the `@EnableReactiveAerospikeRepositories` annotation. The annotation carries the base packages attribute. These base packages are to be scanned for interfaces extending `ReactiveAerospikeRepository` and create Spring beans for each of them found. If no base package is configured, the infrastructure scans the package of the annotated configuration class.
 
 The following listing shows how to use Java configuration for a repository:
 
@@ -104,12 +104,12 @@ public class PersonRepositoryTests {
 ----
 ====
 
-The sample creates an application context with Spring's unit test support which will perform annotation based dependency injection into test cases. Inside the test method we simply use the repository to query the datastore.
+The sample creates an application context with Spring's unit test support which will perform annotation-based dependency injection into test cases. Inside the test method, we simply use the repository to query the datastore.
 
 [[aerospike.reactive.repositories.queries]]
 == Query methods
 
-Most of the data access operations you usually trigger on a repository result a query being executed against the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface
+Most of the data access operations you usually trigger on a repository result in a query being executed against the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface
 
 .PersonRepository with query methods
 ====
@@ -195,7 +195,7 @@ public class ReactiveRepositoryExample {
 ----
 
 == Restrictions
-`ReactiveAerospikeRepository` currently does not support next operations:
+`ReactiveAerospikeRepository` currently does not support the next operations:
 
 * all operations with indexes (create, delete, exists)
 * count()
