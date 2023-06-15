@@ -213,8 +213,7 @@ For a comprehensive treatment of all the Spring Data Aerospike features,
 please refer to:
 
 * the
-https://github.com/aerospike/spring-data-aerospike/blob/main/src/main/asciidoc/index.adoc[User
-Guide]
+https://aerospike.github.io/spring-data-aerospike[User Guide]
 * for more detailed questions, use
 https://stackoverflow.com/questions/tagged/spring-data-aerospike[Spring
 Data Aerospike on Stackoverflow].
