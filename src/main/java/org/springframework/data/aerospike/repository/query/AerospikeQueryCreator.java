@@ -136,22 +136,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                     op = LIST_VAL_CONTAINING;
                     params.add(0, value1); // value1 stores the first parameter
                     return aerospikeCriteriaAndConcatenated(params, qb, part, fieldName, op, dotPath);
-                } else if (nextParam.equals(AerospikeMapCriteria.VALUE)) {
-                    op = getCorrespondingListFilterOperationOrFail(op);
                 }
             } else if (!(value1 instanceof Collection<?>)) { // preserving the initial FilterOperation if Collection
-                switch (op) {
-                    // for these operations a parameter without AerospikeMapCriteria.VALUE flag must be Collection type
-                    case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> {
-                        throw new IllegalArgumentException("Expected to receive a Collection (got " +
-                            value1.getClass().getSimpleName() + " instead), please provide " +
-                            "an additional AerospikeMapCriteria.VALUE parameter for applying condition at values " +
-                            "level");
-                    }
-                    default -> {
-                        op = getCorrespondingListFilterOperationOrFail(op);
-                    }
-                }
+                op = getCorrespondingListFilterOperationOrFail(op);
             }
         } else if (property.isMap()) {
             List<Object> params = new ArrayList<>();

@@ -147,19 +147,19 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     void findByListValueGreaterThan() {
-        List<IndexedPerson> persons = repository.findByIntsGreaterThan(549, VALUE);
+        List<IndexedPerson> persons = repository.findByIntsGreaterThan(549);
         assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
     @Test
     void findByListValueLessThanOrEqual() {
-        List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500, VALUE);
+        List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500);
         assertThat(persons).containsOnly(john);
     }
 
     @Test
     void findByListValueInRange() {
-        List<IndexedPerson> persons = repository.findByIntsBetween(500, 600, VALUE);
+        List<IndexedPerson> persons = repository.findByIntsBetween(500, 600);
         assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 

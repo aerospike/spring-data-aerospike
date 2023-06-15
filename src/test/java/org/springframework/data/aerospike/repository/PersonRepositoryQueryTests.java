@@ -177,51 +177,51 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     void findByListValueLessThanOrEqualNumber() {
         List<Person> persons;
-        persons = repository.findByIntsLessThanEqual(500, VALUE);
+        persons = repository.findByIntsLessThanEqual(500);
         assertThat(persons).containsOnly(oliver);
 
-        persons = repository.findByIntsLessThanEqual(Long.MAX_VALUE - 1, VALUE);
+        persons = repository.findByIntsLessThanEqual(Long.MAX_VALUE - 1);
         assertThat(persons).containsOnly(oliver, alicia);
 
-        persons = repository.findByIntsLessThanEqual(Long.MAX_VALUE, VALUE);
+        persons = repository.findByIntsLessThanEqual(Long.MAX_VALUE);
         assertThat(persons).containsOnly(oliver, alicia);
     }
 
     @Test
     void findByListValueLessThanOrEqualString() {
         List<Person> persons;
-        persons = repository.findByStringsLessThanEqual("str4", VALUE);
+        persons = repository.findByStringsLessThanEqual("str4");
         assertThat(persons).containsOnly(dave, donny);
 
-        persons = repository.findByStringsLessThanEqual("str3", VALUE);
+        persons = repository.findByStringsLessThanEqual("str3");
         assertThat(persons).containsOnly(dave, donny);
 
-        persons = repository.findByStringsLessThanEqual("str2", VALUE);
+        persons = repository.findByStringsLessThanEqual("str2");
         assertThat(persons).containsOnly(dave, donny);
 
-        persons = repository.findByStringsLessThanEqual("str0", VALUE);
+        persons = repository.findByStringsLessThanEqual("str0");
         assertThat(persons).containsOnly(dave);
 
-        persons = repository.findByStringsLessThanEqual("str", VALUE);
+        persons = repository.findByStringsLessThanEqual("str");
         assertThat(persons).isEmpty();
     }
 
     @Test
     void findByListValueGreaterThanNumber() {
         List<Person> persons;
-        persons = repository.findByIntsGreaterThan(549, VALUE);
+        persons = repository.findByIntsGreaterThan(549);
         assertThat(persons).containsOnly(oliver, alicia);
 
-        persons = repository.findByIntsGreaterThan(990, VALUE);
+        persons = repository.findByIntsGreaterThan(990);
         assertThat(persons).isEmpty();
 
-        persons = repository.findByIntsGreaterThan(Long.MIN_VALUE, VALUE);
+        persons = repository.findByIntsGreaterThan(Long.MIN_VALUE);
         assertThat(persons).containsOnly(oliver, alicia);
 
-        persons = repository.findByIntsGreaterThan(Long.MAX_VALUE - 1, VALUE);
+        persons = repository.findByIntsGreaterThan(Long.MAX_VALUE - 1);
         assertThat(persons).isEmpty();
 
-        assertThatThrownBy(() -> repository.findByIntsGreaterThan(Long.MAX_VALUE, VALUE))
+        assertThatThrownBy(() -> repository.findByIntsGreaterThan(Long.MAX_VALUE))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("LIST_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
     }
@@ -229,23 +229,26 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     void findByListValueGreaterThanString() {
         List<Person> persons;
-        persons = repository.findByStringsGreaterThan("str0", VALUE);
+        persons = repository.findByStringsGreaterThan("str0");
         assertThat(persons).containsOnly(dave, donny);
 
-        persons = repository.findByStringsGreaterThan("", VALUE);
+        persons = repository.findByStringsGreaterThan("");
         assertThat(persons).containsOnly(dave, donny);
 
         // ordering is by each byte in a String, so "t" > "str" because "t" > "s"
-        persons = repository.findByStringsGreaterThan("t", VALUE);
+        persons = repository.findByStringsGreaterThan("t");
         assertThat(persons).isEmpty();
     }
 
     @Test
-    void findByListValueGreaterThanList() {
-        List<List<Integer>> listOfLists1 = List.of(List.of(100), List.of(200), List.of(300), List.of(400));
-        List<List<Integer>> listOfLists2 = List.of(List.of(101), List.of(201), List.of(301), List.of(401));
-        List<List<Integer>> listOfLists3 = List.of(List.of(102), List.of(202), List.of(300), List.of(400));
-        List<List<Integer>> listOfLists4 = List.of(List.of(1000), List.of(2000), List.of(3000), List.of(4000));
+//    Note: only the upper level ListOfLists will be compared even if the parameter has different number of levels
+//    So findByListOfListsGreaterThan(List.of(1)) and findByListOfListsGreaterThan(List.of(List.of(List.of(1))))
+//    will compare with the given parameter only the upper level ListOfLists itself
+    void findByListOfListsGreaterThan() {
+        List<List<Integer>> listOfLists1 = List.of(List.of(100));
+        List<List<Integer>> listOfLists2 = List.of(List.of(101));
+        List<List<Integer>> listOfLists3 = List.of(List.of(102));
+        List<List<Integer>> listOfLists4 = List.of(List.of(1000));
         stefan.setListOfIntLists(listOfLists1);
         repository.save(stefan);
         douglas.setListOfIntLists(listOfLists2);
@@ -256,57 +259,24 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         repository.save(leroi2);
 
         List<Person> persons;
-        persons = repository.findByListOfIntListsGreaterThan(List.of(100), VALUE);
+        persons = repository.findByListOfIntListsGreaterThan(List.of(List.of(99)));
         assertThat(persons).containsOnly(stefan, douglas, matias, leroi2);
 
-        persons = repository.findByListOfIntListsGreaterThan(List.of(400), VALUE);
-        assertThat(persons).containsOnly(douglas, leroi2);
+        persons = repository.findByListOfIntListsGreaterThan(List.of(List.of(100)));
+        assertThat(persons).containsOnly(douglas, matias, leroi2);
 
-        persons = repository.findByListOfIntListsGreaterThan(List.of(401), VALUE);
+        persons = repository.findByListOfIntListsGreaterThan(List.of(List.of(102)));
         assertThat(persons).containsOnly(leroi2);
 
-        persons = repository.findByListOfIntListsGreaterThan(List.of(4000), VALUE);
+        persons = repository.findByListOfIntListsGreaterThan(List.of(List.of(401)));
+        assertThat(persons).containsOnly(leroi2);
+
+        persons = repository.findByListOfIntListsGreaterThan(List.of(List.of(4000)));
         assertThat(persons).isEmpty();
     }
 
     @Test
-    void findByListValueGreaterThanMap() {
-        List<Map<String, Integer>> listOfMaps1 = List.of(Map.of("a", 100), Map.of("b", 200), Map.of("c", 300),
-            Map.of("d", 400));
-        List<Map<String, Integer>> listOfMaps2 = List.of(Map.of("a", 101), Map.of("b", 201), Map.of("c", 301),
-            Map.of("d", 401));
-        List<Map<String, Integer>> listOfMaps3 = List.of(Map.of("a", 102), Map.of("b", 202), Map.of("c", 300),
-            Map.of("d", 400));
-        List<Map<String, Integer>> listOfMaps4 = List.of(Map.of("a", 1000), Map.of("b", 2000), Map.of("c", 3000),
-            Map.of("d", 4000));
-        stefan.setListOfIntMaps(listOfMaps1);
-        repository.save(stefan);
-        douglas.setListOfIntMaps(listOfMaps2);
-        repository.save(douglas);
-        matias.setListOfIntMaps(listOfMaps3);
-        repository.save(matias);
-        leroi2.setListOfIntMaps(listOfMaps4);
-        repository.save(leroi2);
-
-        List<Person> persons;
-        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 1001), VALUE);
-        assertThat(persons).containsOnly(stefan, douglas, matias, leroi2);
-
-        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 400), VALUE);
-        assertThat(persons).containsOnly(stefan, douglas, matias);
-
-        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 102), VALUE);
-        assertThat(persons).containsOnly(stefan, douglas);
-
-        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 99), VALUE);
-        assertThat(persons).isEmpty();
-
-        persons = repository.findByListOfIntMapsLessThan(Map.of("a", 0), VALUE);
-        assertThat(persons).isEmpty();
-    }
-
-    @Test
-    void findByGreaterThanList() {
+    void findByListGreaterThan() {
         List<Integer> listToCompare1 = List.of(100, 200, 300, 400);
         List<Integer> listToCompare2 = List.of(425, 550);
         List<Integer> listToCompare3 = List.of(426, 551, 991);
@@ -336,20 +306,20 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByIntegerListValueInRange() {
-        List<Person> persons = repository.findByIntsBetween(500, 600, VALUE);
+        List<Person> persons = repository.findByIntsBetween(500, 600);
         assertThat(persons).containsExactlyInAnyOrder(oliver, alicia);
     }
 
     @Test
     void findByStringListValueInRange() {
         List<Person> persons;
-        persons = repository.findByStringsBetween("str1", "str3", VALUE);
+        persons = repository.findByStringsBetween("str1", "str3");
         assertThat(persons).containsExactlyInAnyOrder(donny, dave);
 
-        persons = repository.findByStringsBetween("str3", "str3", VALUE); // upper limit is exclusive
+        persons = repository.findByStringsBetween("str3", "str3"); // upper limit is exclusive
         assertThat(persons).isEmpty();
 
-        persons = repository.findByStringsBetween("str3", "str4", VALUE);
+        persons = repository.findByStringsBetween("str3", "str4");
         assertThat(persons).containsExactlyInAnyOrder(donny);
     }
 

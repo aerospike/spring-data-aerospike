@@ -110,7 +110,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByListValueGreaterThan() {
-        List<IndexedPerson> results = reactiveRepository.findByIntsGreaterThan(549, VALUE)
+        List<IndexedPerson> results = reactiveRepository.findByIntsGreaterThan(549)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
@@ -118,7 +118,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByListValueLessThanOrEqual() {
-        List<IndexedPerson> results = reactiveRepository.findByIntsLessThanEqual(500, VALUE)
+        List<IndexedPerson> results = reactiveRepository.findByIntsLessThanEqual(500)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
@@ -126,7 +126,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByListValueInRange() {
-        List<IndexedPerson> results = reactiveRepository.findByIntsBetween(500, 600, VALUE)
+        List<IndexedPerson> results = reactiveRepository.findByIntsBetween(500, 600)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
