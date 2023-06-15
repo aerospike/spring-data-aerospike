@@ -11,7 +11,7 @@ This chapter will point out the specialties for reactive repository support for 
 
 The reactive space offers various reactive composition libraries. The most common library is https://projectreactor.io/[Project Reactor].
 
-Spring Data Aerospike is built on top of the https://github.com/aerospike/aerospike-client-java/tree/master/extensions/reactor-client/[Aerospike Reactor Java Client Library], to provide maximal interoperability by relying on the https://www.reactive-streams.org/[Reactive Streams] initiative. Static APIs, such as `ReactiveAerospikeOperations`, are provided by using Project Reactor's `Flux` and `Mono` types. Project Reactor offers various adapters to convert reactive wrapper types  (`Flux` to `Observable` and vice versa).
+Spring Data Aerospike is built on top of the https://github.com/aerospike/aerospike-client-java-reactive[Aerospike Reactor Java Client Library], to provide maximal interoperability by relying on the https://www.reactive-streams.org/[Reactive Streams] initiative. Static APIs, such as `ReactiveAerospikeOperations`, are provided by using Project Reactor's `Flux` and `Mono` types. Project Reactor offers various adapters to convert reactive wrapper types  (`Flux` to `Observable` and vice versa).
 
 Spring Data's Repository abstraction is a dynamic API, mostly defined by you and your requirements as you declare query methods. Reactive Aerospike repositories can be implemented by using Project Reactor wrapper types by extending from the following library-specific repository interface:
 

@@ -13,7 +13,7 @@ include::{spring-data-commons-docs}/object-mapping.adoc[leveloffset=+1]
 `AerospikeMappingConverter` has a few conventions for mapping objects to documents when no additional mapping metadata is provided. The conventions are:
 
 
-[[mapping.conventions.id-field]]
+[[mapping-conventions.id-field]]
 === How the '_id' field is handled in the mapping layer
 
 AerospikeDB requires that you have an '_id' field for all objects. If you don't provide one the driver will assign a ObjectId with a generated value. The "_id" field can be of any type, other than arrays, so long as it is unique. The driver naturally supports all primitive types and Dates. When using the `AerospikeMappingConverter` there are certain rules that govern how properties from the Java class are mapped to this '_id' field.

@@ -1,3 +1,4 @@
+[[secondary.indexes]]
 = Secondary indexes
 
 A secondary index (SI) is a data structure that locates all the records in a namespace, or a set within it, based on a bin value in the record.
