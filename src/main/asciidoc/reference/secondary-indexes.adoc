@@ -121,3 +121,4 @@ public List<Person> findByFirstName(String firstName);
 
 In this case `firstName` is not marked as `@Indexed`, so SpringData Aerospike is not instructed to create an index on it.
 Hence, it will scan the repository (a costly operation that could be avoided by using an index).
+

@@ -165,4 +165,5 @@ Auditing support is not available in the current version.
 == Introduction to AerospikeTemplate
 
 The template provides lower-level access to the database and also serves as the foundation for repositories.
-For more information see xref:template.adoc#aerospike.template[AerospikeTemplate] for more information.
+For more information see xref:#aerospike.template[AerospikeTemplate] for more information.
+

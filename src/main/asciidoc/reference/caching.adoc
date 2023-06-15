@@ -1,3 +1,4 @@
+[[caching]]
 = Caching
 
 Caching is the process of storing data in a cache or temporary storage location, usually to improve application performance and make data access faster.
