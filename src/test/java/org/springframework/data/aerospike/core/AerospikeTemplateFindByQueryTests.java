@@ -251,8 +251,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByListValueLessThanOrEqual() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsLessThanEqual", 25,
-            CriteriaDefinition.AerospikeMapCriteria.VALUE);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsLessThanEqual", 25);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -262,8 +261,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByListValueGreaterThan() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsGreaterThan", 10,
-            CriteriaDefinition.AerospikeMapCriteria.VALUE);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsGreaterThan", 10);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -273,8 +271,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByListValueInRange() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 10, 700,
-            CriteriaDefinition.AerospikeMapCriteria.VALUE);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 10, 700);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
