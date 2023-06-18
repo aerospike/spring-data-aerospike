@@ -150,6 +150,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         persons = repository.findByAddressesListContaining(new Address("Foo Street 12345", 12345, "12345", "Bar12345"));
         assertThat(persons).isEmpty();
+
+        stefan.setAddressesList(null);
+        repository.save(stefan);
+        douglas.setAddressesList(null);
+        repository.save(douglas);
+        matias.setAddressesList(null);
+        repository.save(matias);
+        leroi2.setAddressesList(null);
+        repository.save(leroi2);
     }
 
     @Test
@@ -164,6 +173,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         persons = repository.findByAddressesListNotContaining(address1);
         assertThat(persons).containsExactlyInAnyOrderElementsOf(
             allPersons.stream().filter(person -> !person.getFirstName().equals("Stefan")).collect(Collectors.toList()));
+
+        stefan.setAddressesList(null);
+        repository.save(stefan);
     }
 
     @Test
@@ -514,6 +526,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
             persons = repository.findByAddressesMapContaining("cd", address3);
             assertThat(persons).isEmpty();
+
+            stefan.setAddressesMap(null);
+            repository.save(stefan);
+            douglas.setAddressesMap(null);
+            repository.save(douglas);
+            matias.setAddressesMap(null);
+            repository.save(matias);
+            leroi2.setAddressesMap(null);
+            repository.save(leroi2);
         }
     }
 
@@ -582,6 +603,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
             persons = repository.findByAddressesMapIsNot("cd", address3);
             assertThat(persons).isEmpty();
+
+            stefan.setAddressesMap(null);
+            repository.save(stefan);
+            douglas.setAddressesMap(null);
+            repository.save(douglas);
+            matias.setAddressesMap(null);
+            repository.save(matias);
+            leroi2.setAddressesMap(null);
+            repository.save(leroi2);
         }
     }
 
@@ -702,6 +732,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
             persons = repository.findByAddressesMapLessThan("d", new Address("Foo Street 1234", 1, "C01245", "Bar"));
             assertThat(persons).isEmpty();
+
+            stefan.setAddressesMap(null);
+            repository.save(stefan);
+            douglas.setAddressesMap(null);
+            repository.save(douglas);
+            matias.setAddressesMap(null);
+            repository.save(matias);
+            leroi2.setAddressesMap(null);
+            repository.save(leroi2);
         }
     }
 
@@ -811,7 +850,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     void findByFirstNameNotContaining() {
         List<Person> persons = repository.findByFirstNameNotContaining("er");
-        assertThat(persons).containsExactlyInAnyOrder(dave, donny, boyd, stefan, matias, douglas);
+        assertThat(persons).containsExactlyInAnyOrder(dave, donny, alicia, boyd, stefan, matias, douglas);
     }
 
     @Test
