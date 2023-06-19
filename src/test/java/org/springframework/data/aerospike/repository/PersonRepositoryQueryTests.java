@@ -19,7 +19,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -1113,38 +1113,23 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findByFirstNameNotIn_forEmptyResult() {
-        Set<String> allFirstNames = allPersons.stream().map(Person::getFirstName).collect(Collectors.toSet());
-//		Stream<Person> result = repository.findByFirstnameNotIn(allFirstNames);
-        assertThatThrownBy(() -> repository.findByFirstNameNotIn(allFirstNames))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Unsupported keyword 'NOT_IN (1): [IsNotIn, NotIn]'");
-
-//		assertThat(result).isEmpty();
-    }
-
-    @Test
-    public void findByFirstNameNotIn_forExistingResult() {
-//		Stream<Person> result = repository.findByFirstnameNotIn(Collections.singleton("Alicia"));
-        assertThatThrownBy(() -> repository.findByFirstNameNotIn(Collections.singleton("Alicia")))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Unsupported keyword 'NOT_IN (1): [IsNotIn, NotIn]'");
-
-//		assertThat(result).contains(dave, donny, oliver, carter, boyd, stefan, leroi, leroi2);
-    }
-
-    @Test
-    public void findByFirstNameIn_forEmptyResult() {
-        Stream<Person> result = repository.findByFirstNameIn(List.of("Anastasiia", "Daniil"));
-
+    public void findByFirstNameIn() {
+        Stream<Person> result;
+        result = repository.findByFirstNameIn(List.of("Anastasiia", "Daniil"));
         assertThat(result).isEmpty();
+
+        result = repository.findByFirstNameIn(List.of("Alicia", "Stefan"));
+        assertThat(result).contains(alicia, stefan);
     }
 
     @Test
-    public void findByFirstNameIn_forExistingResult() {
-        Stream<Person> result = repository.findByFirstNameIn(List.of("Alicia", "Stefan"));
+    public void findByFirstNameNotIn() {
+        Collection<String> firstNames;
+        firstNames = allPersons.stream().map(Person::getFirstName).collect(Collectors.toSet());
+        assertThat(repository.findByFirstNameNotIn(firstNames)).isEmpty();
 
-        assertThat(result).contains(alicia, stefan);
+        firstNames = List.of("Dave", "Donny", "Carter", "Boyd", "Leroi", "Stefan", "Matias", "Douglas");
+        assertThat(repository.findByFirstNameNotIn(firstNames)).containsExactlyInAnyOrder(oliver, alicia);
     }
 
     @Test

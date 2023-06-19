@@ -18,6 +18,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BinaryOperator;
@@ -76,24 +77,62 @@ public enum FilterOperation {
     IN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
-            // Convert IN to a collection of OR as Aerospike has no support for IN query
+            // Convert IN to a collection of OR as Aerospike has no direct support for IN query
             Value val = getValue1(map);
-            int valType = val.getType();
-            if (valType != LIST)
-                throw new IllegalArgumentException(
-                    "FilterOperation.IN expects List argument with type: " + LIST + ", instead got: " +
-                        valType);
-            List<?> inList = (List<?>) val.getObject();
-            Exp[] listElementsExp = new Exp[inList.size()];
-
-            for (int i = 0; i < inList.size(); i++) {
-                listElementsExp[i] = new Qualifier(new QualifierBuilder()
-                    .setField(getField(map))
-                    .setFilterOperation(FilterOperation.EQ)
-                    .setValue1(Value.get(inList.get(i)))
-                ).toFilterExp();
+            String errMsg = "FilterOperation.IN expects argument with type Collection, instead got: " +
+                val.getObject().getClass().getSimpleName();
+            if (val.getType() != LIST && val.getType() != JBLOB) { // some Collection classes come as JBLOB
+                throw new IllegalArgumentException(errMsg);
+            } else {
+                if (!(val.getObject() instanceof Collection<?>)) {
+                    throw new IllegalArgumentException(errMsg);
+                }
             }
+
+            Collection<?> collection = (Collection<?>) val.getObject();
+            Exp[] listElementsExp = collection.stream().map(item ->
+                new Qualifier(
+                    new QualifierBuilder()
+                        .setField(getField(map))
+                        .setFilterOperation(FilterOperation.EQ)
+                        .setValue1(Value.get(item))
+                ).toFilterExp()
+            ).toArray(Exp[]::new);
+
             return Exp.or(listElementsExp);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> map) {
+            return null;
+        }
+    },
+    NOT_IN {
+        @Override
+        public Exp filterExp(Map<String, Object> map) {
+            // Convert NOT_IN to a collection of AND as Aerospike has no direct support for IN query
+            Value val = getValue1(map);
+            String errMsg = "FilterOperation.NOT_IN expects argument with type Collection, instead got: " +
+                val.getObject().getClass().getSimpleName();
+            if (val.getType() != LIST && val.getType() != JBLOB) { // some Collection classes come as JBLOB
+                throw new IllegalArgumentException(errMsg);
+            } else {
+                if (!(val.getObject() instanceof Collection<?>)) {
+                    throw new IllegalArgumentException(errMsg);
+                }
+            }
+
+            Collection<?> collection = (Collection<?>) val.getObject();
+            Exp[] listElementsExp = collection.stream().map(item ->
+                new Qualifier(
+                    new QualifierBuilder()
+                        .setField(getField(map))
+                        .setFilterOperation(FilterOperation.NOTEQ)
+                        .setValue1(Value.get(item))
+                ).toFilterExp()
+            ).toArray(Exp[]::new);
+
+            return Exp.and(listElementsExp);
         }
 
         @Override
