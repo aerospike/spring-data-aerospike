@@ -23,7 +23,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.0.4</springdata.commons>
+        <springdata.commons>3.1.1</springdata.commons>
         <springdata.keyvalue>3.0.4</springdata.keyvalue>
         <spring-cloud-starter-bootstrap>4.0.1</spring-cloud-starter-bootstrap>
         <spring-boot-starter-test>3.0.5</spring-boot-starter-test>
