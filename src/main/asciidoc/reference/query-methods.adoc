@@ -37,11 +37,15 @@ include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
 
 |Containing |findByLastNameContaining |...where x.lastName like '%abc%
 
+|Not Containing |findByLastNameNotContaining |...where x.lastName not like '%abc%
+
 |OrderBy |findByLastNameOrderByFirstNameDesc |...where x.lastName = ? order by x.firstName desc
 
 |Not |findByLastNameNot |...where x.lastName <> ?
 
 |In |findByLastNameIn(Collection<String>) |...where x.lastName in ?
+
+|Not In |findByLastNameNotIn(Collection<String>) |...where x.lastName not in ?
 
 |True |findByEnabledTrue() |...where x.enabled = true
 

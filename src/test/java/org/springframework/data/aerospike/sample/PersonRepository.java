@@ -82,7 +82,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     Stream<P> findByFirstNameIn(List<String> firstNames);
 
-    @SuppressWarnings("UnusedReturnValue")
     Stream<P> findByFirstNameNotIn(Collection<String> firstNames);
 
     List<P> findByFirstNameAndLastName(String firstName, String lastName);
