@@ -11,7 +11,7 @@ Spring Data uses Spring framework's https://docs.spring.io/spring/docs/3.2.x/spr
 
 The core functionality of the Aerospike support can be used directly, with no need to invoke the IoC services of the Spring Container. This is much like `JdbcTemplate` which can be used 'standalone' without any other services of the Spring container. To leverage all the features of the Spring Data document, such as the repository support, you will need to configure some parts of the library using Spring.
 
-To learn more about Spring, you can refer to the comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework. There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework https://spring.io/docs[home page ] for more information.
+To learn more about Spring, you can refer to the comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework. There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework https://docs.spring.io/spring-framework/reference/[documentation reference] for more information.
 
 [[get-started:first-steps:nosql]]
 == Knowing NoSQL and Aerospike

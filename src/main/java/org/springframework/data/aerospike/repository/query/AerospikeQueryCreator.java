@@ -44,7 +44,9 @@ import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.query.FilterOperation.LIST_VAL_CONTAINING;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_NOT_CONTAIN;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_NOT_CONTAIN;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_CONTAINING_BY_KEY;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_EQ_BY_KEY;
 
@@ -107,6 +109,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case STARTING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.STARTS_WITH);
             case ENDING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.ENDS_WITH);
             case CONTAINING -> getCriteria(part, property, v1, null, parameters, FilterOperation.CONTAINING);
+            case NOT_CONTAINING -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOT_CONTAINING);
             case WITHIN -> {
                 v1 = Value.get(String.format("{ \"type\": \"AeroCircle\", \"coordinates\": [[%.8f, %.8f], %f] }",
                     v1, parameters.next(), parameters.next()));
@@ -154,6 +157,17 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         }
                     } else {
                         op = FilterOperation.MAP_VAL_EQ_BY_KEY;
+                        dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
+                        setQbValuesForMapByKey(qb, value1, nextParam);
+                    }
+                } else if (op == FilterOperation.NOT_CONTAINING) {
+                    if (nextParam instanceof AerospikeMapCriteria onMap) {
+                        switch (onMap) {
+                            case KEY -> op = MAP_KEYS_NOT_CONTAIN;
+                            case VALUE -> op = MAP_VALUES_NOT_CONTAIN;
+                        }
+                    } else {
+                        op = FilterOperation.MAP_VAL_NOTEQ_BY_KEY;
                         dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
                         setQbValuesForMapByKey(qb, value1, nextParam);
                     }

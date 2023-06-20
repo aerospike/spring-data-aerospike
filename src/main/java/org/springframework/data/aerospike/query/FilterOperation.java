@@ -346,6 +346,19 @@ public enum FilterOperation {
             return null; // String secondary index does not support "contains" queries
         }
     },
+    NOT_CONTAINING {
+        @Override
+        public Exp filterExp(Map<String, Object> map) {
+            String notContainingRegexp = QualifierRegexpBuilder.getNotContaining(getValue1(map).toString());
+            return Exp.or(Exp.not(Exp.binExists(getField(map))),
+                Exp.not(Exp.regexCompare(notContainingRegexp, regexFlags(map), Exp.stringBin(getField(map)))));
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> map) {
+            return null; // String secondary index does not support "contains" queries
+        }
+    },
     LIKE {
         @Override
         public Exp filterExp(Map<String, Object> map) {
@@ -659,10 +672,29 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> map) {
             String containingRegexp = QualifierRegexpBuilder.getContaining(getValue1(map).toString());
-            return Exp.regexCompare(containingRegexp, regexFlags(map),
-                MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
-                    Exp.mapBin(getField(map)))
-            );
+            Exp bin = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
+                Exp.mapBin(getField(map)));
+            return Exp.regexCompare(containingRegexp, regexFlags(map), bin);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> map) {
+            return null; // String secondary index does not support "contains" queries
+        }
+    },
+    MAP_VAL_NOT_CONTAINING_BY_KEY {
+        @Override
+        public Exp filterExp(Map<String, Object> map) {
+            String containingRegexp = QualifierRegexpBuilder.getContaining(getValue1(map).toString());
+            Exp mapIsNull = Exp.not(Exp.binExists(getField(map)));
+            Exp mapKeysNotContaining = Exp.eq(
+                MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue2(map).toString()),
+                    Exp.mapBin(getField(map))),
+                Exp.val(0));
+            Exp binValue = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(map).toString()),
+                Exp.mapBin(getField(map)));
+            return Exp.or(mapIsNull, mapKeysNotContaining,
+                Exp.not(Exp.regexCompare(containingRegexp, regexFlags(map), binValue)));
         }
 
         @Override
@@ -695,6 +727,33 @@ public enum FilterOperation {
             return collectionContains(IndexCollectionType.MAPKEYS, map);
         }
     },
+    MAP_KEYS_NOT_CONTAIN {
+        @Override
+        public Exp filterExp(Map<String, Object> map) {
+
+            Exp value = switch (getValue1(map).getType()) {
+                case INTEGER -> Exp.val(getValue1(map).toLong());
+                case STRING -> Exp.val(getValue1(map).toString());
+                case JBLOB -> getConvertedValue1Exp(map);
+                case LIST -> Exp.val((List<?>) getValue1(map).getObject());
+                case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
+                default -> throw new IllegalArgumentException(
+                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
+                        getValue1(map).getClass().getSimpleName());
+            };
+
+            Exp mapIsNull = Exp.not(Exp.binExists(getField(map)));
+            Exp mapKeysNotContaining = Exp.eq(
+                MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(map))),
+                Exp.val(0));
+            return Exp.or(mapIsNull, mapKeysNotContaining);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> map) {
+            return collectionContains(IndexCollectionType.MAPKEYS, map);
+        }
+    },
     MAP_VALUES_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> map) {
@@ -712,6 +771,32 @@ public enum FilterOperation {
             return Exp.gt(
                 MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(map))),
                 Exp.val(0));
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> map) {
+            return collectionContains(IndexCollectionType.MAPVALUES, map);
+        }
+    },
+    MAP_VALUES_NOT_CONTAIN {
+        @Override
+        public Exp filterExp(Map<String, Object> map) {
+            Exp value = switch (getValue1(map).getType()) {
+                case INTEGER -> Exp.val(getValue1(map).toLong());
+                case STRING -> Exp.val(getValue1(map).toString());
+                case JBLOB -> getConvertedValue1Exp(map);
+                case LIST -> Exp.val((List<?>) getValue1(map).getObject());
+                case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
+                default -> throw new IllegalArgumentException(
+                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
+                        getValue1(map).getClass().getSimpleName());
+            };
+
+            Exp mapIsNull = Exp.not(Exp.binExists(getField(map)));
+            Exp mapValuesNotContaining = Exp.eq(
+                MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(map))),
+                Exp.val(0));
+            return Exp.or(mapIsNull, mapValuesNotContaining);
         }
 
         @Override
@@ -824,6 +909,39 @@ public enum FilterOperation {
             }
 
             return collectionContains(IndexCollectionType.LIST, map);
+        }
+    },
+    LIST_VAL_NOT_CONTAINING {
+        @Override
+        public Exp filterExp(Map<String, Object> map) {
+            // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
+            // so converting to BooleanValue to process correctly
+            if (getValue1(map) instanceof Value.BoolIntValue) {
+                map.put(VALUE1, new Value.BooleanValue((Boolean) (getValue1(map).getObject())));
+            }
+
+            Exp value = switch (getValue1(map).getType()) {
+                case INTEGER -> Exp.val(getValue1(map).toLong());
+                case STRING -> Exp.val(getValue1(map).toString());
+                case BOOL -> Exp.val((Boolean) getValue1(map).getObject());
+                case JBLOB -> getConvertedValue1Exp(map);
+                case LIST -> Exp.val((List<?>) getValue1(map).getObject());
+                case MAP -> Exp.val((Map<?, ?>) getValue1(map).getObject());
+                default -> throw new IllegalArgumentException(
+                    "LIST_VAL_CONTAINING FilterExpression unsupported type: got " +
+                        getValue1(map).getClass().getSimpleName());
+            };
+
+            Exp binIsNull = Exp.not(Exp.binExists(getField(map)));
+            Exp listNotContaining = Exp.eq(
+                ListExp.getByValue(ListReturnType.COUNT, value, Exp.listBin(getField(map))),
+                Exp.val(0));
+            return Exp.or(binIsNull, listNotContaining);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> map) {
+            return null; // currently not supported
         }
     },
     LIST_VAL_BETWEEN {

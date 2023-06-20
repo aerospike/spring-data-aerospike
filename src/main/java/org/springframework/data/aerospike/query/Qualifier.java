@@ -246,6 +246,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return getRegexp(base, FilterOperation.CONTAINING);
         }
 
+        public static String getNotContaining(String base) {
+            return getRegexp(base, FilterOperation.NOT_CONTAINING);
+        }
+
         public static String getStringEquals(String base) {
             return getRegexp(base, FilterOperation.EQ);
         }

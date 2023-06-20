@@ -151,7 +151,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByAddressZipCodeContaining(String str);
 
+    List<P> findByAddressZipCodeNotContaining(String str);
+
     List<P> findByFirstNameContaining(String str);
+
+    List<P> findByFirstNameNotContaining(String str);
 
     List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
 
@@ -314,6 +318,15 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
     List<P> findByStringMapContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities that do not contain the given map element (key or value depending on the given criterion)
+     *
+     * @param value     map value
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     */
+    List<P> findByStringMapNotContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
@@ -694,6 +707,16 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringsContaining(String string);
 
     /**
+     * Find all entities that satisfy the condition "have the list which does not contain the given string"
+     * <p>
+     * List name in this case is Strings
+     * </p>
+     *
+     * @param string string to check
+     */
+    List<P> findByStringsNotContaining(String string);
+
+    /**
      * Find all entities that satisfy the condition "have the list which contains the given integer"
      * <p>
      * List name in this case is Ints
@@ -734,11 +757,18 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByListOfBooleanContaining(boolean value);
 
     /**
-     * Find all entities that satisfy the condition "have list that contains given Address".
+     * Find all entities that satisfy the condition "have list that contains the given Address".
      *
      * @param address Value to look for
      */
     List<P> findByAddressesListContaining(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have list that does not contain the given Address".
+     *
+     * @param address Value to look for
+     */
+    List<P> findByAddressesListNotContaining(Address address);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value which is greater than the given
