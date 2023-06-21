@@ -88,7 +88,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     }
 
     private AerospikeCriteria create(Part part, AerospikePersistentProperty property, Iterator<?> parameters) {
-        Object v1 = parameters.next();
+        Object v1 = null;
+        if (parameters.hasNext()) {
+            v1 = parameters.next();
+        }
 
         // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
         final Object value = v1;
@@ -119,6 +122,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case NEGATING_SIMPLE_PROPERTY -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOTEQ);
             case IN -> getCriteria(part, property, v1, null, parameters, FilterOperation.IN);
             case NOT_IN -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOT_IN);
+            case TRUE ->  getCriteria(part, property, true, null, parameters, FilterOperation.EQ);
+            case FALSE ->  getCriteria(part, property, false, null, parameters, FilterOperation.EQ);
             default -> throw new IllegalArgumentException("Unsupported keyword '" + part.getType() + "'");
         };
     }
