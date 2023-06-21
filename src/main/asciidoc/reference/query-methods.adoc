@@ -68,16 +68,15 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 }
 ----
 
-Note that Java Dates are stored as type `long` in the database so search method should access them as if they are of type `long`. So if the class has a `DateOfBirth` field, instead of
+== Limiting Query Results
+[width="100%",cols="<12%,<25%,<25%",options="header",]
+|===
+|Keyword |Sample |Snippet
+|First |findFirstByAge | select top 1 where x.age = ?
 
-[source, java]
-----
-public List<Person> findByDateOfBirthBetween(Date startDate, Date endDate);
-----
+|First N |findFirst3ByAge | select top 3  where x.age = ?
 
-there might be a method like:
+|Top |findTopByLastNameStartingWith | select top 1 where x.lastName like 'abc%' = ?
 
-[source, java]
-----
-public List<Person> findByDateOfBirthBetween(long startDate, long endDate);
-----
+|Top N |findTop4ByLastNameStartingWith | select top 4  where x.lastName like 'abc%'
+|===
