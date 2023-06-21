@@ -1246,6 +1246,10 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         Person person = repository.findFirstByLastNameStartingWith("M", Sort.by("lastName").ascending());
         assertThat(person).isEqualTo(donny);
 
+        List<Person> personList = repository.findTopByLastNameStartingWith("M", Sort.by("lastName").ascending());
+        assertThat(personList).hasSize(1);
+        assertThat(personList.get(0)).isEqualTo(person);
+
         Person person2 = repository.findFirstByLastNameStartingWith("M", Sort.by("age").descending());
         assertThat(person2).isEqualTo(leroi);
 

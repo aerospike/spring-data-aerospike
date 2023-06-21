@@ -914,6 +914,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     P findFirstByLastNameStartingWith(String lastName, Sort sort);
 
+    List<P> findTopByLastNameStartingWith(String lastName, Sort sort);
+
     List<P> findTop3ByLastNameStartingWith(String lastName, Sort sort);
 
     List<P> findFirst3ByLastNameStartingWith(String lastName, Sort sort);
