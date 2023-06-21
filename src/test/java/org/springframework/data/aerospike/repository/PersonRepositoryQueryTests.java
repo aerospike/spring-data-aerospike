@@ -1242,6 +1242,25 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findByLastNameStartingWith_limited() {
+        Person person = repository.findFirstByLastNameStartingWith("M", Sort.by("lastName").ascending());
+        assertThat(person).isEqualTo(donny);
+
+        Person person2 = repository.findFirstByLastNameStartingWith("M", Sort.by("age").descending());
+        assertThat(person2).isEqualTo(leroi);
+
+        List<Person> persons = repository.findTop3ByLastNameStartingWith("M", Sort.by("lastName", "firstName")
+            .ascending());
+        List<Person> persons2 = repository.findFirst3ByLastNameStartingWith("M", Sort.by("lastName", "firstName")
+            .ascending());
+        assertThat(persons).hasSize(3).containsExactly(donny, dave, oliver).isEqualTo(persons2);
+
+        Page<Person> personsPage = repository.findTop3ByLastNameStartingWith("M",
+            PageRequest.of(0, 3, Sort.by("lastName", "firstName").ascending()));
+        assertThat(personsPage.get()).containsExactly(donny, dave, oliver);
+    }
+
+    @Test
     public void findPersonsByFirstNameAndByAge() {
         List<Person> result = repository.findByFirstNameAndAge("Leroi", 25);
         assertThat(result).containsOnly(leroi2);
