@@ -190,6 +190,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByIsActive(boolean isActive);
 
+    List<P> findByIsActiveTrue();
+
+    List<P> findByIsActiveFalse();
+
     List<P> findByIsActiveAndFirstName(boolean isActive, String firstName);
 
     @SuppressWarnings("UnusedReturnValue")

@@ -185,8 +185,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         Person intBoolBinPerson = Person.builder().id(nextId()).isActive(true).firstName("Test").build();
         repository.save(intBoolBinPerson);
 
-        List<Person> persons = repository.findByIsActive(true);
+        List<Person> persons;
+        persons = repository.findByIsActive(true);
         assertThat(persons).contains(intBoolBinPerson);
+
+        persons = repository.findByIsActiveTrue(); // another way to call the query method
+        assertThat(persons).contains(intBoolBinPerson);
+
+        persons = repository.findByIsActiveFalse();
+        assertThat(persons).doesNotContain(intBoolBinPerson);
+        assertThat(persons).contains(leroi);
 
         Value.UseBoolBin = initialValue; // set back to the default value
         repository.delete(intBoolBinPerson);
