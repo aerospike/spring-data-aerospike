@@ -57,9 +57,9 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             List<?> results = result.toList();
             Pageable pageable = accessor.getPageable();
             long numberOfAllResults = aerospikeOperations.count(query, queryMethod.getEntityInformation().getJavaType());
-            boolean hasNext = numberOfAllResults > pageable.getPageSize() * (pageable.getOffset() + 1);
 
             if (queryMethod.isSliceQuery()) {
+                boolean hasNext = numberOfAllResults > pageable.getPageSize() * (pageable.getOffset() + 1);
                 return new SliceImpl(results, pageable, hasNext);
             } else {
                 return new PageImpl(results, pageable, numberOfAllResults);
