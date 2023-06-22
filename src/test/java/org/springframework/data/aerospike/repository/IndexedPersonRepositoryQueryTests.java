@@ -258,14 +258,13 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findByAgeGreaterThan_returnsValidValuesForNextAndPrev() {
         Slice<IndexedPerson> first = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1, Sort.by("age")));
-
         assertThat(first.hasContent()).isTrue();
         assertThat(first.getNumberOfElements()).isEqualTo(1);
-        assertThat(first.hasNext()).isFalse();
+        assertThat(first.hasNext()).isTrue();
         assertThat(first.isFirst()).isTrue();
+        assertThat(first.isLast()).isFalse();
 
         Slice<IndexedPerson> last = repository.findByAgeGreaterThan(40, PageRequest.of(2, 1, Sort.by("age")));
-
         assertThat(last.hasContent()).isTrue();
         assertThat(last.getNumberOfElements()).isEqualTo(1);
         assertThat(last.hasNext()).isFalse();
