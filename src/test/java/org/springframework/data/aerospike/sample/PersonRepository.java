@@ -253,7 +253,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
-     * @param string         lower limit, exclusive
+     * @param string lower limit, exclusive
      */
     List<P> findByStringsGreaterThan(String string);
 
@@ -265,7 +265,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
-     * @param string         lower limit, inclusive
+     * @param string lower limit, inclusive
      */
     List<P> findByStringsLessThanEqual(String string);
 
@@ -780,7 +780,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
-     * @param integer        lower limit, exclusive
+     * @param integer lower limit, exclusive
      */
     List<P> findByIntsGreaterThan(int integer);
 
@@ -791,7 +791,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
-     * @param value          lower limit, exclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     * @param value lower limit, exclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
      */
     List<P> findByIntsGreaterThan(long value);
 
@@ -803,7 +803,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
-     * @param list           List to compare with
+     * @param list List to compare with
      */
     List<P> findByListOfIntListsGreaterThan(List<List<Integer>> list);
 
@@ -854,7 +854,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
-     * @param integer        upper limit, inclusive
+     * @param integer upper limit, inclusive
      */
     List<P> findByIntsLessThanEqual(int integer);
 
@@ -865,7 +865,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
-     * @param value          upper limit, inclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     * @param value upper limit, inclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
      */
     List<P> findByIntsLessThanEqual(long value);
 
@@ -875,8 +875,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Ints
      * </p>
      *
-     * @param from           lower limit, inclusive
-     * @param to             upper limit, exclusive
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
      */
     List<P> findByIntsBetween(int from, int to);
 
@@ -911,8 +911,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
-     * @param from           lower limit, inclusive
-     * @param to             upper limit, exclusive
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
      */
     List<P> findByStringsBetween(String from, String to);
 

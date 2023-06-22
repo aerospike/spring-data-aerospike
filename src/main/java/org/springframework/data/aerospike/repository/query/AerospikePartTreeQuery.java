@@ -17,11 +17,14 @@ package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,10 +54,16 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
             Stream<?> result = findByQuery(query, targetClass);
-            long total = queryMethod.isSliceQuery() ? 0 :
-                aerospikeOperations.count(query, queryMethod.getEntityInformation().getJavaType());
-            // TODO: should return SliceImpl for slice query
-            return new PageImpl(result.collect(Collectors.toList()), accessor.getPageable(), total);
+            List<?> results = result.toList();
+            Pageable pageable = accessor.getPageable();
+            long numberOfAllResults = aerospikeOperations.count(query, queryMethod.getEntityInformation().getJavaType());
+            boolean hasNext = numberOfAllResults > pageable.getPageSize() * (pageable.getOffset() + 1);
+
+            if (queryMethod.isSliceQuery()) {
+                return new SliceImpl(results, pageable, hasNext);
+            } else {
+                return new PageImpl(results, pageable, numberOfAllResults);
+            }
         } else if (queryMethod.isStreamQuery()) {
             return findByQuery(query, targetClass);
         } else if (queryMethod.isCollectionQuery()) {
