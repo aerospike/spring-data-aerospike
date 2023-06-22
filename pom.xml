@@ -16,25 +16,25 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>3.0.4</version>
+        <version>3.1.1</version>
     </parent>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.0.4</springdata.commons>
-        <springdata.keyvalue>3.0.4</springdata.keyvalue>
-        <spring-cloud-starter-bootstrap>4.0.1</spring-cloud-starter-bootstrap>
-        <spring-boot-starter-test>3.0.5</spring-boot-starter-test>
-        <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
+        <springdata.commons>3.1.1</springdata.commons>
+        <springdata.keyvalue>3.1.1</springdata.keyvalue>
+        <spring-cloud-starter-bootstrap>4.0.3</spring-cloud-starter-bootstrap>
+        <spring-boot-starter-test>3.1.0</spring-boot-starter-test>
+        <maven.javadoc.plugin>3.5.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike>6.1.10</aerospike>
         <aerospike-reactor>6.1.2</aerospike-reactor>
-        <reactor-test>3.5.4</reactor-test>
+        <reactor-test>3.5.7</reactor-test>
         <embedded-aerospike>2.3.2</embedded-aerospike>
         <jodatime>2.12.5</jodatime>
-        <lombok>1.18.26</lombok>
+        <lombok>1.18.28</lombok>
         <awaitility>4.2.0</awaitility>
         <logback.test>1.4.6</logback.test>
         <hibernate.validator>8.0.0.Final</hibernate.validator>
