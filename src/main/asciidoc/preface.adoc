@@ -20,19 +20,19 @@ NoSQL stores have taken the storage world by storm. It is a vast domain with a p
 The jumping off ground for learning about Aerospike is https://www.aerospike.com/[www.aerospike.com]. Here is a list of other useful resources:
 
 * The https://www.aerospike.com/docs/[technical documentation] introduces Aerospike and contains links to getting started guides, reference documentation and tutorials.
-* The https://www.aerospike.com/docs/client/java/[java client documentation] provides a convenient way to interact with a Aerospike instance in combination with the online https://www.aerospike.com:443/docs/client/java/start/index.html/[Getting started]
+* The https://www.aerospike.com/docs/client/java/[java client documentation] provides a convenient way to interact with an Aerospike instance in combination with the online https://www.aerospike.com:443/docs/client/java/start/index.html/[Getting started]
 * https://www.aerospike.com/community/[Aerospike Community]
 
 [[requirements]]
 == Requirements
 
-Spring Data Aerospike 4.2.x binaries require JDK level 17.0 and above, and https://spring.io/docs[Spring Framework] 5.3.x and above.
+Spring Data Aerospike binaries require JDK level 17.0 and above, and https://spring.io/docs[Spring Framework] 5.3.x and above.
 
 In terms of server, https://www.aerospike.com/download/server/[Aerospike] version at least 5.2
 
 == Additional Help Resources
 
-Learning a new framework is not always straightforward. In this section, we try to provide what we think is an easy to follow guide for starting with Spring Data Aerospike module. However, if you encounter issues or you are just looking for advice, feel free to use one of the links below:
+Learning a new framework is not always straightforward. In this section, we try to provide what we think is an easy-to-follow guide for starting with Spring Data Aerospike module. However, if you encounter issues, or you are just looking for advice, feel free to use one of the links below:
 
 [[get-started:help]]
 === Support
