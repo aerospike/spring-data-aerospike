@@ -643,8 +643,8 @@ public enum FilterOperation {
                     type = Exp.Type.LIST;
                 }
                 case MAP -> {
-                    value1 = Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
-                    value2 = Exp.val((Map<?, ?>) getValue3(qualifierMap).getObject());
+                    value1 = Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
+                    value2 = Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue3));
                     type = Exp.Type.MAP;
                 }
                 default -> throw new IllegalArgumentException(
@@ -787,7 +787,7 @@ public enum FilterOperation {
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
                 case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new IllegalArgumentException(
                     "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
                         getValue1(qualifierMap).getClass().getSimpleName());
@@ -812,7 +812,7 @@ public enum FilterOperation {
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
                 case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new IllegalArgumentException(
                     "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
                         getValue1(qualifierMap).getClass().getSimpleName());
@@ -838,7 +838,7 @@ public enum FilterOperation {
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
                 case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new IllegalArgumentException(
                     "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
                         getValue1(qualifierMap).getClass().getSimpleName());
@@ -862,7 +862,7 @@ public enum FilterOperation {
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
                 case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new IllegalArgumentException(
                     "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
                         getValue1(qualifierMap).getClass().getSimpleName());
@@ -895,8 +895,8 @@ public enum FilterOperation {
                     getTwoConvertedValuesExp(qualifierMap, FilterOperation::getValue1, FilterOperation::getValue2);
                 case LIST -> Pair.of(Exp.val((List<?>) getValue1(qualifierMap).getObject()),
                     Exp.val((List<?>) getValue2(qualifierMap).getObject()));
-                case MAP -> Pair.of(Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject()),
-                    Exp.val((Map<?, ?>) getValue2(qualifierMap).getObject()));
+                case MAP -> Pair.of(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
+                    Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue2)));
                 default -> throw new IllegalArgumentException(
                     "MAP_KEYS_BETWEEN FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
@@ -928,8 +928,8 @@ public enum FilterOperation {
                     getTwoConvertedValuesExp(qualifierMap, FilterOperation::getValue1, FilterOperation::getValue2);
                 case LIST -> Pair.of(Exp.val((List<?>) getValue1(qualifierMap).getObject()),
                     Exp.val((List<?>) getValue2(qualifierMap).getObject()));
-                case MAP -> Pair.of(Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject()),
-                    Exp.val((Map<?, ?>) getValue2(qualifierMap).getObject()));
+                case MAP -> Pair.of(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
+                    Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue2)));
                 default -> throw new IllegalArgumentException(
                     "MAP_VAL_BETWEEN FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
@@ -975,7 +975,7 @@ public enum FilterOperation {
                 case BOOL -> Exp.val((Boolean) getValue1(qualifierMap).getObject());
                 case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_CONTAINING FilterExpression unsupported type: got " +
                         getValue1(qualifierMap).getClass().getSimpleName());
@@ -1010,7 +1010,7 @@ public enum FilterOperation {
                 case BOOL -> Exp.val((Boolean) getValue1(qualifierMap).getObject());
                 case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_CONTAINING FilterExpression unsupported type: got " +
                         getValue1(qualifierMap).getClass().getSimpleName());
@@ -1043,8 +1043,8 @@ public enum FilterOperation {
                     getTwoConvertedValuesExp(qualifierMap, FilterOperation::getValue1, FilterOperation::getValue2);
                 case LIST -> Pair.of(Exp.val((List<?>) getValue1(qualifierMap).getObject()),
                     Exp.val((List<?>) getValue2(qualifierMap).getObject()));
-                case MAP -> Pair.of(Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject()),
-                    Exp.val((Map<?, ?>) getValue2(qualifierMap).getObject()));
+                case MAP -> Pair.of(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
+                    Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue2)));
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_BETWEEN FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
@@ -1085,7 +1085,7 @@ public enum FilterOperation {
                     case STRING -> Exp.val(getValue1(qualifierMap).toString());
                     case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                     case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                    case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                    case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                     default -> throw new IllegalArgumentException(
                         "LIST_VAL_GT FilterExpression unsupported type: got "
                             + getValue1(qualifierMap).getClass().getSimpleName());
@@ -1117,7 +1117,7 @@ public enum FilterOperation {
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
                 case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_GTEQ FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
@@ -1154,7 +1154,7 @@ public enum FilterOperation {
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
                 case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new IllegalArgumentException(
                     "LIST_VAL_GTEQ FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
@@ -1196,7 +1196,7 @@ public enum FilterOperation {
                     case STRING -> Exp.val(getValue1(qualifierMap).toString());
                     case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                     case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                    case MAP -> Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject());
+                    case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                     default -> throw new IllegalArgumentException(
                         "LIST_VAL_LTEQ FilterExpression unsupported type: got " +
                             getValue1(qualifierMap).getClass().getSimpleName());
@@ -1292,7 +1292,7 @@ public enum FilterOperation {
             case LIST -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.LIST),
                 Exp.val((List<?>) getValue1(qualifierMap).getObject()));
             case MAP -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.MAP),
-                Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject()));
+                Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)));
             default -> throw new IllegalArgumentException(
                 opName + " FilterExpression unsupported type: " + getValue1(qualifierMap).getClass().getSimpleName());
         };
@@ -1354,7 +1354,7 @@ public enum FilterOperation {
             }
             case LIST -> getMapValEqExp(qualifierMap, Exp.Type.LIST, value1.getObject(), dotPathArr, operator,
                 useCtx);
-            case MAP -> getMapValEqExp(qualifierMap, Exp.Type.MAP, value1.getObject(), dotPathArr, operator,
+            case MAP -> getMapValEqExp(qualifierMap, Exp.Type.MAP, Exp.val(getConvertedMap(qualifierMap, value1)), dotPathArr, operator,
                 useCtx);
             default -> throw new IllegalArgumentException(
                 opName + " FilterExpression unsupported type: " + value1.getClass().getSimpleName());
