@@ -16,6 +16,7 @@
 package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.ScrollPosition;
 import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
@@ -31,6 +32,11 @@ public class StubParameterAccessor implements AerospikeParameterAccessor {
 
     public StubParameterAccessor(Object... values) {
         this.values = values;
+    }
+
+    @Override
+    public ScrollPosition getScrollPosition() {
+        return null;
     }
 
     @Override
