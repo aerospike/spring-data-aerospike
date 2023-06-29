@@ -1184,7 +1184,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         Slice<Person> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1));
 
         assertThat(slice.hasContent()).isTrue();
-        assertThat(slice.hasNext()).isFalse();
+        assertThat(slice.hasNext()).isTrue();
         assertThat(slice.getContent()).containsAnyOf(dave, carter, boyd, leroi).hasSize(1);
     }
 
@@ -1205,14 +1205,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findByAgeGreaterThan_returnsValidValuesForNextAndPrev() {
         Slice<Person> first = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1, Sort.by("age")));
-
         assertThat(first.hasContent()).isTrue();
         assertThat(first.getNumberOfElements()).isEqualTo(1);
-        assertThat(first.hasNext()).isFalse();
+        assertThat(first.hasNext()).isTrue();
         assertThat(first.isFirst()).isTrue();
+        assertThat(first.isLast()).isFalse();
 
         Slice<Person> last = repository.findByAgeGreaterThan(40, PageRequest.of(3, 1, Sort.by("age")));
-
         assertThat(last.hasContent()).isTrue();
         assertThat(last.getNumberOfElements()).isEqualTo(1);
         assertThat(last.hasNext()).isFalse();
