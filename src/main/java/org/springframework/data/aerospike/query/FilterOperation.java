@@ -1397,13 +1397,11 @@ public enum FilterOperation {
 
     private static Map<String, Object> getConvertedMap(Map<String, Object> qualifierMap,
                                                        Function<Map<String, Object>, Value> function) {
-
         Map<Object, Object> sourceMap = (Map<Object, Object>) function.apply(qualifierMap).getObject();
         return getConverter(qualifierMap).toWritableMap(sourceMap);
     }
 
     private static Map<String, Object> getConvertedMap(Map<String, Object> qualifierMap, Value value) {
-
         Map<Object, Object> sourceMap = (Map<Object, Object>) value.getObject();
         return getConverter(qualifierMap).toWritableMap(sourceMap);
     }
@@ -1463,7 +1461,6 @@ public enum FilterOperation {
 
     private static Exp toExp(Object value) {
         Exp res;
-
         if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long) {
             res = Exp.val(((Number) value).longValue());
         } else if (value instanceof Float || value instanceof Double) {
