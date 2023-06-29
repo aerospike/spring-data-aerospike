@@ -11,16 +11,14 @@
 {ci-url}[image:{ci-image}[ci]]
 {javadoc-url}[image:{javadoc-image}[javadoc]]
 
-The Spring Data Aerospike project aims to provide a familiar and
-consistent Spring-based programming model for new data stores while
-retaining store-specific features and capabilities. It provides integration with the Aerospike database. Key functional areas of Spring Data Aerospike are a POJO
-centric model for interacting with Aerospike DB and easily
+The Spring Data Aerospike project aims to provide a familiar and consistent Spring-based programming model for new data
+stores while retaining store-specific features and capabilities. It provides integration with the Aerospike database.
+Key functional areas of Spring Data Aerospike are a POJO centric model for interacting with Aerospike DB and easily
 writing a repository style data access layer.
 
 == Documentation
 
-* The
-https://aerospike.github.io/spring-data-aerospike[User Guide]
+* The https://aerospike.github.io/spring-data-aerospike[User Guide]
 * Java code documentation on https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike[javadoc.io]
 * https://docs.aerospike.com/[Aerospike documentation]
 
