@@ -255,7 +255,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         );
     }
 
-
     private AerospikeCriteria aerospikeCriteriaAndConcatenated(List<Object> params, Qualifier.QualifierBuilder qb,
                                                                Part part, String fieldName, FilterOperation op,
                                                                String dotPath) {

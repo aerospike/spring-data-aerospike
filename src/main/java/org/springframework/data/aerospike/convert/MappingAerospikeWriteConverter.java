@@ -194,7 +194,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         return source.stream().map(element -> getValueToWrite(element, componentType)).collect(Collectors.toList());
     }
 
-    private Map<String, Object> convertMap(final Map<Object, Object> source, final TypeInformation<?> type) {
+    protected Map<String, Object> convertMap(final Map<Object, Object> source, final TypeInformation<?> type) {
         Assert.notNull(source, "Given map must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
