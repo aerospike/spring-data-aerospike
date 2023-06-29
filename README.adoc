@@ -26,8 +26,13 @@ writing a repository style data access layer.
 
 == Documentation
 
-The documentation for this project can be found on
-https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike[javadoc.io].
+* The
+https://aerospike.github.io/spring-data-aerospike[User Guide]
+* Commented code on https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike[javadoc.io]
+* https://docs.aerospike.com/[Aerospike documentation]
+
+If you are new to Spring as well as to Spring Data, look for information
+about https://projects.spring.io/[Spring projects].
 
 == Demo Projects
 
@@ -60,6 +65,8 @@ Data Aerospike - Projections]
 [width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
 |Spring Data Aerospike |Spring Boot |Aerospike Client |Aerospike Reactor Client |Aerospike Server
+|4.3.x |3.1.x |6.1.x |6.1.x |5.2.x.x +
+
 |4.2.x |3.0.x |6.1.x |6.1.x |5.2.x.x +
 
 |4.1.x |3.0.x |6.1.x |6.1.x |5.2.x.x +
@@ -209,21 +216,15 @@ public class MyService {
 
 == Getting Help
 
-For a comprehensive treatment of all the Spring Data Aerospike features,
-please refer to:
+See <<Documentation, documentation>>.
 
-* the
-https://aerospike.github.io/spring-data-aerospike[User Guide]
-* for more detailed questions, use
+For more detailed questions you can use
 https://stackoverflow.com/questions/tagged/spring-data-aerospike[Spring
 Data Aerospike on Stackoverflow].
 
-If you are new to Spring as well as to Spring Data, look for information
-about https://projects.spring.io/[Spring projects].
-
 == Contributing to Spring Data
 
-Here are some ways for you to get involved in the community:
+Here are some ways you can get involved:
 
 * Get involved with the Spring community on Stackoverflow and help out
 on the
