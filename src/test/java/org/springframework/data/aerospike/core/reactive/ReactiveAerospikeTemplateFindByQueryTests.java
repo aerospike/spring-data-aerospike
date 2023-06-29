@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
 
     @BeforeAll
     public void beforeAllSetUp() {
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index",
             "age", IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index",
@@ -42,8 +44,15 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @Override
     @BeforeEach
     public void setUp() {
-        super.setUp();
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
+        super.setUp();
+    }
+
+    @AfterAll
+    public void afterAll() {
+        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_age_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_last_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_first_name_index");
     }
 
     @Test
@@ -57,6 +66,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .subscribeOn(Schedulers.parallel())
             .collectList().block();
         assertThat(result).hasSameElementsAs(persons);
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -80,6 +91,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(actual)
             .hasSize(5)
             .containsAnyElementsOf(allUsers);
+
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -95,6 +108,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(actual)
             .hasSize(5)
             .containsAnyElementsOf(allUsers);
+
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -118,6 +133,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(Objects.requireNonNull(result).stream().map(Person::getFirstName).collect(Collectors.toList()))
             .hasSize(3)
             .containsExactly("Chris", "Dave", "Josh");
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -138,6 +155,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(Objects.requireNonNull(result).stream().map(Person::getFirstName).collect(Collectors.toList()))
             .hasSize(5)
             .containsExactly("Chris", "Dave", "Josh", "Kate", "Nicole");
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -158,7 +177,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .mapToObj(id -> new Person(nextId(), "Dave", "Matthews")).collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findPersonByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -166,6 +185,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(actual)
             .hasSize(10)
             .containsExactlyInAnyOrderElementsOf(allUsers);
+
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -184,6 +205,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(actual)
             .hasSize(10)
             .containsExactlyElementsOf(allUsers);
+
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -203,6 +226,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(actual)
             .hasSize(10)
             .containsExactlyElementsOf(allUsers);
+
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -213,7 +238,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 30);
+        // upper limit is exclusive
+        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -222,6 +248,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(actual)
             .hasSize(6)
             .containsExactlyInAnyOrderElementsOf(allUsers.subList(4, 10));
+
+        deleteAll(allUsers); // cleanup
     }
 
     @Test
@@ -263,6 +291,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -281,6 +311,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(1, 2));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -299,6 +331,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(5)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 5));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -309,7 +343,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 200, 600);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 200, 601);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -317,6 +351,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(5)
             .containsExactlyInAnyOrderElementsOf(persons.subList(1, 6));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -335,6 +371,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(2)
             .containsExactlyInAnyOrderElementsOf(persons.subList(5, 7));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -354,6 +392,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -373,17 +413,19 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
-    public void findByMapKeyValueEquals() {
+    public void findByMapKeyValueContaining() {
         List<Person> persons = IntStream.rangeClosed(1, 5)
             .mapToObj(id -> Person.builder().id(nextId()).firstName("Dave" + id).lastName("Matthews")
                 .stringMap(Collections.singletonMap("key" + id, "val" + id)).build())
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapEquals", "key1", "val1");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1", "val1");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -391,6 +433,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -409,6 +453,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 1));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -427,6 +473,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(1, 2));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -445,6 +493,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -463,6 +513,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(3, 4));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -473,7 +525,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key3", "al");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key3", "val3");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -481,6 +533,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -499,6 +553,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(4, 5));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -517,6 +573,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(4)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 4));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -535,6 +593,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(4, 5));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -553,6 +613,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(4)
             .containsExactlyInAnyOrderElementsOf(persons.subList(0, 4));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -563,7 +625,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeBetween", 42, 50);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeBetween", 42, 51);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -571,6 +633,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(4, 5));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -589,6 +653,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
+
+        deleteAll(persons); // cleanup
     }
 
     @Test
@@ -607,5 +673,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         assertThat(result)
             .hasSize(1)
             .containsExactlyInAnyOrderElementsOf(persons.subList(2, 3));
+
+        deleteAll(persons); // cleanup
     }
 }

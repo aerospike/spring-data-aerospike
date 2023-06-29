@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.repository.reactive;
 
 import com.aerospike.client.query.IndexType;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -49,6 +50,14 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
 
         customerRepo.saveAll(Flux.just(customer1, customer2, customer3, customer4))
             .subscribeOn(Schedulers.parallel()).collectList().block();
+    }
+
+    @AfterAll
+    public void afterAll() {
+        customerRepo.deleteAll().block();
+        additionalAerospikeTestOperations.dropIndexIfExists(Customer.class, "customer_first_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(Customer.class, "customer_last_name_index");
+        additionalAerospikeTestOperations.dropIndexIfExists(Customer.class, "customer_age_index");
     }
 
     @Test

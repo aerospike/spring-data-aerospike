@@ -46,6 +46,7 @@ public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveIntegrationT
         StepVerifier.create(reactiveTemplate.exists(id, Person.class).subscribeOn(Schedulers.parallel()))
             .expectNext(true)
             .verifyComplete();
+        reactiveTemplate.delete(one).block();
     }
 
     @Test

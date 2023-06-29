@@ -35,6 +35,7 @@ public class ReactiveAerospikeTemplateFindTests extends BaseReactiveIntegrationT
             assertThat(actual.getFirstName()).isEqualTo(person.getFirstName());
             assertThat(actual.getLastName()).isEqualTo(person.getLastName());
         }).verifyComplete();
+        reactiveTemplate.delete(person).block(); // cleanup
     }
 
     @Test
@@ -97,5 +98,8 @@ public class ReactiveAerospikeTemplateFindTests extends BaseReactiveIntegrationT
             .collectList().block();
 
         assertThat(actual).containsExactlyInAnyOrder(customer1, customer2);
+        reactiveTemplate.delete(customer1).block(); // cleanup
+        reactiveTemplate.delete(customer2).block(); // cleanup
+        reactiveTemplate.delete(customer3).block(); // cleanup
     }
 }

@@ -32,7 +32,7 @@ class ReactiveAerospikePersistenceEntityIndexCreatorTest {
     final IndexCollectionType collectionType = IndexCollectionType.DEFAULT;
     final AerospikeIndexDefinition definition = AerospikeIndexDefinition.builder()
         .name(name)
-        .fieldName(fieldName)
+        .bin(fieldName)
         .entityClass(targetClass)
         .type(type)
         .collectionType(collectionType)

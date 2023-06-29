@@ -82,12 +82,37 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     Stream<P> findByFirstNameIn(List<String> firstNames);
 
-    @SuppressWarnings("UnusedReturnValue")
     Stream<P> findByFirstNameNotIn(Collection<String> firstNames);
 
     List<P> findByFirstNameAndLastName(String firstName, String lastName);
 
+    /**
+     * Find all entities that satisfy the condition "have age in the given range"
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
     List<P> findByAgeBetween(int from, int to);
+
+    /**
+     * Find all entities that satisfy the condition "have the first name in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
+     */
+    List<P> findByFirstNameBetween(String from, String to);
+
+    /**
+     * Find all entities that satisfy the condition "have address in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
+     */
+    List<P> findByAddressBetween(Address from, Address to);
 
     /**
      * Find all entities that satisfy the condition "have a friend equal to the given argument" (find by POJO)
@@ -125,7 +150,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByAddressZipCodeContaining(String str);
 
+    List<P> findByAddressZipCodeNotContaining(String str);
+
     List<P> findByFirstNameContaining(String str);
+
+    List<P> findByFirstNameNotContaining(String str);
 
     List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
 
@@ -159,11 +188,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByAgeIn(ArrayList<Integer> ages);
 
-    List<P> findPersonByFirstName(String firstName);
+    List<P> findByIsActive(boolean isActive);
 
-    List<P> findPersonsByActive(boolean isActive);
+    List<P> findByIsActiveTrue();
 
-    List<P> findPersonsByActiveAndFirstName(boolean isActive, String firstName);
+    List<P> findByIsActiveFalse();
+
+    List<P> findByIsActiveAndFirstName(boolean isActive, String firstName);
 
     @SuppressWarnings("UnusedReturnValue")
     long countByLastName(String lastName);
@@ -208,29 +239,122 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Page<P> findByAddressIn(List<Address> address, Pageable page);
 
     /**
-     * Find all entities containing the given map element (key or value depending on the given criteria)
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by list)
      *
-     * @param element  map element
-     * @param criteria KEY or VALUE
+     * @param list List to compare strings with
      */
-    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
+    List<P> findByStringsEquals(List<String> list);
 
     /**
-     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+     * Find all entities that satisfy the condition "have at least one list value which is greater than the given
+     * String"
+     * <p>
+     * List name in this case is Strings
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
-     * @param key   Map key
-     * @param value Value of the key
+     * @param string lower limit, exclusive
      */
-    List<P> findByStringMapEquals(String key, String value);
+    List<P> findByStringsGreaterThan(String string);
 
     /**
-     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
+     * given String"
+     * <p>
+     * List name in this case is Strings
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
-     * @param key   Map key
-     * @param value Value of the key
+     * @param string lower limit, inclusive
      */
-    List<P> findByStringMap(String key, String value);
+    List<P> findByStringsLessThanEqual(String string);
 
+    /**
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
+     *
+     * @param collection Collection to compare strings with
+     */
+    List<P> findByStrings(Collection<String> collection);
+
+    /**
+     * Find all entities with existing strings list not equal to the given argument
+     *
+     * @param list List to compare strings list with
+     */
+    List<P> findByStringsIsNot(List<String> list);
+
+    /**
+     * Find all entities that satisfy the condition "have strings list with fewer elements or with a corresponding
+     * element lower in ordering than in the given argument" (find by list).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param list - List to compare with
+     */
+    List<P> findByStringsLessThan(List<String> list);
+
+    /**
+     * Find all entities that satisfy the condition "have integers list with more elements or with a corresponding
+     * element higher in ordering than in the given argument" (find by list).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param list - List to compare with
+     */
+    List<P> findByIntsGreaterThan(List<Integer> list);
+
+    /**
+     * Find all entities that satisfy the condition "have strings set with more elements or with a corresponding element
+     * higher in ordering than in the given argument" (find by collection).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     *
+     * @param collection - Collection to compare with
+     */
+    List<P> findByIntSetGreaterThanEqual(Collection<Integer> collection);
+
+    /**
+     * Find all entities containing the given map element (key or value depending on the given criterion)
+     *
+     * @param value     map value
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     */
+    List<P> findByStringMapContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities that do not contain the given map element (key or value depending on the given criterion)
+     *
+     * @param value     map value
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     */
+    List<P> findByStringMapNotContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities containing the given map element (key or value depending on the given criterion)
+     *
+     * @param value     map value
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     */
+    List<P> findByMapOfIntListsContaining(List<Integer> value, CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities containing the given map value with the given key
+     *
+     * @param key   map key
+     * @param value map value
+     */
+    List<P> findByMapOfIntListsContaining(String key, List<Integer> value);
+
+    /**
+     * Find all entities containing the given map value with the given key
+     *
+     * @param key   map key
+     * @param value map value
+     */
+    List<P> findByAddressesMapContaining(String key, Address value);
 
     /**
      * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by map)
@@ -248,9 +372,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities that satisfy the condition "have stringMap with more elements or with a corresponding key-value
-     * higher in ordering than in the given argument" (find by POJO).
+     * higher in ordering than in the given argument" (find by map).
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
      *
      * @param map - Map to compare with
      */
@@ -262,7 +386,25 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key   Map key
      * @param value Value of the key
      */
-    List<P> findByIntMapEquals(String key, int value);
+    List<P> findByIntMapContaining(String key, int value);
+
+    /**
+     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
+     *
+     * @param key1   Map key 1
+     * @param value1 Value of key1
+     * @param key2   Map key 2
+     * @param value2 Value of key2
+     */
+    List<P> findByIntMapContaining(String key1, int value1, String key2, int value2);
+
+    /**
+     * Find all entities that satisfy the condition "have the map which contains the given boolean"
+     *
+     * @param key   Map key
+     * @param value Boolean to check
+     */
+    List<P> findByMapOfBooleanContaining(String key, boolean value);
 
     /**
      * Find all entities with existing intMap not equal to the given argument
@@ -278,6 +420,22 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param value Value of the key
      */
     List<P> findByIntMapIsNot(String key, int value);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and NOT the given value"
+     *
+     * @param key   Map key
+     * @param value Value of the key
+     */
+    List<P> findByMapOfIntListsIsNot(String key, List<Integer> value);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and NOT the given value"
+     *
+     * @param key   Map key
+     * @param value Value of the key
+     */
+    List<P> findByAddressesMapIsNot(String key, Address value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value that starts with the given
@@ -298,13 +456,72 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapLike(String key, String valueRegex);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and the value containing the given
-     * string"
+     * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
      *
-     * @param key       Map key
-     * @param valuePart String to check if map value contains it
+     * @param key   Map key
+     * @param value String to check if map value equals it
      */
-    List<P> findByStringMapContaining(String key, String valuePart);
+    List<P> findByStringMapContaining(String key, String value);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key3 and the value3 equal to the given strings"
+     *
+     * @param key1   Map key for the first key-value pair
+     * @param value1 String to check if map value equals it using key1
+     * @param key2   Map key for the second key-value pair
+     * @param value2 String to check if map value equals it using key2
+     */
+    List<P> findByStringMapContaining(String key1, String value1, String key2, String value2);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map keys and the values equal to the given strings"
+     *
+     * @param key1   Map key for the first key-value pair
+     * @param value1 String to check if map value equals it using key1
+     * @param key2   Map key for the second key-value pair
+     * @param value2 String to check if map value equals it using key2
+     * @param key3   Map key for the third key-value pair
+     * @param value3 String to check if map value equals it using key3
+     */
+    List<P> findByStringMapContaining(String key1, String value1, String key2, String value2,
+                                      String key3, String value3);
+
+    /**
+     * Find all entities that satisfy the condition "contains the given map elements (keys or values depending on the
+     * criterion)"
+     *
+     * @param element1  First key or value
+     * @param element2  Second key or value
+     * @param element3  Third key or value
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     */
+    List<P> findByStringMapContaining(String element1, String element2, String element3,
+                                      CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map elements (keys or values depending on the
+     * criterion)"
+     *
+     * @param element1  First key or value
+     * @param element2  Second key or value
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
+     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     */
+    List<P> findByStringMapContaining(String element1, String element2,
+                                      CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and the value containing the given string"
+     *
+     * @param key1      Map key for the first key-value pair
+     * @param value1    String to check if map value equals it using key1
+     * @param key2      Map key for the second key-value pair
+     * @param value2    String to check if map value equals it using key2
+     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE_CONTAINING}
+     */
+    List<P> findByStringMapContaining(String key1, String value1, String key2, String value2,
+                                      CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value that is greater than the given
@@ -325,31 +542,53 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and the value in between the given
+     * Find all entities that satisfy the condition "have the given map key and the value in the range between the given
      * integers"
      *
      * @param key  Map key
-     * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, inclusive
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
      */
     List<P> findByIntMapBetween(String key, int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have a bestFriend who has a friend with the given map key and the
-     * value in between the given integers (deeply nested)"
+     * Find all entities that satisfy the condition "have the map in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
+     */
+    List<P> findByIntMapBetween(Map<String, Integer> from, Map<String, Integer> to);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and the value in the range between the given
+     * strings"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
      * @param key  Map key
-     * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, inclusive
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
+     */
+    List<P> findByStringMapBetween(String key, String from, String to);
+
+    /**
+     * Find all entities that satisfy the condition "have a bestFriend who has a friend with the given map key and the
+     * value in the range between the given integers (deeply nested)"
+     *
+     * @param key  Map key
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
      */
     List<P> findByBestFriendFriendIntMapBetween(String key, int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value
-     * in between the given integers (deeply nested)"
+     * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value in
+     * the range between the given integers (deeply nested)"
      *
-     * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, inclusive
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
      */
     List<P> findByBestFriendFriendAddressApartmentBetween(int from, int to);
 
@@ -392,7 +631,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * field)
      *
      * @param from lower limit, inclusive
-     * @param to   upper limit, inclusive
+     * @param to   upper limit, exclusive
      */
     List<P> findByFriendAgeBetween(int from, int to);
 
@@ -471,6 +710,16 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringsContaining(String string);
 
     /**
+     * Find all entities that satisfy the condition "have the list which does not contain the given string"
+     * <p>
+     * List name in this case is Strings
+     * </p>
+     *
+     * @param string string to check
+     */
+    List<P> findByStringsNotContaining(String string);
+
+    /**
      * Find all entities that satisfy the condition "have the list which contains the given integer"
      * <p>
      * List name in this case is Ints
@@ -481,15 +730,122 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsContaining(int integer);
 
     /**
+     * Find all entities that satisfy the condition "have the list which contains the given integers"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param integer1 number to check
+     * @param integer2 number to check
+     */
+    List<P> findByIntsContaining(int integer1, int integer2);
+
+    /**
+     * Find all entities that satisfy the condition "have the list which contains the given integers"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param integer1 number to check
+     * @param integer2 number to check
+     * @param integer3 number to check
+     */
+    List<P> findByIntsContaining(int integer1, int integer2, int integer3);
+
+    /**
+     * Find all entities that satisfy the condition "have the list which contains the given boolean"
+     *
+     * @param value boolean to check
+     */
+    List<P> findByListOfBooleanContaining(boolean value);
+
+    /**
+     * Find all entities that satisfy the condition "have list that contains the given Address".
+     *
+     * @param address Value to look for
+     */
+    List<P> findByAddressesListContaining(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have list that does not contain the given Address".
+     *
+     * @param address Value to look for
+     */
+    List<P> findByAddressesListNotContaining(Address address);
+
+    /**
      * Find all entities that satisfy the condition "have at least one list value which is greater than the given
      * integer"
      * <p>
      * List name in this case is Ints
      * </p>
      *
-     * @param integer upper limit, exclusive
+     * @param integer lower limit, exclusive
      */
     List<P> findByIntsGreaterThan(int integer);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one list value which is greater than the given long
+     * value"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     *
+     * @param value lower limit, exclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     */
+    List<P> findByIntsGreaterThan(long value);
+
+    /**
+     * Find all entities that satisfy the condition "have the list of lists which is greater than the given list".
+     * <p>
+     * ListOfIntLists is the name of the list of lists
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param list List to compare with
+     */
+    List<P> findByListOfIntListsGreaterThan(List<List<Integer>> list);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one map value (with the given key) which is greater
+     * than the given parameter (list of integers)"
+     * <p>
+     * MapOfIntLists is a map of lists
+     * </p>
+     *
+     * @param key   Map key
+     * @param value Map value to compare with
+     */
+    List<P> findByMapOfIntListsGreaterThan(String key, List<Integer> value);
+
+    /**
+     * Find all entities that satisfy the condition "have map in the given range"
+     * <p>
+     * Map name in this case is MapOfIntLists
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    List<P> findByMapOfIntListsBetween(Map<String, List<Integer>> from, Map<String, List<Integer>> to);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one map value with the given key which is greater
+     * than the given Address".
+     * <p>
+     * Custom object such as Address is converted to a Map before being compared
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     * </p>
+     *
+     * @param key   Map key
+     * @param value Map value to compare with
+     */
+    List<P> findByAddressesMapLessThan(String key, Address value);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
@@ -504,14 +860,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
-     * given long"
+     * given long value"
      * <p>
      * List name in this case is Ints
      * </p>
      *
-     * @param number upper limit, inclusive
+     * @param value upper limit, inclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
      */
-    List<P> findByIntsLessThanEqual(long number);
+    List<P> findByIntsLessThanEqual(long value);
 
     /**
      * Find all entities that satisfy the condition "have at least one list value in the given range"
@@ -520,11 +876,53 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * </p>
      *
      * @param from lower limit, inclusive
-     * @param to   upper limit, inclusive
+     * @param to   upper limit, exclusive
      */
     List<P> findByIntsBetween(int from, int to);
 
-    List<P> findTop3ByLastNameStartingWith(String lastName);
+    /**
+     * Find all entities that satisfy the condition "have list in the given range"
+     * <p>
+     * List name in this case is Ints
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    List<P> findByIntsBetween(List<Integer> from, List<Integer> to);
+
+    /**
+     * Find all entities that satisfy the condition "have list in the given range"
+     * <p>
+     * List name in this case is Strings
+     * </p>
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    List<P> findByStringsBetween(List<String> from, List<String> to);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one list value in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    List<P> findByStringsBetween(String from, String to);
+
+    P findFirstByLastNameStartingWith(String lastName, Sort sort);
+
+    List<P> findTopByLastNameStartingWith(String lastName, Sort sort);
+
+    List<P> findTop3ByLastNameStartingWith(String lastName, Sort sort);
+
+    List<P> findFirst3ByLastNameStartingWith(String lastName, Sort sort);
 
     Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
@@ -535,7 +933,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities that satisfy the condition "have firstName higher in ordering than the given string".
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
      * @param string - String to compare with
      */
@@ -559,5 +957,12 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByFriendLastNameLike(String lastNameRegex);
 
-    Iterable<P> findByAgeBetweenOrderByLastName(int i, int j);
+
+    /**
+     * Find all entities that satisfy the condition "have age in the given range ordered by last name"
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    Iterable<P> findByAgeBetweenOrderByLastName(int from, int to);
 }

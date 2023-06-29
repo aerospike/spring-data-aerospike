@@ -16,7 +16,6 @@
  */
 package org.springframework.data.aerospike.query;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
@@ -95,23 +94,11 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     public Filter asFilter() {
-        try {
-            return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
-        } catch (Exception e) {
-            throw new AerospikeException(
-                e.getMessage().isEmpty() ? "Secondary index filter unsupported operation: " + getOperation() :
-                    e.getMessage());
-        }
+        return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
     }
 
     public Exp toFilterExp() {
-        try {
-            return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
-        } catch (Exception e) {
-            throw new AerospikeException(
-                e.getMessage().isEmpty() ? "FilterExpression unsupported operation: " + getOperation() :
-                    e.getMessage());
-        }
+        return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
     }
 
     protected String luaFieldString(String field) {
@@ -259,6 +246,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return getRegexp(base, FilterOperation.CONTAINING);
         }
 
+        public static String getNotContaining(String base) {
+            return getRegexp(base, FilterOperation.NOT_CONTAINING);
+        }
+
         public static String getStringEquals(String base) {
             return getRegexp(base, FilterOperation.EQ);
         }
@@ -323,6 +314,14 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
         public boolean hasValue2() {
             return this.map.containsKey(VALUE2) && this.map.get(VALUE2) != null;
+        }
+
+        public boolean hasValue3() {
+            return this.map.containsKey(VALUE3) && this.map.get(VALUE3) != null;
+        }
+
+        public boolean hasDotPath() {
+            return this.map.containsKey(DOT_PATH) && this.map.get(DOT_PATH) != null;
         }
 
         public Qualifier build() {

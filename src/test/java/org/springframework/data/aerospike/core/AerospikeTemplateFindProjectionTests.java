@@ -35,10 +35,11 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
         template.save(secondPerson);
 
         PersonSomeFields result = template.findById(firstPerson.getId(), Person.class, PersonSomeFields.class);
-
         assertThat(result.getFirstName()).isEqualTo("first");
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getEmailAddress()).isEqualTo("gmail.com");
+        template.delete(firstPerson); // cleanup
+        template.delete(secondPerson); //cleanup
     }
 
     @Test
@@ -65,6 +66,8 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getMissingField()).isNull();
         assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
+        template.delete(firstPerson); // cleanup
+        template.delete(secondPerson); //cleanup
     }
 
     @Test
@@ -91,6 +94,8 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
         assertThat(result.getLastName()).isEqualTo("lastName1");
         assertThat(result.getMissingField()).isNull();
         assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
+        template.delete(firstPerson); // cleanup
+        template.delete(secondPerson); //cleanup
     }
 
     @Test
@@ -102,12 +107,11 @@ public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegratio
         template.save(secondPerson);
 
         List<String> ids = Arrays.asList(nextId(), firstPerson.getId(), secondPerson.getId());
-
         List<PersonSomeFields> actual = template.findByIds(ids, Person.class, PersonSomeFields.class);
 
-        assertThat(actual).containsExactly(
-            firstPerson.toPersonSomeFields(),
-            secondPerson.toPersonSomeFields());
+        assertThat(actual).containsExactly(firstPerson.toPersonSomeFields(), secondPerson.toPersonSomeFields());
+        template.delete(firstPerson); // cleanup
+        template.delete(secondPerson); //cleanup
     }
 
     @Test

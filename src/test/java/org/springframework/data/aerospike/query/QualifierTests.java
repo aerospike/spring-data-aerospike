@@ -383,7 +383,7 @@ public class QualifierTests extends BaseQueryEngineTests {
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(26))
-            .setValue2(Value.get(28));
+            .setValue2(Value.get(29)); // + 1 as upper limit is exclusive
 
         Qualifier qualifier = new Qualifier(qb);
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -444,7 +444,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
         Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(FilterOperation.LIST_CONTAINS)
+            .setFilterOperation(FilterOperation.LIST_VAL_CONTAINING)
             .setValue1(Value.get(searchColor))
         );
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -468,9 +468,9 @@ public class QualifierTests extends BaseQueryEngineTests {
 
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(FilterOperation.LIST_VALUE_BETWEEN)
+            .setFilterOperation(FilterOperation.LIST_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd));
+            .setValue2(Value.get(ageEnd + 1L));
         Qualifier qualifier = new Qualifier(qb);
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
@@ -543,7 +543,7 @@ public class QualifierTests extends BaseQueryEngineTests {
             .setField(binName)
             .setFilterOperation(FilterOperation.MAP_KEYS_BETWEEN)
             .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd));
+            .setValue2(Value.get(ageEnd + 1L));
         Qualifier qualifier = new Qualifier(qb);
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -572,9 +572,9 @@ public class QualifierTests extends BaseQueryEngineTests {
 
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(FilterOperation.MAP_VALUES_BETWEEN)
+            .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd));
+            .setValue2(Value.get(ageEnd + 1L));
         Qualifier qualifier = new Qualifier(qb);
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -807,7 +807,7 @@ public class QualifierTests extends BaseQueryEngineTests {
 
     @Test
     public void selectWithOrQualifiers() {
-        // We are  expecting to get back all records where color == blue or (age == 28 || age == 29)
+        // We are expecting to get back all records where color == blue or (age == 28 || age == 29)
         Qualifier.QualifierBuilder qbColorIsBlue = new Qualifier.QualifierBuilder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
@@ -816,7 +816,7 @@ public class QualifierTests extends BaseQueryEngineTests {
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(28))
-            .setValue2(Value.get(29));
+            .setValue2(Value.get(30)); // + 1 as upper limit is exclusive
         Qualifier colorIsBlue = new Qualifier(qbColorIsBlue);
         Qualifier ageBetween28And29 = new Qualifier(qbAgeBetween28And29);
 

@@ -35,7 +35,9 @@ public class AerospikeTemplateAppendTests extends BaseBlockingIntegrationTests {
 
         assertThat(appended).isEqualTo(Person.builder().id(id).firstName("Nastya").build());
         assertThat(appended.getFirstName()).isEqualTo("Nastya");
-        assertThat(template.findById(id, Person.class).getFirstName()).isEqualTo("Nastya");
+        Person result = template.findById(id, Person.class);
+        assertThat(result.getFirstName()).isEqualTo("Nastya");
+        template.delete(result); // cleanup
     }
 
     @Test
@@ -53,5 +55,6 @@ public class AerospikeTemplateAppendTests extends BaseBlockingIntegrationTests {
         Person actual = template.findById(id, Person.class);
         assertThat(actual.getFirstName()).isEqualTo("Nastya");
         assertThat(actual.getEmailAddress()).isEqualTo("nastya@gmail.com");
+        template.delete(actual); // cleanup
     }
 }

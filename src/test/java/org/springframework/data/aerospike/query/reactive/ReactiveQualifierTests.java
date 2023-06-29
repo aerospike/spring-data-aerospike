@@ -347,7 +347,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setField("age")
             .setFilterOperation(BETWEEN)
             .setValue1(Value.get(26))
-            .setValue2(Value.get(28));
+            .setValue2(Value.get(29)); // + 1 as upper limit is exclusive
         Qualifier AgeRangeQualifier = new Qualifier(qb);
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
         StepVerifier.create(flux.collectList())
@@ -428,7 +428,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(LIST_CONTAINS)
+            .setFilterOperation(LIST_VAL_CONTAINING)
             .setValue1(Value.get(searchColor))
         );
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, AgeRangeQualifier);
@@ -452,13 +452,13 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void listBetweenQualifier() {
         int ageStart = AGES[0]; // 25
-        int ageEnd = AGES[2]; // 27
+        int ageEnd = AGES[2] + 1; // 27 + 1 as upper limit is exclusive
 
         String binName = "longList";
 
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(LIST_VALUE_BETWEEN)
+            .setFilterOperation(LIST_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
             .setValue2(Value.get(ageEnd));
         Qualifier AgeRangeQualifier = new Qualifier(qb);
@@ -546,7 +546,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void testMapKeysBetweenQualifier() {
         long ageStart = AGES[0]; // 25
-        long ageEnd = AGES[2]; // 27
+        long ageEnd = AGES[2] + 1L; // 27 + 1 as upper limit is exclusive
 
         String binName = "ageColorMap";
 
@@ -591,13 +591,13 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void testMapValuesBetweenQualifier() {
         long ageStart = AGES[0]; // 25
-        long ageEnd = AGES[2]; // 27
+        long ageEnd = AGES[2] + 1L; // 27 + 1 as upper limit is exclusive
 
         String binName = "colorAgeMap";
 
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
             .setField(binName)
-            .setFilterOperation(MAP_VALUES_BETWEEN)
+            .setFilterOperation(MAP_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
             .setValue2(Value.get(ageEnd));
         Qualifier AgeRangeQualifier = new Qualifier(qb);
@@ -774,7 +774,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(28))
-            .setValue2(Value.get(29));
+            .setValue2(Value.get(30)); // + 1 as upper limit is exclusive
         Qualifier qual1 = new Qualifier(qb1);
         Qualifier qual2 = new Qualifier(qb2);
 
@@ -818,7 +818,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(28))
-            .setValue2(Value.get(29));
+            .setValue2(Value.get(30)); // + 1 as upper limit is exclusive
         Qualifier.QualifierBuilder qbAgeIs25 = new Qualifier.QualifierBuilder()
             .setField("age")
             .setFilterOperation(FilterOperation.EQ)

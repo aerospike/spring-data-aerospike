@@ -52,7 +52,7 @@ public class ReactiveAerospikePersistenceEntityIndexCreator extends BaseAerospik
 
     private Mono<Void> installIndex(AerospikeIndexDefinition index) {
         log.debug("Installing aerospike index: {}...", index);
-        return template.createIndex(index.getEntityClass(), index.getName(), index.getFieldName(), index.getType(),
+        return template.createIndex(index.getEntityClass(), index.getName(), index.getBin(), index.getType(),
                 index.getCollectionType())
             .doOnSuccess(__ -> log.info("Installed aerospike index: {} successfully.", index))
             .onErrorResume(IndexAlreadyExistsException.class, e -> onIndexAlreadyExists(e, index))

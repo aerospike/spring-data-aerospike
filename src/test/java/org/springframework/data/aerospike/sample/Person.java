@@ -27,6 +27,7 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Peter Milne
@@ -47,14 +48,22 @@ public class Person {
     private Sex sex;
     private Map<String, String> stringMap;
     private Map<String, Integer> intMap;
+    private Map<String, List<Integer>> mapOfIntLists;
     private Person friend;
     private Person bestFriend;
-    private boolean active;
+    private boolean isActive;
+    private List<Boolean> listOfBoolean;
+    private Map<String, Boolean> mapOfBoolean;
     private Date dateOfBirth;
     private LocalDate regDate;
     private List<String> strings;
     private List<Integer> ints;
+    private List<List<Integer>> listOfIntLists;
+    private List<Map<String, Integer>> listOfIntMaps;
+    private Set<Integer> intSet;
     private Address address;
+    private List<Address> addressesList;
+    private Map<String, Address> addressesMap;
     @Field("email")
     private String emailAddress;
 

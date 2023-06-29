@@ -48,7 +48,9 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         Record record = client.get(new Policy(), new Key(getNameSpace(), "custom-set", id));
 
         assertThat(record.getString("data")).isEqualTo("data0");
-        assertThat(template.findById(id, CustomCollectionClass.class)).isEqualTo(initial);
+        CustomCollectionClass result = template.findById(id, CustomCollectionClass.class);
+        assertThat(result).isEqualTo(initial);
+        template.delete(result); // cleanup
     }
 
     @Test
@@ -63,61 +65,62 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .stringMap(Collections.singletonMap("k", "v"))
             .strings(Arrays.asList("a", "b", "c"))
             .friend(new Person(null, "Anna", 43))
-            .active(true)
+            .isActive(true)
             .sex(Person.Sex.MALE)
             .dateOfBirth(new Date())
             .build();
-
         template.insert(customer);
 
         Person actual = template.findById(id, Person.class);
         assertThat(actual).isEqualTo(customer);
+        template.delete(actual); // cleanup
     }
 
     @Test
     public void insertsAndFindsDocumentWithByteArrayField() {
         DocumentWithByteArray document = new DocumentWithByteArray(id, new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
-
         template.insert(document);
 
         DocumentWithByteArray result = template.findById(id, DocumentWithByteArray.class);
         assertThat(result).isEqualTo(document);
+        template.delete(result); // cleanup
     }
 
     @Test
     public void insertsDocumentWithNullFields() {
         VersionedClass document = new VersionedClass(id, null);
-
         template.insert(document);
 
         assertThat(document.getField()).isNull();
+        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
     public void insertsDocumentWithZeroVersionIfThereIsNoDocumentWithSameKey() {
         VersionedClass document = new VersionedClass(id, "any");
-
         template.insert(document);
 
         assertThat(document.getVersion()).isEqualTo(1);
+        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
     public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKey() {
         VersionedClass document = new VersionedClass(id, "any", 5L);
-
         template.insert(document);
 
         assertThat(document.getVersion()).isEqualTo(1);
+        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
     public void throwsExceptionForDuplicateId() {
         Person person = new Person(id, "Amol", 28);
-
         template.insert(person);
+
         assertThatThrownBy(() -> template.insert(person))
             .isInstanceOf(DuplicateKeyException.class);
+        template.delete(template.findById(id, Person.class)); // cleanup
     }
 
     @Test
@@ -127,6 +130,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         template.insert(document);
         assertThatThrownBy(() -> template.insert(document))
             .isInstanceOf(DuplicateKeyException.class);
+        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
@@ -146,6 +150,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         });
 
         assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
+        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
@@ -165,7 +170,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         });
 
         assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
-
+        template.delete(template.findById(id, Person.class)); // cleanup
     }
 
     @Test
@@ -175,6 +180,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
         assertThatThrownBy(() -> template.insertAll(records))
             .isInstanceOf(DuplicateKeyException.class);
+        template.delete(person); // cleanup
     }
 
     @Test
@@ -190,5 +196,8 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .collect(Collectors.toList()), Person.class);
 
         assertThat(result).hasSameElementsAs(persons);
+        for (Person person : result) {
+            template.delete(person); // cleanup
+        }
     }
 }

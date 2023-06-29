@@ -29,7 +29,7 @@
         <spring-boot-starter-test>3.0.5</spring-boot-starter-test>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike>6.1.8</aerospike>
+        <aerospike>6.1.10</aerospike>
         <aerospike-reactor>6.1.2</aerospike-reactor>
         <reactor-test>3.5.4</reactor-test>
         <embedded-aerospike>2.3.2</embedded-aerospike>
@@ -154,8 +154,8 @@
 
     <scm>
         <connection>scm:git:git://github.com/spring-projects/spring-data-aerospike.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com:aerospike-community/spring-data-aerospike.git</developerConnection>
-        <url>https://github.com/aerospike-community/spring-data-aerospike</url>
+        <developerConnection>scm:git:ssh://git@github.com:aerospike/spring-data-aerospike.git</developerConnection>
+        <url>https://github.com/aerospike/spring-data-aerospike</url>
     </scm>
 
     <distributionManagement>
@@ -354,6 +354,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>--add-opens java.base/java.util=ALL-UNNAMED --add-opens java.base/java.math=ALL-UNNAMED</argLine>
+                </configuration>
             </plugin>
         </plugins>
     </build>

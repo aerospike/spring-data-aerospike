@@ -31,10 +31,11 @@ class AerospikePersistenceEntityIndexCreatorTest {
     final IndexCollectionType collectionType = IndexCollectionType.LIST;
     final AerospikeIndexDefinition definition = AerospikeIndexDefinition.builder()
         .name(name)
-        .fieldName(fieldName)
+        .bin(fieldName)
         .entityClass(targetClass)
         .type(type)
         .collectionType(collectionType)
+        .ctx(null)
         .build();
 
     @Test
