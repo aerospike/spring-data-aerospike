@@ -44,7 +44,9 @@ import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.query.FilterOperation.LIST_VAL_CONTAINING;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_NOT_CONTAIN;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_NOT_CONTAIN;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_CONTAINING_BY_KEY;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_EQ_BY_KEY;
 
@@ -86,7 +88,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     }
 
     private AerospikeCriteria create(Part part, AerospikePersistentProperty property, Iterator<?> parameters) {
-        Object v1 = parameters.next();
+        Object v1 = null;
+        if (parameters.hasNext()) {
+            v1 = parameters.next();
+        }
 
         // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
         final Object value = v1;
@@ -107,6 +112,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case STARTING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.STARTS_WITH);
             case ENDING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.ENDS_WITH);
             case CONTAINING -> getCriteria(part, property, v1, null, parameters, FilterOperation.CONTAINING);
+            case NOT_CONTAINING -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOT_CONTAINING);
             case WITHIN -> {
                 v1 = Value.get(String.format("{ \"type\": \"AeroCircle\", \"coordinates\": [[%.8f, %.8f], %f] }",
                     v1, parameters.next(), parameters.next()));
@@ -115,6 +121,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case SIMPLE_PROPERTY -> getCriteria(part, property, v1, null, parameters, FilterOperation.EQ);
             case NEGATING_SIMPLE_PROPERTY -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOTEQ);
             case IN -> getCriteria(part, property, v1, null, parameters, FilterOperation.IN);
+            case NOT_IN -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOT_IN);
+            case TRUE ->  getCriteria(part, property, true, null, parameters, FilterOperation.EQ);
+            case FALSE ->  getCriteria(part, property, false, null, parameters, FilterOperation.EQ);
             default -> throw new IllegalArgumentException("Unsupported keyword '" + part.getType() + "'");
         };
     }
@@ -136,22 +145,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                     op = LIST_VAL_CONTAINING;
                     params.add(0, value1); // value1 stores the first parameter
                     return aerospikeCriteriaAndConcatenated(params, qb, part, fieldName, op, dotPath);
-                } else if (nextParam.equals(AerospikeMapCriteria.VALUE)) {
-                    op = getCorrespondingListFilterOperationOrFail(op);
                 }
             } else if (!(value1 instanceof Collection<?>)) { // preserving the initial FilterOperation if Collection
-                switch (op) {
-                    // for these operations a parameter without AerospikeMapCriteria.VALUE flag must be Collection type
-                    case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> {
-                        throw new IllegalArgumentException("Expected to receive a Collection (got " +
-                            value1.getClass().getSimpleName() + " instead), please provide " +
-                            "an additional AerospikeMapCriteria.VALUE parameter for applying condition at values " +
-                            "level");
-                    }
-                    default -> {
-                        op = getCorrespondingListFilterOperationOrFail(op);
-                    }
-                }
+                op = getCorrespondingListFilterOperationOrFail(op);
             }
         } else if (property.isMap()) {
             List<Object> params = new ArrayList<>();
@@ -167,6 +163,17 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         }
                     } else {
                         op = FilterOperation.MAP_VAL_EQ_BY_KEY;
+                        dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
+                        setQbValuesForMapByKey(qb, value1, nextParam);
+                    }
+                } else if (op == FilterOperation.NOT_CONTAINING) {
+                    if (nextParam instanceof AerospikeMapCriteria onMap) {
+                        switch (onMap) {
+                            case KEY -> op = MAP_KEYS_NOT_CONTAIN;
+                            case VALUE -> op = MAP_VALUES_NOT_CONTAIN;
+                        }
+                    } else {
+                        op = FilterOperation.MAP_VAL_NOTEQ_BY_KEY;
                         dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
                         setQbValuesForMapByKey(qb, value1, nextParam);
                     }
@@ -247,7 +254,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             setQualifierBuilderValues(qb, fieldName, op, part, value1, value2, value3, dotPath)
         );
     }
-
 
     private AerospikeCriteria aerospikeCriteriaAndConcatenated(List<Object> params, Qualifier.QualifierBuilder qb,
                                                                Part part, String fieldName, FilterOperation op,

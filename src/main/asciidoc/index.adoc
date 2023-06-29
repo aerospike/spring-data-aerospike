@@ -1,5 +1,5 @@
 = Spring Data Aerospike - Reference Documentation
-:revnumber: 4.2.0
+:revnumber: 4.3.0
 :revdate: {localdate}
 :toc:
 :toc-placement!:

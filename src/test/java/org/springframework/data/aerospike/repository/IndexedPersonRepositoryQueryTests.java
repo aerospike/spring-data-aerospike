@@ -147,19 +147,19 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     void findByListValueGreaterThan() {
-        List<IndexedPerson> persons = repository.findByIntsGreaterThan(549, VALUE);
+        List<IndexedPerson> persons = repository.findByIntsGreaterThan(549);
         assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
     @Test
     void findByListValueLessThanOrEqual() {
-        List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500, VALUE);
+        List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500);
         assertThat(persons).containsOnly(john);
     }
 
     @Test
     void findByListValueInRange() {
-        List<IndexedPerson> persons = repository.findByIntsBetween(500, 600, VALUE);
+        List<IndexedPerson> persons = repository.findByIntsBetween(500, 600);
         assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
@@ -258,14 +258,13 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findByAgeGreaterThan_returnsValidValuesForNextAndPrev() {
         Slice<IndexedPerson> first = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1, Sort.by("age")));
-
         assertThat(first.hasContent()).isTrue();
         assertThat(first.getNumberOfElements()).isEqualTo(1);
-        assertThat(first.hasNext()).isFalse();
+        assertThat(first.hasNext()).isTrue();
         assertThat(first.isFirst()).isTrue();
+        assertThat(first.isLast()).isFalse();
 
         Slice<IndexedPerson> last = repository.findByAgeGreaterThan(40, PageRequest.of(2, 1, Sort.by("age")));
-
         assertThat(last.hasContent()).isTrue();
         assertThat(last.getNumberOfElements()).isEqualTo(1);
         assertThat(last.hasNext()).isFalse();

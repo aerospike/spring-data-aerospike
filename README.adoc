@@ -11,23 +11,19 @@
 {ci-url}[image:{ci-image}[ci]]
 {javadoc-url}[image:{javadoc-image}[javadoc]]
 
-The primary goal of the https://projects.spring.io/spring-data[Spring
-Data] project is to make it easier to build Spring-powered applications
-that use new data access technologies such as non-relational databases,
-map-reduce frameworks, and cloud based data services.
-
-The Spring Data Aerospike project aims to provide a familiar and
-consistent Spring-based programming model for new data stores while
-retaining store-specific features and capabilities. The Spring Data
-Aerospike project provides integration with the Aerospike document
-database. Key functional areas of Spring Data Aerospike are a POJO
-centric model for interacting with an Aerospike DBCollection and easily
+The Spring Data Aerospike project aims to provide a familiar and consistent Spring-based programming model for new data
+stores while retaining store-specific features and capabilities. It provides integration with the Aerospike database.
+Key functional areas of Spring Data Aerospike are a POJO centric model for interacting with Aerospike DB and easily
 writing a repository style data access layer.
 
 == Documentation
 
-The documentation for this project can be found on
-https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike[javadoc.io].
+* The https://aerospike.github.io/spring-data-aerospike[User Guide]
+* Java code documentation on https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike[javadoc.io]
+* https://docs.aerospike.com/[Aerospike documentation]
+
+If you are new to Spring as well as to Spring Data, look for information
+about https://projects.spring.io/[Spring projects].
 
 == Demo Projects
 
@@ -60,6 +56,8 @@ Data Aerospike - Projections]
 [width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
 |Spring Data Aerospike |Spring Boot |Aerospike Client |Aerospike Reactor Client |Aerospike Server
+|4.3.x |3.1.x |6.1.x |6.1.x |5.2.x.x +
+
 |4.2.x |3.0.x |6.1.x |6.1.x |5.2.x.x +
 
 |4.1.x |3.0.x |6.1.x |6.1.x |5.2.x.x +
@@ -96,7 +94,7 @@ Add the Maven dependency:
 <dependency>
   <groupId>com.aerospike</groupId>
   <artifactId>spring-data-aerospike</artifactId>
-  <version>4.2.0</version>
+  <version>4.3.0</version>
 </dependency>
 ----
 
@@ -209,21 +207,15 @@ public class MyService {
 
 == Getting Help
 
-For a comprehensive treatment of all the Spring Data Aerospike features,
-please refer to:
+See <<Documentation, documentation>>.
 
-* the
-https://aerospike.github.io/spring-data-aerospike[User Guide]
-* for more detailed questions, use
+For more detailed questions you can use
 https://stackoverflow.com/questions/tagged/spring-data-aerospike[Spring
 Data Aerospike on Stackoverflow].
 
-If you are new to Spring as well as to Spring Data, look for information
-about https://projects.spring.io/[Spring projects].
-
 == Contributing to Spring Data
 
-Here are some ways for you to get involved in the community:
+Here are some ways you can get involved:
 
 * Get involved with the Spring community on Stackoverflow and help out
 on the

@@ -54,37 +54,40 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     }
 
     protected Query prepareQuery(Object[] parameters, ParametersParameterAccessor accessor) {
-        Query query = createQuery(accessor);
+        PartTree tree = new PartTree(queryMethod.getName(), queryMethod.getEntityInformation().getJavaType());
+        Query baseQuery = createQuery(accessor, tree);
 
-        AerospikeCriteria criteria = (AerospikeCriteria) query.getCriteria();
-        Query q = new Query(criteria);
+        AerospikeCriteria criteria = (AerospikeCriteria) baseQuery.getCriteria();
+        Query query = new Query(criteria);
 
         if (accessor.getPageable().isPaged()) {
-            q.setOffset(accessor.getPageable().getOffset());
-            q.setRows(accessor.getPageable().getPageSize());
+            query.setOffset(accessor.getPageable().getOffset());
+            query.setRows(accessor.getPageable().getPageSize());
         } else {
-            q.setOffset(-1);
-            q.setRows(-1);
+            if (tree.isLimiting()) {
+                query.limit(tree.getMaxResults());
+            } else {
+                query.setOffset(-1);
+                query.setRows(-1);
+            }
         }
 
         if (accessor.getSort().isSorted()) {
-            q.setSort(accessor.getSort());
+            query.setSort(accessor.getSort());
         } else {
-            q.setSort(query.getSort());
+            query.setSort(baseQuery.getSort());
         }
 
-        if (q.getCriteria() instanceof SpelExpression) {
+        if (query.getCriteria() instanceof SpelExpression) {
             EvaluationContext context = this.evaluationContextProvider.getEvaluationContext(queryMethod.getParameters(),
                 parameters);
-            ((SpelExpression) q.getCriteria()).setEvaluationContext(context);
+            ((SpelExpression) query.getCriteria()).setEvaluationContext(context);
         }
 
-        return q;
+        return query;
     }
 
-    public Query createQuery(ParametersParameterAccessor accessor) {
-        PartTree tree = new PartTree(queryMethod.getName(), queryMethod.getEntityInformation().getJavaType());
-
+    public Query createQuery(ParametersParameterAccessor accessor, PartTree tree) {
         Constructor<? extends AbstractQueryCreator<?, ?>> constructor = ClassUtils
             .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class);
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
