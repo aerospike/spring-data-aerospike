@@ -21,11 +21,11 @@ writing a repository style data access layer.
 
 * The
 https://aerospike.github.io/spring-data-aerospike[User Guide]
-* Commented code on https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike[javadoc.io]
+* Java code documentation on https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike[javadoc.io]
 * https://docs.aerospike.com/[Aerospike documentation]
 
 If you are new to Spring as well as to Spring Data, look for information
-about https://projects.spring.io/[Spring Data projects].
+about https://projects.spring.io/[Spring projects].
 
 == Demo Projects
 

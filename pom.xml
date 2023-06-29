@@ -27,9 +27,9 @@
         <springdata.keyvalue>3.1.1</springdata.keyvalue>
         <spring-cloud-starter-bootstrap>4.0.3</spring-cloud-starter-bootstrap>
         <spring-boot-starter-test>3.1.0</spring-boot-starter-test>
-        <maven.javadoc.plugin>3.5.0</maven.javadoc.plugin>
+        <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike>6.1.10</aerospike>
+        <aerospike>6.1.11</aerospike>
         <aerospike-reactor>6.1.2</aerospike-reactor>
         <reactor-test>3.5.7</reactor-test>
         <embedded-aerospike>2.3.2</embedded-aerospike>
