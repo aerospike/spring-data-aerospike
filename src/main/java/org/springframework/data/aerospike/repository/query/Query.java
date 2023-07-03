@@ -15,6 +15,8 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
@@ -31,6 +33,8 @@ public class Query {
     private long offset = NOT_SPECIFIED;
     private int rows = NOT_SPECIFIED;
     private CriteriaDefinition criteria;
+    @Setter @Getter
+    private boolean isDistinct = false;
 
     /**
      * Creates new instance of {@link KeyValueQuery} with given criteria.

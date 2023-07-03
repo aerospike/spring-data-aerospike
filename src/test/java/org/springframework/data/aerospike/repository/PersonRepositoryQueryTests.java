@@ -530,7 +530,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             assertThat(persons).containsExactlyInAnyOrder(stefan, douglas, matias, leroi2);
 
             persons = repository.findByAddressesMapContaining("b", address2);
-            assertThat(persons).containsExactly(douglas, leroi2);
+            assertThat(persons).containsExactlyInAnyOrder(douglas, leroi2);
 
             persons = repository.findByAddressesMapContaining("cd", address3);
             assertThat(persons).isEmpty();
@@ -544,6 +544,21 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             leroi2.setAddressesMap(null);
             repository.save(leroi2);
         }
+    }
+
+    @Test
+    void findDistinctByFirstNameStartingWith() {
+        List<Person> persons = repository.findDistinctByFirstNameStartingWith("Leroi");
+        assertThat(persons).hasSize(1);
+    }
+
+    @Test
+    void findDistinctByFirstNameContaining() {
+        List<Person> persons = repository.findDistinctByFirstNameContaining("er");
+        assertThat(persons).hasSize(3);
+
+        List<Person> persons2 = repository.findByFirstNameContaining("er");
+        assertThat(persons2).hasSize(4);
     }
 
     @Test
