@@ -13,6 +13,12 @@ toc::[]
 
 include::preface.adoc[]
 
+[[spring-data-documentation]]
+== Spring Data Documentation
+
+include::spring-data-commons-docs/dependencies.adoc[]
+include::spring-data-commons-docs/repositories.adoc[]
+
 [[reference-documentation]]
 == Reference documentation
 
@@ -23,6 +29,7 @@ include::reference/aerospike.adoc[]
 include::reference/mapping.adoc[]
 include::reference/aerospike-repositories.adoc[]
 include::reference/aerospike-reactive-repositories.adoc[]
+include::spring-data-commons-docs/auditing.adoc[]
 include::reference/template.adoc[]
 include::reference/query-methods.adoc[]
 include::reference/projections.adoc[]
@@ -37,18 +44,10 @@ include::reference/getting-started.adoc[]
 
 :leveloffset: +1
 
-General SpringData information:
-
-include::{spring-data-commons-docs}/dependencies.adoc[]
-
-include::{spring-data-commons-docs}/repositories.adoc[]
-
-include::{spring-data-commons-docs}/repository-namespace-reference.adoc[]
-
-include::{spring-data-commons-docs}/repository-populator-namespace-reference.adoc[]
-
-include::{spring-data-commons-docs}/repository-query-keywords-reference.adoc[]
-
-include::{spring-data-commons-docs}/repository-query-return-types-reference.adoc[]
+:numbered!:
+include::spring-data-commons-docs/repository-namespace-reference.adoc[]
+include::spring-data-commons-docs/repository-populator-namespace-reference.adoc[]
+include::spring-data-commons-docs/repository-query-keywords-reference.adoc[]
+include::spring-data-commons-docs/repository-query-return-types-reference.adoc[]
 
 :leveloffset: -1
