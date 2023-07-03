@@ -63,6 +63,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -357,7 +360,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T> Stream<T> findAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Type must not be null!");
 
-        return (Stream<T>) findAllUsingQuery(entityClass, null, null, (Qualifier[]) null);
+        return (Stream<T>) findAllUsingQuery(entityClass, null, null, null, (Qualifier[]) null);
     }
 
     @SuppressWarnings("unchecked")
@@ -366,7 +369,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(entityClass, "Type must not be null!");
         Assert.notNull(targetClass, "Target type must not be null!");
 
-        return (Stream<S>) findAllUsingQuery(entityClass, targetClass, null, (Qualifier[]) null);
+        return (Stream<S>) findAllUsingQuery(entityClass, targetClass, null, null, (Qualifier[]) null);
     }
 
     @SuppressWarnings("unchecked")
@@ -822,7 +825,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     <T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Stream<?> results = findAllUsingQuery(entityClass, targetClass, null, qualifier);
+        Stream<?> results = findAllUsingQuery(entityClass, targetClass, null, query, qualifier);
         return applyPostProcessingOnResults(results, query);
     }
 
@@ -831,7 +834,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                                                          long offset, long limit, Filter filter,
                                                          Qualifier... qualifiers) {
         verifyUnsortedWithOffset(sort, offset);
-        Stream<?> results = findAllUsingQuery(entityClass, targetClass, filter, qualifiers);
+        Stream<?> results = findAllUsingQuery(entityClass, targetClass, filter, null, qualifiers);
         return applyPostProcessingOnResults(results, sort, offset, limit);
     }
 
@@ -843,9 +846,24 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
+    <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter, Query query,
                                        Qualifier... qualifiers) {
+        Predicate<KeyRecord> distinctPredicate;
+        if (query != null && query.isDistinct()) {
+            final Set<Object> distinctValues = ConcurrentHashMap.newKeySet();
+            distinctPredicate = kr -> {
+                final String distinctField = query.getCriteria().getCriteriaObject().getField();
+                if (kr.record == null || kr.record.bins == null) {
+                    return false;
+                }
+                return distinctValues.add(kr.record.bins.get(distinctField));
+            };
+        } else {
+            distinctPredicate = kr -> true;
+        }
+
         return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
+            .filter(distinctPredicate)
             .map(keyRecord -> {
                 if (targetClass != null) {
                     return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
