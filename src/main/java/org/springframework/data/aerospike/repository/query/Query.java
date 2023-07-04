@@ -34,7 +34,7 @@ public class Query {
     private int rows = NOT_SPECIFIED;
     private CriteriaDefinition criteria;
     @Setter @Getter
-    private boolean isDistinct = false;
+    private boolean isDistinct;
 
     /**
      * Creates new instance of {@link KeyValueQuery} with given criteria.
