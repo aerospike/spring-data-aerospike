@@ -848,7 +848,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                        Qualifier... qualifiers) {
-
         return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
             .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
     }
