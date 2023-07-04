@@ -556,6 +556,18 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByAddressExists() {
+        assertThat(stefan.getAddress()).isNull();
+
+        List<Person> persons = repository.findByAddressExists();
+        assertThat(persons).contains(carter);
+        List<Person> persons2 = repository.findByAddressIsNotNull();
+        assertThat(persons2).contains(carter);
+//        List<Person> persons = repository.findByAddressNotExists();
+//        assertThat(persons).contains(stefan);
+    }
+
+    @Test
     void findByMapOfListsKeyValueNotEqual() {
         Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200));
         Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(100), "1", List.of(201));

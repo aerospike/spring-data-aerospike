@@ -124,6 +124,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case NOT_IN -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOT_IN);
             case TRUE ->  getCriteria(part, property, true, null, parameters, FilterOperation.EQ);
             case FALSE ->  getCriteria(part, property, false, null, parameters, FilterOperation.EQ);
+            case EXISTS -> getCriteria(part, property, false, null, parameters, FilterOperation.EXISTS);
+            case IS_NOT_NULL -> getCriteria(part, property, false, null, parameters, FilterOperation.EXISTS);
             default -> throw new IllegalArgumentException("Unsupported keyword '" + part.getType() + "'");
         };
     }

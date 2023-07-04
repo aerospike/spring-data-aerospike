@@ -136,6 +136,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByAddressIsNot(Address address);
 
+    List<P> findByAddressExists();
+
+    List<P> findByAddressIsNotNull();
+
+    List<P> findByAddressNotExists();
+
+    List<P> findByAddressIsNull();
+
     /**
      * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding key-value
      * lower in ordering than in the given argument" (find by POJO).

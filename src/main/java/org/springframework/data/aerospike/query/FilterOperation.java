@@ -1218,6 +1218,16 @@ public enum FilterOperation {
             return Filter.range(getField(qualifierMap), IndexCollectionType.LIST, Long.MIN_VALUE,
                 getValue1(qualifierMap).toLong());
         }
+    }, EXISTS {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            return Exp.binExists(getField(qualifierMap));
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
     };
 
     private static Exp getConvertedValue1Exp(Map<String, Object> qualifierMap) {
