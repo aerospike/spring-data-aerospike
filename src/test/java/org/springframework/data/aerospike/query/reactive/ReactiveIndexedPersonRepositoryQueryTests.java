@@ -12,12 +12,14 @@ import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.ReactiveIndexedPersonRepository;
+import org.springframework.data.aerospike.utility.TestUtils;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 
@@ -133,7 +135,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findsPersonsByLastname() {
+    public void findPersonsByLastname() {
         List<IndexedPerson> results = reactiveRepository.findByLastName("Coutant-Kerbalec")
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -141,7 +143,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findsPersonsByFirstname() {
+    public void findPersonsByFirstname() {
         List<IndexedPerson> results = reactiveRepository.findByFirstName("Lilly")
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -149,7 +151,35 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findsPersonsByFirstnameAndByAge() {
+    void findDistinctByLastNameStartingWith() {
+        List<IndexedPerson> persons = reactiveRepository.findDistinctByLastNameStartingWith("Coutant-Kerbalec")
+            .subscribeOn(Schedulers.parallel()).collectList().block();
+        assertThat(persons).hasSize(1);
+
+        List<IndexedPerson> persons2 = reactiveRepository.findByLastNameStartingWith("Coutant-Kerbalec")
+            .subscribeOn(Schedulers.parallel()).collectList().block();
+        assertThat(persons2).hasSize(2);
+    }
+
+    @Test
+    void findDistinctByFriendLastNameStartingWith() {
+        alain.setFriend(luc);
+        reactiveRepository.save(alain);
+        lilly.setFriend(petra);
+        reactiveRepository.save(lilly);
+        daniel.setFriend(emilien);
+        reactiveRepository.save(daniel);
+
+        assertThatThrownBy(() -> reactiveRepository.findDistinctByFriendLastNameStartingWith("l"))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessage("DISTINCT queries are currently supported only for the first level objects, got a query for " +
+                "friend.lastName");
+
+        TestUtils.setFriendsToNull(reactiveRepository, alain, lilly, daniel);
+    }
+
+    @Test
+    public void findPersonsByFirstnameAndByAge() {
         List<IndexedPerson> results = reactiveRepository.findByFirstNameAndAge("Lilly", 28)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -157,7 +187,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findsPersonInAgeRangeCorrectly() {
+    public void findPersonInAgeRangeCorrectly() {
         List<IndexedPerson> results = reactiveRepository.findByAgeBetween(39, 45)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 

@@ -92,18 +92,10 @@ abstract class BaseAerospikeTemplate {
         Logger log = LoggerFactory.getLogger("com.aerospike.client");
         Log.setCallback((level, message) -> {
             switch (level) {
-                case INFO:
-                    log.info("{}", message);
-                    break;
-                case DEBUG:
-                    log.debug("{}", message);
-                    break;
-                case ERROR:
-                    log.error("{}", message);
-                    break;
-                case WARN:
-                    log.warn("{}", message);
-                    break;
+                case INFO -> log.info("{}", message);
+                case DEBUG -> log.debug("{}", message);
+                case ERROR -> log.error("{}", message);
+                case WARN -> log.warn("{}", message);
             }
         });
     }

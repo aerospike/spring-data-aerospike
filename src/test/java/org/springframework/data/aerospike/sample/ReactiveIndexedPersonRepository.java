@@ -162,6 +162,15 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
 
     Flux<IndexedPerson> findByFirstName(String string);
 
+    Flux<IndexedPerson> findByLastNameStartingWith(String string);
+
+    Flux<IndexedPerson> findDistinctByLastNameStartingWith(String string);
+
+    /**
+     * Distinct query for nested objects is currently not supported
+     */
+    Flux<IndexedPerson> findDistinctByFriendLastNameStartingWith(String string);
+
     Flux<IndexedPerson> findByFirstNameAndAge(String string, int i);
 
     Flux<IndexedPerson> findByAgeBetweenAndLastName(int from, int to, String lastName);
