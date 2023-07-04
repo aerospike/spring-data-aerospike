@@ -58,12 +58,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
+import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 
 /**
@@ -699,7 +701,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     <T, S> Flux<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Flux<?> results = findAllUsingQuery(entityClass, targetClass, null, qualifier);
+        Flux<?> results = findAllUsingQueryWithDistinctPredicate(entityClass, targetClass,
+            getDistinctPredicate(query), qualifier);
         results = applyPostProcessingOnResults(results, query);
         return results;
     }
@@ -753,14 +756,25 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
+    <T, S> Object mapToEntity(KeyRecord keyRecord, Class<T> entityClass, Class<S> targetClass) {
+        if (targetClass != null) {
+            return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
+        }
+        return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
+    }
+
     <T, S> Flux<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                      Qualifier... qualifiers) {
-        if (targetClass != null) {
-            return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
-                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
-        }
-        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
-            .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
+        return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
+            .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
+    }
+
+    <T, S> Flux<?> findAllUsingQueryWithDistinctPredicate(Class<T> entityClass, Class<S> targetClass,
+                                                          Predicate<KeyRecord> distinctPredicate,
+                                                          Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(entityClass, targetClass, null, qualifiers)
+            .filter(distinctPredicate)
+            .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
     }
 
     <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {

@@ -953,6 +953,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFriendFirstNameStartsWith(String string);
 
+    /**
+     * Distinct query for nested objects is currently not supported
+     */
     List<P> findDistinctByFriendFirstNameStartsWith(String string);
 
     /**

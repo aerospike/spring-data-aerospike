@@ -839,16 +839,18 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return applyPostProcessingOnResults(results, sort, offset, limit);
     }
 
+    <T, S> Object mapToEntity(KeyRecord keyRecord, Class<T> entityClass, Class<S> targetClass) {
+        if (targetClass != null) {
+            return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
+        }
+        return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
+    }
+
     <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                        Qualifier... qualifiers) {
 
         return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
-            .map(keyRecord -> {
-                if (targetClass != null) {
-                    return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
-                }
-                return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
-            });
+            .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
     }
 
     <T, S> Stream<?> findAllUsingQueryWithDistinctPredicate(Class<T> entityClass, Class<S> targetClass,
@@ -856,12 +858,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                                                             Qualifier... qualifiers) {
         return findAllRecordsUsingQuery(entityClass, targetClass, null, qualifiers)
             .filter(distinctPredicate)
-            .map(keyRecord -> {
-                if (targetClass != null) {
-                    return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
-                }
-                return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
-            });
+            .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
     }
 
     private <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
