@@ -547,21 +547,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findDistinctByFirstNameStartingWith() {
-        List<Person> persons = repository.findDistinctByFirstNameStartingWith("Leroi");
-        assertThat(persons).hasSize(1);
-    }
-
-    @Test
-    void findDistinctByFirstNameContaining() {
-        List<Person> persons = repository.findDistinctByFirstNameContaining("er");
-        assertThat(persons).hasSize(3);
-
-        List<Person> persons2 = repository.findByFirstNameContaining("er");
-        assertThat(persons2).hasSize(4);
-    }
-
-    @Test
     void findByMapKeyValueNotEqual() {
         assertThat(carter.getIntMap()).containsKey("key1");
         assertThat(!carter.getIntMap().containsValue(22)).isTrue();
@@ -891,6 +876,38 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> persons2 = repository.findByFirstNameLike("Carr.*er");
         assertThat(persons2).isEmpty();
+    }
+
+    @Test
+    void findDistinctByFirstNameStartingWith() {
+        List<Person> persons = repository.findDistinctByFirstNameStartingWith("Leroi");
+        assertThat(persons).hasSize(1);
+    }
+
+    @Test
+    void findDistinctByFirstNameContaining() {
+        List<Person> persons = repository.findDistinctByFirstNameContaining("er");
+        assertThat(persons).hasSize(3);
+
+        List<Person> persons2 = repository.findByFirstNameContaining("er");
+        assertThat(persons2).hasSize(4);
+    }
+
+    @Test
+    void findDistinctByFriendFirstName() {
+        oliver.setFriend(alicia);
+        repository.save(oliver);
+        dave.setFriend(leroi);
+        repository.save(dave);
+        carter.setFriend(leroi2);
+        repository.save(carter);
+
+        assertThatThrownBy(() -> repository.findDistinctByFriendFirstNameStartsWith("l"))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessage("DISTINCT queries are currently supported only for the first level objects, got a query for " +
+                "friend.firstName");
+
+        TestUtils.setFriendsToNull(repository, oliver, dave, carter);
     }
 
     @Test

@@ -953,6 +953,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFriendFirstNameStartsWith(String string);
 
+    List<P> findDistinctByFriendFirstNameStartsWith(String string);
+
     /**
      * Find all entities that satisfy the condition "have a friend with lastName matching the giving regex". POSIX
      * Extended Regular Expression syntax is used to interpret the regex.

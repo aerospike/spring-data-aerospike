@@ -18,12 +18,19 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Operation;
 import com.aerospike.client.Value;
+import com.aerospike.client.query.KeyRecord;
+import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
-public class OperationUtils {
+public class CoreUtils {
 
     static <T> Operation[] operations(Map<String, T> values,
                                       Operation.Type operationType,
@@ -76,4 +83,37 @@ public class OperationUtils {
         }
         return operations;
     }
+
+    static void verifyUnsortedWithOffset(Sort sort, long offset) {
+        if ((sort == null || sort.isUnsorted())
+            && offset > 0) {
+            throw new IllegalArgumentException("Unsorted query must not have offset value. " +
+                "For retrieving paged results use sorted query.");
+        }
+    }
+
+    static Predicate<KeyRecord> getDistinctPredicate(Query query) {
+        Predicate<KeyRecord> distinctPredicate;
+        if (query != null && query.isDistinct()) {
+            String dotPathString = query.getCriteria().getCriteriaObject().getDotPath();
+            if (StringUtils.hasLength(dotPathString)) {
+                throw new UnsupportedOperationException("DISTINCT queries are currently supported only for the first " +
+                    "level objects, got a query for " + dotPathString);
+            }
+
+            final Set<Object> distinctValues = ConcurrentHashMap.newKeySet();
+            distinctPredicate = kr -> {
+                final String distinctField = query.getCriteria().getCriteriaObject().getField();
+                if (kr.record == null || kr.record.bins == null) {
+                    return false;
+                }
+                return distinctValues.add(kr.record.bins.get(distinctField));
+            };
+        } else {
+            distinctPredicate = kr -> true;
+        }
+
+        return distinctPredicate;
+    }
+
 }

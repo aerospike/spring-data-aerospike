@@ -79,4 +79,6 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 |Top |findTopByLastNameStartingWith | select top 1 where x.lastName like 'abc%' = ?
 
 |Top N |findTop4ByLastNameStartingWith | select top 4  where x.lastName like 'abc%'
+
+|Distinct | findDistinctByFirstNameContaining | select distinct ... where x.firstName like 'abc%'
 |===
