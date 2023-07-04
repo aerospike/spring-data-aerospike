@@ -38,7 +38,7 @@
         <lombok>1.18.28</lombok>
         <awaitility>4.2.0</awaitility>
         <logback.test>1.4.6</logback.test>
-        <hibernate.validator>8.0.0.Final</hibernate.validator>
+        <hibernate.validator>8.0.1.Final</hibernate.validator>
     </properties>
 
     <licenses>
