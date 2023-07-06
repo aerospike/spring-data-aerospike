@@ -4,8 +4,10 @@ import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.async.NioEventLoops;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.AdditionalAerospikeTestOperations;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.SampleClasses;
@@ -33,6 +35,9 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     protected String host;
     @Value("${embedded.aerospike.port}")
     protected int port;
+
+    @Autowired
+    Environment env;
 
     @Override
     protected List<?> customConverters() {
@@ -76,6 +81,10 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     @Override
     protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
         builder.scansEnabled(true);
+        boolean indexesOnStartup =
+            env.containsProperty("createIndexesOnStartup")
+                && Boolean.parseBoolean(env.getProperty("createIndexesOnStartup"));
+        builder.createIndexesOnStartup(indexesOnStartup);
     }
 
     @Bean

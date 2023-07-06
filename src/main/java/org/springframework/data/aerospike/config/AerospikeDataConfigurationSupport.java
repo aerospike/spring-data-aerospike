@@ -149,11 +149,6 @@ public abstract class AerospikeDataConfigurationSupport {
 
     protected abstract String nameSpace();
 
-    @SuppressWarnings("SameReturnValue")
-    protected boolean isCreateIndexesOnStartup() {
-        return true;
-    }
-
     protected AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings.AerospikeDataSettingsBuilder builder = AerospikeDataSettings.builder();
         configureDataSettings(builder);
@@ -163,7 +158,6 @@ public abstract class AerospikeDataConfigurationSupport {
     protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
         builder.scansEnabled(false);
         builder.sendKey(true);
-        builder.createIndexesOnStartup(isCreateIndexesOnStartup());
     }
 
     /**
