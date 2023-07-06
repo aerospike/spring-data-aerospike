@@ -17,6 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @TestPropertySource(properties = {"createIndexesOnStartup = true"})
+// this test class requires secondary indexes created on startup
 public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
 
     @Test
