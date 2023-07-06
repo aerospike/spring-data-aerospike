@@ -12,6 +12,7 @@ import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.IndexUtils;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
 
+@TestPropertySource(properties = {"createIndexesOnStartup = true"})
 public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
     private static final String INDEX_TEST_1 = "index-test-77777";
