@@ -81,9 +81,7 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     @Override
     protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
         builder.scansEnabled(true);
-        boolean indexesOnStartup =
-            env.containsProperty("createIndexesOnStartup")
-                && Boolean.parseBoolean(env.getProperty("createIndexesOnStartup"));
+        boolean indexesOnStartup = Boolean.parseBoolean(env.getProperty("createIndexesOnStartup"));
         builder.createIndexesOnStartup(indexesOnStartup);
     }
 

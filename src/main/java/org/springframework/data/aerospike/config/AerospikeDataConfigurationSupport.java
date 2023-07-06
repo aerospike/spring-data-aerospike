@@ -158,6 +158,7 @@ public abstract class AerospikeDataConfigurationSupport {
     protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
         builder.scansEnabled(false);
         builder.sendKey(true);
+        builder.createIndexesOnStartup(true);
     }
 
     /**
