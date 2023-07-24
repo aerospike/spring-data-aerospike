@@ -4,6 +4,7 @@
 :revdate: {localdate}
 :toc:
 :toc-placement!:
+:spring-data-commons-docs-online: https://docs.spring.io/spring-data/commons/docs/current/reference/html
 
 (C) 2018-2023 The original authors.
 
