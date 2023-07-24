@@ -10,4 +10,3 @@ This part of the reference documentation contains links to the core functionalit
 - Repository functionality: <<aerospike.repositories, AerospikeRepository>>
 
 - Template functionality: <<aerospike.template, AerospikeTemplate>>
-
