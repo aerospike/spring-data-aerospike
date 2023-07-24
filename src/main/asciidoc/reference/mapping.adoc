@@ -6,7 +6,7 @@ Rich mapping support is provided by the `AerospikeMappingConverter`. `AerospikeM
 In this section, we will describe the features of the `AerospikeMappingConverter`, how to use conventions for mapping objects to documents and how to override those conventions with annotation-based mapping metadata.
 
 For more details refer to SpringData documentation:
-include::{spring-data-commons-docs-online}/#mapping.fundamentals
+{spring-data-commons-docs-online}/#mapping.fundamentals[Object Mapping]
 
 [[mapping-conventions]]
 == Convention based Mapping
