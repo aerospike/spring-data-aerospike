@@ -5,9 +5,7 @@ Rich mapping support is provided by the `AerospikeMappingConverter`. `AerospikeM
 
 In this section, we will describe the features of the `AerospikeMappingConverter`, how to use conventions for mapping objects to documents and how to override those conventions with annotation-based mapping metadata.
 
-See SpringData object mapping documentation:
-
-include::{spring-data-commons-docs}/object-mapping.adoc[leveloffset=+1]
+For more details refer to SpringData documentation: xref:#mapping.fundamentals[Object mapping fundamentals].
 
 [[mapping-conventions]]
 == Convention based Mapping
@@ -61,7 +59,7 @@ When querying and updating `AerospikeTemplate` will use the converter to handle 
 Unless explicitly configured, an instance of `AerospikeMappingConverter` is created by default when creating a `AerospikeTemplate`. You can create your own instance of the `MappingAerospikeConverter` so as to tell it where to scan the classpath at the startup of your domain classes in order to extract metadata and construct indexes.
 Also, to have more control over the conversion process (if needed), you can register converters to use for mapping specific classes to and from the database.
 
-include::{spring-data-commons-docs}/custom-conversions.adoc[leveloffset=+3]
+For more details refer to SpringData documentation: xref:#custom-conversions[Custom Conversions].
 
 NOTE: AbstractAerospikeConfiguration will create an AerospikeTemplate instance and register with the container under the name 'AerospikeTemplate'.
 
@@ -123,4 +121,5 @@ public class Person<T extends Address> {
   }
 
 // other getters/setters omitted
+}
 ----

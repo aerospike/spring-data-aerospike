@@ -4,9 +4,7 @@ Spring Data Aerospike supports defining queries by method name in the Repository
 
 Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`. For example, `countByLastName`, `findByFirstName` etc.
 
-See SpringData "query by example" documentation:
-
-include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
+For more details refer to SpringData documentation: xref:#query-by-example[Query By Example].
 
 [width="100%",cols="<12%,<25%,<25%",options="header",]
 |===
