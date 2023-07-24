@@ -32,7 +32,7 @@ There is a number of benefits of using a cache layer, here are some of them:
 
 We will not use an actual database as our main data store for this example, instead, we will simulate database access by printing a simulation message and replace a database read by just returning a specific `User`.
 
-== Configuration
+=== Configuration
 === AerospikeConfigurationProperties
 
 [source, java]
@@ -78,12 +78,12 @@ public class AerospikeConfiguration {
 
 In the AerospikeConfiguration we will create two types of Beans:
 
-==== AerospikeClient
+=== AerospikeClient
 
 Responsible for accessing an Aerospike database and performing database operations.
 
 [[cache-example-configuration-AerospikeCacheManager]]
-==== AerospikeCacheManager
+=== AerospikeCacheManager
 
 The heart of the cache layer, to define an AerospikeCacheManager you need:
 
@@ -95,9 +95,9 @@ The heart of the cache layer, to define an AerospikeCacheManager you need:
 
 NOTE: A cache name is only a link to the cache configuration.
 
-==== Objects
+=== Objects
 
-===== User
+==== User
 
 [source, java]
 ----
@@ -113,9 +113,9 @@ public class User {
 }
 ----
 
-==== Repositories
+=== Repositories
 
-===== UserRepository
+==== UserRepository
 
 [source, java]
 ----
@@ -144,9 +144,9 @@ public class UserRepository {
 
 The cache annotations require a “value” field, which is the cache name, if the cache name doesn't exist — by passing initialPerCacheConfiguration param when creating a Bean of AerospikeCacheManager in a configuration class, it will configure the cache with the properties of the given defaultCacheConfiguration (Configuration > <<cache-example-configuration-AerospikeCacheManager, AerospikeCacheManager>>).
 
-==== Services
+=== Services
 
-===== UserService
+==== UserService
 
 [source, java]
 ----
@@ -170,9 +170,9 @@ public class UserService {
 }
 ----
 
-==== Controllers
+=== Controllers
 
-===== UserController
+==== UserController
 
 [source, java]
 ----
@@ -199,9 +199,9 @@ public class UserController {
 }
 ----
 
-==== Add @EnableCaching
+=== Add @EnableCaching
 
-===== SimpleSpringbootAerospikeCacheApplication
+==== SimpleSpringbootAerospikeCacheApplication
 
 Add `@EnableCaching` to the class that contains the main method.
 
@@ -216,11 +216,11 @@ public class SimpleSpringbootAerospikeCacheApplication {
 }
 ----
 
-=== Test
+== Test
 
 We will use Postman to simulate client requests.
 
-==== Add User (@CachePut)
+=== Add User (@CachePut)
 
 a. Create a new POST request with the following url: http://localhost:8080/users
 
@@ -253,7 +253,7 @@ aql> select * from test
 
 We can now see that this user was added to the cache.
 
-==== Read User (@Cacheable)
+=== Read User (@Cacheable)
 
 a. Create a new GET request with the following url: http://localhost:8080/users/1
 
@@ -265,7 +265,7 @@ b. Add a new key-value header in the Headers section:
 
 c. Press Send.
 
-==== Remove User (@CacheEvict)
+=== Remove User (@CacheEvict)
 
 a. Create a new DELETE request with the following url: http://localhost:8080/users/1
 
@@ -287,7 +287,7 @@ aql> select * from test
 +-----+-----------+----------+-------------+-------------------------------------+
 ----
 
-==== Cache miss (@Cacheable)
+=== Cache miss (@Cacheable)
 
 For reading `User` that is not in the cache we can use the GET request configured before with an id that
 we know for sure is not there.

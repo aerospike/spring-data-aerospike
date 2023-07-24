@@ -1,4 +1,5 @@
-= Spring Data Aerospike - Reference Documentation
+= Spring Data Aerospike - Documentation
+:doctype: book
 :revnumber: 4.3.0
 :revdate: {localdate}
 :toc:
@@ -11,40 +12,39 @@ NOTE: Copies of this document may be made for your own use and for distribution 
 
 toc::[]
 
+:leveloffset: +1
+
 include::preface.adoc[]
 
-[[spring-data-documentation]]
-== Spring Data Documentation
-
-include::spring-data-commons-docs/dependencies.adoc[]
-include::spring-data-commons-docs/repositories.adoc[]
+:leveloffset: -1
 
 [[reference-documentation]]
-== Reference documentation
+= Reference documentation
 
 :leveloffset: +1
 
 include::reference/introduction.adoc[]
 include::reference/aerospike.adoc[]
+include::reference/getting-started.adoc[]
 include::reference/mapping.adoc[]
+include::spring-data-commons-docs/repositories.adoc[]
 include::reference/aerospike-repositories.adoc[]
 include::reference/aerospike-reactive-repositories.adoc[]
-include::spring-data-commons-docs/auditing.adoc[]
 include::reference/template.adoc[]
 include::reference/query-methods.adoc[]
 include::reference/projections.adoc[]
 include::reference/secondary-indexes.adoc[]
 include::reference/caching.adoc[]
-include::reference/getting-started.adoc[]
+include::spring-data-commons-docs/dependencies.adoc[]
+include::spring-data-commons-docs/auditing.adoc[]
 
 :leveloffset: -1
 
 [[appendix]]
-== Appendix
+= Appendix
 
 :leveloffset: +1
 
-:numbered!:
 include::spring-data-commons-docs/repository-namespace-reference.adoc[]
 include::spring-data-commons-docs/repository-populator-namespace-reference.adoc[]
 include::spring-data-commons-docs/repository-query-keywords-reference.adoc[]

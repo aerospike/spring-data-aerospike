@@ -1,5 +1,5 @@
-:spring-framework-docs: {springDocsUrl}
-:spring-framework-javadoc: {springJavadocUrl}
+:spring-framework-docs: https://docs.spring.io/spring-framework/docs/5.3.x/reference/html
+:spring-framework-javadoc: https://docs.spring.io/spring-framework/docs/current/javadoc-api
 
 ifndef::store[]
 :store: Jpa
@@ -227,7 +227,7 @@ The interface must extend `Repository` and be typed to the domain class and an I
 If you want to expose CRUD methods for that domain type, you may extend `CrudRepository`, or one of its variants instead of `Repository`.
 
 [[repositories.definition-tuning]]
-=== Fine-tuning Repository Definition
+== Fine-tuning Repository Definition
 
 There are a few variants how you can get started with your repository interface.
 
@@ -281,7 +281,7 @@ NOTE: The intermediate repository interface is annotated with `@NoRepositoryBean
 Make sure you add that annotation to all repository interfaces for which Spring Data should not create instances at runtime.
 
 [[repositories.multiple-modules]]
-=== Using Repositories with Multiple Spring Data Modules
+== Using Repositories with Multiple Spring Data Modules
 
 Using a unique Spring Data module in your application makes things simple, because all repository interfaces in the defined scope are bound to the Spring Data module.
 Sometimes, applications require using more than one Spring Data module.
@@ -406,7 +406,7 @@ However, there must be a strategy that decides what actual query is created.
 The next section describes the available options.
 
 [[repositories.query-methods.query-lookup-strategies]]
-=== Query Lookup Strategies
+== Query Lookup Strategies
 
 The following strategies are available for the repository infrastructure to resolve the query.
 ifeval::[{include-xml-namespaces} != false]
@@ -430,7 +430,7 @@ This is the default lookup strategy and, thus, is used if you do not configure a
 It allows quick query definition by method names but also custom-tuning of these queries by introducing declared queries as needed.
 
 [[repositories.query-methods.query-creation]]
-=== Query Creation
+== Query Creation
 
 The query builder mechanism built into the Spring Data repository infrastructure is useful for building constraining queries over entities of the repository.
 
@@ -484,7 +484,7 @@ Whether ignoring cases is supported may vary by store, so consult the relevant s
 To create a query method that supports dynamic sorting, see "`<<repositories.special-parameters>>`".
 
 [[repositories.query-methods.query-property-expressions]]
-=== Property Expressions
+== Property Expressions
 
 Property expressions can refer only to a direct property of the managed entity, as shown in the preceding example.
 At query creation time, you already make sure that the parsed property is a property of the managed domain class.
@@ -525,14 +525,14 @@ Because we treat the underscore character as a reserved character, we strongly a
 include::repositories-paging-sorting.adoc[]
 
 [[repositories.collections-and-iterables]]
-=== Repository Methods Returning Collections or Iterables
+== Repository Methods Returning Collections or Iterables
 
 Query methods that return multiple results can use standard Java `Iterable`, `List`, and `Set`.
 Beyond that, we support returning Spring Data's `Streamable`, a custom extension of `Iterable`, as well as collection types provided by https://www.vavr.io/[Vavr].
 Refer to the appendix explaining all possible <<appendix.query.return.types,query method return types>>.
 
 [[repositories.collections-and-iterables.streamable]]
-==== Using Streamable as Query Method Return Type
+=== Using Streamable as Query Method Return Type
 
 You can use `Streamable` as alternative to `Iterable` or any collection type.
 It provides convenience methods to access a non-parallel `Stream` (missing from `Iterable`) and the ability to directly `….filter(…)` and `….map(…)` over the elements and concatenate the `Streamable` to others:
@@ -552,7 +552,7 @@ Streamable<Person> result = repository.findByFirstnameContaining("av")
 ====
 
 [[repositories.collections-and-iterables.streamable-wrapper]]
-==== Returning Custom Streamable Wrapper Types
+=== Returning Custom Streamable Wrapper Types
 
 Providing dedicated wrapper types for collections is a commonly used pattern to provide an API for a query result that returns multiple elements.
 Usually, these types are used by invoking a repository method returning a collection-like type and creating an instance of the wrapper type manually.
@@ -602,7 +602,7 @@ You do not need to return `Streamable<Product>` and manually wrap it after the q
 ====
 
 [[repositories.collections-and-iterables.vavr]]
-==== Support for Vavr Collections
+=== Support for Vavr Collections
 
 https://www.vavr.io/[Vavr] is a library that embraces functional programming concepts in Java.
 It ships with a custom set of collection types that you can use as query method return types, as the following table shows:
@@ -621,7 +621,7 @@ That is, a `java.util.List` is turned into a Vavr `List` or `Seq`, a `java.util.
 
 
 [[repositories.query-streaming]]
-=== Streaming Query Results
+== Streaming Query Results
 
 You can process the results of query methods incrementally by using a Java 8 `Stream<T>` as the return type.
 Instead of wrapping the query results in a `Stream`, data store-specific methods are used to perform the streaming, as shown in the following example:
@@ -658,7 +658,7 @@ NOTE: Not all Spring Data modules currently support `Stream<T>` as a return type
 include::repositories-null-handling.adoc[]
 
 [[repositories.query-async]]
-=== Asynchronous Query Results
+== Asynchronous Query Results
 
 You can run repository queries asynchronously by using {spring-framework-docs}/integration.html#scheduling[Spring's asynchronous method running capability].
 This means the method returns immediately upon invocation while the actual query occurs in a task that has been submitted to a Spring `TaskExecutor`.
@@ -685,7 +685,7 @@ CompletableFuture<User> findOneByFirstname(String firstname); <2>
 This section covers how to create instances and bean definitions for the defined repository interfaces.
 
 [[repositories.create-instances.java-config]]
-=== Java Configuration
+== Java Configuration
 
 Use the store-specific `@Enable{store}Repositories` annotation on a Java configuration class to define a configuration for repository activation.
 For an introduction to Java-based configuration of the Spring container, see {spring-framework-docs}/core.html#beans-java[JavaConfig in the Spring reference documentation].
@@ -713,7 +713,7 @@ NOTE: The preceding example uses the JPA-specific annotation, which you would ch
 ifeval::[{include-xml-namespaces} != false]
 [[repositories.create-instances.spring]]
 [[repositories.create-instances.xml]]
-=== XML Configuration
+== XML Configuration
 
 Each Spring Data module includes a `repositories` element that lets you define a base package that Spring scans for you, as shown in the following example:
 
@@ -744,7 +744,7 @@ The base package attribute allows wildcards so that you can define a pattern of 
 endif::[]
 
 [[repositories.using-filters]]
-=== Using Filters
+== Using Filters
 
 By default, the infrastructure picks up every interface that extends the persistence technology-specific `Repository` sub-interface located under the configured base package and creates a bean instance for it.
 However, you might want more fine-grained control over which interfaces have bean instances created for them.
@@ -788,7 +788,7 @@ The preceding example excludes all interfaces ending in `SomeRepository` from be
 
 
 [[repositories.create-instances.standalone]]
-=== Standalone Usage
+== Standalone Usage
 
 You can also use the repository infrastructure outside of a Spring container -- for example, in CDI environments. You still need some Spring libraries in your classpath, but, generally, you can set up repositories programmatically as well. The Spring Data modules that provide repository support ship with a persistence technology-specific `RepositoryFactory` that you can use, as follows:
 
@@ -809,7 +809,7 @@ But when those options don't fit your needs you can also provide your own custom
 This section describes how to do that.
 
 [[repositories.single-repository-behavior]]
-=== Customizing Individual Repositories
+== Customizing Individual Repositories
 
 To enrich a repository with custom functionality, you must first define a fragment interface and an implementation for the custom functionality, as follows:
 
@@ -951,7 +951,7 @@ interface PersonRepository extends CrudRepository<Person, Long>, CustomizedSave<
 ====
 
 [[repositories.configuration]]
-==== Configuration
+=== Configuration
 
 The repository infrastructure tries to autodetect custom implementation fragments by scanning for classes below the package in which it found a repository.
 These classes need to follow the naming convention of appending a postfix defaulting to `Impl`.
@@ -982,7 +982,7 @@ The first configuration in the preceding example tries to look up a class called
 The second example tries to look up `com.acme.repository.CustomizedUserRepositoryMyPostfix`.
 
 [[repositories.single-repository-behaviour.ambiguity]]
-===== Resolution of Ambiguity
+==== Resolution of Ambiguity
 
 If multiple implementations with matching class names are found in different packages, Spring Data uses the bean names to identify which one to use.
 
@@ -1016,7 +1016,7 @@ class CustomizedUserRepositoryImpl implements CustomizedUserRepository {
 If you annotate the `UserRepository` interface with `@Component("specialCustom")`, the bean name plus `Impl` then matches the one defined for the repository implementation in `com.acme.impl.two`, and it is used instead of the first one.
 
 [[repositories.manual-wiring]]
-===== Manual Wiring
+==== Manual Wiring
 
 If your custom implementation uses annotation-based configuration and autowiring only, the preceding approach shown works well, because it is treated as any other Spring bean.
 If your implementation fragment bean needs special wiring, you can declare the bean and name it according to the conventions described in the <<repositories.single-repository-behaviour.ambiguity,preceding section>>.
@@ -1051,7 +1051,7 @@ endif::[]
 ====
 
 [[repositories.customize-base-repository]]
-=== Customize the Base Repository
+== Customize the Base Repository
 
 The approach described in the <<repositories.manual-wiring,preceding section>> requires customization of each repository interfaces when you want to customize the base repository behavior so that all repositories are affected.
 To instead change behavior for all repositories, you can create an implementation that extends the persistence technology-specific repository base class.
@@ -1153,7 +1153,7 @@ This section documents a set of Spring Data extensions that enable Spring Data u
 Currently, most of the integration is targeted towards Spring MVC.
 
 [[core.extensions.querydsl]]
-=== Querydsl Extension
+== Querydsl Extension
 
 http://www.querydsl.com/[Querydsl] is a framework that enables the construction of statically typed SQL-like queries through its fluent API.
 
@@ -1204,7 +1204,7 @@ userRepository.findAll(predicate);
 ----
 
 [[core.web]]
-=== Web support
+== Web support
 
 Spring Data modules that support the repository programming model ship with a variety of web support.
 The web related components require Spring MVC JARs to be on the classpath.
@@ -1239,7 +1239,7 @@ It also detects Spring HATEOAS on the classpath and registers integration compon
 .Enabling Spring Data web support in XML
 
 [[core.web.basic]]
-==== Basic Web Support
+=== Basic Web Support
 
 The configuration shown in the <<core.web,previous section>> registers a few basic components:
 
@@ -1248,7 +1248,7 @@ The configuration shown in the <<core.web,previous section>> registers a few bas
 - <<core.web.basic.jackson-mappers, Jackson Modules>> to de-/serialize types like `Point` and `Distance`, or store specific ones, depending on the Spring Data Module used.
 
 [[core.web.basic.domain-class-converter]]
-===== Using the `DomainClassConverter` Class
+==== Using the `DomainClassConverter` Class
 
 The `DomainClassConverter` class lets you use domain types in your Spring MVC controller method signatures directly so that you need not manually lookup the instances through the repository, as the following example shows:
 
@@ -1276,7 +1276,7 @@ The instance can be resolved by letting Spring MVC convert the path variable int
 NOTE: Currently, the repository has to implement `CrudRepository` to be eligible to be discovered for conversion.
 
 [[core.web.basic.paging-and-sorting]]
-===== HandlerMethodArgumentResolvers for Pageable and Sort
+==== HandlerMethodArgumentResolvers for Pageable and Sort
 
 The configuration snippet shown in the <<core.web.basic.domain-class-converter,previous section>> also registers a `PageableHandlerMethodArgumentResolver` as well as an instance of `SortHandlerMethodArgumentResolver`.
 The registration enables `Pageable` and `Sort` as valid controller method arguments, as the following example shows:
@@ -1347,7 +1347,7 @@ You have to populate `thing1_page`, `thing2_page`, and so on.
 The default `Pageable` passed into the method is equivalent to a `PageRequest.of(0, 20)`, but you can customize it by using the `@PageableDefault` annotation on the `Pageable` parameter.
 
 [[core.web.pageables]]
-==== Hypermedia Support for `Page` and `Slice`
+=== Hypermedia Support for `Page` and `Slice`
 
 Spring HATEOAS ships with a representation model class (`PagedModel`/`SlicedModel`) that allows enriching the content of a `Page` or `Slice` instance with the necessary `Page`/`Slice` metadata as well as links to let the clients easily navigate the pages.
 The conversion of a `Page` to a `PagedModel` is done by an implementation of the Spring HATEOAS `RepresentationModelAssembler` interface, called the `PagedResourcesAssembler`.
@@ -1417,7 +1417,7 @@ This means that, if you change that configuration, the links automatically adher
 By default, the assembler points to the controller method it was invoked in, but you can customize that by passing a custom `Link` to be used as base to build the pagination links, which overloads the `PagedResourcesAssembler.toModel(…)` method.
 
 [[core.web.basic.jackson-mappers]]
-==== Spring Data Jackson Modules
+=== Spring Data Jackson Modules
 
 The core module, and some of the store specific ones, ship with a set of Jackson Modules for types, like `org.springframework.data.geo.Distance` and `org.springframework.data.geo.Point`, used by the Spring Data domain. +
 Those Modules are imported once <<core.web, web support>> is enabled and `com.fasterxml.jackson.databind.ObjectMapper` is available.
@@ -1440,7 +1440,7 @@ Please refer to the store specific section for more details.
 ====
 
 [[core.web.binding]]
-==== Web Databinding Support
+=== Web Databinding Support
 
 You can use Spring Data projections (described in <<projections>>) to bind incoming request payloads by using either https://goessner.net/articles/JsonPath/[JSONPath] expressions (requires https://github.com/json-path/JsonPath[Jayway JsonPath]) or https://www.w3.org/TR/xpath-31/[XPath] expressions (requires https://xmlbeam.org/[XmlBeam]), as the following example shows:
 
@@ -1477,7 +1477,7 @@ For usage with `RestTemplate`, register a `ProjectingJackson2HttpMessageConverte
 For more information, see the https://github.com/spring-projects/spring-data-examples/tree/main/web/projection[web projection example] in the canonical https://github.com/spring-projects/spring-data-examples[Spring Data Examples repository].
 
 [[core.web.type-safe]]
-==== Querydsl Web Support
+=== Querydsl Web Support
 
 For those stores that have http://www.querydsl.com/[QueryDSL] integration, you can derive queries from the attributes contained in a `Request` query string.
 
@@ -1565,7 +1565,7 @@ TIP: You can register a `QuerydslBinderCustomizerDefaults` bean holding default 
 
 ifeval::[{include-xml-namespaces} != false]
 [[core.repository-populators]]
-=== Repository Populators
+== Repository Populators
 
 If you work with the Spring JDBC module, you are probably familiar with the support for populating a `DataSource` with SQL scripts.
 A similar abstraction is available on the repositories level, although it does not use SQL as the data definition language because it must be store-independent.

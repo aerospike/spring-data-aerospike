@@ -5,6 +5,8 @@ Rich mapping support is provided by the `AerospikeMappingConverter`. `AerospikeM
 
 In this section, we will describe the features of the `AerospikeMappingConverter`, how to use conventions for mapping objects to documents and how to override those conventions with annotation-based mapping metadata.
 
+See SpringData object mapping documentation:
+
 include::{spring-data-commons-docs}/object-mapping.adoc[leveloffset=+1]
 
 [[mapping-conventions]]
