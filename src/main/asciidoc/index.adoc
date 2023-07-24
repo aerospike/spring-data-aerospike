@@ -4,7 +4,6 @@
 :revdate: {localdate}
 :toc:
 :toc-placement!:
-:spring-data-commons-docs: https://github.com/spring-projects/spring-data-commons/tree/main/src/main/asciidoc
 
 (C) 2018-2023 The original authors.
 
