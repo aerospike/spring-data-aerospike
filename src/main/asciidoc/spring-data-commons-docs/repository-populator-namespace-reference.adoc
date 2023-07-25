@@ -3,7 +3,7 @@
 = Populators namespace reference
 
 [[namespace-dao-config]]
-== The <populator /> element
+== The <populator /> Element
 The `<populator />` element allows to populate a data store via the Spring Data repository infrastructure.footnote:[see <<repositories.create-instances.xml>>]
 
 .Attributes
