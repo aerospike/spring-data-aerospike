@@ -288,3 +288,4 @@ void someMethod(PersonRepository people) {
 NOTE: Query parameters of type `Class` are inspected whether they qualify as dynamic projection parameter.
 If the actual return type of the query equals the generic parameter type of the `Class` parameter, then the matching `Class` parameter is not available for usage within the query or SpEL expressions.
 If you want to use a `Class` parameter as query argument then make sure to use a different generic parameter, for example `Class<?>`.
+
