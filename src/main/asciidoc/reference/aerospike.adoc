@@ -1,7 +1,7 @@
 [[aerospike.functionality]]
-= Aerospike Support
+= Aerospike Functionality
 
-Aerospike support contains a wide range of features summarized below:
+Aerospike supports a wide range of features summarized below:
 
 * Feature Rich Object Mapping integrated with Spring's Conversion Service
 * Automatic implementation of Repository interfaces including support for custom finder methods

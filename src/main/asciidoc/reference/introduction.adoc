@@ -5,8 +5,8 @@
 
 This part of the reference documentation contains links to the core functionality offered by Spring Data Aerospike.
 
-- Aerospike feature set: <<aerospike.functionality, Functionality>>
+- Aerospike feature set: <<aerospike.functionality, Aerospike Functionality>>
 
-- Repository functionality: <<aerospike.repositories, AerospikeRepository>>
+- Repository functionality: <<aerospike.repositories, Aerospike Repository>>
 
-- Template functionality: <<aerospike.template, AerospikeTemplate>>
+- Template functionality: <<aerospike.template, Aerospike Template>>
