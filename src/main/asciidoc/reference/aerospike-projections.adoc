@@ -1,3 +1,4 @@
+[[aerospike.projections]]
 = Projections with Aerospike
 
 Spring Data Aerospike supports Projections, a mechanism that allows you to fetch only relevant fields from Aerospike for a particular use case. This results in better performance, less network traffic, and a better understanding of what is required for the rest of the flow.
