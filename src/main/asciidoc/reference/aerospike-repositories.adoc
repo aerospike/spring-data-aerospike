@@ -4,7 +4,7 @@
 [[aerospike-repo-intro]]
 == Introduction
 
-This chapter will point out the specialties for repository support for Aerospike. This builds on the https://docs.spring.io/spring-data/data-commons/docs/1.6.1.RELEASE/reference/html/repositories.html[core SpringData repository support], so make sure you've got a sound understanding of the basic concepts explained there.
+This chapter will point out the specialties for repository support for Aerospike. This builds on the <<repositories, Core SpringData Repository Support>>, so make sure you've got a sound understanding of the basic concepts explained there.
 
 [[aerospike-repo-usage]]
 == Usage
