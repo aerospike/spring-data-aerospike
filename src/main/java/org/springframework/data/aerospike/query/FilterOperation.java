@@ -484,7 +484,7 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             if (getValue1(qualifierMap) instanceof Value.NullValue || getValue1(qualifierMap).getObject() != null) {
-                return findNotNullByMapKey(qualifierMap);
+                return findExistingByMapKey(qualifierMap);
             } else {
                 return getFilterExpMapValNotEqOrFail(qualifierMap, Exp::ne);
             }
@@ -778,10 +778,32 @@ public enum FilterOperation {
             return null; // String secondary index does not support "contains" queries
         }
     },
-    MAP_VAL_NOT_NULL_BY_KEY {
+    MAP_VAL_EXISTS_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            return findNotNullByMapKey(qualifierMap);
+            return FilterOperation.findExistingByMapKey(qualifierMap);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
+    },
+    MAP_VAL_NOT_EXISTS_BY_KEY {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            return FilterOperation.findNotExistingByMapKey(qualifierMap);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
+    },
+    MAP_VAL_IS_NOT_NULL_BY_KEY {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            return findExistingByMapKey(qualifierMap);
         }
 
         @Override
@@ -1276,9 +1298,17 @@ public enum FilterOperation {
         }
     };
 
-    private static Exp findNotNullByMapKey(Map<String, Object> qualifierMap) {
+    private static Exp findExistingByMapKey(Map<String, Object> qualifierMap) {
         String key = getValue2(qualifierMap).toString();
         return Exp.gt(
+            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(key),
+                Exp.mapBin(getField(qualifierMap))),
+            Exp.val(0));
+    }
+
+    private static Exp findNotExistingByMapKey(Map<String, Object> qualifierMap) {
+        String key = getValue2(qualifierMap).toString();
+        return Exp.eq(
             MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(key),
                 Exp.mapBin(getField(qualifierMap))),
             Exp.val(0));
@@ -1418,10 +1448,8 @@ public enum FilterOperation {
             }
             case LIST -> getMapValEqExp(qualifierMap, Exp.Type.LIST, value1.getObject(), dotPathArr, operator,
                 useCtx);
-            case MAP ->
-                getMapValEqExp(qualifierMap, Exp.Type.MAP, Exp.val(getConvertedMap(qualifierMap, value1)), dotPathArr
-                    , operator,
-                    useCtx);
+            case MAP -> getMapValEqExp(qualifierMap, Exp.Type.MAP, Exp.val(getConvertedMap(qualifierMap, value1)),
+                dotPathArr, operator, useCtx);
             case ParticleType.NULL -> getMapValEqExp(qualifierMap, Exp.Type.NIL, value1, dotPathArr, operator,
                 useCtx);
             default -> throw new IllegalArgumentException(

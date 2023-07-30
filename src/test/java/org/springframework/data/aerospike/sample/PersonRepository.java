@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
@@ -363,7 +364,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key   Map key
      * @param value String to check whether map value is not equal to it
      */
-    List<P> findByStringMapNotContaining(String key, String value);
+    List<P> findByStringMapNotContaining(String key, @NotNull String value);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)

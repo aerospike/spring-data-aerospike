@@ -49,6 +49,8 @@ import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUE
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_NOT_CONTAIN;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_CONTAINING_BY_KEY;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_EQ_BY_KEY;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_EXISTS_BY_KEY;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_NOT_EXISTS_BY_KEY;
 
 /**
  * @author Peter Milne
@@ -156,12 +158,16 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             parameters.forEachRemaining(params::add);
 
             if (params.size() == 1) { // more than 1 parameter (values) provided, the first is stored in value1
-                Object nextParam = params.get(0);
+                Object nextParam = params.get(0); // nextParam is de facto the second
                 if (op == FilterOperation.CONTAINING) {
                     if (nextParam instanceof AerospikeMapCriteria onMap) {
                         switch (onMap) {
                             case KEY -> op = MAP_KEYS_CONTAIN;
                             case VALUE -> op = MAP_VALUES_CONTAIN;
+                            case VALUE_EXISTS -> {
+                                op = MAP_VAL_EXISTS_BY_KEY;
+                                value2 = value1;
+                            }
                         }
                     } else {
                         op = FilterOperation.MAP_VAL_EQ_BY_KEY;
@@ -173,6 +179,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         switch (onMap) {
                             case KEY -> op = MAP_KEYS_NOT_CONTAIN;
                             case VALUE -> op = MAP_VALUES_NOT_CONTAIN;
+                            case VALUE_EXISTS -> {
+                                op = MAP_VAL_NOT_EXISTS_BY_KEY;
+                                value2 = value1;
+                            }
                         }
                     } else {
                         op = FilterOperation.MAP_VAL_NOTEQ_BY_KEY;
