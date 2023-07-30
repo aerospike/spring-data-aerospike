@@ -19,8 +19,10 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -558,13 +560,107 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     void findByAddressExists() {
         assertThat(stefan.getAddress()).isNull();
+        assertThat(carter.getAddress()).isNotNull();
+        assertThat(dave.getAddress()).isNotNull();
 
-        List<Person> persons = repository.findByAddressExists();
-        assertThat(persons).contains(carter);
-        List<Person> persons2 = repository.findByAddressIsNotNull();
-        assertThat(persons2).contains(carter);
-//        List<Person> persons = repository.findByAddressNotExists();
-//        assertThat(persons).contains(stefan);
+        assertThat(repository.findByAddressExists()).contains(carter, dave).doesNotContain(stefan);
+        assertThat(repository.findByAddressZipCodeExists()).contains(carter, dave).doesNotContain(stefan);
+
+        stefan.setAddress(new Address(null, null, null, null));
+        repository.save(stefan);
+        // when set to null a bin/field becomes non-existing
+        assertThat(repository.findByAddressZipCodeExists()).contains(carter, dave).doesNotContain(stefan);
+
+        stefan.setAddress(new Address(null, null, "zipCode", null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressZipCodeExists()).contains(carter, dave, stefan);
+
+        stefan.setAddress(null); // cleanup
+        repository.save(stefan);
+    }
+
+    @Test
+    void findByAddressIsNull() {
+        assertThat(stefan.getAddress()).isNull();
+        assertThat(carter.getAddress()).isNotNull();
+        assertThat(dave.getAddress()).isNotNull();
+        assertThat(repository.findByAddressIsNull()).contains(stefan).doesNotContain(carter, dave);
+
+        stefan.setAddress(new Address(null, null, null, null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressIsNull()).doesNotContain(stefan);
+        assertThat(repository.findByAddressZipCodeIsNull()).contains(stefan);
+        assertThat(repository.findByAddressZipCode(null)).contains(stefan).doesNotContain(carter, dave);
+
+        dave.setBestFriend(stefan);
+        repository.save(dave);
+        carter.setFriend(dave);
+        repository.save(carter);
+        assertThat(repository.findByFriendBestFriendAddressZipCode(null)).contains(carter);
+        assertThat(repository.findByFriendBestFriendAddressZipCodeIsNull()).contains(carter);
+
+        stefan.setAddress(null); // cleanup
+        repository.save(stefan);
+        TestUtils.setFriendsToNull(repository, carter, dave);
+
+        Map<String, String> stringMap = new HashMap<>();
+        stringMap.put("key", null);
+        stefan.setStringMap(stringMap);
+        repository.save(stefan);
+        assertThat(repository.findByStringMapContaining("key", (String) null)).contains(stefan); // key-specific
+        assertThat(repository.findByStringMapContaining("key12345", (String) null)).contains(stefan); // no such key
+        assertThat(repository.findByStringMapContaining(null, VALUE)).contains(stefan); // among all values in map
+
+        List<String> strings = new ArrayList<>();
+        strings.add(null);
+        stefan.setStrings(strings);
+        repository.save(stefan);
+        assertThat(repository.findByStringsContaining(null)).contains(stefan);
+
+        stefan.setStringMap(null); // cleanup
+        repository.save(stefan);
+        stefan.setStrings(null);
+        repository.save(stefan);
+    }
+
+    @Test
+    void findByAddressIsNotNull() {
+        assertThat(stefan.getAddress()).isNull();
+        assertThat(carter.getAddress()).isNotNull();
+        assertThat(dave.getAddress()).isNotNull();
+        assertThat(repository.findByAddressIsNotNull()).contains(carter, dave).doesNotContain(stefan);
+
+        stefan.setAddress(new Address(null, null, "zipCode", null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressIsNotNull()).contains(stefan);
+        assertThat(repository.findByAddressZipCodeIsNotNull()).contains(stefan); // zipCode is not null
+        assertThat(repository.findByAddressZipCodeIsNot(null)).contains(stefan);
+
+        stefan.setAddress(new Address(null, null, null, null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressIsNotNull()).contains(stefan); // Address is not null
+        assertThat(repository.findByAddressZipCodeIsNotNull()).doesNotContain(stefan); // zipCode is null
+
+        stefan.setAddress(null); // cleanup
+        repository.save(stefan);
+
+        Map<String, String> stringMap = new HashMap<>();
+        stringMap.put("key", "str");
+        stefan.setStringMap(stringMap);
+        repository.save(stefan);
+        assertThat(repository.findByStringMapNotContaining("key", (String) null)).contains(stefan);
+        assertThat(repository.findByStringMapNotContaining(null, VALUE)).contains(stefan);
+
+        List<String> strings = new ArrayList<>();
+        strings.add("ing");
+        stefan.setStrings(strings);
+        repository.save(stefan);
+        assertThat(repository.findByStringsNotContaining(null)).contains(stefan);
+
+        stefan.setStringMap(null); // cleanup
+        repository.save(stefan);
+        stefan.setStrings(null);
+        repository.save(stefan);
     }
 
     @Test

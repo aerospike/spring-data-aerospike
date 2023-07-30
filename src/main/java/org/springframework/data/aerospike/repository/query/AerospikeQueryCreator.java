@@ -122,10 +122,10 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case NEGATING_SIMPLE_PROPERTY -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOTEQ);
             case IN -> getCriteria(part, property, v1, null, parameters, FilterOperation.IN);
             case NOT_IN -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOT_IN);
-            case TRUE ->  getCriteria(part, property, true, null, parameters, FilterOperation.EQ);
-            case FALSE ->  getCriteria(part, property, false, null, parameters, FilterOperation.EQ);
-            case EXISTS -> getCriteria(part, property, false, null, parameters, FilterOperation.EXISTS);
-            case IS_NOT_NULL -> getCriteria(part, property, false, null, parameters, FilterOperation.EXISTS);
+            case TRUE -> getCriteria(part, property, true, null, parameters, FilterOperation.EQ);
+            case FALSE -> getCriteria(part, property, false, null, parameters, FilterOperation.EQ);
+            case EXISTS, IS_NOT_NULL -> getCriteria(part, property, null, null, parameters, FilterOperation.IS_NOT_NULL);
+            case IS_NULL -> getCriteria(part, property, null, null, parameters, FilterOperation.IS_NULL);
             default -> throw new IllegalArgumentException("Unsupported keyword '" + part.getType() + "'");
         };
     }

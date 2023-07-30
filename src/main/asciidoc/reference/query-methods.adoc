@@ -47,11 +47,39 @@ include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
 
 |Not In |findByLastNameNotIn(Collection<String>) |...where x.lastName not in ?
 
+|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
+
+|Exists
+
+IsNotNull
+
+|findByAddressExists()
+
+findByParameterIsNotNull()
+
+findByParameterFieldExists()
+
+|...where address exists and != null
+
+...where parameter exists and != null
+
+...where parameter.field exists and != null
+
+("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably as bins/fields exist only when not set to null)
+
+|IsNull |findByParameterIsNull()
+
+findByParameterFieldIsNull()
+
+|...where parameter = null
+
+...where parameter.field = null
+
+("IsNull" in fact means that the bin/field does not exist)
+
 |True |findByEnabledTrue() |...where x.enabled = true
 
 |False |findByOptOutFalse() |...where x.optOut = false
-
-|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
 |===
 
 An example of an interface with several query methods is:

@@ -138,11 +138,24 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByAddressExists();
 
+    List<P> findByAddressZipCodeExists();
+
     List<P> findByAddressIsNotNull();
 
-    List<P> findByAddressNotExists();
-
     List<P> findByAddressIsNull();
+
+    List<P> findByAddressZipCodeIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with zipCode
+     * which is not null" (find by nested POJO field)
+     */
+    List<P> findByFriendBestFriendAddressZipCodeIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have address with existing zipCode"
+     */
+    List<P> findByAddressZipCodeIsNotNull();
 
     /**
      * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding key-value
@@ -155,6 +168,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAddressLessThan(Address address);
 
     List<P> findByAddressZipCode(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode which is not equal to the given argument"
+     */
+    List<P> findByAddressZipCodeIsNot(String zipCode);
 
     List<P> findByAddressZipCodeContaining(String str);
 
@@ -338,6 +356,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
     List<P> findByStringMapNotContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
+     *
+     * @param key   Map key
+     * @param value String to check whether map value is not equal to it
+     */
+    List<P> findByStringMapNotContaining(String key, String value);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
