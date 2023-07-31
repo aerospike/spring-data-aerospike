@@ -11,10 +11,13 @@ import org.springframework.data.aerospike.query.model.IndexedField;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.annotation.Id;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+@TestPropertySource(properties = {"createIndexesOnStartup = true"})
+// this test class requires secondary indexes created on startup
 public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
 
     @Test
