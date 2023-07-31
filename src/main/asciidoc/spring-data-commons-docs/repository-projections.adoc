@@ -28,7 +28,7 @@ class Person {
 
 interface PersonRepository extends Repository<Person, UUID> {
 
-  {projection-collection}<Person> findByLastname(String lastname);
+  Collection<Person> findByLastname(String lastname);
 }
 ----
 ====
@@ -62,7 +62,7 @@ Doing so lets a query method be added as follows:
 ----
 interface PersonRepository extends Repository<Person, UUID> {
 
-  {projection-collection}<NamesOnly> findByLastname(String lastname);
+  Collection<NamesOnly> findByLastname(String lastname);
 }
 ----
 ====
@@ -263,7 +263,7 @@ To apply dynamic projections, use a query method such as the one shown in the fo
 ----
 interface PersonRepository extends Repository<Person, UUID> {
 
-  <T> {projection-collection}<T> findByLastname(String lastname, Class<T> type);
+  <T> Collection<T> findByLastname(String lastname, Class<T> type);
 }
 ----
 ====
@@ -276,10 +276,10 @@ This way, the method can be used to obtain the aggregates as is or with a projec
 ----
 void someMethod(PersonRepository people) {
 
-  {projection-collection}<Person> aggregates =
+  Collection<Person> aggregates =
     people.findByLastname("Matthews", Person.class);
 
-  {projection-collection}<NamesOnly> aggregates =
+  Collection<NamesOnly> aggregates =
     people.findByLastname("Matthews", NamesOnly.class);
 }
 ----

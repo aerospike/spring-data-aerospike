@@ -44,8 +44,8 @@ We will not use an actual database as our main data store for this example, inst
 @Component
 @ConfigurationProperties(prefix = "aerospike")
 public class AerospikeConfigurationProperties {
-private String host;
-private int port;
+    private String host;
+    private int port;
 }
 ----
 
@@ -55,8 +55,9 @@ private int port;
 ----
 @Configuration
 @EnableConfigurationProperties(AerospikeConfigurationProperties.class)
-@Import(value = {MappingAerospikeConverter.class, AerospikeMappingContext.class, AerospikeTypeAliasAccessor.class
-        ,AerospikeCustomConversions.class, SimpleTypeHolder.class})
+@Import(value = {MappingAerospikeConverter.class, AerospikeMappingContext.class,
+        AerospikeTypeAliasAccessor.class,
+        AerospikeCustomConversions.class, SimpleTypeHolder.class})
 public class AerospikeConfiguration {
 
     @Autowired
