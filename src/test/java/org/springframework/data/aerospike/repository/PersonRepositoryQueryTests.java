@@ -37,7 +37,6 @@ import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE_CONTAINING;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE_EXISTS;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
@@ -580,7 +579,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         stringMap.put("key", null);
         stefan.setStringMap(stringMap);
         repository.save(stefan);
-        assertThat(repository.findByStringMapContaining("key", VALUE_EXISTS)).contains(stefan);
+        assertThat(repository.findByStringMapContaining("key", KEY)).contains(stefan);
 
         stefan.setAddress(null); // cleanup
         stefan.setStringMap(null);
@@ -597,7 +596,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         stefan.setAddress(new Address(null, null, null, null));
         repository.save(stefan);
         assertThat(repository.findByAddressIsNull()).doesNotContain(stefan);
-        assertThat(repository.findByAddressZipCodeIsNull()).contains(stefan);
+        assertThat(repository.findByAddressZipCodeIsNull()).contains(stefan).doesNotContain(carter, dave);
         assertThat(repository.findByAddressZipCode(null)).contains(stefan).doesNotContain(carter, dave);
 
         dave.setBestFriend(stefan);
@@ -615,8 +614,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         stringMap.put("key", null);
         stefan.setStringMap(stringMap);
         repository.save(stefan);
-//        assertThat(repository.findByStringMapContaining("key", (String) null)).contains(stefan); // key-specific
-        assertThat(repository.findByStringMapContaining(null, VALUE)).contains(stefan); // among all values in map
+        assertThat(repository.findByStringMapContaining("key", (String) null)).contains(stefan); // key-specific
+        assertThat(repository.findByStringMapContaining(null, VALUE)).contains(stefan); // among all map values
 
         List<String> strings = new ArrayList<>();
         strings.add(null);
@@ -655,12 +654,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         stringMap.put("key", "str");
         stefan.setStringMap(stringMap);
         repository.save(stefan);
-        assertThat(repository.findByStringMapNotContaining(null, VALUE)).contains(stefan); // among all values
+        assertThat(repository.findByStringMapNotContaining(null, VALUE)).contains(stefan); // looks at all values
 
         // Currently only for a Map "IsNotNull" differs from "Exists" as map values can both exist and store null
         // Getting key-specific results requires post-processing:
         // firstly getting all entities with existing map key
-        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining("key", VALUE_EXISTS);
+        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining("key", KEY);
         // and then filtering those that have the key's value equal to null
         List<Person> personsWithMapValueNotNull = personsWithMapKeyExists.stream()
             .filter(person -> person.getStringMap().get("key") != null).toList();
@@ -671,7 +670,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         repository.save(stefan);
         assertThat(repository.findByStringMapNotContaining(null, VALUE)).doesNotContain(stefan);
 
-        personsWithMapKeyExists = repository.findByStringMapContaining("key", VALUE_EXISTS);
+        personsWithMapKeyExists = repository.findByStringMapContaining("key", KEY);
         personsWithMapValueNotNull = personsWithMapKeyExists.stream()
             .filter(person -> person.getStringMap().get("key") != null).toList();
         assertThat(personsWithMapValueNotNull).doesNotContain(stefan);

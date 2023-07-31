@@ -171,7 +171,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAddressZipCode(String zipCode);
 
     /**
-     * Find all entities that satisfy the condition "have address with zipCode which is not equal to the given argument"
+     * Find all entities that satisfy the condition "have address with zipCode which is not equal to the given
+     * argument"
      */
     List<P> findByAddressZipCodeIsNot(String zipCode);
 
@@ -343,20 +344,20 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param value     map value
+     * @param element   map value
      * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
      *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
-    List<P> findByStringMapContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities that do not contain the given map element (key or value depending on the given criterion)
      *
-     * @param value     map value
+     * @param element   map value
      * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
      *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
-    List<P> findByStringMapNotContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+    List<P> findByStringMapNotContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"

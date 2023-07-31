@@ -37,6 +37,6 @@ public interface CriteriaDefinition {
     String getKey();
 
     enum AerospikeMapCriteria {
-        KEY, VALUE, VALUE_CONTAINING, VALUE_EXISTS
+        KEY, VALUE, VALUE_CONTAINING
     }
 }
