@@ -207,11 +207,15 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameNotIgnoreCase(String firstName);
 
-    List<P> findByFirstNameStartingWithIgnoreCase(String firstName);
+    List<P> findByFirstNameStartingWithIgnoreCase(String string);
 
-    List<P> findByFirstNameEndingWithIgnoreCase(String firstName);
+    List<P> findDistinctByFirstNameStartingWith(String string);
 
-    List<P> findByFirstNameContainingIgnoreCase(String firstName);
+    List<P> findDistinctByFirstNameContaining(String string);
+
+    List<P> findByFirstNameEndingWithIgnoreCase(String string);
+
+    List<P> findByFirstNameContainingIgnoreCase(String string);
 
     /**
      * Find all entities with age greater than the given numeric parameter
@@ -926,9 +930,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
-    List<P> findByFirstName(String string);
+    List<P> findByFirstName(String name);
 
-    List<P> findByFirstNameNot(String string);
+    List<P> findByFirstNameNot(String name);
 
     /**
      * Find all entities that satisfy the condition "have firstName higher in ordering than the given string".
@@ -948,6 +952,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFirstNameStartsWith(String string);
 
     List<P> findByFriendFirstNameStartsWith(String string);
+
+    /**
+     * Distinct query for nested objects is currently not supported
+     */
+    List<P> findDistinctByFriendFirstNameStartsWith(String string);
 
     /**
      * Find all entities that satisfy the condition "have a friend with lastName matching the giving regex". POSIX
