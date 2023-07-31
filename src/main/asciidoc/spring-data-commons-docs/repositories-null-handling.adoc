@@ -1,3 +1,6 @@
+:spring-framework-docs: https://docs.spring.io/spring-framework/docs/5.3.x/reference/html
+:spring-framework-javadoc: https://docs.spring.io/spring-framework/docs/current/javadoc-api
+
 [[repositories.nullability]]
 === Null Handling of Repository Methods
 
