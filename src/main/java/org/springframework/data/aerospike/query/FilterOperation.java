@@ -1294,12 +1294,7 @@ public enum FilterOperation {
         };
     }
 
-    /**
-     * @param qualifierMap - map containing information for query
-     * @param operator - Exp::gt to query for mapKeysContain, Exp::eq to query for mapKeysNotContain
-     * @param errMsg - error message to be displayed if the type of VALUE1 is not supported
-     * @return
-     */
+    // operator is Exp::gt to query for mapKeysContain or Exp::eq to query for mapKeysNotContain
     private static Exp mapKeysCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
         Exp value = getValue1Exp(qualifierMap, errMsg);
         return operator.apply(
@@ -1307,12 +1302,7 @@ public enum FilterOperation {
             Exp.val(0));
     }
 
-    /**
-     * @param qualifierMap - map containing information for query
-     * @param operator - Exp::gt to query for mapValuesContain, Exp::eq to query for mapValuesNotContain
-     * @param errMsg - error message to be displayed if the type of VALUE1 is not supported
-     * @return
-     */
+    // operator is Exp::gt to query for mapValuesContain or Exp::eq to query for mapValuesNotContain
     private static Exp mapValuesCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
         Exp value = getValue1Exp(qualifierMap, errMsg);
         return operator.apply(
