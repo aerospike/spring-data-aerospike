@@ -201,6 +201,10 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         return source.entrySet().stream().collect(TreeMap::new, (m, e) -> {
             Object key = e.getKey();
             Object value = e.getValue();
+            if (key == null) {
+                throw new UnsupportedOperationException("Key of a map cannot be null");
+            }
+
             if (!conversions.isSimpleType(key.getClass())) {
                 throw new MappingException("Cannot use a complex object as a key value.");
             }

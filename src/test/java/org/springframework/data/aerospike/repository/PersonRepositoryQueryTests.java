@@ -19,8 +19,10 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -553,6 +555,142 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> persons = repository.findByIntMapIsNot("key1", 22);
         assertThat(persons).containsOnly(carter);
+    }
+
+    @Test
+    void findByExists() {
+        assertThat(stefan.getAddress()).isNull();
+        assertThat(carter.getAddress()).isNotNull();
+        assertThat(dave.getAddress()).isNotNull();
+
+        assertThat(repository.findByAddressExists()).contains(carter, dave).doesNotContain(stefan);
+        assertThat(repository.findByAddressZipCodeExists()).contains(carter, dave).doesNotContain(stefan);
+
+        stefan.setAddress(new Address(null, null, null, null));
+        repository.save(stefan);
+        // when set to null a bin/field becomes non-existing
+        assertThat(repository.findByAddressZipCodeExists()).contains(carter, dave).doesNotContain(stefan);
+
+        stefan.setAddress(new Address(null, null, "zipCode", null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressZipCodeExists()).contains(carter, dave, stefan);
+
+        Map<String, String> stringMap = new HashMap<>();
+        stringMap.put("key", null);
+        stefan.setStringMap(stringMap);
+        repository.save(stefan);
+        assertThat(repository.findByStringMapContaining("key", KEY)).contains(stefan);
+
+        stefan.setAddress(null); // cleanup
+        stefan.setStringMap(null);
+        repository.save(stefan);
+    }
+
+    @Test
+    void findByIsNull() {
+        assertThat(stefan.getAddress()).isNull();
+        assertThat(carter.getAddress()).isNotNull();
+        assertThat(dave.getAddress()).isNotNull();
+        assertThat(repository.findByAddressIsNull()).contains(stefan).doesNotContain(carter, dave);
+
+        stefan.setAddress(new Address(null, null, null, null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressIsNull()).doesNotContain(stefan);
+        assertThat(repository.findByAddressZipCodeIsNull()).contains(stefan).doesNotContain(carter, dave);
+
+        dave.setBestFriend(stefan);
+        repository.save(dave);
+        carter.setFriend(dave);
+        repository.save(carter);
+        assertThat(repository.findByFriendBestFriendAddressZipCodeIsNull()).contains(carter);
+
+        stefan.setAddress(null); // cleanup
+        repository.save(stefan);
+        TestUtils.setFriendsToNull(repository, carter, dave);
+
+        Map<String, String> stringMap = new HashMap<>();
+        stringMap.put("key", null);
+        stefan.setStringMap(stringMap);
+        repository.save(stefan);
+        assertThat(repository.findByStringMapContaining(null, VALUE)).contains(stefan); // among map values
+
+        // Currently getting key-specific results for a Map requires 2 steps:
+        // firstly query for all entities with existing map key
+        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining("key", KEY);
+        // and then leave only the records that have the key's value == null
+        List<Person> personsWithMapValueNull = personsWithMapKeyExists.stream()
+            .filter(person -> person.getStringMap().get("key") == null).toList();
+        assertThat(personsWithMapValueNull).contains(stefan);
+
+        List<String> strings = new ArrayList<>();
+        strings.add(null);
+        stefan.setStrings(strings);
+        repository.save(stefan);
+        assertThat(repository.findByStringsContaining(null)).contains(stefan);
+
+        stefan.setStringMap(null); // cleanup
+        stefan.setStrings(null);
+        repository.save(stefan);
+    }
+
+    @Test
+    void findByIsNotNull() {
+        assertThat(stefan.getAddress()).isNull();
+        assertThat(carter.getAddress()).isNotNull();
+        assertThat(dave.getAddress()).isNotNull();
+        assertThat(repository.findByAddressIsNotNull()).contains(carter, dave).doesNotContain(stefan);
+
+        stefan.setAddress(new Address(null, null, "zipCode", null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressIsNotNull()).contains(stefan); // Address is not null
+        assertThat(repository.findByAddressZipCodeIsNotNull()).contains(stefan); // zipCode is not null
+
+        stefan.setAddress(new Address(null, null, null, null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressIsNotNull()).contains(stefan); // Address is not null
+        assertThat(repository.findByAddressZipCodeIsNotNull()).doesNotContain(stefan); // zipCode is null
+
+        stefan.setAddress(null); // cleanup
+        repository.save(stefan);
+
+        Map<String, String> stringMap = new HashMap<>();
+        stringMap.put("key", "str");
+        stefan.setStringMap(stringMap);
+        repository.save(stefan);
+        assertThat(repository.findByStringMapNotContaining(null, VALUE)).contains(stefan); // among map values
+
+        // Currently getting key-specific results for a Map requires 2 steps:
+        // firstly query for all entities with existing map key
+        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining("key", KEY);
+        // and then leave only the records that have the key's value != null
+        List<Person> personsWithMapValueNotNull = personsWithMapKeyExists.stream()
+            .filter(person -> person.getStringMap().get("key") != null).toList();
+        assertThat(personsWithMapValueNotNull).contains(stefan);
+
+        stringMap.put("key", null);
+        stefan.setStringMap(stringMap);
+        repository.save(stefan);
+        assertThat(repository.findByStringMapNotContaining(null, VALUE)).doesNotContain(stefan);
+
+        personsWithMapKeyExists = repository.findByStringMapContaining("key", KEY);
+        personsWithMapValueNotNull = personsWithMapKeyExists.stream()
+            .filter(person -> person.getStringMap().get("key") != null).toList();
+        assertThat(personsWithMapValueNotNull).doesNotContain(stefan);
+
+        List<String> strings = new ArrayList<>();
+        strings.add("ing");
+        stefan.setStrings(strings);
+        repository.save(stefan);
+        assertThat(repository.findByStringsNotContaining(null)).contains(stefan);
+
+        strings.add(null);
+        stefan.setStrings(strings);
+        repository.save(stefan);
+        assertThat(repository.findByStringsNotContaining(null)).doesNotContain(stefan);
+
+        stefan.setStringMap(null); // cleanup
+        stefan.setStrings(null);
+        repository.save(stefan);
     }
 
     @Test

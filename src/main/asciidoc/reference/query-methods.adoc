@@ -47,11 +47,39 @@ For more details refer to SpringData documentation: <<query-by-example, Query By
 
 |Not In |findByLastNameNotIn(Collection<String>) |...where x.lastName not in ?
 
+|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
+
+|Exists
+
+IsNotNull
+
+|findByAddressExists()
+
+findByObjectIsNotNull()
+
+findByObjectFieldExists()
+
+|...where address exists and != null
+
+...where object exists and != null
+
+...where object.field exists and != null
+
+("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably as bins/fields exist when have a value not equal to null)
+
+|IsNull |findByObjectIsNull()
+
+findByObjectFieldIsNull()
+
+|...where object = null
+
+...where object.field = null
+
+(bins/fields exist when have a value not equal to null)
+
 |True |findByEnabledTrue() |...where x.enabled = true
 
 |False |findByOptOutFalse() |...where x.optOut = false
-
-|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
 |===
 
 An example of an interface with several query methods is:

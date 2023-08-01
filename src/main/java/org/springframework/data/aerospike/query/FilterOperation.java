@@ -4,6 +4,7 @@ import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cdt.ListReturnType;
 import com.aerospike.client.cdt.MapReturnType;
+import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.ListExp;
 import com.aerospike.client.exp.MapExp;
@@ -29,6 +30,7 @@ import static com.aerospike.client.command.ParticleType.INTEGER;
 import static com.aerospike.client.command.ParticleType.JBLOB;
 import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
+import static com.aerospike.client.command.ParticleType.NULL;
 import static com.aerospike.client.command.ParticleType.STRING;
 import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
 import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
@@ -157,9 +159,8 @@ public enum FilterOperation {
                 }
                 case BOOL -> Exp.eq(Exp.boolBin(getField(qualifierMap)), Exp.val((Boolean) value.getObject()));
                 case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::eq);
-                case MAP ->
-                    getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::eq,
-                        Exp::mapBin);
+                case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::eq,
+                    Exp::mapBin);
                 case LIST ->
                     getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::eq, Exp::listBin);
                 default -> throw new IllegalArgumentException("EQ FilterExpression unsupported particle type: " +
@@ -207,9 +208,8 @@ public enum FilterOperation {
                     yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), ne);
                 }
                 case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::ne);
-                case MAP ->
-                    getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::ne,
-                        Exp::mapBin);
+                case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::ne,
+                    Exp::mapBin);
                 case LIST ->
                     getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ne, Exp::listBin);
                 default -> throw new IllegalArgumentException("NOTEQ FilterExpression unsupported particle type: " +
@@ -231,9 +231,8 @@ public enum FilterOperation {
                 case STRING ->
                     Exp.gt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
                 case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::gt);
-                case MAP ->
-                    getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::gt,
-                        Exp::mapBin);
+                case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::gt,
+                    Exp::mapBin);
                 case LIST ->
                     getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::gt, Exp::listBin);
                 default -> throw new IllegalArgumentException("GT FilterExpression unsupported particle type: " +
@@ -260,9 +259,8 @@ public enum FilterOperation {
                 case STRING ->
                     Exp.ge(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
                 case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::ge);
-                case MAP ->
-                    getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::ge,
-                        Exp::mapBin);
+                case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::ge,
+                    Exp::mapBin);
                 case LIST ->
                     getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ge, Exp::listBin);
                 default -> throw new IllegalArgumentException("GTEQ FilterExpression unsupported particle type: " +
@@ -287,9 +285,8 @@ public enum FilterOperation {
                 case STRING ->
                     Exp.lt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
                 case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::lt);
-                case MAP ->
-                    getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::lt,
-                        Exp::mapBin);
+                case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::lt,
+                    Exp::mapBin);
                 case LIST ->
                     getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::lt, Exp::listBin);
                 default -> throw new IllegalArgumentException("LT FilterExpression unsupported particle type: " +
@@ -315,9 +312,8 @@ public enum FilterOperation {
                 case STRING ->
                     Exp.le(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
                 case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::le);
-                case MAP ->
-                    getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::le,
-                        Exp::mapBin);
+                case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::le,
+                    Exp::mapBin);
                 case LIST ->
                     getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::le, Exp::listBin);
                 default -> throw new IllegalArgumentException("LTEQ FilterExpression unsupported particle type: " +
@@ -778,24 +774,74 @@ public enum FilterOperation {
             return null; // String secondary index does not support "contains" queries
         }
     },
+    MAP_VAL_EXISTS_BY_KEY {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            return mapKeysContain(qualifierMap);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
+    },
+    MAP_VAL_NOT_EXISTS_BY_KEY {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            return mapKeysNotContain(qualifierMap);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
+    },
+    MAP_VAL_IS_NOT_NULL_BY_KEY {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap),
+                "MAP_VAL_IS_NULL_BY_KEY: dotPath was not set");
+            if (dotPathArray.length > 1) {
+                // in case it is a field of an object set to null the key does not get added to a Map,
+                // so it is enough to look for Maps with the given key
+                return mapKeysContain(qualifierMap);
+            } else {
+                // currently querying for a specific Map key with not null value is not supported,
+                // it is recommended to use querying for an existing key and then filtering key:!=null
+                return getMapValEqOrFail(qualifierMap, Exp::eq, "MAP_VAL_IS_NULL_BY_KEY");
+            }
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
+    },
+    MAP_VAL_IS_NULL_BY_KEY {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap),
+                "MAP_VAL_IS_NULL_BY_KEY: dotPath was not set");
+            if (dotPathArray.length > 1) {
+                // in case it is a field of an object set to null the key does not get added to a Map,
+                // so it is enough to look for Maps without the given key
+                return mapKeysNotContain(qualifierMap);
+            } else {
+                // currently querying for a specific Map key with explicit null value is not supported,
+                // it is recommended to use querying for an existing key and then filtering key:null
+                return getMapValEqOrFail(qualifierMap, Exp::eq, "MAP_VAL_IS_NULL_BY_KEY");
+            }
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
+    },
     MAP_KEYS_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-
-            Exp value = switch (getValue1(qualifierMap).getType()) {
-                case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
-                case STRING -> Exp.val(getValue1(qualifierMap).toString());
-                case JBLOB -> getConvertedValue1Exp(qualifierMap);
-                case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new IllegalArgumentException(
-                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
-                        getValue1(qualifierMap).getClass().getSimpleName());
-            };
-
-            return Exp.gt(
-                MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(qualifierMap))),
-                Exp.val(0));
+            return mapKeysContain(qualifierMap);
         }
 
         @Override
@@ -806,23 +852,7 @@ public enum FilterOperation {
     MAP_KEYS_NOT_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-
-            Exp value = switch (getValue1(qualifierMap).getType()) {
-                case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
-                case STRING -> Exp.val(getValue1(qualifierMap).toString());
-                case JBLOB -> getConvertedValue1Exp(qualifierMap);
-                case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new IllegalArgumentException(
-                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
-                        getValue1(qualifierMap).getClass().getSimpleName());
-            };
-
-            Exp mapIsNull = Exp.not(Exp.binExists(getField(qualifierMap)));
-            Exp mapKeysNotContaining = Exp.eq(
-                MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(qualifierMap))),
-                Exp.val(0));
-            return Exp.or(mapIsNull, mapKeysNotContaining);
+            return mapKeysNotContain(qualifierMap);
         }
 
         @Override
@@ -833,20 +863,7 @@ public enum FilterOperation {
     MAP_VALUES_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Exp value = switch (getValue1(qualifierMap).getType()) {
-                case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
-                case STRING -> Exp.val(getValue1(qualifierMap).toString());
-                case JBLOB -> getConvertedValue1Exp(qualifierMap);
-                case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new IllegalArgumentException(
-                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
-                        getValue1(qualifierMap).getClass().getSimpleName());
-            };
-
-            return Exp.gt(
-                MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(qualifierMap))),
-                Exp.val(0));
+            return mapValuesContain(qualifierMap);
         }
 
         @Override
@@ -857,22 +874,7 @@ public enum FilterOperation {
     MAP_VALUES_NOT_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Exp value = switch (getValue1(qualifierMap).getType()) {
-                case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
-                case STRING -> Exp.val(getValue1(qualifierMap).toString());
-                case JBLOB -> getConvertedValue1Exp(qualifierMap);
-                case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new IllegalArgumentException(
-                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
-                        getValue1(qualifierMap).getClass().getSimpleName());
-            };
-
-            Exp mapIsNull = Exp.not(Exp.binExists(getField(qualifierMap)));
-            Exp mapValuesNotContaining = Exp.eq(
-                MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(qualifierMap))),
-                Exp.val(0));
-            return Exp.or(mapIsNull, mapValuesNotContaining);
+            return mapValuesNotContain(qualifierMap);
         }
 
         @Override
@@ -897,7 +899,7 @@ public enum FilterOperation {
                     Exp.val((List<?>) getValue2(qualifierMap).getObject()));
                 case MAP -> Pair.of(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
                     Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue2)));
-                default -> throw new IllegalArgumentException(
+                default -> throw new UnsupportedOperationException(
                     "MAP_KEYS_BETWEEN FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
             };
@@ -930,7 +932,7 @@ public enum FilterOperation {
                     Exp.val((List<?>) getValue2(qualifierMap).getObject()));
                 case MAP -> Pair.of(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
                     Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue2)));
-                default -> throw new IllegalArgumentException(
+                default -> throw new UnsupportedOperationException(
                     "MAP_VAL_BETWEEN FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
             };
@@ -976,7 +978,8 @@ public enum FilterOperation {
                 case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                 case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new IllegalArgumentException(
+                case ParticleType.NULL -> Exp.nil();
+                default -> throw new UnsupportedOperationException(
                     "LIST_VAL_CONTAINING FilterExpression unsupported type: got " +
                         getValue1(qualifierMap).getClass().getSimpleName());
             };
@@ -1011,7 +1014,8 @@ public enum FilterOperation {
                 case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                 case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new IllegalArgumentException(
+                case ParticleType.NULL -> Exp.nil();
+                default -> throw new UnsupportedOperationException(
                     "LIST_VAL_CONTAINING FilterExpression unsupported type: got " +
                         getValue1(qualifierMap).getClass().getSimpleName());
             };
@@ -1045,7 +1049,7 @@ public enum FilterOperation {
                     Exp.val((List<?>) getValue2(qualifierMap).getObject()));
                 case MAP -> Pair.of(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
                     Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue2)));
-                default -> throw new IllegalArgumentException(
+                default -> throw new UnsupportedOperationException(
                     "LIST_VAL_BETWEEN FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
             };
@@ -1086,7 +1090,7 @@ public enum FilterOperation {
                     case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                     case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                     case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                    default -> throw new IllegalArgumentException(
+                    default -> throw new UnsupportedOperationException(
                         "LIST_VAL_GT FilterExpression unsupported type: got "
                             + getValue1(qualifierMap).getClass().getSimpleName());
                 };
@@ -1118,7 +1122,7 @@ public enum FilterOperation {
                 case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                 case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new IllegalArgumentException(
+                default -> throw new UnsupportedOperationException(
                     "LIST_VAL_GTEQ FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
             };
@@ -1144,7 +1148,7 @@ public enum FilterOperation {
             Exp value = switch (getValue1(qualifierMap).getType()) {
                 case INTEGER -> {
                     if (getValue1(qualifierMap).toLong() == Long.MIN_VALUE) {
-                        throw new IllegalArgumentException(
+                        throw new UnsupportedOperationException(
                             "LIST_VAL_LT FilterExpression unsupported value: expected [Long.MIN_VALUE+1.." +
                                 "Long.MAX_VALUE]");
                     }
@@ -1155,7 +1159,7 @@ public enum FilterOperation {
                 case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                 case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new IllegalArgumentException(
+                default -> throw new UnsupportedOperationException(
                     "LIST_VAL_GTEQ FilterExpression unsupported type: got "
                         + getValue1(qualifierMap).getClass().getSimpleName());
             };
@@ -1197,7 +1201,7 @@ public enum FilterOperation {
                     case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                     case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                     case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                    default -> throw new IllegalArgumentException(
+                    default -> throw new UnsupportedOperationException(
                         "LIST_VAL_LTEQ FilterExpression unsupported type: got " +
                             getValue1(qualifierMap).getClass().getSimpleName());
                 };
@@ -1218,7 +1222,93 @@ public enum FilterOperation {
             return Filter.range(getField(qualifierMap), IndexCollectionType.LIST, Long.MIN_VALUE,
                 getValue1(qualifierMap).toLong());
         }
+    }, IS_NOT_NULL {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            return Exp.binExists(getField(qualifierMap));
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
+    }, IS_NULL {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            return Exp.not(Exp.binExists(getField(qualifierMap))); // with value set to null a bin becomes non-existing
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
+    }, NOT_NULL {
+        @Override
+        public Exp filterExp(Map<String, Object> qualifierMap) {
+            return Exp.binExists(getField(qualifierMap)); // if a bin exists its value is not null
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<String, Object> qualifierMap) {
+            return null;
+        }
     };
+
+    private static Exp mapKeysNotContain(Map<String, Object> qualifierMap) {
+        String errMsg = "MAP_KEYS_NOT_CONTAIN FilterExpression unsupported type: got " +
+            getValue1(qualifierMap).getClass().getSimpleName();
+        Exp mapKeysNotContain = mapKeysCount(qualifierMap, Exp::eq, errMsg);
+        Exp binDoesNotExist = Exp.not(Exp.binExists(getField(qualifierMap)));
+        return Exp.or(binDoesNotExist, mapKeysNotContain);
+    }
+
+    private static Exp mapKeysContain(Map<String, Object> qualifierMap) {
+        String errMsg = "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
+            getValue1(qualifierMap).getClass().getSimpleName();
+        return mapKeysCount(qualifierMap, Exp::gt, errMsg);
+    }
+
+    private static Exp mapValuesNotContain(Map<String, Object> qualifierMap) {
+        String errMsg = "MAP_VALUES_NOT_CONTAIN FilterExpression unsupported type: got " +
+            getValue1(qualifierMap).getClass().getSimpleName();
+        Exp binDoesNotExist = Exp.not(Exp.binExists(getField(qualifierMap)));
+        Exp mapValuesNotContain = mapValuesCount(qualifierMap, Exp::eq, errMsg);
+        return Exp.or(binDoesNotExist, mapValuesNotContain);
+    }
+
+    private static Exp mapValuesContain(Map<String, Object> qualifierMap) {
+        String errMsg = "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
+            getValue1(qualifierMap).getClass().getSimpleName();
+        return mapValuesCount(qualifierMap, Exp::gt, errMsg);
+    }
+
+    private static Exp getValue1Exp(Map<String, Object> qualifierMap, String errMsg) {
+        return switch (getValue1(qualifierMap).getType()) {
+            case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
+            case STRING -> Exp.val(getValue1(qualifierMap).toString());
+            case JBLOB -> getConvertedValue1Exp(qualifierMap);
+            case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
+            case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
+            case NULL -> Exp.nil();
+            default -> throw new UnsupportedOperationException(errMsg);
+        };
+    }
+
+    // operator is Exp::gt to query for mapKeysContain or Exp::eq to query for mapKeysNotContain
+    private static Exp mapKeysCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
+        Exp value = getValue1Exp(qualifierMap, errMsg);
+        return operator.apply(
+            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(qualifierMap))),
+            Exp.val(0));
+    }
+
+    // operator is Exp::gt to query for mapValuesContain or Exp::eq to query for mapValuesNotContain
+    private static Exp mapValuesCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
+        Exp value = getValue1Exp(qualifierMap, errMsg);
+        return operator.apply(
+            MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(qualifierMap))),
+            Exp.val(0));
+    }
 
     private static Exp getConvertedValue1Exp(Map<String, Object> qualifierMap) {
         Object convertedValue = getConvertedValue(qualifierMap, FilterOperation::getValue1);
@@ -1293,7 +1383,7 @@ public enum FilterOperation {
                 Exp.val((List<?>) getValue1(qualifierMap).getObject()));
             case MAP -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.MAP),
                 Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)));
-            default -> throw new IllegalArgumentException(
+            default -> throw new UnsupportedOperationException(
                 opName + " FilterExpression unsupported type: " + getValue1(qualifierMap).getClass().getSimpleName());
         };
     }
@@ -1336,7 +1426,7 @@ public enum FilterOperation {
                 useCtx);
             case STRING -> {
                 if (ignoreCase(qualifierMap)) {
-                    throw new IllegalArgumentException(
+                    throw new UnsupportedOperationException(
                         opName + " FilterExpression: case insensitive comparison is not supported");
                 }
                 yield getMapValEqExp(qualifierMap, Exp.Type.STRING, value1.toString(), dotPathArr, operator,
@@ -1354,9 +1444,9 @@ public enum FilterOperation {
             }
             case LIST -> getMapValEqExp(qualifierMap, Exp.Type.LIST, value1.getObject(), dotPathArr, operator,
                 useCtx);
-            case MAP -> getMapValEqExp(qualifierMap, Exp.Type.MAP, Exp.val(getConvertedMap(qualifierMap, value1)), dotPathArr, operator,
-                useCtx);
-            default -> throw new IllegalArgumentException(
+            case MAP -> getMapValEqExp(qualifierMap, Exp.Type.MAP, Exp.val(getConvertedMap(qualifierMap, value1)),
+                dotPathArr, operator, useCtx);
+            default -> throw new UnsupportedOperationException(
                 opName + " FilterExpression unsupported type: " + value1.getClass().getSimpleName());
         };
     }
@@ -1477,8 +1567,10 @@ public enum FilterOperation {
             res = Exp.val((byte[]) value);
         } else if (value instanceof Calendar) {
             res = Exp.val((Calendar) value);
+        } else if (value instanceof Value.NullValue) {
+            res = Exp.nil();
         } else {
-            throw new IllegalArgumentException("Unsupported type for converting: " + value.getClass()
+            throw new UnsupportedOperationException("Unsupported type for converting: " + value.getClass()
                 .getCanonicalName());
         }
 

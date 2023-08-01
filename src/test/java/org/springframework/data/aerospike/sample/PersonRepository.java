@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
@@ -136,6 +137,27 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByAddressIsNot(Address address);
 
+    List<P> findByAddressExists();
+
+    List<P> findByAddressZipCodeExists();
+
+    List<P> findByAddressIsNotNull();
+
+    List<P> findByAddressIsNull();
+
+    List<P> findByAddressZipCodeIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with zipCode
+     * which is not null" (find by nested POJO field)
+     */
+    List<P> findByFriendBestFriendAddressZipCodeIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have address with existing zipCode"
+     */
+    List<P> findByAddressZipCodeIsNotNull();
+
     /**
      * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding key-value
      * lower in ordering than in the given argument" (find by POJO).
@@ -146,7 +168,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByAddressLessThan(Address address);
 
-    List<P> findByAddressZipCode(String zipCode);
+    List<P> findByAddressZipCode(@NotNull String zipCode);
 
     List<P> findByAddressZipCodeContaining(String str);
 
@@ -320,20 +342,28 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param value     map value
+     * @param element   map value
      * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
      *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
-    List<P> findByStringMapContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities that do not contain the given map element (key or value depending on the given criterion)
      *
-     * @param value     map value
+     * @param element   map value
      * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
      *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
-    List<P> findByStringMapNotContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+    List<P> findByStringMapNotContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
+     *
+     * @param key   Map key
+     * @param value String to check whether map value is not equal to it
+     */
+    List<P> findByStringMapNotContaining(String key, @NotNull String value);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
@@ -465,7 +495,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key   Map key
      * @param value String to check if map value equals it
      */
-    List<P> findByStringMapContaining(String key, String value);
+    List<P> findByStringMapContaining(String key, @NotNull String value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key3 and the value3 equal to the given strings"
@@ -661,7 +691,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      *
      * @param zipCode - Zip code to check for equality
      */
-    List<P> findByFriendBestFriendAddressZipCode(String zipCode);
+    List<P> findByFriendBestFriendAddressZipCode(@NotNull String zipCode);
 
     /**
      * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with apartment
