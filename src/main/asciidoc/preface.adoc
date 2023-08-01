@@ -1,5 +1,5 @@
 [[preface]]
-== Preface
+= Preface
 
 The Spring Data Aerospike project applies core Spring concepts and provides interface for using Aerospike key-value style data store.  We provide a "repository" and a "template" as high-level abstractions for storing and querying data. You will notice similarities to the JDBC support in the Spring Framework.
 
@@ -35,12 +35,12 @@ In terms of server, https://www.aerospike.com/download/server/[Aerospike] versio
 Learning a new framework is not always straightforward. In this section, we try to provide what we think is an easy-to-follow guide for starting with Spring Data Aerospike module. However, if you encounter issues, or you are just looking for advice, feel free to use one of the links below:
 
 [[get-started:help]]
-=== Support
+== Support
 
 There are a few support options available:
 
 [[get-started:help:community]]
-==== Questions & Answers
+=== Questions & Answers
 
 Developers post questions and answers on Stack Overflow. The two key tags to search for related answers to this project are:
 
@@ -48,6 +48,6 @@ Developers post questions and answers on Stack Overflow. The two key tags to sea
 * https://stackoverflow.com/questions/tagged/spring-data-aerospike[spring-data-aerospike]
 
 [[get-started:up-to-date]]
-==== Following Development
+=== Following Development
 
 If you encounter a bug or want to suggest an improvement, please create an https://github.com/aerospike/spring-data-aerospike/issues[issue on GitHub].
