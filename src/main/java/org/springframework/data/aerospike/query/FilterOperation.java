@@ -1271,7 +1271,6 @@ public enum FilterOperation {
         return operator.apply(
             MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(qualifierMap))),
             Exp.val(0));
-
     }
 
     private static Exp mapValuesNotContain(Map<String, Object> qualifierMap) {

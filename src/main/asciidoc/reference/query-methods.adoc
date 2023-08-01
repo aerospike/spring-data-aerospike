@@ -65,7 +65,7 @@ findByObjectFieldExists()
 
 ...where object.field exists and != null
 
-("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably as bins/fields exist only when not set to null)
+("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably as bins/fields exist when have a value not equal to null)
 
 |IsNull |findByObjectIsNull()
 
@@ -75,7 +75,7 @@ findByObjectFieldIsNull()
 
 ...where object.field = null
 
-("IsNull" means that the bin/field does not exist)
+(bins/fields exist when have a value not equal to null)
 
 |True |findByEnabledTrue() |...where x.enabled = true
 
