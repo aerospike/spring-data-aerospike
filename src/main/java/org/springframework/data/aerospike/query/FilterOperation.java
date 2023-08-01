@@ -1257,7 +1257,9 @@ public enum FilterOperation {
     private static Exp mapKeysNotContain(Map<String, Object> qualifierMap) {
         String errMsg = "MAP_KEYS_NOT_CONTAIN FilterExpression unsupported type: got " +
             getValue1(qualifierMap).getClass().getSimpleName();
-        return mapKeysCount(qualifierMap, Exp::eq, errMsg);
+        Exp mapKeysNotContain = mapKeysCount(qualifierMap, Exp::eq, errMsg);
+        Exp binDoesNotExist = Exp.not(Exp.binExists(getField(qualifierMap)));
+        return Exp.or(binDoesNotExist, mapKeysNotContain);
     }
 
     private static Exp mapKeysContain(Map<String, Object> qualifierMap) {
@@ -1266,17 +1268,12 @@ public enum FilterOperation {
         return mapKeysCount(qualifierMap, Exp::gt, errMsg);
     }
 
-    private static Exp mapKeysCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
-        Exp value = getValue1Exp(qualifierMap, errMsg);
-        return operator.apply(
-            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(qualifierMap))),
-            Exp.val(0));
-    }
-
     private static Exp mapValuesNotContain(Map<String, Object> qualifierMap) {
         String errMsg = "MAP_VALUES_NOT_CONTAIN FilterExpression unsupported type: got " +
             getValue1(qualifierMap).getClass().getSimpleName();
-        return mapValuesCount(qualifierMap, Exp::eq, errMsg);
+        Exp binDoesNotExist = Exp.not(Exp.binExists(getField(qualifierMap)));
+        Exp mapValuesNotContain = mapValuesCount(qualifierMap, Exp::eq, errMsg);
+        return Exp.or(binDoesNotExist, mapValuesNotContain);
     }
 
     private static Exp mapValuesContain(Map<String, Object> qualifierMap) {
@@ -1297,6 +1294,25 @@ public enum FilterOperation {
         };
     }
 
+    /**
+     * @param qualifierMap - map containing information for query
+     * @param operator - Exp::gt to query for mapKeysContain, Exp::eq to query for mapKeysNotContain
+     * @param errMsg - error message to be displayed if the type of VALUE1 is not supported
+     * @return
+     */
+    private static Exp mapKeysCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
+        Exp value = getValue1Exp(qualifierMap, errMsg);
+        return operator.apply(
+            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(qualifierMap))),
+            Exp.val(0));
+    }
+
+    /**
+     * @param qualifierMap - map containing information for query
+     * @param operator - Exp::gt to query for mapValuesContain, Exp::eq to query for mapValuesNotContain
+     * @param errMsg - error message to be displayed if the type of VALUE1 is not supported
+     * @return
+     */
     private static Exp mapValuesCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
         Exp value = getValue1Exp(qualifierMap, errMsg);
         return operator.apply(
