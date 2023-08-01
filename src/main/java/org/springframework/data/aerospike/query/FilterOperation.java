@@ -483,11 +483,11 @@ public enum FilterOperation {
     MAP_VAL_NOTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            if (getValue1(qualifierMap) instanceof Value.NullValue || getValue1(qualifierMap).getObject() != null) {
-                return findExistingByMapKey(qualifierMap);
-            } else {
+//            if (getValue1(qualifierMap) instanceof Value.NullValue || getValue1(qualifierMap).getObject() != null) {
+//                return findExistingByMapKey(qualifierMap);
+//            } else {
                 return getFilterExpMapValNotEqOrFail(qualifierMap, Exp::ne);
-            }
+//            }
         }
 
         @Override
@@ -781,7 +781,7 @@ public enum FilterOperation {
     MAP_VAL_EXISTS_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            return FilterOperation.findExistingByMapKey(qualifierMap);
+            return mapKeysContain(qualifierMap);
         }
 
         @Override
@@ -792,7 +792,7 @@ public enum FilterOperation {
     MAP_VAL_NOT_EXISTS_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            return findNotExistingByMapKey(qualifierMap);
+            return mapKeysNotContain(qualifierMap);
         }
 
         @Override
@@ -803,8 +803,17 @@ public enum FilterOperation {
     MAP_VAL_IS_NOT_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            return findExistingByMapKey(qualifierMap);
-        }
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap),
+                "MAP_VAL_IS_NULL_BY_KEY: dotPath was not set");
+            if (dotPathArray.length > 1) {
+                // in case it is a field of an object set to null the key does not get added to a Map,
+                // so it is enough to look for Maps with the given key
+                return mapKeysContain(qualifierMap);
+            } else {
+                // currently querying for a specific Map key with not null value is not supported,
+                // it is recommended to use querying for an existing key and then filtering key:!=null
+                return getMapValEqOrFail(qualifierMap, Exp::eq, "MAP_VAL_IS_NULL_BY_KEY");
+            }        }
 
         @Override
         public Filter sIndexFilter(Map<String, Object> qualifierMap) {
@@ -814,7 +823,17 @@ public enum FilterOperation {
     MAP_VAL_IS_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            return getMapValEqOrFail(qualifierMap, Exp::eq, "MAP_VAL_IS_NULL_BY_KEY");
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap),
+                "MAP_VAL_IS_NULL_BY_KEY: dotPath was not set");
+            if (dotPathArray.length > 1) {
+                // in case it is a field of an object set to null the key does not get added to a Map,
+                // so it is enough to look for Maps without the given key
+                return mapKeysNotContain(qualifierMap);
+            } else {
+                // currently querying for a specific Map key with explicit null value is not supported,
+                // it is recommended to use querying for an existing key and then filtering key:null
+                return getMapValEqOrFail(qualifierMap, Exp::eq, "MAP_VAL_IS_NULL_BY_KEY");
+            }
         }
 
         @Override
@@ -825,21 +844,7 @@ public enum FilterOperation {
     MAP_KEYS_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-
-            Exp value = switch (getValue1(qualifierMap).getType()) {
-                case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
-                case STRING -> Exp.val(getValue1(qualifierMap).toString());
-                case JBLOB -> getConvertedValue1Exp(qualifierMap);
-                case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new UnsupportedOperationException(
-                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
-                        getValue1(qualifierMap).getClass().getSimpleName());
-            };
-
-            return Exp.gt(
-                MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(qualifierMap))),
-                Exp.val(0));
+            return mapKeysContain(qualifierMap);
         }
 
         @Override
@@ -850,23 +855,7 @@ public enum FilterOperation {
     MAP_KEYS_NOT_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-
-            Exp value = switch (getValue1(qualifierMap).getType()) {
-                case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
-                case STRING -> Exp.val(getValue1(qualifierMap).toString());
-                case JBLOB -> getConvertedValue1Exp(qualifierMap);
-                case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                default -> throw new UnsupportedOperationException(
-                    "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
-                        getValue1(qualifierMap).getClass().getSimpleName());
-            };
-
-            Exp mapIsNull = Exp.not(Exp.binExists(getField(qualifierMap)));
-            Exp mapKeysNotContaining = Exp.eq(
-                MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(qualifierMap))),
-                Exp.val(0));
-            return Exp.or(mapIsNull, mapKeysNotContaining);
+            return mapKeysNotContain(qualifierMap);
         }
 
         @Override
@@ -877,21 +866,7 @@ public enum FilterOperation {
     MAP_VALUES_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Exp value = switch (getValue1(qualifierMap).getType()) {
-                case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
-                case STRING -> Exp.val(getValue1(qualifierMap).toString());
-                case JBLOB -> getConvertedValue1Exp(qualifierMap);
-                case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                case NULL -> Exp.nil();
-                default -> throw new UnsupportedOperationException(
-                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
-                        getValue1(qualifierMap).getClass().getSimpleName());
-            };
-
-            return Exp.gt(
-                MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(qualifierMap))),
-                Exp.val(0));
+            return mapValuesContain(qualifierMap);
         }
 
         @Override
@@ -902,23 +877,7 @@ public enum FilterOperation {
     MAP_VALUES_NOT_CONTAIN {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Exp value = switch (getValue1(qualifierMap).getType()) {
-                case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
-                case STRING -> Exp.val(getValue1(qualifierMap).toString());
-                case JBLOB -> getConvertedValue1Exp(qualifierMap);
-                case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
-                case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
-                case NULL -> Exp.nil();
-                default -> throw new UnsupportedOperationException(
-                    "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
-                        getValue1(qualifierMap).getClass().getSimpleName());
-            };
-
-            Exp mapIsNull = Exp.not(Exp.binExists(getField(qualifierMap)));
-            Exp mapValuesNotContaining = Exp.eq(
-                MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(qualifierMap))),
-                Exp.val(0));
-            return Exp.or(mapIsNull, mapValuesNotContaining);
+            return mapValuesNotContain(qualifierMap);
         }
 
         @Override
@@ -1298,19 +1257,54 @@ public enum FilterOperation {
         }
     };
 
-    private static Exp findExistingByMapKey(Map<String, Object> qualifierMap) {
-        String key = getValue2(qualifierMap).toString();
-        return Exp.gt(
-            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(key),
-                Exp.mapBin(getField(qualifierMap))),
-            Exp.val(0));
+    private static Exp mapKeysNotContain(Map<String, Object> qualifierMap) {
+        String errMsg = "MAP_KEYS_NOT_CONTAIN FilterExpression unsupported type: got " +
+            getValue1(qualifierMap).getClass().getSimpleName();
+        return mapKeysCount(qualifierMap, Exp::eq, errMsg);
     }
 
-    private static Exp findNotExistingByMapKey(Map<String, Object> qualifierMap) {
-        String key = getValue2(qualifierMap).toString();
-        return Exp.eq(
-            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(key),
-                Exp.mapBin(getField(qualifierMap))),
+    private static Exp mapKeysContain(Map<String, Object> qualifierMap) {
+        String errMsg = "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
+            getValue1(qualifierMap).getClass().getSimpleName();
+        return mapKeysCount(qualifierMap, Exp::gt, errMsg);
+    }
+
+    private static Exp mapKeysCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
+        Exp value = getValue1Exp(qualifierMap, errMsg);
+        return operator.apply(
+            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, value, Exp.mapBin(getField(qualifierMap))),
+            Exp.val(0));
+
+    }
+
+    private static Exp mapValuesNotContain(Map<String, Object> qualifierMap) {
+        String errMsg = "MAP_VALUES_NOT_CONTAIN FilterExpression unsupported type: got " +
+            getValue1(qualifierMap).getClass().getSimpleName();
+        return mapValuesCount(qualifierMap, Exp::eq, errMsg);
+    }
+
+    private static Exp mapValuesContain(Map<String, Object> qualifierMap) {
+        String errMsg = "MAP_VALUES_CONTAIN FilterExpression unsupported type: got " +
+            getValue1(qualifierMap).getClass().getSimpleName();
+        return mapValuesCount(qualifierMap, Exp::gt, errMsg);
+    }
+
+    private static Exp getValue1Exp(Map<String, Object> qualifierMap, String errMsg) {
+        return switch (getValue1(qualifierMap).getType()) {
+            case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
+            case STRING -> Exp.val(getValue1(qualifierMap).toString());
+            case JBLOB -> getConvertedValue1Exp(qualifierMap);
+            case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
+            case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
+            case NULL -> Exp.nil();
+            default -> throw new UnsupportedOperationException(errMsg);
+        };
+    }
+
+    private static Exp mapValuesCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
+        Exp value = getValue1Exp(qualifierMap, errMsg);
+        return operator.apply(
+            MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(qualifierMap))),
             Exp.val(0));
     }
 
@@ -1450,8 +1444,6 @@ public enum FilterOperation {
                 useCtx);
             case MAP -> getMapValEqExp(qualifierMap, Exp.Type.MAP, Exp.val(getConvertedMap(qualifierMap, value1)),
                 dotPathArr, operator, useCtx);
-            case ParticleType.NULL -> getMapValEqExp(qualifierMap, Exp.Type.NIL, value1, dotPathArr, operator,
-                useCtx);
             default -> throw new UnsupportedOperationException(
                 opName + " FilterExpression unsupported type: " + value1.getClass().getSimpleName());
         };

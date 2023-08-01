@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.aerospike.query.FilterOperation.IS_NOT_NULL;
+import static org.springframework.data.aerospike.query.FilterOperation.IS_NULL;
 import static org.springframework.data.aerospike.query.FilterOperation.LIST_VAL_CONTAINING;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_CONTAIN;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_NOT_CONTAIN;
@@ -124,8 +126,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case NOT_IN -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOT_IN);
             case TRUE -> getCriteria(part, property, true, null, parameters, FilterOperation.EQ);
             case FALSE -> getCriteria(part, property, false, null, parameters, FilterOperation.EQ);
-            case EXISTS, IS_NOT_NULL -> getCriteria(part, property, null, null, parameters, FilterOperation.IS_NOT_NULL);
-            case IS_NULL -> getCriteria(part, property, null, null, parameters, FilterOperation.IS_NULL);
+            case EXISTS, IS_NOT_NULL ->
+                getCriteria(part, property, null, null, parameters, FilterOperation.IS_NOT_NULL);
+            case IS_NULL -> getCriteria(part, property, null, null, parameters, IS_NULL);
             default -> throw new IllegalArgumentException("Unsupported keyword '" + part.getType() + "'");
         };
     }
@@ -240,6 +243,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)
                 if (op == FilterOperation.BETWEEN) {
                     value3 = Value.get(value2); // contains upper limit
+                } else if (op == IS_NOT_NULL || op == IS_NULL) {
+                    value1 = Value.get(property.getFieldName()); // contains key (field name)
                 }
                 op = getCorrespondingMapValueFilterOperationOrFail(op);
                 value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)

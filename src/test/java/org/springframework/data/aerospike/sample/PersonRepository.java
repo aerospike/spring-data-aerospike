@@ -168,13 +168,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByAddressLessThan(Address address);
 
-    List<P> findByAddressZipCode(String zipCode);
-
-    /**
-     * Find all entities that satisfy the condition "have address with zipCode which is not equal to the given
-     * argument"
-     */
-    List<P> findByAddressZipCodeIsNot(String zipCode);
+    List<P> findByAddressZipCode(@NotNull String zipCode);
 
     List<P> findByAddressZipCodeContaining(String str);
 
@@ -497,7 +491,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param key   Map key
      * @param value String to check if map value equals it
      */
-    List<P> findByStringMapContaining(String key, String value);
+    List<P> findByStringMapContaining(String key, @NotNull String value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key3 and the value3 equal to the given strings"
@@ -693,7 +687,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      *
      * @param zipCode - Zip code to check for equality
      */
-    List<P> findByFriendBestFriendAddressZipCode(String zipCode);
+    List<P> findByFriendBestFriendAddressZipCode(@NotNull String zipCode);
 
     /**
      * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with apartment
