@@ -483,11 +483,7 @@ public enum FilterOperation {
     MAP_VAL_NOTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-//            if (getValue1(qualifierMap) instanceof Value.NullValue || getValue1(qualifierMap).getObject() != null) {
-//                return findExistingByMapKey(qualifierMap);
-//            } else {
-                return getFilterExpMapValNotEqOrFail(qualifierMap, Exp::ne);
-//            }
+            return getFilterExpMapValNotEqOrFail(qualifierMap, Exp::ne);
         }
 
         @Override
@@ -813,7 +809,8 @@ public enum FilterOperation {
                 // currently querying for a specific Map key with not null value is not supported,
                 // it is recommended to use querying for an existing key and then filtering key:!=null
                 return getMapValEqOrFail(qualifierMap, Exp::eq, "MAP_VAL_IS_NULL_BY_KEY");
-            }        }
+            }
+        }
 
         @Override
         public Filter sIndexFilter(Map<String, Object> qualifierMap) {
