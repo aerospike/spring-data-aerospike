@@ -110,7 +110,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case BEFORE, LESS_THAN -> getCriteria(part, property, v1, null, parameters, FilterOperation.LT);
             case LESS_THAN_EQUAL -> getCriteria(part, property, v1, null, parameters, FilterOperation.LTEQ);
             case BETWEEN -> getCriteria(part, property, v1, parameters.next(), parameters, FilterOperation.BETWEEN);
-            case LIKE -> getCriteria(part, property, v1, null, parameters, FilterOperation.LIKE);
+            case LIKE, REGEX -> getCriteria(part, property, v1, null, parameters, FilterOperation.LIKE);
             case STARTING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.STARTS_WITH);
             case ENDING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.ENDS_WITH);
             case CONTAINING -> getCriteria(part, property, v1, null, parameters, FilterOperation.CONTAINING);

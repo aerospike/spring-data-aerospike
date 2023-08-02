@@ -66,6 +66,21 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
 
     /**
+     * Find all entities with firstName matching the given regex. POSIX Extended Regular Expression syntax is used to
+     * interpret the regex.
+     * The same as {@link #findByFirstNameLike(String)}
+     *
+     * @param firstNameRegex Regex to find matching firstName
+     */
+    List<P> findByFirstNameMatchesRegex(String firstNameRegex);
+
+    List<P> findByFirstNameMatches(String firstNameRegex);
+
+    List<P> findByFirstNameRegex(String firstNameRegex);
+
+    List<P> findByFirstNameMatchesRegexIgnoreCase(String firstNameRegex);
+
+    /**
      * Find all entities with age less than the given numeric parameter
      *
      * @param age  integer to compare with
@@ -488,6 +503,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param valueRegex Regex to find matching map value
      */
     List<P> findByStringMapLike(String key, String valueRegex);
+
+    List<P> findByStringMapMatchesRegex(String key, String valueRegex);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
@@ -996,6 +1013,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByFriendLastNameLike(String lastNameRegex);
 
+    List<P> findByFriendLastNameMatchesRegex(String lastNameRegex);
 
     /**
      * Find all entities that satisfy the condition "have age in the given range ordered by last name"
