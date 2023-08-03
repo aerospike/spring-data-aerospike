@@ -29,7 +29,11 @@ For more details refer to SpringData documentation: <<query-by-example, Query By
 
 |Before |findByDateOfBirthBefore |...where x.dateOfBirth < ?
 
-|Like |findByLastNameLike |...where x.lastName like ?
+|Like, MatchesRegex |findByLastNameLike
+
+findByLastNameMatchesRegex
+
+|...where x.lastName like ?
 
 |StartingWith |findByLastNameStartingWith |...where x.lastName like 'abc%'
 

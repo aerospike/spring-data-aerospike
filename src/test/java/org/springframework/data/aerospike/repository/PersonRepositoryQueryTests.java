@@ -795,6 +795,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> persons = repository.findByStringMapLike("key1", "^.*al1$");
         assertThat(persons).contains(donny, boyd);
+
+        persons = repository.findByStringMapMatchesRegex("key1", "^.*al1$");
+        assertThat(persons).contains(donny, boyd);
     }
 
     @Test
@@ -1013,6 +1016,27 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(persons1).contains(dave, oliver);
 
         List<Person> persons2 = repository.findByFirstNameLike("Carr.*er");
+        assertThat(persons2).isEmpty();
+    }
+
+    @Test
+    void findByFirstNameMatchesRegex() { // with a wildcard
+        List<Person> persons = repository.findByFirstNameMatchesRegex("Ca.*er");
+        assertThat(persons).contains(carter);
+
+        persons = repository.findByFirstNameMatches("Ca.*er");
+        assertThat(persons).contains(carter);
+
+        persons = repository.findByFirstNameRegex("Ca.*er");
+        assertThat(persons).contains(carter);
+
+        List<Person> persons0 = repository.findByFirstNameMatchesRegexIgnoreCase("CART.*er");
+        assertThat(persons0).contains(carter);
+
+        List<Person> persons1 = repository.findByFirstNameMatchesRegex(".*ve.*");
+        assertThat(persons1).contains(dave, oliver);
+
+        List<Person> persons2 = repository.findByFirstNameMatchesRegex("Carr.*er");
         assertThat(persons2).isEmpty();
     }
 
@@ -1506,6 +1530,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         repository.save(carter);
 
         List<Person> result = repository.findByFriendLastNameLike(".*tthe.*");
+        assertThat(result).contains(oliver);
+
+        result = repository.findByFriendLastNameMatchesRegex(".*tthe.*");
         assertThat(result).contains(oliver);
         TestUtils.setFriendsToNull(repository, oliver, carter);
     }
