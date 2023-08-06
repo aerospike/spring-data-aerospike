@@ -36,8 +36,7 @@ public class AerospikeQueryCreatorUnitTests {
     public void createsQueryCorrectly() {
         PartTree tree = new PartTree("findByFirstName", Person.class);
 
-        AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor(converter,
-            "Oliver"), context);
+        AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor("Oliver"), context);
         Query query = creator.createQuery();
     }
 
@@ -45,8 +44,7 @@ public class AerospikeQueryCreatorUnitTests {
     public void createQueryByInList() {
         PartTree tree = new PartTree("findByFirstNameOrFriend", Person.class);
 
-        AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor(converter,
-            new String[]{"Oliver", "Peter"}), context);
+        AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor("Oliver", "Peter"), context);
         Query query = creator.createQuery();
     }
 }
