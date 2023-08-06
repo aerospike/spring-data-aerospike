@@ -17,7 +17,7 @@ package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
-import com.aerospike.client.cdt.MapOrder;
+import com.aerospike.client.Value;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 /**
  * Value object to carry data to be written in object conversion.
@@ -89,12 +88,12 @@ public class AerospikeWriteData {
     public void addBin(String key, Object value) {
         if (value instanceof Map<?,?> map) {
             if (value instanceof SortedMap sortedMap) {
-                add(new Bin(key, sortedMap, MapOrder.KEY_ORDERED));
+                add(new Bin(key, sortedMap));
             } else {
-                add(new Bin(key, new TreeMap<>(map), MapOrder.KEY_ORDERED));
+                add(new Bin(key, map));
             }
         } else {
-            add(new Bin(key, value));
+            add(new Bin(key, Value.get(value)));
         }
     }
 
