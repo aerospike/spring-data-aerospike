@@ -101,7 +101,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case GREATER_THAN_EQUAL -> getCriteria(part, property, v1, null, parameters, FilterOperation.GTEQ);
             case BEFORE, LESS_THAN -> getCriteria(part, property, v1, null, parameters, FilterOperation.LT);
             case LESS_THAN_EQUAL -> getCriteria(part, property, v1, null, parameters, FilterOperation.LTEQ);
-            case BETWEEN -> getCriteria(part, property, v1, parameters.next(), parameters, FilterOperation.BETWEEN);
+            case BETWEEN -> getCriteria(part, property, v1, convertIfNecessary(parameters.next()), parameters,
+                FilterOperation.BETWEEN);
             case LIKE, REGEX -> getCriteria(part, property, v1, null, parameters, FilterOperation.LIKE);
             case STARTING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.STARTS_WITH);
             case ENDING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.ENDS_WITH);
@@ -127,8 +128,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
 
     private Object convertIfNecessary(Object obj) {
-        if (obj == null) {
-            return null;
+        if (obj == null || obj instanceof AerospikeMapCriteria) {
+            return obj;
         }
 
         // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
@@ -164,7 +165,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             parameters.forEachRemaining(params::add);
 
             if (params.size() == 1) { // more than 1 parameter (values) provided, the first is stored in value1
-                Object nextParam = params.get(0); // nextParam is de facto the second
+                Object nextParam = convertIfNecessary(params.get(0)); // nextParam is de facto the second
                 if (op == FilterOperation.CONTAINING) {
                     if (nextParam instanceof AerospikeMapCriteria onMap) {
                         switch (onMap) {
