@@ -126,7 +126,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         };
     }
 
-
     private Object convertIfNecessary(Object obj) {
         if (obj == null || obj instanceof AerospikeMapCriteria) {
             return obj;
@@ -137,7 +136,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         TypeInformation<?> valueType = TypeInformation.of(value.getClass());
         return converter.toWritableValue(value, valueType);
     }
-
 
     public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
                                          Iterator<?> parameters, FilterOperation op) {
