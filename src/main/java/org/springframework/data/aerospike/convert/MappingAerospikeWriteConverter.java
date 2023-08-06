@@ -205,7 +205,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             }
 
             if (!conversions.isSimpleType(key.getClass())) {
-                throw new MappingException("Cannot use a complex object as a key value.");
+                throw new MappingException("Cannot use a complex object as a map key");
             }
 
             String simpleKey;
