@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.query.FilterOperation.IS_NOT_NULL;
@@ -95,14 +94,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             v1 = parameters.next();
         }
 
-        // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
-        final Object value = v1;
-        if (v1 != null) {
-            Optional<Class<?>> basicTargetType = conversions.getCustomWriteTarget(v1.getClass());
-            v1 = basicTargetType
-                .<Object>map(aClass -> converter.getConversionService().convert(value, aClass))
-                .orElse(v1);
-        }
+        v1 = convertIfNecessary(v1);
 
         return switch (part.getType()) {
             case AFTER, GREATER_THAN -> getCriteria(part, property, v1, null, parameters, FilterOperation.GT);
@@ -132,6 +124,19 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             default -> throw new IllegalArgumentException("Unsupported keyword '" + part.getType() + "'");
         };
     }
+
+
+    private Object convertIfNecessary(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+
+        // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
+        final Object value = obj;
+        TypeInformation<?> valueType = TypeInformation.of(value.getClass());
+        return converter.toWritableValue(value, valueType);
+    }
+
 
     public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
                                          Iterator<?> parameters, FilterOperation op) {

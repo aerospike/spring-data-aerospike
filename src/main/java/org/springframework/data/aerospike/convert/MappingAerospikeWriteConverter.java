@@ -182,10 +182,9 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         return basicTargetType
             .<Object>map(aClass -> conversionService.convert(value, aClass))
             .orElseGet(() -> convertCustomType(value, valueType));
-
     }
 
-    private List<Object> convertCollection(final Collection<?> source, final TypeInformation<?> type) {
+    protected List<Object> convertCollection(final Collection<?> source, final TypeInformation<?> type) {
         Assert.notNull(source, "Given collection must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 

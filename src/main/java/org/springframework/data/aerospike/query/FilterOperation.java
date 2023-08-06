@@ -82,7 +82,7 @@ public enum FilterOperation {
             Value val = getValue1(qualifierMap);
             String errMsg = "FilterOperation.IN expects argument with type Collection, instead got: " +
                 val.getObject().getClass().getSimpleName();
-            if (val.getType() != LIST) { // some Collection classes come as JBLOB //  && val.getType() != JBLOB
+            if (val.getType() != LIST) {
                 throw new IllegalArgumentException(errMsg);
             } else {
                 if (!(val.getObject() instanceof Collection<?>)) {
@@ -115,7 +115,7 @@ public enum FilterOperation {
             Value val = getValue1(qualifierMap);
             String errMsg = "FilterOperation.NOT_IN expects argument with type Collection, instead got: " +
                 val.getObject().getClass().getSimpleName();
-            if (val.getType() != LIST) { // some Collection classes come as JBLOB //  && val.getType() != JBLOB
+            if (val.getType() != LIST) {
                 throw new IllegalArgumentException(errMsg);
             } else {
                 if (!(val.getObject() instanceof Collection<?>)) {
@@ -157,7 +157,6 @@ public enum FilterOperation {
                     }
                 }
                 case BOOL -> Exp.eq(Exp.boolBin(getField(qualifierMap)), Exp.val((Boolean) value.getObject()));
-//                case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::eq);
                 case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::eq,
                     Exp::mapBin);
                 case LIST ->
@@ -206,7 +205,6 @@ public enum FilterOperation {
                     Exp ne = Exp.ne(Exp.boolBin(getField(qualifierMap)), Exp.val((Boolean) value.getObject()));
                     yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), ne);
                 }
-//                case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::ne);
                 case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::ne,
                     Exp::mapBin);
                 case LIST ->
@@ -229,7 +227,6 @@ public enum FilterOperation {
                 case INTEGER -> Exp.gt(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
                 case STRING ->
                     Exp.gt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
-//                case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::gt);
                 case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::gt,
                     Exp::mapBin);
                 case LIST ->
@@ -257,7 +254,6 @@ public enum FilterOperation {
                 case INTEGER -> Exp.ge(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
                 case STRING ->
                     Exp.ge(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
-//                case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::ge);
                 case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::ge,
                     Exp::mapBin);
                 case LIST ->
@@ -283,7 +279,6 @@ public enum FilterOperation {
                 case INTEGER -> Exp.lt(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
                 case STRING ->
                     Exp.lt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
-//                case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::lt);
                 case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::lt,
                     Exp::mapBin);
                 case LIST ->
@@ -310,7 +305,6 @@ public enum FilterOperation {
                 case INTEGER -> Exp.le(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
                 case STRING ->
                     Exp.le(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
-//                case JBLOB -> getFilterExp(getConverter(qualifierMap), value, getField(qualifierMap), Exp::le);
                 case MAP -> getFilterExp(Exp.val(getConvertedMap(qualifierMap, value)), getField(qualifierMap), Exp::le,
                     Exp::mapBin);
                 case LIST ->
@@ -343,10 +337,6 @@ public enum FilterOperation {
                     Exp.ge(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString())),
                     Exp.lt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue2(qualifierMap).toString()))
                 );
-//                case JBLOB -> Exp.and(
-//                    getFilterExp(getConverter(qualifierMap), getValue1(qualifierMap), getField(qualifierMap), Exp::ge),
-//                    getFilterExp(getConverter(qualifierMap), getValue2(qualifierMap), getField(qualifierMap), Exp::lt)
-//                );
                 case MAP -> Exp.and(
                     getFilterExp(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
                         getField(qualifierMap), Exp::ge, Exp::mapBin),
@@ -617,21 +607,6 @@ public enum FilterOperation {
                     value2 = Exp.val(getValue3(qualifierMap).toString());
                     type = Exp.Type.STRING;
                 }
-//                case JBLOB -> {
-//                    Object convertedValue1 = getConvertedValue(qualifierMap, FilterOperation::getValue1);
-//                    Object convertedValue3 = getConvertedValue(qualifierMap, FilterOperation::getValue3);
-//                    if (convertedValue1 instanceof List<?>) {
-//                        // Collection comes as JBLOB
-//                        value1 = Exp.val((List<?>) convertedValue1);
-//                        value2 = Exp.val((List<?>) convertedValue3);
-//                        type = Exp.Type.LIST;
-//                    } else {
-//                        // custom objects are converted into Maps
-//                        value1 = Exp.val((Map<?, ?>) convertedValue1);
-//                        value2 = Exp.val((Map<?, ?>) convertedValue3);
-//                        type = Exp.Type.MAP;
-//                    }
-//                }
                 case LIST -> {
                     value1 = Exp.val((List<?>) getValue1(qualifierMap).getObject());
                     value2 = Exp.val((List<?>) getValue3(qualifierMap).getObject());
@@ -892,8 +867,6 @@ public enum FilterOperation {
                     Pair.of(Exp.val(getValue1(qualifierMap).toLong()), Exp.val(getValue2(qualifierMap).toLong()));
                 case STRING ->
                     Pair.of(Exp.val(getValue1(qualifierMap).toString()), Exp.val(getValue2(qualifierMap).toString()));
-//                case JBLOB ->
-//                    getTwoConvertedValuesExp(qualifierMap, FilterOperation::getValue1, FilterOperation::getValue2);
                 case LIST -> Pair.of(Exp.val((List<?>) getValue1(qualifierMap).getObject()),
                     Exp.val((List<?>) getValue2(qualifierMap).getObject()));
                 case MAP -> Pair.of(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
@@ -925,8 +898,6 @@ public enum FilterOperation {
                     Pair.of(Exp.val(getValue1(qualifierMap).toLong()), Exp.val(getValue2(qualifierMap).toLong()));
                 case STRING ->
                     Pair.of(Exp.val(getValue1(qualifierMap).toString()), Exp.val(getValue2(qualifierMap).toString()));
-//                case JBLOB ->
-//                    getTwoConvertedValuesExp(qualifierMap, FilterOperation::getValue1, FilterOperation::getValue2);
                 case LIST -> Pair.of(Exp.val((List<?>) getValue1(qualifierMap).getObject()),
                     Exp.val((List<?>) getValue2(qualifierMap).getObject()));
                 case MAP -> Pair.of(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
@@ -974,7 +945,6 @@ public enum FilterOperation {
                 case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
                 case BOOL -> Exp.val((Boolean) getValue1(qualifierMap).getObject());
-//                case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                 case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 case ParticleType.NULL -> Exp.nil();
@@ -1010,7 +980,6 @@ public enum FilterOperation {
                 case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
                 case BOOL -> Exp.val((Boolean) getValue1(qualifierMap).getObject());
-//                case JBLOB -> getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                 case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 case ParticleType.NULL -> Exp.nil();
@@ -1042,8 +1011,6 @@ public enum FilterOperation {
                     Pair.of(Exp.val(getValue1(qualifierMap).toLong()), Exp.val(getValue2(qualifierMap).toLong()));
                 case STRING ->
                     Pair.of(Exp.val(getValue1(qualifierMap).toString()), Exp.val(getValue2(qualifierMap).toString()));
-//                case JBLOB ->
-//                    getTwoConvertedValuesExp(qualifierMap, FilterOperation::getValue1, FilterOperation::getValue2);
                 case LIST -> Pair.of(Exp.val((List<?>) getValue1(qualifierMap).getObject()),
                     Exp.val((List<?>) getValue2(qualifierMap).getObject()));
                 case MAP -> Pair.of(Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1)),
@@ -1086,7 +1053,6 @@ public enum FilterOperation {
             } else {
                 Exp value = switch (getValue1(qualifierMap).getType()) {
                     case STRING -> Exp.val(getValue1(qualifierMap).toString());
-//                    case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                     case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                     case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                     default -> throw new UnsupportedOperationException(
@@ -1118,7 +1084,6 @@ public enum FilterOperation {
             Exp value = switch (getValue1(qualifierMap).getType()) {
                 case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
-//                case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                 case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new UnsupportedOperationException(
@@ -1155,7 +1120,6 @@ public enum FilterOperation {
                     yield Exp.val(getValue1(qualifierMap).toLong());
                 }
                 case STRING -> Exp.val(getValue1(qualifierMap).toString());
-//                case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                 case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                 case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                 default -> throw new UnsupportedOperationException(
@@ -1197,7 +1161,6 @@ public enum FilterOperation {
             } else {
                 Exp value = switch (getValue1(qualifierMap).getType()) {
                     case STRING -> Exp.val(getValue1(qualifierMap).toString());
-//                    case JBLOB -> FilterOperation.getConvertedValue1Exp(qualifierMap);
                     case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
                     case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
                     default -> throw new UnsupportedOperationException(
@@ -1285,7 +1248,6 @@ public enum FilterOperation {
         return switch (getValue1(qualifierMap).getType()) {
             case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
             case STRING -> Exp.val(getValue1(qualifierMap).toString());
-//            case JBLOB -> getConvertedValue1Exp(qualifierMap);
             case LIST -> Exp.val((List<?>) getValue1(qualifierMap).getObject());
             case MAP -> Exp.val(getConvertedMap(qualifierMap, FilterOperation::getValue1));
             case NULL -> Exp.nil();
@@ -1307,37 +1269,6 @@ public enum FilterOperation {
         return operator.apply(
             MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(qualifierMap))),
             Exp.val(0));
-    }
-
-    private static Exp getConvertedValue1Exp(Map<String, Object> qualifierMap) {
-        Object convertedValue = getConvertedValue(qualifierMap, FilterOperation::getValue1);
-        Exp exp;
-        if (convertedValue instanceof List<?>) {
-            // Collection comes as JBLOB
-            exp = Exp.val((List<?>) convertedValue);
-        } else {
-            // custom objects are converted into Maps
-            exp = Exp.val((Map<?, ?>) convertedValue);
-        }
-        return exp;
-    }
-
-    private static Pair<Exp, Exp> getTwoConvertedValuesExp(Map<String, Object> qualifierMap,
-                                                           Function<Map<String, Object>, Value> getValueFunc1,
-                                                           Function<Map<String, Object>, Value> getValueFunc2) {
-        Object convertedValue1 = getConvertedValue(qualifierMap, getValueFunc1);
-        Object convertedValue2 = getConvertedValue(qualifierMap, getValueFunc2);
-        Exp exp1, exp2;
-        if (convertedValue1 instanceof List<?>) {
-            // Collection comes as JBLOB
-            exp1 = Exp.val((List<?>) convertedValue1);
-            exp2 = Exp.val((List<?>) convertedValue2);
-        } else {
-            // custom objects are converted into Maps
-            exp1 = Exp.val((Map<?, ?>) convertedValue1);
-            exp2 = Exp.val((Map<?, ?>) convertedValue2);
-        }
-        return Pair.of(exp1, exp2);
     }
 
     private static void validateEquality(int type1, int type2, Map<String, Object> qualifierMap, String opName) {
@@ -1366,18 +1297,6 @@ public enum FilterOperation {
                 Exp.val(getValue1(qualifierMap).toLong()));
             case STRING -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.STRING),
                 Exp.val(getValue1(qualifierMap).toString()));
-//            case JBLOB -> {
-//                Object convertedValue = getConvertedValue(qualifierMap, FilterOperation::getValue1);
-//                if (convertedValue instanceof List<?>) {
-//                    // Collection comes as JBLOB
-//                    yield operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.LIST),
-//                        Exp.val((List<?>) convertedValue));
-//                } else {
-//                    // custom objects are converted into Maps
-//                    yield operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.MAP),
-//                        Exp.val((Map<?, ?>) convertedValue));
-//                }
-//            }
             case LIST -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.LIST),
                 Exp.val((List<?>) getValue1(qualifierMap).getObject()));
             case MAP -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.MAP),
@@ -1433,14 +1352,6 @@ public enum FilterOperation {
             }
             case BOOL -> getMapValEqExp(qualifierMap, Exp.Type.BOOL, value1.getObject(), dotPathArr, operator,
                 useCtx);
-//            case JBLOB -> {
-//                Object convertedValue = getConvertedValue(qualifierMap, value1);
-//                // Collection comes as JBLOB, custom objects are converted into Maps
-//                Exp.Type expType = convertedValue instanceof List<?> ? Exp.Type.LIST : Exp.Type.MAP;
-//
-//                yield getMapValEqExp(qualifierMap, expType, convertedValue, dotPathArr, operator,
-//                    useCtx);
-//            }
             case LIST -> getMapValEqExp(qualifierMap, Exp.Type.LIST, value1.getObject(), dotPathArr, operator,
                 useCtx);
             case MAP -> getMapValEqExp(qualifierMap, Exp.Type.MAP, Exp.val(getConvertedMap(qualifierMap, value1)),
@@ -1512,20 +1423,6 @@ public enum FilterOperation {
         return operator.apply(mapExp,
             toExp(getConverter(qualifierMap).toWritableValue(obj, TypeInformation.of(obj.getClass())))
         );
-    }
-
-    private static Exp getFilterExp(MappingAerospikeConverter converter, Value val, String field,
-                                    BinaryOperator<Exp> function) {
-        Object convertedValue = converter.toWritableValue(
-            val.getObject(), TypeInformation.of(val.getObject().getClass())
-        );
-        if (convertedValue instanceof List<?>) {
-            // Collection comes as JBLOB
-            return function.apply(Exp.listBin(field), Exp.val((List<?>) convertedValue));
-        } else {
-            // custom objects are converted into Maps
-            return function.apply(Exp.mapBin(field), Exp.val((Map<?, ?>) convertedValue));
-        }
     }
 
     private static Exp getFilterExp(Exp exp, String field,

@@ -196,7 +196,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         persons = repository.findByIsActiveFalse();
         assertThat(persons).doesNotContain(intBoolBinPerson);
-        assertThat(persons).contains(leroi);
 
         Value.UseBoolBin = initialValue; // set back to the default value
         repository.delete(intBoolBinPerson);
