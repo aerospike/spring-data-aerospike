@@ -224,7 +224,12 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         Assert.notNull(source, "Given map must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
+        AerospikePersistentEntity<?> entity;
+        try {
+            entity = mappingContext.getRequiredPersistentEntity(source.getClass());
+        } catch (Exception e) {
+            throw new AerospikeException("Exception while getting persistent entity", e);
+        }
         ConvertingPropertyAccessor<?> accessor =
             new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
