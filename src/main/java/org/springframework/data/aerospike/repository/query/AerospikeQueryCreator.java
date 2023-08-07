@@ -39,7 +39,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.query.FilterOperation.IS_NOT_NULL;
@@ -95,21 +94,15 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             v1 = parameters.next();
         }
 
-        // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
-        final Object value = v1;
-        if (v1 != null) {
-            Optional<Class<?>> basicTargetType = conversions.getCustomWriteTarget(v1.getClass());
-            v1 = basicTargetType
-                .<Object>map(aClass -> converter.getConversionService().convert(value, aClass))
-                .orElse(v1);
-        }
+        v1 = convertIfNecessary(v1);
 
         return switch (part.getType()) {
             case AFTER, GREATER_THAN -> getCriteria(part, property, v1, null, parameters, FilterOperation.GT);
             case GREATER_THAN_EQUAL -> getCriteria(part, property, v1, null, parameters, FilterOperation.GTEQ);
             case BEFORE, LESS_THAN -> getCriteria(part, property, v1, null, parameters, FilterOperation.LT);
             case LESS_THAN_EQUAL -> getCriteria(part, property, v1, null, parameters, FilterOperation.LTEQ);
-            case BETWEEN -> getCriteria(part, property, v1, parameters.next(), parameters, FilterOperation.BETWEEN);
+            case BETWEEN -> getCriteria(part, property, v1, convertIfNecessary(parameters.next()), parameters,
+                FilterOperation.BETWEEN);
             case LIKE, REGEX -> getCriteria(part, property, v1, null, parameters, FilterOperation.LIKE);
             case STARTING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.STARTS_WITH);
             case ENDING_WITH -> getCriteria(part, property, v1, null, parameters, FilterOperation.ENDS_WITH);
@@ -131,6 +124,17 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case IS_NULL -> getCriteria(part, property, null, null, parameters, IS_NULL);
             default -> throw new IllegalArgumentException("Unsupported keyword '" + part.getType() + "'");
         };
+    }
+
+    private Object convertIfNecessary(Object obj) {
+        if (obj == null || obj instanceof AerospikeMapCriteria) {
+            return obj;
+        }
+
+        // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
+        final Object value = obj;
+        TypeInformation<?> valueType = TypeInformation.of(value.getClass());
+        return converter.toWritableValue(value, valueType);
     }
 
     public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
@@ -159,7 +163,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             parameters.forEachRemaining(params::add);
 
             if (params.size() == 1) { // more than 1 parameter (values) provided, the first is stored in value1
-                Object nextParam = params.get(0); // nextParam is de facto the second
+                Object nextParam = convertIfNecessary(params.get(0)); // nextParam is de facto the second
                 if (op == FilterOperation.CONTAINING) {
                     if (nextParam instanceof AerospikeMapCriteria onMap) {
                         switch (onMap) {

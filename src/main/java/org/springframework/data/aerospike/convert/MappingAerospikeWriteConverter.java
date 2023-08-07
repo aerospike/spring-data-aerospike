@@ -182,10 +182,9 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         return basicTargetType
             .<Object>map(aClass -> conversionService.convert(value, aClass))
             .orElseGet(() -> convertCustomType(value, valueType));
-
     }
 
-    private List<Object> convertCollection(final Collection<?> source, final TypeInformation<?> type) {
+    protected List<Object> convertCollection(final Collection<?> source, final TypeInformation<?> type) {
         Assert.notNull(source, "Given collection must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
@@ -206,7 +205,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             }
 
             if (!conversions.isSimpleType(key.getClass())) {
-                throw new MappingException("Cannot use a complex object as a key value.");
+                throw new MappingException("Cannot use a complex object as a map key");
             }
 
             String simpleKey;
@@ -225,7 +224,12 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         Assert.notNull(source, "Given map must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(source.getClass());
+        AerospikePersistentEntity<?> entity;
+        try {
+            entity = mappingContext.getRequiredPersistentEntity(source.getClass());
+        } catch (Exception e) {
+            throw new AerospikeException("Exception while getting persistent entity", e);
+        }
         ConvertingPropertyAccessor<?> accessor =
             new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 

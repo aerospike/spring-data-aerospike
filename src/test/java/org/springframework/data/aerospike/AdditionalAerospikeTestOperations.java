@@ -31,6 +31,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.aerospike.client.Value.get;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RequiredArgsConstructor
@@ -140,7 +141,7 @@ public abstract class AdditionalAerospikeTestOperations {
     public void addNewFieldToSavedDataInAerospike(Key key) {
         Record initial = client.get(new Policy(), key);
         Bin[] bins = Stream.concat(
-            initial.bins.entrySet().stream().map(e -> new Bin(e.getKey(), e.getValue())),
+            initial.bins.entrySet().stream().map(e -> new Bin(e.getKey(), get(e.getValue()))),
             Stream.of(new Bin("notPresent", "cats"))).toArray(Bin[]::new);
 
         WritePolicy policy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
