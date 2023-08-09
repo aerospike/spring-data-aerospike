@@ -29,7 +29,16 @@ public class Person {
 
     @Id
     String id;
-    Person friend;
+    Friend friend;
+}
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Data
+@Document
+public class Friend {
+
     @Indexed(type = IndexType.STRING, name = "friend_address_keys_idx", bin = "friend",
     collectionType = IndexCollectionType.MAPKEYS, ctx = "address")
     Address address;
@@ -47,7 +56,7 @@ public class Address {
 
 @Test
 void test() {
-    Person carter = new Person();
+    Friend carter = new Friend();
     carter.setAddress("Street", 14, "1234567890", "City");
     repository.save(carter);
 
@@ -57,8 +66,10 @@ void test() {
 }
 ----
 
-A `Person` object in this example has fields "friend" (another `Person` object) and "address" (`Address` object).
-So when "friend" field is set to another `Person` with existing `Address`, we have a person with a friend who has a particular address (`dave` in the example above).
+A `Person` object in this example has a field called "friend" (`Friend` object).
+A `Friend` object has a field called "address" (`Address` object).
+So when "friend" field is set to a `Friend` with existing `Address`, we have a person with a friend who has
+a particular address (`dave` in the example above).
 
 `Address` object on its own has certain fields: `street`, `apartment`, `zipCode`, `city`.
 
@@ -77,17 +88,17 @@ The document path is described as dot-separated context elements (e.g., "a.b.[2]
 [width="100%",cols="<14%,<24%,<18%",options="header",]
 |===
 |Path Element      |Matches                             |Notes
-|"a"               |Map key “a”                         |Single element by key
-|"1" or '1'        |Map key (numeric string) “1”        |
-|1                 |Map key (integer) 1                 |
-|\{1\}             |Map index 1                         |
-|{=1}              |Map value (integer) 1               |
-|{=bb}             |Map value “bb”                      |Also {="bb"}
-|{="1"} or {='1'}  |Map value (string) “1”              |
-|{#1}              |Map rank 1                          |
-|[1]               |List index 1                        |
-|[=1]              |List value 1                        |
-|[#1]              |List rank 1                         |
+|`"a"`               |Map key “a”                         |Single element by key
+|`"1"` or `'1'`        |Map key (numeric string) “1”        |
+|`1`                 |Map key (integer) 1                 |
+|`\{1\}`             |Map index 1                         |
+|`{=1}`              |Map value (integer) 1               |
+|`{=bb}`             |Map value “bb”                      |Also {="bb"}
+|`{="1"}` or `{='1'}`  |Map value (string) “1”              |
+|`{#1}`              |Map rank 1                          |
+|`[1]`               |List index 1                        |
+|`[=1]`              |List value 1                        |
+|`[#1]`             |List rank 1                         |
 |===
 
 === Example
