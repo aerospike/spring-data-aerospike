@@ -32,11 +32,9 @@ public class Person {
     Friend friend;
 }
 
-@AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Data
-@Document
 public class Friend {
 
     @Indexed(type = IndexType.STRING, name = "friend_address_keys_idx", bin = "friend",
