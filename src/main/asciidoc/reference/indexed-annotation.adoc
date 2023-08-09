@@ -56,7 +56,6 @@ public class Address {
 void test() {
     Friend carter = new Friend();
     carter.setAddress(new Address("Street", 14, "1234567890", "City"));
-    repository.save(carter);
 
     Person dave = new Person();
     dave.setFriend(carter);
@@ -85,18 +84,18 @@ The document path is described as dot-separated context elements (e.g., "a.b.[2]
 
 [width="100%",cols="<14%,<24%,<18%",options="header",]
 |===
-|Path Element      |Matches                             |Notes
-|`"a"`               |Map key “a”                         |Single element by key
-|`"1"` or `'1'`        |Map key (numeric string) “1”        |
-|`1`                 |Map key (integer) 1                 |
-|`\{1\}`             |Map index 1                         |
-|`{=1}`              |Map value (integer) 1               |
-|`{=bb}`             |Map value “bb”                      |Also {="bb"}
-|`{="1"}` or `{='1'}`  |Map value (string) “1”              |
-|`{#1}`              |Map rank 1                          |
-|`[1]`               |List index 1                        |
-|`[=1]`              |List value 1                        |
-|`[#1]`             |List rank 1                         |
+|Path Element         |Matches                             |Notes
+|`"a"`                |Map key “a”                         |Single element by key
+|`"1"` or `'1'`       |Map key (numeric string) “1”        |
+|`1`                  |Map key (integer) 1                 |
+|`\{1\}`              |Map index 1                         |
+|`{=1}`               |Map value (integer) 1               |
+|`{=bb}`              |Map value “bb”                      |Also {="bb"}
+|`{="1"}` or `{='1'}` |Map value (string) “1”              |
+|`{#1}`               |Map rank 1                          |
+|`[1]`                |List index 1                        |
+|`[=1]`               |List value 1                        |
+|`[#1]`               |List rank 1                         |
 |===
 
 === Example
