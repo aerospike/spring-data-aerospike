@@ -1,4 +1,4 @@
-[[secondary.indexes]]
+[[secondary-indexes]]
 = Secondary indexes
 
 A secondary index (SI) is a data structure that locates all the records in a namespace, or a set within it, based on a bin value in the record.
@@ -73,7 +73,7 @@ public class AerospikeIndexConfiguration {
 == Creating Secondary Index using @Indexed annotation
 
 You can use `@Indexed` annotation on the field where the index is required.
-Here is an example of the `Person` object:
+Here is an example of the `Person` object getting indexed by `lastName`:
 
 [source,java]
 ----
@@ -90,6 +90,9 @@ public class Person {
     private Date dateOfBirth;
 }
 ----
+
+The annotation allows to specify also bin name, collectionType and ctx (context) if needed.
+For the details on using `@Indexed` annotation see <<indexed-annotation, Indexed Annotation>>.
 
 == Matching the Secondary Index
 
