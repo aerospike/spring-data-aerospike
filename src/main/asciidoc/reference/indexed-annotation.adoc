@@ -55,7 +55,7 @@ public class Address {
 @Test
 void test() {
     Friend carter = new Friend();
-    carter.setAddress("Street", 14, "1234567890", "City");
+    carter.setAddress(new Address("Street", 14, "1234567890", "City"));
     repository.save(carter);
 
     Person dave = new Person();
