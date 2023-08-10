@@ -95,6 +95,19 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return query;
     }
 
+    Class<?> getTargetClass(ParametersParameterAccessor accessor) {
+        // Dynamic projection
+        if (accessor.getParameters().hasDynamicProjection()) {
+            return accessor.findDynamicProjection();
+        }
+        // DTO projection
+        if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
+            return queryMethod.getReturnedObjectType();
+        }
+        // No projection - target class will be the entity class.
+        return queryMethod.getEntityInformation().getJavaType();
+    }
+
     public Query createQuery(ParametersParameterAccessor accessor, PartTree tree) {
         Constructor<? extends AbstractQueryCreator<?, ?>> constructor = ClassUtils
             .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class);

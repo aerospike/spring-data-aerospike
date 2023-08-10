@@ -64,19 +64,6 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         return findByQuery(query, targetClass);
     }
 
-    private Class<?> getTargetClass(ParametersParameterAccessor accessor) {
-        // Dynamic projection
-        if (accessor.getParameters().hasDynamicProjection()) {
-            return accessor.findDynamicProjection();
-        }
-        // DTO projection
-        if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
-            return queryMethod.getReturnedObjectType();
-        }
-        // No projection - target class will be the entity class.
-        return queryMethod.getEntityInformation().getJavaType();
-    }
-
     private Flux<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
         if (targetClass != queryMethod.getEntityInformation().getJavaType()) {
