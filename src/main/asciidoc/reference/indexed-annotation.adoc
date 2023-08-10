@@ -20,6 +20,25 @@ Here is an example of creating a complex secondary index for fields of a person'
 
 [source,java]
 ----
+@Data
+@AllArgsConstructor
+public class Address {
+
+    private String street;
+    private Integer apartment;
+    private String zipCode;
+    private String city;
+}
+
+@NoArgsConstructor
+@Setter
+@Data
+public class Friend {
+
+    String name;
+    Address address;
+}
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
@@ -29,27 +48,9 @@ public class Person {
 
     @Id
     String id;
-    Friend friend;
-}
-
-@NoArgsConstructor
-@Setter
-@Data
-public class Friend {
-
-    @Indexed(type = IndexType.STRING, name = "friend_address_keys_idx", bin = "friend",
+    @Indexed(type = IndexType.STRING, name = "friend_address_keys_idx",
     collectionType = IndexCollectionType.MAPKEYS, ctx = "address")
-    Address address;
-}
-
-@Data
-@AllArgsConstructor
-public class Address {
-
-    private String street;
-    private Integer apartment;
-    private String zipCode;
-    private String city;
+    Friend friend;
 }
 
 @Test
