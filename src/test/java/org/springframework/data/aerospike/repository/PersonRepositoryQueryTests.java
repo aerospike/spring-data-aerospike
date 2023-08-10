@@ -1135,9 +1135,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = (List<Person>) repository.findAllById(List.of(dave.getId(), boyd.getId()));
 
         assertThat(result)
-            .hasSize(2)
-            .contains(dave)
-            .doesNotContain(oliver, carter, alicia);
+            .containsOnly(dave, boyd);
     }
 
     @Test
@@ -1145,7 +1143,6 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> result = repository.findByLastName("Beauford");
 
         assertThat(result)
-            .hasSize(1)
             .containsOnly(carter);
     }
 
@@ -1154,8 +1151,23 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
 
         assertThat(result)
-            .hasSize(1)
             .containsOnly(carter.toPersonSomeFields());
+    }
+
+    @Test
+    public void findPersonsSomeFieldsByIdProjection() {
+        List<PersonSomeFields> result = repository.findPersonSomeFieldsById(carter.getId());
+
+        assertThat(result)
+            .containsOnly(carter.toPersonSomeFields());
+    }
+
+    @Test
+    public void findPersonsSomeFieldsByIdsProjection() {
+        List<PersonSomeFields> result = repository.findPersonSomeFieldsById(carter.getId(), dave.getId(), boyd.getId());
+
+        assertThat(result)
+            .containsOnly(carter.toPersonSomeFields(), dave.toPersonSomeFields(), boyd.toPersonSomeFields());
     }
 
     @Test

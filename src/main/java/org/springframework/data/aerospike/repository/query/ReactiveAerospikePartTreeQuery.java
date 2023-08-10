@@ -22,6 +22,8 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import reactor.core.publisher.Flux;
 
+import java.util.Arrays;
+
 /**
  * @author Igor Ermolenko
  */
@@ -42,6 +44,23 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
         Query query = prepareQuery(parameters, accessor);
         Class<?> targetClass = getTargetClass(accessor);
+
+        if (isIdProjectionQuery(targetClass, parameters, (AerospikeCriteria) query.getCriteria())) {
+            Object accessorValue = accessor.getBindableValue(0);
+            Object result;
+            if (accessorValue == null) {
+                throw new IllegalStateException("Parameters accessor value is null while parameters quantity is > 0");
+            } else if (accessorValue.getClass().isArray()) {
+                result = aerospikeOperations.findByIds(Arrays.stream(((Object[]) accessorValue)).toList(),
+                    sourceClass, targetClass);
+            } else if (accessorValue instanceof Iterable<?>) {
+                result = aerospikeOperations.findByIds((Iterable<?>) accessorValue, sourceClass, targetClass);
+            } else {
+                result = aerospikeOperations.findById(accessorValue, sourceClass, targetClass);
+            }
+            return result;
+        }
+
         return findByQuery(query, targetClass);
     }
 

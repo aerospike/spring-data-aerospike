@@ -42,6 +42,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     // DTO Projection
     List<PersonSomeFields> findPersonSomeFieldsByLastName(String lastName);
 
+    List<PersonSomeFields> findPersonSomeFieldsById(String id);
+
+    List<PersonSomeFields> findPersonSomeFieldsById(String... ids);
+
     // Dynamic Projection
     <T> List<T> findByLastName(String lastName, Class<T> type);
 
