@@ -39,7 +39,7 @@ import java.util.Set;
  */
 public class Qualifier implements Map<String, Object>, Serializable {
 
-    protected static final String FIELD = "field";
+    public static final String FIELD = "field";
     protected static final String IGNORE_CASE = "ignoreCase";
     protected static final String VALUE1 = "value1";
     protected static final String VALUE2 = "value2";
