@@ -3,9 +3,7 @@ package org.springframework.data.aerospike.repository.query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -17,8 +15,6 @@ import org.springframework.data.repository.query.parser.PartTree;
 public class AerospikeQueryCreatorUnitTests {
 
     AerospikeMappingContext context;
-    @Mock
-    AerospikeConverter converter;
     AutoCloseable openMocks;
 
     @BeforeEach
@@ -36,8 +32,7 @@ public class AerospikeQueryCreatorUnitTests {
     public void createsQueryCorrectly() {
         PartTree tree = new PartTree("findByFirstName", Person.class);
 
-        AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor(converter,
-            "Oliver"), context);
+        AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor("Oliver"), context);
         Query query = creator.createQuery();
     }
 
@@ -45,8 +40,7 @@ public class AerospikeQueryCreatorUnitTests {
     public void createQueryByInList() {
         PartTree tree = new PartTree("findByFirstNameOrFriend", Person.class);
 
-        AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor(converter,
-            new String[]{"Oliver", "Peter"}), context);
+        AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor("Oliver", "Peter"), context);
         Query query = creator.createQuery();
     }
 }

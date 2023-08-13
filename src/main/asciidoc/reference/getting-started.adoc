@@ -127,3 +127,4 @@ There are 2 important things to notice here:
 [arabic]
 . The fully qualified path of the class is listed in each record. This is needed to instantiate the class correctly, especially in cases where the compile-time type and runtime type of the object differ. For example, where a field is declared as a super class but the instantiated class is a subclass.
 . The `long` id field was turned into a `String` when stored in the database. All `@Id` fields must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using an external tool like `AQL` to view the data.
+

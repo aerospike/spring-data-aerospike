@@ -1,7 +1,7 @@
 [[aerospike.functionality]]
-= Aerospike Support
+= Aerospike Functionality
 
-Aerospike support contains a wide range of features summarized below:
+Aerospike supports a wide range of features summarized below:
 
 * Feature Rich Object Mapping integrated with Spring's Conversion Service
 * Automatic implementation of Repository interfaces including support for custom finder methods
@@ -14,7 +14,7 @@ Aerospike support contains a wide range of features summarized below:
 
 Spring Data Aerospike uses Java Client, Aerospike’s Java client enables you to build applications in Java that store and retrieve data from an Aerospike cluster. It contains both synchronous and asynchronous calls to the database.
 
-The Java Client runs on any platform with Java 1.6 version and above.
+The Java Client runs on any platform with Java 1.8 version and above.
 
 First, you need to set up a running Aerospike server.
 
@@ -100,14 +100,14 @@ public class Person {
 	 public final int age;
 
 	 public Person(String id, String name, int age) {
-	  this.id = id;
-	  this.name = name;
-	  this.age = age;
+            this.id = id;
+            this.name = name;
+            this.age = age;
 	 }
 
 	 @Override
 	 public String toString() {
-	  return "Person [id=" + id + ", name=" + name + ", age=" + age + "]";
+            return "Person [id=" + id + ", name=" + name + ", age=" + age + "]";
 	 }
 }
 ----

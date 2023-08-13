@@ -4,7 +4,7 @@ Spring Data Aerospike supports defining queries by method name in the Repository
 
 Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`. For example, `countByLastName`, `findByFirstName` etc.
 
-include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
+For more details refer to SpringData documentation: <<query-by-example, Query By Example>>.
 
 [width="100%",cols="<12%,<25%,<25%",options="header",]
 |===
@@ -29,7 +29,11 @@ include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
 
 |Before |findByDateOfBirthBefore |...where x.dateOfBirth < ?
 
-|Like |findByLastNameLike |...where x.lastName like ?
+|Like, MatchesRegex |findByLastNameLike
+
+findByLastNameMatchesRegex
+
+|...where x.lastName like ?
 
 |StartingWith |findByLastNameStartingWith |...where x.lastName like 'abc%'
 
@@ -47,11 +51,39 @@ include::{spring-data-commons-docs}/query-by-example.adoc[leveloffset=+1]
 
 |Not In |findByLastNameNotIn(Collection<String>) |...where x.lastName not in ?
 
+|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
+
+|Exists
+
+IsNotNull
+
+|findByAddressExists()
+
+findByObjectIsNotNull()
+
+findByObjectFieldExists()
+
+|...where address exists and != null
+
+...where object exists and != null
+
+...where object.field exists and != null
+
+("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably as bins/fields exist when have a value not equal to null)
+
+|IsNull |findByObjectIsNull()
+
+findByObjectFieldIsNull()
+
+|...where object = null
+
+...where object.field = null
+
+(bins/fields exist when have a value not equal to null)
+
 |True |findByEnabledTrue() |...where x.enabled = true
 
 |False |findByOptOutFalse() |...where x.optOut = false
-
-|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
 |===
 
 An example of an interface with several query methods is:
@@ -79,4 +111,6 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 |Top |findTopByLastNameStartingWith | select top 1 where x.lastName like 'abc%' = ?
 
 |Top N |findTop4ByLastNameStartingWith | select top 4  where x.lastName like 'abc%'
+
+|Distinct | findDistinctByFirstNameContaining | select distinct ... where x.firstName like 'abc%'
 |===

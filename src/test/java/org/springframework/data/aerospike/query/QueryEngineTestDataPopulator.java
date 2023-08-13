@@ -5,6 +5,7 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
+import com.aerospike.client.Value;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
@@ -87,7 +88,7 @@ public class QueryEngineTestDataPopulator {
             longList.add(SKIP_LONG_VALUE);
 
             Bin name = new Bin("name", "name:" + x);
-            Bin age = new Bin("age", AGES[i]);
+            Bin age = new Bin("age", Value.get(AGES[i]));
             Bin colour = new Bin("color", COLOURS[i]);
             Bin animal = new Bin("animal", ANIMALS[i]);
             Bin modTen = new Bin("modten", i % 10);

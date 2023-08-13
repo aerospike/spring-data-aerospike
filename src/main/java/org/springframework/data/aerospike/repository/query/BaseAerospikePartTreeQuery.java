@@ -64,13 +64,15 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             query.setOffset(accessor.getPageable().getOffset());
             query.setRows(accessor.getPageable().getPageSize());
         } else {
-            if (tree.isLimiting()) {
+            if (tree.isLimiting()) { // whether it contains "first"/"top"
                 query.limit(tree.getMaxResults());
             } else {
                 query.setOffset(-1);
                 query.setRows(-1);
             }
         }
+
+        query.setDistinct(tree.isDistinct());
 
         if (accessor.getSort().isSorted()) {
             query.setSort(accessor.getSort());

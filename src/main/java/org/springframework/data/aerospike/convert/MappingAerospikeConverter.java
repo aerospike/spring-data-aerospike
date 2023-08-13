@@ -84,8 +84,4 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
     public Object toWritableValue(Object source, TypeInformation<?> type) {
         return writeConverter.getValueToWrite(source, type);
     }
-
-    public Map<String, Object> toWritableMap(Map<Object, Object> source) {
-        return writeConverter.convertMap(source, TypeInformation.MAP);
-    }
 }

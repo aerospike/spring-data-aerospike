@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
@@ -63,6 +64,21 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFirstNameLikeIgnoreCase(String firstNameRegex);
 
     List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
+
+    /**
+     * Find all entities with firstName matching the given regex. POSIX Extended Regular Expression syntax is used to
+     * interpret the regex.
+     * The same as {@link #findByFirstNameLike(String)}
+     *
+     * @param firstNameRegex Regex to find matching firstName
+     */
+    List<P> findByFirstNameMatchesRegex(String firstNameRegex);
+
+    List<P> findByFirstNameMatches(String firstNameRegex);
+
+    List<P> findByFirstNameRegex(String firstNameRegex);
+
+    List<P> findByFirstNameMatchesRegexIgnoreCase(String firstNameRegex);
 
     /**
      * Find all entities with age less than the given numeric parameter
@@ -136,6 +152,27 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByAddressIsNot(Address address);
 
+    List<P> findByAddressExists();
+
+    List<P> findByAddressZipCodeExists();
+
+    List<P> findByAddressIsNotNull();
+
+    List<P> findByAddressIsNull();
+
+    List<P> findByAddressZipCodeIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with zipCode
+     * which is not null" (find by nested POJO field)
+     */
+    List<P> findByFriendBestFriendAddressZipCodeIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have address with existing zipCode"
+     */
+    List<P> findByAddressZipCodeIsNotNull();
+
     /**
      * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding key-value
      * lower in ordering than in the given argument" (find by POJO).
@@ -146,7 +183,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByAddressLessThan(Address address);
 
-    List<P> findByAddressZipCode(String zipCode);
+    List<P> findByAddressZipCode(@NotNull String zipCode);
 
     List<P> findByAddressZipCodeContaining(String str);
 
@@ -207,11 +244,15 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameNotIgnoreCase(String firstName);
 
-    List<P> findByFirstNameStartingWithIgnoreCase(String firstName);
+    List<P> findByFirstNameStartingWithIgnoreCase(String string);
 
-    List<P> findByFirstNameEndingWithIgnoreCase(String firstName);
+    List<P> findDistinctByFirstNameStartingWith(String string);
 
-    List<P> findByFirstNameContainingIgnoreCase(String firstName);
+    List<P> findDistinctByFirstNameContaining(String string);
+
+    List<P> findByFirstNameEndingWithIgnoreCase(String string);
+
+    List<P> findByFirstNameContainingIgnoreCase(String string);
 
     /**
      * Find all entities with age greater than the given numeric parameter
@@ -316,20 +357,28 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param value     map value
+     * @param element   map value
      * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
      *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
-    List<P> findByStringMapContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
 
     /**
      * Find all entities that do not contain the given map element (key or value depending on the given criterion)
      *
-     * @param value     map value
+     * @param element   map value
      * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
      *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
      */
-    List<P> findByStringMapNotContaining(String value, CriteriaDefinition.AerospikeMapCriteria criterion);
+    List<P> findByStringMapNotContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
+
+    /**
+     * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
+     *
+     * @param key   Map key
+     * @param value String to check whether map value is not equal to it
+     */
+    List<P> findByStringMapNotContaining(String key, @NotNull String value);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
@@ -455,13 +504,15 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByStringMapLike(String key, String valueRegex);
 
+    List<P> findByStringMapMatchesRegex(String key, String valueRegex);
+
     /**
      * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
      *
      * @param key   Map key
      * @param value String to check if map value equals it
      */
-    List<P> findByStringMapContaining(String key, String value);
+    List<P> findByStringMapContaining(String key, @NotNull String value);
 
     /**
      * Find all entities that satisfy the condition "have the given map key3 and the value3 equal to the given strings"
@@ -657,7 +708,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      *
      * @param zipCode - Zip code to check for equality
      */
-    List<P> findByFriendBestFriendAddressZipCode(String zipCode);
+    List<P> findByFriendBestFriendAddressZipCode(@NotNull String zipCode);
 
     /**
      * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with apartment
@@ -926,9 +977,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
-    List<P> findByFirstName(String string);
+    List<P> findByFirstName(String name);
 
-    List<P> findByFirstNameNot(String string);
+    List<P> findByFirstNameNot(String name);
 
     /**
      * Find all entities that satisfy the condition "have firstName higher in ordering than the given string".
@@ -950,6 +1001,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendFirstNameStartsWith(String string);
 
     /**
+     * Distinct query for nested objects is currently not supported
+     */
+    List<P> findDistinctByFriendFirstNameStartsWith(String string);
+
+    /**
      * Find all entities that satisfy the condition "have a friend with lastName matching the giving regex". POSIX
      * Extended Regular Expression syntax is used to interpret the regex.
      *
@@ -957,6 +1013,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByFriendLastNameLike(String lastNameRegex);
 
+    List<P> findByFriendLastNameMatchesRegex(String lastNameRegex);
 
     /**
      * Find all entities that satisfy the condition "have age in the given range ordered by last name"

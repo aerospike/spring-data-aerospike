@@ -4,7 +4,7 @@
 [[aerospike-repo-intro]]
 == Introduction
 
-This chapter will point out the specialties for repository support for Aerospike. This builds on the https://docs.spring.io/spring-data/data-commons/docs/1.6.1.RELEASE/reference/html/repositories.html[core SpringData repository support], so make sure you've got a sound understanding of the basic concepts explained there.
+This chapter will point out the specialties for repository support for Aerospike. This builds on the <<repositories, Core SpringData Repository Support>>, so make sure you've got a sound understanding of the basic concepts explained there.
 
 [[aerospike-repo-usage]]
 == Usage
@@ -159,6 +159,7 @@ public class RepositoryExample {
 	AerospikeOperations aerospikeOperations;
 	@Autowired
 	AerospikeClient client;
+
 	/**
 	 * @param ctx
 	 */
@@ -167,9 +168,7 @@ public class RepositoryExample {
 		repository = (PersonRepository) ctx.getBean("personRepository");
 		client = ctx.getBean(AerospikeClient.class);
 	}
-	/**
-	 * @param args
-	 */
+
 	protected void setUp() {
 		repository.deleteAll();
 		Person dave = new Person("Dave-01", "Matthews", 42);
@@ -187,15 +186,10 @@ public class RepositoryExample {
 				dave, donny, carter, boyd, stefan, leroi, leroi2, alicia));
 	}
 
-	/**
-	 * @param args
-	 */
 	protected void cleanUp() {
 		repository.deleteAll();
 	}
-	/**
-	 * 
-	 */
+
 	protected void executeRepositoryCall() {
 		List<Person> result = repository.findByName("Beauford");
 		System.out.println("Results for exact match of 'Beauford'");
@@ -208,8 +202,8 @@ public class RepositoryExample {
 			System.out.println(person.toString());
 		}
 	}
-	public static void main(String[] args) {
 
+	public static void main(String[] args) {
 		ApplicationContext ctx = new AnnotationConfigApplicationContext(
 				TestRepositoryConfig.class);
 		RepositoryExample repositoryExample = new RepositoryExample(ctx);

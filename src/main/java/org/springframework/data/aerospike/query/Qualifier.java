@@ -89,8 +89,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
         return (Value) internalMap.get(VALUE2);
     }
 
-    public Value getValue3() {
-        return (Value) internalMap.get(VALUE3);
+    public String getDotPath() {
+        return (String) internalMap.get(DOT_PATH);
     }
 
     public Filter asFilter() {

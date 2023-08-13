@@ -63,6 +63,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,7 +71,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static org.springframework.data.aerospike.core.OperationUtils.operations;
+import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
+import static org.springframework.data.aerospike.core.CoreUtils.operations;
+import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -822,7 +825,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     <T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Stream<?> results = findAllUsingQuery(entityClass, targetClass, null, qualifier);
+        Stream<?> results = findAllUsingQueryWithDistinctPredicate(entityClass, targetClass,
+            getDistinctPredicate(query), qualifier);
         return applyPostProcessingOnResults(results, query);
     }
 
@@ -835,23 +839,25 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return applyPostProcessingOnResults(results, sort, offset, limit);
     }
 
-    private void verifyUnsortedWithOffset(Sort sort, long offset) {
-        if ((sort == null || sort.isUnsorted())
-            && offset > 0) {
-            throw new IllegalArgumentException("Unsorted query must not have offset value. " +
-                "For retrieving paged results use sorted query.");
+    <T, S> Object mapToEntity(KeyRecord keyRecord, Class<T> entityClass, Class<S> targetClass) {
+        if (targetClass != null) {
+            return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
         }
+        return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
     }
 
     <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                        Qualifier... qualifiers) {
         return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
-            .map(keyRecord -> {
-                if (targetClass != null) {
-                    return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
-                }
-                return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
-            });
+            .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
+    }
+
+    <T, S> Stream<?> findAllUsingQueryWithDistinctPredicate(Class<T> entityClass, Class<S> targetClass,
+                                                            Predicate<KeyRecord> distinctPredicate,
+                                                            Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(entityClass, targetClass, null, qualifiers)
+            .filter(distinctPredicate)
+            .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
     }
 
     private <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
