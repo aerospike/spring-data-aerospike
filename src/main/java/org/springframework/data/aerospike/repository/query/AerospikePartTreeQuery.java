@@ -24,6 +24,7 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -52,11 +53,28 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
         Class<?> targetClass = getTargetClass(accessor);
 
+        // "findById" has its own processing flow
+        if (isIdProjectionQuery(targetClass, parameters, query.getAerospikeCriteria())) {
+            Object accessorValue = accessor.getBindableValue(0);
+            Object result;
+            if (accessorValue == null) {
+                throw new IllegalStateException("Parameters accessor value is null while parameters quantity is > 0");
+            } else if (accessorValue.getClass().isArray()) {
+                result = aerospikeOperations.findByIds(Arrays.stream(((Object[]) accessorValue)).toList(),
+                    sourceClass, targetClass);
+            } else if (accessorValue instanceof Iterable<?>) {
+                result = aerospikeOperations.findByIds((Iterable<?>) accessorValue, sourceClass, targetClass);
+            } else {
+                result = aerospikeOperations.findById(accessorValue, sourceClass, targetClass);
+            }
+            return result;
+        }
+
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
             Stream<?> result = findByQuery(query, targetClass);
             List<?> results = result.toList();
             Pageable pageable = accessor.getPageable();
-            long numberOfAllResults = aerospikeOperations.count(query, queryMethod.getEntityInformation().getJavaType());
+            long numberOfAllResults = aerospikeOperations.count(query, sourceClass);
 
             if (queryMethod.isSliceQuery()) {
                 boolean hasNext = numberOfAllResults > pageable.getPageSize() * (pageable.getOffset() + 1);
@@ -75,25 +93,12 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " not supported.");
     }
 
-    private Class<?> getTargetClass(ParametersParameterAccessor accessor) {
-        // Dynamic projection
-        if (accessor.getParameters().hasDynamicProjection()) {
-            return accessor.findDynamicProjection();
-        }
-        // DTO projection
-        if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
-            return queryMethod.getReturnedObjectType();
-        }
-        // No projection - target class will be the entity class.
-        return queryMethod.getEntityInformation().getJavaType();
-    }
-
     private Stream<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
-        if (targetClass != queryMethod.getEntityInformation().getJavaType()) {
+        if (targetClass != sourceClass) {
             return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(), targetClass);
         }
         // Run query and map to entity class type.
-        return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
+        return aerospikeOperations.find(query, sourceClass);
     }
 }
