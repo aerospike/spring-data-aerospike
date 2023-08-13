@@ -1180,6 +1180,23 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findDynamicTypeByIdDynamicProjection() {
+        List<PersonSomeFields> result = repository.findById(dave.getId(), PersonSomeFields.class);
+
+        assertThat(result)
+            .containsOnly(dave.toPersonSomeFields());
+    }
+
+    @Test
+    public void findDynamicTypeByIdsDynamicProjection() {
+        List<PersonSomeFields> result = repository.findById(List.of(boyd.getId(), dave.getId()),
+            PersonSomeFields.class);
+
+        assertThat(result)
+            .containsOnly(boyd.toPersonSomeFields(), dave.toPersonSomeFields());
+    }
+
+    @Test
     public void findPersonsByFriendAge() {
         oliver.setFriend(alicia);
         repository.save(oliver);
