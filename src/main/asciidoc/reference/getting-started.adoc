@@ -9,7 +9,7 @@ To use Spring Data Aerospike in your project, the first step is to add it to you
 <dependency>
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>4.3.0</version>
+    <version>4.4.0</version>
 </dependency>
 ----
 
@@ -17,7 +17,7 @@ For Gradle:
 
 [source, text]
 ----
-implementation group: 'com.aerospike', name: 'spring-data-aerospike', version: '4.3.0'
+implementation group: 'com.aerospike', name: 'spring-data-aerospike', version: '4.4.0'
 ----
 
 == Connecting to Aerospike DB

@@ -1,7 +1,7 @@
 [[indexed-annotation]]
 = Indexed Annotation
 
-The `@Indexed` annotation allows to create secondary index on a specific field of a Java object.
+The `@Indexed` annotation allows to create secondary index based on a specific field of a Java object.
 For the details on secondary indexes in Aerospike see <<secondary-indexes, Secondary Indexes>>.
 
 The annotation allows to specify the following parameters:
