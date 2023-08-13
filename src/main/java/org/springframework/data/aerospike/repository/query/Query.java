@@ -55,10 +55,17 @@ public class Query {
     }
 
     /**
-     * Get the criteria object.
+     * Get the CriteriaDefinition object.
      */
     public CriteriaDefinition getCriteria() {
         return criteria;
+    }
+
+    /**
+     * Get the CriteriaDefinition object cast to AerospikeCriteria.
+     */
+    public AerospikeCriteria getAerospikeCriteria() {
+        return (AerospikeCriteria) criteria;
     }
 
     /**

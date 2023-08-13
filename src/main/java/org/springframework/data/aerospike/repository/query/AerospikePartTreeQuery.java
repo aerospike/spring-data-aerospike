@@ -53,7 +53,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
         Class<?> targetClass = getTargetClass(accessor);
 
-        if (isIdProjectionQuery(targetClass, parameters, (AerospikeCriteria) query.getCriteria())) {
+        // "findById" has its own processing flow
+        if (isIdProjectionQuery(targetClass, parameters, query.getAerospikeCriteria())) {
             Object accessorValue = accessor.getBindableValue(0);
             Object result;
             if (accessorValue == null) {
