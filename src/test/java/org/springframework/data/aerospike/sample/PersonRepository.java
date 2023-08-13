@@ -42,8 +42,17 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     // DTO Projection
     List<PersonSomeFields> findPersonSomeFieldsByLastName(String lastName);
 
+    List<PersonSomeFields> findPersonSomeFieldsById(String id);
+
+    List<PersonSomeFields> findPersonSomeFieldsById(String... ids);
+
     // Dynamic Projection
     <T> List<T> findByLastName(String lastName, Class<T> type);
+
+    // Dynamic Projection
+    <T> List<T> findById(String id, Class<T> type);
+
+    <T> List<T> findById(Collection<String> ids, Class<T> type);
 
     Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 
@@ -67,8 +76,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities with firstName matching the given regex. POSIX Extended Regular Expression syntax is used to
-     * interpret the regex.
-     * The same as {@link #findByFirstNameLike(String)}
+     * interpret the regex. The same as {@link #findByFirstNameLike(String)}
      *
      * @param firstNameRegex Regex to find matching firstName
      */

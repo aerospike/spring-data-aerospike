@@ -28,6 +28,9 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
+import java.util.Objects;
+
+import static org.springframework.data.aerospike.query.Qualifier.FIELD;
 
 /**
  * @author Peter Milne
@@ -37,6 +40,7 @@ import java.lang.reflect.Constructor;
 public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
     protected final QueryMethod queryMethod;
+    protected final Class<?> sourceClass;
     private final QueryMethodEvaluationContextProvider evaluationContextProvider;
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
@@ -46,6 +50,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         this.queryMethod = queryMethod;
         this.evaluationContextProvider = evalContextProvider;
         this.queryCreator = queryCreator;
+        this.sourceClass = queryMethod.getEntityInformation().getJavaType();
     }
 
     @Override
@@ -54,10 +59,10 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     }
 
     protected Query prepareQuery(Object[] parameters, ParametersParameterAccessor accessor) {
-        PartTree tree = new PartTree(queryMethod.getName(), queryMethod.getEntityInformation().getJavaType());
+        PartTree tree = new PartTree(queryMethod.getName(), sourceClass);
         Query baseQuery = createQuery(accessor, tree);
 
-        AerospikeCriteria criteria = (AerospikeCriteria) baseQuery.getCriteria();
+        AerospikeCriteria criteria = baseQuery.getAerospikeCriteria();
         Query query = new Query(criteria);
 
         if (accessor.getPageable().isPaged()) {
@@ -80,18 +85,35 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             query.setSort(baseQuery.getSort());
         }
 
-        if (query.getCriteria() instanceof SpelExpression) {
+        if (query.getCriteria() instanceof SpelExpression spelExpression) {
             EvaluationContext context = this.evaluationContextProvider.getEvaluationContext(queryMethod.getParameters(),
                 parameters);
-            ((SpelExpression) query.getCriteria()).setEvaluationContext(context);
+            spelExpression.setEvaluationContext(context);
         }
 
         return query;
+    }
+
+    Class<?> getTargetClass(ParametersParameterAccessor accessor) {
+        // Dynamic projection
+        if (accessor.getParameters().hasDynamicProjection()) {
+            return accessor.findDynamicProjection();
+        }
+        // DTO projection
+        if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
+            return queryMethod.getReturnedObjectType();
+        }
+        // No projection - target class will be the entity class.
+        return queryMethod.getEntityInformation().getJavaType();
     }
 
     public Query createQuery(ParametersParameterAccessor accessor, PartTree tree) {
         Constructor<? extends AbstractQueryCreator<?, ?>> constructor = ClassUtils
             .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class);
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
+    }
+
+    protected static boolean isIdProjectionQuery(Class<?> targetClass, Object[] params, AerospikeCriteria criteria) {
+        return targetClass != null && params != null && params.length > 0 && Objects.equals(criteria.get(FIELD), "id");
     }
 }

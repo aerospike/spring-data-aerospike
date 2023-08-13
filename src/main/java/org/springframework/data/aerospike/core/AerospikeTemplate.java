@@ -106,6 +106,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
+    public IAerospikeClient getAerospikeClient() {
+        return client;
+    }
+
+    @Override
     public <T> void createIndex(Class<T> entityClass, String indexName,
                                 String binName, IndexType indexType) {
         createIndex(entityClass, indexName, binName, indexType, IndexCollectionType.DEFAULT);
@@ -647,11 +652,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         String setName = getSetName(entityClass);
         return count(setName);
-    }
-
-    @Override
-    public IAerospikeClient getAerospikeClient() {
-        return client;
     }
 
     @Override
