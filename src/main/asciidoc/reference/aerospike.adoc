@@ -43,7 +43,9 @@ You can either set up Spring Boot or Spring application. Basic setup of Spring B
 [width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
 |Spring Data Aerospike |Spring Boot |Aerospike Client |Aerospike Reactor Client |Aerospike Server
-|4.3.x, 4.4.x  |3.1.x |6.1.x |6.1.x |5.2.x.x +
+|4.4.x  |3.1.x |7.0.x |7.0.x |5.2.x.x +
+
+|4.3.x  |3.1.x |6.1.x |6.1.x |5.2.x.x +
 
 |4.2.x         |3.0.x |6.1.x |6.1.x |5.2.x.x +
 
