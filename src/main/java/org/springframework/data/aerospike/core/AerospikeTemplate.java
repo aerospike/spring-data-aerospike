@@ -438,17 +438,20 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 policy.filterExp = getQueryEngine().getFilterExpressionsBuilder().build(qualifiers);
             }
 
+            Class<?> classToMap;
             Record[] aeroRecords;
             if (targetClass != null && targetClass != entityClass) {
                 String[] binNames = getBinNamesFromTargetClass(targetClass);
                 aeroRecords = getAerospikeClient().get(policy, keys, binNames);
+                classToMap = targetClass;
             } else {
                 aeroRecords = getAerospikeClient().get(policy, keys);
+                classToMap = entityClass;
             }
 
             return IntStream.range(0, keys.length)
                 .filter(index -> aeroRecords[index] != null)
-                .mapToObj(index -> mapToEntity(keys[index], entityClass, aeroRecords[index]))
+                .mapToObj(index -> mapToEntity(keys[index], classToMap, aeroRecords[index]))
                 .collect(Collectors.toList());
         } catch (AerospikeException e) {
             throw translateError(e);

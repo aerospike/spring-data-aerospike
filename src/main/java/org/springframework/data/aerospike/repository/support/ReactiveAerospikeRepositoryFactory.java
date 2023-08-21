@@ -62,12 +62,12 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
     }
 
     @SuppressWarnings("unchecked")
-    public ReactiveAerospikeRepositoryFactory(ReactiveAerospikeTemplate template,
+    public ReactiveAerospikeRepositoryFactory(ReactiveAerospikeTemplate aerospikeTemplate,
                                               Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         Assert.notNull(aerospikeTemplate, "AerospikeTemplate must not be null!");
         Assert.notNull(queryCreator, "Query creator type must not be null!");
         this.queryCreator = queryCreator;
-        this.aerospikeTemplate = template;
+        this.aerospikeTemplate = aerospikeTemplate;
         this.context = (MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty>)
             aerospikeTemplate.getMappingContext();
     }

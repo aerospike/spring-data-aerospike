@@ -118,12 +118,12 @@ abstract class BaseAerospikeTemplate {
         return (Class<T>) entity.getClass();
     }
 
-    <T> T mapToEntity(Key key, Class<T> type, Record aeroRecord) {
+    <T> T mapToEntity(Key key, Class<T> clazz, Record aeroRecord) {
         if (aeroRecord == null) {
             return null;
         }
         AerospikeReadData data = AerospikeReadData.forRead(key, aeroRecord);
-        return converter.read(type, data);
+        return converter.read(clazz, data);
     }
 
     protected <T> Comparator<T> getComparator(Query query) {

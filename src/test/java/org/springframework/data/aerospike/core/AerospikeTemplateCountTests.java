@@ -169,7 +169,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
     public void countRejectsNullEntityClass() {
         assertThatThrownBy(() -> template.count(null, (Class<?>) null))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Type must not be null!");
+            .hasMessage("Class must not be null!");
     }
 
     @Test

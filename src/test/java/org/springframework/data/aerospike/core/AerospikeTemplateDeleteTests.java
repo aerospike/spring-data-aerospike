@@ -139,6 +139,6 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     public void deleteByType_NullTypeThrowsException() {
         assertThatThrownBy(() -> template.delete(null))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Type must not be null!");
+            .hasMessage("Class must not be null!");
     }
 }
