@@ -16,6 +16,7 @@
 package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
@@ -28,9 +29,8 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
+import java.util.Arrays;
 import java.util.Objects;
-
-import static org.springframework.data.aerospike.query.Qualifier.FIELD;
 
 /**
  * @author Peter Milne
@@ -40,7 +40,7 @@ import static org.springframework.data.aerospike.query.Qualifier.FIELD;
 public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
     protected final QueryMethod queryMethod;
-    protected final Class<?> sourceClass;
+    protected final Class<?> entityClass;
     private final QueryMethodEvaluationContextProvider evaluationContextProvider;
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
@@ -50,7 +50,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         this.queryMethod = queryMethod;
         this.evaluationContextProvider = evalContextProvider;
         this.queryCreator = queryCreator;
-        this.sourceClass = queryMethod.getEntityInformation().getJavaType();
+        this.entityClass = queryMethod.getEntityInformation().getJavaType();
     }
 
     @Override
@@ -59,7 +59,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     }
 
     protected Query prepareQuery(Object[] parameters, ParametersParameterAccessor accessor) {
-        PartTree tree = new PartTree(queryMethod.getName(), sourceClass);
+        PartTree tree = new PartTree(queryMethod.getName(), entityClass);
         Query baseQuery = createQuery(accessor, tree);
 
         AerospikeCriteria criteria = baseQuery.getAerospikeCriteria();
@@ -113,7 +113,62 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
     }
 
-    protected static boolean isIdProjectionQuery(Class<?> targetClass, Object[] params, AerospikeCriteria criteria) {
-        return targetClass != null && params != null && params.length > 0 && Objects.equals(criteria.get(FIELD), "id");
+    protected static boolean isIdQuery(AerospikeCriteria criteria) {
+        return Objects.equals(criteria.getField(), "id");
     }
+
+    protected static boolean hasIdQualifier(AerospikeCriteria criteria) {
+        Object qualifiers = criteria.get("qualifiers");
+        return qualifiers != null && qualifiers.getClass().isArray()
+            && Arrays.stream((Qualifier[]) qualifiers).anyMatch(qualifier -> qualifier.getField().equals("id"));
+    }
+
+    protected static Qualifier[] excludeIdQualifier(Qualifier[] qualifiers) {
+        return Arrays.stream(qualifiers).filter(qualifier -> !qualifier.getField().equals("id"))
+            .toArray(Qualifier[]::new);
+    }
+
+    protected static Qualifier[] getQualifiers(AerospikeCriteria criteria) {
+        if (criteria == null) {
+            return null;
+        } else if (criteria.getQualifiers() == null) {
+            return new Qualifier[]{(criteria)};
+        } else {
+            return criteria.getQualifiers();
+        }
+    }
+
+    protected static Qualifier getIdQualifier(Qualifier[] qualifiers) {
+        return Arrays.stream(qualifiers).filter(qualifier -> qualifier.getField().equals("id"))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("Qualifier with 'id' field was not found"));
+    }
+
+    protected static Object getIdValue(Qualifier... qualifiers) {
+        return Arrays.stream(qualifiers).filter(qualifier -> qualifier.getField().equals("id"))
+            .map(qualifier -> qualifier.getValue1().getObject())
+            .findFirst()
+            .orElseThrow(() -> new IllegalStateException("Value of 'id' field in a Qualifier was not found"));
+    }
+
+    protected Object runIdQuery(Class<?> sourceClass, Class<?> targetClass, Object ids, Qualifier... qualifiers) {
+        Object result;
+        if (ids == null) {
+            throw new IllegalStateException("Parameters accessor value is null while parameters quantity is > 0");
+        } else if (ids.getClass().isArray()) {
+            result = findByIds(Arrays.stream(((Object[]) ids)).toList(), sourceClass, targetClass,
+                qualifiers);
+        } else if (ids instanceof Iterable<?>) {
+            result = findByIds((Iterable<?>) ids, sourceClass, targetClass, qualifiers);
+        } else {
+            result = findById(ids, sourceClass, targetClass, qualifiers);
+        }
+        return result;
+    }
+
+    abstract Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers);
+
+    abstract Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
+                              Qualifier... qualifiers);
+
 }

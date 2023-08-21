@@ -1125,6 +1125,30 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findPersonByIds() {
+        List<Person> persons = repository.findById(List.of(dave.getId(), carter.getId()));
+        assertThat(persons).containsOnly(dave, carter);
+    }
+
+    @Test
+    public void findPersonByIdAndFirstName() {
+        List<Person> persons = repository.findByIdAndFirstName(dave.getId(), dave.getFirstName());
+        assertThat(persons).containsOnly(dave);
+    }
+
+    @Test
+    public void findPersonByIdAndFirstNameNullResult() {
+        List<Person> persons = repository.findByIdAndFirstName(dave.getId(), carter.getFirstName());
+        assertThat(persons).isNull();
+    }
+
+    @Test
+    public void findPersonByFirstNameAndId() {
+        List<Person> persons = repository.findByFirstNameAndId(dave.getFirstName(), dave.getId());
+        assertThat(persons).containsOnly(dave);
+    }
+
+    @Test
     public void findAll() {
         List<Person> result = (List<Person>) repository.findAll();
         assertThat(result).containsExactlyInAnyOrderElementsOf(allPersons);
@@ -1133,67 +1157,65 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findAllWithGivenIds() {
         List<Person> result = (List<Person>) repository.findAllById(List.of(dave.getId(), boyd.getId()));
-
-        assertThat(result)
-            .containsOnly(dave, boyd);
+        assertThat(result).containsOnly(dave, boyd);
     }
 
     @Test
     public void findPersonsByLastName() {
         List<Person> result = repository.findByLastName("Beauford");
-
-        assertThat(result)
-            .containsOnly(carter);
+        assertThat(result).containsOnly(carter);
     }
 
     @Test
     public void findPersonsSomeFieldsByLastNameProjection() {
         List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
-
-        assertThat(result)
-            .containsOnly(carter.toPersonSomeFields());
+        assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
     public void findPersonsSomeFieldsByIdProjection() {
         List<PersonSomeFields> result = repository.findPersonSomeFieldsById(carter.getId());
-
-        assertThat(result)
-            .containsOnly(carter.toPersonSomeFields());
+        assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
-    public void findPersonsSomeFieldsByIdsProjection() {
-        List<PersonSomeFields> result = repository.findPersonSomeFieldsById(carter.getId(), dave.getId(), boyd.getId());
-
-        assertThat(result)
-            .containsOnly(carter.toPersonSomeFields(), dave.toPersonSomeFields(), boyd.toPersonSomeFields());
+    public void findByLastNameDynamicProjection() {
+        List<PersonSomeFields> result = repository.findByLastName(carter.getLastName(), PersonSomeFields.class);
+        assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
-    public void findDynamicTypeByLastNameDynamicProjection() {
-        List<PersonSomeFields> result = repository.findByLastName("Beauford", PersonSomeFields.class);
-
-        assertThat(result)
-            .hasSize(1)
-            .containsOnly(carter.toPersonSomeFields());
-    }
-
-    @Test
-    public void findDynamicTypeByIdDynamicProjection() {
+    public void findByIdDynamicProjection() {
         List<PersonSomeFields> result = repository.findById(dave.getId(), PersonSomeFields.class);
-
-        assertThat(result)
-            .containsOnly(dave.toPersonSomeFields());
+        assertThat(result).containsOnly(dave.toPersonSomeFields());
     }
 
     @Test
-    public void findDynamicTypeByIdsDynamicProjection() {
-        List<PersonSomeFields> result = repository.findById(List.of(boyd.getId(), dave.getId()),
+    public void findByIdAndLastNameDynamicProjection() {
+        List<PersonSomeFields> result = repository.findByIdAndLastName(carter.getId(), carter.getLastName(),
             PersonSomeFields.class);
+        assertThat(result).containsOnly(carter.toPersonSomeFields());
+    }
 
-        assertThat(result)
-            .containsOnly(boyd.toPersonSomeFields(), dave.toPersonSomeFields());
+    @Test
+    public void findByIdAndLastNameDynamicProjectionNullResult() {
+        List<PersonSomeFields> result = repository.findByIdAndLastName(carter.getId(), dave.getLastName(),
+            PersonSomeFields.class);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    public void findByLastNameAndIdDynamicProjection() {
+        List<PersonSomeFields> result = repository.findByLastNameAndId(dave.getLastName(),
+            dave.getId(), PersonSomeFields.class);
+        assertThat(result).containsOnly(dave.toPersonSomeFields());
+    }
+
+    @Test
+    public void findByFirstNameAndLastNameDynamicProjection() {
+        List<PersonSomeFields> result = repository.findByFirstNameAndLastName(carter.getFirstName(),
+            carter.getLastName(), PersonSomeFields.class);
+        assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
@@ -1207,11 +1229,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(dave.getAge()).isEqualTo(42);
 
         List<Person> result = repository.findByFriendAge(42);
-
-        assertThat(result)
-            .hasSize(1)
-            .containsExactly(carter);
-
+        assertThat(result).containsExactly(carter);
         TestUtils.setFriendsToNull(repository, oliver, dave, carter);
     }
 
@@ -1392,7 +1410,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void countByLastName_forExistingResult() {
         assertThatThrownBy(() -> repository.countByLastName("Leroi"))
             .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessage("Query method Person.countByLastName not supported.");
+            .hasMessage("Query method Person.countByLastName is not supported");
 
 //		assertThat(result).isEqualTo(2);
     }
@@ -1401,7 +1419,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void countByLastName_forEmptyResult() {
         assertThatThrownBy(() -> repository.countByLastName("Smirnova"))
             .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessage("Query method Person.countByLastName not supported.");
+            .hasMessage("Query method Person.countByLastName is not supported");
 
 //		assertThat(result).isEqualTo(0);
     }

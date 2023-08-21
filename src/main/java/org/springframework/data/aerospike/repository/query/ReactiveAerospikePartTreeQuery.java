@@ -15,28 +15,34 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import org.springframework.data.aerospike.core.ReactiveAerospikeInternalOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
+import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import reactor.core.publisher.Flux;
 
-import java.util.Arrays;
-
 /**
  * @author Igor Ermolenko
  */
 public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
-    private final ReactiveAerospikeOperations aerospikeOperations;
+
+    private final ReactiveAerospikeOperations operations;
+    private final ReactiveAerospikeInternalOperations internalOperations;
+
 
     public ReactiveAerospikePartTreeQuery(QueryMethod queryMethod,
                                           QueryMethodEvaluationContextProvider evalContextProvider,
-                                          ReactiveAerospikeOperations aerospikeOperations,
+                                          ReactiveAerospikeTemplate aerospikeTemplate,
                                           Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(queryMethod, evalContextProvider, queryCreator);
-        this.aerospikeOperations = aerospikeOperations;
+        this.operations = aerospikeTemplate;
+        this.internalOperations = aerospikeTemplate;
     }
 
     @Override
@@ -45,21 +51,16 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         Query query = prepareQuery(parameters, accessor);
         Class<?> targetClass = getTargetClass(accessor);
 
-        // "findById" has its own processing flow
-        if (isIdProjectionQuery(targetClass, parameters, query.getAerospikeCriteria())) {
-            Object accessorValue = accessor.getBindableValue(0);
-            Object result;
-            if (accessorValue == null) {
-                throw new IllegalStateException("Parameters accessor value is null while parameters quantity is > 0");
-            } else if (accessorValue.getClass().isArray()) {
-                result = aerospikeOperations.findByIds(Arrays.stream(((Object[]) accessorValue)).toList(),
-                    sourceClass, targetClass);
-            } else if (accessorValue instanceof Iterable<?>) {
-                result = aerospikeOperations.findByIds((Iterable<?>) accessorValue, sourceClass, targetClass);
-            } else {
-                result = aerospikeOperations.findById(accessorValue, sourceClass, targetClass);
+        // queries that include id have their own processing flow
+        if (parameters != null && parameters.length > 0) {
+            AerospikeCriteria criteria = query.getAerospikeCriteria();
+            Qualifier[] qualifiers = getQualifiers(criteria);
+            if (isIdQuery(criteria)) {
+                return runIdQuery(entityClass, targetClass, getIdValue(qualifiers));
+            } else if (hasIdQualifier(criteria)) {
+                return runIdQuery(entityClass, targetClass, getIdValue(getIdQualifier(qualifiers)),
+                    excludeIdQualifier(qualifiers));
             }
-            return result;
         }
 
         return findByQuery(query, targetClass);
@@ -67,10 +68,29 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
     private Flux<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
-        if (targetClass != queryMethod.getEntityInformation().getJavaType()) {
-            return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(), targetClass);
+        if (targetClass != entityClass) {
+            return operations.find(query, queryMethod.getEntityInformation().getJavaType(), targetClass);
         }
         // Run query and map to entity class type.
-        return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType());
+        return operations.find(query, queryMethod.getEntityInformation().getJavaType());
+    }
+
+    protected Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers) {
+        if (targetClass == sourceClass) {
+            return internalOperations.findByIdInternal(obj, sourceClass, null, qualifiers);
+        } else {
+            return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
+        }
+    }
+
+    protected Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
+                               Qualifier... qualifiers) {
+        if (targetClass == sourceClass) {
+            return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, null,
+                qualifiers);
+        } else {
+            return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, targetClass,
+                qualifiers);
+        }
     }
 }

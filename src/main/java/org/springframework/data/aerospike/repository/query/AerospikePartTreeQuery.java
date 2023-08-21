@@ -15,16 +15,19 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import org.springframework.data.aerospike.core.AerospikeInternalOperations;
 import org.springframework.data.aerospike.core.AerospikeOperations;
+import org.springframework.data.aerospike.core.AerospikeTemplate;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,14 +38,17 @@ import java.util.stream.Stream;
  */
 public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
-    private final AerospikeOperations aerospikeOperations;
+    private final AerospikeOperations operations;
+    private final AerospikeInternalOperations internalOperations;
 
     public AerospikePartTreeQuery(QueryMethod queryMethod,
                                   QueryMethodEvaluationContextProvider evalContextProvider,
-                                  AerospikeOperations aerospikeOperations,
+                                  AerospikeTemplate aerospikeTemplate,
                                   Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(queryMethod, evalContextProvider, queryCreator);
-        this.aerospikeOperations = aerospikeOperations;
+
+        this.operations = aerospikeTemplate;
+        this.internalOperations = aerospikeTemplate;
     }
 
     @Override
@@ -50,31 +56,25 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
         Query query = prepareQuery(parameters, accessor);
-
         Class<?> targetClass = getTargetClass(accessor);
 
-        // "findById" has its own processing flow
-        if (isIdProjectionQuery(targetClass, parameters, query.getAerospikeCriteria())) {
-            Object accessorValue = accessor.getBindableValue(0);
-            Object result;
-            if (accessorValue == null) {
-                throw new IllegalStateException("Parameters accessor value is null while parameters quantity is > 0");
-            } else if (accessorValue.getClass().isArray()) {
-                result = aerospikeOperations.findByIds(Arrays.stream(((Object[]) accessorValue)).toList(),
-                    sourceClass, targetClass);
-            } else if (accessorValue instanceof Iterable<?>) {
-                result = aerospikeOperations.findByIds((Iterable<?>) accessorValue, sourceClass, targetClass);
-            } else {
-                result = aerospikeOperations.findById(accessorValue, sourceClass, targetClass);
+        // queries that include id have their own processing flow
+        if (parameters != null && parameters.length > 0) {
+            AerospikeCriteria criteria = query.getAerospikeCriteria();
+            Qualifier[] qualifiers = getQualifiers(criteria);
+            if (isIdQuery(criteria)) {
+                return runIdQuery(entityClass, targetClass, getIdValue(qualifiers));
+            } else if (hasIdQualifier(criteria)) {
+                return runIdQuery(entityClass, targetClass, getIdValue(getIdQualifier(qualifiers)),
+                    excludeIdQualifier(qualifiers));
             }
-            return result;
         }
 
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
             Stream<?> result = findByQuery(query, targetClass);
             List<?> results = result.toList();
             Pageable pageable = accessor.getPageable();
-            long numberOfAllResults = aerospikeOperations.count(query, sourceClass);
+            long numberOfAllResults = operations.count(query, entityClass);
 
             if (queryMethod.isSliceQuery()) {
                 boolean hasNext = numberOfAllResults > pageable.getPageSize() * (pageable.getOffset() + 1);
@@ -90,15 +90,25 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             Stream<?> result = findByQuery(query, targetClass);
             return result.findFirst().orElse(null);
         }
-        throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " not supported.");
+        throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " is not " +
+            "supported");
+    }
+
+    protected Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers) {
+        if (targetClass == sourceClass) {
+            return internalOperations.findByIdInternal(obj, sourceClass, null, qualifiers);
+        } else {
+            return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
+        }
+    }
+
+    protected Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
+                               Qualifier... qualifiers) {
+        return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, targetClass,
+            qualifiers);
     }
 
     private Stream<?> findByQuery(Query query, Class<?> targetClass) {
-        // Run query and map to different target class.
-        if (targetClass != sourceClass) {
-            return aerospikeOperations.find(query, queryMethod.getEntityInformation().getJavaType(), targetClass);
-        }
-        // Run query and map to entity class type.
-        return aerospikeOperations.find(query, sourceClass);
+        return operations.find(query, entityClass, targetClass);
     }
 }

@@ -61,7 +61,7 @@ public abstract class BaseAerospikeRepositoryConfigurationExtension extends Repo
 
         AnnotationAttributes attributes = config.getAttributes();
 
-        builder.addPropertyReference("operations", attributes.getString(AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE));
+        builder.addPropertyReference("template", attributes.getString(AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE));
         builder.addPropertyValue("queryCreator", getQueryCreatorType(config));
         builder.addPropertyReference("mappingContext", MAPPING_CONTEXT_BEAN_NAME);
     }

@@ -25,6 +25,8 @@ import com.aerospike.client.ResultCode;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
+import com.aerospike.client.policy.BatchPolicy;
+import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
@@ -76,7 +78,8 @@ import static org.springframework.data.aerospike.core.CoreUtils.operations;
  * @author Yevhen Tsyba
  */
 @Slf4j
-public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations {
+public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations,
+    ReactiveAerospikeInternalOperations {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
     private final IAerospikeReactorClient reactorClient;
@@ -195,7 +198,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @SuppressWarnings("unchecked")
     @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         return (Flux<T>) findAllUsingQuery(entityClass, null, null, (Qualifier[]) null);
     }
@@ -203,8 +206,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @SuppressWarnings("unchecked")
     @Override
     public <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass) {
-        Assert.notNull(entityClass, "Type must not be null!");
-        Assert.notNull(targetClass, "Target type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(targetClass, "Target class must not be null!");
 
         return (Flux<S>) findAllUsingQuery(entityClass, targetClass, null, (Qualifier[]) null);
     }
@@ -212,7 +215,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @SuppressWarnings("unchecked")
     @Override
     public <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass) {
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         return (Flux<T>) findAllUsingQueryWithPostProcessing(entityClass, null, sort, offset, limit,
             null, (Qualifier[]) null);
@@ -221,8 +224,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @SuppressWarnings("unchecked")
     @Override
     public <T, S> Flux<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass) {
-        Assert.notNull(entityClass, "Type must not be null!");
-        Assert.notNull(targetClass, "Target type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(targetClass, "Target class must not be null!");
 
         return (Flux<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, sort, offset, limit,
             null, (Qualifier[]) null);
@@ -364,9 +367,42 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public <T, S> Mono<S> findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass,
+                                           Qualifier... qualifiers) {
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+        Key key = getKey(id, entity);
+
+        String[] binNames = getBinNamesFromTargetClass(targetClass);
+
+        if (entity.isTouchOnRead()) {
+            Assert.state(!entity.hasExpirationProperty(),
+                "Touch on read is not supported for entity without expiration property");
+            return getAndTouch(key, entity.getExpiration(), binNames, qualifiers)
+                .filter(keyRecord -> Objects.nonNull(keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
+                .onErrorResume(
+                    th -> th instanceof AerospikeException &&
+                        ((AerospikeException) th).getResultCode() == KEY_NOT_FOUND_ERROR,
+                    th -> Mono.empty()
+                )
+                .onErrorMap(this::translateError);
+        } else {
+            Policy policy = null;
+            if (qualifiers != null && qualifiers.length > 0) {
+                policy = new Policy(reactorClient.getReadPolicyDefault());
+                policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
+            }
+            return reactorClient.get(policy, key, binNames)
+                .filter(keyRecord -> Objects.nonNull(keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
+                .onErrorMap(this::translateError);
+        }
+    }
+
+    @Override
     public <T> Flux<T> findByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 
@@ -380,8 +416,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T, S> Flux<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass) {
         Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
-        Assert.notNull(targetClass, "Target type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(targetClass, "Target class must not be null!");
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 
@@ -392,6 +428,43 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .flatMap(key -> reactorClient.get(null, key, binNames))
             .filter(keyRecord -> nonNull(keyRecord.record))
             .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+    }
+
+    @Override
+    public <T, S> Flux<S> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                            Qualifier... qualifiers) {
+        if (ids.isEmpty()) {
+            return Flux.empty();
+        }
+
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(targetClass, "Target class must not be null!");
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+        BatchPolicy policy = null;
+        if (qualifiers != null && qualifiers.length > 0) {
+            policy = new BatchPolicy(reactorClient.getBatchPolicyDefault());
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
+        }
+
+        BatchPolicy finalPolicy = policy;
+        return Flux.fromIterable(ids)
+            .map(id -> getKey(id, entity))
+            .flatMap(key -> getFromClient(finalPolicy, key, entityClass, targetClass))
+            .filter(keyRecord -> nonNull(keyRecord.record))
+            .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+    }
+
+    private Mono<KeyRecord> getFromClient(BatchPolicy finalPolicy, Key key, Class<?> entityClass,
+                                          Class<?> targetClass) {
+        if (targetClass != null && targetClass != entityClass) {
+            String[] binNames = getBinNamesFromTargetClass(targetClass);
+            return reactorClient.get(finalPolicy, key, binNames);
+        } else {
+            return reactorClient.get(finalPolicy, key);
+        }
     }
 
     @Override
@@ -417,7 +490,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Flux<T> find(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         return (Flux<T>) findAllUsingQueryWithPostProcessing(entityClass, null, query);
     }
@@ -426,8 +499,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
-        Assert.notNull(targetClass, "Target type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(targetClass, "Target class must not be null!");
 
         return (Flux<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, query);
     }
@@ -435,8 +508,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @SuppressWarnings("unchecked")
     @Override
     public <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass) {
-        Assert.notNull(entityClass, "Type for count must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class for count must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         return (Flux<T>) findAllUsingQueryWithPostProcessing(entityClass, null, sort, offset, limit,
             null, (Qualifier[]) null);
@@ -445,9 +518,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @SuppressWarnings("unchecked")
     @Override
     public <T, S> Flux<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass) {
-        Assert.notNull(entityClass, "Type for count must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
-        Assert.notNull(targetClass, "Target type must not be null!");
+        Assert.notNull(entityClass, "Class for count must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(targetClass, "Target class must not be null!");
 
         return (Flux<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, sort, offset, limit,
             null, (Qualifier[]) null);
@@ -456,7 +529,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<Long> count(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         return findAllRecordsUsingQuery(entityClass, query).count();
     }
@@ -474,7 +547,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<Long> count(Class<T> entityClass) {
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
         String setName = getSetName(entityClass);
         return count(setName);
     }
@@ -502,7 +575,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<Boolean> exists(Object id, Class<T> entityClass) {
         Assert.notNull(id, "Id must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
         Key key = getKey(id, entity);
@@ -514,7 +587,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<Void> delete(Class<T> entityClass) {
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         try {
             String set = getSetName(entityClass);
@@ -528,7 +601,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<Boolean> delete(Object id, Class<T> entityClass) {
         Assert.notNull(id, "Id must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 
@@ -566,7 +639,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
                                       String binName, IndexType indexType, IndexCollectionType indexCollectionType,
                                       CTX... ctx) {
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
         Assert.notNull(binName, "Bin name must not be null!");
         Assert.notNull(indexType, "Index type must not be null!");
@@ -582,7 +655,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<Void> deleteIndex(Class<T> entityClass, String indexName) {
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
 
         String setName = getSetName(entityClass);
@@ -664,10 +737,16 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(keyRecord -> keyRecord.record);
     }
 
-    private Mono<KeyRecord> getAndTouch(Key key, int expiration, String[] binNames) {
-        WritePolicy writePolicy = WritePolicyBuilder.builder(this.writePolicyDefault)
-            .expiration(expiration)
-            .build();
+    private Mono<KeyRecord> getAndTouch(Key key, int expiration, String[] binNames, Qualifier... qualifiers) {
+        WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(this.writePolicyDefault)
+            .expiration(expiration);
+
+        if (qualifiers != null && qualifiers.length > 0) {
+            writePolicyBuilder.filterExp(queryEngine.getFilterExpressionsBuilder().build(qualifiers));
+        }
+        WritePolicy writePolicy = writePolicyBuilder.build();
+
+
         if (binNames == null || binNames.length == 0) {
             return reactorClient.operate(writePolicy, key, Operation.touch(), Operation.get());
         }
@@ -779,7 +858,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Type must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
 
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
         return findAllRecordsUsingQuery(entityClass, null, null, qualifier);

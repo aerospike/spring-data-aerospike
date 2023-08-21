@@ -15,7 +15,7 @@
  */
 package org.springframework.data.aerospike.repository.support;
 
-import org.springframework.data.aerospike.core.AerospikeOperations;
+import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 
@@ -26,22 +26,18 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 public class AerospikeRepositoryFactoryBean<T extends Repository<S, ID>, S, ID>
     extends BaseAerospikeRepositoryFactoryBean<T, S, ID> {
 
-    private AerospikeOperations operations;
+    private AerospikeTemplate template;
 
     public AerospikeRepositoryFactoryBean(Class<? extends T> repositoryInterface) {
         super(repositoryInterface);
     }
 
-    public void setOperations(AerospikeOperations operations) {
-        this.operations = operations;
+    public void setTemplate(AerospikeTemplate aerospikeTemplate) {
+        this.template = aerospikeTemplate;
     }
 
     @Override
     protected RepositoryFactorySupport createRepositoryFactory() {
-        return new AerospikeRepositoryFactory(this.operations, this.queryCreator);
-    }
-
-    public void setKeyValueOperations(AerospikeOperations operations) {
-        this.operations = operations;
+        return new AerospikeRepositoryFactory(this.template);
     }
 }

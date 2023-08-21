@@ -23,6 +23,7 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import lombok.Getter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -38,6 +39,7 @@ public class ReactorQueryEngine {
 
     private final IAerospikeReactorClient client;
     private final StatementBuilder statementBuilder;
+    @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
     private final QueryPolicy queryPolicy;
     /**

@@ -15,7 +15,7 @@
  */
 package org.springframework.data.aerospike.repository.support;
 
-import org.springframework.data.aerospike.core.AerospikeOperations;
+import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.repository.query.AerospikePartTreeQuery;
@@ -54,23 +54,23 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
 
     private static final Class<AerospikeQueryCreator> DEFAULT_QUERY_CREATOR = AerospikeQueryCreator.class;
 
-    private final AerospikeOperations aerospikeOperations;
+    private final AerospikeTemplate template;
     private final MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty> context;
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
-    public AerospikeRepositoryFactory(AerospikeOperations aerospikeOperations) {
-        this(aerospikeOperations, DEFAULT_QUERY_CREATOR);
+    public AerospikeRepositoryFactory(AerospikeTemplate aerospikeTemplate) {
+        this(aerospikeTemplate, DEFAULT_QUERY_CREATOR);
     }
 
     @SuppressWarnings("unchecked")
-    public AerospikeRepositoryFactory(AerospikeOperations aerospikeOperations,
+    public AerospikeRepositoryFactory(AerospikeTemplate aerospikeTemplate,
                                       Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-        Assert.notNull(aerospikeOperations, "AerospikeOperations must not be null!");
+        Assert.notNull(aerospikeTemplate, "AerospikeTemplate must not be null!");
         Assert.notNull(queryCreator, "Query creator type must not be null!");
         this.queryCreator = queryCreator;
-        this.aerospikeOperations = aerospikeOperations;
+        this.template = aerospikeTemplate;
         this.context = (MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty>)
-            aerospikeOperations.getMappingContext();
+            template.getMappingContext();
     }
 
     /**
@@ -93,7 +93,7 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
     @Override
     protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
         EntityInformation<?, Object> entityInformation = getEntityInformation(repositoryInformation.getDomainType());
-        return super.getTargetRepositoryViaReflection(repositoryInformation, entityInformation, aerospikeOperations);
+        return super.getTargetRepositoryViaReflection(repositoryInformation, entityInformation, template);
     }
 
     @Override
@@ -106,7 +106,7 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
         Key key,
         QueryMethodEvaluationContextProvider evaluationContextProvider) {
-        return Optional.of(new AerospikeQueryLookupStrategy(key, evaluationContextProvider, this.aerospikeOperations,
+        return Optional.of(new AerospikeQueryLookupStrategy(key, evaluationContextProvider, this.template,
             this.queryCreator));
     }
 
@@ -117,7 +117,7 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
     private static class AerospikeQueryLookupStrategy implements QueryLookupStrategy {
 
         private final QueryMethodEvaluationContextProvider evaluationContextProvider;
-        private final AerospikeOperations aerospikeOperations;
+        private final AerospikeTemplate aerospikeTemplate;
         private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
         /**
@@ -129,18 +129,18 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
          * @param key                       Currently unused, same behaviour in the built-in spring's
          *                                  KeyValueQueryLookupStrategy implementation.
          * @param evaluationContextProvider must not be {@literal null}.
-         * @param aerospikeOperations       must not be {@literal null}.
+         * @param aerospikeTemplate         must not be {@literal null}.
          * @param queryCreator              must not be {@literal null}.
          */
         public AerospikeQueryLookupStrategy(@Nullable Key key,
                                             QueryMethodEvaluationContextProvider evaluationContextProvider,
-                                            AerospikeOperations aerospikeOperations, Class<?
-            extends AbstractQueryCreator<?, ?>> queryCreator) {
+                                            AerospikeTemplate aerospikeTemplate,
+                                            Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
             Assert.notNull(evaluationContextProvider, "QueryMethodEvaluationContextProvider must not be null!");
-            Assert.notNull(aerospikeOperations, "AerospikeOperations must not be null!");
+            Assert.notNull(aerospikeTemplate, "AerospikeTemplate must not be null!");
             Assert.notNull(queryCreator, "Query creator type must not be null!");
             this.evaluationContextProvider = evaluationContextProvider;
-            this.aerospikeOperations = aerospikeOperations;
+            this.aerospikeTemplate = aerospikeTemplate;
             this.queryCreator = queryCreator;
         }
 
@@ -149,7 +149,7 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
                                             ProjectionFactory projectionFactory,
                                             NamedQueries namedQueries) {
             QueryMethod queryMethod = new QueryMethod(method, metadata, projectionFactory);
-            return new AerospikePartTreeQuery(queryMethod, evaluationContextProvider, this.aerospikeOperations,
+            return new AerospikePartTreeQuery(queryMethod, evaluationContextProvider, this.aerospikeTemplate,
                 this.queryCreator);
         }
     }

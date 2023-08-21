@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -62,6 +63,11 @@ public class WritePolicyBuilder {
 
     public WritePolicyBuilder failOnFilteredOut(boolean failOnFilteredOut) {
         policy.failOnFilteredOut = failOnFilteredOut;
+        return this;
+    }
+
+    public WritePolicyBuilder filterExp(Expression expression) {
+        policy.filterExp = expression;
         return this;
     }
 
