@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.Bin;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.SampleClasses.*;
 import org.springframework.data.aerospike.assertions.KeyAssert;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
@@ -10,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.list;
 import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.AsCollections.set;
@@ -64,6 +66,26 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             new Bin("mapWithSimpleValue", of("key1", "value1", "key2", "value2", "key3", null)),
             new Bin("@_class", MapWithSimpleValue.class.getName())
         );
+    }
+
+    @Test
+    void FeatureCounterRecord() {
+        SampleClasses.SomeId someId1 = new SampleClasses.SomeId("partA", "partB1");
+        SampleClasses.SomeEntity someEntity1 = new SampleClasses.SomeEntity(someId1, "fieldA", 42L);
+        Map<SampleClasses.SomeId, SampleClasses.SomeEntity> entityMap = new HashMap<>();
+        entityMap.put(someId1, someEntity1);
+        DocumentExample id = new DocumentExample("id", entityMap);
+        DocumentExampleIdClass object = new DocumentExampleIdClass(id, 1L, 1234567890, 10L);
+
+        assertThatThrownBy(() -> assertWriteAndRead(object, DocumentExampleIdClass.class.getSimpleName(), 10L,
+            new Bin("counter", 1L),
+            new Bin("@_version", 1234567890),
+            new Bin("update", 10L),
+            new Bin("@_class", DocumentExampleIdClass.class.getName())
+        ))
+            .isInstanceOf(org.springframework.core.convert.ConverterNotFoundException.class)
+            .hasMessage("No converter found capable of converting from type " +
+                "[org.springframework.data.aerospike.SampleClasses$DocumentExample] to type [java.lang.String]");
     }
 
     @Test

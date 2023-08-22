@@ -94,13 +94,13 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             "supported");
     }
 
-    protected Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers) {
-        return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
+    protected Object findById(Object obj, Class<?> entityClass, Class<?> targetClass, Qualifier... qualifiers) {
+        return internalOperations.findByIdInternal(obj, entityClass, targetClass, qualifiers);
     }
 
-    protected Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
+    protected Object findByIds(Iterable<?> iterable, Class<?> entityClass, Class<?> targetClass,
                                Qualifier... qualifiers) {
-        return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, targetClass,
+        return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), entityClass, targetClass,
             qualifiers);
     }
 

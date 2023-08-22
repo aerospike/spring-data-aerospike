@@ -17,6 +17,7 @@ package org.springframework.data.aerospike;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,6 +25,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
+import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
 import org.springframework.core.convert.converter.Converter;
@@ -137,6 +139,21 @@ public class SampleClasses {
         @Id
         String id;
         Map<SomeId, SomeEntity> entityMap;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    @Document(collection = "${aerospike.collections.test}")
+    public static class DocumentExampleIdClass {
+
+        @Id
+        DocumentExample id;
+        long counter;
+        @Version
+        long version;
+        @Field("update")
+        Long timestamp;
     }
 
     @Value

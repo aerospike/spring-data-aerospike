@@ -374,11 +374,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         String[] binNames = getBinNamesFromTargetClass(targetClass);
 
-        Class<?> classToMap;
+        final Class<?> target;
         if (targetClass != null && targetClass != entityClass) {
-            classToMap = targetClass;
+            target = targetClass;
         } else {
-            classToMap = entityClass;
+            target = entityClass;
         }
 
         if (entity.isTouchOnRead()) {
@@ -386,7 +386,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 "Touch on read is not supported for entity without expiration property");
             return getAndTouch(key, entity.getExpiration(), binNames, qualifiers)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
-                .map(keyRecord -> mapToEntity(keyRecord.key, classToMap, keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record))
                 .onErrorResume(
                     th -> th instanceof AerospikeException &&
                         ((AerospikeException) th).getResultCode() == KEY_NOT_FOUND_ERROR,
@@ -401,7 +401,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             }
             return reactorClient.get(policy, key, binNames)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
-                .map(keyRecord -> mapToEntity(keyRecord.key, classToMap, keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record))
                 .onErrorMap(this::translateError);
         }
     }
@@ -458,18 +458,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             policy = null;
         }
 
-        Class<?> classToMap;
+        Class<?> target;
         if (targetClass != null && targetClass != entityClass) {
-            classToMap = targetClass;
+            target = targetClass;
         } else {
-            classToMap = entityClass;
+            target = entityClass;
         }
 
         return Flux.fromIterable(ids)
             .map(id -> getKey(id, entity))
             .flatMap(key -> getFromClient(policy, key, entityClass, targetClass))
             .filter(keyRecord -> nonNull(keyRecord.record))
-            .map(keyRecord -> mapToEntity(keyRecord.key, classToMap, keyRecord.record));
+            .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record));
     }
 
     private Mono<KeyRecord> getFromClient(BatchPolicy finalPolicy, Key key, Class<?> entityClass,
