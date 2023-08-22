@@ -69,7 +69,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void FeatureCounterRecord() {
+    void IdClassConverterNotFound() {
         SampleClasses.SomeId someId1 = new SampleClasses.SomeId("partA", "partB1");
         SampleClasses.SomeEntity someEntity1 = new SampleClasses.SomeEntity(someId1, "fieldA", 42L);
         Map<SampleClasses.SomeId, SampleClasses.SomeEntity> entityMap = new HashMap<>();
