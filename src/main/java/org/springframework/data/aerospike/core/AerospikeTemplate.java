@@ -408,7 +408,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
             Key key = getKey(id, entity);
 
-            if (targetClass != null) {
+            if (targetClass != null && targetClass != entityClass) {
                 return getRecordMapToTargetClass(entity, key, targetClass, qualifiers);
             } else {
                 return getRecordMapToEntityClass(entity, key, entityClass, qualifiers);

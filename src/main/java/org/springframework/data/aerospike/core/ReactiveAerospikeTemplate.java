@@ -433,26 +433,28 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T, S> Flux<S> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                             Qualifier... qualifiers) {
-        if (ids.isEmpty()) {
-            return Flux.empty();
-        }
 
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
         Assert.notNull(targetClass, "Target class must not be null!");
 
+        if (ids.isEmpty()) {
+            return Flux.empty();
+        }
+
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 
-        BatchPolicy policy = null;
+        final BatchPolicy policy;
         if (qualifiers != null && qualifiers.length > 0) {
             policy = new BatchPolicy(reactorClient.getBatchPolicyDefault());
             policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
+        } else {
+            policy = null;
         }
 
-        BatchPolicy finalPolicy = policy;
         return Flux.fromIterable(ids)
             .map(id -> getKey(id, entity))
-            .flatMap(key -> getFromClient(finalPolicy, key, entityClass, targetClass))
+            .flatMap(key -> getFromClient(policy, key, entityClass, targetClass))
             .filter(keyRecord -> nonNull(keyRecord.record))
             .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
     }

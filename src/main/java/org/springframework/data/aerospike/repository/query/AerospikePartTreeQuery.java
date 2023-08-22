@@ -95,11 +95,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     protected Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers) {
-        if (targetClass == sourceClass) {
-            return internalOperations.findByIdInternal(obj, sourceClass, null, qualifiers);
-        } else {
-            return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
-        }
+        return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
     }
 
     protected Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,

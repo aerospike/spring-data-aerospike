@@ -133,9 +133,8 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             return null;
         } else if (criteria.getQualifiers() == null) {
             return new Qualifier[]{(criteria)};
-        } else {
-            return criteria.getQualifiers();
         }
+        return criteria.getQualifiers();
     }
 
     protected static Qualifier getIdQualifier(Qualifier[] qualifiers) {
