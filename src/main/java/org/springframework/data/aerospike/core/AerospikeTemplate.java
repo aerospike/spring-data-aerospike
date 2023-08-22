@@ -410,9 +410,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
             if (targetClass != null && targetClass != entityClass) {
                 return getRecordMapToTargetClass(entity, key, targetClass, qualifiers);
-            } else {
-                return getRecordMapToEntityClass(entity, key, entityClass, qualifiers);
             }
+            return getRecordMapToEntityClass(entity, key, entityClass, qualifiers);
         } catch (AerospikeException e) {
             throw translateError(e);
         }

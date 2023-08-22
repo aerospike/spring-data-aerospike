@@ -367,19 +367,26 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T, S> Mono<S> findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass,
+    public <T, S> Mono<?> findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass,
                                            Qualifier... qualifiers) {
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
         Key key = getKey(id, entity);
 
         String[] binNames = getBinNamesFromTargetClass(targetClass);
 
+        Class<?> classToMap;
+        if (targetClass != null && targetClass != entityClass) {
+            classToMap = targetClass;
+        } else {
+            classToMap = entityClass;
+        }
+
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(),
                 "Touch on read is not supported for entity without expiration property");
             return getAndTouch(key, entity.getExpiration(), binNames, qualifiers)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
-                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, classToMap, keyRecord.record))
                 .onErrorResume(
                     th -> th instanceof AerospikeException &&
                         ((AerospikeException) th).getResultCode() == KEY_NOT_FOUND_ERROR,
@@ -394,7 +401,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             }
             return reactorClient.get(policy, key, binNames)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
-                .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
+                .map(keyRecord -> mapToEntity(keyRecord.key, classToMap, keyRecord.record))
                 .onErrorMap(this::translateError);
         }
     }
@@ -431,12 +438,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T, S> Flux<S> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+    public <T, S> Flux<?> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                             Qualifier... qualifiers) {
 
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
-        Assert.notNull(targetClass, "Target class must not be null!");
 
         if (ids.isEmpty()) {
             return Flux.empty();
@@ -452,11 +458,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             policy = null;
         }
 
+        Class<?> classToMap;
+        if (targetClass != null && targetClass != entityClass) {
+            classToMap = targetClass;
+        } else {
+            classToMap = entityClass;
+        }
+
         return Flux.fromIterable(ids)
             .map(id -> getKey(id, entity))
             .flatMap(key -> getFromClient(policy, key, entityClass, targetClass))
             .filter(keyRecord -> nonNull(keyRecord.record))
-            .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+            .map(keyRecord -> mapToEntity(keyRecord.key, classToMap, keyRecord.record));
     }
 
     private Mono<KeyRecord> getFromClient(BatchPolicy finalPolicy, Key key, Class<?> entityClass,
@@ -747,7 +760,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             writePolicyBuilder.filterExp(queryEngine.getFilterExpressionsBuilder().build(qualifiers));
         }
         WritePolicy writePolicy = writePolicyBuilder.build();
-
 
         if (binNames == null || binNames.length == 0) {
             return reactorClient.operate(writePolicy, key, Operation.touch(), Operation.get());

@@ -15,11 +15,11 @@ public interface ReactiveAerospikeInternalOperations {
      *
      * @param id          The id of the document to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param targetClass .The class to map the document to.
+     * @param targetClass The class to map the document to.
      * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
      * @return The document from Aerospike, returned document will be mapped to targetClass's type.
      */
-    <T, S> Mono<S> findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass,
+    <T, S> Mono<?> findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass,
                                     Qualifier... qualifiers);
 
     /**
@@ -34,6 +34,6 @@ public interface ReactiveAerospikeInternalOperations {
      * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
      * exists, an empty list is returned.
      */
-    <T, S> Flux<S> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+    <T, S> Flux<?> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                      Qualifier... qualifiers);
 }

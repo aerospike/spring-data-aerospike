@@ -105,6 +105,11 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     private Stream<?> findByQuery(Query query, Class<?> targetClass) {
-        return operations.find(query, entityClass, targetClass);
+        // Run query and map to different target class.
+        if (targetClass != null && targetClass != entityClass) {
+            return operations.find(query, entityClass, targetClass);
+        }
+        // Run query and map to entity class type.
+        return operations.find(query, entityClass);
     }
 }

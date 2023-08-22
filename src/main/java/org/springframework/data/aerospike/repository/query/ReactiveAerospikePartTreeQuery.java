@@ -31,10 +31,8 @@ import reactor.core.publisher.Flux;
  */
 public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
-
     private final ReactiveAerospikeOperations operations;
     private final ReactiveAerospikeInternalOperations internalOperations;
-
 
     public ReactiveAerospikePartTreeQuery(QueryMethod queryMethod,
                                           QueryMethodEvaluationContextProvider evalContextProvider,
@@ -69,28 +67,19 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     private Flux<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
         if (targetClass != entityClass) {
-            return operations.find(query, queryMethod.getEntityInformation().getJavaType(), targetClass);
+            return operations.find(query, entityClass, targetClass);
         }
         // Run query and map to entity class type.
-        return operations.find(query, queryMethod.getEntityInformation().getJavaType());
+        return operations.find(query, entityClass);
     }
 
     protected Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers) {
-        if (targetClass == sourceClass) {
-            return internalOperations.findByIdInternal(obj, sourceClass, null, qualifiers);
-        } else {
-            return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
-        }
+        return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
     }
 
     protected Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
                                Qualifier... qualifiers) {
-        if (targetClass == sourceClass) {
-            return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, null,
+        return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, targetClass,
                 qualifiers);
-        } else {
-            return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, targetClass,
-                qualifiers);
-        }
     }
 }
