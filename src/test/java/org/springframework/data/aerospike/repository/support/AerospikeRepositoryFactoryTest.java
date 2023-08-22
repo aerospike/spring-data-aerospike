@@ -23,7 +23,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.data.aerospike.core.AerospikeOperations;
+import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
@@ -58,12 +58,12 @@ public class AerospikeRepositoryFactoryTest {
     @Mock
     AerospikePersistentEntity entity;
     @Mock
-    AerospikeOperations aerospikeOperations;
+    AerospikeTemplate aerospikeTemplate;
 
     @SuppressWarnings("unchecked")
     @BeforeEach
     public void setUp() {
-        when(aerospikeOperations.getMappingContext()).thenReturn(context);
+        when(aerospikeTemplate.getMappingContext()).thenReturn(context);
     }
 
     @SuppressWarnings("unchecked")
@@ -71,7 +71,7 @@ public class AerospikeRepositoryFactoryTest {
     public void getEntityInformationClassOfT() {
         when(context.getRequiredPersistentEntity(Person.class)).thenReturn(entity);
 
-        AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeOperations);
+        AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeTemplate);
         EntityInformation<Person, Serializable> entityInformation = factory.getEntityInformation(Person.class);
         assertThat(entityInformation).isInstanceOf(PersistentEntityInformation.class);
     }
@@ -88,7 +88,8 @@ public class AerospikeRepositoryFactoryTest {
     public void testGetRepositoryBaseClassRepositoryMetadata() {
         RepositoryMetadata metadata = mock(RepositoryMetadata.class);
         Mockito.<Class<?>>when(metadata.getRepositoryInterface()).thenReturn(SimpleKeyValueRepository.class);
-        AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeOperations);
+
+        AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeTemplate);
         Class<?> repositoryBaseClass = factory.getRepositoryBaseClass(metadata);
         assertThat(repositoryBaseClass.getSimpleName()).isEqualTo(SimpleKeyValueRepository.class.getSimpleName());
     }

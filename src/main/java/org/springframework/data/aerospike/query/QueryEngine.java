@@ -25,6 +25,7 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
+import lombok.Getter;
 
 /**
  * This class provides a multi-filter query engine that augments the query capability in Aerospike.
@@ -41,6 +42,7 @@ public class QueryEngine {
             ".aerospike.config.AerospikeDataSettings`.";
     private final IAerospikeClient client;
     private final StatementBuilder statementBuilder;
+    @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
     private final QueryPolicy queryPolicy;
     /**

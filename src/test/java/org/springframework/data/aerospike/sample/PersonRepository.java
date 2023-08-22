@@ -42,9 +42,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     // DTO Projection
     List<PersonSomeFields> findPersonSomeFieldsByLastName(String lastName);
 
+    // DTO Projection
     List<PersonSomeFields> findPersonSomeFieldsById(String id);
-
-    List<PersonSomeFields> findPersonSomeFieldsById(String... ids);
 
     // Dynamic Projection
     <T> List<T> findByLastName(String lastName, Class<T> type);
@@ -52,7 +51,20 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     // Dynamic Projection
     <T> List<T> findById(String id, Class<T> type);
 
-    <T> List<T> findById(Collection<String> ids, Class<T> type);
+    // Dynamic Projection
+    <T> List<T> findByIdAndLastName(String id, String lastName, Class<T> type);
+
+    // Dynamic Projection
+    <T> List<T> findByLastNameAndId(String lastName, String id, Class<T> type);
+
+    // Dynamic Projection
+    <T> List<T> findByFirstNameAndLastName(String firstName, String lastName, Class<T> type);
+
+    List<P> findById(List<String> ids);
+
+    List<P> findByIdAndFirstName(String id, String firstName);
+
+    List<P> findByFirstNameAndId(String firstName, String id);
 
     Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 

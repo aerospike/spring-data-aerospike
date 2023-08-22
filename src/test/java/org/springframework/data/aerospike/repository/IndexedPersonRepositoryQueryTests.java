@@ -216,14 +216,14 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     public void countByLastName_forExistingResult() {
         assertThatThrownBy(() -> repository.countByLastName("Lerois"))
             .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessage("Query method IndexedPerson.countByLastName not supported.");
+            .hasMessage("Query method IndexedPerson.countByLastName is not supported");
     }
 
     @Test
     public void countByLastName_forEmptyResult() {
         assertThatThrownBy(() -> repository.countByLastName("Smirnova"))
             .isInstanceOf(UnsupportedOperationException.class)
-            .hasMessage("Query method IndexedPerson.countByLastName not supported.");
+            .hasMessage("Query method IndexedPerson.countByLastName is not supported");
     }
 
     @Test

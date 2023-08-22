@@ -241,7 +241,7 @@ public interface AerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
      * @return The documents from Aerospike, returned documents will be mapped to entityClass's type, if no document
-     * exists return an empty list.
+     * exists, an empty list is returned.
      */
     <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass);
 
@@ -255,7 +255,7 @@ public interface AerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to. Must not be {@literal null}.
      * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
-     * exists return an empty list.
+     * exists, an empty list is returned.
      */
     <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass);
 
