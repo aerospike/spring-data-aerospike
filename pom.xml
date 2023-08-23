@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>4.4.0</version>
+    <version>4.5.0</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
