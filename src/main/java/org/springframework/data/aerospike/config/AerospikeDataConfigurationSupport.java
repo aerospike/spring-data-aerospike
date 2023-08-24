@@ -86,7 +86,7 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeMappingContext")
-    public AerospikeMappingContext aerospikeMappingContext() throws Exception {
+    public AerospikeMappingContext aerospikeMappingContext() throws ClassNotFoundException {
         AerospikeMappingContext context = new AerospikeMappingContext();
         context.setInitialEntitySet(getInitialEntitySet());
         context.setSimpleTypeHolder(AerospikeSimpleTypes.HOLDER);

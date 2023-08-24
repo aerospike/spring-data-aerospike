@@ -29,12 +29,12 @@ import java.util.Set;
 @Slf4j
 public class AerospikePersistenceEntityIndexCreator extends BaseAerospikePersistenceEntityIndexCreator {
 
-    private final AerospikeTemplate template;
+    private final ObjectProvider<AerospikeTemplate> template;
 
     public AerospikePersistenceEntityIndexCreator(ObjectProvider<AerospikeMappingContext> mappingContext,
                                                   boolean createIndexesOnStartup,
                                                   AerospikeIndexResolver aerospikeIndexResolver,
-                                                  AerospikeTemplate template) {
+                                                  ObjectProvider<AerospikeTemplate> template) {
         super(mappingContext, createIndexesOnStartup, aerospikeIndexResolver);
         this.template = template;
     }
@@ -48,10 +48,10 @@ public class AerospikePersistenceEntityIndexCreator extends BaseAerospikePersist
         log.debug("Installing aerospike index: {}...", index);
         try {
             if (index.getCtx() == null) {
-                template.createIndex(index.getEntityClass(), index.getName(),
+                template.getIfUnique().createIndex(index.getEntityClass(), index.getName(),
                     index.getBin(), index.getType(), index.getCollectionType());
             } else {
-                template.createIndex(index.getEntityClass(), index.getName(),
+                template.getIfUnique().createIndex(index.getEntityClass(), index.getName(),
                     index.getBin(), index.getType(), index.getCollectionType(), index.getCtx());
             }
             log.info("Installed aerospike index: {} successfully.", index);
