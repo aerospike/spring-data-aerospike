@@ -142,7 +142,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
                                          Iterator<?> parameters, FilterOperation op) {
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder();
-        String fieldName = getFieldName(part.getProperty().getSegment(), property); // Map bin name, later passed to Exp.mapBin()
+        String fieldName = getFieldName(part.getProperty().getSegment(), property);
         String dotPath = null;
         Object value3 = null;
 
@@ -278,7 +278,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
         if (!StringUtils.hasText(segmentName)) {
             throw new MappingException(
-                String.format("Null or empty field name returned for property %s", this));
+                String.format("Null or empty field name returned for property %s", property));
         }
 
         return segmentName;
