@@ -27,12 +27,14 @@ import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -140,7 +142,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
                                          Iterator<?> parameters, FilterOperation op) {
         Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder();
-        String fieldName = part.getProperty().getSegment(); // Map bin name, later passed to Exp.mapBin()
+        String fieldName = getFieldName(part.getProperty().getSegment(), property); // Map bin name, later passed to Exp.mapBin()
         String dotPath = null;
         Object value3 = null;
 
@@ -264,6 +266,22 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         return new AerospikeCriteria(
             setQualifierBuilderValues(qb, fieldName, op, part, value1, value2, value3, dotPath)
         );
+    }
+
+    private String getFieldName(String segmentName, AerospikePersistentProperty property) {
+        org.springframework.data.aerospike.mapping.Field annotation =
+            property.findAnnotation(org.springframework.data.aerospike.mapping.Field.class);
+
+        if (annotation != null && StringUtils.hasText(annotation.value())) {
+            return annotation.value();
+        }
+
+        if (!StringUtils.hasText(segmentName)) {
+            throw new MappingException(
+                String.format("Null or empty field name returned for property %s", this));
+        }
+
+        return segmentName;
     }
 
     private AerospikeCriteria aerospikeCriteriaAndConcatenated(List<Object> params, Qualifier.QualifierBuilder qb,
