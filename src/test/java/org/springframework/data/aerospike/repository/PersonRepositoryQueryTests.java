@@ -1169,7 +1169,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findPersonsByEmail() {
         String email = "cbeauford@email.com";
-        carter.setEmailAddress("cbeauford@email.com");
+        carter.setEmailAddress(email);
         repository.save(carter);
 
         List<Person> result = repository.findByEmailAddress(email);
