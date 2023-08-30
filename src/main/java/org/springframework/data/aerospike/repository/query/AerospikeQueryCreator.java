@@ -276,7 +276,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         }
 
         if (!StringUtils.hasText(segmentName)) {
-            throw new IllegalStateException("part.getProperty().getSegment() is null or empty");
+            throw new IllegalStateException("Segment name is null or empty");
         }
 
         return segmentName;
