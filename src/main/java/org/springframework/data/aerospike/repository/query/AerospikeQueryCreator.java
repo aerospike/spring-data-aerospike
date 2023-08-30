@@ -27,7 +27,6 @@ import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.MappingException;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -277,8 +276,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         }
 
         if (!StringUtils.hasText(segmentName)) {
-            throw new MappingException(
-                String.format("Null or empty field name returned for property %s", property));
+            throw new IllegalStateException("part.getProperty().getSegment() is null or empty");
         }
 
         return segmentName;
