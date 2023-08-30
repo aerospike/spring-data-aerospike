@@ -1167,6 +1167,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void findPersonsByEmail() {
+        String email = "cbeauford@email.com";
+        carter.setEmailAddress(email);
+        repository.save(carter);
+
+        List<Person> result = repository.findByEmailAddress(email);
+        assertThat(result).containsOnly(carter);
+    }
+
+    @Test
     public void findPersonsSomeFieldsByLastNameProjection() {
         List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
         assertThat(result).containsOnly(carter.toPersonSomeFields());
