@@ -31,12 +31,12 @@ import java.util.Set;
 @Slf4j
 public class ReactiveAerospikePersistenceEntityIndexCreator extends BaseAerospikePersistenceEntityIndexCreator {
 
-    private final ReactiveAerospikeTemplate template;
+    private final ObjectProvider<ReactiveAerospikeTemplate> template;
 
     public ReactiveAerospikePersistenceEntityIndexCreator(ObjectProvider<AerospikeMappingContext> mappingContext,
                                                           boolean createIndexesOnStartup,
                                                           AerospikeIndexResolver aerospikeIndexResolver,
-                                                          ReactiveAerospikeTemplate template) {
+                                                          ObjectProvider<ReactiveAerospikeTemplate> template) {
         super(mappingContext, createIndexesOnStartup, aerospikeIndexResolver);
         this.template = template;
     }
@@ -46,20 +46,20 @@ public class ReactiveAerospikePersistenceEntityIndexCreator extends BaseAerospik
         Flux.fromIterable(indexes)
             .flatMap(this::installIndex)
             .then()
-            //blocking for having context fail fast in case any issues with index creation
+            // blocking for having context fail fast in case any issues with index creation
             .block();
     }
 
     private Mono<Void> installIndex(AerospikeIndexDefinition index) {
         log.debug("Installing aerospike index: {}...", index);
-        return template.createIndex(index.getEntityClass(), index.getName(), index.getBin(), index.getType(),
-                index.getCollectionType())
-            .doOnSuccess(__ -> log.info("Installed aerospike index: {} successfully.", index))
+        return template.getIfUnique().createIndex(index.getEntityClass(), index.getName(), index.getBin(),
+                index.getType(), index.getCollectionType())
+            .doOnSuccess(ignore -> log.info("Installed aerospike index: {} successfully.", index))
             .onErrorResume(IndexAlreadyExistsException.class, e -> onIndexAlreadyExists(e, index))
             .doOnError(throwable -> log.error("Failed to install aerospike index: " + index, throwable));
     }
 
-    private Mono<? extends Void> onIndexAlreadyExists(Throwable throwable, AerospikeIndexDefinition indexDefinition) {
+    private Mono<Void> onIndexAlreadyExists(Throwable throwable, AerospikeIndexDefinition indexDefinition) {
         log.info("Skipping index [{}] creation. Index with the same name already exists. {}", indexDefinition,
             throwable.getMessage());
         return Mono.empty();
