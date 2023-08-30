@@ -19,7 +19,6 @@ import com.aerospike.client.IAerospikeClient;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -61,7 +60,7 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     public AerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
-        @Lazy AerospikeTemplate template) {
+        ObjectProvider<AerospikeTemplate> template) {
         return new AerospikePersistenceEntityIndexCreator(aerospikeMappingContext,
             aerospikeDataSettings().isCreateIndexesOnStartup(), aerospikeIndexResolver, template);
     }

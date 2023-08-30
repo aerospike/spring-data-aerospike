@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.sample.AutoIndexedDocument;
+import org.springframework.data.aerospike.utility.MockObjectProvider;
 
 import java.util.Collections;
 import java.util.Set;
@@ -22,7 +23,8 @@ class AerospikePersistenceEntityIndexCreatorTest {
     final AerospikeTemplate template = mock(AerospikeTemplate.class);
 
     final AerospikePersistenceEntityIndexCreator creator =
-        new AerospikePersistenceEntityIndexCreator(null, createIndexesOnStartup, aerospikeIndexResolver, template);
+        new AerospikePersistenceEntityIndexCreator(null, createIndexesOnStartup, aerospikeIndexResolver,
+            new MockObjectProvider<>(template));
 
     final String name = "someName";
     final String fieldName = "fieldName";
