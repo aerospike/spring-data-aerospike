@@ -113,7 +113,7 @@ public class AerospikeWriteData {
 
     public void setKeyForWrite(AerospikePersistentProperty idProperty, AerospikeWriteData data,
                                ConvertingPropertyAccessor<?> accessor, AerospikePersistentEntity<?> entity) {
-        // if the key is null or incomplete
+        // if the key is null or incomplete, otherwise no need to set
         Key key = data.getKey();
         if (key == null || key.userKey.getObject() == null || key.userKey.getObject().toString().isEmpty()
             || key.setName == null || key.namespace == null) {
