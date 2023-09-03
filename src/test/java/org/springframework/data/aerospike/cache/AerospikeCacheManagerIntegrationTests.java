@@ -27,6 +27,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.aerospike.AwaitilityUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeOperations;
+import org.springframework.data.annotation.Id;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
@@ -181,19 +182,19 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         @Cacheable("TEST")
         public CachedObject cacheableMethod(String param) {
             noOfCalls++;
-            return new CachedObject(VALUE);
+            return new CachedObject("id", VALUE);
         }
 
         @Cacheable(value = "CACHE-WITH-TTL")
         public CachedObject cacheableMethodWithTTL(String param) {
             noOfCalls++;
-            return new CachedObject(VALUE);
+            return new CachedObject("id", VALUE);
         }
 
         @Cacheable(value = "TEST", cacheManager = "anotherCacheManager")
         public CachedObject cacheableMethodWithAnotherCacheManager(String param) {
             noOfCalls++;
-            return new CachedObject(VALUE);
+            return new CachedObject("id", VALUE);
         }
 
         @CacheEvict("TEST")
@@ -203,13 +204,13 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         @CachePut("TEST")
         public CachedObject cachePutMethod(String param) {
             noOfCalls++;
-            return new CachedObject(VALUE);
+            return new CachedObject("id", VALUE);
         }
 
         @Cacheable(value = "TEST", condition = "#param.startsWith('abc')")
         public CachedObject cacheableWithCondition(String param) {
             noOfCalls++;
-            return new CachedObject(VALUE);
+            return new CachedObject("id", VALUE);
         }
 
         public int getNoOfCalls() {
@@ -220,6 +221,8 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     @AllArgsConstructor
     public static class CachedObject {
 
+        @Id
+        private final String id;
         private final String value;
 
         public String getValue() {

@@ -17,7 +17,6 @@ package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
-import com.aerospike.client.ResultCode;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
@@ -32,6 +31,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +40,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static com.aerospike.client.ResultCode.OP_NOT_APPLICABLE;
 import static org.springframework.data.aerospike.utility.TimeUtils.unixTimeToOffsetInSeconds;
 
 public class MappingAerospikeWriteConverter implements EntityWriter<Object, AerospikeWriteData> {
@@ -82,17 +83,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         ConvertingPropertyAccessor<?> accessor =
             new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
-        AerospikePersistentProperty idProperty = entity.getIdProperty();
-        if (data.getKey().userKey.getObject() == null || data.getKey().userKey.getObject().toString().isEmpty()) {
-            if (idProperty != null) {
-                String id = accessor.getProperty(idProperty, String.class); // currently id can only be a String
-                Assert.notNull(id, "Id must not be null!");
-                data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
-            } else {
-                // id is mandatory
-                throw new AerospikeException(ResultCode.OP_NOT_APPLICABLE, "Id has not been provided");
-            }
-        }
+        data.setKeyForWrite(getNewKey(data, accessor, entity));
 
         AerospikePersistentProperty versionProperty = entity.getVersionProperty();
         if (versionProperty != null) {
@@ -104,7 +95,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
         Map<String, Object> convertedProperties = convertProperties(type, entity, accessor, false);
 
-        if (data.getRequestedBins().isEmpty()) {
+        if (!data.hasRequestedBins()) {
             convertedProperties.forEach(data::addBin);
         } else {
             convertedProperties.forEach((key, value) -> {
@@ -115,9 +106,29 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         }
     }
 
+    public Optional<Key> getNewKey(AerospikeWriteData data,
+                                   ConvertingPropertyAccessor<?> accessor, AerospikePersistentEntity<?> entity) {
+        // set the new key if the one in provided data is null or incomplete
+        Key key = data.getKey();
+        if (key == null || key.userKey.getObject() == null || key.userKey.getObject().toString().isEmpty()
+            || key.setName == null || key.namespace == null) {
+            AerospikePersistentProperty idProperty = entity.getIdProperty();
+            if (idProperty != null) {
+                String id = accessor.getProperty(idProperty, String.class); // currently id can only be a String
+                Assert.notNull(id, "Id must not be null!");
+                return Optional.of(new Key(data.getNamespace(), entity.getSetName(), id));
+            } else {
+                // id is mandatory
+                throw new AerospikeException(OP_NOT_APPLICABLE, "Id has not been provided");
+            }
+        }
+        return Optional.empty();
+    }
+
     private void convertToAerospikeWriteData(Object source, AerospikeWriteData data) {
         AerospikeWriteData converted = conversionService.convert(source, AerospikeWriteData.class);
-        data.setBins(converted.getBins());
+        Assert.notNull(converted, "Converted AerospikeWriteData cannot be null");
+        data.setBins(new ArrayList<>(converted.getBins()));
         data.setKey(converted.getKey());
         data.setExpiration(converted.getExpiration());
     }

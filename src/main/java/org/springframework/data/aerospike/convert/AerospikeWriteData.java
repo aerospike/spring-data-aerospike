@@ -18,6 +18,8 @@ package org.springframework.data.aerospike.convert;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.Value;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,62 +34,60 @@ import java.util.SortedMap;
  * @author Oliver Gierke
  * @author Anastasiia Smirnova
  */
+@Setter
 public class AerospikeWriteData {
 
+    @Getter
     private Key key;
+    @Getter
+    private final String namespace;
     private Collection<Bin> bins;
+    @Getter
     private int expiration;
     private Integer version;
+    @Getter
     private Collection<String> requestedBins;
 
-    /**
-     * Use the other constructor.
-     */
-    @Deprecated
-    public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration) {
-        this(key, bins, expiration, null);
-    }
-
     public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version) {
-        this(key, bins, expiration, version, Collections.emptyList());
+        this(key, key.namespace, bins, expiration, version, Collections.emptyList());
     }
 
-    public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version,
+    public AerospikeWriteData(Key key, String namespace, Collection<Bin> bins, int expiration, Integer version,
                               Collection<String> requestedBins) {
         this.key = key;
+        this.namespace = namespace;
         this.bins = bins;
         this.expiration = expiration;
         this.version = version;
         this.requestedBins = requestedBins;
     }
 
+    /**
+     * Initialize an {@link AerospikeWriteData} object with a namespace required for subsequent writing
+     */
     public static AerospikeWriteData forWrite(String namespace) {
-        return new AerospikeWriteData(new Key(namespace, "", ""), new ArrayList<>(), 0, null);
-    }
-
-    public Key getKey() {
-        return key;
-    }
-
-    public void setKey(Key key) {
-        this.key = key;
+        return new AerospikeWriteData(null, namespace, new ArrayList<>(), 0, null, Collections.emptyList());
     }
 
     public Collection<Bin> getBins() {
         return Collections.unmodifiableCollection(bins);
     }
 
-    public void setBins(Collection<Bin> bins) {
-        this.bins = bins;
-    }
-
     public Bin[] getBinsAsArray() {
         return bins.toArray(new Bin[0]);
     }
 
+    public boolean hasRequestedBins() {
+        return requestedBins != null && !requestedBins.isEmpty();
+    }
+
+    public Optional<Integer> getVersion() {
+        return Optional.ofNullable(version);
+    }
+
     public void addBin(String key, Object value) {
-        if (value instanceof Map<?,?> map) {
-            if (value instanceof SortedMap sortedMap) {
+        if (value instanceof Map<?, ?> map) {
+            if (value instanceof SortedMap<?, ?> sortedMap) {
                 add(new Bin(key, sortedMap));
             } else {
                 add(new Bin(key, map));
@@ -101,27 +101,7 @@ public class AerospikeWriteData {
         this.bins.add(bin);
     }
 
-    public int getExpiration() {
-        return expiration;
-    }
-
-    public void setExpiration(int expiration) {
-        this.expiration = expiration;
-    }
-
-    public Optional<Integer> getVersion() {
-        return Optional.ofNullable(version);
-    }
-
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    public Collection<String> getRequestedBins() {
-        return requestedBins;
-    }
-
-    public void setRequestedBins(Collection<String> requestedBins) {
-        this.requestedBins = requestedBins;
+    public void setKeyForWrite(Optional<Key> newKey) {
+        newKey.ifPresent(value -> this.key = value);
     }
 }
