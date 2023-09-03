@@ -127,6 +127,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
     private void convertToAerospikeWriteData(Object source, AerospikeWriteData data) {
         AerospikeWriteData converted = conversionService.convert(source, AerospikeWriteData.class);
+        Assert.notNull(converted, "Converted AerospikeWriteData cannot be null");
         data.setBins(new ArrayList<>(converted.getBins()));
         data.setKey(converted.getKey());
         data.setExpiration(converted.getExpiration());
