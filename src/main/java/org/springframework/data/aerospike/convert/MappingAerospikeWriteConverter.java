@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static com.aerospike.client.ResultCode.OP_NOT_APPLICABLE;
 import static org.springframework.data.aerospike.utility.TimeUtils.unixTimeToOffsetInSeconds;
 
 public class MappingAerospikeWriteConverter implements EntityWriter<Object, AerospikeWriteData> {
@@ -118,7 +119,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
                 return Optional.of(new Key(data.getNamespace(), entity.getSetName(), id));
             } else {
                 // id is mandatory
-                throw new RuntimeException("Id has not been provided");
+                throw new AerospikeException(OP_NOT_APPLICABLE, "Id has not been provided");
             }
         }
         return Optional.empty();
