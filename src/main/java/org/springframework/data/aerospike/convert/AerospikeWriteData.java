@@ -48,14 +48,6 @@ public class AerospikeWriteData {
     @Getter
     private Collection<String> requestedBins;
 
-    /**
-     * Use the other constructor.
-     */
-    @Deprecated
-    public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration) {
-        this(key, bins, expiration, null);
-    }
-
     public AerospikeWriteData(Key key, Collection<Bin> bins, int expiration, Integer version) {
         this(key, key.namespace, bins, expiration, version, Collections.emptyList());
     }

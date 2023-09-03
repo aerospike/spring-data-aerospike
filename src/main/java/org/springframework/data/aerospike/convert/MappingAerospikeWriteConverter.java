@@ -31,6 +31,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -122,11 +123,11 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             }
         }
         return Optional.empty();
-    };
+    }
 
     private void convertToAerospikeWriteData(Object source, AerospikeWriteData data) {
         AerospikeWriteData converted = conversionService.convert(source, AerospikeWriteData.class);
-        data.setBins(converted.getBins());
+        data.setBins(new ArrayList<>(converted.getBins()));
         data.setKey(converted.getKey());
         data.setExpiration(converted.getExpiration());
     }
