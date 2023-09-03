@@ -83,11 +83,14 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             new ConvertingPropertyAccessor<>(entity.getPropertyAccessor(source), conversionService);
 
         AerospikePersistentProperty idProperty = entity.getIdProperty();
-        if (data.getKey().userKey.getObject() == null || data.getKey().userKey.getObject().toString().isEmpty()) {
+        // if the key is null or not complete
+        Key dataKey = data.getKey();
+        if (dataKey == null || dataKey.userKey.getObject() == null || dataKey.userKey.getObject().toString().isEmpty()
+            || dataKey.setName == null || dataKey.namespace == null) {
             if (idProperty != null) {
                 String id = accessor.getProperty(idProperty, String.class); // currently id can only be a String
                 Assert.notNull(id, "Id must not be null!");
-                data.setKey(new Key(data.getKey().namespace, entity.getSetName(), id));
+                data.setKey(new Key(data.getNamespace(), entity.getSetName(), id));
             } else {
                 // id is mandatory
                 throw new AerospikeException(ResultCode.OP_NOT_APPLICABLE, "Id has not been provided");
@@ -104,7 +107,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
         Map<String, Object> convertedProperties = convertProperties(type, entity, accessor, false);
 
-        if (data.getRequestedBins().isEmpty()) {
+        if (data.getRequestedBins() == null || data.getRequestedBins().isEmpty()) {
             convertedProperties.forEach(data::addBin);
         } else {
             convertedProperties.forEach((key, value) -> {
