@@ -15,17 +15,11 @@
  */
 package org.springframework.data.aerospike.convert;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
-import com.aerospike.client.ResultCode;
 import com.aerospike.client.Value;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
-import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
-import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
-import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -91,9 +85,17 @@ public class AerospikeWriteData {
         return bins.toArray(new Bin[0]);
     }
 
+    public boolean hasRequestedBins() {
+        return requestedBins != null && !requestedBins.isEmpty();
+    }
+
+    public Optional<Integer> getVersion() {
+        return Optional.ofNullable(version);
+    }
+
     public void addBin(String key, Object value) {
         if (value instanceof Map<?, ?> map) {
-            if (value instanceof SortedMap sortedMap) {
+            if (value instanceof SortedMap<?, ?> sortedMap) {
                 add(new Bin(key, sortedMap));
             } else {
                 add(new Bin(key, map));
@@ -107,24 +109,7 @@ public class AerospikeWriteData {
         this.bins.add(bin);
     }
 
-    public Optional<Integer> getVersion() {
-        return Optional.ofNullable(version);
-    }
-
-    public void setKeyForWrite(AerospikePersistentProperty idProperty, AerospikeWriteData data,
-                               ConvertingPropertyAccessor<?> accessor, AerospikePersistentEntity<?> entity) {
-        // if the key is null or incomplete, otherwise no need to set
-        Key key = data.getKey();
-        if (key == null || key.userKey.getObject() == null || key.userKey.getObject().toString().isEmpty()
-            || key.setName == null || key.namespace == null) {
-            if (idProperty != null) {
-                String id = accessor.getProperty(idProperty, String.class); // currently id can only be a String
-                Assert.notNull(id, "Id must not be null!");
-                data.setKey(new Key(data.getNamespace(), entity.getSetName(), id));
-            } else {
-                // id is mandatory
-                throw new AerospikeException(ResultCode.OP_NOT_APPLICABLE, "Id has not been provided");
-            }
-        }
+    public void setKeyForWrite(Optional<Key> newKey) {
+        newKey.ifPresent(value -> this.key = value);
     }
 }
