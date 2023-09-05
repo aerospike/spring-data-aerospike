@@ -17,6 +17,9 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
+import com.aerospike.client.Value;
+import com.aerospike.client.cdt.MapOperation;
+import com.aerospike.client.cdt.MapPolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
@@ -26,6 +29,7 @@ import org.springframework.data.aerospike.sample.Person;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -116,5 +120,19 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
         assertThat(result.getFirstName()).isEqualTo("Dave");
         assertThat(result.getAge()).isEqualTo(56);
         template.delete(result);
+    }
+
+    @Test
+    public void findById_shouldReadClassWithIntegerKeyMap() {
+        Person person = Person.builder().id(id).build();
+        template.insert(person);
+
+        client.operate(null, new Key(getNameSpace(), "Person", id),
+            MapOperation.put(MapPolicy.Default, "intKeyMap", Value.get(1), Value.get("value1"))
+        );
+
+        Person result = template.findById(id, Person.class);
+        assertThat(result.getIntKeyMap()).isEqualTo(Map.of(1, "value1"));
+        template.delete(result); // cleanup
     }
 }

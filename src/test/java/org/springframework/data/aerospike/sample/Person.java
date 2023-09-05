@@ -48,6 +48,7 @@ public class Person {
     private Sex sex;
     private Map<String, String> stringMap;
     private Map<String, Integer> intMap;
+    private Map<Integer, String> intKeyMap;
     private Map<String, List<Integer>> mapOfIntLists;
     private Person friend;
     private Person bestFriend;
