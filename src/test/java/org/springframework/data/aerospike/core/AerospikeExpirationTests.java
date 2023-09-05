@@ -20,7 +20,6 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -30,6 +29,8 @@ import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationOneDay;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
+
+import java.time.Duration;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -164,7 +165,7 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
     public void save_expiresDocumentWithVersion() {
         template.save(new DocumentWithExpirationOneDay(id));
 
-        aerospikeTestOperations.addDuration(Duration.standardHours(24).plus(Duration.standardMinutes(1)));
+        aerospikeTestOperations.addDuration(Duration.ofHours(24).plus(Duration.ofMinutes(1)));
 
         DocumentWithExpirationOneDay document = template.findById(id, DocumentWithExpirationOneDay.class);
         assertThat(document).isNull();

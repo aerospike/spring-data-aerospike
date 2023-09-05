@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike;
 
-import com.playtika.test.aerospike.AerospikeTestOperations;
+import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
