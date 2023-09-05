@@ -115,6 +115,16 @@ public class SampleClasses {
 
     @Document
     @Data
+    public static class MapWithNonStringKeys {
+
+        @Id
+        final String id;
+        final Map<Integer, String> intKeyMap;
+        final Map<Double, String> doubleKeyMap;
+    }
+
+    @Document
+    @Data
     public static class MapWithCollectionValue {
 
         @Id

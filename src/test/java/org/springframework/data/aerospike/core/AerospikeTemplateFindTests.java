@@ -23,6 +23,7 @@ import com.aerospike.client.cdt.MapPolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
+import org.springframework.data.aerospike.SampleClasses.MapWithNonStringKeys;
 import org.springframework.data.aerospike.SampleClasses.VersionedClassWithAllArgsConstructor;
 import org.springframework.data.aerospike.sample.Person;
 
@@ -124,15 +125,31 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findById_shouldReadClassWithIntegerKeyMap() {
-        Person person = Person.builder().id(id).build();
-        template.insert(person);
+        int intKey = 1;
+        String value = "String value";
+        String fieldName = "intKeyMap";
 
-        client.operate(null, new Key(getNameSpace(), "Person", id),
-            MapOperation.put(MapPolicy.Default, "intKeyMap", Value.get(1), Value.get("value1"))
+        client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
+            MapOperation.put(MapPolicy.Default, fieldName, Value.get(intKey), Value.get(value))
         );
 
-        Person result = template.findById(id, Person.class);
-        assertThat(result.getIntKeyMap()).isEqualTo(Map.of(1, "value1"));
+        MapWithNonStringKeys result = template.findById(id, MapWithNonStringKeys.class);
+        assertThat(result.getIntKeyMap()).isEqualTo(Map.of(intKey, value));
+        template.delete(result); // cleanup
+    }
+
+    @Test
+    public void findById_shouldReadClassWithDoubleKeyMap() {
+        double doubleKey = 100.25;
+        String value = "String value";
+        String fieldName = "doubleKeyMap";
+
+        client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
+            MapOperation.put(MapPolicy.Default, fieldName, Value.get(doubleKey), Value.get(value))
+        );
+
+        MapWithNonStringKeys result = template.findById(id, MapWithNonStringKeys.class);
+        assertThat(result.getDoubleKeyMap()).isEqualTo(Map.of(doubleKey, value));
         template.delete(result); // cleanup
     }
 }
