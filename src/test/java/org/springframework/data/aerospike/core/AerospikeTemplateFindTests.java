@@ -124,32 +124,20 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findById_shouldReadClassWithIntegerKeyMap() {
+    public void findById_shouldReadClassWithNumericKeyMap() {
         int intKey = 1;
+        double doubleKey = 100.25;
         String value = "String value";
-        String fieldName = "intKeyMap";
 
         client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
-            MapOperation.put(MapPolicy.Default, fieldName, Value.get(intKey), Value.get(value))
+            MapOperation.put(MapPolicy.Default, "intKeyMap", Value.get(intKey), Value.get(value))
+        );
+        client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
+            MapOperation.put(MapPolicy.Default, "doubleKeyMap", Value.get(doubleKey), Value.get(value))
         );
 
         MapWithNonStringKeys result = template.findById(id, MapWithNonStringKeys.class);
         assertThat(result.getIntKeyMap()).isEqualTo(Map.of(intKey, value));
-        template.delete(result); // cleanup
-    }
-
-    @Test
-    public void findById_shouldReadClassWithDoubleKeyMap() {
-        double doubleKey = 100.25;
-        String value = "String value";
-        String fieldName = "doubleKeyMap";
-
-        client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
-            MapOperation.put(MapPolicy.Default, fieldName, Value.get(doubleKey), Value.get(value))
-        );
-
-        MapWithNonStringKeys result = template.findById(id, MapWithNonStringKeys.class);
-        assertThat(result.getDoubleKeyMap()).isEqualTo(Map.of(doubleKey, value));
         template.delete(result); // cleanup
     }
 }
