@@ -138,6 +138,7 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
 
         MapWithNonStringKeys result = template.findById(id, MapWithNonStringKeys.class);
         assertThat(result.getIntKeyMap()).isEqualTo(Map.of(intKey, value));
+        assertThat(result.getDoubleKeyMap()).isEqualTo(Map.of(doubleKey, value));
         template.delete(result); // cleanup
     }
 }
