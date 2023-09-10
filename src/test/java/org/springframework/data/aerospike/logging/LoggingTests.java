@@ -45,14 +45,13 @@ public class LoggingTests {
             .setValue1(Value.get("testValue1"))
         );
         StatementBuilder statementBuilder = new StatementBuilder(indexesCacheMock);
-        statementBuilder.build("TEST", "testSet", null, new Qualifier[] {qualifier});
+        statementBuilder.build("TEST", "testSet", null, new Qualifier[]{qualifier});
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(1);
         String msg = "Bin TEST.testSet.testField has secondary index: false";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }
-
 
     @Test
     public void queryCreated() {
