@@ -32,7 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.CollectionUtils.countingInt;
 import static org.springframework.data.aerospike.query.FilterOperation.EQ;
 import static org.springframework.data.aerospike.query.FilterOperation.GEO_WITHIN;
 import static org.springframework.data.aerospike.query.FilterOperation.GT;
@@ -45,6 +44,7 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.INDEXED_GEO_SET;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.INDEXED_SET_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.ORANGE;
+import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
 
 /*
  * These tests generate qualifiers on indexed bins.

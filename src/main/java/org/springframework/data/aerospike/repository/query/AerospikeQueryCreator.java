@@ -417,7 +417,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             criteria.getOperation().toString() : "N/A");
         String value1 = (criteria.getValue1() != null && criteria.getValue1().toString().length() > 0 ?
             criteria.getValue1().toString() : "");
-        String value2 = (criteria.getValue2() != null && criteria.getValue1().toString().length() > 0 ?
+        String value2 = (criteria.getValue2() != null && criteria.getValue2().toString().length() > 0 ?
             criteria.getValue2().toString() : "");
 
         LOG.debug("Created query: {} {} {} {}", field, operation, value1, value2);

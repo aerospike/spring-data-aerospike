@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.data.aerospike.CollectionUtils;
+import org.springframework.data.aerospike.utility.CollectionUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,9 +33,9 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.CollectionUtils.countingInt;
 import static org.springframework.data.aerospike.query.FilterOperation.LT;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.*;
+import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
 
 /*
  * Tests to ensure that Qualifiers are built successfully for non indexed bins.

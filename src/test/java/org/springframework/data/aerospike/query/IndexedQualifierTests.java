@@ -21,20 +21,20 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.CollectionUtils;
-import org.springframework.data.aerospike.IndexUtils;
+import org.springframework.data.aerospike.utility.CollectionUtils;
+import org.springframework.data.aerospike.utility.IndexUtils;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.CollectionUtils.countingInt;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GREEN;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.INDEXED_GEO_SET;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.INDEXED_SET_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.ORANGE;
+import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
 
 /*
  * These tests generate qualifiers on indexed bins.

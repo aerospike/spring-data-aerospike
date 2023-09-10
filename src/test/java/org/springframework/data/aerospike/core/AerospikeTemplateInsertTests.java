@@ -20,11 +20,11 @@ import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.utility.AsyncUtils;
 
 import java.util.Arrays;
 import java.util.Collections;

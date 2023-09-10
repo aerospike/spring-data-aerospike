@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike;
+package org.springframework.data.aerospike.utility;
 
 import lombok.SneakyThrows;
 
