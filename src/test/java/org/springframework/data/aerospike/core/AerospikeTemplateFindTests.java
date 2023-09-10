@@ -129,6 +129,10 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
         double doubleKey = 100.25;
         String value = "String value";
 
+        MapWithNonStringKeys obj = new MapWithNonStringKeys(id, Map.of(intKey, value), Map.of(doubleKey, value));
+
+        template.save(obj);
+
         client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
             MapOperation.put(MapPolicy.Default, "intKeyMap", Value.get(intKey), Value.get(value))
         );
