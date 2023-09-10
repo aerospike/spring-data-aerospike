@@ -36,6 +36,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -399,10 +400,27 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         Query query = criteria == null ? null : new Query(criteria).with(sort);
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Created query {}", query);
+            logQualifierDetails(criteria);
         }
 
         return query;
+    }
+
+    private void logQualifierDetails(Qualifier criteria) {
+        Qualifier[] qualifiers = criteria.getQualifiers();
+        if (qualifiers != null && qualifiers.length > 0) {
+            Arrays.stream(qualifiers).forEach(this::logQualifierDetails);
+        }
+
+        String field = (StringUtils.hasLength(criteria.getField()) ? criteria.getField() : "");
+        String operation = (StringUtils.hasLength(criteria.getOperation().toString()) ?
+            criteria.getOperation().toString() : "N/A");
+        String value1 = (criteria.getValue1() != null && criteria.getValue1().toString().length() > 0 ?
+            criteria.getValue1().toString() : "");
+        String value2 = (criteria.getValue2() != null && criteria.getValue1().toString().length() > 0 ?
+            criteria.getValue2().toString() : "");
+
+        LOG.debug("Created query: {} {} {} {}", field, operation, value1, value2);
     }
 
     private boolean ignoreCaseToBoolean(Part part) {

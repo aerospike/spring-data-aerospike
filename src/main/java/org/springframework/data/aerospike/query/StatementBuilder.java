@@ -29,8 +29,8 @@ import org.springframework.util.StringUtils;
  */
 public class StatementBuilder {
 
+    private static final Logger log = LoggerFactory.getLogger(StatementBuilder.class);
     private final IndexesCache indexesCache;
-    private final Logger log = LoggerFactory.getLogger(StatementBuilder.class);
 
     public StatementBuilder(IndexesCache indexesCache) {
         this.indexesCache = indexesCache;
@@ -93,20 +93,18 @@ public class StatementBuilder {
     }
 
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
-        boolean hasIndex;
-        boolean hasField;
+        boolean hasIndex = false, hasField = false;
         if (StringUtils.hasLength(qualifier.getField())) {
-            hasIndex = false;
-            hasField = false;
-        } else {
+            hasField = true;
             hasIndex = indexesCache.hasIndexFor(
                 new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField())
             );
-            hasField = true;
         }
 
-        log.info("Bin {}.{}.{} has secondary index: {}",
-            stmt.getNamespace(), stmt.getSetName(), hasField ? qualifier.getField() : "N/A", hasIndex);
+        if (log.isDebugEnabled() && hasField) {
+            log.debug("Bin {}.{}.{} has secondary index: {}",
+                stmt.getNamespace(), stmt.getSetName(), qualifier.getField(), hasIndex);
+        }
         return hasIndex;
     }
 }
