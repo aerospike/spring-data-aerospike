@@ -16,39 +16,23 @@
  */
 package org.springframework.data.aerospike.query;
 
-import com.aerospike.client.Key;
-import com.aerospike.client.Record;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.RecordSet;
-import com.aerospike.client.query.ResultSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Iterator for traversing a collection of KeyRecords
  *
  * @author peter
  */
-// TODO: split if-else logic to three different iterators (Anastasiia Smirnova)
 public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 
-    private static final String META_DATA = "meta_data";
-    private static final String SET_NAME = "set_name";
-    private static final String DIGEST = "digest";
-    private static final String EXPIRY = "expiry";
-    private static final String GENERATION = "generation";
-    private static final Logger log = LoggerFactory.getLogger(KeyRecordIterator.class);
     private final String namespace;
-    private final Integer closeLock = Integer.valueOf(0);
+    private final Integer closeLock = 0;
     private RecordSet recordSet;
-    private ResultSet resultSet;
     private Iterator<KeyRecord> recordSetIterator;
-    private Iterator<Object> resultSetIterator;
     private KeyRecord singleRecord;
 
     public KeyRecordIterator(String namespace) {
@@ -67,20 +51,12 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
         this.recordSetIterator = recordSet.iterator();
     }
 
-    public KeyRecordIterator(String namespace, ResultSet resultSet) {
-        this(namespace);
-        this.resultSet = resultSet;
-        this.resultSetIterator = resultSet.iterator();
-    }
-
     @Override
     public void close() {
         //noinspection synchronization
         synchronized (closeLock) {
             if (recordSet != null)
                 recordSet.close();
-            if (resultSet != null)
-                resultSet.close();
             if (singleRecord != null)
                 singleRecord = null;
         }
@@ -90,8 +66,6 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
     public boolean hasNext() {
         if (this.recordSetIterator != null)
             return this.recordSetIterator.hasNext();
-        else if (this.resultSetIterator != null)
-            return this.resultSetIterator.hasNext();
         else return this.singleRecord != null;
     }
 
@@ -102,22 +76,6 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 
         if (this.recordSetIterator != null) {
             keyRecord = this.recordSetIterator.next();
-        } else if (this.resultSetIterator != null) {
-            Map<String, Object> map = (Map<String, Object>) this.resultSetIterator.next();
-            Map<String, Object> meta = (Map<String, Object>) map.get(META_DATA);
-            map.remove(META_DATA);
-            Map<String, Object> binMap = new HashMap<>(map);
-            if (log.isDebugEnabled()) {
-                for (Map.Entry<String, Object> entry : map.entrySet()) {
-                    log.debug("{} = {}", entry.getKey(), entry.getValue());
-                }
-            }
-            Long generation = (Long) meta.get(GENERATION);
-            // TODO: there is probably a bug, since TTL is not an expiration date! (Anastasiia Smirnova)
-            Long ttl = (Long) meta.get(EXPIRY);
-            Record record = new Record(binMap, generation.intValue(), ttl.intValue());
-            Key key = new Key(namespace, (byte[]) meta.get(DIGEST), (String) meta.get(SET_NAME), null);
-            keyRecord = new KeyRecord(key, record);
         } else if (singleRecord != null) {
             keyRecord = singleRecord;
             singleRecord = null;
