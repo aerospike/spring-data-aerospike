@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike;
+package org.springframework.data.aerospike.utility;
 
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
 import org.springframework.data.aerospike.repository.query.Query;

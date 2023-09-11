@@ -4,11 +4,11 @@ import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.AwaitilityUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.IndexUtils;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
+import org.springframework.data.aerospike.utility.AwaitilityUtils;
+import org.springframework.data.aerospike.utility.IndexUtils;
 
 import java.util.Optional;
 

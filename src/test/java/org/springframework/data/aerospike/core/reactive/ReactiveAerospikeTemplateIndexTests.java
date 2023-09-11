@@ -9,10 +9,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.IndexNotFoundException;
-import org.springframework.data.aerospike.IndexUtils;
 import org.springframework.data.aerospike.core.AerospikeTemplateIndexTests;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.utility.IndexUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -22,7 +22,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
+import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegrationTests {
 

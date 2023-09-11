@@ -6,10 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
-import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.utility.AsyncUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 

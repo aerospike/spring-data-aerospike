@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.data.aerospike.CollectionUtils.countingInt;
 import static org.springframework.data.aerospike.query.FilterOperation.*;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
@@ -47,6 +46,7 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SKIP_LONG_VALUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SPECIAL_CHAR_BIN;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SPECIAL_CHAR_SET;
+import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
 
 /*
  * Tests to ensure that Qualifiers are built successfully for non indexed bins.

@@ -6,12 +6,12 @@ import com.aerospike.client.query.IndexType;
 import lombok.Value;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.IndexAlreadyExistsException;
-import org.springframework.data.aerospike.IndexUtils;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.utility.IndexUtils;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.springframework.data.aerospike.AwaitilityUtils.awaitTenSecondsUntil;
+import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
 
 @TestPropertySource(properties = {"createIndexesOnStartup = true"})
 // this test class requires secondary indexes created on startup

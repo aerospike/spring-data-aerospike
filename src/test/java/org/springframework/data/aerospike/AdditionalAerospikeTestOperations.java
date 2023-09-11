@@ -19,6 +19,7 @@ import org.awaitility.Awaitility;
 import org.springframework.data.aerospike.core.WritePolicyBuilder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.utility.IndexUtils;
 import org.springframework.data.aerospike.utility.ResponseUtils;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;

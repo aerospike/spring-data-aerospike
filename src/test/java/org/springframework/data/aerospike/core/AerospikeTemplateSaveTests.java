@@ -22,9 +22,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.aerospike.AsyncUtils;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.utility.AsyncUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
 

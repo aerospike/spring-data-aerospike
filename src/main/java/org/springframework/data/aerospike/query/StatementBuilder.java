@@ -17,8 +17,11 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.model.IndexedField;
+import org.springframework.util.StringUtils;
 
 /**
  * @author peter
@@ -26,6 +29,7 @@ import org.springframework.data.aerospike.query.model.IndexedField;
  */
 public class StatementBuilder {
 
+    private static final Logger log = LoggerFactory.getLogger(StatementBuilder.class);
     private final IndexesCache indexesCache;
 
     public StatementBuilder(IndexesCache indexesCache) {
@@ -89,8 +93,18 @@ public class StatementBuilder {
     }
 
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
-        if (qualifier.getField() == null) return false;
+        boolean hasIndex = false, hasField = false;
+        if (StringUtils.hasLength(qualifier.getField())) {
+            hasField = true;
+            hasIndex = indexesCache.hasIndexFor(
+                new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField())
+            );
+        }
 
-        return indexesCache.hasIndexFor(new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField()));
+        if (log.isDebugEnabled() && hasField) {
+            log.debug("Bin {}.{}.{} has secondary index: {}",
+                stmt.getNamespace(), stmt.getSetName(), qualifier.getField(), hasIndex);
+        }
+        return hasIndex;
     }
 }
