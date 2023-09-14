@@ -79,18 +79,18 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @AfterAll
     public void afterAll() {
         reactiveRepository.deleteAll(allIndexedPersons).block();
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_first_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_strings_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_ints_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_first_name_index");
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_last_name_index");
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_strings_index");
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_ints_index");
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class,
             "indexed_person_string_map_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class,
             "indexed_person_string_map_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_values_index");
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_int_map_keys_index");
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_int_map_values_index");
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_address_keys_index");
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_address_values_index");
         reactorIndexRefresher.refreshIndexes();
     }
 

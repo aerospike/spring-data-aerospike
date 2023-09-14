@@ -291,8 +291,8 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
                     assertThat(rec.record.getString("color")).isEqualTo(GREEN);
                 });
         } finally {
-            tryDropIndex(namespace, INDEXED_SET_NAME, "age_index");
-            tryDropIndex(namespace, INDEXED_SET_NAME, "color_index");
+            tryDropIndex(INDEXED_SET_NAME, "age_index");
+            tryDropIndex(INDEXED_SET_NAME, "color_index");
         }
     }
 }

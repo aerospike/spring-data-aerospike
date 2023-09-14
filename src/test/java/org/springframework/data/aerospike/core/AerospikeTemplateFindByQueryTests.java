@@ -79,11 +79,11 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     public void beforeAllSetUp() {
         deleteAll(allPersons);
         template.insertAll(allPersons);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index", "age",
+        additionalAerospikeTestOperations.createIndex(Person.class, "person_age_index", "age",
             IndexType.NUMERIC);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index", "firstName",
+        additionalAerospikeTestOperations.createIndex(Person.class, "person_first_name_index", "firstName",
             IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index", "lastName",
+        additionalAerospikeTestOperations.createIndex(Person.class, "person_last_name_index", "lastName",
             IndexType.STRING);
     }
 
@@ -96,9 +96,9 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @AfterAll
     public void afterAll() {
         deleteAll(allPersons);
-        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_age_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_first_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_last_name_index");
+        additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
+        additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
+        additionalAerospikeTestOperations.dropIndex(Person.class, "person_last_name_index");
     }
 
     @Test

@@ -20,6 +20,7 @@ import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
@@ -32,6 +33,7 @@ import lombok.Value;
 @Value
 @Builder
 @RequiredArgsConstructor
+@Getter
 public class Index {
 
     String name;
@@ -51,33 +53,5 @@ public class Index {
         this.indexType = indexType;
         this.indexCollectionType = indexCollectionType;
         this.ctx = null;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public String getBin() {
-        return this.bin;
-    }
-
-    public String getSet() {
-        return this.set;
-    }
-
-    public String getNamespace() {
-        return this.namespace;
-    }
-
-    public IndexType getType() {
-        return this.indexType;
-    }
-
-    public IndexCollectionType getCollectionType() {
-        return this.indexCollectionType;
-    }
-
-    public CTX[] getCTX() {
-        return this.ctx;
     }
 }

@@ -32,8 +32,8 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     @Override
     @BeforeEach
     public void setUp() {
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedDocument.class, INDEX_TEST_1);
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedDocument.class, INDEX_TEST_2);
+        additionalAerospikeTestOperations.dropIndex(IndexedDocument.class, INDEX_TEST_1);
+        additionalAerospikeTestOperations.dropIndex(IndexedDocument.class, INDEX_TEST_2);
     }
 
     // for Aerospike Server ver. >= 6.1.0.1
@@ -148,7 +148,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
             awaitTenSecondsUntil(() -> {
                     CTX ctx = Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
                         .filter(o -> o.getName().equals(INDEX_TEST_1))
-                        .findFirst().orElse(null)).getCTX()[0];
+                        .findFirst().orElse(null)).getCtx()[0];
 
                     assertThat(ctx.id).isEqualTo(CTX.listIndex(1).id);
                     assertThat(ctx.value.toLong()).isEqualTo(CTX.listIndex(1).value.toLong());
@@ -174,7 +174,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
                     CTX[] ctxResponse =
                         Objects.requireNonNull(additionalAerospikeTestOperations.getIndexes(setName).stream()
                             .filter(o -> o.getName().equals(INDEX_TEST_1))
-                            .findFirst().orElse(null)).getCTX();
+                            .findFirst().orElse(null)).getCtx();
 
                     assertThat(ctx.length).isEqualTo(ctxResponse.length);
                     assertThat(ctx[0].id).isIn(ctxResponse[0].id, ctxResponse[1].id);

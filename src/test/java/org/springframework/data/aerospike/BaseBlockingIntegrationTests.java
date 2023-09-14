@@ -9,7 +9,6 @@ import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
-import org.springframework.data.aerospike.sample.Person;
 
 import java.util.Collection;
 
@@ -34,7 +33,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     @Autowired
     protected IndexRefresher indexRefresher;
 
-    protected void deleteAll(Collection<Person> persons) {
-        persons.forEach(person -> template.delete(person));
+    protected <T> void deleteAll(Collection<T> collection) {
+        collection.forEach(item -> template.delete(item));
     }
 }

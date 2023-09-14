@@ -23,7 +23,7 @@ public class IndexUtils {
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_1 = ModuleDescriptor.Version.parse("6.1.0.1");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_3_0_0 = ModuleDescriptor.Version.parse("6.3.0.0");
 
-    public static void dropIndex(IAerospikeClient client, String namespace, String setName, String indexName) {
+    static void dropIndex(IAerospikeClient client, String namespace, String setName, String indexName) {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
             waitTillComplete(() -> client.dropIndex(null, namespace, setName, indexName));
         } else {
@@ -32,32 +32,9 @@ public class IndexUtils {
         }
     }
 
-public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
-                                   String binName, IndexType indexType) {
-        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
-            waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType));
-        } else {
-            // ignoring ResultCode.INDEX_ALREADY_EXISTS for Aerospike Server prior to ver. 6.1.0.1
-            ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName,
-                indexName, binName, indexType));
-        }
-    }
-
-    public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
-                                   String binName, IndexType indexType, IndexCollectionType collectionType) {
-        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
-            waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType,
-                collectionType));
-        } else {
-            // ignoring ResultCode.INDEX_ALREADY_EXISTS for Aerospike Server prior to ver. 6.1.0.1
-            ignoreErrorAndWait(ResultCode.INDEX_ALREADY_EXISTS, () -> client.createIndex(null, namespace, setName,
-                indexName, binName, indexType, collectionType));
-        }
-    }
-
-    public static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
-                                   String binName, IndexType indexType, IndexCollectionType collectionType,
-                                   CTX[] ctx) {
+    static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
+                            String binName, IndexType indexType, IndexCollectionType collectionType,
+                            CTX[] ctx) {
         if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
             waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType,
                 collectionType, ctx));

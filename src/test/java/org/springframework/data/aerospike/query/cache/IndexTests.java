@@ -7,11 +7,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
-import org.springframework.data.aerospike.utility.IndexUtils;
 
+import java.util.List;
 import java.util.Optional;
 
+import static com.aerospike.client.query.IndexCollectionType.LIST;
+import static com.aerospike.client.query.IndexCollectionType.MAPKEYS;
+import static com.aerospike.client.query.IndexCollectionType.MAPVALUES;
+import static com.aerospike.client.query.IndexType.GEO2DSPHERE;
+import static com.aerospike.client.query.IndexType.NUMERIC;
+import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.query.model.Index.builder;
 
 public class IndexTests extends BaseBlockingIntegrationTests {
 
@@ -26,11 +33,13 @@ public class IndexTests extends BaseBlockingIntegrationTests {
     @Override
     @BeforeEach
     public void setUp() {
-        IndexUtils.dropIndex(client, namespace, SET, INDEX_NAME);
-        IndexUtils.dropIndex(client, namespace, null, INDEX_NAME_2);
-        IndexUtils.dropIndex(client, namespace, SET, INDEX_NAME_2);
-        IndexUtils.dropIndex(client, namespace, SET, INDEX_NAME_3);
-        indexRefresher.refreshIndexes();
+        List<Index> dropIndexes = List.of(
+            builder().set(SET).name(INDEX_NAME).build(),
+            builder().set(null).name(INDEX_NAME_2).build(),
+            builder().set(SET).name(INDEX_NAME_2).build(),
+            builder().set(SET).name(INDEX_NAME_3).build()
+        );
+        additionalAerospikeTestOperations.dropIndexes(dropIndexes);
     }
 
     @Test
@@ -38,9 +47,7 @@ public class IndexTests extends BaseBlockingIntegrationTests {
         Optional<Index> index = indexesCache.getIndex(new IndexKey(namespace, SET, BIN_1, IndexType.NUMERIC, null));
         assertThat(index).isEmpty();
 
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME, BIN_1, IndexType.NUMERIC);
-
-        indexRefresher.refreshIndexes();
+        additionalAerospikeTestOperations.createIndex(namespace, SET, INDEX_NAME, BIN_1, IndexType.NUMERIC);
 
         index = indexesCache.getIndex(new IndexKey(namespace, SET, BIN_1, IndexType.NUMERIC, null));
         assertThat(index).isPresent()
@@ -49,30 +56,24 @@ public class IndexTests extends BaseBlockingIntegrationTests {
                 assertThat(value.getNamespace()).isEqualTo(namespace);
                 assertThat(value.getSet()).isEqualTo(SET);
                 assertThat(value.getBin()).isEqualTo(BIN_1);
-                assertThat(value.getType()).isEqualTo(IndexType.NUMERIC);
+                assertThat(value.getIndexType()).isEqualTo(IndexType.NUMERIC);
             });
     }
 
     @Test
     public void refreshIndexes_removesDeletedIndex() {
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME, BIN_1, IndexType.NUMERIC);
-
-        indexRefresher.refreshIndexes();
+        additionalAerospikeTestOperations.createIndex(namespace, SET, INDEX_NAME, BIN_1, IndexType.NUMERIC);
 
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_1, IndexType.NUMERIC, null))).isPresent();
 
-        IndexUtils.dropIndex(client, namespace, SET, INDEX_NAME);
-
-        indexRefresher.refreshIndexes();
+        additionalAerospikeTestOperations.dropIndex(SET, INDEX_NAME);
 
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_1, IndexType.NUMERIC, null))).isEmpty();
     }
 
     @Test
     public void refreshIndexes_indexWithoutSetCanBeParsed() {
-        IndexUtils.createIndex(client, namespace, null, INDEX_NAME_2, BIN_2, IndexType.STRING);
-
-        indexRefresher.refreshIndexes();
+        additionalAerospikeTestOperations.createIndex(namespace, null, INDEX_NAME_2, BIN_2, IndexType.STRING);
 
         Optional<Index> index = indexesCache.getIndex(new IndexKey(namespace, null, BIN_2, IndexType.STRING, null));
         assertThat(index).isPresent()
@@ -81,37 +82,34 @@ public class IndexTests extends BaseBlockingIntegrationTests {
                 assertThat(value.getNamespace()).isEqualTo(namespace);
                 assertThat(value.getSet()).isNull();
                 assertThat(value.getBin()).isEqualTo(BIN_2);
-                assertThat(value.getType()).isEqualTo(IndexType.STRING);
+                assertThat(value.getIndexType()).isEqualTo(IndexType.STRING);
             });
     }
 
     @Test
     public void refreshIndexes_indexWithGeoTypeCanBeParsed() {
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME_3, BIN_3, IndexType.GEO2DSPHERE);
+        additionalAerospikeTestOperations.createIndex(namespace, SET, INDEX_NAME_2, BIN_2, IndexType.STRING);
 
-        indexRefresher.refreshIndexes();
-
-        Optional<Index> index = indexesCache.getIndex(new IndexKey(namespace, SET, BIN_3, IndexType.GEO2DSPHERE, null));
+        Optional<Index> index = indexesCache.getIndex(new IndexKey(namespace, SET, BIN_3, GEO2DSPHERE, null));
         assertThat(index).isPresent()
             .hasValueSatisfying(value -> {
                 assertThat(value.getName()).isEqualTo(INDEX_NAME_3);
                 assertThat(value.getNamespace()).isEqualTo(namespace);
                 assertThat(value.getSet()).isEqualTo(SET);
                 assertThat(value.getBin()).isEqualTo(BIN_3);
-                assertThat(value.getType()).isEqualTo(IndexType.GEO2DSPHERE);
+                assertThat(value.getIndexType()).isEqualTo(GEO2DSPHERE);
             });
     }
 
     @Test
     public void refreshIndexes_multipleIndexesForTheSameBinCanBeParsed() {
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME, BIN_1, IndexType.NUMERIC,
-            IndexCollectionType.MAPKEYS);
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME_2, BIN_1, IndexType.NUMERIC,
-            IndexCollectionType.MAPVALUES);
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME_3, BIN_2, IndexType.NUMERIC,
-            IndexCollectionType.LIST);
 
-        indexRefresher.refreshIndexes();
+        List<Index> newIndexes = List.of(
+            builder().set(SET).name(INDEX_NAME).bin(BIN_1).indexType(NUMERIC).indexCollectionType(MAPKEYS).build(),
+            builder().set(SET).name(INDEX_NAME_2).bin(BIN_1).indexType(NUMERIC).indexCollectionType(MAPVALUES).build(),
+            builder().set(SET).name(INDEX_NAME_3).bin(BIN_2).indexType(NUMERIC).indexCollectionType(LIST).build()
+        );
+        additionalAerospikeTestOperations.createIndexes(newIndexes);
 
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_1, IndexType.NUMERIC,
             IndexCollectionType.MAPKEYS))).isPresent();
@@ -123,47 +121,51 @@ public class IndexTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void refreshIndexes_multipleIndexesCanBeParsed() {
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME, BIN_1, IndexType.NUMERIC);
-        IndexUtils.createIndex(client, namespace, null, INDEX_NAME_2, BIN_2, IndexType.STRING);
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME_3, BIN_3, IndexType.GEO2DSPHERE);
-
-        indexRefresher.refreshIndexes();
+        List<Index> newIndexes = List.of(
+            builder().set(SET).name(INDEX_NAME).bin(BIN_1).indexType(NUMERIC).build(),
+            builder().set(SET).name(INDEX_NAME_2).bin(BIN_2).indexType(STRING).build(),
+            builder().set(SET).name(INDEX_NAME_3).bin(BIN_3).indexType(GEO2DSPHERE).build()
+        );
+        additionalAerospikeTestOperations.createIndexes(newIndexes);
 
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_1, IndexType.NUMERIC, null))).isPresent();
         assertThat(indexesCache.getIndex(new IndexKey(namespace, null, BIN_2, IndexType.STRING, null))).isPresent();
-        assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_3, IndexType.GEO2DSPHERE, null))).isPresent();
+        assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_3, GEO2DSPHERE, null))).isPresent();
         assertThat(indexesCache.getIndex(new IndexKey("unknown", null, "unknown", IndexType.NUMERIC, null))).isEmpty();
     }
 
     @Test
     public void refreshIndexes_indexesForTheSameBinCanBeParsed() {
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME, BIN_1, IndexType.NUMERIC);
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME_2, BIN_1, IndexType.STRING);
-
-        indexRefresher.refreshIndexes();
+        List<Index> newIndexes = List.of(
+            builder().set(SET).name(INDEX_NAME).bin(BIN_1).indexType(NUMERIC).build(),
+            builder().set(SET).name(INDEX_NAME_2).bin(BIN_1).indexType(STRING).build()
+        );
+        additionalAerospikeTestOperations.createIndexes(newIndexes);
 
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_1, IndexType.NUMERIC, null))).hasValueSatisfying(value -> {
             assertThat(value.getName()).isEqualTo(INDEX_NAME);
             assertThat(value.getNamespace()).isEqualTo(namespace);
             assertThat(value.getSet()).isEqualTo(SET);
             assertThat(value.getBin()).isEqualTo(BIN_1);
-            assertThat(value.getType()).isEqualTo(IndexType.NUMERIC);
+            assertThat(value.getIndexType()).isEqualTo(IndexType.NUMERIC);
         });
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_1, IndexType.STRING, null))).hasValueSatisfying(value -> {
             assertThat(value.getName()).isEqualTo(INDEX_NAME_2);
             assertThat(value.getNamespace()).isEqualTo(namespace);
             assertThat(value.getSet()).isEqualTo(SET);
             assertThat(value.getBin()).isEqualTo(BIN_1);
-            assertThat(value.getType()).isEqualTo(IndexType.STRING);
+            assertThat(value.getIndexType()).isEqualTo(IndexType.STRING);
         });
 
     }
 
     @Test
     public void isIndexedBin_returnsTrueForIndexedField() {
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME, BIN_1, IndexType.NUMERIC);
-        IndexUtils.createIndex(client, namespace, SET, INDEX_NAME_2, BIN_2, IndexType.NUMERIC);
-        indexRefresher.refreshIndexes();
+        List<Index> newIndexes = List.of(
+            builder().set(SET).name(INDEX_NAME).bin(BIN_1).indexType(NUMERIC).build(),
+            builder().set(SET).name(INDEX_NAME_2).bin(BIN_2).indexType(NUMERIC).build()
+        );
+        additionalAerospikeTestOperations.createIndexes(newIndexes);
 
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_1, IndexType.NUMERIC, null))).isPresent();
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_2, IndexType.NUMERIC, null))).isPresent();
@@ -173,7 +175,7 @@ public class IndexTests extends BaseBlockingIntegrationTests {
     public void isIndexedBin_returnsFalseForNonIndexedField() {
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_2, IndexType.NUMERIC, null))).isEmpty();
         assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_2, IndexType.STRING, null))).isEmpty();
-        assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_2, IndexType.GEO2DSPHERE, null))).isEmpty();
+        assertThat(indexesCache.getIndex(new IndexKey(namespace, SET, BIN_2, GEO2DSPHERE, null))).isEmpty();
     }
 
     @Test

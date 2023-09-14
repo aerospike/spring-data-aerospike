@@ -42,8 +42,8 @@ public class InternalIndexOperations {
     }
 
     private static IndexKey getIndexKey(Index index) {
-        return new IndexKey(index.getNamespace(), index.getSet(), index.getBin(), index.getType(),
-            index.getCollectionType(), index.getCTX());
+        return new IndexKey(index.getNamespace(), index.getSet(), index.getBin(), index.getIndexType(),
+            index.getIndexCollectionType(), index.getCtx());
     }
 
     public IndexesInfo parseIndexesInfo(String infoResponse) {

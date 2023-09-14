@@ -3,6 +3,7 @@ package org.springframework.data.aerospike;
 import com.aerospike.client.IAerospikeClient;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
+import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 import org.testcontainers.containers.GenericContainer;
 
 public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOperations {
@@ -12,8 +13,8 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
     public BlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
                                            AerospikeTemplate template,
                                            IAerospikeClient client,
-                                           GenericContainer<?> aerospike) {
-        super(indexInfoParser, client, aerospike);
+                                           GenericContainer<?> aerospikeContainer) {
+        super(indexInfoParser, client, template, aerospikeContainer);
         this.template = template;
     }
 

@@ -36,30 +36,29 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "address") // CTX.mapKey(Value.get("address"))
             TestFriend friend;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThat(
             additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)).stream()
                 .filter(index -> index.getName()
                     .equals("test_person_friend_address_keys_index")
                     &&
-                    CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("address"))}))
+                    CTX.toBase64(index.getCtx()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("address"))}))
                 )
                 .count()
         ).isEqualTo(1L);
         assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, template.getSetName(TestPerson.class),
             "friend"))).isTrue();
 
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class,
             "test_person_friend_address_keys_index");
-        indexRefresher.refreshIndexes();
 
         assertThat(
             additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)).stream()
                 .filter(index -> index.getName()
                     .equals("test_person_friend_address_keys_index")
                     &&
-                    CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("address"))}))
+                    CTX.toBase64(index.getCtx()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("address"))}))
                 )
                 .count()
         ).isZero();
@@ -83,30 +82,29 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "address") // CTX.mapKey(Value.get("address"))
             TestFriend test;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThat(
             additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)).stream()
                 .filter(index -> index.getName()
                     .equals("test_person_friend_address_keys_index")
                     &&
-                    CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("address"))}))
+                    CTX.toBase64(index.getCtx()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("address"))}))
                 )
                 .count()
         ).isEqualTo(1L);
         assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, template.getSetName(TestPerson.class),
             "friend"))).isTrue();
 
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class,
             "test_person_friend_address_keys_index");
-        indexRefresher.refreshIndexes();
 
         assertThat(
             additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)).stream()
                 .filter(index -> index.getName()
                     .equals("test_person_friend_address_keys_index")
                     &&
-                    CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("address"))}))
+                    CTX.toBase64(index.getCtx()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("address"))}))
                 )
                 .count()
         ).isZero();
@@ -132,14 +130,14 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
             // CTX.mapValue(Value.get("1")), CTX.listIndex(-1), CTX.listRank(100), CTX.listValue(Value.get(20))
             TestFriend friend;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThat(
             additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)).stream()
                 .filter(index -> index.getName()
                     .equals("test_person_friend_address_keys_index")
                     &&
-                    CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("ab")),
+                    CTX.toBase64(index.getCtx()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("ab")),
                         CTX.mapKey(Value.get("cd")), CTX.mapKey(Value.get("10")), CTX.mapRank(5),
                         CTX.mapValue(Value.get("1")), CTX.listIndex(-1), CTX.listRank(100),
                         CTX.listValue(Value.get(20))}))
@@ -149,9 +147,8 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
         assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, template.getSetName(TestPerson.class),
             "friend"))).isTrue();
 
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class,
             "test_person_friend_address_keys_index");
-        indexRefresher.refreshIndexes();
     }
 
     @Test
@@ -171,14 +168,14 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
             // CTX.mapKey(Value.get("10")), CTX.mapValue(Value.get("1"))
             TestFriend friend;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThat(
             additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)).stream()
                 .filter(index -> index.getName()
                     .equals("test_person_friend_address_keys_index")
                     &&
-                    CTX.toBase64(index.getCTX()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("10")),
+                    CTX.toBase64(index.getCtx()).equals(CTX.toBase64(new CTX[]{CTX.mapKey(Value.get("10")),
                         CTX.mapValue(Value.get("1"))}))
                 )
                 .count()
@@ -186,9 +183,8 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
         assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, template.getSetName(TestPerson.class),
             "friend"))).isTrue();
 
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
+        additionalAerospikeTestOperations.dropIndex(IndexedPerson.class,
             "test_person_friend_address_keys_index");
-        indexRefresher.refreshIndexes();
     }
 
     @Test
@@ -201,7 +197,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "ab....cd..")
             String someField;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
             .isInstanceOf(IllegalArgumentException.class)
@@ -218,7 +214,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "ab.[]")
             String someField;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
             .isInstanceOf(IllegalArgumentException.class)
@@ -235,7 +231,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "ab.{cd]")
             String someField;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
             .isInstanceOf(IllegalArgumentException.class)
@@ -252,7 +248,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "{#address}") // rank must be integer
             String someField;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
             .isInstanceOf(IllegalArgumentException.class)
@@ -269,7 +265,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "[#address]") // rank must be integer
             String someField;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
             .isInstanceOf(IllegalArgumentException.class)
@@ -286,7 +282,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "{address}") // index must be integer
             String someField;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
             .isInstanceOf(IllegalArgumentException.class)
@@ -303,7 +299,7 @@ public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
                 collectionType = IndexCollectionType.MAPKEYS, ctx = "[address]") // index must be integer
             String someField;
         }
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
 
         assertThatThrownBy(() -> additionalAerospikeTestOperations.getIndexes(template.getSetName(TestPerson.class)))
             .isInstanceOf(IllegalArgumentException.class)

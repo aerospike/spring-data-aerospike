@@ -39,7 +39,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
     @BeforeAll
     public void beforeAll() {
-        indexRefresher.refreshIndexes();
+        template.refreshIndexesCache();
     }
 
     @Override

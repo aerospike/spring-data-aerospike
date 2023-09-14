@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import org.springframework.data.aerospike.AdditionalAerospikeTestOperations;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -15,6 +14,7 @@ import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 import org.springframework.data.aerospike.sample.ContactRepository;
 import org.springframework.data.aerospike.sample.CustomerRepository;
+import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;
