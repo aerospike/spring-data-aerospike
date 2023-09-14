@@ -31,6 +31,7 @@ import java.util.Arrays;
  */
 public class IndexRefresher {
 
+    public static final String CACHE_REFRESH_FREQUENCY_MILLIS = "index.cache.refresh.millis";
     private final Logger log = LoggerFactory.getLogger(IndexRefresher.class);
 
     private final IAerospikeClient client;
@@ -59,7 +60,7 @@ public class IndexRefresher {
         this.indexesCacheUpdater.update(cache);
     }
 
-    @Scheduled(fixedRateString = "${indexes.cache.refresh.millis}")
+    @Scheduled(fixedRateString = "${" + CACHE_REFRESH_FREQUENCY_MILLIS + "}")
     public void scheduledRefresh() {
         log.debug("Refreshing indexes cache");
         refreshIndexes();

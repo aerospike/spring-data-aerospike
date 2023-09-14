@@ -12,10 +12,11 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.CACHE_REFRESH_FREQUENCY_MILLIS;
 
 @Slf4j
 @ContextConfiguration
-@TestPropertySource(properties = {"indexes.cache.refresh.millis = 10000"})
+@TestPropertySource(properties = {CACHE_REFRESH_FREQUENCY_MILLIS + " = 10000"})
 public class IndexCacheRefreshTests extends BaseBlockingIntegrationTests {
 
     String setName = "scheduled";
@@ -23,7 +24,7 @@ public class IndexCacheRefreshTests extends BaseBlockingIntegrationTests {
     String binName = "testBin";
 
     @Test
-    public void indexesCacheIsRefreshedOnSchedule() throws InterruptedException {
+    public void indexesCacheIsRefreshedOnSchedule() {
         client.createIndex(null, getNameSpace(), setName, indexName, binName, STRING).waitTillComplete();
         log.debug("Test index {} is created", indexName);
         await()

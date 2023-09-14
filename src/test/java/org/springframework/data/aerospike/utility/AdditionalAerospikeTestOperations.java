@@ -124,8 +124,8 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public void createIndex(String namespace, String setName, String indexName, String binName,
                             IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
-        IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType,
-            indexCollectionType, ctx);
+        IndexCollectionType collType = indexCollectionType == null ? DEFAULT : indexCollectionType;
+        IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType, collType, ctx);
         indexesRefresher.refreshIndexesCache();
     }
 

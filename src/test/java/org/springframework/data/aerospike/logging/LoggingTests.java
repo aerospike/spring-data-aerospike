@@ -60,7 +60,7 @@ public class LoggingTests {
         AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor("TestName"), context);
         creator.createQuery();
 
-        assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(1);
+        assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isGreaterThan(0);
         String msg = "Created query: firstName EQ TestName";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();

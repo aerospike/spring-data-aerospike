@@ -88,7 +88,7 @@ public class IndexTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void refreshIndexes_indexWithGeoTypeCanBeParsed() {
-        additionalAerospikeTestOperations.createIndex(namespace, SET, INDEX_NAME_2, BIN_2, IndexType.STRING);
+        additionalAerospikeTestOperations.createIndex(namespace, SET, INDEX_NAME_3, BIN_3, GEO2DSPHERE);
 
         Optional<Index> index = indexesCache.getIndex(new IndexKey(namespace, SET, BIN_3, GEO2DSPHERE, null));
         assertThat(index).isPresent()
@@ -123,7 +123,7 @@ public class IndexTests extends BaseBlockingIntegrationTests {
     public void refreshIndexes_multipleIndexesCanBeParsed() {
         List<Index> newIndexes = List.of(
             builder().set(SET).name(INDEX_NAME).bin(BIN_1).indexType(NUMERIC).build(),
-            builder().set(SET).name(INDEX_NAME_2).bin(BIN_2).indexType(STRING).build(),
+            builder().set(null).name(INDEX_NAME_2).bin(BIN_2).indexType(STRING).build(),
             builder().set(SET).name(INDEX_NAME_3).bin(BIN_3).indexType(GEO2DSPHERE).build()
         );
         additionalAerospikeTestOperations.createIndexes(newIndexes);

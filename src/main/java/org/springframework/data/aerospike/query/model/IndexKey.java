@@ -32,7 +32,16 @@ public class IndexKey {
     private final String field;
     private final IndexType type;
     private final IndexCollectionType collectionType;
-    private CTX[] ctx;
+    private final CTX[] ctx;
+
+    public IndexKey(String namespace, String set, String field, IndexType type) {
+        this.namespace = namespace;
+        this.set = set;
+        this.field = field;
+        this.type = type;
+        this.collectionType = IndexCollectionType.DEFAULT;
+        this.ctx = null;
+    }
 
     public IndexKey(String namespace, String set, String field, IndexType type, IndexCollectionType collectionType) {
         this.namespace = namespace;
@@ -40,6 +49,7 @@ public class IndexKey {
         this.field = field;
         this.type = type;
         this.collectionType = collectionType;
+        this.ctx = null;
     }
 
     public IndexKey(String namespace, String set, String field, IndexType type, IndexCollectionType collectionType,
