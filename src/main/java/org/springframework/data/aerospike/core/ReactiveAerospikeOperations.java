@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.BatchResults;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
@@ -401,6 +402,17 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of whether the document existed on server before deletion.
      */
     <T> Mono<Boolean> delete(T document);
+
+    /**
+     * Reactively delete documents by providing multiple ids using a single batch delete operation, set name will be
+     * determined by the given entityClass.
+     * <p>
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
+     *                    {@literal null}.
+     */
+    <T> Mono<BatchResults> deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
      * Reactively create index by specified name in Aerospike.

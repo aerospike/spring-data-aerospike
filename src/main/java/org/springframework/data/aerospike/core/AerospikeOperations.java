@@ -80,14 +80,14 @@ public interface AerospikeOperations {
      * deciding whether to create a new record or update an existing one. If the version is set to zero - new record
      * will be created, creation will fail is such record already exists. If version is greater than zero - existing
      * record will be updated with {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined
-     * with removing bins at first (analogous to
-     * {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the version
-     * property of the document. Version property will be updated with the server's version after successful operation.
+     * with removing bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY})
+     * taking into consideration the version property of the document. Version property will be updated with the
+     * server's version after successful operation.
      * <p>
      * If the document does not have version property - record is updated with
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE} policy combined with removing bins at first
-     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when
-     * such record does not exist it will be created, otherwise updated - an "upsert".
+     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
+     * does not exist it will be created, otherwise updated - an "upsert".
      *
      * @param document The document to save. Must not be {@literal null}.
      */
@@ -111,9 +111,8 @@ public interface AerospikeOperations {
 
     /**
      * Update a document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with
-     * removing bins at first (analogous to
-     * {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the version
-     * property of the document if it is present.
+     * removing bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking
+     * into consideration the version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
@@ -158,10 +157,9 @@ public interface AerospikeOperations {
     <T> boolean delete(T document);
 
     /**
-     * Delete documents by providing multiple ids using a single batch delete operation, set name will be determined
-     * by the given entityClass.
+     * Delete documents by providing multiple ids using a single batch delete operation, set name will be determined by
+     * the given entityClass.
      * <p>
-     * Documents will be mapped to the given entityClass.
      *
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be

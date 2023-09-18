@@ -349,7 +349,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(ids, "List of ids must not be null!");
