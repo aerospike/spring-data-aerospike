@@ -484,6 +484,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             throw translateError(e);
         }
     }
+
     <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass,
                                          Qualifier... qualifiers) {
         Record aeroRecord;

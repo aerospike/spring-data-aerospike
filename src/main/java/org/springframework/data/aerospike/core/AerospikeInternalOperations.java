@@ -36,8 +36,9 @@ public interface AerospikeInternalOperations {
                                      Qualifier... qualifiers);
 
     /**
-     * Delete document by providing id, set name will be determined by the given entityClass.
+     * Batch delete documents by providing their ids. Set name will be determined by the given entityClass.
      * <p>
+     * This operation requires Server version 6.0+.
      *
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
