@@ -41,8 +41,7 @@ public interface AerospikeInternalOperations {
      *
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
      */
-    <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass, Qualifier... qualifiers);
+    <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass);
 
 }

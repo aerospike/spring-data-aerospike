@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.support;
 
-import com.aerospike.client.BatchResults;
 import com.aerospike.client.query.IndexType;
 import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
@@ -121,7 +120,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     }
 
     @Override
-    public Mono<BatchResults> deleteAllById(Iterable<? extends ID> ids) {
+    public Mono<Void> deleteAllById(Iterable<? extends ID> ids) {
         Assert.notNull(ids, "The given ids must not be null!");
         return operations.deleteByIds(ids, entityInformation.getJavaType());
     }

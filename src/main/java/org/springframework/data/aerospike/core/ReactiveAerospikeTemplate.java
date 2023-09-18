@@ -16,7 +16,6 @@
 package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeException;
-import com.aerospike.client.BatchResults;
 import com.aerospike.client.Bin;
 import com.aerospike.client.Info;
 import com.aerospike.client.Key;
@@ -641,24 +640,17 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<BatchResults> deleteByIds(Iterable<?> ids, Class<T> entityClass, Qualifier[] qualifiers) {
+    public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-        final BatchPolicy policy;
-        if (qualifiers != null && qualifiers.length > 0) {
-            policy = new BatchPolicy(reactorClient.getBatchPolicyDefault());
-            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
-        } else {
-            policy = null;
-        }
 
         Key[] keys = StreamSupport.stream(ids.spliterator(), false)
             .map(id -> getKey(id, entity))
             .toArray(Key[]::new);
 
-        return reactorClient.delete(policy, null, keys);
+        return reactorClient.delete(null, null, keys).then();
     }
 
     @Override

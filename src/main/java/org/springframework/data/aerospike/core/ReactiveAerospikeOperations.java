@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.BatchResults;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
@@ -412,7 +411,7 @@ public interface ReactiveAerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
      */
-    <T> Mono<BatchResults> deleteByIds(Iterable<?> ids, Class<T> entityClass);
+    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
      * Reactively create index by specified name in Aerospike.
