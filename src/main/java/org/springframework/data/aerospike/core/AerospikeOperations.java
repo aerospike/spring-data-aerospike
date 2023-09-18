@@ -158,6 +158,18 @@ public interface AerospikeOperations {
     <T> boolean delete(T document);
 
     /**
+     * Delete documents by providing multiple ids using a single batch delete operation, set name will be determined
+     * by the given entityClass.
+     * <p>
+     * Documents will be mapped to the given entityClass.
+     *
+     * @param ids         The ids of the documents to delete. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
+     *                    {@literal null}.
+     */
+    <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
+
+    /**
      * Check if a document exists by providing document id and entityClass (set name will be determined by the given
      * entityClass).
      *

@@ -349,6 +349,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        deleteByIdsInternal(IterableConverter.toList(ids), entityClass, (Qualifier[]) null);
+    }
+
     @Override
     public <T> boolean exists(Object id, Class<T> entityClass) {
         Assert.notNull(id, "Id must not be null!");
@@ -457,6 +466,33 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    @Override
+    public <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass, Qualifier... qualifiers) {
+        if (ids.isEmpty()) {
+            return;
+        }
+
+        try {
+            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+            Key[] keys = ids.stream()
+                .map(id -> getKey(id, entity))
+                .toArray(Key[]::new);
+
+            BatchPolicy policy = null;
+            if (qualifiers != null && qualifiers.length > 0) {
+                policy = new BatchPolicy(getAerospikeClient().getBatchPolicyDefault());
+                policy.filterExp = getQueryEngine().getFilterExpressionsBuilder().build(qualifiers);
+            }
+
+            List<Operation> operations = Arrays.stream(keys).map(key -> Operation.delete()).toList();
+
+            // requires server ver. >= 6.0.0
+            client.operate(policy, null, keys, operations.toArray(Operation[]::new));
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
     <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass,
                                          Qualifier... qualifiers) {
         Record aeroRecord;

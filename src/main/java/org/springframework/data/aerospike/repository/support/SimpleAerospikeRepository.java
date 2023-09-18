@@ -72,12 +72,6 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     }
 
     @Override
-    public void deleteAllById(Iterable<? extends ID> iterable) {
-        Assert.notNull(iterable, "The given Iterable must not be null!");
-        iterable.forEach(this::deleteById);
-    }
-
-    @Override
     public Iterable<T> findAll(Sort sort) {
         Stream<T> findResults = operations.findAll(sort, 0, 0, entityInformation.getJavaType());
         return findResults::iterator;
@@ -136,6 +130,12 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     @Override
     public void deleteAll() {
         operations.delete(entityInformation.getJavaType());
+    }
+
+    @Override
+    public void deleteAllById(Iterable<? extends ID> ids) {
+        Assert.notNull(ids, "The given ids must not be null!");
+        operations.deleteByIds(ids, entityInformation.getJavaType());
     }
 
     @Override
