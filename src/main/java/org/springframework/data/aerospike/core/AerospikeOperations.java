@@ -160,7 +160,7 @@ public interface AerospikeOperations {
      * Delete documents by providing multiple ids using a single batch delete operation, set name will be determined by
      * the given entityClass.
      * <p>
-     * This operation requires Server version 6.0+
+     * This operation requires Server version 6.0+.
      *
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be

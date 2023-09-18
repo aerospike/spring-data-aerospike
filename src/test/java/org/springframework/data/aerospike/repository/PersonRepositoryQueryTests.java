@@ -1153,6 +1153,19 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void deleteAllPersonsFromList() {
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            // batch delete requires server ver. >= 6.0.0
+            repository.deleteAll(List.of(dave, carter));
+
+            assertThat(repository.findAllById(List.of(dave.getId(), carter.getId()))).isEmpty();
+
+            repository.save(dave); // cleanup
+            repository.save(carter); // cleanup
+        }
+    }
+
+    @Test
     public void findPersonByIdAndFirstName() {
         List<Person> persons = repository.findByIdAndFirstName(dave.getId(), dave.getFirstName());
         assertThat(persons).containsOnly(dave);
