@@ -16,8 +16,9 @@ import static org.springframework.data.aerospike.query.cache.IndexRefresher.CACH
 
 @Slf4j
 @ContextConfiguration
-@TestPropertySource(properties = {CACHE_REFRESH_FREQUENCY_MILLIS + " = 10000"})
-public class IndexCacheRefreshTests extends BaseBlockingIntegrationTests {
+@TestPropertySource(properties = {CACHE_REFRESH_FREQUENCY_MILLIS + " = 4000"})
+//@TestPropertySource(properties = {"indexCacheRefreshFrequencySeconds = 4000"})
+public class IndexScheduledCacheRefreshOnTest extends BaseBlockingIntegrationTests {
 
     String setName = "scheduled";
     String indexName = "index1";
@@ -28,8 +29,8 @@ public class IndexCacheRefreshTests extends BaseBlockingIntegrationTests {
         client.createIndex(null, getNameSpace(), setName, indexName, binName, STRING).waitTillComplete();
         log.debug("Test index {} is created", indexName);
         await()
-            .timeout(11, SECONDS)
-            .pollDelay(10, SECONDS)
+            .timeout(5, SECONDS)
+            .pollDelay(4, SECONDS)
             .untilAsserted(() -> Assertions.assertTrue(true));
         log.debug("Checking indexes");
 

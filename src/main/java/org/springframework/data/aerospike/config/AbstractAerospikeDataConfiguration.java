@@ -15,12 +15,15 @@
  */
 package org.springframework.data.aerospike.config;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -34,7 +37,9 @@ import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
+import org.springframework.data.aerospike.query.cache.ScheduledIndexRefresher;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.util.StringUtils;
 
 import static org.springframework.data.aerospike.query.cache.IndexRefresher.CACHE_REFRESH_FREQUENCY_MILLIS;
 
@@ -77,6 +82,12 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
             aerospikeIndexResolver, template);
     }
 
+    @Conditional(PositiveIndexCacheRefresherFrequency.class)
+    @Bean(name = "scheduledIndexRefresher")
+    public ScheduledIndexRefresher scheduledIndexRefresher(IndexRefresher aerospikeIndexRefresher) {
+        return new ScheduledIndexRefresher(aerospikeIndexRefresher);
+    }
+
     @Bean(name = "aerospikeIndexRefresher")
     public IndexRefresher indexRefresher(IAerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater) {
         IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(),
@@ -90,9 +101,17 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
 
     private void processCacheRefreshFrequency(int indexCacheRefreshFrequencySeconds) {
         if (indexCacheRefreshFrequencySeconds <= 0) {
-            throw new AerospikeException("Index cache refresh frequency must be bigger than 0");
+            log.info("Index cache refreshing interval is <= 0, regular refreshing is switched off");
         }
-
         System.setProperty(CACHE_REFRESH_FREQUENCY_MILLIS, String.valueOf(indexCacheRefreshFrequencySeconds * 1000));
+    }
+
+    static class PositiveIndexCacheRefresherFrequency implements Condition {
+
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            String cacheRefreshProperty = System.getProperty(CACHE_REFRESH_FREQUENCY_MILLIS);
+            return StringUtils.hasText(cacheRefreshProperty) && Integer.parseInt(cacheRefreshProperty) <= 0;
+        }
     }
 }

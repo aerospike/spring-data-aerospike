@@ -22,7 +22,6 @@ import com.aerospike.client.policy.InfoPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.Arrays;
 
@@ -58,12 +57,6 @@ public class IndexRefresher {
             .orElse(IndexesInfo.empty());
         log.debug("Loaded indexes: {}", cache.indexes);
         this.indexesCacheUpdater.update(cache);
-    }
-
-    @Scheduled(fixedRateString = "${" + CACHE_REFRESH_FREQUENCY_MILLIS + "}")
-    public void scheduledRefresh() {
-        log.debug("Refreshing indexes cache");
-        refreshIndexes();
     }
 
     public void clearCache() {
