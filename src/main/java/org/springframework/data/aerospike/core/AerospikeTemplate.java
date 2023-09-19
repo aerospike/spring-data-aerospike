@@ -350,6 +350,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
+    public <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        deleteByIdsInternal(IterableConverter.toList(ids), entityClass);
+    }
+
+    @Override
     public <T> boolean exists(Object id, Class<T> entityClass) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
@@ -457,6 +465,26 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    @Override
+    public <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass) {
+        if (ids.isEmpty()) {
+            return;
+        }
+
+        try {
+            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+            Key[] keys = ids.stream()
+                .map(id -> getKey(id, entity))
+                .toArray(Key[]::new);
+
+            // requires server ver. >= 6.0.0
+            client.delete(null, null, keys);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
     <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass,
                                          Qualifier... qualifiers) {
         Record aeroRecord;
@@ -555,7 +583,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public GroupedEntities findByIds(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
 
-        if (groupedKeys.getEntitiesKeys().isEmpty()) {
+        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return GroupedEntities.builder().build();
         }
 
@@ -567,6 +595,22 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Record[] aeroRecords = client.get(null, entitiesKeys.getKeys());
 
         return toGroupedEntities(entitiesKeys, aeroRecords);
+    }
+
+    @Override
+    public void deleteByIds(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+
+        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
+            return;
+        }
+
+         deleteEntitiesByIdsInternal(groupedKeys);
+    }
+
+    private void deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {
+        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
+        client.delete(null, null, entitiesKeys.getKeys());
     }
 
     @Override

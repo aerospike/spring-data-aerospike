@@ -26,6 +26,7 @@ import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -69,12 +70,6 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     @Override
     public void delete(T entity) {
         operations.delete(entity);
-    }
-
-    @Override
-    public void deleteAllById(Iterable<? extends ID> iterable) {
-        Assert.notNull(iterable, "The given Iterable must not be null!");
-        iterable.forEach(this::deleteById);
     }
 
     @Override
@@ -128,14 +123,21 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
 
     @Override
     public void deleteAll(Iterable<? extends T> entities) {
-        for (T entity : entities) {
-            delete(entity);
-        }
+        Assert.notNull(entities, "The given ids must not be null!");
+        List<ID> ids = new ArrayList<>();
+        entities.forEach(entity -> ids.add(entityInformation.getId(entity)));
+        operations.deleteByIds(ids, entityInformation.getJavaType());
     }
 
     @Override
     public void deleteAll() {
         operations.delete(entityInformation.getJavaType());
+    }
+
+    @Override
+    public void deleteAllById(Iterable<? extends ID> ids) {
+        Assert.notNull(ids, "The given ids must not be null!");
+        operations.deleteByIds(ids, entityInformation.getJavaType());
     }
 
     @Override

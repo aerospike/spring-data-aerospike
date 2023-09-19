@@ -64,6 +64,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.StreamSupport;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
@@ -486,7 +487,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
 
-        if (groupedKeys.getEntitiesKeys().isEmpty()) {
+        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.just(GroupedEntities.builder().build());
         }
 
@@ -636,6 +637,40 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .delete(ignoreGenerationDeletePolicy(), data.getKey())
             .map(key -> true)
             .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+        Key[] keys = StreamSupport.stream(ids.spliterator(), false)
+            .map(id -> getKey(id, entity))
+            .toArray(Key[]::new);
+
+        return reactorClient.delete(null, null, keys).then();
+    }
+
+    @Override
+    public Mono<Void> deleteByIds(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+
+        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
+            return Mono.empty();
+        }
+
+        return deleteEntitiesByIdsInternal(groupedKeys);
+    }
+
+    private Mono<Void> deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {
+        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
+
+        reactorClient.delete(null, null, entitiesKeys.getKeys())
+            .doOnError(this::translateError);
+
+        return Mono.empty();
     }
 
     @Override
