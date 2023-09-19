@@ -169,6 +169,19 @@ public interface AerospikeOperations {
     <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
+     * Executes a single batch delete for several entities.
+     * <p>
+     * Aerospike provides functionality to delete documents from different sets in 1 batch request. The methods allow to
+     * put grouped keys by entity type as parameter and get result as spring data aerospike entities grouped by entity
+     * type.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param groupedKeys Must not be {@literal null}.
+     */
+    void deleteByIds(GroupedKeys groupedKeys);
+
+    /**
      * Check if a document exists by providing document id and entityClass (set name will be determined by the given
      * entityClass).
      *

@@ -44,5 +44,4 @@ public interface AerospikeInternalOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      */
     <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass);
-
 }

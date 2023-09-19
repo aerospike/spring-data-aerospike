@@ -654,6 +654,26 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public Mono<Void> deleteByIds(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+
+        if (groupedKeys.getEntitiesKeys().isEmpty()) {
+            return Mono.empty();
+        }
+
+        return deleteEntitiesByIdsInternal(groupedKeys);
+    }
+
+    private Mono<Void> deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {
+        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
+
+        reactorClient.delete(null, null, entitiesKeys.getKeys())
+            .doOnError(this::translateError);
+
+        return Mono.empty();
+    }
+
+    @Override
     public <T> Mono<Void> createIndex(Class<T> entityClass, String indexName,
                                       String binName, IndexType indexType) {
         return createIndex(entityClass, indexName, binName, indexType, IndexCollectionType.DEFAULT);

@@ -598,6 +598,22 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
+    public void deleteByIds(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+
+        if (groupedKeys.getEntitiesKeys().isEmpty()) {
+            return;
+        }
+
+         deleteEntitiesByIdsInternal(groupedKeys);
+    }
+
+    private void deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {
+        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
+        client.delete(null, null, entitiesKeys.getKeys());
+    }
+
+    @Override
     public <T> ResultSet aggregate(Filter filter, Class<T> entityClass,
                                    String module, String function, List<Value> arguments) {
         Assert.notNull(entityClass, "Class must not be null!");
