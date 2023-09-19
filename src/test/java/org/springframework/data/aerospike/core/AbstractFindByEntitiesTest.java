@@ -33,7 +33,7 @@ public interface AbstractFindByEntitiesTest {
 
         assertThat(byIds.getEntitiesByClass(Person.class)).containsExactlyInAnyOrderElementsOf(persons);
         assertThat(byIds.getEntitiesByClass(Customer.class)).containsExactlyInAnyOrderElementsOf(customers);
-        deletePersons(persons); // cleanup
+        deleteEntities(persons); // cleanup
     }
 
     @Test
@@ -54,7 +54,7 @@ public interface AbstractFindByEntitiesTest {
 
         GroupedEntities byIds = findByIds(groupedKeys);
         assertThat(byIds.containsEntities()).isFalse();
-        deletePersons(persons); // cleanup
+        deleteEntities(persons); // cleanup
     }
 
     @Test
@@ -67,7 +67,7 @@ public interface AbstractFindByEntitiesTest {
 
         assertThat(results.getEntitiesByClass(Person.class)).containsExactlyInAnyOrderElementsOf(persons);
         assertThat(results.getEntitiesByClass(Customer.class)).containsExactlyInAnyOrderElementsOf(customers);
-        deletePersons(persons); // cleanup
+        deleteEntities(persons); // cleanup
     }
 
     @Test
@@ -79,7 +79,7 @@ public interface AbstractFindByEntitiesTest {
 
         assertThat(results.getEntitiesByClass(Person.class)).containsExactlyInAnyOrderElementsOf(persons);
         assertThat(results.getEntitiesByClass(Customer.class)).containsExactlyInAnyOrderElementsOf(emptyList());
-        deletePersons(persons); // cleanup
+        deleteEntities(persons); // cleanup
     }
 
     @Test
@@ -91,7 +91,7 @@ public interface AbstractFindByEntitiesTest {
 
         assertThat(batchGroupedEntities.getEntitiesByClass(Person.class)).containsExactlyInAnyOrderElementsOf(persons);
         assertThat(batchGroupedEntities.getEntitiesByClass(Customer.class)).containsExactlyInAnyOrderElementsOf(emptyList());
-        deletePersons(persons); // cleanup
+        deleteEntities(persons); // cleanup
     }
 
     @Test
@@ -139,7 +139,7 @@ public interface AbstractFindByEntitiesTest {
         assertThatThrownBy(() -> findByIds(groupedKeys))
             .isInstanceOf(MappingException.class)
             .hasMessage("Couldn't find PersistentEntity for type class java.lang.String");
-        deletePersons(persons); // cleanup
+        deleteEntities(persons); // cleanup
     }
 
     @Test
@@ -208,9 +208,9 @@ public interface AbstractFindByEntitiesTest {
             .collect(Collectors.toList());
     }
 
-    default void deletePersons(List<Person> persons) {
-        for (Person person : persons) {
-            delete(person);
+    default <T> void deleteEntities(List<T> entities) {
+        for (T entity : entities) {
+            delete(entity);
         }
     }
 

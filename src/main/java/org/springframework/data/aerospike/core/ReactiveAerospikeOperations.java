@@ -403,6 +403,32 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> delete(T document);
 
     /**
+     * Reactively delete documents by providing multiple ids using a single batch delete operation, set name will be
+     * determined by the given entityClass.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
+     *                    {@literal null}.
+     */
+    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
+
+    /**
+     * Executes a single batch delete for several entities.
+     * <p>
+     * Aerospike provides functionality to delete documents from different sets in 1 batch request. The methods allow to
+     * put grouped keys by entity type as parameter and get result as spring data aerospike entities grouped by entity
+     * type.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param groupedKeys Must not be {@literal null}.
+     * @return
+     */
+    Mono<Void> deleteByIds(GroupedKeys groupedKeys);
+
+    /**
      * Reactively create index by specified name in Aerospike.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.

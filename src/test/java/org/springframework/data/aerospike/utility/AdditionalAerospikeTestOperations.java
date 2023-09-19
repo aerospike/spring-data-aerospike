@@ -20,6 +20,8 @@ import org.springframework.data.aerospike.core.WritePolicyBuilder;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.sample.Customer;
+import org.springframework.data.aerospike.sample.Person;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 
@@ -216,4 +218,9 @@ public abstract class AdditionalAerospikeTestOperations {
         @NonNull
         String status;
     }
+
+
+    public abstract List<Customer> generateCustomers(int count);
+
+    public abstract List<Person> generatePersons(int count);
 }

@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 public class IndexUtils {
 
+    private static final ModuleDescriptor.Version SERVER_VERSION_6_0_0_0 = ModuleDescriptor.Version.parse("6.0.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_1 = ModuleDescriptor.Version.parse("6.1.0.1");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_3_0_0 = ModuleDescriptor.Version.parse("6.3.0.0");
 
@@ -83,6 +84,11 @@ public class IndexUtils {
     public static boolean isFindByPojoSupported(IAerospikeClient client) {
         return ModuleDescriptor.Version.parse(IndexUtils.getServerVersion(client))
             .compareTo(SERVER_VERSION_6_3_0_0) >= 0;
+    }
+
+    public static boolean isBatchWriteSupported(IAerospikeClient client) {
+        return ModuleDescriptor.Version.parse(IndexUtils.getServerVersion(client))
+            .compareTo(SERVER_VERSION_6_0_0_0) >= 0;
     }
 
     private static void waitTillComplete(Supplier<IndexTask> supplier) {

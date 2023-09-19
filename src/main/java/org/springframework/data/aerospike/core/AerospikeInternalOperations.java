@@ -34,4 +34,14 @@ public interface AerospikeInternalOperations {
      */
     <T, S> List<?> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                      Qualifier... qualifiers);
+
+    /**
+     * Batch delete documents by providing their ids. Set name will be determined by the given entityClass.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids         The ids of the documents to delete. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     */
+    <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass);
 }

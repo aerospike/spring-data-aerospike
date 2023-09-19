@@ -21,9 +21,16 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClassToDelete;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import org.springframework.data.aerospike.core.model.GroupedKeys;
+import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.utility.IndexUtils;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -91,6 +98,36 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteById_returnsFalseIfValueIsAbsent() {
         assertThat(template.delete(id, Person.class)).isFalse();
+    }
+
+    @Test
+    public void deleteByGroupedKeys() {
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            List<Person> persons = additionalAerospikeTestOperations.generatePersons(5);
+            List<String> personsIds = persons.stream().map(Person::getId).toList();
+            List<Customer> customers = additionalAerospikeTestOperations.generateCustomers(3);
+            List<String> customersIds = customers.stream().map(Customer::getId).toList();
+
+            GroupedKeys groupedKeys = getGroupedKeys(persons, customers);
+
+            template.deleteByIds(groupedKeys);
+
+            assertThat(template.findByIds(personsIds, Person.class)).isEmpty();
+            assertThat(template.findByIds(customersIds, Customer.class)).isEmpty();
+        }
+    }
+
+    GroupedKeys getGroupedKeys(Collection<Person> persons, Collection<Customer> customers) {
+        Set<String> requestedPersonsIds = persons.stream()
+            .map(Person::getId)
+            .collect(Collectors.toSet());
+        Set<String> requestedCustomerIds = customers.stream().map(Customer::getId)
+            .collect(Collectors.toSet());
+
+        return GroupedKeys.builder()
+            .entityKeys(Person.class, requestedPersonsIds)
+            .entityKeys(Customer.class, requestedCustomerIds)
+            .build();
     }
 
     @Test
