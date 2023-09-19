@@ -4,8 +4,8 @@ import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.experimental.UtilityClass;
-import org.springframework.data.aerospike.AdditionalAerospikeTestOperations;
 import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 
 import java.util.List;
 

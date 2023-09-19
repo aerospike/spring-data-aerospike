@@ -68,7 +68,7 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
         template.save(thirdPerson);
 
         // Create index
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class,
+        additionalAerospikeTestOperations.createIndex(Person.class,
             "person_age_index", "age", IndexType.NUMERIC);
     }
 

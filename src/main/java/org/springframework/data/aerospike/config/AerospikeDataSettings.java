@@ -28,6 +28,8 @@ public class AerospikeDataSettings {
     boolean sendKey = true;
     @Builder.Default
     boolean createIndexesOnStartup = true;
+    @Builder.Default
+    int indexCacheRefreshFrequencySeconds = 3600;
 
     /*
      * (non-Javadoc)

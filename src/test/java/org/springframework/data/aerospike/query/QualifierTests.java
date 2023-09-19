@@ -48,8 +48,8 @@ public class QualifierTests extends BaseQueryEngineTests {
      */
     @BeforeAll
     public void dropIndexes() {
-        tryDropIndex(namespace, SET_NAME, "age_index");
-        tryDropIndex(namespace, SET_NAME, "color_index");
+        tryDropIndex(SET_NAME, "age_index");
+        tryDropIndex(SET_NAME, "color_index");
     }
 
     @Test
@@ -260,7 +260,7 @@ public class QualifierTests extends BaseQueryEngineTests {
             // scan will be run, since Aerospike filter does not support case-insensitive string comparison
         });
 
-        tryDropIndex(namespace, SET_NAME, "color_index");
+        tryDropIndex(SET_NAME, "color_index");
     }
 
     @Test

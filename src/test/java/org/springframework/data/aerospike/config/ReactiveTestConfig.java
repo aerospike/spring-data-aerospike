@@ -8,19 +8,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
-import org.springframework.data.aerospike.AdditionalAerospikeTestOperations;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
+import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
+import static org.springframework.data.aerospike.utility.Utils.getIntegerProperty;
 
 /**
  * @author Peter Milne
@@ -83,6 +87,8 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
         builder.scansEnabled(true);
         boolean indexesOnStartup = Boolean.parseBoolean(env.getProperty("createIndexesOnStartup"));
         builder.createIndexesOnStartup(indexesOnStartup);
+        Optional<Integer> indexRefreshFrequency = getIntegerProperty(env.getProperty(INDEX_CACHE_REFRESH_SECONDS));
+        indexRefreshFrequency.ifPresent(builder::indexCacheRefreshFrequencySeconds);
     }
 
     @Bean

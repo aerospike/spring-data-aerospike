@@ -39,6 +39,7 @@ import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
+import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -80,7 +81,7 @@ import static org.springframework.data.aerospike.core.CoreUtils.operations;
  */
 @Slf4j
 public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations,
-    ReactiveAerospikeInternalOperations {
+    ReactiveAerospikeInternalOperations, IndexesCacheRefresher {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
     private final IAerospikeReactorClient reactorClient;
@@ -923,5 +924,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         } else {
             return this.queryEngine.select(this.namespace, setName, filter, qualifiers);
         }
+    }
+
+    @Override
+    public void refreshIndexesCache() {
+        reactorIndexRefresher.refreshIndexes();
     }
 }

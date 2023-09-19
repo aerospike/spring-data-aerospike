@@ -33,11 +33,11 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @BeforeAll
     public void beforeAllSetUp() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_age_index",
+        additionalAerospikeTestOperations.createIndex(Person.class, "person_age_index",
             "age", IndexType.NUMERIC);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_last_name_index",
+        additionalAerospikeTestOperations.createIndex(Person.class, "person_last_name_index",
             "lastName", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Person.class, "person_first_name_index",
+        additionalAerospikeTestOperations.createIndex(Person.class, "person_first_name_index",
             "firstName", IndexType.STRING);
     }
 
@@ -50,9 +50,9 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
 
     @AfterAll
     public void afterAll() {
-        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_age_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_last_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(Person.class, "person_first_name_index");
+        additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
+        additionalAerospikeTestOperations.dropIndex(Person.class, "person_last_name_index");
+        additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
     }
 
     @Test

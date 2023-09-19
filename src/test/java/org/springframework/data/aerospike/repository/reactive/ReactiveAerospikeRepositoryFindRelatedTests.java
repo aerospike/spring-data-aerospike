@@ -41,11 +41,11 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
         customer3 = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15).group('b').build();
         customer4 = Customer.builder().id(nextId()).firstName("Matt").lastName("Groening").age(65).group('c').build();
 
-        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_first_name_index",
+        additionalAerospikeTestOperations.createIndex(Customer.class, "customer_first_name_index",
             "firstname", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_last_name_index",
+        additionalAerospikeTestOperations.createIndex(Customer.class, "customer_last_name_index",
             "lastname", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(Customer.class, "customer_age_index", "age",
+        additionalAerospikeTestOperations.createIndex(Customer.class, "customer_age_index", "age",
             IndexType.NUMERIC);
 
         customerRepo.saveAll(Flux.just(customer1, customer2, customer3, customer4))
@@ -55,9 +55,9 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
     @AfterAll
     public void afterAll() {
         customerRepo.deleteAll().block();
-        additionalAerospikeTestOperations.dropIndexIfExists(Customer.class, "customer_first_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(Customer.class, "customer_last_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(Customer.class, "customer_age_index");
+        additionalAerospikeTestOperations.dropIndex(Customer.class, "customer_first_name_index");
+        additionalAerospikeTestOperations.dropIndex(Customer.class, "customer_last_name_index");
+        additionalAerospikeTestOperations.dropIndex(Customer.class, "customer_age_index");
     }
 
     @Test

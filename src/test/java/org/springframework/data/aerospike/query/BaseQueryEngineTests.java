@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.query;
 
-import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +7,6 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.utility.AwaitilityUtils;
-import org.springframework.data.aerospike.utility.IndexUtils;
 
 import java.util.Optional;
 
@@ -30,30 +28,21 @@ public abstract class BaseQueryEngineTests extends BaseBlockingIntegrationTests 
         try {
             runnable.run();
         } finally {
-            tryDropIndex(namespace, setName, indexName);
+            tryDropIndex(setName, indexName);
         }
     }
 
-    protected void tryDropIndex(String namespace, String setName, String indexName) {
-        IndexUtils.dropIndex(client, namespace, setName, indexName);
-        indexRefresher.refreshIndexes();
+    protected void tryDropIndex(String setName, String indexName) {
+        additionalAerospikeTestOperations.dropIndex(setName, indexName);
     }
 
     protected void tryCreateIndex(String namespace, String setName, String indexName, String binName,
                                   IndexType indexType) {
         AwaitilityUtils.awaitTenSecondsUntil(() -> {
-            IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType);
-            indexRefresher.refreshIndexes();
+            additionalAerospikeTestOperations.createIndex(namespace, setName, indexName, binName, indexType);
             IndexKey indexKey = new IndexKey(namespace, setName, binName, indexType, null);
             Optional<Index> index = indexesCache.getIndex(indexKey);
             assertThat(index).as("Index for: " + indexKey + " not created").isPresent();
         });
-    }
-
-    protected void tryCreateIndex(String namespace, String setName, String indexName, String binName,
-                                  IndexType indexType,
-                                  IndexCollectionType collectionType) {
-        IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType, collectionType);
-        indexRefresher.refreshIndexes();
     }
 }

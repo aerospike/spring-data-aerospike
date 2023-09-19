@@ -2,8 +2,6 @@ package org.springframework.data.aerospike.repository;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
-import com.aerospike.client.query.IndexCollectionType;
-import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
@@ -21,11 +20,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.aerospike.client.query.IndexCollectionType.LIST;
+import static com.aerospike.client.query.IndexCollectionType.MAPKEYS;
+import static com.aerospike.client.query.IndexCollectionType.MAPVALUES;
+import static com.aerospike.client.query.IndexType.NUMERIC;
+import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
@@ -55,62 +60,85 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     public void beforeAll() {
         repository.deleteAll(allIndexedPersons);
         repository.saveAll(allIndexedPersons);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_first_name_index",
-            "firstName", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_last_name_index",
-            "lastName", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_age_index",
-            "age", IndexType.NUMERIC);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_strings_index",
-            "strings", IndexType.STRING, IndexCollectionType.LIST);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class, "indexed_person_ints_index",
-            "ints", IndexType.NUMERIC, IndexCollectionType.LIST);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_string_map_keys_index", "stringMap", IndexType.STRING, IndexCollectionType.MAPKEYS);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_string_map_values_index", "stringMap", IndexType.STRING, IndexCollectionType.MAPVALUES);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_int_map_keys_index", "intMap", IndexType.STRING, IndexCollectionType.MAPKEYS);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_int_map_values_index", "intMap", IndexType.NUMERIC, IndexCollectionType.MAPVALUES);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_address_keys_index", "address", IndexType.STRING, IndexCollectionType.MAPKEYS);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_address_values_index", "address", IndexType.STRING, IndexCollectionType.MAPVALUES);
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_friend_address_keys_index", "friend", IndexType.STRING,
-            IndexCollectionType.MAPKEYS, CTX.mapKey(Value.get("address")));
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_friend_address_values_index", "friend", IndexType.STRING,
-            IndexCollectionType.MAPVALUES, CTX.mapValue(Value.get("address")));
-        additionalAerospikeTestOperations.createIndexIfNotExists(IndexedPerson.class,
-            "indexed_person_friend_bestFriend_address_keys_index", "friend", IndexType.STRING,
-            IndexCollectionType.MAPKEYS, CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address")));
-        indexRefresher.refreshIndexes();
+
+        List<Index> newIndexes = new ArrayList<>();
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_first_name_index").bin("firstName").indexType(STRING).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_last_name_index").bin("lastName").indexType(STRING).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_age_index").bin("age").indexType(NUMERIC).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_strings_index").bin("strings").indexType(STRING).indexCollectionType(LIST).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_ints_index").bin("ints").indexType(NUMERIC).indexCollectionType(LIST).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_string_map_keys_index").bin("stringMap").indexType(STRING)
+            .indexCollectionType(MAPKEYS).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_string_map_values_index").bin("stringMap").indexType(STRING)
+            .indexCollectionType(MAPVALUES).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_int_map_keys_index").bin("intMap").indexType(STRING).indexCollectionType(MAPKEYS)
+            .build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_int_map_values_index").bin("intMap").indexType(NUMERIC)
+            .indexCollectionType(MAPVALUES).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_address_keys_index").bin("address").indexType(STRING).indexCollectionType(MAPKEYS)
+            .build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_address_values_index").bin("address").indexType(STRING)
+            .indexCollectionType(MAPVALUES).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_friend_address_keys_index")
+            .bin("friend").indexType(STRING).indexCollectionType(MAPKEYS)
+            .ctx(new CTX[]{CTX.mapKey(Value.get("address"))}).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_friend_address_values_index")
+            .bin("friend").indexType(STRING).indexCollectionType(MAPVALUES)
+            .ctx(new CTX[]{CTX.mapValue(Value.get("address"))}).build());
+        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_friend_bestFriend_address_keys_index")
+            .bin("friend").indexType(STRING).indexCollectionType(MAPKEYS)
+            .ctx(new CTX[]{CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address"))}).build());
+        additionalAerospikeTestOperations.createIndexes(newIndexes);
     }
 
     @AfterAll
     public void afterAll() {
         repository.deleteAll(allIndexedPersons);
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_first_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_last_name_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_strings_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_ints_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_string_map_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_string_map_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_int_map_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class, "indexed_person_address_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_friend_address_keys_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_friend_address_values_index");
-        additionalAerospikeTestOperations.dropIndexIfExists(IndexedPerson.class,
-            "indexed_person_friend_bestFriend_address_keys_index");
-        indexRefresher.refreshIndexes();
+
+        List<Index> dropIndexes = new ArrayList<>();
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_first_name_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_last_name_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_age_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_strings_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_ints_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_string_map_keys_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_string_map_values_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_int_map_keys_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_int_map_values_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_address_keys_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_address_values_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_friend_address_keys_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_friend_address_values_index").build());
+        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .name("indexed_person_friend_bestFriend_address_keys_index").build());
+        additionalAerospikeTestOperations.dropIndexes(dropIndexes);
     }
 
     @AfterEach

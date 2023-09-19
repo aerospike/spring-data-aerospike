@@ -3,6 +3,7 @@ package org.springframework.data.aerospike;
 import com.aerospike.client.IAerospikeClient;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
+import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
 import org.testcontainers.containers.GenericContainer;
@@ -20,7 +21,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
     public ReactiveBlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
                                                    IAerospikeClient client, GenericContainer<?> aerospike,
                                                    ReactiveAerospikeTemplate reactiveAerospikeTemplate) {
-        super(indexInfoParser, client, aerospike);
+        super(indexInfoParser, client, reactiveAerospikeTemplate, aerospike);
         this.template = reactiveAerospikeTemplate;
     }
 

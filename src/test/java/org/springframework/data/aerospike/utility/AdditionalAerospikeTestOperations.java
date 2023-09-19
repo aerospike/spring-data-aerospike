@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike;
+package org.springframework.data.aerospike.utility;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.IAerospikeClient;
@@ -17,17 +17,17 @@ import lombok.SneakyThrows;
 import lombok.Value;
 import org.awaitility.Awaitility;
 import org.springframework.data.aerospike.core.WritePolicyBuilder;
+import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.IndexUtils;
-import org.springframework.data.aerospike.utility.ResponseUtils;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.aerospike.client.Value.get;
+import static com.aerospike.client.query.IndexCollectionType.DEFAULT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RequiredArgsConstructor
@@ -42,6 +43,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     private final IndexInfoParser indexInfoParser;
     private final IAerospikeClient client;
+    private final IndexesCacheRefresher indexesRefresher;
     private final GenericContainer<?> aerospike;
 
     public void assertScansForSet(String setName, Consumer<List<? extends ScanJob>> consumer) {
@@ -97,30 +99,70 @@ public abstract class AdditionalAerospikeTestOperations {
             .until(() -> isEntityClassSetEmpty(entityClass));
     }
 
-    public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName,
-                                           IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
-        IndexUtils.createIndex(client, getNamespace(), getSetName(entityClass), indexName, binName, indexType,
+    public <T> void createIndex(Class<T> entityClass, String indexName, String binName,
+                                IndexType indexType) {
+        createIndex(entityClass, indexName, binName, indexType, null, (CTX[]) null);
+    }
+
+    public <T> void createIndex(Class<T> entityClass, String indexName, String binName,
+                                IndexType indexType, IndexCollectionType indexCollectionType) {
+        createIndex(entityClass, indexName, binName, indexType, indexCollectionType, (CTX[]) null);
+    }
+
+    public <T> void createIndex(Class<T> entityClass, String indexName, String binName,
+                                IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
+        createIndex(getNamespace(), getSetName(entityClass), indexName, binName, indexType,
             indexCollectionType, ctx);
     }
 
-    public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName,
-                                           IndexType indexType, IndexCollectionType indexCollectionType) {
-        IndexUtils.createIndex(client, getNamespace(), getSetName(entityClass), indexName, binName, indexType,
-            indexCollectionType);
+    public void createIndex(String setName, String indexName, String binName, IndexType indexType) {
+        createIndex(getNamespace(), setName, indexName, binName, indexType, null, (CTX[]) null);
     }
 
-    public <T> void createIndexIfNotExists(Class<T> entityClass, String indexName, String binName,
-                                           IndexType indexType) {
-        IndexUtils.createIndex(client, getNamespace(), getSetName(entityClass), indexName, binName, indexType);
+    public void createIndex(String namespace, String setName, String indexName, String binName,
+                            IndexType indexType) {
+        createIndex(namespace, setName, indexName, binName, indexType, null, (CTX[]) null);
     }
 
-    public <T> void dropIndexIfExists(Class<T> entityClass, String indexName) {
-        IndexUtils.dropIndex(client, getNamespace(), getSetName(entityClass), indexName);
+    public void createIndex(String namespace, String setName, String indexName, String binName,
+                            IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
+        IndexCollectionType collType = indexCollectionType == null ? DEFAULT : indexCollectionType;
+        IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType, collType, ctx);
+        indexesRefresher.refreshIndexesCache();
+    }
+
+    public void createIndexes(Collection<Index> indexesToBeCreated) {
+        indexesToBeCreated.forEach(index -> {
+                IndexCollectionType collType = index.getIndexCollectionType() == null
+                    ? DEFAULT : index.getIndexCollectionType();
+
+                IndexUtils.createIndex(client, getNamespace(), index.getSet(), index.getName(), index.getBin(),
+                    index.getIndexType(), collType, index.getCtx());
+            }
+        );
+        indexesRefresher.refreshIndexesCache();
+    }
+
+    public <T> void dropIndex(String setName, String indexName) {
+        IndexUtils.dropIndex(client, getNamespace(), setName, indexName);
+        indexesRefresher.refreshIndexesCache();
+    }
+
+    public <T> void dropIndex(Class<T> entityClass, String indexName) {
+        dropIndex(getSetName(entityClass), indexName);
+    }
+
+    public void dropIndexes(Collection<Index> indexesToBeDropped) {
+        indexesToBeDropped.forEach(index -> {
+                IndexUtils.dropIndex(client, getNamespace(), index.getSet(), index.getName());
+            }
+        );
+        indexesRefresher.refreshIndexesCache();
     }
 
     /**
-     * @deprecated since Aerospike Server ver. 6.1.0.1.
-     * Use {@link org.springframework.data.aerospike.core.AerospikeTemplate#indexExists(String)}
+     * @deprecated since Aerospike Server ver. 6.1.0.1. Use
+     * {@link org.springframework.data.aerospike.core.AerospikeTemplate#indexExists(String)}
      */
     // Do not use this code in production!
     // This will not guarantee the correct answer from Aerospike Server for all cases.

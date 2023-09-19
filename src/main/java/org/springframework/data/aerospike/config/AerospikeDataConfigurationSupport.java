@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Host;
 import com.aerospike.client.policy.ClientPolicy;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -51,6 +52,7 @@ import java.util.Set;
 /**
  * @author Taras Danylchuk
  */
+@Slf4j
 @Configuration
 public abstract class AerospikeDataConfigurationSupport {
 
@@ -174,6 +176,7 @@ public abstract class AerospikeDataConfigurationSupport {
         clientPolicy.failIfNotConnected = true;
         clientPolicy.timeout = 10_000;
         clientPolicy.writePolicyDefault.sendKey = aerospikeDataSettings().isSendKey();
+        log.debug("AerospikeDataSettings.sendKey: {}", clientPolicy.writePolicyDefault.sendKey);
         return clientPolicy;
     }
 }
