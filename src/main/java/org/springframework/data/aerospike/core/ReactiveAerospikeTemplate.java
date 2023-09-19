@@ -487,7 +487,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
 
-        if (groupedKeys.getEntitiesKeys().isEmpty()) {
+        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.just(GroupedEntities.builder().build());
         }
 
@@ -657,7 +657,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public Mono<Void> deleteByIds(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
 
-        if (groupedKeys.getEntitiesKeys().isEmpty()) {
+        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.empty();
         }
 
