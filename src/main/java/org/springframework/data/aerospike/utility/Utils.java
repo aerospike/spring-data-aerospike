@@ -97,9 +97,7 @@ public class Utils {
                 return Optional.empty();
             }
             return Optional.of(result);
-        } else {
-            return Optional.empty();
         }
+        return Optional.empty();
     }
-
 }

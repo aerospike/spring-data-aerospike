@@ -40,7 +40,7 @@ public class IndexRefresher {
     private final InfoPolicy infoPolicy;
     private final InternalIndexOperations indexOperations;
     private final IndexesCacheUpdater indexesCacheUpdater;
-    private final ScheduledExecutorService threadPool;
+    private final ScheduledExecutorService executorService;
 
     public IndexRefresher(IAerospikeClient client, InfoPolicy infoPolicy,
                           InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
@@ -48,11 +48,11 @@ public class IndexRefresher {
         this.infoPolicy = infoPolicy;
         this.indexOperations = indexOperations;
         this.indexesCacheUpdater = indexesCacheUpdater;
-        this.threadPool = Executors.newScheduledThreadPool(5);
+        this.executorService = Executors.newSingleThreadScheduledExecutor();
     }
 
     public void scheduleRefreshIndexes(long intervalSeconds) {
-        threadPool.schedule(this::refreshIndexes, intervalSeconds, TimeUnit.SECONDS);
+        executorService.scheduleWithFixedDelay(this::refreshIndexes, intervalSeconds, intervalSeconds, TimeUnit.SECONDS);
     }
 
     public void refreshIndexes() {
