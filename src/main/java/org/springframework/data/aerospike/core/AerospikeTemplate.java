@@ -152,6 +152,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    @Override
     public void refreshIndexesCache() {
         indexRefresher.refreshIndexes();
     }

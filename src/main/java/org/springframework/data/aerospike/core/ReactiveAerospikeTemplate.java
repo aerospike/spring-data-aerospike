@@ -79,7 +79,7 @@ import static org.springframework.data.aerospike.core.CoreUtils.operations;
  * @author Yevhen Tsyba
  */
 @Slf4j
-        public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations,
+public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations,
     ReactiveAerospikeInternalOperations, indexesCacheRefresher {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");

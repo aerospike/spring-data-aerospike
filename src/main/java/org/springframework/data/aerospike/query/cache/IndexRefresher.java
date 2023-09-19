@@ -24,19 +24,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
 
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Anastasiia Smirnova
  */
 public class IndexRefresher {
 
-    public static final String CACHE_REFRESH_FREQUENCY_MILLIS = "index.cache.refresh.millis";
+    public static final String INDEX_CACHE_REFRESH_SECONDS = "index.cache.refresh.seconds";
     private final Logger log = LoggerFactory.getLogger(IndexRefresher.class);
 
     private final IAerospikeClient client;
     private final InfoPolicy infoPolicy;
     private final InternalIndexOperations indexOperations;
     private final IndexesCacheUpdater indexesCacheUpdater;
+    private final ScheduledExecutorService threadPool;
 
     public IndexRefresher(IAerospikeClient client, InfoPolicy infoPolicy,
                           InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
@@ -44,6 +48,11 @@ public class IndexRefresher {
         this.infoPolicy = infoPolicy;
         this.indexOperations = indexOperations;
         this.indexesCacheUpdater = indexesCacheUpdater;
+        this.threadPool = Executors.newScheduledThreadPool(5);
+    }
+
+    public void scheduleRefreshIndexes(long intervalSeconds) {
+        threadPool.schedule(this::refreshIndexes, intervalSeconds, TimeUnit.SECONDS);
     }
 
     public void refreshIndexes() {

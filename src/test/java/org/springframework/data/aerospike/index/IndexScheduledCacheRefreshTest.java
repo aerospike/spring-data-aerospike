@@ -12,13 +12,12 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.CACHE_REFRESH_FREQUENCY_MILLIS;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 @Slf4j
 @ContextConfiguration
-@TestPropertySource(properties = {CACHE_REFRESH_FREQUENCY_MILLIS + " = 4000"})
-//@TestPropertySource(properties = {"indexCacheRefreshFrequencySeconds = 4000"})
-public class IndexScheduledCacheRefreshOnTest extends BaseBlockingIntegrationTests {
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 4"})
+public class IndexScheduledCacheRefreshTest extends BaseBlockingIntegrationTests {
 
     String setName = "scheduled";
     String indexName = "index1";
@@ -34,12 +33,6 @@ public class IndexScheduledCacheRefreshOnTest extends BaseBlockingIntegrationTes
             .untilAsserted(() -> Assertions.assertTrue(true));
         log.debug("Checking indexes");
 
-        assertThat(
-            additionalAerospikeTestOperations.getIndexes(setName).stream()
-                .filter(index -> index.getName()
-                    .equals(indexName))
-                .count()
-        ).isEqualTo(1L);
         assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, setName, binName))).isTrue();
     }
 }

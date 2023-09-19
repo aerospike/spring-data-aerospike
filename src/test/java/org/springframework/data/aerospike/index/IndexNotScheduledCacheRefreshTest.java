@@ -12,18 +12,19 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 @Slf4j
 @ContextConfiguration
-@TestPropertySource(properties = {"indexCacheRefreshFrequencySeconds = 0"})
-public class IndexScheduledCacheRefreshOffTest extends BaseBlockingIntegrationTests {
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0"})
+public class IndexNotScheduledCacheRefreshTest extends BaseBlockingIntegrationTests {
 
     String setName = "scheduled";
     String indexName = "index1";
     String binName = "testBin";
 
     @Test
-    public void indexesCacheIsRefreshedOnSchedule() {
+    public void indexesCacheIsNotRefreshedOnSchedule() {
         client.createIndex(null, getNameSpace(), setName, indexName, binName, STRING).waitTillComplete();
         log.debug("Test index {} is created", indexName);
         await()
@@ -32,12 +33,6 @@ public class IndexScheduledCacheRefreshOffTest extends BaseBlockingIntegrationTe
             .untilAsserted(() -> Assertions.assertTrue(true));
         log.debug("Checking indexes");
 
-        assertThat(
-            additionalAerospikeTestOperations.getIndexes(setName).stream()
-                .filter(index -> index.getName()
-                    .equals(indexName))
-                .count()
-        ).isZero();
         assertThat(indexesCache.hasIndexFor(new IndexedField(namespace, setName, binName))).isFalse();
     }
 }

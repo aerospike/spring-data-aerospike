@@ -175,9 +175,8 @@ public abstract class AerospikeDataConfigurationSupport {
         ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.failIfNotConnected = true;
         clientPolicy.timeout = 10_000;
-        boolean sendKey = aerospikeDataSettings().isSendKey();
-        clientPolicy.writePolicyDefault.sendKey = sendKey;
-        log.debug("AerospikeDataSettings.sendKey: {}", sendKey);
+        clientPolicy.writePolicyDefault.sendKey = aerospikeDataSettings().isSendKey();
+        log.debug("AerospikeDataSettings.sendKey: {}", clientPolicy.writePolicyDefault.sendKey);
         return clientPolicy;
     }
 }

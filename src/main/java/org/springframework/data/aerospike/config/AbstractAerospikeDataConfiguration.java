@@ -19,11 +19,7 @@ import com.aerospike.client.IAerospikeClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -37,15 +33,9 @@ import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
-import org.springframework.data.aerospike.query.cache.ScheduledIndexRefresher;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.util.StringUtils;
-
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.CACHE_REFRESH_FREQUENCY_MILLIS;
 
 @Slf4j
 @Configuration
-@EnableScheduling
 public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataConfigurationSupport {
 
     @Bean(name = "aerospikeTemplate")
@@ -82,36 +72,23 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
             aerospikeIndexResolver, template);
     }
 
-    @Conditional(PositiveIndexCacheRefresherFrequency.class)
-    @Bean(name = "scheduledIndexRefresher")
-    public ScheduledIndexRefresher scheduledIndexRefresher(IndexRefresher aerospikeIndexRefresher) {
-        return new ScheduledIndexRefresher(aerospikeIndexRefresher);
-    }
-
     @Bean(name = "aerospikeIndexRefresher")
     public IndexRefresher indexRefresher(IAerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater) {
         IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(),
             new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater);
-        int refreshFrequency = aerospikeDataSettings().getIndexCacheRefreshFrequencySeconds();
-        processCacheRefreshFrequency(refreshFrequency);
-        log.debug("AerospikeDataSettings.indexCacheRefreshFrequencySeconds: {}", refreshFrequency);
         refresher.refreshIndexes();
+        int refreshFrequency = aerospikeDataSettings().getIndexCacheRefreshFrequencySeconds();
+        processCacheRefreshFrequency(refreshFrequency, refresher);
+        log.debug("AerospikeDataSettings.indexCacheRefreshFrequencySeconds: {}", refreshFrequency);
         return refresher;
     }
 
-    private void processCacheRefreshFrequency(int indexCacheRefreshFrequencySeconds) {
+    private void processCacheRefreshFrequency(int indexCacheRefreshFrequencySeconds, IndexRefresher indexRefresher) {
         if (indexCacheRefreshFrequencySeconds <= 0) {
-            log.info("Index cache refreshing interval is <= 0, regular refreshing is switched off");
-        }
-        System.setProperty(CACHE_REFRESH_FREQUENCY_MILLIS, String.valueOf(indexCacheRefreshFrequencySeconds * 1000));
-    }
-
-    static class PositiveIndexCacheRefresherFrequency implements Condition {
-
-        @Override
-        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            String cacheRefreshProperty = System.getProperty(CACHE_REFRESH_FREQUENCY_MILLIS);
-            return StringUtils.hasText(cacheRefreshProperty) && Integer.parseInt(cacheRefreshProperty) <= 0;
+            log.info("Periodic index cache refreshing is not scheduled, interval ({}) is <= 0",
+                indexCacheRefreshFrequencySeconds);
+        } else {
+            indexRefresher.scheduleRefreshIndexes(indexCacheRefreshFrequencySeconds);
         }
     }
 }

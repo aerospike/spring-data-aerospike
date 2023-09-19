@@ -22,7 +22,9 @@ import com.aerospike.client.ResultCode;
 import com.aerospike.client.cluster.Node;
 import lombok.experimental.UtilityClass;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.util.StringUtils;
 
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -85,4 +87,19 @@ public class Utils {
         }
         return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);
     }
+
+    public Optional<Integer> getIntegerProperty(String property) {
+        if (StringUtils.hasText(property)) {
+            int result;
+            try {
+                result = Integer.parseInt(property);
+            } catch (NumberFormatException e) {
+                return Optional.empty();
+            }
+            return Optional.of(result);
+        } else {
+            return Optional.empty();
+        }
+    }
+
 }

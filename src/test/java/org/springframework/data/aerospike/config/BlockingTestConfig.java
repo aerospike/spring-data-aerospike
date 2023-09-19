@@ -21,6 +21,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
+import static org.springframework.data.aerospike.utility.Utils.getIntegerProperty;
 
 /**
  * @author Peter Milne
@@ -62,6 +66,8 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         builder.scansEnabled(true);
         boolean indexesOnStartup = Boolean.parseBoolean(env.getProperty("createIndexesOnStartup"));
         builder.createIndexesOnStartup(indexesOnStartup);
+        Optional<Integer> indexRefreshFrequency = getIntegerProperty(env.getProperty(INDEX_CACHE_REFRESH_SECONDS));
+        indexRefreshFrequency.ifPresent(builder::indexCacheRefreshFrequencySeconds);
     }
 
     @Override
