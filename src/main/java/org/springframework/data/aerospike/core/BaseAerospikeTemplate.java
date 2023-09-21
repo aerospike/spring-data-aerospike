@@ -20,6 +20,7 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Log;
 import com.aerospike.client.Record;
 import com.aerospike.client.ResultCode;
+import com.aerospike.client.policy.BatchWritePolicy;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -69,6 +70,7 @@ abstract class BaseAerospikeTemplate {
     protected final String namespace;
     protected final AerospikeExceptionTranslator exceptionTranslator;
     protected final WritePolicy writePolicyDefault;
+    protected final BatchWritePolicy batchWritePolicyDefault;
 
     BaseAerospikeTemplate(String namespace,
                           MappingAerospikeConverter converter,
@@ -84,8 +86,21 @@ abstract class BaseAerospikeTemplate {
         this.namespace = namespace;
         this.mappingContext = mappingContext;
         this.writePolicyDefault = writePolicyDefault;
+        this.batchWritePolicyDefault = getFromWritePolicy(writePolicyDefault);
 
         loggerSetup();
+    }
+
+    private BatchWritePolicy getFromWritePolicy(WritePolicy writePolicy) {
+        BatchWritePolicy batchWritePolicy = new BatchWritePolicy();
+        batchWritePolicy.commitLevel = writePolicy.commitLevel;
+        batchWritePolicy.durableDelete = writePolicy.durableDelete;
+        batchWritePolicy.generationPolicy = writePolicy.generationPolicy;
+        batchWritePolicy.expiration = writePolicy.expiration;
+        batchWritePolicy.sendKey = writePolicy.sendKey;
+        batchWritePolicy.recordExistsAction = writePolicy.recordExistsAction;
+        batchWritePolicy.filterExp = writePolicy.filterExp;
+        return batchWritePolicy;
     }
 
     private void loggerSetup() {
@@ -195,6 +210,16 @@ abstract class BaseAerospikeTemplate {
         return expectGenerationSavePolicy(data, recordExistsAction);
     }
 
+    BatchWritePolicy expectGenerationCasAwareSaveBatchPolicy(AerospikeWriteData data) {
+        RecordExistsAction recordExistsAction = data.getVersion()
+            .filter(v -> v > 0L)
+            .map(v -> RecordExistsAction.UPDATE_ONLY) // updating existing document with generation,
+            // cannot use REPLACE_ONLY due to bin convergence feature restrictions
+            .orElse(RecordExistsAction.CREATE_ONLY); // create new document,
+        // if exists we should fail with optimistic locking
+        return expectGenerationSaveBatchPolicy(data, recordExistsAction);
+    }
+
     WritePolicy expectGenerationSavePolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
         return WritePolicyBuilder.builder(this.writePolicyDefault)
             .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
@@ -204,12 +229,29 @@ abstract class BaseAerospikeTemplate {
             .build();
     }
 
+    BatchWritePolicy expectGenerationSaveBatchPolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
+            BatchWritePolicy batchWritePolicy = new BatchWritePolicy(this.batchWritePolicyDefault);
+            batchWritePolicy.generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
+            batchWritePolicy.generation = data.getVersion().orElse(0);
+            batchWritePolicy.expiration = data.getExpiration();
+            batchWritePolicy.recordExistsAction = recordExistsAction;
+            return batchWritePolicy;
+    }
+
     WritePolicy ignoreGenerationSavePolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
         return WritePolicyBuilder.builder(this.writePolicyDefault)
             .generationPolicy(GenerationPolicy.NONE)
             .expiration(data.getExpiration())
             .recordExistsAction(recordExistsAction)
             .build();
+    }
+
+    BatchWritePolicy ignoreGenerationSaveBatchPolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
+            BatchWritePolicy batchWritePolicy = new BatchWritePolicy(this.batchWritePolicyDefault);
+            batchWritePolicy.generationPolicy = GenerationPolicy.NONE;
+            batchWritePolicy.expiration = data.getExpiration();
+            batchWritePolicy.recordExistsAction = recordExistsAction;
+            return batchWritePolicy;
     }
 
     WritePolicy ignoreGenerationDeletePolicy() {

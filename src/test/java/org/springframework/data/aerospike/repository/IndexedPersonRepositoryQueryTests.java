@@ -15,6 +15,7 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.IndexedPersonRepository;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.utility.IndexUtils;
 import org.springframework.data.aerospike.utility.TestUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -58,8 +59,18 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @BeforeAll
     public void beforeAll() {
-        repository.deleteAll(allIndexedPersons);
-        repository.saveAll(allIndexedPersons);
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            repository.deleteAll(allIndexedPersons);
+        } else {
+            allIndexedPersons.forEach(person -> repository.delete(person));
+        }
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            repository.saveAll(allIndexedPersons);
+        } else {
+            allIndexedPersons.forEach(person -> repository.save(person));
+        }
 
         List<Index> newIndexes = new ArrayList<>();
         newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
@@ -107,8 +118,12 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @AfterAll
     public void afterAll() {
-        repository.deleteAll(allIndexedPersons);
-
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            repository.deleteAll(allIndexedPersons);
+        } else {
+            allIndexedPersons.forEach(person -> repository.delete(person));
+        }
         List<Index> dropIndexes = new ArrayList<>();
         dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
             .name("indexed_person_first_name_index").build());

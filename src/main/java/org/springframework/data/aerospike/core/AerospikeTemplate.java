@@ -15,18 +15,12 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Bin;
-import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.Info;
-import com.aerospike.client.Key;
-import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
-import com.aerospike.client.ResultCode;
-import com.aerospike.client.Value;
+import com.aerospike.client.*;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.BatchPolicy;
+import com.aerospike.client.policy.BatchWritePolicy;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -66,7 +60,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -215,6 +208,31 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return false;
     }
 
+    public <T> BatchWriteData getBatchWriteForSave(T document) {
+        Assert.notNull(document, "Document must not be null!");
+
+        AerospikeWriteData data = writeData(document);
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+        Operation[] operations;
+        BatchWritePolicy policy;
+        if (entity.hasVersionProperty()) {
+            policy = expectGenerationCasAwareSaveBatchPolicy(data);
+
+            // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
+            operations = getPutAndGetHeaderOperations(data, true);
+        } else {
+            policy = ignoreGenerationSaveBatchPolicy(data, RecordExistsAction.UPDATE);
+
+            // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
+            operations = operations(data.getBinsAsArray(), Operation::put,
+                Operation.array(Operation.delete()));
+        }
+
+        return new BatchWriteData(document, new BatchWrite(policy, data.getKey(), operations),
+            entity.hasVersionProperty());
+    }
+
     @Override
     public <T> void save(T document) {
         Assert.notNull(document, "Document must not be null!");
@@ -238,6 +256,32 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
+    public <T> void saveAll(Iterable<T> documents) {
+        Assert.notNull(documents, "Documents for saving must not be null!");
+
+        List<BatchWriteData> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        try {
+            client.operate(null, batchWriteRecords);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+
+        for (int i = 0; i < batchWriteDataList.size(); i++) {
+            BatchWriteData data = batchWriteDataList.get(i);
+            if (data.hasVersionProperty()) {
+                try {
+                    updateVersion(data.document(), batchWriteRecords.get(i).record);
+                } catch (AerospikeException e) {
+                    throw translateCasError(e);
+                }
+            }
+        }
+    }
+
+    @Override
     public <T> void persist(T document, WritePolicy policy) {
         Assert.notNull(document, "Document must not be null!");
         Assert.notNull(policy, "Policy must not be null!");
@@ -248,11 +292,22 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         doPersistAndHandleError(data, policy, operations);
     }
 
-    @Override
-    public <T> void insertAll(Collection<? extends T> documents) {
-        Assert.notNull(documents, "Documents must not be null!");
+    public <T> BatchWriteData getBatchWriteForInsert(T document) {
+        Assert.notNull(document, "Document must not be null!");
 
-        documents.stream().filter(Objects::nonNull).forEach(this::insert);
+        AerospikeWriteData data = writeData(document);
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+        Operation[] operations;
+        BatchWritePolicy policy = ignoreGenerationSaveBatchPolicy(data, RecordExistsAction.CREATE_ONLY);
+        if (entity.hasVersionProperty()) {
+            operations = getPutAndGetHeaderOperations(data, false);
+        } else {
+            operations = operations(data.getBinsAsArray(), Operation::put);
+        }
+
+        return new BatchWriteData(document, new BatchWrite(policy, data.getKey(), operations),
+            entity.hasVersionProperty());
     }
 
     @Override
@@ -273,6 +328,32 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         } else {
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             doPersistAndHandleError(data, policy, operations);
+        }
+    }
+
+    @Override
+    public <T> void insertAll(Collection<? extends T> documents) {
+        Assert.notNull(documents, "Documents for inserting must not be null!");
+
+        List<BatchWriteData> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        try {
+            client.operate(null, batchWriteRecords);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+
+        for (int i = 0; i < batchWriteDataList.size(); i++) {
+            BatchWriteData data = batchWriteDataList.get(i);
+            if (data.hasVersionProperty()) {
+                try {
+                    updateVersion(data.document(), batchWriteRecords.get(i).record);
+                } catch (AerospikeException e) {
+                    throw translateCasError(e);
+                }
+            }
         }
     }
 
@@ -611,7 +692,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             return;
         }
 
-         deleteEntitiesByIdsInternal(groupedKeys);
+        deleteEntitiesByIdsInternal(groupedKeys);
     }
 
     private void deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {
@@ -887,6 +968,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private Record putAndGetHeader(AerospikeWriteData data, WritePolicy policy, boolean firstlyDeleteBins) {
         Key key = data.getKey();
+        Operation[] operations = getPutAndGetHeaderOperations(data, firstlyDeleteBins);
+
+        return client.operate(policy, key, operations);
+    }
+
+    private Operation[] getPutAndGetHeaderOperations(AerospikeWriteData data, boolean firstlyDeleteBins) {
         Bin[] bins = data.getBinsAsArray();
 
         if (bins.length == 0) {
@@ -894,11 +981,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 "Cannot put and get header on a document with no bins and \"@_class\" bin disabled.");
         }
 
-        Operation[] operations = firstlyDeleteBins ? operations(bins, Operation::put,
+        return firstlyDeleteBins ? operations(bins, Operation::put,
             Operation.array(Operation.delete()), Operation.array(Operation.getHeader()))
             : operations(bins, Operation::put, null, Operation.array(Operation.getHeader()));
-
-        return client.operate(policy, key, operations);
     }
 
     <T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query) {
@@ -999,5 +1084,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                     log.error("Caught exception while closing query", e);
                 }
             });
+    }
+
+    private record BatchWriteData(Object document, BatchRecord batchRecord, boolean hasVersionProperty) {
+
     }
 }

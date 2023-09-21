@@ -33,7 +33,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     @Autowired
     protected IndexRefresher indexRefresher;
 
-    protected <T> void deleteAll(Collection<T> collection) {
+    protected <T> void deleteOneByOne(Collection<T> collection) {
         collection.forEach(item -> template.delete(item));
     }
 }

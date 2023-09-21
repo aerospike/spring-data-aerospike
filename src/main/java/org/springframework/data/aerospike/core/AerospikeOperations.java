@@ -94,6 +94,28 @@ public interface AerospikeOperations {
     <T> void save(T document);
 
     /**
+     * Save multiple document in one batch request.
+     * <p>
+     * This operation requires Server version 6.0+.
+     * <p>
+     * If a document has version property - CAS algorithm is used for updating record. Version property is used for
+     * deciding whether to create a new record or update an existing one. If the version is set to zero - new record
+     * will be created, creation will fail is such record already exists. If version is greater than zero - existing
+     * record will be updated with {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined
+     * with removing bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY})
+     * taking into consideration the version property of the document. Version property will be updated with the
+     * server's version after successful operation.
+     * <p>
+     * If a document does not have version property - record is updated with
+     * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE} policy combined with removing bins at first
+     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
+     * does not exist it will be created, otherwise updated - an "upsert".
+     *
+     * @param documents Documents to save. Must not be {@literal null}.
+     */
+    <T> void saveAll(Iterable<T> documents);
+
+    /**
      * Persist a document using specified WritePolicy.
      *
      * @param document    The document to persist. Must not be {@literal null}.
@@ -103,7 +125,9 @@ public interface AerospikeOperations {
     <T> void persist(T document, WritePolicy writePolicy);
 
     /**
-     * Insert each document of the given documents using single insert operations.
+     * Insert documents using batch insert operation.
+     * <p>
+     * This operation requires Server version 6.0+
      *
      * @param documents The documents to insert. Must not be {@literal null}.
      */

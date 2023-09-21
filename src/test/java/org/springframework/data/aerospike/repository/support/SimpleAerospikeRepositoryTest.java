@@ -95,6 +95,7 @@ public class SimpleAerospikeRepositoryTest {
 
     @Test
     public void saveIterableOfS() {
+        // batch write operations are supported starting with Server version 6.0+
         List<Person> result = aerospikeRepository.saveAll(testPersons);
 
         assertThat(result).isEqualTo(testPersons);
@@ -179,8 +180,8 @@ public class SimpleAerospikeRepositoryTest {
 
     @Test
     public void deleteIterableOfQExtendsT() {
+        // batch write operations are supported starting with Server version 6.0+
         aerospikeRepository.deleteAll(testPersons);
-
         verify(operations, times(testPersons.size())).delete(any(Person.class));
     }
 

@@ -69,14 +69,30 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @BeforeAll
     public void beforeAll() {
         template.refreshIndexesCache();
-        repository.deleteAll(allPersons);
-        repository.saveAll(allPersons);
+
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            repository.deleteAll(allPersons);
+        } else {
+            allPersons.forEach(person -> repository.delete(person));
+        }
+
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            repository.saveAll(allPersons);
+        } else {
+            allPersons.forEach(person -> repository.save(person));
+        }
     }
 
     @AfterAll
     public void afterAll() {
-        repository.deleteAll(allPersons);
-    }
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            repository.deleteAll(allPersons);
+        } else {
+            allPersons.forEach(person -> repository.delete(person));
+        }    }
 
     @Test
     void findByListContainingString_forExistingResult() {

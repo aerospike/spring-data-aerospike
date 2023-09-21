@@ -25,6 +25,7 @@ import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.utility.IndexUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
@@ -174,12 +176,11 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void insertAll_rejectsDuplicateIds() {
+    public void insertAll_does_not_rejectDuplicateIds() {
         Person person = Person.builder().id(id).build();
         List<Person> records = Arrays.asList(person, person);
 
-        assertThatThrownBy(() -> template.insertAll(records))
-            .isInstanceOf(DuplicateKeyException.class);
+        assertThatNoException().isThrownBy(() -> template.insertAll(records));
         template.delete(person); // cleanup
     }
 
@@ -190,7 +191,13 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
                 .firstName("Gregor")
                 .age(age).build())
             .collect(Collectors.toList());
-        template.insertAll(persons);
+
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            template.insertAll(persons);
+        } else {
+            persons.forEach(person -> template.insert(person));
+        }
 
         List<Person> result = template.findByIds(persons.stream().map(Person::getId)
             .collect(Collectors.toList()), Person.class);
