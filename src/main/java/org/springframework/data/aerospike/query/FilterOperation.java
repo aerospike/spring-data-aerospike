@@ -12,7 +12,6 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
-import org.springframework.data.aerospike.query.Qualifier.*;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.util.Pair;
 import org.springframework.util.StringUtils;
@@ -77,18 +76,18 @@ public enum FilterOperation {
             Optional<Exp> metadataExp;
             if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
 
-            Value val = getValue1(qualifierMap);
+            Value value1 = getValue1(qualifierMap);
             String errMsg = "FilterOperation.IN expects argument with type Collection, instead got: " +
-                val.getObject().getClass().getSimpleName();
-            if (val.getType() != LIST) {
+                value1.getObject().getClass().getSimpleName();
+            if (value1.getType() != LIST) {
                 throw new IllegalArgumentException(errMsg);
             } else {
-                if (!(val.getObject() instanceof Collection<?>)) {
+                if (!(value1.getObject() instanceof Collection<?>)) {
                     throw new IllegalArgumentException(errMsg);
                 }
             }
 
-            Collection<?> collection = (Collection<?>) val.getObject();
+            Collection<?> collection = (Collection<?>) value1.getObject();
             Exp[] listElementsExp = collection.stream().map(item ->
                 new Qualifier(
                     new QualifierBuilder()
@@ -114,18 +113,18 @@ public enum FilterOperation {
             Optional<Exp> metadataExp;
             if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
 
-            Value val = getValue1(qualifierMap);
+            Value value1 = getValue1(qualifierMap);
             String errMsg = "FilterOperation.NOT_IN expects argument with type Collection, instead got: " +
-                val.getObject().getClass().getSimpleName();
-            if (val.getType() != LIST) {
+                value1.getObject().getClass().getSimpleName();
+            if (value1.getType() != LIST) {
                 throw new IllegalArgumentException(errMsg);
             } else {
-                if (!(val.getObject() instanceof Collection<?>)) {
+                if (!(value1.getObject() instanceof Collection<?>)) {
                     throw new IllegalArgumentException(errMsg);
                 }
             }
 
-            Collection<?> collection = (Collection<?>) val.getObject();
+            Collection<?> collection = (Collection<?>) value1.getObject();
             Exp[] listElementsExp = collection.stream().map(item ->
                 new Qualifier(
                     new QualifierBuilder()
@@ -1239,6 +1238,56 @@ public enum FilterOperation {
         }
     };
 
+    private static Exp processMetadataFieldIn(Map<String, Object> qualifierMap) {
+        Value value1 = getValue1(qualifierMap);
+        String errMsg = "FilterOperation.IN expects argument with type Collection, instead got: " +
+            value1.getObject().getClass().getSimpleName();
+        if (value1.getType() != LIST) {
+            throw new IllegalArgumentException(errMsg);
+        } else {
+            if (!(value1.getObject() instanceof Collection<?>)) {
+                throw new IllegalArgumentException(errMsg);
+            }
+        }
+
+        Collection<?> collection = (Collection<?>) value1.getObject();
+        Exp[] listElementsExp = collection.stream().map(item ->
+            new Qualifier(
+                new QualifierBuilder()
+                    .setMetadataField(getMetadataField(qualifierMap))
+                    .setFilterOperation(FilterOperation.EQ)
+                    .setValue1(Value.get(item))
+            ).toFilterExp()
+        ).toArray(Exp[]::new);
+
+        return Exp.or(listElementsExp);
+    }
+
+    private static Exp processMetadataFieldNotIn(Map<String, Object> qualifierMap) {
+        Value value1 = getValue1(qualifierMap);
+        String errMsg = "FilterOperation.NOT_IN expects argument with type Collection, instead got: " +
+            value1.getObject().getClass().getSimpleName();
+        if (value1.getType() != LIST) {
+            throw new IllegalArgumentException(errMsg);
+        } else {
+            if (!(value1.getObject() instanceof Collection<?>)) {
+                throw new IllegalArgumentException(errMsg);
+            }
+        }
+
+        Collection<?> collection = (Collection<?>) value1.getObject();
+        Exp[] listElementsExp = collection.stream().map(item ->
+            new Qualifier(
+                new QualifierBuilder()
+                    .setMetadataField(getMetadataField(qualifierMap))
+                    .setFilterOperation(FilterOperation.NOTEQ)
+                    .setValue1(Value.get(item))
+            ).toFilterExp()
+        ).toArray(Exp[]::new);
+
+        return Exp.and(listElementsExp);
+    }
+
     /**
      * If metadata field has a value and regular field hasn't got value, build an Exp to query by metadata using
      * information set in the given qualifier map.
@@ -1249,14 +1298,33 @@ public enum FilterOperation {
     private static Optional<Exp> getMetadataExp(Map<String, Object> qualifierMap) {
         CriteriaDefinition.AerospikeMetadata metadataField = getMetadataField(qualifierMap);
         String field = getField(qualifierMap);
+        FilterOperation operation = getOperation(qualifierMap);
 
         if (metadataField != null && (field == null || field.isEmpty())) {
-            return Optional.of(
-                mapOperation(getOperation(qualifierMap)).apply(
-                    mapMetadataExp(metadataField),
-                    Exp.val(getValue1(qualifierMap).toLong())
-                )
-            );
+            switch (operation) {
+                case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> {
+                    BiFunction<Exp, Exp, Exp> operationFunction = mapOperation(operation);
+                    return Optional.of(
+                        operationFunction.apply(
+                            mapMetadataExp(metadataField),
+                            Exp.val(getValue1(qualifierMap).toLong())
+                        )
+                    );
+                }
+                case BETWEEN -> {
+                    Exp metadata = mapMetadataExp(metadataField);
+                    Exp value1 = Exp.val(getValue1(qualifierMap).toLong());
+                    Exp value2 = Exp.val(getValue2(qualifierMap).toLong());
+                    return Optional.of(Exp.and(Exp.ge(metadata, value1), Exp.lt(metadata, value2)));
+                }
+                case IN -> {
+                    return Optional.of(processMetadataFieldIn(qualifierMap));
+                }
+                case NOT_IN -> {
+                    return Optional.of(processMetadataFieldNotIn(qualifierMap));
+                }
+                default -> throw new IllegalStateException("Unsupported FilterOperation " + operation);
+            }
         }
         return Optional.empty();
     }

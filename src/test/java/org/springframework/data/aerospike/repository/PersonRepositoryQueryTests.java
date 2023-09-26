@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +38,9 @@ import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
 import static org.springframework.data.aerospike.query.FilterOperation.GT;
 import static org.springframework.data.aerospike.query.FilterOperation.GTEQ;
+import static org.springframework.data.aerospike.query.FilterOperation.IN;
 import static org.springframework.data.aerospike.query.FilterOperation.NOTEQ;
+import static org.springframework.data.aerospike.query.FilterOperation.NOT_IN;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE_CONTAINING;
@@ -1219,14 +1222,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByMetadata() {
-        Iterable<Person> result = repository.findByMetadata(SINCE_UPDATE_TIME, GT, 10000);
+        Iterable<Person> result;
+        result = repository.findByMetadata(SINCE_UPDATE_TIME, GT, 10000);
         assertThat(result).isEmpty();
 
         result = repository.findByMetadata(SINCE_UPDATE_TIME, GT, 1);
         assertThat(result).containsAll(allPersons);
-
-//        result = repository.findByAgeAndSinceUpdateGreaterThan(49, 10000);
-//        assertThat(result).contains(carter);
 
         result = repository.findByMetadata(LAST_UPDATE_TIME, GTEQ, 1);
         assertThat(result).containsAll(allPersons);
@@ -1234,12 +1235,23 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         result = repository.findByMetadata(LAST_UPDATE_TIME, NOTEQ, 1);
         assertThat(result).containsAll(allPersons);
 
-//        result = repository.findByMetadata(SINCE_UPDATE_TIME, BETWEEN, 1, 10000);
-//        assertThat(result).containsAll(allPersons);
+        result = repository.findByMetadata(SINCE_UPDATE_TIME, BETWEEN, 1, 10000);
+        assertThat(result).containsAll(allPersons);
+
+        result = repository.findByMetadata(SINCE_UPDATE_TIME, IN, LongStream.range(1, 10000).boxed().toList());
+        assertThat(result).containsAll(allPersons);
+
+        result = repository.findByMetadata(SINCE_UPDATE_TIME, NOT_IN, LongStream.range(10000, 10002).boxed().toList());
+        assertThat(result).containsAll(allPersons);
 
         assertThatThrownBy(() -> repository.findByMetadata(SINCE_UPDATE_TIME, BETWEEN, 10))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Filteroperation 'BETWEEN' is not allowed, please use EQ, NOTEQ, LT, LTEQ, GT or GTEQ, or another method");
+            .hasMessage("Filteroperation 'BETWEEN' is not allowed, please use EQ, NOTEQ, LT, LTEQ, GT or GTEQ, " +
+                "or another method");
+
+//        result = repository.findByAgeAndSinceUpdateGreaterThan(49, 10000);
+//        assertThat(result).contains(carter);
+
     }
 
     @Test
