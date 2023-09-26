@@ -25,6 +25,8 @@ import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.ResultSet;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -438,7 +440,7 @@ public interface AerospikeOperations {
      * Return the amount of documents in query results. Set name will be determined by the given entityClass.
      *
      * @param query       The query that provides the result set for count.
-     * @param entityClass entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @return amount of documents that the given query and entity class supplied.
      */
     <T> long count(Query query, Class<T> entityClass);
@@ -510,4 +512,42 @@ public interface AerospikeOperations {
      * @return true if exists
      */
     boolean indexExists(String indexName);
+
+    /**
+     * Find entities that have the given metadata field using a unary operation.
+     *
+     * @param metadataFieldName Metadata field name.
+     * @param operation         Operation to be applied (EQ, NOTEQ, LT, LTEQ, GT or GTEQ).
+     * @param value             Numerical value of the metadata field.
+     * @param entityClass       The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return Entities that satisfy the applied operation
+     */
+    <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName, FilterOperation operation,
+                               long value, Class<T> entityClass);
+
+    /**
+     * Find entities that have the given metadata field using BETWEEN operation.
+     *
+     * @param metadataFieldName Metadata field name.
+     * @param operation         BETWEEN operation.
+     * @param value1            Lower bound value.
+     * @param value2            Upper bound value.
+     * @param entityClass       The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return Iterable of entities
+     */
+    <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName, FilterOperation operation,
+                               long value1, long value2, Class<T> entityClass);
+
+
+    /**
+     * Find entities that have the given metadata field using IN/NOT_IN operation.
+     *
+     * @param metadataFieldName Metadata field name.
+     * @param operation         Operation with multiple parameters to be applied (IN or NOT_IN).
+     * @param values            Values to be searched through.
+     * @param entityClass       The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return Iterable of entities
+     */
+    <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName, FilterOperation operation,
+                               List<Long> values, Class<T> entityClass);
 }

@@ -22,6 +22,8 @@ import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
 import lombok.Data;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -40,6 +42,7 @@ import java.util.Set;
 public class Qualifier implements Map<String, Object>, Serializable {
 
     public static final String FIELD = "field";
+    public static final String METADATA_FIELD = "metadata_field";
     protected static final String IGNORE_CASE = "ignoreCase";
     protected static final String VALUE1 = "value1";
     protected static final String VALUE2 = "value2";
@@ -67,6 +70,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
     public String getField() {
         return (String) internalMap.get(FIELD);
+    }
+
+    public CriteriaDefinition.AerospikeMetadata getMetadataField() {
+        return (CriteriaDefinition.AerospikeMetadata) internalMap.get(METADATA_FIELD);
     }
 
     public void asFilter(Boolean queryAsFilter) {
@@ -192,7 +199,12 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
     @Override
     public String toString() {
-        return String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
+        if (!StringUtils.hasLength(getField()) && StringUtils.hasLength(getMetadataField().toString())) {
+            return String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
+        } else {
+            return String.format("(metadata)%s:%s:%s:%s", getMetadataField().toString(),
+                getOperation(), getValue1(), getValue2());
+        }
     }
 
     public static class QualifierRegexpBuilder {
@@ -265,6 +277,11 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
         public QualifierBuilder setField(String field) {
             this.map.put(FIELD, field);
+            return this;
+        }
+
+        public QualifierBuilder setMetadataField(CriteriaDefinition.AerospikeMetadata metadataField) {
+            this.map.put(METADATA_FIELD, metadataField);
             return this;
         }
 

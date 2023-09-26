@@ -61,6 +61,15 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             }
         }
 
+        // queries that include metadata have their own processing flow
+        if (parameters != null && parameters.length > 0) {
+            AerospikeCriteria criteria = query.getAerospikeCriteria();
+            if (isMetadataQuery(criteria)) {
+                return runMetadataQuery(criteria, entityClass);
+            }
+        }
+
+
         return findByQuery(query, targetClass);
     }
 
@@ -81,5 +90,10 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                                Qualifier... qualifiers) {
         return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, targetClass,
                 qualifiers);
+    }
+
+    protected Object runMetadataQuery(AerospikeCriteria criteria, Class<?> entityClass) {
+        return operations.findByMetadata(criteria.getMetadataField(), criteria.getOperation(),
+            criteria.getValue1().toLong(), entityClass);
     }
 }

@@ -35,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.query.FilterOperation.LT;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.*;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
 
 /*
@@ -185,6 +186,32 @@ public class QualifierTests extends BaseQueryEngineTests {
             .allSatisfy(rec -> assertThat(rec.record.getInt("age")).isEqualTo(29))
             .hasSize(queryEngineTestDataPopulator.ageCount.get(29));
     }
+
+    @Test
+    public void metadataSinceUpdateEQQualifier() {
+        Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            .setField(SINCE_UPDATE_TIME.toString())
+            .setFilterOperation(FilterOperation.GT)
+            .setValue1(Value.get(1))
+        );
+        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, qualifier);
+
+        assertThat(iterator)
+            .toIterable()
+            .isNotEmpty()
+            .allSatisfy(item -> assertThat(item.record.getInt("age")).isGreaterThan(0))
+            .hasSize(RECORD_COUNT);
+
+        Qualifier qualifier2 = new Qualifier(new Qualifier.QualifierBuilder()
+            .setField(SINCE_UPDATE_TIME.toString())
+            .setFilterOperation(FilterOperation.GT)
+            .setValue1(Value.get(10000))
+        );
+        KeyRecordIterator iterator2 = queryEngine.select(namespace, SET_NAME, null, qualifier2);
+
+        assertThat(iterator2)
+            .toIterable()
+            .isEmpty();    }
 
     @Test
     public void stringEQQualifier() {

@@ -39,4 +39,8 @@ public interface CriteriaDefinition {
     enum AerospikeMapCriteria {
         KEY, VALUE, VALUE_CONTAINING
     }
+
+    enum AerospikeMetadata {
+        SINCE_UPDATE_TIME, LAST_UPDATE_TIME, VOID_TIME, TTL, RECORD_SIZE_ON_DISK, RECORD_SIZE_IN_MEMORY
+    }
 }

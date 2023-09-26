@@ -47,10 +47,13 @@ import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.KeyRecordIterator;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
+import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
@@ -78,6 +81,15 @@ import java.util.stream.Stream;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
+import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
+import static org.springframework.data.aerospike.query.FilterOperation.EQ;
+import static org.springframework.data.aerospike.query.FilterOperation.GT;
+import static org.springframework.data.aerospike.query.FilterOperation.GTEQ;
+import static org.springframework.data.aerospike.query.FilterOperation.IN;
+import static org.springframework.data.aerospike.query.FilterOperation.LT;
+import static org.springframework.data.aerospike.query.FilterOperation.LTEQ;
+import static org.springframework.data.aerospike.query.FilterOperation.NOTEQ;
+import static org.springframework.data.aerospike.query.FilterOperation.NOT_IN;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -213,6 +225,54 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             throw translateError(e);
         }
         return false;
+    }
+
+    @Override
+    public <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
+                                      FilterOperation operation, long value, Class<T> entityClass) {
+        Assert.isTrue(List.of(EQ, NOTEQ, LT, LTEQ, GT, GTEQ).contains(operation),
+            "Filteroperation '" + operation + "' is not allowed, please use EQ, NOTEQ, LT, LTEQ, GT or GTEQ," +
+                " or another method");
+
+        AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
+            .setMetadataField(metadataFieldName)
+            .setFilterOperation(operation)
+            .setValue1(Value.get(value)));
+        Query query = new Query(criteria);
+
+        return find(query, entityClass).collect(Collectors.toList());
+    }
+
+    @Override
+    public <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
+                                      FilterOperation operation, long value1, long value2, Class<T> entityClass) {
+        Assert.isTrue(BETWEEN.equals(operation),
+            "Filteroperation '" + operation + "' is not allowed, please use BETWEEN or another method");
+
+        AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
+            .setMetadataField(metadataFieldName)
+            .setFilterOperation(operation)
+            .setValue1(Value.get(value1))
+            .setValue2(Value.get(value2))
+        );
+        Query query = new Query(criteria);
+
+        return find(query, entityClass).collect(Collectors.toList());
+    }
+
+    @Override
+    public <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
+                                      FilterOperation operation, List<Long> values, Class<T> entityClass) {
+        Assert.isTrue(List.of(IN, NOT_IN).contains(operation),
+            "Filteroperation '" + operation + "' is not allowed, please use IN or NOT_IN, or another method");
+
+        AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
+            .setMetadataField(metadataFieldName)
+            .setFilterOperation(operation)
+            .setValue1(Value.get(values)));
+        Query query = new Query(criteria);
+
+        return find(query, entityClass).collect(Collectors.toList());
     }
 
     @Override
@@ -611,7 +671,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             return;
         }
 
-         deleteEntitiesByIdsInternal(groupedKeys);
+        deleteEntitiesByIdsInternal(groupedKeys);
     }
 
     private void deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {

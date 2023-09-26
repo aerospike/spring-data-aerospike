@@ -34,9 +34,15 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
+import static org.springframework.data.aerospike.query.FilterOperation.GT;
+import static org.springframework.data.aerospike.query.FilterOperation.GTEQ;
+import static org.springframework.data.aerospike.query.FilterOperation.NOTEQ;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE_CONTAINING;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.LAST_UPDATE_TIME;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
@@ -1209,6 +1215,31 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> result = repository.findByEmailAddress(email);
         assertThat(result).containsOnly(carter);
+    }
+
+    @Test
+    public void findPersonsByMetadata() {
+        Iterable<Person> result = repository.findByMetadata(SINCE_UPDATE_TIME, GT, 10000);
+        assertThat(result).isEmpty();
+
+        result = repository.findByMetadata(SINCE_UPDATE_TIME, GT, 1);
+        assertThat(result).containsAll(allPersons);
+
+//        result = repository.findByAgeAndSinceUpdateGreaterThan(49, 10000);
+//        assertThat(result).contains(carter);
+
+        result = repository.findByMetadata(LAST_UPDATE_TIME, GTEQ, 1);
+        assertThat(result).containsAll(allPersons);
+
+        result = repository.findByMetadata(LAST_UPDATE_TIME, NOTEQ, 1);
+        assertThat(result).containsAll(allPersons);
+
+//        result = repository.findByMetadata(SINCE_UPDATE_TIME, BETWEEN, 1, 10000);
+//        assertThat(result).containsAll(allPersons);
+
+        assertThatThrownBy(() -> repository.findByMetadata(SINCE_UPDATE_TIME, BETWEEN, 10))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Filteroperation 'BETWEEN' is not allowed, please use EQ, NOTEQ, LT, LTEQ, GT or GTEQ, or another method");
     }
 
     @Test

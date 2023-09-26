@@ -27,7 +27,8 @@ import org.springframework.data.repository.Repository;
  * @author Peter Milne
  * @author Jean Mercier
  */
-public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T, ID>, CrudRepository<T, ID> {
+public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T, ID>, CrudRepository<T, ID>,
+    AerospikeMetadataRepository<T> {
 
     /**
      * Create an index with the specified name.

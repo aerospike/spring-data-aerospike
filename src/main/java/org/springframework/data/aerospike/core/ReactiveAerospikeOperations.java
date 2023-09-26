@@ -21,6 +21,8 @@ import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -479,4 +481,15 @@ public interface ReactiveAerospikeOperations {
      * @return true if exists.
      */
     Mono<Boolean> indexExists(String indexName);
+
+    /**
+     * Find entities that have the given metadata field with the operation applied to its value.
+     *
+     * @param metadataFieldName Metadata field name.
+     * @param operation         Operation to be applied.
+     * @param value             Numerical value of the metadata field.
+     * @return Entities that satisfy the applied operation
+     */
+    <T> Flux<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName, FilterOperation operation,
+                               long value, Class<T> entityClass);
 }

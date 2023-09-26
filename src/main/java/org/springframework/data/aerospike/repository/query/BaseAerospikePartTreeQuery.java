@@ -169,4 +169,8 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
     abstract Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
                               Qualifier... qualifiers);
+
+    protected static boolean isMetadataQuery(AerospikeCriteria criteria) {
+        return Objects.equals(criteria.getMetadataField(), "id");
+    }
 }

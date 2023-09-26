@@ -12,7 +12,8 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
-import org.springframework.data.aerospike.query.Qualifier.QualifierBuilder;
+import org.springframework.data.aerospike.query.Qualifier.*;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.util.Pair;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +22,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
@@ -30,15 +33,7 @@ import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.NULL;
 import static com.aerospike.client.command.ParticleType.STRING;
-import static org.springframework.data.aerospike.query.Qualifier.CONVERTER;
-import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
-import static org.springframework.data.aerospike.query.Qualifier.FIELD;
-import static org.springframework.data.aerospike.query.Qualifier.IGNORE_CASE;
-import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
-import static org.springframework.data.aerospike.query.Qualifier.QualifierRegexpBuilder;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE1;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE2;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE3;
+import static org.springframework.data.aerospike.query.Qualifier.*;
 
 public enum FilterOperation {
 
@@ -78,6 +73,10 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             // Convert IN to a collection of OR as Aerospike has no direct support for IN query
+
+            Optional<Exp> metadataExp;
+            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
+
             Value val = getValue1(qualifierMap);
             String errMsg = "FilterOperation.IN expects argument with type Collection, instead got: " +
                 val.getObject().getClass().getSimpleName();
@@ -111,6 +110,10 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             // Convert NOT_IN to a collection of AND as Aerospike has no direct support for IN query
+
+            Optional<Exp> metadataExp;
+            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
+
             Value val = getValue1(qualifierMap);
             String errMsg = "FilterOperation.NOT_IN expects argument with type Collection, instead got: " +
                 val.getObject().getClass().getSimpleName();
@@ -143,6 +146,9 @@ public enum FilterOperation {
     EQ {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
+            Optional<Exp> metadataExp;
+            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
+
             Value value = getValue1(qualifierMap);
             return switch (value.getType()) {
                 case INTEGER -> Exp.eq(Exp.intBin(getField(qualifierMap)), Exp.val(value.toLong()));
@@ -181,6 +187,9 @@ public enum FilterOperation {
     NOTEQ {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
+            Optional<Exp> metadataExp;
+            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
+
             Value value = getValue1(qualifierMap);
             return switch (value.getType()) {
                 // FMWK-175: Exp.ne() does not return null bins, so Exp.not(Exp.binExists()) is added
@@ -221,6 +230,9 @@ public enum FilterOperation {
     GT {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
+            Optional<Exp> metadataExp;
+            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
+
             Value value = getValue1(qualifierMap);
             return switch (value.getType()) {
                 case INTEGER -> Exp.gt(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
@@ -248,6 +260,9 @@ public enum FilterOperation {
     GTEQ {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
+            Optional<Exp> metadataExp;
+            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
+
             Value value = getValue1(qualifierMap);
             return switch (value.getType()) {
                 case INTEGER -> Exp.ge(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
@@ -273,6 +288,9 @@ public enum FilterOperation {
     LT {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
+            Optional<Exp> metadataExp;
+            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
+
             Value value = getValue1(qualifierMap);
             return switch (value.getType()) {
                 case INTEGER -> Exp.lt(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
@@ -299,6 +317,9 @@ public enum FilterOperation {
     LTEQ {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
+            Optional<Exp> metadataExp;
+            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
+
             Value value = getValue1(qualifierMap);
             return switch (value.getType()) {
                 case INTEGER -> Exp.le(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
@@ -326,6 +347,9 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> qualifierMap) {
             validateEquality(getValue1(qualifierMap).getType(), getValue2(qualifierMap).getType(), qualifierMap,
                 "BETWEEN");
+
+            Optional<Exp> metadataExp;
+            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
 
             return switch (getValue1(qualifierMap).getType()) {
                 case INTEGER -> Exp.and(
@@ -1215,6 +1239,52 @@ public enum FilterOperation {
         }
     };
 
+    /**
+     * If metadata field has a value and regular field hasn't got value, build an Exp to query by metadata using
+     * information set in the given qualifier map.
+     *
+     * @param qualifierMap Map with qualifier data
+     * @return Optional with the Exp or Optional.empty()
+     */
+    private static Optional<Exp> getMetadataExp(Map<String, Object> qualifierMap) {
+        CriteriaDefinition.AerospikeMetadata metadataField = getMetadataField(qualifierMap);
+        String field = getField(qualifierMap);
+
+        if (metadataField != null && (field == null || field.isEmpty())) {
+            return Optional.of(
+                mapOperation(getOperation(qualifierMap)).apply(
+                    mapMetadataExp(metadataField),
+                    Exp.val(getValue1(qualifierMap).toLong())
+                )
+            );
+        }
+        return Optional.empty();
+    }
+
+    private static Exp mapMetadataExp(CriteriaDefinition.AerospikeMetadata metadataField) {
+        return switch (metadataField) {
+            case SINCE_UPDATE_TIME -> Exp.sinceUpdate();
+            case LAST_UPDATE_TIME -> Exp.lastUpdate();
+            case VOID_TIME -> Exp.voidTime();
+            case TTL -> Exp.ttl();
+            case RECORD_SIZE_ON_DISK -> Exp.deviceSize();
+            case RECORD_SIZE_IN_MEMORY -> Exp.memorySize();
+            default -> throw new IllegalStateException("Cannot map metadata Expression to " + metadataField);
+        };
+    }
+
+    private static BiFunction<Exp, Exp, Exp> mapOperation(FilterOperation operation) {
+        return switch (operation) {
+            case EQ -> Exp::eq;
+            case NOTEQ -> Exp::ne;
+            case GT -> Exp::gt;
+            case GTEQ -> Exp::ge;
+            case LT -> Exp::lt;
+            case LTEQ -> Exp::le;
+            default -> throw new IllegalStateException("Cannot map FilterOperation from " + operation);
+        };
+    }
+
     private static Exp mapKeysNotContain(Map<String, Object> qualifierMap) {
         String errMsg = "MAP_KEYS_NOT_CONTAIN FilterExpression unsupported type: got " +
             getValue1(qualifierMap).getClass().getSimpleName();
@@ -1429,6 +1499,14 @@ public enum FilterOperation {
 
     protected static String getField(Map<String, Object> qualifierMap) {
         return (String) qualifierMap.get(FIELD);
+    }
+
+    protected static CriteriaDefinition.AerospikeMetadata getMetadataField(Map<String, Object> qualifierMap) {
+        return (CriteriaDefinition.AerospikeMetadata) qualifierMap.get(METADATA_FIELD);
+    }
+
+    protected static FilterOperation getOperation(Map<String, Object> qualifierMap) {
+        return (FilterOperation) qualifierMap.get(OPERATION);
     }
 
     protected static Boolean ignoreCase(Map<String, Object> qualifierMap) {

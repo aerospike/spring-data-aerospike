@@ -43,9 +43,12 @@ import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
+import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
@@ -754,6 +757,17 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             throw translateError(e);
         }
         return Mono.just(false);
+    }
+
+    @Override
+    public <T> Flux<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName, FilterOperation operation, long value, Class<T> entityClass) {
+        AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
+            .setMetadataField(metadataFieldName)
+            .setFilterOperation(operation)
+            .setValue1(Value.get(value)));
+        Query query = new Query(criteria);
+
+        return find(query, entityClass);
     }
 
     @Override
