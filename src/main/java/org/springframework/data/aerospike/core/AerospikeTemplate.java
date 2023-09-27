@@ -81,15 +81,6 @@ import java.util.stream.Stream;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
-import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
-import static org.springframework.data.aerospike.query.FilterOperation.EQ;
-import static org.springframework.data.aerospike.query.FilterOperation.GT;
-import static org.springframework.data.aerospike.query.FilterOperation.GTEQ;
-import static org.springframework.data.aerospike.query.FilterOperation.IN;
-import static org.springframework.data.aerospike.query.FilterOperation.LT;
-import static org.springframework.data.aerospike.query.FilterOperation.LTEQ;
-import static org.springframework.data.aerospike.query.FilterOperation.NOTEQ;
-import static org.springframework.data.aerospike.query.FilterOperation.NOT_IN;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -228,49 +219,46 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
-                                      FilterOperation operation, long value, Class<T> entityClass) {
-        Assert.isTrue(List.of(EQ, NOTEQ, LT, LTEQ, GT, GTEQ).contains(operation),
-            "Filteroperation '" + operation + "' is not allowed, please use EQ, NOTEQ, LT, LTEQ, GT or GTEQ," +
-                " or another method");
+    public <T> List<T> findByMetadata(Class<T> entityClass, CriteriaDefinition.AerospikeMetadata metadataFieldName,
+                                      FilterOperation operation, long... values) {
+        Assert.notNull(entityClass, "Class must not be null");
+        Assert.notNull(metadataFieldName, "Metadata field name must not be null");
+        Assert.notNull(operation, "Operation must not be null");
+        Assert.notNull(values, "Values must not be null");
+        Assert.isTrue(values.length > 0, "Values must not be empty");
 
-        AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
-            .setMetadataField(metadataFieldName)
-            .setFilterOperation(operation)
-            .setValue1(Value.get(value)));
-        Query query = new Query(criteria);
-
-        return find(query, entityClass).collect(Collectors.toList());
-    }
-
-    @Override
-    public <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
-                                      FilterOperation operation, long value1, long value2, Class<T> entityClass) {
-        Assert.isTrue(BETWEEN.equals(operation),
-            "Filteroperation '" + operation + "' is not allowed, please use BETWEEN or another method");
-
-        AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
-            .setMetadataField(metadataFieldName)
-            .setFilterOperation(operation)
-            .setValue1(Value.get(value1))
-            .setValue2(Value.get(value2))
-        );
-        Query query = new Query(criteria);
-
-        return find(query, entityClass).collect(Collectors.toList());
-    }
-
-    @Override
-    public <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
-                                      FilterOperation operation, List<Long> values, Class<T> entityClass) {
-        Assert.isTrue(List.of(IN, NOT_IN).contains(operation),
-            "Filteroperation '" + operation + "' is not allowed, please use IN or NOT_IN, or another method");
-
-        AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
-            .setMetadataField(metadataFieldName)
-            .setFilterOperation(operation)
-            .setValue1(Value.get(values)));
-        Query query = new Query(criteria);
+        Query query;
+        switch (operation) {
+            case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> {
+                Assert.isTrue(values.length == 1, operation + " metadata query: there must be " +
+                    "1 value");
+                AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
+                    .setMetadataField(metadataFieldName)
+                    .setFilterOperation(operation)
+                    .setValue1(values[0]));
+                query = new Query(criteria);
+            }
+            case BETWEEN -> {
+                Assert.isTrue(values.length == 2, operation + " metadata query: there must be " +
+                    "2 values");
+                AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
+                    .setMetadataField(metadataFieldName)
+                    .setFilterOperation(operation)
+                    .setValue1(Value.get(values[0]))
+                    .setValue2(Value.get(values[1])));
+                query = new Query(criteria);
+            }
+            case NOT_IN, IN -> {
+                Assert.isTrue(values.length > 0, operation + " metadata query: there must be " +
+                    "1 or more values");
+                AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
+                    .setMetadataField(metadataFieldName)
+                    .setFilterOperation(operation)
+                    .setValue1(Arrays.stream(values).boxed().toList()));
+                query = new Query(criteria);
+            }
+            default -> throw new IllegalStateException("Operation " + operation + " is not allowed in metadata query");
+        }
 
         return find(query, entityClass).collect(Collectors.toList());
     }

@@ -15,7 +15,11 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -29,8 +33,11 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author Peter Milne
@@ -170,7 +177,53 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     abstract Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
                               Qualifier... qualifiers);
 
-    protected static boolean isMetadataQuery(AerospikeCriteria criteria) {
-        return Objects.equals(criteria.getMetadataField(), "id");
+    protected static List<MetadataQueryParams> getMetadataQueryParameters(@NonNull Object[] parameters) {
+        List<MetadataQueryParams> paramsList = new ArrayList<>();
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameters[i] instanceof CriteriaDefinition.AerospikeMetadata && parameters.length > i + 2) {
+                MetadataQueryParams metadataQueryParams = new MetadataQueryParams();
+                getMetadataFieldParameter(parameters[i]).ifPresent(metadataQueryParams::setField);
+                getOperationParameter(parameters[i + 1]).ifPresent(metadataQueryParams::setOperation);
+                getValuesParameter(parameters[i + 2]).ifPresent(metadataQueryParams::setValues);
+                paramsList.add(metadataQueryParams);
+                i += 2;
+            }
+        }
+
+        return paramsList;
+    }
+
+    protected static Optional<CriteriaDefinition.AerospikeMetadata> getMetadataFieldParameter(@NonNull Object parameter) {
+        if (parameter instanceof CriteriaDefinition.AerospikeMetadata) {
+            return Optional.of((CriteriaDefinition.AerospikeMetadata) parameter);
+        }
+        return Optional.empty();
+    }
+
+    protected static Optional<FilterOperation> getOperationParameter(@NonNull Object parameter) {
+        if (parameter instanceof FilterOperation) {
+            return Optional.of((FilterOperation) parameter);
+        }
+        return Optional.empty();
+    }
+
+    protected static Optional<List<Long>> getValuesParameter(@NonNull Object parameter) {
+        if (parameter instanceof long[]) {
+            return Optional.of(Arrays.stream((long[]) parameter).boxed().toList());
+        } else if (parameter instanceof Long[]) {
+            return Optional.of(List.of((Long) parameter));
+        } else if (parameter instanceof Long) {
+            return Optional.of(List.of((Long) parameter));
+        }
+        return Optional.empty();
+    }
+
+    @Setter
+    @Getter
+    public static class MetadataQueryParams {
+
+        CriteriaDefinition.AerospikeMetadata field;
+        FilterOperation operation;
+        List<Long> values;
     }
 }

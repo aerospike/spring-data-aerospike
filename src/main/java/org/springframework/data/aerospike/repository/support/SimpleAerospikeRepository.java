@@ -159,19 +159,7 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
 
     @Override
     public Iterable<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
-                                      FilterOperation operation, long value) {
-        return operations.findByMetadata(metadataFieldName, operation, value, entityInformation.getJavaType());
-    }
-
-    @Override
-    public Iterable<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
-                                      FilterOperation operation, long value1, long value2) {
-        return operations.findByMetadata(metadataFieldName, operation, value1, value2, entityInformation.getJavaType());
-    }
-
-    @Override
-    public Iterable<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
-                                      FilterOperation operation, List<Long> values) {
-        return operations.findByMetadata(metadataFieldName, operation, values, entityInformation.getJavaType());
+                                      FilterOperation operation, long... values) {
+        return operations.findByMetadata(entityInformation.getJavaType(), metadataFieldName, operation, values);
     }
 }

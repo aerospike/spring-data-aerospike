@@ -1238,20 +1238,21 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         result = repository.findByMetadata(SINCE_UPDATE_TIME, BETWEEN, 1, 10000);
         assertThat(result).containsAll(allPersons);
 
-        result = repository.findByMetadata(SINCE_UPDATE_TIME, IN, LongStream.range(1, 10000).boxed().toList());
+        result = repository.findByMetadata(SINCE_UPDATE_TIME, IN, LongStream.range(1, 10000).toArray());
         assertThat(result).containsAll(allPersons);
 
-        result = repository.findByMetadata(SINCE_UPDATE_TIME, NOT_IN, LongStream.range(10000, 10002).boxed().toList());
+        result = repository.findByMetadata(SINCE_UPDATE_TIME, NOT_IN, LongStream.range(10000, 10002).toArray());
         assertThat(result).containsAll(allPersons);
 
         assertThatThrownBy(() -> repository.findByMetadata(SINCE_UPDATE_TIME, BETWEEN, 10))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Filteroperation 'BETWEEN' is not allowed, please use EQ, NOTEQ, LT, LTEQ, GT or GTEQ, " +
-                "or another method");
-
-//        result = repository.findByAgeAndSinceUpdateGreaterThan(49, 10000);
+            .hasMessage("BETWEEN metadata query: there must be 2 values");
+//
+//        result = repository.findByAgeAndMetadata(49, SINCE_UPDATE_TIME, GT, 1);
 //        assertThat(result).contains(carter);
-
+//
+//        result = repository.findByMetadataAndMetadata(SINCE_UPDATE_TIME, GT, 0, SINCE_UPDATE_TIME, LTEQ, 1);
+//        assertThat(result).isEmpty();
     }
 
     @Test

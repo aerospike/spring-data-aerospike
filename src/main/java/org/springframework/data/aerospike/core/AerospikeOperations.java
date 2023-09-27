@@ -516,38 +516,12 @@ public interface AerospikeOperations {
     /**
      * Find entities that have the given metadata field using a unary operation.
      *
-     * @param metadataFieldName Metadata field name.
-     * @param operation         Operation to be applied (EQ, NOTEQ, LT, LTEQ, GT or GTEQ).
-     * @param value             Numerical value of the metadata field.
      * @param entityClass       The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param metadataFieldName Metadata field name.
+     * @param operation         Operation to be applied (EQ, NOTEQ, LT, LTEQ, GT, GTEQ, BETWEEN, IN or NOT_IN).
+     * @param values            One or more numerical values (depending on the operation).
      * @return Entities that satisfy the applied operation
      */
-    <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName, FilterOperation operation,
-                               long value, Class<T> entityClass);
-
-    /**
-     * Find entities that have the given metadata field using BETWEEN operation.
-     *
-     * @param metadataFieldName Metadata field name.
-     * @param operation         BETWEEN operation.
-     * @param value1            Lower bound value.
-     * @param value2            Upper bound value.
-     * @param entityClass       The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @return Iterable of entities
-     */
-    <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName, FilterOperation operation,
-                               long value1, long value2, Class<T> entityClass);
-
-
-    /**
-     * Find entities that have the given metadata field using IN/NOT_IN operation.
-     *
-     * @param metadataFieldName Metadata field name.
-     * @param operation         Operation with multiple parameters to be applied (IN or NOT_IN).
-     * @param values            Values to be searched through.
-     * @param entityClass       The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @return Iterable of entities
-     */
-    <T> List<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName, FilterOperation operation,
-                               List<Long> values, Class<T> entityClass);
+    <T> List<T> findByMetadata(Class<T> entityClass, CriteriaDefinition.AerospikeMetadata metadataFieldName,
+                               FilterOperation operation, long[] values);
 }

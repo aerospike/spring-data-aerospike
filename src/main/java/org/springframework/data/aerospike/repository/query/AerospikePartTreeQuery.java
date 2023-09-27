@@ -15,9 +15,11 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import lombok.NonNull;
 import org.springframework.data.aerospike.core.AerospikeInternalOperations;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,7 +29,9 @@ import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
+import org.springframework.util.Assert;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,7 +59,14 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     @SuppressWarnings({"unchecked", "rawtypes", "NullableProblems"})
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
-        Query query = prepareQuery(parameters, accessor);
+        Query query;
+        if (queryMethod.getName().contains("Metadata") && parameters != null && parameters.length > 0
+            && Arrays.stream(parameters).anyMatch(param -> param instanceof CriteriaDefinition.AerospikeMetadata)) {
+            // queries that include metadata have their own processing flow
+            return runMetadataQuery(parameters, entityClass);
+        } else {
+            query = prepareQuery(parameters, accessor);
+        }
         Class<?> targetClass = getTargetClass(accessor);
 
         // queries that include id have their own processing flow
@@ -67,14 +78,6 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             } else if (hasIdQualifier(criteria)) {
                 return runIdQuery(entityClass, targetClass, getIdValue(getIdQualifier(qualifiers)),
                     excludeIdQualifier(qualifiers));
-            }
-        }
-
-        // queries that include metadata have their own processing flow
-        if (parameters != null && parameters.length > 0) {
-            AerospikeCriteria criteria = query.getAerospikeCriteria();
-            if (isMetadataQuery(criteria)) {
-                return runMetadataQuery(criteria, entityClass);
             }
         }
 
@@ -112,9 +115,18 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             qualifiers);
     }
 
-    protected Object runMetadataQuery(AerospikeCriteria criteria, Class<?> entityClass) {
-        return operations.findByMetadata(criteria.getMetadataField(), criteria.getOperation(),
-            criteria.getValue1().toLong(), entityClass);
+    protected Object runMetadataQuery(@NonNull Object[] parameters, @NonNull Class<?> entityClass) {
+        String errMsg = "For metadata query there must be 3 parameters given";
+        Assert.notEmpty(parameters, errMsg);
+        Assert.isTrue(parameters.length >= 3, errMsg);
+
+        CriteriaDefinition.AerospikeMetadata field = getMetadataFieldParameter(parameters[0]).orElseThrow();
+        FilterOperation operation = getOperationParameter(parameters[1]).orElseThrow();
+        List<Long> values = getValuesParameter(parameters[2]).orElseThrow();
+        return operations.findByMetadata(entityClass, field, operation,
+            values.stream().mapToLong(Long::longValue).toArray());
+//        List<MetadataQueryParams> metadataQueryParameters = getMetadataQueryParameters(parameters);
+//        return operations.findByMetadata(entityClass, metadataQueryParameters);
     }
 
     private Stream<?> findByQuery(Query query, Class<?> targetClass) {

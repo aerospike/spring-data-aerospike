@@ -190,9 +190,9 @@ public class QualifierTests extends BaseQueryEngineTests {
     @Test
     public void metadataSinceUpdateEQQualifier() {
         Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
-            .setField(SINCE_UPDATE_TIME.toString())
+            .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValue1(Value.get(1))
+            .setValue1(1L)
         );
         KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -203,15 +203,16 @@ public class QualifierTests extends BaseQueryEngineTests {
             .hasSize(RECORD_COUNT);
 
         Qualifier qualifier2 = new Qualifier(new Qualifier.QualifierBuilder()
-            .setField(SINCE_UPDATE_TIME.toString())
+            .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValue1(Value.get(10000))
+            .setValue1(10000L)
         );
         KeyRecordIterator iterator2 = queryEngine.select(namespace, SET_NAME, null, qualifier2);
 
         assertThat(iterator2)
             .toIterable()
-            .isEmpty();    }
+            .isEmpty();
+    }
 
     @Test
     public void stringEQQualifier() {

@@ -76,16 +76,7 @@ public enum FilterOperation {
             Optional<Exp> metadataExp;
             if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
 
-            Value value1 = getValue1(qualifierMap);
-            String errMsg = "FilterOperation.IN expects argument with type Collection, instead got: " +
-                value1.getObject().getClass().getSimpleName();
-            if (value1.getType() != LIST) {
-                throw new IllegalArgumentException(errMsg);
-            } else {
-                if (!(value1.getObject() instanceof Collection<?>)) {
-                    throw new IllegalArgumentException(errMsg);
-                }
-            }
+            Value value1 = getValue1AsCollectionOrFail(qualifierMap);
 
             Collection<?> collection = (Collection<?>) value1.getObject();
             Exp[] listElementsExp = collection.stream().map(item ->
@@ -113,16 +104,7 @@ public enum FilterOperation {
             Optional<Exp> metadataExp;
             if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
 
-            Value value1 = getValue1(qualifierMap);
-            String errMsg = "FilterOperation.NOT_IN expects argument with type Collection, instead got: " +
-                value1.getObject().getClass().getSimpleName();
-            if (value1.getType() != LIST) {
-                throw new IllegalArgumentException(errMsg);
-            } else {
-                if (!(value1.getObject() instanceof Collection<?>)) {
-                    throw new IllegalArgumentException(errMsg);
-                }
-            }
+            Value value1 = getValue1AsCollectionOrFail(qualifierMap);
 
             Collection<?> collection = (Collection<?>) value1.getObject();
             Exp[] listElementsExp = collection.stream().map(item ->
@@ -1238,7 +1220,39 @@ public enum FilterOperation {
         }
     };
 
+    private static Exp processMetadataFieldInOrNot(Map<String, Object> qualifierMap, boolean notIn) {
+        String operation = notIn ? "NOT_IN" : "IN";
+        FilterOperation filterOperation = notIn ? NOTEQ : EQ;
+        Object value1 = getValue1Object(qualifierMap);
+
+        List<Long> listOfLongs;
+        try {
+            listOfLongs = (List<Long>) value1;
+        } catch (Exception e) {
+            throw new IllegalStateException("FilterOperation." + operation + " metadata query: expecting value1 with " +
+                "type List<Long>");
+        }
+        Exp[] listElementsExp = listOfLongs.stream().map(item ->
+            new Qualifier(
+                new QualifierBuilder()
+                    .setMetadataField(getMetadataField(qualifierMap))
+                    .setFilterOperation(filterOperation)
+                    .setValue1(item)
+            ).toFilterExp()
+        ).toArray(Exp[]::new);
+
+        return notIn ? Exp.and(listElementsExp) : Exp.or(listElementsExp);
+    }
+
     private static Exp processMetadataFieldIn(Map<String, Object> qualifierMap) {
+        return processMetadataFieldInOrNot(qualifierMap, false);
+    }
+
+    private static Exp processMetadataFieldNotIn(Map<String, Object> qualifierMap) {
+        return processMetadataFieldInOrNot(qualifierMap, true);
+    }
+
+    private static Value getValue1AsCollectionOrFail(Map<String, Object> qualifierMap) {
         Value value1 = getValue1(qualifierMap);
         String errMsg = "FilterOperation.IN expects argument with type Collection, instead got: " +
             value1.getObject().getClass().getSimpleName();
@@ -1249,43 +1263,7 @@ public enum FilterOperation {
                 throw new IllegalArgumentException(errMsg);
             }
         }
-
-        Collection<?> collection = (Collection<?>) value1.getObject();
-        Exp[] listElementsExp = collection.stream().map(item ->
-            new Qualifier(
-                new QualifierBuilder()
-                    .setMetadataField(getMetadataField(qualifierMap))
-                    .setFilterOperation(FilterOperation.EQ)
-                    .setValue1(Value.get(item))
-            ).toFilterExp()
-        ).toArray(Exp[]::new);
-
-        return Exp.or(listElementsExp);
-    }
-
-    private static Exp processMetadataFieldNotIn(Map<String, Object> qualifierMap) {
-        Value value1 = getValue1(qualifierMap);
-        String errMsg = "FilterOperation.NOT_IN expects argument with type Collection, instead got: " +
-            value1.getObject().getClass().getSimpleName();
-        if (value1.getType() != LIST) {
-            throw new IllegalArgumentException(errMsg);
-        } else {
-            if (!(value1.getObject() instanceof Collection<?>)) {
-                throw new IllegalArgumentException(errMsg);
-            }
-        }
-
-        Collection<?> collection = (Collection<?>) value1.getObject();
-        Exp[] listElementsExp = collection.stream().map(item ->
-            new Qualifier(
-                new QualifierBuilder()
-                    .setMetadataField(getMetadataField(qualifierMap))
-                    .setFilterOperation(FilterOperation.NOTEQ)
-                    .setValue1(Value.get(item))
-            ).toFilterExp()
-        ).toArray(Exp[]::new);
-
-        return Exp.and(listElementsExp);
+        return value1;
     }
 
     /**
@@ -1307,7 +1285,7 @@ public enum FilterOperation {
                     return Optional.of(
                         operationFunction.apply(
                             mapMetadataExp(metadataField),
-                            Exp.val(getValue1(qualifierMap).toLong())
+                            Exp.val(getValue1AsLongOrFail(getValue1Object(qualifierMap))) // List<Long>
                         )
                     );
                 }
@@ -1327,6 +1305,18 @@ public enum FilterOperation {
             }
         }
         return Optional.empty();
+    }
+
+    // expecting value1 always be of type Long
+    private static Long getValue1AsLongOrFail(Object value1) {
+        Long longValue1;
+        try {
+            longValue1 = (Long) value1;
+        } catch (Exception e) {
+            throw new IllegalStateException("Expecting value1 to be of type Long");
+        }
+
+        return longValue1;
     }
 
     private static Exp mapMetadataExp(CriteriaDefinition.AerospikeMetadata metadataField) {
@@ -1587,6 +1577,10 @@ public enum FilterOperation {
 
     protected static Value getValue1(Map<String, Object> qualifierMap) {
         return Value.get(qualifierMap.get(VALUE1));
+    }
+
+    protected static Object getValue1Object(Map<String, Object> qualifierMap) {
+        return qualifierMap.get(VALUE1);
     }
 
     protected static Value getValue2(Map<String, Object> qualifierMap) {
