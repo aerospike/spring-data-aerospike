@@ -23,9 +23,11 @@ import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.exceptions.BatchWriteException;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -59,6 +61,26 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
         assertThat(first.version).isEqualTo(1);
         assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldSaveAllAndSetVersion() {
+        VersionedClass first = new VersionedClass(id, "foo");
+        VersionedClass second = new VersionedClass(nextId(), "foo");
+        template.saveAll(List.of(first, second));
+
+        assertThat(first.version).isEqualTo(1);
+        assertThat(second.version).isEqualTo(1);
+        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldSaveAllAndSetVersionAndThrowException() {
+        VersionedClass first = new VersionedClass(id, "foo");
+
+        assertThatThrownBy(() -> template.saveAll(List.of(first, first)))
+            .isInstanceOf(BatchWriteException.class)
+            .hasMessageContaining("Errors during batch write with the following keys: ");
     }
 
     @Test

@@ -37,6 +37,7 @@ import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
+import org.springframework.data.aerospike.exceptions.BatchWriteException;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
@@ -58,6 +59,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -269,16 +271,19 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             throw translateError(e);
         }
 
+        Map<String, String> errors = new HashMap<>();
         for (int i = 0; i < batchWriteDataList.size(); i++) {
             BatchWriteData data = batchWriteDataList.get(i);
+            if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
+                errors.put(data.batchRecord().key.toString(), ResultCode.getResultString(data.batchRecord().resultCode));
+            }
             if (data.hasVersionProperty()) {
-                try {
-                    updateVersion(data.document(), batchWriteRecords.get(i).record);
-                } catch (AerospikeException e) {
-                    throw translateCasError(e);
+                if (data.batchRecord().record != null) {
+                    updateVersion(data.document(), data.batchRecord().record);
                 }
             }
         }
+        if (!errors.isEmpty()) throw new BatchWriteException(errors);
     }
 
     @Override
@@ -345,16 +350,19 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             throw translateError(e);
         }
 
+        Map<String, String> errors = new HashMap<>();
         for (int i = 0; i < batchWriteDataList.size(); i++) {
             BatchWriteData data = batchWriteDataList.get(i);
+            if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
+                errors.put(data.batchRecord().key.toString(), ResultCode.getResultString(data.batchRecord().resultCode));
+            }
             if (data.hasVersionProperty()) {
-                try {
-                    updateVersion(data.document(), batchWriteRecords.get(i).record);
-                } catch (AerospikeException e) {
-                    throw translateCasError(e);
+                if (data.batchRecord().record != null) {
+                    updateVersion(data.document(), data.batchRecord().record);
                 }
             }
         }
+        if (!errors.isEmpty()) throw new BatchWriteException(errors);
     }
 
     @Override
@@ -566,7 +574,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 .toArray(Key[]::new);
 
             // requires server ver. >= 6.0.0
-            client.delete(null, null, keys);
+            BatchResults results = client.delete(null, null, keys);
+            Map<String, String> errors = new HashMap<>();
+            for (int i = 0; i < results.records.length; i++) {
+                BatchRecord record = results.records[i];
+                if (record.resultCode != ResultCode.OK || record.record == null) {
+                    errors.put(record.key.toString(), ResultCode.getResultString(record.resultCode));
+                }
+            }
+            if (!errors.isEmpty()) throw new BatchWriteException(errors);
         } catch (AerospikeException e) {
             throw translateError(e);
         }

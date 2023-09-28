@@ -17,8 +17,8 @@ package org.springframework.data.aerospike.index;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.data.aerospike.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
+import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

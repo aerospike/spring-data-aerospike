@@ -24,8 +24,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
-import org.springframework.data.aerospike.IndexAlreadyExistsException;
-import org.springframework.data.aerospike.IndexNotFoundException;
+import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
+import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
 
 /**
  * This class translates the AerospikeException and result code to a DataAccessException.

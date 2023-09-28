@@ -7,7 +7,7 @@ import lombok.Value;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.IndexAlreadyExistsException;
+import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.utility.AsyncUtils;
