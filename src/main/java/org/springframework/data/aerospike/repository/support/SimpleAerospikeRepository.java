@@ -56,6 +56,12 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         return entity;
     }
 
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param entities must not be {@literal null} nor must it contain {@literal null}.
+     * @return List of entities
+     */
     public <S extends T> List<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "Entities for save must not be null!");
 

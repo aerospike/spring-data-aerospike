@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
@@ -36,7 +37,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
@@ -176,12 +176,16 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void insertAll_does_not_rejectDuplicateIds() {
-        Person person = Person.builder().id(id).build();
-        List<Person> records = Arrays.asList(person, person);
+    public void insertAll_rejectsDuplicateIds() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            Person person = Person.builder().id(id).build();
 
-        assertThatNoException().isThrownBy(() -> template.insertAll(records));
-        template.delete(person); // cleanup
+            assertThatThrownBy(() -> template.insertAll(List.of(person, person)))
+                .isInstanceOf(AerospikeException.BatchRecordArray.class)
+                .hasMessageContaining("Errors during batch insert");
+            template.delete(person); // cleanup
+        }
     }
 
     @Test

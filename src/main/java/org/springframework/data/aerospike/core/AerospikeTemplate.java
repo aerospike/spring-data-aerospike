@@ -37,7 +37,6 @@ import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
-import org.springframework.data.aerospike.exceptions.BatchWriteException;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
@@ -59,7 +58,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -257,6 +255,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param documents Documents to save. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch save operation results contain errors or null records
+     */
     @Override
     public <T> void saveAll(Iterable<T> documents) {
         Assert.notNull(documents, "Documents for saving must not be null!");
@@ -265,25 +269,28 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document)));
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        RuntimeException re = null;
         try {
             client.operate(null, batchWriteRecords);
         } catch (AerospikeException e) {
-            throw translateError(e);
+            re = translateError(e);
         }
 
-        Map<String, String> errors = new HashMap<>();
-        for (int i = 0; i < batchWriteDataList.size(); i++) {
-            BatchWriteData data = batchWriteDataList.get(i);
-            if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
-                errors.put(data.batchRecord().key.toString(), ResultCode.getResultString(data.batchRecord().resultCode));
-            }
-            if (data.hasVersionProperty()) {
-                if (data.batchRecord().record != null) {
-                    updateVersion(data.document(), data.batchRecord().record);
+        boolean errorsFound = false;
+        for (BatchWriteData data : batchWriteDataList) {
+            if (!errorsFound && re == null) {
+                if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
+                    errorsFound = true;
                 }
             }
+            if (data.hasVersionProperty() && data.batchRecord().record != null) {
+                updateVersion(data.document(), data.batchRecord().record);
+            }
         }
-        if (!errors.isEmpty()) throw new BatchWriteException(errors);
+        if (errorsFound || re != null) {
+            throw new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new),
+                re == null ? new AerospikeException("Errors during batch save") : re);
+        }
     }
 
     @Override
@@ -336,6 +343,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param documents The documents to insert. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch save operation results contain errors or null records
+     */
     @Override
     public <T> void insertAll(Collection<? extends T> documents) {
         Assert.notNull(documents, "Documents for inserting must not be null!");
@@ -344,25 +357,28 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document)));
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        RuntimeException re = null;
         try {
             client.operate(null, batchWriteRecords);
         } catch (AerospikeException e) {
-            throw translateError(e);
+            re = translateError(e);
         }
 
-        Map<String, String> errors = new HashMap<>();
-        for (int i = 0; i < batchWriteDataList.size(); i++) {
-            BatchWriteData data = batchWriteDataList.get(i);
-            if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
-                errors.put(data.batchRecord().key.toString(), ResultCode.getResultString(data.batchRecord().resultCode));
-            }
-            if (data.hasVersionProperty()) {
-                if (data.batchRecord().record != null) {
-                    updateVersion(data.document(), data.batchRecord().record);
+        boolean errorsFound = false;
+        for (BatchWriteData data : batchWriteDataList) {
+            if (!errorsFound && re == null) {
+                if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
+                    errorsFound = true;
                 }
             }
+            if (data.hasVersionProperty() && data.batchRecord().record != null) {
+                updateVersion(data.document(), data.batchRecord().record);
+            }
         }
-        if (!errors.isEmpty()) throw new BatchWriteException(errors);
+        if (errorsFound || re != null) {
+            throw new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new),
+                re == null ? new AerospikeException("Errors during batch insert") : re);
+        }
     }
 
     @Override
@@ -560,31 +576,38 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    /**
+     * Requires Server version 6.*.
+     *
+     * @param ids         The ids of the documents to delete. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch delete operation results contain errors or null records
+     */
     @Override
     public <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass) {
         if (ids.isEmpty()) {
             return;
         }
 
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+        Key[] keys = ids.stream()
+            .map(id -> getKey(id, entity))
+            .toArray(Key[]::new);
+
+        BatchResults results = new BatchResults(new BatchRecord[]{}, false);
         try {
-            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-
-            Key[] keys = ids.stream()
-                .map(id -> getKey(id, entity))
-                .toArray(Key[]::new);
-
             // requires server ver. >= 6.0.0
-            BatchResults results = client.delete(null, null, keys);
-            Map<String, String> errors = new HashMap<>();
+            results = client.delete(null, null, keys);
+
             for (int i = 0; i < results.records.length; i++) {
                 BatchRecord record = results.records[i];
                 if (record.resultCode != ResultCode.OK || record.record == null) {
-                    errors.put(record.key.toString(), ResultCode.getResultString(record.resultCode));
+                    throw new AerospikeException(ResultCode.BATCH_FAILED, "Errors during batch delete");
                 }
             }
-            if (!errors.isEmpty()) throw new BatchWriteException(errors);
         } catch (AerospikeException e) {
-            throw translateError(e);
+            throw new AerospikeException.BatchRecordArray(results.records, translateError(e));
         }
     }
 
@@ -700,6 +723,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return toGroupedEntities(entitiesKeys, aeroRecords);
     }
 
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param groupedKeys Must not be {@literal null}.
+     */
     @Override
     public void deleteByIds(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");

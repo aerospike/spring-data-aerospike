@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.policy.GenerationPolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -177,5 +178,38 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         assertThatThrownBy(() -> template.delete(null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Class must not be null!");
+    }
+
+    @Test
+    public void deleteAll_rejectsDuplicateIds() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            String id1 = nextId();
+            DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
+            DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
+            template.save(document1);
+            template.save(document2);
+
+            List<String> ids = List.of(id1, id1);
+            assertThatThrownBy(() -> template.deleteByIds(ids, DocumentWithExpiration.class))
+                .isInstanceOf(AerospikeException.BatchRecordArray.class)
+                .hasMessageContaining("Errors during batch delete");
+        }
+    }
+
+    @Test
+    public void deleteAll_ShouldDeleteAllDocuments() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            String id1 = nextId();
+            String id2 = nextId();
+            template.save(new DocumentWithExpiration(id1));
+            template.save(new DocumentWithExpiration(id2));
+
+            List<String> ids = List.of(id1, id2);
+            template.deleteByIds(ids, DocumentWithExpiration.class);
+
+            assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
+        }
     }
 }

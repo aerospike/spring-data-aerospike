@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
@@ -23,7 +24,6 @@ import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.exceptions.BatchWriteException;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
 
@@ -79,8 +79,8 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         VersionedClass first = new VersionedClass(id, "foo");
 
         assertThatThrownBy(() -> template.saveAll(List.of(first, first)))
-            .isInstanceOf(BatchWriteException.class)
-            .hasMessageContaining("Errors during batch write with the following keys: ");
+            .isInstanceOf(AerospikeException.BatchRecordArray.class)
+            .hasMessageContaining("Errors during batch save");
     }
 
     @Test
