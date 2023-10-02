@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
@@ -1253,6 +1255,34 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 //
 //        result = repository.findByMetadataAndMetadata(SINCE_UPDATE_TIME, GT, 0, SINCE_UPDATE_TIME, LTEQ, 1);
 //        assertThat(result).isEmpty();
+
+        Qualifier qualifier1 = new Qualifier(new Qualifier.QualifierBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.GT)
+            .setValue1AsObj(1L)
+        );
+        Qualifier qualifier2 = new Qualifier(new Qualifier.QualifierBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(10000L)
+        );
+        Qualifier qualifier3 = new Qualifier(new Qualifier.QualifierBuilder()
+            .setField("age")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get(49))
+        );
+        Qualifier qualifier4 = new Qualifier(new Qualifier.QualifierBuilder()
+            .setField("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get("Carter"))
+        );
+//        result = repository.findByQualifiers(qualifier1);
+//        result = repository.findByQualifiers(qualifier1, qualifier2);
+//        result = repository.findByQualifiers(qualifier1, qualifier3);
+//        result = repository.findByQualifiers(qualifier2, qualifier3);
+//        result = repository.findByQualifiers(qualifier1, qualifier2, qualifier3);
+        result = repository.findByQualifiers(qualifier1, qualifier2, qualifier3, qualifier4);
+        assertThat(result).contains(carter);
     }
 
     @Test

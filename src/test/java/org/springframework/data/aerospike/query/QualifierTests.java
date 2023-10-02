@@ -192,7 +192,7 @@ public class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValue1(1L)
+            .setValue1AsObj(1L)
         );
         KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -205,7 +205,7 @@ public class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier2 = new Qualifier(new Qualifier.QualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValue1(10000L)
+            .setValue1AsObj(10000L)
         );
         KeyRecordIterator iterator2 = queryEngine.select(namespace, SET_NAME, null, qualifier2);
 

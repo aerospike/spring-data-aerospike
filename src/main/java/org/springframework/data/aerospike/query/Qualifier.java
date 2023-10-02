@@ -305,7 +305,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return this;
         }
 
-        public QualifierBuilder setValue1(Object value1) {
+        public QualifierBuilder setValue1AsObj(Object value1) {
             this.map.put(VALUE1, value1);
             return this;
         }

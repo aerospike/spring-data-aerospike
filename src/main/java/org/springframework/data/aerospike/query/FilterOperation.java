@@ -79,7 +79,7 @@ public enum FilterOperation {
             Value value1 = getValue1AsCollectionOrFail(qualifierMap);
 
             Collection<?> collection = (Collection<?>) value1.getObject();
-            Exp[] listElementsExp = collection.stream().map(item ->
+            Exp[] arrElementsExp = collection.stream().map(item ->
                 new Qualifier(
                     new QualifierBuilder()
                         .setField(getField(qualifierMap))
@@ -88,7 +88,7 @@ public enum FilterOperation {
                 ).toFilterExp()
             ).toArray(Exp[]::new);
 
-            return Exp.or(listElementsExp);
+            return Exp.or(arrElementsExp);
         }
 
         @Override
@@ -107,7 +107,7 @@ public enum FilterOperation {
             Value value1 = getValue1AsCollectionOrFail(qualifierMap);
 
             Collection<?> collection = (Collection<?>) value1.getObject();
-            Exp[] listElementsExp = collection.stream().map(item ->
+            Exp[] arrElementsExp = collection.stream().map(item ->
                 new Qualifier(
                     new QualifierBuilder()
                         .setField(getField(qualifierMap))
@@ -116,7 +116,7 @@ public enum FilterOperation {
                 ).toFilterExp()
             ).toArray(Exp[]::new);
 
-            return Exp.and(listElementsExp);
+            return Exp.and(arrElementsExp);
         }
 
         @Override
@@ -1237,7 +1237,7 @@ public enum FilterOperation {
                 new QualifierBuilder()
                     .setMetadataField(getMetadataField(qualifierMap))
                     .setFilterOperation(filterOperation)
-                    .setValue1(item)
+                    .setValue1AsObj(item)
             ).toFilterExp()
         ).toArray(Exp[]::new);
 

@@ -235,7 +235,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
                     .setMetadataField(metadataFieldName)
                     .setFilterOperation(operation)
-                    .setValue1(values[0]));
+                    .setValue1AsObj(values[0]));
                 query = new Query(criteria);
             }
             case BETWEEN -> {
@@ -254,7 +254,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
                     .setMetadataField(metadataFieldName)
                     .setFilterOperation(operation)
-                    .setValue1(Arrays.stream(values).boxed().toList()));
+                    .setValue1AsObj(Arrays.stream(values).boxed().toList()));
                 query = new Query(criteria);
             }
             default -> throw new IllegalStateException("Operation " + operation + " is not allowed in metadata query");
@@ -973,8 +973,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
     }
 
-    <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
-                                       Qualifier... qualifiers) {
+    @Override
+    public <T> Stream<T> findAllUsingQuery(Class<T> entityClass, Filter filter,
+                                              Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+            .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
+    }
+
+    public <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
+                                              Qualifier... qualifiers) {
         return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
             .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
     }

@@ -16,7 +16,6 @@
 package org.springframework.data.aerospike.sample;
 
 import jakarta.validation.constraints.NotNull;
-import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
@@ -1045,7 +1044,4 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit, exclusive
      */
     Iterable<P> findByAgeBetweenOrderByLastName(int from, int to);
-
-    Iterable<P> findByAgeAndMetadata(int age, CriteriaDefinition.AerospikeMetadata metadata,
-                                     FilterOperation operation, long value);
 }

@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.repository.support;
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
@@ -161,5 +162,10 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     public Iterable<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
                                       FilterOperation operation, long... values) {
         return operations.findByMetadata(entityInformation.getJavaType(), metadataFieldName, operation, values);
+    }
+
+    @Override
+    public Iterable<T> findByQualifiers(Qualifier... qualifiers) {
+        return (Iterable<T>) operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers).toList();
     }
 }

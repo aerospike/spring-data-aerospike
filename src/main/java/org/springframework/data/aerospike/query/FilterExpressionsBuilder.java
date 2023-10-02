@@ -31,7 +31,7 @@ public class FilterExpressionsBuilder {
 
     /**
      * The filter allows only qualifiers without sIndexFilter and those with the dualFilterOperation that require both
-     * sIndexFilter and FilterExpression The filter is irrelevant for AND operation (nested qualifiers)
+     * sIndexFilter and FilterExpression. The filter is irrelevant for AND operation (nested qualifiers)
      */
     private boolean excludeIrrelevantFilters(Qualifier qualifier) {
         return !qualifier.queryAsFilter() ||
