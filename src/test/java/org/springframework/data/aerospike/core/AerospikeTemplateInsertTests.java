@@ -19,6 +19,7 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -176,19 +177,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void insertAll_rejectsDuplicateIds() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
-            Person person = Person.builder().id(id).build();
-
-            assertThatThrownBy(() -> template.insertAll(List.of(person, person)))
-                .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Errors during batch insert");
-            template.delete(person); // cleanup
-        }
-    }
-
-    @Test
     public void insertAll_insertsAllDocuments() {
         List<Person> persons = IntStream.range(1, 10)
             .mapToObj(age -> Person.builder().id(nextId())
@@ -209,6 +197,20 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         assertThat(result).hasSameElementsAs(persons);
         for (Person person : result) {
             template.delete(person); // cleanup
+        }
+    }
+
+    @Test
+    public void insertAll_rejectsDuplicateIds() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            VersionedClass first = new VersionedClass(id, "foo");
+
+            assertThatThrownBy(() -> template.insertAll(List.of(first, first)))
+                .isInstanceOf(AerospikeException.BatchRecordArray.class)
+                .hasMessageContaining("Errors during batch insert");
+            Assertions.assertEquals(1, (long) first.getVersion());
+            template.delete(first); // cleanup
         }
     }
 }

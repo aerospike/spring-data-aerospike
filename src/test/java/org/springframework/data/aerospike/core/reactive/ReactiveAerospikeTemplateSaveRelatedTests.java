@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.core.reactive;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.Test;
@@ -11,10 +12,12 @@ import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.utility.IndexUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -216,5 +219,35 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     public void save_rejectsNullObjectToBeSaved() {
         assertThatThrownBy(() -> reactiveTemplate.save(null).block())
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void saveAll_shouldSaveAllDocuments() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            Person customer1 = new Person(nextId(), "Dave");
+            Person customer2 = new Person(nextId(), "James");
+            reactiveTemplate.saveAll(List.of(customer1, customer2)).blockLast();
+
+            Person result1 = findById(customer1.getId(), Person.class);
+            Person result2 = findById(customer2.getId(), Person.class);
+            assertThat(result1).isEqualTo(customer1);
+            assertThat(result2).isEqualTo(customer2);
+            reactiveTemplate.delete(result1).block(); // cleanup
+            reactiveTemplate.delete(result2).block(); // cleanup
+        }
+    }
+
+    @Test
+    public void saveAll_rejectsDuplicateId() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            VersionedClass first = new VersionedClass(id, "foo");
+
+            StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first)))
+                .expectError(AerospikeException.BatchRecordArray.class)
+                .verify();
+            reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
+        }
     }
 }

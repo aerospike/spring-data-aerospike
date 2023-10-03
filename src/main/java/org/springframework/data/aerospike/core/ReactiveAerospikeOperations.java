@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
@@ -55,14 +56,14 @@ public interface ReactiveAerospikeOperations {
      * deciding whether to create new record or update existing. If version is set to zero - new record will be created,
      * creation will fail is such record already exists. If version is greater than zero - existing record will be
      * updated with {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with removing
-     * bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking
-     * into consideration the version property of the document. Version property will be updated with the server's
-     * version after successful operation.
+     * bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into
+     * consideration the version property of the document. Version property will be updated with the server's version
+     * after successful operation.
      * <p>
      * If document does not have version property - record is updated with
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE} policy combined with removing bins at first
-     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such
-     * record does not exist it will be created, otherwise updated - an "upsert".
+     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
+     * does not exist it will be created, otherwise updated - an "upsert".
      *
      * @param document The document to save. Must not be {@literal null}.
      * @return A Mono of the new saved document.
@@ -70,10 +71,24 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> save(T document);
 
     /**
-     * Reactively insert each document of the given documents using single insert operations.
+     * Reactively save documents using batch write.
+     * <p>
+     * Requires Server version 6.0+.
+     *
+     * @param documents The document to save. Must not be {@literal null}.
+     * @return A Flux of the saved documents.
+     * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
+     */
+    <T> Flux<T> saveAll(Iterable<T> documents);
+
+    /**
+     * Reactively insert documents using batch write.
+     * <p>
+     * Requires Server version 6.0+.
      *
      * @param documents The documents to insert. Must not be {@literal null}.
-     * @return A Flux of the new inserted documents.
+     * @return A Flux of the inserted documents.
+     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
      */
     <T> Flux<T> insertAll(Collection<? extends T> documents);
 
@@ -411,6 +426,7 @@ public interface ReactiveAerospikeOperations {
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
      */
     <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
 

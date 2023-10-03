@@ -20,7 +20,6 @@ import com.aerospike.client.*;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.BatchPolicy;
-import com.aerospike.client.policy.BatchWritePolicy;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
@@ -208,31 +207,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return false;
     }
 
-    public <T> BatchWriteData getBatchWriteForSave(T document) {
-        Assert.notNull(document, "Document must not be null!");
-
-        AerospikeWriteData data = writeData(document);
-
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
-        Operation[] operations;
-        BatchWritePolicy policy;
-        if (entity.hasVersionProperty()) {
-            policy = expectGenerationCasAwareSaveBatchPolicy(data);
-
-            // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
-            operations = getPutAndGetHeaderOperations(data, true);
-        } else {
-            policy = ignoreGenerationSaveBatchPolicy(data, RecordExistsAction.UPDATE);
-
-            // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
-            operations = operations(data.getBinsAsArray(), Operation::put,
-                Operation.array(Operation.delete()));
-        }
-
-        return new BatchWriteData(document, new BatchWrite(policy, data.getKey(), operations),
-            entity.hasVersionProperty());
-    }
-
     @Override
     public <T> void save(T document) {
         Assert.notNull(document, "Document must not be null!");
@@ -259,13 +233,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
      * Requires Server version 6.0+.
      *
      * @param documents Documents to save. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch save operation results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
      */
     @Override
     public <T> void saveAll(Iterable<T> documents) {
         Assert.notNull(documents, "Documents for saving must not be null!");
 
-        List<BatchWriteData> batchWriteDataList = new ArrayList<>();
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
         documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document)));
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
@@ -276,8 +250,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             re = translateError(e);
         }
 
+        failIfErrorsFound(batchWriteRecords, batchWriteDataList, re, "save");
+    }
+
+    private <T> void failIfErrorsFound(List<BatchRecord> batchRecords, List<BatchWriteData<T>> batchWriteDataList,
+                                       RuntimeException re, String commandName) {
         boolean errorsFound = false;
-        for (BatchWriteData data : batchWriteDataList) {
+        for (BatchWriteData<T> data : batchWriteDataList) {
             if (!errorsFound && re == null) {
                 if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
                     errorsFound = true;
@@ -288,8 +267,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             }
         }
         if (errorsFound || re != null) {
-            throw new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new),
-                re == null ? new AerospikeException("Errors during batch save") : re);
+            throw new AerospikeException.BatchRecordArray(batchRecords.toArray(BatchRecord[]::new),
+                re == null ? new AerospikeException("Errors during batch " + commandName) : re);
         }
     }
 
@@ -302,24 +281,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
         doPersistAndHandleError(data, policy, operations);
-    }
-
-    public <T> BatchWriteData getBatchWriteForInsert(T document) {
-        Assert.notNull(document, "Document must not be null!");
-
-        AerospikeWriteData data = writeData(document);
-
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
-        Operation[] operations;
-        BatchWritePolicy policy = ignoreGenerationSaveBatchPolicy(data, RecordExistsAction.CREATE_ONLY);
-        if (entity.hasVersionProperty()) {
-            operations = getPutAndGetHeaderOperations(data, false);
-        } else {
-            operations = operations(data.getBinsAsArray(), Operation::put);
-        }
-
-        return new BatchWriteData(document, new BatchWrite(policy, data.getKey(), operations),
-            entity.hasVersionProperty());
     }
 
     @Override
@@ -347,13 +308,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
      * Requires Server version 6.0+.
      *
      * @param documents The documents to insert. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch save operation results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
      */
     @Override
     public <T> void insertAll(Collection<? extends T> documents) {
         Assert.notNull(documents, "Documents for inserting must not be null!");
 
-        List<BatchWriteData> batchWriteDataList = new ArrayList<>();
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
         documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document)));
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
@@ -364,21 +325,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             re = translateError(e);
         }
 
-        boolean errorsFound = false;
-        for (BatchWriteData data : batchWriteDataList) {
-            if (!errorsFound && re == null) {
-                if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
-                    errorsFound = true;
-                }
-            }
-            if (data.hasVersionProperty() && data.batchRecord().record != null) {
-                updateVersion(data.document(), data.batchRecord().record);
-            }
-        }
-        if (errorsFound || re != null) {
-            throw new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new),
-                re == null ? new AerospikeException("Errors during batch insert") : re);
-        }
+        failIfErrorsFound(batchWriteRecords, batchWriteDataList, re, "insert");
     }
 
     @Override
@@ -460,6 +407,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    /**
+     * Requires Server version 6.*.
+     *
+     * @param ids         The ids of the documents to delete. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
+     */
     @Override
     public <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(ids, "List of ids must not be null!");
@@ -581,7 +535,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
      *
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch delete operation results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
      */
     @Override
     public <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass) {
@@ -606,6 +560,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                     throw new AerospikeException(ResultCode.BATCH_FAILED, "Errors during batch delete");
                 }
             }
+        } catch (AerospikeException.BatchRecordArray e) {
+            throw e;
         } catch (AerospikeException e) {
             throw new AerospikeException.BatchRecordArray(results.records, translateError(e));
         }
@@ -1017,19 +973,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return client.operate(policy, key, operations);
     }
 
-    private Operation[] getPutAndGetHeaderOperations(AerospikeWriteData data, boolean firstlyDeleteBins) {
-        Bin[] bins = data.getBinsAsArray();
-
-        if (bins.length == 0) {
-            throw new AerospikeException(
-                "Cannot put and get header on a document with no bins and \"@_class\" bin disabled.");
-        }
-
-        return firstlyDeleteBins ? operations(bins, Operation::put,
-            Operation.array(Operation.delete()), Operation.array(Operation.getHeader()))
-            : operations(bins, Operation::put, null, Operation.array(Operation.getHeader()));
-    }
-
     <T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
@@ -1128,9 +1071,5 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                     log.error("Caught exception while closing query", e);
                 }
             });
-    }
-
-    private record BatchWriteData(Object document, BatchRecord batchRecord, boolean hasVersionProperty) {
-
     }
 }

@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import org.junit.jupiter.api.AfterAll;
@@ -61,7 +62,11 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     public void beforeAll() {
         // batch write operations are supported starting with Server version 6.0+
         if (IndexUtils.isBatchWriteSupported(client)) {
-            repository.deleteAll(allIndexedPersons);
+            try {
+                repository.deleteAll(allIndexedPersons);
+            } catch (AerospikeException.BatchRecordArray ignored) {
+                // KEY_NOT_FOUND ResultCode causes exception if there are no entities
+            }
         } else {
             allIndexedPersons.forEach(person -> repository.delete(person));
         }

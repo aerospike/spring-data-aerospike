@@ -19,6 +19,7 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -61,26 +62,6 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
         assertThat(first.version).isEqualTo(1);
         assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
-    }
-
-    @Test
-    public void shouldSaveAllAndSetVersion() {
-        VersionedClass first = new VersionedClass(id, "foo");
-        VersionedClass second = new VersionedClass(nextId(), "foo");
-        template.saveAll(List.of(first, second));
-
-        assertThat(first.version).isEqualTo(1);
-        assertThat(second.version).isEqualTo(1);
-        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
-    }
-
-    @Test
-    public void shouldSaveAllAndSetVersionAndThrowException() {
-        VersionedClass first = new VersionedClass(id, "foo");
-
-        assertThatThrownBy(() -> template.saveAll(List.of(first, first)))
-            .isInstanceOf(AerospikeException.BatchRecordArray.class)
-            .hasMessageContaining("Errors during batch save");
     }
 
     @Test
@@ -185,7 +166,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
                 try {
                     template.save(messageData);
                     saved = true;
-                } catch (OptimisticLockingFailureException e) {
+                } catch (OptimisticLockingFailureException ignored) {
                 }
             }
         });
@@ -281,4 +262,29 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
         assertThat(result).isEqualTo(document);
     }
+
+    @Test
+    public void shouldSaveAllAndSetVersion() {
+        VersionedClass first = new VersionedClass(id, "foo");
+        VersionedClass second = new VersionedClass(nextId(), "foo");
+        template.saveAll(List.of(first, second));
+
+        assertThat(first.version).isEqualTo(1);
+        assertThat(second.version).isEqualTo(1);
+        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+        template.delete(first); // cleanup
+        template.delete(second); // cleanup
+    }
+
+    @Test
+    public void shouldSaveAllAndSetVersionAndThrowExceptionIfAlreadyExists() {
+        VersionedClass first = new VersionedClass(id, "foo");
+
+        assertThatThrownBy(() -> template.saveAll(List.of(first, first)))
+            .isInstanceOf(AerospikeException.BatchRecordArray.class)
+            .hasMessageContaining("Errors during batch save");
+
+        Assertions.assertEquals(1, (long) first.getVersion());
+    }
+
 }

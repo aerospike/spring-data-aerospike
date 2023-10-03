@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
@@ -112,6 +113,7 @@ public interface AerospikeOperations {
      * does not exist it will be created, otherwise updated - an "upsert".
      *
      * @param documents Documents to save. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
      */
     <T> void saveAll(Iterable<T> documents);
 
@@ -130,6 +132,7 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+
      *
      * @param documents The documents to insert. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
      */
     <T> void insertAll(Collection<? extends T> documents);
 
@@ -189,6 +192,7 @@ public interface AerospikeOperations {
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
      */
     <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
 

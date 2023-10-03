@@ -15,14 +15,8 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Bin;
-import com.aerospike.client.Info;
-import com.aerospike.client.Key;
-import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
-import com.aerospike.client.ResultCode;
-import com.aerospike.client.Value;
+import com.aerospike.client.*;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.BatchPolicy;
@@ -61,6 +55,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -124,10 +119,76 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
     }
 
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param documents The documents to save. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
+     */
+    @Override
+    public <T> Flux<T> saveAll(Iterable<T> documents) {
+        Assert.notNull(documents, "Documents for saving must not be null!");
+
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+
+        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, "save");
+    }
+
+    private <T> Flux<T> batchWriteAndCheckForErrors(List<BatchRecord> batchWriteRecords,
+                                                    List<BatchWriteData<T>> batchWriteDataList, String commandName) {
+        final Throwable[] throwableArr = {null};
+        // requires server ver. >= 6.0.0
+        return reactorClient.operate(null, batchWriteRecords)
+            .doOnError(throwable -> throwableArr[0] = translateError(throwable))
+            .thenMany(Flux.just(batchWriteDataList)) // operate() returns Mono<Boolean>, switching to documents
+            .flatMap(listOfBatchWriteData -> checkForErrors(throwableArr[0], listOfBatchWriteData, commandName))
+            .onErrorMap(throwable ->
+                new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), throwable))
+            .flatMapIterable(list -> list.stream().map(BatchWriteData::document).toList());
+    }
+
+    private <T> Flux<List<BatchWriteData<T>>> checkForErrors(Throwable throwable,
+                                                             List<BatchWriteData<T>> batchWriteDataList,
+                                                             String commandName) {
+        boolean errorsFound = false;
+        for (AerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
+            if (!errorsFound && throwable == null) {
+                if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
+                    errorsFound = true;
+                }
+            }
+            if (data.hasVersionProperty() && data.batchRecord().record != null) {
+                updateVersion(data.document(), data.batchRecord().record);
+            }
+        }
+
+        if (errorsFound || throwable != null) {
+            return Flux.error(throwable == null ? new AerospikeException("Errors during batch " + commandName)
+                : throwable);
+        }
+
+        return Flux.just(batchWriteDataList);
+    }
+
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param documents The documents to insert. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
+     */
     @Override
     public <T> Flux<T> insertAll(Collection<? extends T> documents) {
-        return Flux.fromIterable(documents)
-            .flatMap(this::insert);
+        Assert.notNull(documents, "Documents for insert must not be null!");
+
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+
+        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, "insert");
     }
 
     @Override
@@ -634,12 +695,19 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         AerospikeWriteData data = writeData(document);
 
-        return this.reactorClient
+        return reactorClient
             .delete(ignoreGenerationDeletePolicy(), data.getKey())
             .map(key -> true)
             .onErrorMap(this::translateError);
     }
 
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param ids         The ids of the documents to delete. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
+     */
     @Override
     public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(ids, "List of ids must not be null!");
@@ -651,7 +719,25 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(id -> getKey(id, entity))
             .toArray(Key[]::new);
 
-        return reactorClient.delete(null, null, keys).then();
+        Function<Throwable, Mono<BatchResults>> mapException = throwable -> {
+            if (throwable instanceof AerospikeException.BatchRecordArray) {
+                return Mono.error(throwable);
+            }
+            return Mono.empty();
+        };
+
+        Function<BatchResults, Mono<Void>> checkForErrors = results -> {
+            for (BatchRecord record : results.records) {
+                if (record.resultCode != ResultCode.OK || record.record == null) {
+                    return Mono.error(new AerospikeException.BatchRecordArray(results.records,
+                        new AerospikeException("Errors during batch delete")));
+                }
+            }
+            return Mono.empty();
+        };
+
+        // requires server ver. >= 6.0.0
+        return reactorClient.delete(null, null, keys).onErrorResume(mapException).flatMap(checkForErrors);
     }
 
     @Override

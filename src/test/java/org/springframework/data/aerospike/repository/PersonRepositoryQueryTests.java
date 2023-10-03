@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,7 +73,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         // batch write operations are supported starting with Server version 6.0+
         if (IndexUtils.isBatchWriteSupported(client)) {
-            repository.deleteAll(allPersons);
+            try {
+                repository.deleteAll(allPersons);
+            } catch (AerospikeException.BatchRecordArray ignored) {
+                // KEY_NOT_FOUND ResultCode causes exception if there are no entities
+            }
         } else {
             allPersons.forEach(person -> repository.delete(person));
         }
@@ -92,7 +97,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             repository.deleteAll(allPersons);
         } else {
             allPersons.forEach(person -> repository.delete(person));
-        }    }
+        }
+    }
 
     @Test
     void findByListContainingString_forExistingResult() {
