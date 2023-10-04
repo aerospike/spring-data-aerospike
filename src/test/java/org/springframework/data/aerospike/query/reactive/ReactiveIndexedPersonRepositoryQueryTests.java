@@ -13,7 +13,7 @@ import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.ReactiveIndexedPersonRepository;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.aerospike.utility.TestUtils;
 import reactor.core.scheduler.Schedulers;
 
@@ -53,7 +53,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @BeforeAll
     public void beforeAll() {
         // batch write operations require Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             try {
                 reactiveRepository.deleteAll(allIndexedPersons).block();
             } catch (AerospikeException.BatchRecordArray ignored) {
@@ -62,7 +62,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         } else {
             allIndexedPersons.forEach(person -> reactiveRepository.delete(person));
         }
-        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             reactiveRepository.saveAll(allIndexedPersons).subscribeOn(Schedulers.parallel()).collectList().block();
         } else {
             allIndexedPersons.forEach(person -> reactiveRepository.save(person));
@@ -93,7 +93,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @AfterAll
     public void afterAll() {
         // batch write operations require Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             try {
                 reactiveRepository.deleteAll(allIndexedPersons).block();
             } catch (AerospikeException.BatchRecordArray ignored) {

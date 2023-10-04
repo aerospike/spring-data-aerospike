@@ -30,8 +30,8 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.CollectionUtils;
-import org.springframework.data.aerospike.utility.IndexUtils;
 import org.springframework.data.aerospike.utility.QueryUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
@@ -81,7 +81,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         deleteOneByOne(allPersons);
 
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             template.insertAll(allPersons);
         } else {
             allPersons.forEach(person -> template.insert(person));
@@ -235,7 +235,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         assertThat(result).isEmpty();
 
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             template.insertAll(allPersons);
         } else {
             allPersons.forEach(person -> template.insert(person));

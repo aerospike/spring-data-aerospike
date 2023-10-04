@@ -160,6 +160,19 @@ public interface AerospikeOperations {
     <T> void update(T document, Collection<String> fields);
 
     /**
+     * Update documents using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with
+     * removing bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking
+     * into consideration the version property of the document if it is present.
+     * <p>
+     * If document has version property it will be updated with the server's version after successful operation.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param document The document to update. Must not be {@literal null}.
+     */
+    <T> void updateAll(Iterable<T> document);
+
+    /**
      * Truncate/Delete all the documents in the given entity's set.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.

@@ -129,6 +129,17 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> update(T document, Collection<String> fields);
 
     /**
+     * Reactively update documents using batch write.
+     * <p>
+     * Requires Server version 6.0+.
+     *
+     * @param documents The documents to update. Must not be {@literal null}.
+     * @return A Flux of the updated documents.
+     * @throws AerospikeException.BatchRecordArray if batch update results contain errors or null records
+     */
+    <T> Flux<T> updateAll(Iterable<? extends T> documents);
+
+    /**
      * Reactively add integer/double bin values to existing document bin values, read the new modified document and map
      * it back the given document class type.
      *

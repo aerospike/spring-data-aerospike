@@ -308,7 +308,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
      * Requires Server version 6.0+.
      *
      * @param documents The documents to insert. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
      */
     @Override
     public <T> void insertAll(Collection<? extends T> documents) {
@@ -365,6 +365,30 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             doPersistAndHandleError(data, policy, operations);
         }
+    }
+
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param documents The documents to update. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch update results contain errors or null records
+     */
+    @Override
+    public <T> void updateAll(Iterable<T> documents) {
+        Assert.notNull(documents, "Documents for inserting must not be null!");
+
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        RuntimeException re = null;
+        try {
+            client.operate(null, batchWriteRecords);
+        } catch (AerospikeException e) {
+            re = translateError(e);
+        }
+
+        failIfErrorsFound(batchWriteRecords, batchWriteDataList, re, "update");
     }
 
     @Override

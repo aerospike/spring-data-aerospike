@@ -59,6 +59,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 
@@ -396,4 +397,28 @@ abstract class BaseAerospikeTemplate {
             entity.hasVersionProperty());
     }
 
+    public <T> BatchWriteData<T> getBatchWriteForUpdate(T document) {
+        Assert.notNull(document, "Document must not be null!");
+
+        AerospikeWriteData data = writeData(document);
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+        Operation[] operations;
+        BatchWritePolicy policy;
+        if (entity.hasVersionProperty()) {
+            policy = expectGenerationSaveBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+            // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
+            operations = getPutAndGetHeaderOperations(data, true);
+        } else {
+            policy = ignoreGenerationSaveBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+            // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
+            operations = Stream.concat(Stream.of(Operation.delete()), data.getBins().stream()
+                .map(Operation::put)).toArray(Operation[]::new);
+        }
+
+        return new BatchWriteData<T>(document, new BatchWrite(policy, data.getKey(), operations),
+            entity.hasVersionProperty());
+    }
 }

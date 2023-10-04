@@ -8,7 +8,7 @@ import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -117,7 +117,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             String id1 = nextId();
             String id2 = nextId();
             reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1));
@@ -135,7 +135,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             String id1 = nextId();
             SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
             SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);

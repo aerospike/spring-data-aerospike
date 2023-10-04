@@ -16,7 +16,7 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.IndexedPersonRepository;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.aerospike.utility.TestUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -61,7 +61,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @BeforeAll
     public void beforeAll() {
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             try {
                 repository.deleteAll(allIndexedPersons);
             } catch (AerospikeException.BatchRecordArray ignored) {
@@ -71,7 +71,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
             allIndexedPersons.forEach(person -> repository.delete(person));
         }
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             repository.saveAll(allIndexedPersons);
         } else {
             allIndexedPersons.forEach(person -> repository.save(person));
@@ -124,7 +124,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @AfterAll
     public void afterAll() {
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             repository.deleteAll(allIndexedPersons);
         } else {
             allIndexedPersons.forEach(person -> repository.delete(person));

@@ -11,7 +11,7 @@ import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -171,7 +171,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAll_shouldInsertAllDocuments() {
-        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.insertAll(List.of(customer1, customer2)).blockLast();
@@ -187,7 +187,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAll_rejectsDuplicateId() {
-        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             Person person = new Person(id, "Amol");
             person.setAge(28);
 

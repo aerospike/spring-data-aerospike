@@ -27,7 +27,7 @@ import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -188,7 +188,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .collect(Collectors.toList());
 
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             template.insertAll(persons);
         } else {
             persons.forEach(person -> template.insert(person));
@@ -206,7 +206,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void insertAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             VersionedClass first = new VersionedClass(id, "foo");
 
             assertThatThrownBy(() -> template.insertAll(List.of(first, first)))
@@ -220,7 +220,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldInsertAllVersionedDocuments() {
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             VersionedClass first = new VersionedClass(id, "foo");
             VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
             VersionedClass third = new VersionedClass(nextId(), "foo", 2L);

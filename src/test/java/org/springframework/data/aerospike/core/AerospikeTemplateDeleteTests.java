@@ -25,7 +25,7 @@ import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -103,7 +103,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByGroupedKeys() {
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             List<Person> persons = additionalAerospikeTestOperations.generatePersons(5);
             List<String> personsIds = persons.stream().map(Person::getId).toList();
             List<Customer> customers = additionalAerospikeTestOperations.generateCustomers(3);
@@ -183,7 +183,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             String id1 = nextId();
             DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
             DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
@@ -200,7 +200,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             String id1 = nextId();
             String id2 = nextId();
             template.save(new DocumentWithExpiration(id1));

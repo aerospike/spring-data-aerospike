@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -224,7 +224,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAll_shouldSaveAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.saveAll(List.of(customer1, customer2)).blockLast();
@@ -241,7 +241,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAll_rejectsDuplicateId() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (IndexUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             VersionedClass first = new VersionedClass(id, "foo");
 
             StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first)))

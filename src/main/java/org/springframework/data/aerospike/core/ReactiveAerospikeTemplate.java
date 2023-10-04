@@ -173,24 +173,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return Flux.just(batchWriteDataList);
     }
 
-    /**
-     * Requires Server version 6.0+.
-     *
-     * @param documents The documents to insert. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
-     */
-    @Override
-    public <T> Flux<T> insertAll(Collection<? extends T> documents) {
-        Assert.notNull(documents, "Documents for insert must not be null!");
-
-        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document)));
-
-        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
-
-        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, "insert");
-    }
-
     @Override
     public <T> Mono<T> insert(T document) {
         Assert.notNull(document, "Document must not be null!");
@@ -213,6 +195,24 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             return doPersistAndHandleError(document, data, policy, operations);
         }
+    }
+
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param documents The documents to insert. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
+     */
+    @Override
+    public <T> Flux<T> insertAll(Collection<? extends T> documents) {
+        Assert.notNull(documents, "Documents for insert must not be null!");
+
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+
+        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, "insert");
     }
 
     @Override
@@ -256,6 +256,24 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             return doPersistAndHandleError(document, data, policy, operations);
         }
+    }
+
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param documents The documents to update. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch update results contain errors or null records
+     */
+    @Override
+    public <T> Flux<T> updateAll(Iterable<? extends T> documents) {
+        Assert.notNull(documents, "Documents for saving must not be null!");
+
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+
+        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, "update");
     }
 
     @SuppressWarnings("unchecked")

@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException
 import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -39,7 +39,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_shouldNotThrowExceptionIfIndexAlreadyExists() {
-        if (IndexUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
             reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING).block();
 
             assertThatCode(() -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField",
@@ -52,7 +52,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. < 6.1.0.1
     @Test
     public void createIndex_throwsExceptionIfIndexAlreadyExists() {
-        if (!IndexUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (!ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
             reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING).block();
 
             assertThatThrownBy(() -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField",
@@ -139,7 +139,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedList() {
-        if (IndexUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
             String setName = reactiveTemplate.getSetName(AerospikeTemplateIndexTests.IndexedDocument.class);
             reactiveTemplate.createIndex(
                 AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "nestedList",
@@ -160,7 +160,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnMapOfMapsContext() {
-        if (IndexUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
             String setName = reactiveTemplate.getSetName(AerospikeTemplateIndexTests.IndexedDocument.class);
 
             CTX[] ctx = new CTX[]{
@@ -191,7 +191,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
-        if (IndexUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
             assertThatCode(() -> reactiveTemplate.deleteIndex(IndexedDocument.class, "not-existing-index")
                 .block())
                 .doesNotThrowAnyException();
@@ -201,7 +201,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. < 6.1.0.1
     @Test
     public void deleteIndex_throwsExceptionIfIndexDoesNotExist() {
-        if (!IndexUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (!ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
             assertThatThrownBy(() -> reactiveTemplate.deleteIndex(IndexedDocument.class, "not-existing-index").block())
                 .isInstanceOf(IndexNotFoundException.class);
         }
