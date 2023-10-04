@@ -75,6 +75,16 @@ public interface AerospikeOperations {
     <T> void insert(T document);
 
     /**
+     * Insert documents using batch insert operation.
+     * <p>
+     * This operation requires Server version 6.0+
+     *
+     * @param documents The documents to insert. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
+     */
+    <T> void insertAll(Collection<? extends T> documents);
+
+    /**
      * Save a document.
      * <p>
      * If the document has version property - CAS algorithm is used for updating record. Version property is used for
@@ -125,16 +135,6 @@ public interface AerospikeOperations {
      *                    {@literal null}.
      */
     <T> void persist(T document, WritePolicy writePolicy);
-
-    /**
-     * Insert documents using batch insert operation.
-     * <p>
-     * This operation requires Server version 6.0+
-     *
-     * @param documents The documents to insert. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
-     */
-    <T> void insertAll(Collection<? extends T> documents);
 
     /**
      * Update a document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with

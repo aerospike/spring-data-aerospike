@@ -82,6 +82,16 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> saveAll(Iterable<T> documents);
 
     /**
+     * Reactively insert document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
+     * <p>
+     * If document has version property it will be updated with the server's version after successful operation.
+     *
+     * @param document The document to insert. Must not be {@literal null}.
+     * @return A Mono of the new inserted document.
+     */
+    <T> Mono<T> insert(T document);
+
+    /**
      * Reactively insert documents using batch write.
      * <p>
      * Requires Server version 6.0+.
@@ -91,16 +101,6 @@ public interface ReactiveAerospikeOperations {
      * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
      */
     <T> Flux<T> insertAll(Collection<? extends T> documents);
-
-    /**
-     * Reactively insert document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
-     * <p>
-     * If document has version property it will be updated with the server's version after successful operation.
-     *
-     * @param document The document to insert. Must not be {@literal null}.
-     * @return A Mono of the new inserted document.
-     */
-    <T> Mono<T> insert(T document);
 
     /**
      * Reactively update document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
