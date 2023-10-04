@@ -320,12 +320,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
             VersionedClass first = new VersionedClass(id, "foo");
             VersionedClass second = new VersionedClass(id, "foo", 1L);
             VersionedClass third = new VersionedClass(id, "foo", 2L);
-            // If an object has version property equal to null or 0, RecordExistsAction.CREATE_ONLY policy is set
-            template.saveAll(List.of(first));
-
-            // If an object has version property larger than 0, RecordExistsAction.UPDATE_ONLY policy is set
-            assertThatNoException().isThrownBy(() -> template.saveAll(
-                List.of(second, third)));
+            // If an object has version property equal to null or 0, RecordExistsAction.CREATE_ONLY is set
+            // If an object has version property larger than 0, RecordExistsAction.UPDATE_ONLY is set
+            assertThatNoException().isThrownBy(() -> template.saveAll(List.of(first, second, third)));
 
             // initially given version have been incremented
             assertThat(first.getVersion() == 1).isTrue();
