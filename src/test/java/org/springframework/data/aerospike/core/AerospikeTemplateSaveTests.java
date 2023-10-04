@@ -19,7 +19,6 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -27,11 +26,13 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.utility.IndexUtils;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
@@ -65,11 +66,20 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void shouldNotSaveDocumentIfItAlreadyExists() {
+    public void shouldNotSaveVersionedDocumentIfItAlreadyExists() {
         template.save(new VersionedClass(id, "foo"));
 
         assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo")))
             .isInstanceOf(OptimisticLockingFailureException.class);
+    }
+
+    @Test
+    public void shouldUpdateNotVersionedDocumentIfItAlreadyExists() {
+        Person person = new Person(id, "Amol");
+        person.setAge(28);
+        template.save(person);
+
+        assertThatNoException().isThrownBy(() -> template.save(person));
     }
 
     @Test
@@ -90,9 +100,11 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     public void shouldUpdateNullField() {
         VersionedClass versionedClass = new VersionedClass(id, null);
         template.save(versionedClass);
+        assertThat(versionedClass.getVersion() == 1).isTrue();
 
         VersionedClass saved = template.findById(id, VersionedClass.class);
         template.save(saved);
+        assertThat(saved.getVersion() == 2).isTrue();
     }
 
     @Test
@@ -267,7 +279,12 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     public void shouldSaveAllAndSetVersion() {
         VersionedClass first = new VersionedClass(id, "foo");
         VersionedClass second = new VersionedClass(nextId(), "foo");
-        template.saveAll(List.of(first, second));
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            template.saveAll(List.of(first, second));
+        } else {
+            List.of(first, second).forEach(person -> template.save(person));
+        }
 
         assertThat(first.version).isEqualTo(1);
         assertThat(second.version).isEqualTo(1);
@@ -277,14 +294,61 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void shouldSaveAllAndSetVersionAndThrowExceptionIfAlreadyExists() {
-        VersionedClass first = new VersionedClass(id, "foo");
+    public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfAlreadyExist() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            VersionedClass first = new VersionedClass(id, "foo");
+            VersionedClass second = new VersionedClass(nextId(), "foo");
 
-        assertThatThrownBy(() -> template.saveAll(List.of(first, first)))
-            .isInstanceOf(AerospikeException.BatchRecordArray.class)
-            .hasMessageContaining("Errors during batch save");
+            assertThatThrownBy(() -> template.saveAll(List.of(first, first, second, second)))
+                .isInstanceOf(AerospikeException.BatchRecordArray.class)
+                .hasMessageContaining("Errors during batch save");
 
-        Assertions.assertEquals(1, (long) first.getVersion());
+            assertThat(first.getVersion() == 1).isTrue();
+            assertThat(second.getVersion() == 1).isTrue();
+
+            template.delete(first); // cleanup
+            template.delete(second); // cleanup
+        }
     }
 
+    @Test
+    public void shouldSaveAllVersionedDocumentsIfAlreadyExistWhenVersionIsEqual() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            VersionedClass first = new VersionedClass(id, "foo");
+            VersionedClass second = new VersionedClass(id, "foo", 1L);
+            VersionedClass third = new VersionedClass(id, "foo", 2L);
+            // If an object has version property equal to null or 0, RecordExistsAction.CREATE_ONLY policy is set
+            template.saveAll(List.of(first));
+
+            // If an object has version property larger than 0, RecordExistsAction.UPDATE_ONLY policy is set
+            assertThatNoException().isThrownBy(() -> template.saveAll(
+                List.of(second, third)));
+
+            // initially given version have been incremented
+            assertThat(first.getVersion() == 1).isTrue();
+            assertThat(second.getVersion() == 2).isTrue();
+            assertThat(third.getVersion() == 3).isTrue();
+
+            template.delete(first); // cleanup
+            template.delete(second); // cleanup
+            template.delete(third); // cleanup
+        }
+    }
+
+    @Test
+    public void shouldSaveAllNotVersionedDocumentsIfAlreadyExist() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            Person person = new Person(id, "Amol");
+            person.setAge(28);
+            template.save(person);
+
+            // If an object has no version property, RecordExistsAction.UPDATE is set
+            assertThatNoException().isThrownBy(() -> template.saveAll(List.of(person, person)));
+
+            template.delete(person); // cleanup
+        }
+    }
 }

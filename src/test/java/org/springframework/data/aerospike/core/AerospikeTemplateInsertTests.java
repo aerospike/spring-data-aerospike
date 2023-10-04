@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
@@ -110,6 +111,8 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKey() {
         VersionedClass document = new VersionedClass(id, "any", 5L);
+        // initially given versions are ignored
+        // RecordExistsAction.CREATE_ONLY is set
         template.insert(document);
 
         assertThat(document.getVersion()).isEqualTo(1);
@@ -213,4 +216,25 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             template.delete(first); // cleanup
         }
     }
+
+    @Test
+    public void shouldInsertAllVersionedDocuments() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (IndexUtils.isBatchWriteSupported(client)) {
+            VersionedClass first = new VersionedClass(id, "foo");
+            VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
+            VersionedClass third = new VersionedClass(nextId(), "foo", 2L);
+            template.insertAll(List.of(first));
+
+            // initially given versions are ignored
+            // RecordExistsAction.CREATE_ONLY is set
+            assertThatNoException().isThrownBy(() -> template.insertAll(
+                List.of(second, third)));
+
+            assertThat(first.getVersion() == 1).isTrue();
+            assertThat(second.getVersion() == 1).isTrue();
+            assertThat(third.getVersion() == 1).isTrue();
+        }
+    }
+
 }
