@@ -244,11 +244,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             re = translateError(e);
         }
 
-        failIfErrorsFound(batchWriteRecords, batchWriteDataList, re, "save");
+        checkForErrorsAndUpdateVersion(batchWriteRecords, batchWriteDataList, re, "save");
     }
 
-    private <T> void failIfErrorsFound(List<BatchRecord> batchRecords, List<BatchWriteData<T>> batchWriteDataList,
-                                       RuntimeException re, String commandName) {
+    private <T> void checkForErrorsAndUpdateVersion(List<BatchRecord> batchRecords, List<BatchWriteData<T>> batchWriteDataList,
+                                                    RuntimeException re, String commandName) {
         boolean errorsFound = false;
         for (BatchWriteData<T> data : batchWriteDataList) {
             if (!errorsFound && re == null) {
@@ -313,7 +313,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             re = translateError(e);
         }
 
-        failIfErrorsFound(batchWriteRecords, batchWriteDataList, re, "insert");
+        checkForErrorsAndUpdateVersion(batchWriteRecords, batchWriteDataList, re, "insert");
     }
 
     @Override
@@ -370,7 +370,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             re = translateError(e);
         }
 
-        failIfErrorsFound(batchWriteRecords, batchWriteDataList, re, "update");
+        checkForErrorsAndUpdateVersion(batchWriteRecords, batchWriteDataList, re, "update");
     }
 
     @Override
