@@ -83,9 +83,8 @@ public interface AerospikeOperations {
      *
      * @param documents Documents to insert. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch insert succeeds, but results contain errors or null records
-     * @throws AerospikeException                  if batch insert operation fails
      */
-    <T> void insertAll(Iterable<? extends T> documents) throws AerospikeException;
+    <T> void insertAll(Iterable<? extends T> documents) throws AerospikeException.BatchRecordArray;
 
     /**
      * Save a document.
@@ -116,9 +115,8 @@ public interface AerospikeOperations {
      *
      * @param documents Documents to save. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch save succeeds, but results contain errors or null records
-     * @throws AerospikeException                  if batch save operation fails
      */
-    <T> void saveAll(Iterable<T> documents) throws AerospikeException;
+    <T> void saveAll(Iterable<T> documents) throws AerospikeException.BatchRecordArray;
 
     /**
      * Persist a document using specified WritePolicy.
@@ -161,9 +159,8 @@ public interface AerospikeOperations {
      *
      * @param documents Documents to update. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch update succeeds, but results contain errors or null records
-     * @throws AerospikeException                  if batch update operation fails
      */
-    <T> void updateAll(Iterable<T> documents) throws AerospikeException;
+    <T> void updateAll(Iterable<T> documents) throws AerospikeException.BatchRecordArray;
 
     /**
      * Truncate/Delete all the documents in the given entity's set.
@@ -200,7 +197,7 @@ public interface AerospikeOperations {
      *                    {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch delete results contain errors
      */
-    <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) throws AerospikeException;
+    <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) throws AerospikeException.BatchRecordArray;
 
     /**
      * Executes a single batch delete for several entities.
@@ -214,7 +211,7 @@ public interface AerospikeOperations {
      * @param groupedKeys Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch delete results contain errors
      */
-    void deleteByIds(GroupedKeys groupedKeys) throws AerospikeException;
+    void deleteByIds(GroupedKeys groupedKeys) throws AerospikeException.BatchRecordArray;
 
     /**
      * Check if a document exists by providing document id and entityClass (set name will be determined by the given

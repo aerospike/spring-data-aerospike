@@ -80,9 +80,8 @@ public interface ReactiveAerospikeOperations {
      * @param documents documents to save. Must not be {@literal null}.
      * @return A Flux of the saved documents.
      * @throws AerospikeException.BatchRecordArray if batch save succeeds, but results contain errors or null records
-     * @throws AerospikeException                  if batch save operation fails
      */
-    <T> Flux<T> saveAll(Iterable<T> documents) throws AerospikeException;
+    <T> Flux<T> saveAll(Iterable<T> documents) throws AerospikeException.BatchRecordArray;
 
     /**
      * Reactively insert document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
@@ -104,9 +103,8 @@ public interface ReactiveAerospikeOperations {
      * @param documents Documents to insert. Must not be {@literal null}.
      * @return A Flux of the inserted documents.
      * @throws AerospikeException.BatchRecordArray if batch insert succeeds, but results contain errors or null records
-     * @throws AerospikeException                  if batch insert operation fails
      */
-    <T> Flux<T> insertAll(Iterable<? extends T> documents) throws AerospikeException;
+    <T> Flux<T> insertAll(Iterable<? extends T> documents) throws AerospikeException.BatchRecordArray;
 
     /**
      * Reactively update document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
@@ -144,9 +142,8 @@ public interface ReactiveAerospikeOperations {
      * @param documents Documents to update. Must not be {@literal null}.
      * @return A Flux of the updated documents.
      * @throws AerospikeException.BatchRecordArray if batch update succeeds, but results contain errors or null records
-     * @throws AerospikeException                  if batch update operation fails
      */
-    <T> Flux<T> updateAll(Iterable<? extends T> documents) throws AerospikeException;
+    <T> Flux<T> updateAll(Iterable<? extends T> documents) throws AerospikeException.BatchRecordArray;
 
     /**
      * Reactively add integer/double bin values to existing document bin values, read the new modified document and map
@@ -447,9 +444,8 @@ public interface ReactiveAerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch delete succeeds, but results contain errors
-     * @throws AerospikeException                  if batch delete operation fails
      */
-    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) throws AerospikeException;
+    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) throws AerospikeException.BatchRecordArray;
 
     /**
      * Executes a single batch delete for several entities.
@@ -462,9 +458,8 @@ public interface ReactiveAerospikeOperations {
      *
      * @param groupedKeys Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch delete succeeds, but results contain errors
-     * @throws AerospikeException                  if batch delete operation fails
      */
-    Mono<Void> deleteByIds(GroupedKeys groupedKeys) throws AerospikeException;
+    Mono<Void> deleteByIds(GroupedKeys groupedKeys) throws AerospikeException.BatchRecordArray;
 
     /**
      * Reactively create index by specified name in Aerospike.
