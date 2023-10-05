@@ -82,7 +82,7 @@ public interface ReactiveAerospikeOperations {
      * @throws AerospikeException.BatchRecordArray if batch save succeeds, but results contain errors or null records
      * @throws AerospikeException                  if batch save operation fails
      */
-    <T> Flux<T> saveAll(Iterable<T> documents);
+    <T> Flux<T> saveAll(Iterable<T> documents) throws AerospikeException;
 
     /**
      * Reactively insert document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
@@ -106,7 +106,7 @@ public interface ReactiveAerospikeOperations {
      * @throws AerospikeException.BatchRecordArray if batch insert succeeds, but results contain errors or null records
      * @throws AerospikeException                  if batch insert operation fails
      */
-    <T> Flux<T> insertAll(Iterable<? extends T> documents);
+    <T> Flux<T> insertAll(Iterable<? extends T> documents) throws AerospikeException;
 
     /**
      * Reactively update document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
@@ -146,7 +146,7 @@ public interface ReactiveAerospikeOperations {
      * @throws AerospikeException.BatchRecordArray if batch update succeeds, but results contain errors or null records
      * @throws AerospikeException                  if batch update operation fails
      */
-    <T> Flux<T> updateAll(Iterable<? extends T> documents);
+    <T> Flux<T> updateAll(Iterable<? extends T> documents) throws AerospikeException;
 
     /**
      * Reactively add integer/double bin values to existing document bin values, read the new modified document and map
@@ -449,7 +449,7 @@ public interface ReactiveAerospikeOperations {
      * @throws AerospikeException.BatchRecordArray if batch delete succeeds, but results contain errors
      * @throws AerospikeException                  if batch delete operation fails
      */
-    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
+    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) throws AerospikeException;
 
     /**
      * Executes a single batch delete for several entities.
@@ -464,7 +464,7 @@ public interface ReactiveAerospikeOperations {
      * @throws AerospikeException.BatchRecordArray if batch delete succeeds, but results contain errors
      * @throws AerospikeException                  if batch delete operation fails
      */
-    Mono<Void> deleteByIds(GroupedKeys groupedKeys);
+    Mono<Void> deleteByIds(GroupedKeys groupedKeys) throws AerospikeException;
 
     /**
      * Reactively create index by specified name in Aerospike.
