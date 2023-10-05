@@ -135,7 +135,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private <T> Flux<T> batchWriteAndCheckForErrors(List<BatchRecord> batchWriteRecords,
                                                     List<BatchWriteData<T>> batchWriteDataList, String commandName) {
-        // requires server ver. >= 6.0.0
         Function<Signal<Boolean>, Mono<Optional<Throwable>>> checkForThrowable = signal -> {
             if (signal.isOnError()) {
                 Throwable throwable = signal.getThrowable() == null
@@ -145,10 +144,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return Mono.just(Optional.empty());
         };
 
+        // requires server ver. >= 6.0.0
         return reactorClient.operate(null, batchWriteRecords)
             .materialize()
             .flatMap(checkForThrowable) // returning Throwable if there was an error, otherwise an empty Optional
-            .flatMap(throwableOptional -> checkForErrorsAndUpdateVersion(throwableOptional, batchWriteDataList, commandName))
+            .flatMap(throwableOptional -> checkForErrorsAndUpdateVersion(throwableOptional, batchWriteDataList,
+                commandName))
             .flux()
             .onErrorMap(throwable ->
                 new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), throwable))
@@ -156,8 +157,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private <T> Mono<List<BatchWriteData<T>>> checkForErrorsAndUpdateVersion(Optional<Throwable> throwableOptional,
-                                                             List<BatchWriteData<T>> batchWriteDataList,
-                                                             String commandName) {
+                                                                             List<BatchWriteData<T>> batchWriteDataList,
+                                                                             String commandName) {
         boolean errorsFound = false;
         for (AerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
             if (!errorsFound && throwableOptional.isEmpty()) {
