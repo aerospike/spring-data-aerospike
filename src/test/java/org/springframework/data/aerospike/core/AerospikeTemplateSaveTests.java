@@ -41,7 +41,7 @@ import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
 public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
-    // test for REPLACE_ONLY policy
+    // test for RecordExistsAction.REPLACE_ONLY policy
     @Test
     public void shouldReplaceAllBinsPresentInAerospikeWhenSavingDocument() {
         Key key = new Key(getNameSpace(), "versioned-set", id);
@@ -84,7 +84,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldSaveDocumentWithEqualVersion() {
-        // if an object has version property, set GenerationPolicy.EXPECT_GEN_EQUAL
+        // if an object has version property, GenerationPolicy.EXPECT_GEN_EQUAL is set
         VersionedClass first = new VersionedClass(id, "foo", 0L);
         VersionedClass second = new VersionedClass(id, "foo", 1L);
         VersionedClass third = new VersionedClass(id, "foo", 2L);
