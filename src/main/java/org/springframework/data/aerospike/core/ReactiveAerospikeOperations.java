@@ -71,17 +71,16 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> save(T document);
 
     /**
-     * Reactively save documents using one batch request.
-     * The policies are analogous to {@link #save(Object)}.
+     * Reactively save documents using one batch request. The policies are analogous to {@link #save(Object)}.
      * <p>
-     * The order of returned results is preserved.
-     * The execution order is NOT preserved.
+     * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
      *
      * @param documents documents to save. Must not be {@literal null}.
      * @return A Flux of the saved documents.
-     * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch save succeeds, but results contain errors or null records
+     * @throws AerospikeException                  if batch save operation fails
      */
     <T> Flux<T> saveAll(Iterable<T> documents);
 
@@ -96,17 +95,16 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> insert(T document);
 
     /**
-     * Reactively insert documents using one batch request.
-     * The policies are analogous to {@link #insert(Object)}.
+     * Reactively insert documents using one batch request. The policies are analogous to {@link #insert(Object)}.
      * <p>
-     * The order of returned results is preserved.
-     * The execution order is NOT preserved.
+     * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
      *
      * @param documents Documents to insert. Must not be {@literal null}.
      * @return A Flux of the inserted documents.
-     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch insert succeeds, but results contain errors or null records
+     * @throws AerospikeException                  if batch insert operation fails
      */
     <T> Flux<T> insertAll(Iterable<? extends T> documents);
 
@@ -137,17 +135,16 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> update(T document, Collection<String> fields);
 
     /**
-     * Reactively update documents using one batch request.
-     * The policies are analogous to {@link #update(Object)}.
+     * Reactively update documents using one batch request. The policies are analogous to {@link #update(Object)}.
      * <p>
-     * The order of returned results is preserved.
-     * The execution order is NOT preserved.
+     * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
      *
      * @param documents Documents to update. Must not be {@literal null}.
      * @return A Flux of the updated documents.
-     * @throws AerospikeException.BatchRecordArray if batch update results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch update succeeds, but results contain errors or null records
+     * @throws AerospikeException                  if batch update operation fails
      */
     <T> Flux<T> updateAll(Iterable<? extends T> documents);
 
@@ -449,7 +446,8 @@ public interface ReactiveAerospikeOperations {
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch delete succeeds, but results contain errors
+     * @throws AerospikeException                  if batch delete operation fails
      */
     <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
@@ -463,7 +461,8 @@ public interface ReactiveAerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param groupedKeys Must not be {@literal null}.
-     * @return
+     * @throws AerospikeException.BatchRecordArray if batch delete succeeds, but results contain errors
+     * @throws AerospikeException                  if batch delete operation fails
      */
     Mono<Void> deleteByIds(GroupedKeys groupedKeys);
 

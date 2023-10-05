@@ -75,16 +75,15 @@ public interface AerospikeOperations {
     <T> void insert(T document);
 
     /**
-     * Insert multiple documents in one batch request.
-     * The policies are analogous to {@link #insert(Object)}.
+     * Insert multiple documents in one batch request. The policies are analogous to {@link #insert(Object)}.
      * <p>
-     * The order of returned results is preserved.
-     * The execution order is NOT preserved.
+     * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * This operation requires Server version 6.0+.
      *
      * @param documents Documents to insert. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch insert succeeds, but results contain errors or null records
+     * @throws AerospikeException                  if batch insert operation fails
      */
     <T> void insertAll(Iterable<? extends T> documents);
 
@@ -109,16 +108,15 @@ public interface AerospikeOperations {
     <T> void save(T document);
 
     /**
-     * Save multiple documents in one batch request.
-     * The policies are analogous to {@link #save(Object)}.
+     * Save multiple documents in one batch request. The policies are analogous to {@link #save(Object)}.
      * <p>
-     * The order of returned results is preserved.
-     * The execution order is NOT preserved.
+     * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * This operation requires Server version 6.0+.
      *
      * @param documents Documents to save. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch save succeeds, but results contain errors or null records
+     * @throws AerospikeException                  if batch save operation fails
      */
     <T> void saveAll(Iterable<T> documents);
 
@@ -155,16 +153,15 @@ public interface AerospikeOperations {
     <T> void update(T document, Collection<String> fields);
 
     /**
-     * Update multiple documents in one batch request.
-     * The policies are analogous to {@link #update(Object)}.
+     * Update multiple documents in one batch request. The policies are analogous to {@link #update(Object)}.
      * <p>
-     * The order of returned results is preserved.
-     * The execution order is NOT preserved.
+     * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * This operation requires Server version 6.0+.
      *
      * @param documents Documents to update. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch update results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch update succeeds, but results contain errors or null records
+     * @throws AerospikeException                  if batch update operation fails
      */
     <T> void updateAll(Iterable<T> documents);
 
@@ -201,7 +198,7 @@ public interface AerospikeOperations {
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors
      */
     <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
@@ -215,6 +212,7 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param groupedKeys Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors
      */
     void deleteByIds(GroupedKeys groupedKeys);
 

@@ -421,4 +421,9 @@ abstract class BaseAerospikeTemplate {
         return new BatchWriteData<T>(document, new BatchWrite(policy, data.getKey(), operations),
             entity.hasVersionProperty());
     }
+
+    protected boolean batchRecordFailed(BatchRecord batchRecord) {
+        return batchRecord.resultCode != ResultCode.OK || batchRecord.record == null;
+    }
+
 }
