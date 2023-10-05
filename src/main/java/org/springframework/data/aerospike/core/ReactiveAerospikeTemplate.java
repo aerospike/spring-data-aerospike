@@ -47,6 +47,7 @@ import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Signal;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +56,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -133,23 +135,32 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private <T> Flux<T> batchWriteAndCheckForErrors(List<BatchRecord> batchWriteRecords,
                                                     List<BatchWriteData<T>> batchWriteDataList, String commandName) {
-        final Throwable[] throwableArr = {null};
         // requires server ver. >= 6.0.0
+        Function<Signal<Boolean>, Mono<Optional<Throwable>>> checkForThrowable = signal -> {
+            if (signal.isOnError()) {
+                Throwable throwable = signal.getThrowable() == null
+                    ? new IllegalStateException("Got onError signal without Throwable") : signal.getThrowable();
+                return Mono.just(Optional.of(translateError(throwable)));
+            }
+            return Mono.just(Optional.empty());
+        };
+
         return reactorClient.operate(null, batchWriteRecords)
-            .doOnError(throwable -> throwableArr[0] = translateError(throwable))
-            .thenMany(Flux.just(batchWriteDataList)) // operate() returns Mono<Boolean>, switching to documents
-            .flatMap(listOfBatchWriteData -> checkForErrors(throwableArr[0], listOfBatchWriteData, commandName))
+            .materialize()
+            .flatMap(checkForThrowable) // returning Throwable if there was an error, otherwise an empty Optional
+            .flatMap(throwableOptional -> checkForErrorsAndUpdateVersion(throwableOptional, batchWriteDataList, commandName))
+            .flux()
             .onErrorMap(throwable ->
                 new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), throwable))
             .flatMapIterable(list -> list.stream().map(BatchWriteData::document).toList());
     }
 
-    private <T> Flux<List<BatchWriteData<T>>> checkForErrors(Throwable throwable,
+    private <T> Mono<List<BatchWriteData<T>>> checkForErrorsAndUpdateVersion(Optional<Throwable> throwableOptional,
                                                              List<BatchWriteData<T>> batchWriteDataList,
                                                              String commandName) {
         boolean errorsFound = false;
         for (AerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
-            if (!errorsFound && throwable == null) {
+            if (!errorsFound && throwableOptional.isEmpty()) {
                 if (data.batchRecord().resultCode != ResultCode.OK || data.batchRecord().record == null) {
                     errorsFound = true;
                 }
@@ -159,12 +170,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             }
         }
 
-        if (errorsFound || throwable != null) {
-            return Flux.error(throwable == null ? new AerospikeException("Errors during batch " + commandName)
-                : throwable);
+        if (errorsFound || throwableOptional.isPresent()) {
+            return Mono.error(throwableOptional.isEmpty() ? new AerospikeException("Errors during batch " + commandName)
+                : throwableOptional.get());
         }
 
-        return Flux.just(batchWriteDataList);
+        return Mono.just(batchWriteDataList);
     }
 
     @Override
