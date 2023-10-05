@@ -75,11 +75,15 @@ public interface AerospikeOperations {
     <T> void insert(T document);
 
     /**
-     * Insert documents using batch insert operation.
+     * Insert multiple documents in one batch request.
+     * The policies are analogous to {@link #insert(Object)}.
      * <p>
-     * This operation requires Server version 6.0+
+     * The order of returned results is preserved.
+     * The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
      *
-     * @param documents The documents to insert. Must not be {@literal null}.
+     * @param documents Documents to insert. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
      */
     <T> void insertAll(Collection<? extends T> documents);
@@ -105,22 +109,13 @@ public interface AerospikeOperations {
     <T> void save(T document);
 
     /**
-     * Save multiple document in one batch request.
+     * Save multiple documents in one batch request.
+     * The policies are analogous to {@link #save(Object)}.
+     * <p>
+     * The order of returned results is preserved.
+     * The execution order is NOT preserved.
      * <p>
      * This operation requires Server version 6.0+.
-     * <p>
-     * If a document has version property - CAS algorithm is used for updating record. Version property is used for
-     * deciding whether to create a new record or update an existing one. If the version is set to zero - new record
-     * will be created, creation will fail is such record already exists. If version is greater than zero - existing
-     * record will be updated with {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined
-     * with removing bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY})
-     * taking into consideration the version property of the document. Version property will be updated with the
-     * server's version after successful operation.
-     * <p>
-     * If a document does not have version property - record is updated with
-     * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE} policy combined with removing bins at first
-     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
-     * does not exist it will be created, otherwise updated - an "upsert".
      *
      * @param documents Documents to save. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
@@ -160,17 +155,18 @@ public interface AerospikeOperations {
     <T> void update(T document, Collection<String> fields);
 
     /**
-     * Update documents using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with
-     * removing bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking
-     * into consideration the version property of the document if it is present.
+     * Update multiple documents in one batch request.
+     * The policies are analogous to {@link #update(Object)}.
      * <p>
-     * If document has version property it will be updated with the server's version after successful operation.
+     * The order of returned results is preserved.
+     * The execution order is NOT preserved.
      * <p>
      * This operation requires Server version 6.0+.
      *
-     * @param document The document to update. Must not be {@literal null}.
+     * @param documents Documents to update. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch update results contain errors or null records
      */
-    <T> void updateAll(Iterable<T> document);
+    <T> void updateAll(Iterable<T> documents);
 
     /**
      * Truncate/Delete all the documents in the given entity's set.

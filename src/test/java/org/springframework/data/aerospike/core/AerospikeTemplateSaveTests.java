@@ -41,7 +41,7 @@ import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
 public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
-    // test for RecordExistsAction.REPLACE_ONLY policy
+    // test for REPLACE_ONLY policy
     @Test
     public void shouldReplaceAllBinsPresentInAerospikeWhenSavingDocument() {
         Key key = new Key(getNameSpace(), "versioned-set", id);
@@ -85,10 +85,17 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveDocumentWithEqualVersion() {
         // if an object has version property, set GenerationPolicy.EXPECT_GEN_EQUAL
-        template.save(new VersionedClass(id, "foo", 0L));
+        VersionedClass first = new VersionedClass(id, "foo", 0L);
+        VersionedClass second = new VersionedClass(id, "foo", 1L);
+        VersionedClass third = new VersionedClass(id, "foo", 2L);
 
-        template.save(new VersionedClass(id, "foo", 1L));
-        template.save(new VersionedClass(id, "foo", 2L));
+        template.save(first);
+        template.save(second);
+        template.save(third);
+
+        assertThat(first.getVersion() == 1).isTrue();
+        assertThat(second.getVersion() == 2).isTrue();
+        assertThat(third.getVersion() == 3).isTrue();
     }
 
     @Test
@@ -310,28 +317,6 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
             template.delete(first); // cleanup
             template.delete(second); // cleanup
-        }
-    }
-
-    @Test
-    public void shouldSaveAllVersionedDocumentsIfAlreadyExistWhenVersionIsEqual() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
-            VersionedClass first = new VersionedClass(id, "foo");
-            VersionedClass second = new VersionedClass(id, "foo", 1L);
-            VersionedClass third = new VersionedClass(id, "foo", 2L);
-            // If an object has version property equal to null or 0, RecordExistsAction.CREATE_ONLY is set
-            // If an object has version property larger than 0, RecordExistsAction.UPDATE_ONLY is set
-            assertThatNoException().isThrownBy(() -> template.saveAll(List.of(first, second, third)));
-
-            // the versions have been incremented
-            assertThat(first.getVersion() == 1).isTrue();
-            assertThat(second.getVersion() == 2).isTrue();
-            assertThat(third.getVersion() == 3).isTrue();
-
-            template.delete(first); // cleanup
-            template.delete(second); // cleanup
-            template.delete(third); // cleanup
         }
     }
 

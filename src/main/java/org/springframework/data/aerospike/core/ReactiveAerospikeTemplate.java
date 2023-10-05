@@ -119,12 +119,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
     }
 
-    /**
-     * Requires Server version 6.0+.
-     *
-     * @param documents The documents to save. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
-     */
     @Override
     public <T> Flux<T> saveAll(Iterable<T> documents) {
         Assert.notNull(documents, "Documents for saving must not be null!");
@@ -197,12 +191,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
     }
 
-    /**
-     * Requires Server version 6.0+.
-     *
-     * @param documents The documents to insert. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
-     */
     @Override
     public <T> Flux<T> insertAll(Collection<? extends T> documents) {
         Assert.notNull(documents, "Documents for insert must not be null!");
@@ -258,12 +246,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
     }
 
-    /**
-     * Requires Server version 6.0+.
-     *
-     * @param documents The documents to update. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch update results contain errors or null records
-     */
     @Override
     public <T> Flux<T> updateAll(Iterable<? extends T> documents) {
         Assert.notNull(documents, "Documents for saving must not be null!");

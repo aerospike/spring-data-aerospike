@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 
@@ -249,29 +248,6 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
                 .expectError(AerospikeException.BatchRecordArray.class)
                 .verify();
             reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
-        }
-    }
-
-    @Test
-    public void shouldSaveAllVersionedDocumentsIfAlreadyExistWhenVersionIsEqual() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
-            VersionedClass first = new VersionedClass(id, "foo");
-            VersionedClass second = new VersionedClass(id, "foo", 1L);
-            VersionedClass third = new VersionedClass(id, "foo", 2L);
-            // If an object has version property equal to null or 0, RecordExistsAction.CREATE_ONLY is set
-            // If an object has version property larger than 0, RecordExistsAction.UPDATE_ONLY is set
-            assertThatNoException().isThrownBy(() ->
-                reactiveTemplate.saveAll(List.of(first, second, third)).blockLast());
-
-            // the versions have been incremented
-            assertThat(first.getVersion() == 1).isTrue();
-            assertThat(second.getVersion() == 2).isTrue();
-            assertThat(third.getVersion() == 3).isTrue();
-
-            reactiveTemplate.delete(first); // cleanup
-            reactiveTemplate.delete(second); // cleanup
-            reactiveTemplate.delete(third); // cleanup
         }
     }
 }

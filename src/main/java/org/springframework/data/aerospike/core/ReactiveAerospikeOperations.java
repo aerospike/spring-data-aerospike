@@ -71,11 +71,15 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> save(T document);
 
     /**
-     * Reactively save documents using batch write.
+     * Reactively save documents using one batch request.
+     * The policies are analogous to {@link #save(Object)}.
+     * <p>
+     * The order of returned results is preserved.
+     * The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
      *
-     * @param documents The document to save. Must not be {@literal null}.
+     * @param documents documents to save. Must not be {@literal null}.
      * @return A Flux of the saved documents.
      * @throws AerospikeException.BatchRecordArray if batch save results contain errors or null records
      */
@@ -92,11 +96,15 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> insert(T document);
 
     /**
-     * Reactively insert documents using batch write.
+     * Reactively insert documents using one batch request.
+     * The policies are analogous to {@link #insert(Object)}.
+     * <p>
+     * The order of returned results is preserved.
+     * The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
      *
-     * @param documents The documents to insert. Must not be {@literal null}.
+     * @param documents Documents to insert. Must not be {@literal null}.
      * @return A Flux of the inserted documents.
      * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
      */
@@ -129,11 +137,15 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> update(T document, Collection<String> fields);
 
     /**
-     * Reactively update documents using batch write.
+     * Reactively update documents using one batch request.
+     * The policies are analogous to {@link #update(Object)}.
+     * <p>
+     * The order of returned results is preserved.
+     * The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
      *
-     * @param documents The documents to update. Must not be {@literal null}.
+     * @param documents Documents to update. Must not be {@literal null}.
      * @return A Flux of the updated documents.
      * @throws AerospikeException.BatchRecordArray if batch update results contain errors or null records
      */
