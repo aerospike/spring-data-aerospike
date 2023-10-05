@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.repository;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import org.junit.jupiter.api.AfterAll;
@@ -9,6 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
@@ -64,7 +64,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
             try {
                 repository.deleteAll(allIndexedPersons);
-            } catch (AerospikeException.BatchRecordArray ignored) {
+            } catch (RecoverableDataAccessException ignored) {
                 // KEY_NOT_FOUND ResultCode causes exception if there are no entities
             }
         } else {
