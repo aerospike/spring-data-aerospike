@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.query.reactive;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterAll;
@@ -8,6 +7,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
@@ -56,7 +56,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             try {
                 reactiveRepository.deleteAll(allIndexedPersons).block();
-            } catch (AerospikeException.BatchRecordArray ignored) {
+            } catch (RecoverableDataAccessException ignored) {
                 // KEY_NOT_FOUND ResultCode causes exception if there are no entities
             }
         } else {
@@ -96,7 +96,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             try {
                 reactiveRepository.deleteAll(allIndexedPersons).block();
-            } catch (AerospikeException.BatchRecordArray ignored) {
+            } catch (RecoverableDataAccessException ignored) {
                 // KEY_NOT_FOUND ResultCode causes exception if there are no entities
             }
         } else {
