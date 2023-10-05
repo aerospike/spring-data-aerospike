@@ -86,7 +86,7 @@ public interface AerospikeOperations {
      * @param documents Documents to insert. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
      */
-    <T> void insertAll(Collection<? extends T> documents);
+    <T> void insertAll(Iterable<? extends T> documents);
 
     /**
      * Save a document.

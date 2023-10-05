@@ -299,7 +299,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> void insertAll(Collection<? extends T> documents) {
+    public <T> void insertAll(Iterable<? extends T> documents) {
         Assert.notNull(documents, "Documents for inserting must not be null!");
 
         List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
@@ -414,7 +414,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     /**
-     * Requires Server version 6.*.
+     * Requires Server version 6.0+.
      *
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
@@ -537,7 +537,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     /**
-     * Requires Server version 6.*.
+     * Requires Server version 6.0+.
      *
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.

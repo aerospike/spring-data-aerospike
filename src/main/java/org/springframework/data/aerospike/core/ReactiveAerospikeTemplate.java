@@ -192,7 +192,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Flux<T> insertAll(Collection<? extends T> documents) {
+    public <T> Flux<T> insertAll(Iterable<? extends T> documents) {
         Assert.notNull(documents, "Documents for insert must not be null!");
 
         List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();

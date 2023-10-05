@@ -108,7 +108,7 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of the inserted documents.
      * @throws AerospikeException.BatchRecordArray if batch insert results contain errors or null records
      */
-    <T> Flux<T> insertAll(Collection<? extends T> documents);
+    <T> Flux<T> insertAll(Iterable<? extends T> documents);
 
     /**
      * Reactively update document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
