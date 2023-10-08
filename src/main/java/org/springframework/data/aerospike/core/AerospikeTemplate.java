@@ -304,11 +304,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document)));
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
-        RuntimeException re = null;
         try {
             client.operate(null, batchWriteRecords);
         } catch (AerospikeException e) {
-            re = translateError(e);
+            throw translateError(e);
         }
 
         checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "insert");
@@ -361,11 +360,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document)));
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
-        RuntimeException re = null;
         try {
             client.operate(null, batchWriteRecords);
         } catch (AerospikeException e) {
-            re = translateError(e);
+            throw translateError(e);
         }
 
         checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "update");

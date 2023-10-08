@@ -425,5 +425,4 @@ abstract class BaseAerospikeTemplate {
     protected boolean batchRecordFailed(BatchRecord batchRecord) {
         return batchRecord.resultCode != ResultCode.OK || batchRecord.record == null;
     }
-
 }

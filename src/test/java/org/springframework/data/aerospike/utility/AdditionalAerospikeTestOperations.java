@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.utility;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
@@ -16,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Value;
 import org.awaitility.Awaitility;
-import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.core.WritePolicyBuilder;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
@@ -167,7 +167,7 @@ public abstract class AdditionalAerospikeTestOperations {
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
             try {
                 repository.deleteAll(entities);
-            } catch (RecoverableDataAccessException ignored) {
+            } catch (AerospikeException.BatchRecordArray ignored) {
                 // KEY_NOT_FOUND ResultCode causes exception if there are no entities
             }
         } else {
