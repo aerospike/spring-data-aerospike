@@ -50,21 +50,25 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
 
     @Override
     public <S extends T> S save(S entity) {
-        Assert.notNull(entity, "Cannot save NULL entity");
+        Assert.notNull(entity, "Entity for save must not be null!");
 
         operations.save(entity);
         return entity;
     }
 
+    /**
+     * Requires Server version 6.0+.
+     *
+     * @param entities must not be {@literal null} nor must it contain {@literal null}.
+     * @return List of entities
+     */
     public <S extends T> List<S> saveAll(Iterable<S> entities) {
-        Assert.notNull(entities, "The given Iterable of entities not be null!");
+        Assert.notNull(entities, "Entities for save must not be null!");
 
-        List<S> result = IterableConverter.toList(entities);
-        for (S entity : result) {
-            save(entity);
-        }
+        List<S> entitiesList = IterableConverter.toList(entities);
+        operations.saveAll(entitiesList);
 
-        return result;
+        return entitiesList;
     }
 
     @Override
@@ -123,7 +127,7 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
 
     @Override
     public void deleteAll(Iterable<? extends T> entities) {
-        Assert.notNull(entities, "The given ids must not be null!");
+        Assert.notNull(entities, "The given entities for deleting must not be null!");
         List<ID> ids = new ArrayList<>();
         entities.forEach(entity -> ids.add(entityInformation.getId(entity)));
         operations.deleteByIds(ids, entityInformation.getJavaType());

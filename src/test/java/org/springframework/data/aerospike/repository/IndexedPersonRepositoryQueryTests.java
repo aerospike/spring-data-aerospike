@@ -58,8 +58,8 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @BeforeAll
     public void beforeAll() {
-        repository.deleteAll(allIndexedPersons);
-        repository.saveAll(allIndexedPersons);
+        additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
+        additionalAerospikeTestOperations.saveAll(repository, allIndexedPersons);
 
         List<Index> newIndexes = new ArrayList<>();
         newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
@@ -107,7 +107,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @AfterAll
     public void afterAll() {
-        repository.deleteAll(allIndexedPersons);
+        additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
 
         List<Index> dropIndexes = new ArrayList<>();
         dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))

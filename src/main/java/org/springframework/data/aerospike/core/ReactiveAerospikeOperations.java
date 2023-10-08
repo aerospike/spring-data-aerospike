@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
@@ -55,14 +56,14 @@ public interface ReactiveAerospikeOperations {
      * deciding whether to create new record or update existing. If version is set to zero - new record will be created,
      * creation will fail is such record already exists. If version is greater than zero - existing record will be
      * updated with {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with removing
-     * bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking
-     * into consideration the version property of the document. Version property will be updated with the server's
-     * version after successful operation.
+     * bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into
+     * consideration the version property of the document. Version property will be updated with the server's version
+     * after successful operation.
      * <p>
      * If document does not have version property - record is updated with
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE} policy combined with removing bins at first
-     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such
-     * record does not exist it will be created, otherwise updated - an "upsert".
+     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
+     * does not exist it will be created, otherwise updated - an "upsert".
      *
      * @param document The document to save. Must not be {@literal null}.
      * @return A Mono of the new saved document.
@@ -70,12 +71,18 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> save(T document);
 
     /**
-     * Reactively insert each document of the given documents using single insert operations.
+     * Reactively save documents using one batch request. The policies are analogous to {@link #save(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * Requires Server version 6.0+.
      *
-     * @param documents The documents to insert. Must not be {@literal null}.
-     * @return A Flux of the new inserted documents.
+     * @param documents documents to save. Must not be {@literal null}.
+     * @return A Flux of the saved documents, otherwise onError is signalled with
+     * {@link AerospikeException.BatchRecordArray} if batch save results contain errors, or with
+     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
-    <T> Flux<T> insertAll(Collection<? extends T> documents);
+    <T> Flux<T> saveAll(Iterable<T> documents);
 
     /**
      * Reactively insert document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
@@ -86,6 +93,20 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new inserted document.
      */
     <T> Mono<T> insert(T document);
+
+    /**
+     * Reactively insert documents using one batch request. The policies are analogous to {@link #insert(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * Requires Server version 6.0+.
+     *
+     * @param documents Documents to insert. Must not be {@literal null}.
+     * @return A Flux of the inserted documents, otherwise onError is signalled with
+     * {@link AerospikeException.BatchRecordArray} if batch insert results contain errors, or with
+     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    <T> Flux<T> insertAll(Iterable<? extends T> documents);
 
     /**
      * Reactively update document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
@@ -112,6 +133,20 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new updated document.
      */
     <T> Mono<T> update(T document, Collection<String> fields);
+
+    /**
+     * Reactively update documents using one batch request. The policies are analogous to {@link #update(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * Requires Server version 6.0+.
+     *
+     * @param documents Documents to update. Must not be {@literal null}.
+     * @return A Flux of the updated documents, otherwise onError is signalled with
+     * {@link AerospikeException.BatchRecordArray} if batch update results contain errors, or with
+     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    <T> Flux<T> updateAll(Iterable<? extends T> documents);
 
     /**
      * Reactively add integer/double bin values to existing document bin values, read the new modified document and map
@@ -411,6 +446,8 @@ public interface ReactiveAerospikeOperations {
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
     <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
@@ -424,7 +461,8 @@ public interface ReactiveAerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param groupedKeys Must not be {@literal null}.
-     * @return
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
     Mono<Void> deleteByIds(GroupedKeys groupedKeys);
 

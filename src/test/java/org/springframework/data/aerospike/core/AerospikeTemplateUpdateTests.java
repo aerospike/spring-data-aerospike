@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
@@ -25,6 +26,7 @@ import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +42,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldThrowExceptionOnUpdateForNonExistingKey() {
+        // RecordExistsAction.UPDATE_ONLY
         assertThatThrownBy(() -> template.update(new Person(id, "svenfirstName", 11)))
             .isInstanceOf(DataRetrievalFailureException.class);
     }
@@ -373,5 +376,43 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         assertThat(personWithList2.getStringMap()).hasSize(4);
         assertThat(personWithList2.getStringMap().get("key4")).isEqualTo("Added something new");
         template.delete(personWithList2); // cleanup
+    }
+
+    @Test
+    public void updateAllShouldThrowExceptionOnUpdateForNonExistingKey() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            Person person1 = new Person(id, "svenfirstName", 11);
+            Person person2 = new Person(nextId(), "svenfirstName", 11);
+            Person person3 = new Person(nextId(), "svenfirstName", 11);
+            template.save(person3);
+            // RecordExistsAction.UPDATE_ONLY
+            assertThatThrownBy(() -> template.updateAll(List.of(person1, person2)))
+                .isInstanceOf(AerospikeException.BatchRecordArray.class);
+
+            assertThat(template.findById(person1.getId(), Person.class)).isNull();
+            assertThat(template.findById(person2.getId(), Person.class)).isNull();
+            assertThat(template.findById(person3.getId(), Person.class)).isEqualTo(person3);
+        }
+    }
+
+    @Test
+    public void updateAllIfDocumentsNotChanged() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            int age1 = 140335200;
+            int age2 = 177652800;
+            Person person1 = new Person(id, "Wolfgang", age1);
+            Person person2 = new Person(nextId(), "Johann", age2);
+            template.insertAll(List.of(person1, person2));
+            template.updateAll(List.of(person1, person2));
+
+            Person result1 = template.findById(person1.getId(), Person.class);
+            Person result2 = template.findById(person2.getId(), Person.class);
+            assertThat(result1.getAge()).isEqualTo(age1);
+            assertThat(result2.getAge()).isEqualTo(age2);
+            template.delete(result1); // cleanup
+            template.delete(result2); // cleanup
+        }
     }
 }

@@ -45,7 +45,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     @Override
     public <S extends T> Flux<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "The given Iterable of entities must not be null!");
-        return Flux.fromIterable(entities).flatMap(this::save);
+        return operations.saveAll(entities);
     }
 
     @Override

@@ -22,6 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.repository.core.EntityInformation;
@@ -56,6 +58,8 @@ public class SimpleReactiveAerospikeRepositoryTest {
 
     private Customer testCustomer;
     private List<Customer> testCustomers;
+    @Autowired
+    ReactiveBlockingAerospikeTestOperations reactiveBlockingAerospikeTestOperations;
 
     @BeforeEach
     public void setUp() {
@@ -201,7 +205,7 @@ public class SimpleReactiveAerospikeRepositoryTest {
     public void testDeleteAllIterable() {
         when(operations.delete(any(Customer.class))).thenReturn(Mono.just(true));
 
-        repository.deleteAll(testCustomers).block();
+        reactiveBlockingAerospikeTestOperations.deleteAll(repository, testCustomers);
         verify(operations, times(testCustomers.size())).delete(any(Customer.class));
     }
 

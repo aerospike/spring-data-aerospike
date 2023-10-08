@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
@@ -25,10 +26,13 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
@@ -62,7 +66,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void shouldNotSaveDocumentIfItAlreadyExists() {
+    public void shouldNotSaveVersionedDocumentIfItAlreadyExists() {
         template.save(new VersionedClass(id, "foo"));
 
         assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo")))
@@ -70,11 +74,28 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void shouldSaveDocumentWithEqualVersion() {
-        template.save(new VersionedClass(id, "foo", 0L));
+    public void shouldUpdateNotVersionedDocumentIfItAlreadyExists() {
+        Person person = new Person(id, "Amol");
+        person.setAge(28);
+        template.save(person);
 
-        template.save(new VersionedClass(id, "foo", 1L));
-        template.save(new VersionedClass(id, "foo", 2L));
+        assertThatNoException().isThrownBy(() -> template.save(person));
+    }
+
+    @Test
+    public void shouldSaveDocumentWithEqualVersion() {
+        // if an object has version property, GenerationPolicy.EXPECT_GEN_EQUAL is set
+        VersionedClass first = new VersionedClass(id, "foo", 0L);
+        VersionedClass second = new VersionedClass(id, "foo", 1L);
+        VersionedClass third = new VersionedClass(id, "foo", 2L);
+
+        template.save(first);
+        template.save(second);
+        template.save(third);
+
+        assertThat(first.getVersion() == 1).isTrue();
+        assertThat(second.getVersion() == 2).isTrue();
+        assertThat(third.getVersion() == 3).isTrue();
     }
 
     @Test
@@ -87,9 +108,11 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     public void shouldUpdateNullField() {
         VersionedClass versionedClass = new VersionedClass(id, null);
         template.save(versionedClass);
+        assertThat(versionedClass.getVersion() == 1).isTrue();
 
         VersionedClass saved = template.findById(id, VersionedClass.class);
         template.save(saved);
+        assertThat(saved.getVersion() == 2).isTrue();
     }
 
     @Test
@@ -163,7 +186,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
                 try {
                     template.save(messageData);
                     saved = true;
-                } catch (OptimisticLockingFailureException e) {
+                } catch (OptimisticLockingFailureException ignored) {
                 }
             }
         });
@@ -258,5 +281,57 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         DocumentWithByteArray result = template.findById(id, DocumentWithByteArray.class);
 
         assertThat(result).isEqualTo(document);
+    }
+
+    @Test
+    public void shouldSaveAllAndSetVersion() {
+        VersionedClass first = new VersionedClass(id, "foo");
+        VersionedClass second = new VersionedClass(nextId(), "foo");
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            template.saveAll(List.of(first, second));
+        } else {
+            List.of(first, second).forEach(person -> template.save(person));
+        }
+
+        assertThat(first.version).isEqualTo(1);
+        assertThat(second.version).isEqualTo(1);
+        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+        template.delete(first); // cleanup
+        template.delete(second); // cleanup
+    }
+
+    @Test
+    public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfAlreadyExist() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            VersionedClass first = new VersionedClass(id, "foo");
+            VersionedClass second = new VersionedClass(nextId(), "foo");
+
+            assertThatThrownBy(() -> template.saveAll(List.of(first, first, second, second)))
+                .isInstanceOf(AerospikeException.BatchRecordArray.class)
+                .hasMessageContaining("Errors during batch save");
+
+            assertThat(first.getVersion() == 1).isTrue();
+            assertThat(second.getVersion() == 1).isTrue();
+
+            template.delete(first); // cleanup
+            template.delete(second); // cleanup
+        }
+    }
+
+    @Test
+    public void shouldSaveAllNotVersionedDocumentsIfAlreadyExist() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            Person person = new Person(id, "Amol");
+            person.setAge(28);
+            template.save(person);
+
+            // If an object has no version property, RecordExistsAction.UPDATE is set
+            assertThatNoException().isThrownBy(() -> template.saveAll(List.of(person, person)));
+
+            template.delete(person); // cleanup
+        }
     }
 }

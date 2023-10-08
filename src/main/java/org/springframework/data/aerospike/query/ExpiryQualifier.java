@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
+import org.springframework.data.aerospike.exceptions.QualifierException;
 
 import java.io.Serial;
 

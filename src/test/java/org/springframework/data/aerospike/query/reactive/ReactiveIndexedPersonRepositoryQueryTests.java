@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
+import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
@@ -47,11 +48,13 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         .intMap(of("key1", 0, "key2", 1)).ints(Arrays.asList(450, 550, 990)).build();
     public static final List<IndexedPerson> allIndexedPersons = Arrays.asList(alain, luc, lilly, daniel, petra,
         emilien);
+    @Autowired
+    ReactiveBlockingAerospikeTestOperations reactiveBlockingAerospikeTestOperations;
 
     @BeforeAll
     public void beforeAll() {
-        reactiveRepository.deleteAll(allIndexedPersons).block();
-        reactiveRepository.saveAll(allIndexedPersons).subscribeOn(Schedulers.parallel()).collectList().block();
+        reactiveBlockingAerospikeTestOperations.deleteAll(reactiveRepository, allIndexedPersons);
+        reactiveBlockingAerospikeTestOperations.saveAll(reactiveRepository, allIndexedPersons);
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_first_name_index", "firstName",
             IndexType.STRING).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_last_name_index", "lastName",
@@ -73,12 +76,12 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
             IndexType.STRING, IndexCollectionType.MAPKEYS).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_address_values_index", "address",
             IndexType.STRING, IndexCollectionType.MAPVALUES).block();
-        reactorIndexRefresher.refreshIndexes();
     }
 
     @AfterAll
     public void afterAll() {
-        reactiveRepository.deleteAll(allIndexedPersons).block();
+        reactiveBlockingAerospikeTestOperations.deleteAll(reactiveRepository, allIndexedPersons);
+
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_first_name_index");
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_last_name_index");
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_strings_index");
@@ -91,7 +94,6 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_int_map_values_index");
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_address_keys_index");
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_address_values_index");
-        reactorIndexRefresher.refreshIndexes();
     }
 
     @Test

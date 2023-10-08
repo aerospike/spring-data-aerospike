@@ -31,6 +31,7 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.CollectionUtils;
 import org.springframework.data.aerospike.utility.QueryUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
@@ -77,8 +78,15 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @BeforeAll
     public void beforeAllSetUp() {
-        deleteAll(allPersons);
-        template.insertAll(allPersons);
+        deleteOneByOne(allPersons);
+
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            template.insertAll(allPersons);
+        } else {
+            allPersons.forEach(person -> template.insert(person));
+        }
+
         additionalAerospikeTestOperations.createIndex(Person.class, "person_age_index", "age",
             IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndex(Person.class, "person_first_name_index", "firstName",
@@ -95,7 +103,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @AfterAll
     public void afterAll() {
-        deleteAll(allPersons);
+        deleteOneByOne(allPersons);
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_last_name_index");
@@ -226,7 +234,12 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Stream<Person> result = template.findAll(Person.class);
         assertThat(result).isEmpty();
 
-        template.insertAll(allPersons);
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            template.insertAll(allPersons);
+        } else {
+            allPersons.forEach(person -> template.insert(person));
+        }
     }
 
     @Test

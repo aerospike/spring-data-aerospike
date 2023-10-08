@@ -11,7 +11,7 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.aerospike.utility.TestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -69,13 +69,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @BeforeAll
     public void beforeAll() {
         template.refreshIndexesCache();
-        repository.deleteAll(allPersons);
-        repository.saveAll(allPersons);
+        additionalAerospikeTestOperations.deleteAll(repository, allPersons);
+        additionalAerospikeTestOperations.saveAll(repository, allPersons);
     }
 
     @AfterAll
     public void afterAll() {
-        repository.deleteAll(allPersons);
+        additionalAerospikeTestOperations.deleteAll(repository, allPersons);
     }
 
     @Test
@@ -507,7 +507,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByAddressesMapKeyValueEquals() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
             Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
             Address address3 = new Address("Foo Street 2", 1, "C0124", "Bar");
@@ -720,7 +720,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByAddressesMapKeyValueNotEqual() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
             Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
             Address address3 = new Address("Foo Street 2", 1, "C0124", "Bar");
@@ -819,7 +819,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByMapKeyValueGreaterThanList() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200), "2", List.of(300),
                 "3", List.of(400));
             Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(101), "1", List.of(201), "2", List.of(301),
@@ -854,7 +854,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByMapKeyValueLessThanAddress() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Map<String, Address> mapOfAddresses1 = Map.of("a", new Address("Foo Street 1", 1, "C0123", "Bar"));
             Map<String, Address> mapOfAddresses2 = Map.of("b", new Address("Foo Street 2", 1, "C0123", "Bar"));
             Map<String, Address> mapOfAddresses3 = Map.of("c", new Address("Foo Street 2", 1, "C0124", "Bar"));
@@ -912,7 +912,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByIntMapBetween() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             assertThat(carter.getIntMap()).isEqualTo(Map.of("key1", 0, "key2", 1));
 
             Map<String, Integer> map1 = Map.of("key1", -1, "key2", 0);
@@ -926,7 +926,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByMapOfListsBetween() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200));
             Map<String, List<Integer>> mapOfLists2 = Map.of("2", List.of(301), "3", List.of(401));
             Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(102), "2", List.of(202));
@@ -1141,7 +1141,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deletePersonsByIds() {
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             // batch delete requires server ver. >= 6.0.0
             repository.deleteAllById(List.of(dave.getId(), carter.getId()));
 
@@ -1154,15 +1154,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteAllPersonsFromList() {
-        if (IndexUtils.isBatchWriteSupported(client)) {
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
             // batch delete requires server ver. >= 6.0.0
             repository.deleteAll(List.of(dave, carter));
 
-            assertThat(repository.findAllById(List.of(dave.getId(), carter.getId()))).isEmpty();
-
-            repository.save(dave); // cleanup
-            repository.save(carter); // cleanup
+        } else {
+            List.of(dave, carter).forEach(repository::delete);
         }
+        assertThat(repository.findAllById(List.of(dave.getId(), carter.getId()))).isEmpty();
+        repository.save(dave); // cleanup
+        repository.save(carter); // cleanup
     }
 
     @Test
@@ -1646,7 +1647,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         it = repository.findByFirstNameBetween("Dave", "David");
         assertThat(it).hasSize(1).contains(dave);
 
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             assertThat(dave.getAddress()).isEqualTo(new Address("Foo Street 1", 1, "C0123", "Bar"));
             Address address1 = new Address("Foo Street 1", 0, "C0123", "Bar");
             Address address2 = new Address("Foo Street 2", 2, "C0124", "Bar");
@@ -1694,7 +1695,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByStringsList() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             List<String> listToCompareWith = List.of("str0", "str1", "str2");
             assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
 
@@ -1709,7 +1710,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByStringsListNotEqual() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             List<String> listToCompareWith = List.of("str0", "str1", "str2");
             assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
             assertThat(donny.getStrings()).isNotEmpty();
@@ -1722,7 +1723,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByStringsListLessThan() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             List<String> davesStrings = dave.getStrings();
             List<String> listToCompareWith = List.of("str1", "str2", "str3");
             List<String> listWithFewerElements = List.of("str1", "str2");
@@ -1742,7 +1743,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByStringsListGreaterThanOrEqual() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Set<Integer> setToCompareWith = Set.of(0, 1, 2, 3, 4);
             dave.setIntSet(setToCompareWith);
             repository.save(dave);
@@ -1755,7 +1756,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByStringMap() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Map<String, String> mapToCompareWith = Map.of("key1", "val1", "key2", "val2");
             assertThat(boyd.getStringMap()).isEqualTo(mapToCompareWith);
 
@@ -1770,7 +1771,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByAddress() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             dave.setAddress(address);
             repository.save(dave);
@@ -1782,7 +1783,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByAddressNotEqual() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             assertThat(dave.getAddress()).isEqualTo(address);
             assertThat(carter.getAddress()).isNotNull();
@@ -1797,7 +1798,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByIntMapNotEqual() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);
             assertThat(carter.getIntMap()).isEqualTo(mapToCompareWith);
             assertThat(boyd.getIntMap()).isNullOrEmpty();
@@ -1815,7 +1816,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByAddressLessThan() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 2", 2, "C0124", "C0123");
             assertThat(dave.getAddress()).isNotEqualTo(address);
             assertThat(carter.getAddress()).isEqualTo(address);
@@ -1827,7 +1828,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByStringMapGreaterThan() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             assertThat(boyd.getStringMap()).isNotEmpty();
             assertThat(donny.getStringMap()).isNotEmpty();
 
@@ -1839,7 +1840,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByFriend() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             alicia.setAddress(new Address("Foo Street 1", 1, "C0123", "Bar"));
             repository.save(alicia);
             oliver.setFriend(alicia);
@@ -1855,7 +1856,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByFriendAddress() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             dave.setAddress(address);
             repository.save(dave);
@@ -1994,7 +1995,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     // find by deeply nested POJO
     public void findPersonsByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendBestFriendAddress() {
-        if (IndexUtils.isFindByPojoSupported(client)) {
+        if (ServerVersionUtils.isFindByPojoSupported(client)) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             dave.setAddress(address);
             repository.save(dave);

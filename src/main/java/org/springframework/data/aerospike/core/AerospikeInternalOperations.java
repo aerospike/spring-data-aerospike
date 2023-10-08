@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import org.springframework.data.aerospike.query.Qualifier;
 
 import java.util.Collection;
@@ -42,6 +43,7 @@ public interface AerospikeInternalOperations {
      *
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
      */
     <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass);
 }

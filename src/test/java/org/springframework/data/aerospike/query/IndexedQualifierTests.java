@@ -22,7 +22,7 @@ import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.utility.CollectionUtils;
-import org.springframework.data.aerospike.utility.IndexUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -185,7 +185,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 
     @Test
     public void selectWithGeoWithin() {
-        if (IndexUtils.isDropCreateBehaviorUpdated(client)) {
+        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
             withIndex(namespace, INDEXED_GEO_SET, "geo_index", GEO_BIN_NAME, IndexType.GEO2DSPHERE, () -> {
                 double lon = -122.0;
                 double lat = 37.5;

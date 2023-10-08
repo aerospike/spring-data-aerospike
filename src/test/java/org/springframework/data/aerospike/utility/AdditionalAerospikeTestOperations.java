@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.utility;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Bin;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
@@ -20,6 +21,7 @@ import org.springframework.data.aerospike.core.WritePolicyBuilder;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
 import org.testcontainers.containers.Container;
@@ -158,6 +160,28 @@ public abstract class AdditionalAerospikeTestOperations {
             }
         );
         indexesRefresher.refreshIndexesCache();
+    }
+
+    public <T> void deleteAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            try {
+                repository.deleteAll(entities);
+            } catch (AerospikeException.BatchRecordArray ignored) {
+                // KEY_NOT_FOUND ResultCode causes exception if there are no entities
+            }
+        } else {
+            entities.forEach(repository::delete);
+        }
+    }
+
+    public <T> void saveAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            repository.saveAll(entities);
+        } else {
+            entities.forEach(repository::save);
+        }
     }
 
     /**
