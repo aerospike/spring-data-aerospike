@@ -76,7 +76,6 @@ public interface ReactiveAerospikeOperations {
      * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
-     * <p>
      *
      * @param documents documents to save. Must not be {@literal null}.
      * @return A Flux of the saved documents, otherwise onError is signalled with
