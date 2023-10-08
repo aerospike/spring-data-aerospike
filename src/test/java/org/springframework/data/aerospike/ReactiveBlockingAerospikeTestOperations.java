@@ -78,16 +78,16 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
                 // KEY_NOT_FOUND ResultCode causes exception if there are no entities
             }
         } else {
-            entities.forEach(repository::delete);
+            entities.forEach(entity -> repository.delete(entity).block());
         }
     }
 
     public <T> void saveAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(template.getAerospikeReactorClient().getAerospikeClient())) {
-            repository.saveAll(entities);
+            repository.saveAll(entities).blockLast();
         } else {
-            entities.forEach(repository::save);
+            entities.forEach(entity -> repository.save(entity).block());
         }
     }
 }
