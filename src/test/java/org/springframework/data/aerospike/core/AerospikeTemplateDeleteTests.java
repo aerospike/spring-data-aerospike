@@ -15,9 +15,9 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.policy.GenerationPolicy;
 import org.junit.jupiter.api.Test;
-import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.CustomCollectionClassToDelete;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
@@ -192,7 +192,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
             List<String> ids = List.of(id1, id1);
             assertThatThrownBy(() -> template.deleteByIds(ids, DocumentWithExpiration.class))
-                .isInstanceOf(RecoverableDataAccessException.class)
+                .isInstanceOf(AerospikeException.BatchRecordArray.class)
                 .hasMessageContaining("Errors during batch delete");
         }
     }

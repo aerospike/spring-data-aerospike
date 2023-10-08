@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
-import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
@@ -74,7 +74,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
         if (ServerVersionUtils.isBatchWriteSupported(template.getAerospikeReactorClient().getAerospikeClient())) {
             try {
                 repository.deleteAll(entities).block();
-            } catch (RecoverableDataAccessException ignored) {
+            } catch (AerospikeException.BatchRecordArray ignored) {
                 // KEY_NOT_FOUND ResultCode causes exception if there are no entities
             }
         } else {
