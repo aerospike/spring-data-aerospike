@@ -76,13 +76,12 @@ public interface ReactiveAerospikeOperations {
      * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
+     * <p>
      *
      * @param documents documents to save. Must not be {@literal null}.
-     * @return A Flux of the saved documents.
-     * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
-     *                                                     records
-     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     * @return A Flux of the saved documents, otherwise onError is signalled with
+     * {@link AerospikeException.BatchRecordArray} if batch save results contain errors, or with
+     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
     <T> Flux<T> saveAll(Iterable<T> documents);
 
@@ -104,11 +103,9 @@ public interface ReactiveAerospikeOperations {
      * Requires Server version 6.0+.
      *
      * @param documents Documents to insert. Must not be {@literal null}.
-     * @return A Flux of the inserted documents.
-     * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
-     *                                                     records
-     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     * @return A Flux of the inserted documents, otherwise onError is signalled with
+     * {@link AerospikeException.BatchRecordArray} if batch insert results contain errors, or with
+     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
     <T> Flux<T> insertAll(Iterable<? extends T> documents);
 
@@ -146,11 +143,9 @@ public interface ReactiveAerospikeOperations {
      * Requires Server version 6.0+.
      *
      * @param documents Documents to update. Must not be {@literal null}.
-     * @return A Flux of the updated documents.
-     * @throws AerospikeException.BatchRecordArray         if batch update succeeds, but results contain errors or null
-     *                                                     records
-     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     * @return A Flux of the updated documents, otherwise onError is signalled with
+     * {@link AerospikeException.BatchRecordArray} if batch update results contain errors, or with
+     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
     <T> Flux<T> updateAll(Iterable<? extends T> documents);
 
@@ -452,9 +447,8 @@ public interface ReactiveAerospikeOperations {
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
-     * @throws AerospikeException.BatchRecordArray         if batch delete succeeds, but results contain errors
-     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
     <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
@@ -468,9 +462,8 @@ public interface ReactiveAerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param groupedKeys Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray         if batch delete succeeds, but results contain errors
-     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
     Mono<Void> deleteByIds(GroupedKeys groupedKeys);
 
