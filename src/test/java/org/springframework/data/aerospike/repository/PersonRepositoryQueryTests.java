@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
@@ -70,34 +69,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @BeforeAll
     public void beforeAll() {
         template.refreshIndexesCache();
-
-        // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
-            try {
-                repository.deleteAll(allPersons);
-            } catch (RecoverableDataAccessException ignored) {
-                // KEY_NOT_FOUND ResultCode causes exception if there are no entities
-            }
-        } else {
-            allPersons.forEach(person -> repository.delete(person));
-        }
-
-        // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
-            repository.saveAll(allPersons);
-        } else {
-            allPersons.forEach(person -> repository.save(person));
-        }
+        additionalAerospikeTestOperations.deleteAll(repository, allPersons);
+        additionalAerospikeTestOperations.saveAll(repository, allPersons);
     }
 
     @AfterAll
     public void afterAll() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
-            repository.deleteAll(allPersons);
-        } else {
-            allPersons.forEach(person -> repository.delete(person));
-        }
+        additionalAerospikeTestOperations.deleteAll(repository, allPersons);
     }
 
     @Test
@@ -1180,11 +1158,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             // batch delete requires server ver. >= 6.0.0
             repository.deleteAll(List.of(dave, carter));
 
-            assertThat(repository.findAllById(List.of(dave.getId(), carter.getId()))).isEmpty();
-
-            repository.save(dave); // cleanup
-            repository.save(carter); // cleanup
+        } else {
+            List.of(dave, carter).forEach(repository::delete);
         }
+        assertThat(repository.findAllById(List.of(dave.getId(), carter.getId()))).isEmpty();
+        repository.save(dave); // cleanup
+        repository.save(carter); // cleanup
     }
 
     @Test

@@ -82,9 +82,12 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param documents Documents to insert. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch insert succeeds, but results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
+     *                                                     records
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
      */
-    <T> void insertAll(Iterable<? extends T> documents) throws AerospikeException.BatchRecordArray;
+    <T> void insertAll(Iterable<? extends T> documents);
 
     /**
      * Save a document.
@@ -114,9 +117,12 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param documents Documents to save. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch save succeeds, but results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
+     *                                                     records
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
      */
-    <T> void saveAll(Iterable<T> documents) throws AerospikeException.BatchRecordArray;
+    <T> void saveAll(Iterable<T> documents);
 
     /**
      * Persist a document using specified WritePolicy.
@@ -158,9 +164,12 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param documents Documents to update. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch update succeeds, but results contain errors or null records
+     * @throws AerospikeException.BatchRecordArray         if batch update succeeds, but results contain errors or null
+     *                                                     records
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
      */
-    <T> void updateAll(Iterable<T> documents) throws AerospikeException.BatchRecordArray;
+    <T> void updateAll(Iterable<T> documents);
 
     /**
      * Truncate/Delete all the documents in the given entity's set.
@@ -195,9 +204,11 @@ public interface AerospikeOperations {
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
      */
-    <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) throws AerospikeException.BatchRecordArray;
+    <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
      * Executes a single batch delete for several entities.
@@ -209,9 +220,11 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param groupedKeys Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
      */
-    void deleteByIds(GroupedKeys groupedKeys) throws AerospikeException.BatchRecordArray;
+    void deleteByIds(GroupedKeys groupedKeys);
 
     /**
      * Check if a document exists by providing document id and entityClass (set name will be determined by the given

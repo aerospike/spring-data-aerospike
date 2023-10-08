@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
@@ -16,7 +15,6 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.IndexedPersonRepository;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.aerospike.utility.TestUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -60,22 +58,8 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @BeforeAll
     public void beforeAll() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
-            try {
-                repository.deleteAll(allIndexedPersons);
-            } catch (RecoverableDataAccessException ignored) {
-                // KEY_NOT_FOUND ResultCode causes exception if there are no entities
-            }
-        } else {
-            allIndexedPersons.forEach(person -> repository.delete(person));
-        }
-        // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
-            repository.saveAll(allIndexedPersons);
-        } else {
-            allIndexedPersons.forEach(person -> repository.save(person));
-        }
+        additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
+        additionalAerospikeTestOperations.saveAll(repository, allIndexedPersons);
 
         List<Index> newIndexes = new ArrayList<>();
         newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
@@ -123,12 +107,8 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @AfterAll
     public void afterAll() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
-            repository.deleteAll(allIndexedPersons);
-        } else {
-            allIndexedPersons.forEach(person -> repository.delete(person));
-        }
+        additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
+
         List<Index> dropIndexes = new ArrayList<>();
         dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
             .name("indexed_person_first_name_index").build());

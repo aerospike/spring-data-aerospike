@@ -431,20 +431,24 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             .map(id -> getKey(id, entity))
             .toArray(Key[]::new);
 
+        checkForErrors(client, keys);
+    }
+
+    private void checkForErrors(IAerospikeClient client, Key[] keys) {
+        BatchResults results;
         try {
             // requires server ver. >= 6.0.0
-            BatchResults results = client.delete(null, null, keys);
-
-            for (int i = 0; i < results.records.length; i++) {
-                BatchRecord record = results.records[i];
-                if (batchRecordFailed(record)) {
-                    throw new AerospikeException(ResultCode.BATCH_FAILED, "Errors during batch delete");
-                }
-            }
-        } catch (AerospikeException.BatchRecordArray e) {
-            throw e;
+            results = client.delete(null, null, keys);
         } catch (AerospikeException e) {
             throw translateError(e);
+        }
+
+        for (int i = 0; i < results.records.length; i++) {
+            BatchRecord record = results.records[i];
+            if (batchRecordFailed(record)) {
+                throw new AerospikeException.BatchRecordArray(results.records,
+                    new AerospikeException("Errors during batch delete"));
+            }
         }
     }
 
@@ -459,21 +463,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private void deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
-        try {
-            // requires server ver. >= 6.0.0
-            BatchResults results = client.delete(null, null, entitiesKeys.getKeys());
-
-            for (int i = 0; i < results.records.length; i++) {
-                BatchRecord record = results.records[i];
-                if (batchRecordFailed(record)) {
-                    throw new AerospikeException(ResultCode.BATCH_FAILED, "Errors during batch delete");
-                }
-            }
-        } catch (AerospikeException.BatchRecordArray e) {
-            throw e;
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
+        checkForErrors(client, entitiesKeys.getKeys());
     }
 
     @Override

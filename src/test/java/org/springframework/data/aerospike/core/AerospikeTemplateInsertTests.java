@@ -236,5 +236,4 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             assertThat(third.getVersion() == 1).isTrue();
         }
     }
-
 }

@@ -7,13 +7,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
+import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.ReactiveIndexedPersonRepository;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.aerospike.utility.TestUtils;
 import reactor.core.scheduler.Schedulers;
 
@@ -49,24 +48,13 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         .intMap(of("key1", 0, "key2", 1)).ints(Arrays.asList(450, 550, 990)).build();
     public static final List<IndexedPerson> allIndexedPersons = Arrays.asList(alain, luc, lilly, daniel, petra,
         emilien);
+    @Autowired
+    ReactiveBlockingAerospikeTestOperations reactiveBlockingAerospikeTestOperations;
 
     @BeforeAll
     public void beforeAll() {
-        // batch write operations require Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
-            try {
-                reactiveRepository.deleteAll(allIndexedPersons).block();
-            } catch (RecoverableDataAccessException ignored) {
-                // KEY_NOT_FOUND ResultCode causes exception if there are no entities
-            }
-        } else {
-            allIndexedPersons.forEach(person -> reactiveRepository.delete(person));
-        }
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
-            reactiveRepository.saveAll(allIndexedPersons).subscribeOn(Schedulers.parallel()).collectList().block();
-        } else {
-            allIndexedPersons.forEach(person -> reactiveRepository.save(person));
-        }
+        reactiveBlockingAerospikeTestOperations.deleteAll(reactiveRepository, allIndexedPersons);
+        reactiveBlockingAerospikeTestOperations.saveAll(reactiveRepository, allIndexedPersons);
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_first_name_index", "firstName",
             IndexType.STRING).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_last_name_index", "lastName",
@@ -92,16 +80,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @AfterAll
     public void afterAll() {
-        // batch write operations require Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
-            try {
-                reactiveRepository.deleteAll(allIndexedPersons).block();
-            } catch (RecoverableDataAccessException ignored) {
-                // KEY_NOT_FOUND ResultCode causes exception if there are no entities
-            }
-        } else {
-            allIndexedPersons.forEach(person -> reactiveRepository.delete(person));
-        }
+        reactiveBlockingAerospikeTestOperations.deleteAll(reactiveRepository, allIndexedPersons);
+
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_first_name_index");
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_last_name_index");
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_strings_index");

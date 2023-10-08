@@ -708,6 +708,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(id -> getKey(id, entity))
             .toArray(Key[]::new);
 
+        return batchDeleteAndCheckForErrors(reactorClient, keys);
+    }
+
+    private Mono<Void> batchDeleteAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys) {
         Function<BatchResults, Mono<Void>> checkForErrors = results -> {
             for (BatchRecord record : results.records) {
                 if (batchRecordFailed(record)) {
@@ -739,20 +743,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         reactorClient.delete(null, null, entitiesKeys.getKeys())
             .doOnError(this::translateError);
 
-        Function<BatchResults, Mono<Void>> checkForErrors = results -> {
-            for (BatchRecord record : results.records) {
-                if (batchRecordFailed(record)) {
-                    return Mono.error(new AerospikeException.BatchRecordArray(results.records,
-                        new AerospikeException("Errors during batch delete")));
-                }
-            }
-            return Mono.empty();
-        };
-
-        // requires server ver. >= 6.0.0
-        return reactorClient.delete(null, null, entitiesKeys.getKeys())
-            .onErrorMap(this::translateError)
-            .flatMap(checkForErrors);
+        return batchDeleteAndCheckForErrors(reactorClient, entitiesKeys.getKeys());
     }
 
     @Override

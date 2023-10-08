@@ -148,5 +148,4 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
                 .verify();
         }
     }
-
 }
