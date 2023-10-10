@@ -480,12 +480,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> Stream<T> findAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
 
-        return (Stream<T>) findAllUsingQuery(entityClass, null, null);
+        return findAllUsingQuery(entityClass, null, (Qualifier[]) null);
     }
 
     @SuppressWarnings("unchecked")
