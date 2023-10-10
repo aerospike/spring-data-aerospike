@@ -1276,6 +1276,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(49))
             .build();
+        result = repository.findByQualifiers(ageEq49);
+        assertThat(result).containsOnly(carter);
 
         // creating a condition "age is greater than 49"
         Qualifier ageGt49 = new Qualifier.QualifierBuilder()

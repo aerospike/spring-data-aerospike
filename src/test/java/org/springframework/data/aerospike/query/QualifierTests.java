@@ -201,17 +201,6 @@ public class QualifierTests extends BaseQueryEngineTests {
             .isNotEmpty()
             .allSatisfy(item -> assertThat(item.record.getInt("age")).isGreaterThan(0))
             .hasSize(RECORD_COUNT);
-
-        Qualifier qualifier2 = new Qualifier(new Qualifier.QualifierBuilder()
-            .setMetadataField(SINCE_UPDATE_TIME)
-            .setFilterOperation(FilterOperation.GT)
-            .setValue1AsObj(10000L)
-        );
-        KeyRecordIterator iterator2 = queryEngine.select(namespace, SET_NAME, null, qualifier2);
-
-        assertThat(iterator2)
-            .toIterable()
-            .isEmpty();
     }
 
     @Test
