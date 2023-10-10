@@ -1,13 +1,17 @@
 package org.springframework.data.aerospike;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
-import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
+import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.testcontainers.containers.GenericContainer;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -63,5 +67,27 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
                 .build())
             .peek(template::save)
             .collect(Collectors.toList());
+    }
+
+    public <T> void deleteAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(template.getAerospikeReactorClient().getAerospikeClient())) {
+            try {
+                repository.deleteAll(entities).block();
+            } catch (AerospikeException.BatchRecordArray ignored) {
+                // KEY_NOT_FOUND ResultCode causes exception if there are no entities
+            }
+        } else {
+            entities.forEach(entity -> repository.delete(entity).block());
+        }
+    }
+
+    public <T> void saveAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(template.getAerospikeReactorClient().getAerospikeClient())) {
+            repository.saveAll(entities).blockLast();
+        } else {
+            entities.forEach(entity -> repository.save(entity).block());
+        }
     }
 }

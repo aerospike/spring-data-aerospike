@@ -24,8 +24,8 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
-import org.springframework.data.aerospike.IndexAlreadyExistsException;
-import org.springframework.data.aerospike.IndexNotFoundException;
+import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
+import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
 
 /**
  * This class translates the AerospikeException and result code to a DataAccessException.
@@ -48,30 +48,17 @@ public class DefaultAerospikeExceptionTranslator implements AerospikeExceptionTr
                     return new QueryTimeoutException(msg, cause);
                 }
             }
-            switch (resultCode) {
-                /*
-                 * Future enhancements will be more elaborate
-                 */
-                case ResultCode.PARAMETER_ERROR:
-                    return new InvalidDataAccessApiUsageException(msg, cause);
-                case ResultCode.KEY_EXISTS_ERROR:
-                    return new DuplicateKeyException(msg, cause);
-                case ResultCode.KEY_NOT_FOUND_ERROR:
-                    return new DataRetrievalFailureException(msg, cause);
-                case ResultCode.INDEX_NOTFOUND:
-                    return new IndexNotFoundException(msg, cause);
-                case ResultCode.INDEX_ALREADY_EXISTS:
-                    return new IndexAlreadyExistsException(msg, cause);
-                case ResultCode.TIMEOUT:
-                case ResultCode.QUERY_TIMEOUT:
-                    return new QueryTimeoutException(msg, cause);
-                case ResultCode.DEVICE_OVERLOAD:
-                case ResultCode.NO_MORE_CONNECTIONS:
-                case ResultCode.KEY_BUSY:
-                    return new TransientDataAccessResourceException(msg, cause);
-                default:
-                    return new RecoverableDataAccessException(msg, cause);
-            }
+            return switch (resultCode) {
+                case ResultCode.PARAMETER_ERROR -> new InvalidDataAccessApiUsageException(msg, cause);
+                case ResultCode.KEY_EXISTS_ERROR -> new DuplicateKeyException(msg, cause);
+                case ResultCode.KEY_NOT_FOUND_ERROR -> new DataRetrievalFailureException(msg, cause);
+                case ResultCode.INDEX_NOTFOUND -> new IndexNotFoundException(msg, cause);
+                case ResultCode.INDEX_ALREADY_EXISTS -> new IndexAlreadyExistsException(msg, cause);
+                case ResultCode.TIMEOUT, ResultCode.QUERY_TIMEOUT -> new QueryTimeoutException(msg, cause);
+                case ResultCode.DEVICE_OVERLOAD, ResultCode.NO_MORE_CONNECTIONS, ResultCode.KEY_BUSY ->
+                    new TransientDataAccessResourceException(msg, cause);
+                default -> new RecoverableDataAccessException(msg, cause);
+            };
         }
         // we should not convert exceptions that spring-data-aerospike does not recognise.
         return null;

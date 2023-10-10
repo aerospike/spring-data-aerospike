@@ -24,8 +24,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -60,6 +62,8 @@ public class SimpleAerospikeRepositoryTest {
     AerospikeOperations operations;
     @InjectMocks
     SimpleAerospikeRepository<Person, String> aerospikeRepository;
+    @Autowired
+    AdditionalAerospikeTestOperations additionalAerospikeTestOperations;
 
     Person testPerson;
     List<Person> testPersons;
@@ -95,6 +99,7 @@ public class SimpleAerospikeRepositoryTest {
 
     @Test
     public void saveIterableOfS() {
+        // batch write operations are supported starting with Server version 6.0+
         List<Person> result = aerospikeRepository.saveAll(testPersons);
 
         assertThat(result).isEqualTo(testPersons);
@@ -179,8 +184,8 @@ public class SimpleAerospikeRepositoryTest {
 
     @Test
     public void deleteIterableOfQExtendsT() {
-        aerospikeRepository.deleteAll(testPersons);
-
+        // batch write operations are supported starting with Server version 6.0+
+        additionalAerospikeTestOperations.deleteAll(aerospikeRepository, testPersons);
         verify(operations, times(testPersons.size())).delete(any(Person.class));
     }
 

@@ -15,15 +15,8 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Bin;
-import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.Info;
-import com.aerospike.client.Key;
-import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
-import com.aerospike.client.ResultCode;
-import com.aerospike.client.Value;
+import com.aerospike.client.*;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.BatchPolicy;
@@ -66,7 +59,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -238,6 +230,41 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
+    public <T> void saveAll(Iterable<T> documents) {
+        Assert.notNull(documents, "Documents for saving must not be null!");
+
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        try {
+            client.operate(null, batchWriteRecords);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+
+        checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "save");
+    }
+
+    private <T> void checkForErrorsAndUpdateVersion(List<BatchWriteData<T>> batchWriteDataList,
+                                                    List<BatchRecord> batchWriteRecords, String commandName) {
+        boolean errorsFound = false;
+        for (AerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
+            if (!errorsFound && batchRecordFailed(data.batchRecord())) {
+                errorsFound = true;
+            }
+            if (data.hasVersionProperty() && !batchRecordFailed(data.batchRecord())) {
+                updateVersion(data.document(), data.batchRecord().record);
+            }
+        }
+
+        if (errorsFound) {
+            AerospikeException e = new AerospikeException("Errors during batch " + commandName);
+            throw new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), e);
+        }
+    }
+
+    @Override
     public <T> void persist(T document, WritePolicy policy) {
         Assert.notNull(document, "Document must not be null!");
         Assert.notNull(policy, "Policy must not be null!");
@@ -246,13 +273,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
         doPersistAndHandleError(data, policy, operations);
-    }
-
-    @Override
-    public <T> void insertAll(Collection<? extends T> documents) {
-        Assert.notNull(documents, "Documents must not be null!");
-
-        documents.stream().filter(Objects::nonNull).forEach(this::insert);
     }
 
     @Override
@@ -274,6 +294,23 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             doPersistAndHandleError(data, policy, operations);
         }
+    }
+
+    @Override
+    public <T> void insertAll(Iterable<? extends T> documents) {
+        Assert.notNull(documents, "Documents for inserting must not be null!");
+
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        try {
+            client.operate(null, batchWriteRecords);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+
+        checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "insert");
     }
 
     @Override
@@ -313,6 +350,23 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             doPersistAndHandleError(data, policy, operations);
         }
+    }
+
+    @Override
+    public <T> void updateAll(Iterable<T> documents) {
+        Assert.notNull(documents, "Documents for inserting must not be null!");
+
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document)));
+
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        try {
+            client.operate(null, batchWriteRecords);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+
+        checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "update");
     }
 
     @Override
@@ -361,6 +415,53 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(entityClass, "Class must not be null!");
 
         deleteByIdsInternal(IterableConverter.toList(ids), entityClass);
+    }
+
+    @Override
+    public <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass) {
+        if (ids.isEmpty()) {
+            return;
+        }
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+        Key[] keys = ids.stream()
+            .map(id -> getKey(id, entity))
+            .toArray(Key[]::new);
+
+        checkForErrors(client, keys);
+    }
+
+    private void checkForErrors(IAerospikeClient client, Key[] keys) {
+        BatchResults results;
+        try {
+            // requires server ver. >= 6.0.0
+            results = client.delete(null, null, keys);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+
+        for (int i = 0; i < results.records.length; i++) {
+            BatchRecord record = results.records[i];
+            if (batchRecordFailed(record)) {
+                throw new AerospikeException.BatchRecordArray(results.records,
+                    new AerospikeException("Errors during batch delete"));
+            }
+        }
+    }
+
+    @Override
+    public void deleteByIds(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+        Assert.notNull(groupedKeys.getEntitiesKeys(), "Entities keys must not be null!");
+        Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
+
+        deleteEntitiesByIdsInternal(groupedKeys);
+    }
+
+    private void deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {
+        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
+        checkForErrors(client, entitiesKeys.getKeys());
     }
 
     @Override
@@ -466,26 +567,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 .filter(index -> aeroRecords[index] != null)
                 .mapToObj(index -> mapToEntity(keys[index], target, aeroRecords[index]))
                 .collect(Collectors.toList());
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
-    }
-
-    @Override
-    public <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass) {
-        if (ids.isEmpty()) {
-            return;
-        }
-
-        try {
-            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-
-            Key[] keys = ids.stream()
-                .map(id -> getKey(id, entity))
-                .toArray(Key[]::new);
-
-            // requires server ver. >= 6.0.0
-            client.delete(null, null, keys);
         } catch (AerospikeException e) {
             throw translateError(e);
         }
@@ -601,22 +682,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Record[] aeroRecords = client.get(null, entitiesKeys.getKeys());
 
         return toGroupedEntities(entitiesKeys, aeroRecords);
-    }
-
-    @Override
-    public void deleteByIds(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-
-        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
-            return;
-        }
-
-        deleteEntitiesByIdsInternal(groupedKeys);
-    }
-
-    private void deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {
-        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
-        client.delete(null, null, entitiesKeys.getKeys());
     }
 
     @Override
@@ -887,16 +952,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private Record putAndGetHeader(AerospikeWriteData data, WritePolicy policy, boolean firstlyDeleteBins) {
         Key key = data.getKey();
-        Bin[] bins = data.getBinsAsArray();
-
-        if (bins.length == 0) {
-            throw new AerospikeException(
-                "Cannot put and get header on a document with no bins and \"@_class\" bin disabled.");
-        }
-
-        Operation[] operations = firstlyDeleteBins ? operations(bins, Operation::put,
-            Operation.array(Operation.delete()), Operation.array(Operation.getHeader()))
-            : operations(bins, Operation::put, null, Operation.array(Operation.getHeader()));
+        Operation[] operations = getPutAndGetHeaderOperations(data, firstlyDeleteBins);
 
         return client.operate(policy, key, operations);
     }

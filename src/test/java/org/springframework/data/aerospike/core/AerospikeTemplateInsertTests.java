@@ -15,9 +15,11 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -25,6 +27,7 @@ import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
@@ -107,6 +111,8 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKey() {
         VersionedClass document = new VersionedClass(id, "any", 5L);
+        // initially given versions are ignored
+        // RecordExistsAction.CREATE_ONLY is set
         template.insert(document);
 
         assertThat(document.getVersion()).isEqualTo(1);
@@ -174,23 +180,19 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void insertAll_rejectsDuplicateIds() {
-        Person person = Person.builder().id(id).build();
-        List<Person> records = Arrays.asList(person, person);
-
-        assertThatThrownBy(() -> template.insertAll(records))
-            .isInstanceOf(DuplicateKeyException.class);
-        template.delete(person); // cleanup
-    }
-
-    @Test
     public void insertAll_insertsAllDocuments() {
         List<Person> persons = IntStream.range(1, 10)
             .mapToObj(age -> Person.builder().id(nextId())
                 .firstName("Gregor")
                 .age(age).build())
             .collect(Collectors.toList());
-        template.insertAll(persons);
+
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            template.insertAll(persons);
+        } else {
+            persons.forEach(person -> template.insert(person));
+        }
 
         List<Person> result = template.findByIds(persons.stream().map(Person::getId)
             .collect(Collectors.toList()), Person.class);
@@ -198,6 +200,40 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         assertThat(result).hasSameElementsAs(persons);
         for (Person person : result) {
             template.delete(person); // cleanup
+        }
+    }
+
+    @Test
+    public void insertAll_rejectsDuplicateIds() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            VersionedClass first = new VersionedClass(id, "foo");
+
+            assertThatThrownBy(() -> template.insertAll(List.of(first, first)))
+                .isInstanceOf(AerospikeException.BatchRecordArray.class)
+                .hasMessageContaining("Errors during batch insert");
+            Assertions.assertEquals(1, (long) first.getVersion());
+            template.delete(first); // cleanup
+        }
+    }
+
+    @Test
+    public void shouldInsertAllVersionedDocuments() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            VersionedClass first = new VersionedClass(id, "foo");
+            VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
+            VersionedClass third = new VersionedClass(nextId(), "foo", 2L);
+            template.insertAll(List.of(first));
+
+            // initially given versions are ignored
+            // RecordExistsAction.CREATE_ONLY is set
+            assertThatNoException().isThrownBy(() -> template.insertAll(
+                List.of(second, third)));
+
+            assertThat(first.getVersion() == 1).isTrue();
+            assertThat(second.getVersion() == 1).isTrue();
+            assertThat(third.getVersion() == 1).isTrue();
         }
     }
 }

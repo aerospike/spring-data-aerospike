@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.core.reactive;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -27,6 +29,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
 
     @Test
     public void shouldThrowExceptionOnUpdateForNonExistingKey() {
+        // RecordExistsAction.UPDATE_ONLY
         create(reactiveTemplate.update(new Person(id, "svenfirstName", 11)))
             .expectError(DataRetrievalFailureException.class)
             .verify();
@@ -324,5 +327,43 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         assertThat(personWithList2.getStringMap()).hasSize(4);
         assertThat(personWithList2.getStringMap().get("key4")).isEqualTo("Added something new");
         reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
+    }
+
+    @Test
+    public void updateAllShouldThrowExceptionOnUpdateForNonExistingKey() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            Person person1 = new Person(id, "svenfirstName", 11);
+            Person person2 = new Person(nextId(), "svenfirstName", 11);
+            Person person3 = new Person(nextId(), "svenfirstName", 11);
+            reactiveTemplate.save(person3).block();
+            // RecordExistsAction.UPDATE_ONLY
+            assertThatThrownBy(() -> reactiveTemplate.updateAll(List.of(person1, person2)).blockLast())
+                .isInstanceOf(AerospikeException.BatchRecordArray.class);
+
+            assertThat(reactiveTemplate.findById(person1.getId(), Person.class).block()).isNull();
+            assertThat(reactiveTemplate.findById(person2.getId(), Person.class).block()).isNull();
+            assertThat(reactiveTemplate.findById(person3.getId(), Person.class).block()).isEqualTo(person3);
+        }
+    }
+
+    @Test
+    public void updateAllIfDocumentsNotChanged() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            int age1 = 140335200;
+            int age2 = 177652800;
+            Person person1 = new Person(id, "Wolfgang", age1);
+            Person person2 = new Person(nextId(), "Johann", age2);
+            reactiveTemplate.insertAll(List.of(person1, person2)).blockLast();
+            reactiveTemplate.updateAll(List.of(person1, person2)).blockLast();
+
+            Person result1 = reactiveTemplate.findById(person1.getId(), Person.class).block();
+            Person result2 = reactiveTemplate.findById(person2.getId(), Person.class).block();
+            assertThat(result1.getAge()).isEqualTo(age1);
+            assertThat(result2.getAge()).isEqualTo(age2);
+            reactiveTemplate.delete(result1).block(); // cleanup
+            reactiveTemplate.delete(result2).block(); // cleanup
+        }
     }
 }

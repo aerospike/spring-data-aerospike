@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
@@ -75,6 +76,21 @@ public interface AerospikeOperations {
     <T> void insert(T document);
 
     /**
+     * Insert multiple documents in one batch request. The policies are analogous to {@link #insert(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param documents Documents to insert. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
+     *                                                     records
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     */
+    <T> void insertAll(Iterable<? extends T> documents);
+
+    /**
      * Save a document.
      * <p>
      * If the document has version property - CAS algorithm is used for updating record. Version property is used for
@@ -95,6 +111,21 @@ public interface AerospikeOperations {
     <T> void save(T document);
 
     /**
+     * Save multiple documents in one batch request. The policies are analogous to {@link #save(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param documents Documents to save. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
+     *                                                     records
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     */
+    <T> void saveAll(Iterable<T> documents);
+
+    /**
      * Persist a document using specified WritePolicy.
      *
      * @param document    The document to persist. Must not be {@literal null}.
@@ -102,13 +133,6 @@ public interface AerospikeOperations {
      *                    {@literal null}.
      */
     <T> void persist(T document, WritePolicy writePolicy);
-
-    /**
-     * Insert each document of the given documents using single insert operations.
-     *
-     * @param documents The documents to insert. Must not be {@literal null}.
-     */
-    <T> void insertAll(Collection<? extends T> documents);
 
     /**
      * Update a document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with
@@ -132,6 +156,21 @@ public interface AerospikeOperations {
      * @param document The document to update. Must not be {@literal null}.
      */
     <T> void update(T document, Collection<String> fields);
+
+    /**
+     * Update multiple documents in one batch request. The policies are analogous to {@link #update(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param documents Documents to update. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray         if batch update succeeds, but results contain errors or null
+     *                                                     records
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     */
+    <T> void updateAll(Iterable<T> documents);
 
     /**
      * Truncate/Delete all the documents in the given entity's set.
@@ -166,6 +205,9 @@ public interface AerospikeOperations {
      * @param ids         The ids of the documents to delete. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
      */
     <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
@@ -179,6 +221,9 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param groupedKeys Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
      */
     void deleteByIds(GroupedKeys groupedKeys);
 
