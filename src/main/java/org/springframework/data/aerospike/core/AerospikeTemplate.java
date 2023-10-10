@@ -47,13 +47,10 @@ import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
-import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.KeyRecordIterator;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
-import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
@@ -216,51 +213,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             throw translateError(e);
         }
         return false;
-    }
-
-    @Override
-    public <T> List<T> findByMetadata(Class<T> entityClass, CriteriaDefinition.AerospikeMetadata metadataFieldName,
-                                      FilterOperation operation, long... values) {
-        Assert.notNull(entityClass, "Class must not be null");
-        Assert.notNull(metadataFieldName, "Metadata field name must not be null");
-        Assert.notNull(operation, "Operation must not be null");
-        Assert.notNull(values, "Values must not be null");
-        Assert.isTrue(values.length > 0, "Values must not be empty");
-
-        Query query;
-        switch (operation) {
-            case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> {
-                Assert.isTrue(values.length == 1, operation + " metadata query: there must be " +
-                    "1 value");
-                AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
-                    .setMetadataField(metadataFieldName)
-                    .setFilterOperation(operation)
-                    .setValue1AsObj(values[0]));
-                query = new Query(criteria);
-            }
-            case BETWEEN -> {
-                Assert.isTrue(values.length == 2, operation + " metadata query: there must be " +
-                    "2 values");
-                AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
-                    .setMetadataField(metadataFieldName)
-                    .setFilterOperation(operation)
-                    .setValue1(Value.get(values[0]))
-                    .setValue2(Value.get(values[1])));
-                query = new Query(criteria);
-            }
-            case NOT_IN, IN -> {
-                Assert.isTrue(values.length > 0, operation + " metadata query: there must be " +
-                    "1 or more values");
-                AerospikeCriteria criteria = new AerospikeCriteria(new Qualifier.QualifierBuilder()
-                    .setMetadataField(metadataFieldName)
-                    .setFilterOperation(operation)
-                    .setValue1AsObj(Arrays.stream(values).boxed().toList()));
-                query = new Query(criteria);
-            }
-            default -> throw new IllegalStateException("Operation " + operation + " is not allowed in metadata query");
-        }
-
-        return find(query, entityClass).collect(Collectors.toList());
     }
 
     @Override
@@ -975,7 +927,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> Stream<T> findAllUsingQuery(Class<T> entityClass, Filter filter,
-                                              Qualifier... qualifiers) {
+                                           Qualifier... qualifiers) {
         return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
             .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }

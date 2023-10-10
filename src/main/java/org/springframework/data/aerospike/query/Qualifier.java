@@ -23,6 +23,7 @@ import com.aerospike.client.query.Filter;
 import lombok.Data;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.Serial;
@@ -92,8 +93,16 @@ public class Qualifier implements Map<String, Object>, Serializable {
         return (Value) internalMap.get(VALUE1);
     }
 
+    public Object getValue1AsObj() {
+        return internalMap.get(VALUE1);
+    }
+
     public Value getValue2() {
         return (Value) internalMap.get(VALUE2);
+    }
+
+    public Object getValue2AsObj() {
+        return internalMap.get(VALUE2);
     }
 
     public String getDotPath() {
@@ -305,13 +314,18 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return this;
         }
 
-        public QualifierBuilder setValue1AsObj(Object value1) {
-            this.map.put(VALUE1, value1);
+        public QualifierBuilder setValue1AsObj(Object object) {
+            this.map.put(VALUE1, object);
             return this;
         }
 
         public QualifierBuilder setValue2(Value value2) {
             this.map.put(VALUE2, value2);
+            return this;
+        }
+
+        public QualifierBuilder setValue2AsObj(Object object) {
+            this.map.put(VALUE2, object);
             return this;
         }
 
@@ -352,6 +366,31 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
         public Map<String, Object> buildMap() {
             return this.map;
+        }
+    }
+
+    public static void validateQualifier(Qualifier qualifier) {
+        // metadata query
+        if (qualifier.getMetadataField() != null && qualifier.getField() == null) {
+            FilterOperation operation = qualifier.getOperation();
+            switch (operation) {
+                case EQ, NOTEQ, LT, LTEQ, GT, GTEQ ->
+                    Assert.isTrue(qualifier.getValue1AsObj() != null && qualifier.getValue1AsObj() instanceof Long,
+                        operation.name() + ": value1 is expected to be set as Long");
+                case BETWEEN -> {
+                    Assert.isTrue(qualifier.getValue1AsObj() != null && qualifier.getValue1AsObj() instanceof Long,
+                        "BETWEEN: value1 is expected to be set as Long");
+                    Assert.isTrue(qualifier.getValue2AsObj() != null && qualifier.getValue2AsObj() instanceof Long,
+                        "BETWEEN: value2 is expected to be set as Long");
+                }
+                case NOT_IN, IN -> Assert.isTrue(qualifier.getValue1AsObj() instanceof Collection
+                        && ((Collection<Object>) qualifier.getValue1AsObj()).toArray()[0] instanceof Long,
+                    operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
+                default -> throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
+                    "metadataField");
+            }
+        } else if (qualifier.getMetadataField() != null && qualifier.getField() != null) {
+            throw new IllegalArgumentException("Either a field or a metadataField must be set, not both");
         }
     }
 }

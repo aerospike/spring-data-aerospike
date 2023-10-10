@@ -1225,9 +1225,9 @@ public enum FilterOperation {
         FilterOperation filterOperation = notIn ? NOTEQ : EQ;
         Object value1 = getValue1Object(qualifierMap);
 
-        List<Long> listOfLongs;
+        Collection<Long> listOfLongs;
         try {
-            listOfLongs = (List<Long>) value1;
+            listOfLongs = (Collection<Long>) value1; // previously validated
         } catch (Exception e) {
             throw new IllegalStateException("FilterOperation." + operation + " metadata query: expecting value1 with " +
                 "type List<Long>");
@@ -1285,7 +1285,7 @@ public enum FilterOperation {
                     return Optional.of(
                         operationFunction.apply(
                             mapMetadataExp(metadataField),
-                            Exp.val(getValue1AsLongOrFail(getValue1Object(qualifierMap))) // List<Long>
+                            Exp.val(getValue1AsLongOrFail(getValue1Object(qualifierMap)))
                         )
                     );
                 }
@@ -1313,7 +1313,7 @@ public enum FilterOperation {
         try {
             longValue1 = (Long) value1;
         } catch (Exception e) {
-            throw new IllegalStateException("Expecting value1 to be of type Long");
+            throw new IllegalArgumentException("Expecting value1 to be of type Long");
         }
 
         return longValue1;

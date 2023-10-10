@@ -25,9 +25,7 @@ import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.ResultSet;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
-import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -513,18 +511,6 @@ public interface AerospikeOperations {
      * @return true if exists
      */
     boolean indexExists(String indexName);
-
-    /**
-     * Find entities that have the given metadata field using a unary operation.
-     *
-     * @param entityClass       The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param metadataFieldName Metadata field name.
-     * @param operation         Operation to be applied (EQ, NOTEQ, LT, LTEQ, GT, GTEQ, BETWEEN, IN or NOT_IN).
-     * @param values            One or more numerical values (depending on the operation).
-     * @return Entities that satisfy the applied operation
-     */
-    <T> List<T> findByMetadata(Class<T> entityClass, CriteriaDefinition.AerospikeMetadata metadataFieldName,
-                               FilterOperation operation, long[] values);
 
     <T> Stream<?> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers);
 }

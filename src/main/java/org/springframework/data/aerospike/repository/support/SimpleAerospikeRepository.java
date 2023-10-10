@@ -17,10 +17,8 @@ package org.springframework.data.aerospike.repository.support;
 
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.core.AerospikeOperations;
-import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +28,7 @@ import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -159,13 +158,8 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     }
 
     @Override
-    public Iterable<T> findByMetadata(CriteriaDefinition.AerospikeMetadata metadataFieldName,
-                                      FilterOperation operation, long... values) {
-        return operations.findByMetadata(entityInformation.getJavaType(), metadataFieldName, operation, values);
-    }
-
-    @Override
     public Iterable<T> findByQualifiers(Qualifier... qualifiers) {
+        Arrays.stream(qualifiers).forEach(Qualifier::validateQualifier);
         return (Iterable<T>) operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers).toList();
     }
 }
