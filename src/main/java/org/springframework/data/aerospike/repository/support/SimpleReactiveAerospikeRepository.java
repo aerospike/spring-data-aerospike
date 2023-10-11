@@ -159,7 +159,6 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     public Flux<T> findByQualifiers(Qualifier... qualifiers) {
         Assert.notNull(qualifiers, "Qualifiers must not be null");
 
-        if (qualifiers == null || qualifiers.length == 0) return Flux.empty();
         Arrays.stream(qualifiers).forEach(Qualifier::validate);
         return operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers);
     }

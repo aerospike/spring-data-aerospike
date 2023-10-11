@@ -1254,9 +1254,7 @@ public enum FilterOperation {
         Value value1 = getValue1(qualifierMap);
         String errMsg = "FilterOperation.IN expects argument with type Collection, instead got: " +
             value1.getObject().getClass().getSimpleName();
-        if (value1.getType() != LIST) {
-            throw new IllegalArgumentException(errMsg);
-        } else if (!(value1.getObject() instanceof Collection<?>)) {
+        if (value1.getType() != LIST || !(value1.getObject() instanceof Collection<?>)) {
             throw new IllegalArgumentException(errMsg);
         }
         return value1;

@@ -382,28 +382,31 @@ public class Qualifier implements Map<String, Object>, Serializable {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static void validate(Qualifier qualifier) {
         // metadata query
-        if (qualifier.getMetadataField() != null && qualifier.getField() == null) {
-            FilterOperation operation = qualifier.getOperation();
-            switch (operation) {
-                case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(qualifier.getValue1AsObj() instanceof Long,
-                    operation.name() + ": value1 is expected to be set as Long");
-                case BETWEEN -> {
-                    Assert.isTrue(qualifier.getValue1AsObj() instanceof Long,
-                        "BETWEEN: value1 is expected to be set as Long");
-                    Assert.isTrue(qualifier.getValue2AsObj() instanceof Long,
-                        "BETWEEN: value2 is expected to be set as Long");
+        if (qualifier.getMetadataField() != null) {
+            if (qualifier.getField() == null) {
+                FilterOperation operation = qualifier.getOperation();
+                switch (operation) {
+                    case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(qualifier.getValue1AsObj() instanceof Long,
+                        operation.name() + ": value1 is expected to be set as Long");
+                    case BETWEEN -> {
+                        Assert.isTrue(qualifier.getValue1AsObj() instanceof Long,
+                            "BETWEEN: value1 is expected to be set as Long");
+                        Assert.isTrue(qualifier.getValue2AsObj() instanceof Long,
+                            "BETWEEN: value2 is expected to be set as Long");
+                    }
+                    case NOT_IN, IN -> Assert.isTrue(qualifier.getValue1AsObj() instanceof Collection
+                            && (!((Collection<Object>) qualifier.getValue1AsObj()).isEmpty())
+                            && ((Collection<Object>) qualifier.getValue1AsObj()).toArray()[0] instanceof Long,
+                        operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
+                    default -> throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
+                        "metadataField");
                 }
-                case NOT_IN, IN -> Assert.isTrue(qualifier.getValue1AsObj() instanceof Collection
-                        && (!((Collection<Object>) qualifier.getValue1AsObj()).isEmpty())
-                        && ((Collection<Object>) qualifier.getValue1AsObj()).toArray()[0] instanceof Long,
-                    operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
-                default -> throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
-                    "metadataField");
+            } else {
+                throw new IllegalArgumentException("Either a field or a metadataField must be set, not both");
             }
-        } else if (qualifier.getMetadataField() != null && qualifier.getField() != null) {
-            throw new IllegalArgumentException("Either a field or a metadataField must be set, not both");
         }
     }
 }
