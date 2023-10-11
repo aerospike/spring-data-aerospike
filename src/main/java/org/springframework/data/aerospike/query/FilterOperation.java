@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
@@ -1275,7 +1274,7 @@ public enum FilterOperation {
             FilterOperation operation = getOperation(qualifierMap);
             switch (operation) {
                 case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> {
-                    BiFunction<Exp, Exp, Exp> operationFunction = mapOperation(operation);
+                    BinaryOperator<Exp> operationFunction = mapOperation(operation);
                     return Optional.of(
                         operationFunction.apply(
                             mapMetadataExp(metadataField),
@@ -1322,7 +1321,7 @@ public enum FilterOperation {
         };
     }
 
-    private static BiFunction<Exp, Exp, Exp> mapOperation(FilterOperation operation) {
+    private static BinaryOperator<Exp> mapOperation(FilterOperation operation) {
         return switch (operation) {
             case EQ -> Exp::eq;
             case NOTEQ -> Exp::ne;
