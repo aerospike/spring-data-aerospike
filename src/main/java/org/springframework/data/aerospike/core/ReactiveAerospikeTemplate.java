@@ -964,6 +964,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
     }
 
+    @Override
+    public <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter,
+                                         Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+            .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
+    }
+
     <T, S> Flux<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                      Qualifier... qualifiers) {
         return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)

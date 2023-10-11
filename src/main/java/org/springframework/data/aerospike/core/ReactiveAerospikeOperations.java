@@ -17,11 +17,13 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.cdt.CTX;
+import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
@@ -517,4 +519,14 @@ public interface ReactiveAerospikeOperations {
      * @return true if exists.
      */
     Mono<Boolean> indexExists(String indexName);
+
+    /**
+     * Find all documents in the given entityClass's set using provided {@link Qualifier}s.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param filter      Secondary index filter.
+     * @param qualifiers  Qualifiers to build filter expressions from.
+     * @return Flux of entities.
+     */
+    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers);
 }

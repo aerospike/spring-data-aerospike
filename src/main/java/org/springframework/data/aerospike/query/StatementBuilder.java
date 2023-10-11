@@ -49,14 +49,15 @@ public class StatementBuilder {
         }
         if (filter != null) {
             stmt.setFilter(filter);
-        }
-        if (qualifiers != null && qualifiers.length != 0) {
-            updateStatement(stmt, qualifiers);
+        } else if (qualifiers != null && qualifiers.length != 0) {
+            // statement's filter is set based on the first processed qualifier's filter
+            // if the qualifier doesn't have EXCLUDE_FILTER set to true
+            setStatementFilterFromQualifiers(stmt, qualifiers);
         }
         return stmt;
     }
 
-    private void updateStatement(Statement stmt, Qualifier[] qualifiers) {
+    private void setStatementFilterFromQualifiers(Statement stmt, Qualifier[] qualifiers) {
         /*
          *  query with filters
          */
@@ -65,28 +66,29 @@ public class StatementBuilder {
             if (qualifier.getOperation() == FilterOperation.AND) {
                 // no sense to use secondary index in case of OR
                 // as it requires to enlarge selection to more than 1 field
-                for (Qualifier q : qualifier.getQualifiers()) {
-                    if (q != null && isIndexedBin(stmt, q)) {
-                        Filter filter = q.asFilter();
+                for (Qualifier innerQualifier : qualifier.getQualifiers()) {
+                    if (innerQualifier != null && !innerQualifier.getExcludeFilter()
+                        && isIndexedBin(stmt, innerQualifier)) {
+                        Filter filter = innerQualifier.setQueryAsFilter();
                         if (filter != null) {
                             stmt.setFilter(filter);
-                            q.asFilter(true);
-                            break;
+                            innerQualifier.setQueryAsFilter(true);
+                            break; // the first processed filter becomes statement filter
                         }
                     }
                 }
-            } else if (isIndexedBin(stmt, qualifier)) {
-                Filter filter = qualifier.asFilter();
+            } else if (!qualifier.getExcludeFilter() && isIndexedBin(stmt, qualifier)) {
+                Filter filter = qualifier.setQueryAsFilter();
                 if (filter != null) {
                     stmt.setFilter(filter);
-                    qualifier.asFilter(true);
+                    qualifier.setQueryAsFilter(true);
                     /* If this was the only qualifier, we do not need to do anymore work, just return
                      * the query iterator.
                      */
                     if (qualifiers.length == 1) {
                         return;
                     }
-                    break;
+                    break; // the first processed filter becomes statement filter
                 }
             }
         }

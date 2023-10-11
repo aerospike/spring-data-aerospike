@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.query.reactive;
 
+import com.aerospike.client.Value;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterAll;
@@ -9,6 +10,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
@@ -23,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveIntegrationTests {
@@ -286,5 +290,140 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(lilly, emilien);
+    }
+
+    @Test
+    public void findPersonsByMetadata() {
+        // creating a condition "since_update_time metadata value is less than 50 seconds"
+        Qualifier sinceUpdateTimeLt10Seconds = new Qualifier.QualifierBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(50000L)
+            .build();
+        assertThat(reactiveRepository.findByQualifiers(sinceUpdateTimeLt10Seconds).collectList().block())
+            .containsAll(allIndexedPersons);
+
+        // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
+        Qualifier sinceUpdateTimeBetween1And50000 = new Qualifier.QualifierBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue1AsObj(1L)
+            .setValue2AsObj(50000L)
+            .build();
+        assertThat(reactiveRepository.findByQualifiers(sinceUpdateTimeBetween1And50000).collectList().block())
+            .containsAll(reactiveRepository.findByQualifiers(sinceUpdateTimeLt10Seconds).collectList().block());
+    }
+
+    @Test
+    public void findPersonsByQualifiers() {
+        Iterable<IndexedPerson> result;
+
+        // creating a condition "since_update_time metadata value is greater than 1 millisecond"
+        Qualifier sinceUpdateTimeGt1 = new Qualifier.QualifierBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.GT)
+            .setValue1AsObj(1L)
+            .build();
+
+        // creating a condition "since_update_time metadata value is less than 50 seconds"
+        Qualifier sinceUpdateTimeLt50Seconds = new Qualifier.QualifierBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(50000L)
+            .build();
+        assertThat(reactiveRepository.findByQualifiers(sinceUpdateTimeLt50Seconds).collectList().block())
+            .containsAll(allIndexedPersons);
+
+        // creating a condition "since_update_time metadata value is between 1 and 50 seconds"
+        Qualifier sinceUpdateTimeBetween1And50000 = new Qualifier.QualifierBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue1AsObj(1L)
+            .setValue2AsObj(50000L)
+            .build();
+
+        // creating a condition "firsName is equal to Petra"
+        Qualifier firstNameEqPetra = new Qualifier.QualifierBuilder()
+            .setField("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get("Petra"))
+            .build();
+
+        // creating a condition "age is equal to 34"
+        Qualifier ageEq34 = new Qualifier.QualifierBuilder()
+            .setField("age")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get(34))
+            .setExcludeFilter(true)
+            .build();
+        result = reactiveRepository.findByQualifiers(ageEq34).collectList().block();
+        assertThat(result).containsOnly(petra);
+
+        // creating a condition "age is greater than 34"
+        Qualifier ageGt34 = new Qualifier.QualifierBuilder()
+            .setFilterOperation(FilterOperation.GT)
+            .setField("age")
+            .setValue1(Value.get(34))
+            .build();
+        result = reactiveRepository.findByQualifiers(ageGt34).collectList().block();
+        assertThat(result).doesNotContain(petra);
+
+        // default conjunction for multiple qualifiers given to "findByMetadata" is AND
+        result = reactiveRepository.findByQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq34,
+            firstNameEqPetra,
+            sinceUpdateTimeBetween1And50000).collectList().block();
+        assertThat(result).containsOnly(petra);
+
+        // conditions "age == 34", "firstName is Petra" and "since_update_time metadata value is less than 50 seconds"
+        // are combined with OR
+        Qualifier orWide = new Qualifier.QualifierBuilder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(ageEq34, firstNameEqPetra, sinceUpdateTimeLt50Seconds)
+            .build();
+        result = reactiveRepository.findByQualifiers(orWide).collectList().block();
+        assertThat(result).containsAll(allIndexedPersons);
+
+        // conditions "age == 34" and "firstName is Petra" are combined with OR
+        Qualifier orNarrow = new Qualifier.QualifierBuilder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(ageEq34, firstNameEqPetra)
+            .build();
+        result = reactiveRepository.findByQualifiers(orNarrow).collectList().block();
+        assertThat(result).containsOnly(petra);
+
+        result = reactiveRepository.findByQualifiers(new Qualifier.QualifierBuilder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(ageEq34, ageGt34)
+            .build()).collectList().block();
+        assertThat(result).isEmpty();
+
+        // default conjunction for multiple qualifiers given to "findByMetadata" is AND
+        // conditions "age == 34" and "age > 34" are not overlapping
+        result = reactiveRepository.findByQualifiers(ageEq34, ageGt34).collectList().block();
+        assertThat(result).isEmpty();
+
+        // conditions "age == 34" and "age > 34" are combined with OR
+        Qualifier ageEqOrGt34 = new Qualifier.QualifierBuilder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(ageEq34, ageGt34)
+            .build();
+
+        result = reactiveRepository.findByQualifiers(ageEqOrGt34).collectList().block();
+        List<IndexedPerson> personsWithAgeEqOrGt34 = allIndexedPersons.stream().filter(person -> person.getAge() >= 34)
+            .toList();
+        assertThat(result).containsAll(personsWithAgeEqOrGt34);
+
+        // a condition that returns all entities and a condition that returns one entity are combined using AND
+        result = reactiveRepository.findByQualifiers(orWide, orNarrow).collectList().block();
+        assertThat(result).containsOnly(petra);
+
+        // a condition that returns all entities and a condition that returns one entity are combined using AND
+        // another way of running the same query
+        Qualifier orCombinedWithAnd = new Qualifier.QualifierBuilder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(orWide, orNarrow)
+            .build();
+        result = reactiveRepository.findByQualifiers(orCombinedWithAnd).collectList().block();
+        assertThat(result).containsOnly(petra);
     }
 }

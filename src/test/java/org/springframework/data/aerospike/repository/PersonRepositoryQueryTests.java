@@ -1217,7 +1217,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByMetadata() {
-        // creating a condition "since_update_time metadata value is less than 10000"
+        // creating a condition "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt10Seconds = new Qualifier.QualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
@@ -1225,7 +1225,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .build();
         assertThat(repository.findByQualifiers(sinceUpdateTimeLt10Seconds)).containsAll(allPersons);
 
-        // creating a condition "since_update_time metadata value is between 1 and 50000"
+        // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = new Qualifier.QualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
@@ -1240,22 +1240,22 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void findPersonsByQualifiers() {
         Iterable<Person> result;
 
-        // creating a condition "since_update_time metadata value is greater than 1"
+        // creating a condition "since_update_time metadata value is greater than 1 millisecond"
         Qualifier sinceUpdateTimeGt1 = new Qualifier.QualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
             .setValue1AsObj(1L)
             .build();
 
-        // creating a condition "since_update_time metadata value is less than 10000"
-        Qualifier sinceUpdateTimeLt10Seconds = new Qualifier.QualifierBuilder()
+        // creating a condition "since_update_time metadata value is less than 50 seconds"
+        Qualifier sinceUpdateTimeLt50Seconds = new Qualifier.QualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(50000L)
             .build();
-        assertThat(repository.findByQualifiers(sinceUpdateTimeLt10Seconds)).containsAll(allPersons);
+        assertThat(repository.findByQualifiers(sinceUpdateTimeLt50Seconds)).containsAll(allPersons);
 
-        // creating a condition "since_update_time metadata value is between 1 and 50000"
+        // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = new Qualifier.QualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
@@ -1289,15 +1289,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(result).doesNotContain(carter);
 
         // default conjunction for multiple qualifiers given to "findByMetadata" is AND
-        result = repository.findByQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt10Seconds, ageEq49, firstNameEqCarter,
+        result = repository.findByQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
             sinceUpdateTimeBetween1And50000);
         assertThat(result).containsOnly(carter);
 
-        // conditions "age == 49", "firstName is Carter" and "since_update_time metadata value is less than 10 seconds"
+        // conditions "age == 49", "firstName is Carter" and "since_update_time metadata value is less than 50 seconds"
         // are combined with OR
         Qualifier orWide = new Qualifier.QualifierBuilder()
             .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(ageEq49, firstNameEqCarter, sinceUpdateTimeLt10Seconds)
+            .setQualifiers(ageEq49, firstNameEqCarter, sinceUpdateTimeLt50Seconds)
             .build();
         result = repository.findByQualifiers(orWide);
         assertThat(result).containsAll(allPersons);
@@ -1326,8 +1326,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(result).containsAll(personsWithAgeEqOrGt49);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
-        Iterable<Person> result2 = repository.findByQualifiers(orWide, orNarrow);
-        assertThat(result2).isEqualTo(result);
+        result = repository.findByQualifiers(orWide, orNarrow);
+        assertThat(result).containsOnly(carter);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
         // another way of running the same query

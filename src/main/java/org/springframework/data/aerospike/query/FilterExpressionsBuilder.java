@@ -34,7 +34,14 @@ public class FilterExpressionsBuilder {
      * sIndexFilter and FilterExpression. The filter is irrelevant for AND operation (nested qualifiers)
      */
     private boolean excludeIrrelevantFilters(Qualifier qualifier) {
-        return !qualifier.queryAsFilter() ||
-            (qualifier.queryAsFilter() && FilterOperation.dualFilterOperations.contains(qualifier.getOperation()));
+        if (!qualifier.queryAsFilter()) {
+            return true;
+        } else if (qualifier.queryAsFilter() && FilterOperation.dualFilterOperations.contains(qualifier.getOperation())) {
+            qualifier.setQueryAsFilter(false); // clear the flag in case if the same Qualifier is going to be reused
+            return true;
+        } else {
+            qualifier.setQueryAsFilter(false); // clear the flag in case if the same Qualifier is going to be reused
+            return false;
+        }
     }
 }

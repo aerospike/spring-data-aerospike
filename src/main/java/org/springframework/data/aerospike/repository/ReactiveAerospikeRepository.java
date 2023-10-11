@@ -15,8 +15,11 @@
  */
 package org.springframework.data.aerospike.repository;
 
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import reactor.core.publisher.Flux;
 
 /**
  * Aerospike specific {@link Repository} interface with reactive support.
@@ -24,4 +27,17 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
  * @author Igor Ermolenko
  */
 public interface ReactiveAerospikeRepository<T, ID> extends ReactiveCrudRepository<T, ID> {
+
+    /**
+     * Run a query to find entities by providing {@link Qualifier}s.
+     * <p>
+     * If multiple qualifiers are given, they are combined using AND.
+     * <p>
+     * Each qualifier itself may contain internal qualifiers and combine them using either {@link FilterOperation#AND}
+     * or {@link FilterOperation#OR}.
+     *
+     * @param qualifiers One or more qualifiers representing expressions.
+     * @return Flux of entities.
+     */
+    Flux<T> findByQualifiers(Qualifier... qualifiers);
 }
