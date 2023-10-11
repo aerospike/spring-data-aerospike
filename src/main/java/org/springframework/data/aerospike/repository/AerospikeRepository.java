@@ -65,7 +65,7 @@ public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T
      * Each qualifier itself may contain internal qualifiers and combine them using either {@link FilterOperation#AND}
      * or {@link FilterOperation#OR}.
      *
-     * @param qualifiers One or more qualifiers representing expressions.
+     * @param qualifiers One or more qualifiers representing expressions. Must not be {@literal null}.
      * @return Iterable of entities.
      */
     Iterable<T> findByQualifiers(Qualifier... qualifiers);

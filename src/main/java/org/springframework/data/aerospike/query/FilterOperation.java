@@ -72,23 +72,20 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             // Convert IN to a collection of OR as Aerospike has no direct support for IN query
+            return getMetadataExp(qualifierMap).orElseGet(() -> {
+                Value value1 = getValue1AsCollectionOrFail(qualifierMap);
+                Collection<?> collection = (Collection<?>) value1.getObject();
+                Exp[] arrElementsExp = collection.stream().map(item ->
+                    new Qualifier(
+                        new QualifierBuilder()
+                            .setField(getField(qualifierMap))
+                            .setFilterOperation(FilterOperation.EQ)
+                            .setValue1(Value.get(item))
+                    ).toFilterExp()
+                ).toArray(Exp[]::new);
 
-            Optional<Exp> metadataExp;
-            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
-
-            Value value1 = getValue1AsCollectionOrFail(qualifierMap);
-
-            Collection<?> collection = (Collection<?>) value1.getObject();
-            Exp[] arrElementsExp = collection.stream().map(item ->
-                new Qualifier(
-                    new QualifierBuilder()
-                        .setField(getField(qualifierMap))
-                        .setFilterOperation(FilterOperation.EQ)
-                        .setValue1(Value.get(item))
-                ).toFilterExp()
-            ).toArray(Exp[]::new);
-
-            return Exp.or(arrElementsExp);
+                return Exp.or(arrElementsExp);
+            });
         }
 
         @Override
@@ -101,22 +98,21 @@ public enum FilterOperation {
         public Exp filterExp(Map<String, Object> qualifierMap) {
             // Convert NOT_IN to a collection of AND as Aerospike has no direct support for IN query
 
-            Optional<Exp> metadataExp;
-            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
+            return getMetadataExp(qualifierMap).orElseGet(() -> {
+                Value value1 = getValue1AsCollectionOrFail(qualifierMap);
 
-            Value value1 = getValue1AsCollectionOrFail(qualifierMap);
+                Collection<?> collection = (Collection<?>) value1.getObject();
+                Exp[] arrElementsExp = collection.stream().map(item ->
+                    new Qualifier(
+                        new QualifierBuilder()
+                            .setField(getField(qualifierMap))
+                            .setFilterOperation(FilterOperation.NOTEQ)
+                            .setValue1(Value.get(item))
+                    ).toFilterExp()
+                ).toArray(Exp[]::new);
 
-            Collection<?> collection = (Collection<?>) value1.getObject();
-            Exp[] arrElementsExp = collection.stream().map(item ->
-                new Qualifier(
-                    new QualifierBuilder()
-                        .setField(getField(qualifierMap))
-                        .setFilterOperation(FilterOperation.NOTEQ)
-                        .setValue1(Value.get(item))
-                ).toFilterExp()
-            ).toArray(Exp[]::new);
-
-            return Exp.and(arrElementsExp);
+                return Exp.and(arrElementsExp);
+            });
         }
 
         @Override
@@ -127,29 +123,30 @@ public enum FilterOperation {
     EQ {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Optional<Exp> metadataExp;
-            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
-
-            Value value = getValue1(qualifierMap);
-            return switch (value.getType()) {
-                case INTEGER -> Exp.eq(Exp.intBin(getField(qualifierMap)), Exp.val(value.toLong()));
-                case STRING -> {
-                    if (ignoreCase(qualifierMap)) {
-                        String equalsRegexp =
-                            QualifierRegexpBuilder.getStringEquals(getValue1(qualifierMap).toString());
-                        yield Exp.regexCompare(equalsRegexp, RegexFlag.ICASE, Exp.stringBin(getField(qualifierMap)));
-                    } else {
-                        yield Exp.eq(Exp.stringBin(getField(qualifierMap)), Exp.val(value.toString()));
+            return getMetadataExp(qualifierMap).orElseGet(() -> {
+                Value value = getValue1(qualifierMap);
+                return switch (value.getType()) {
+                    case INTEGER -> Exp.eq(Exp.intBin(getField(qualifierMap)), Exp.val(value.toLong()));
+                    case STRING -> {
+                        if (ignoreCase(qualifierMap)) {
+                            String equalsRegexp =
+                                QualifierRegexpBuilder.getStringEquals(getValue1(qualifierMap).toString());
+                            yield Exp.regexCompare(equalsRegexp, RegexFlag.ICASE,
+                                Exp.stringBin(getField(qualifierMap)));
+                        } else {
+                            yield Exp.eq(Exp.stringBin(getField(qualifierMap)), Exp.val(value.toString()));
+                        }
                     }
-                }
-                case BOOL -> Exp.eq(Exp.boolBin(getField(qualifierMap)), Exp.val((Boolean) value.getObject()));
-                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::eq,
-                    Exp::mapBin);
-                case LIST ->
-                    getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::eq, Exp::listBin);
-                default -> throw new IllegalArgumentException("EQ FilterExpression unsupported particle type: " +
-                    value.getClass().getSimpleName());
-            };
+                    case BOOL -> Exp.eq(Exp.boolBin(getField(qualifierMap)), Exp.val((Boolean) value.getObject()));
+                    case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::eq,
+                        Exp::mapBin);
+                    case LIST ->
+                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::eq,
+                            Exp::listBin);
+                    default -> throw new IllegalArgumentException("EQ FilterExpression unsupported particle type: " +
+                        value.getClass().getSimpleName());
+                };
+            });
         }
 
         @Override
@@ -168,39 +165,39 @@ public enum FilterOperation {
     NOTEQ {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Optional<Exp> metadataExp;
-            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
-
-            Value value = getValue1(qualifierMap);
-            return switch (value.getType()) {
-                // FMWK-175: Exp.ne() does not return null bins, so Exp.not(Exp.binExists()) is added
-                case INTEGER -> {
-                    Exp ne = Exp.ne(Exp.intBin(getField(qualifierMap)), Exp.val(value.toLong()));
-                    yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), ne);
-                }
-                case STRING -> {
-                    if (ignoreCase(qualifierMap)) {
-                        String equalsRegexp =
-                            QualifierRegexpBuilder.getStringEquals(getValue1(qualifierMap).toString());
-                        Exp regexCompare = Exp.not(Exp.regexCompare(equalsRegexp, RegexFlag.ICASE,
-                            Exp.stringBin(getField(qualifierMap))));
-                        yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), regexCompare);
-                    } else {
-                        Exp ne = Exp.ne(Exp.stringBin(getField(qualifierMap)), Exp.val(value.toString()));
+            return getMetadataExp(qualifierMap).orElseGet(() -> {
+                Value value = getValue1(qualifierMap);
+                return switch (value.getType()) {
+                    // FMWK-175: Exp.ne() does not return null bins, so Exp.not(Exp.binExists()) is added
+                    case INTEGER -> {
+                        Exp ne = Exp.ne(Exp.intBin(getField(qualifierMap)), Exp.val(value.toLong()));
                         yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), ne);
                     }
-                }
-                case BOOL -> {
-                    Exp ne = Exp.ne(Exp.boolBin(getField(qualifierMap)), Exp.val((Boolean) value.getObject()));
-                    yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), ne);
-                }
-                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::ne,
-                    Exp::mapBin);
-                case LIST ->
-                    getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ne, Exp::listBin);
-                default -> throw new IllegalArgumentException("NOTEQ FilterExpression unsupported particle type: " +
-                    value.getClass().getSimpleName());
-            };
+                    case STRING -> {
+                        if (ignoreCase(qualifierMap)) {
+                            String equalsRegexp =
+                                QualifierRegexpBuilder.getStringEquals(getValue1(qualifierMap).toString());
+                            Exp regexCompare = Exp.not(Exp.regexCompare(equalsRegexp, RegexFlag.ICASE,
+                                Exp.stringBin(getField(qualifierMap))));
+                            yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), regexCompare);
+                        } else {
+                            Exp ne = Exp.ne(Exp.stringBin(getField(qualifierMap)), Exp.val(value.toString()));
+                            yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), ne);
+                        }
+                    }
+                    case BOOL -> {
+                        Exp ne = Exp.ne(Exp.boolBin(getField(qualifierMap)), Exp.val((Boolean) value.getObject()));
+                        yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), ne);
+                    }
+                    case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::ne,
+                        Exp::mapBin);
+                    case LIST ->
+                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ne,
+                            Exp::listBin);
+                    default -> throw new IllegalArgumentException("NOTEQ FilterExpression unsupported particle type: " +
+                        value.getClass().getSimpleName());
+                };
+            });
         }
 
         @Override
@@ -211,21 +208,22 @@ public enum FilterOperation {
     GT {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Optional<Exp> metadataExp;
-            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
-
-            Value value = getValue1(qualifierMap);
-            return switch (value.getType()) {
-                case INTEGER -> Exp.gt(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
-                case STRING ->
-                    Exp.gt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
-                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::gt,
-                    Exp::mapBin);
-                case LIST ->
-                    getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::gt, Exp::listBin);
-                default -> throw new IllegalArgumentException("GT FilterExpression unsupported particle type: " +
-                    value.getClass().getSimpleName());
-            };
+            return getMetadataExp(qualifierMap).orElseGet(() -> {
+                Value value = getValue1(qualifierMap);
+                return switch (value.getType()) {
+                    case INTEGER ->
+                        Exp.gt(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
+                    case STRING ->
+                        Exp.gt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
+                    case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::gt,
+                        Exp::mapBin);
+                    case LIST ->
+                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::gt,
+                            Exp::listBin);
+                    default -> throw new IllegalArgumentException("GT FilterExpression unsupported particle type: " +
+                        value.getClass().getSimpleName());
+                };
+            });
         }
 
         @Override
@@ -241,21 +239,22 @@ public enum FilterOperation {
     GTEQ {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Optional<Exp> metadataExp;
-            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
-
-            Value value = getValue1(qualifierMap);
-            return switch (value.getType()) {
-                case INTEGER -> Exp.ge(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
-                case STRING ->
-                    Exp.ge(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
-                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::ge,
-                    Exp::mapBin);
-                case LIST ->
-                    getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ge, Exp::listBin);
-                default -> throw new IllegalArgumentException("GTEQ FilterExpression unsupported particle type: " +
-                    value.getClass().getSimpleName());
-            };
+            return getMetadataExp(qualifierMap).orElseGet(() -> {
+                Value value = getValue1(qualifierMap);
+                return switch (value.getType()) {
+                    case INTEGER ->
+                        Exp.ge(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
+                    case STRING ->
+                        Exp.ge(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
+                    case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::ge,
+                        Exp::mapBin);
+                    case LIST ->
+                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ge,
+                            Exp::listBin);
+                    default -> throw new IllegalArgumentException("GTEQ FilterExpression unsupported particle type: " +
+                        value.getClass().getSimpleName());
+                };
+            });
         }
 
         @Override
@@ -269,21 +268,22 @@ public enum FilterOperation {
     LT {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Optional<Exp> metadataExp;
-            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
-
-            Value value = getValue1(qualifierMap);
-            return switch (value.getType()) {
-                case INTEGER -> Exp.lt(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
-                case STRING ->
-                    Exp.lt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
-                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::lt,
-                    Exp::mapBin);
-                case LIST ->
-                    getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::lt, Exp::listBin);
-                default -> throw new IllegalArgumentException("LT FilterExpression unsupported particle type: " +
-                    value.getClass().getSimpleName());
-            };
+            return getMetadataExp(qualifierMap).orElseGet(() -> {
+                Value value = getValue1(qualifierMap);
+                return switch (value.getType()) {
+                    case INTEGER ->
+                        Exp.lt(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
+                    case STRING ->
+                        Exp.lt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
+                    case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::lt,
+                        Exp::mapBin);
+                    case LIST ->
+                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::lt,
+                            Exp::listBin);
+                    default -> throw new IllegalArgumentException("LT FilterExpression unsupported particle type: " +
+                        value.getClass().getSimpleName());
+                };
+            });
         }
 
         @Override
@@ -298,21 +298,22 @@ public enum FilterOperation {
     LTEQ {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            Optional<Exp> metadataExp;
-            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
-
-            Value value = getValue1(qualifierMap);
-            return switch (value.getType()) {
-                case INTEGER -> Exp.le(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
-                case STRING ->
-                    Exp.le(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
-                case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::le,
-                    Exp::mapBin);
-                case LIST ->
-                    getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::le, Exp::listBin);
-                default -> throw new IllegalArgumentException("LTEQ FilterExpression unsupported particle type: " +
-                    value.getClass().getSimpleName());
-            };
+            return getMetadataExp(qualifierMap).orElseGet(() -> {
+                Value value = getValue1(qualifierMap);
+                return switch (value.getType()) {
+                    case INTEGER ->
+                        Exp.le(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong()));
+                    case STRING ->
+                        Exp.le(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
+                    case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::le,
+                        Exp::mapBin);
+                    case LIST ->
+                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::le,
+                            Exp::listBin);
+                    default -> throw new IllegalArgumentException("LTEQ FilterExpression unsupported particle type: " +
+                        value.getClass().getSimpleName());
+                };
+            });
         }
 
         @Override
@@ -329,10 +330,7 @@ public enum FilterOperation {
             validateEquality(getValue1(qualifierMap).getType(), getValue2(qualifierMap).getType(), qualifierMap,
                 "BETWEEN");
 
-            Optional<Exp> metadataExp;
-            if ((metadataExp = getMetadataExp(qualifierMap)).isPresent()) return metadataExp.get();
-
-            return switch (getValue1(qualifierMap).getType()) {
+            return getMetadataExp(qualifierMap).orElseGet(() -> switch (getValue1(qualifierMap).getType()) {
                 case INTEGER -> Exp.and(
                     Exp.ge(Exp.intBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toLong())),
                     Exp.lt(Exp.intBin(getField(qualifierMap)), Exp.val(getValue2(qualifierMap).toLong()))
@@ -356,7 +354,7 @@ public enum FilterOperation {
                 default ->
                     throw new IllegalArgumentException("BETWEEN: unexpected value of type " + getValue1(qualifierMap).getClass()
                         .getSimpleName());
-            };
+            });
         }
 
         @Override
@@ -1221,7 +1219,6 @@ public enum FilterOperation {
     };
 
     private static Exp processMetadataFieldInOrNot(Map<String, Object> qualifierMap, boolean notIn) {
-        String operation = notIn ? "NOT_IN" : "IN";
         FilterOperation filterOperation = notIn ? NOTEQ : EQ;
         Object value1 = getValue1Object(qualifierMap);
 
@@ -1229,6 +1226,7 @@ public enum FilterOperation {
         try {
             listOfLongs = (Collection<Long>) value1; // previously validated
         } catch (Exception e) {
+            String operation = notIn ? "NOT_IN" : "IN";
             throw new IllegalStateException("FilterOperation." + operation + " metadata query: expecting value1 with " +
                 "type List<Long>");
         }
@@ -1258,10 +1256,8 @@ public enum FilterOperation {
             value1.getObject().getClass().getSimpleName();
         if (value1.getType() != LIST) {
             throw new IllegalArgumentException(errMsg);
-        } else {
-            if (!(value1.getObject() instanceof Collection<?>)) {
-                throw new IllegalArgumentException(errMsg);
-            }
+        } else if (!(value1.getObject() instanceof Collection<?>)) {
+            throw new IllegalArgumentException(errMsg);
         }
         return value1;
     }
@@ -1276,9 +1272,9 @@ public enum FilterOperation {
     private static Optional<Exp> getMetadataExp(Map<String, Object> qualifierMap) {
         CriteriaDefinition.AerospikeMetadata metadataField = getMetadataField(qualifierMap);
         String field = getField(qualifierMap);
-        FilterOperation operation = getOperation(qualifierMap);
 
         if (metadataField != null && (field == null || field.isEmpty())) {
+            FilterOperation operation = getOperation(qualifierMap);
             switch (operation) {
                 case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> {
                     BiFunction<Exp, Exp, Exp> operationFunction = mapOperation(operation);

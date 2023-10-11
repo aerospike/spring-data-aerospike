@@ -163,10 +163,12 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
 
     @Override
     public Iterable<T> findByQualifiers(Qualifier... qualifiers) {
+        Assert.notNull(qualifiers, "Qualifiers must not be null");
+
         Arrays.stream(qualifiers).forEach(qualifier -> {
             qualifier.setExcludeFilter(true);
-            Qualifier.validateQualifier(qualifier);
+            Qualifier.validate(qualifier);
         });
-        return (Iterable<T>) operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers).toList();
+        return operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers).toList();
     }
 }

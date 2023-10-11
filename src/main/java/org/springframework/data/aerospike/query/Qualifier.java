@@ -219,10 +219,9 @@ public class Qualifier implements Map<String, Object>, Serializable {
     public String toString() {
         if (!StringUtils.hasLength(getField()) && StringUtils.hasLength(getMetadataField().toString())) {
             return String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
-        } else {
-            return String.format("(metadata)%s:%s:%s:%s", getMetadataField().toString(),
-                getOperation(), getValue1(), getValue2());
         }
+        return String.format("(metadata)%s:%s:%s:%s", getMetadataField().toString(),
+            getOperation(), getValue1(), getValue2());
     }
 
     public static class QualifierRegexpBuilder {
@@ -383,21 +382,21 @@ public class Qualifier implements Map<String, Object>, Serializable {
         }
     }
 
-    public static void validateQualifier(Qualifier qualifier) {
+    public static void validate(Qualifier qualifier) {
         // metadata query
         if (qualifier.getMetadataField() != null && qualifier.getField() == null) {
             FilterOperation operation = qualifier.getOperation();
             switch (operation) {
-                case EQ, NOTEQ, LT, LTEQ, GT, GTEQ ->
-                    Assert.isTrue(qualifier.getValue1AsObj() != null && qualifier.getValue1AsObj() instanceof Long,
-                        operation.name() + ": value1 is expected to be set as Long");
+                case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(qualifier.getValue1AsObj() instanceof Long,
+                    operation.name() + ": value1 is expected to be set as Long");
                 case BETWEEN -> {
-                    Assert.isTrue(qualifier.getValue1AsObj() != null && qualifier.getValue1AsObj() instanceof Long,
+                    Assert.isTrue(qualifier.getValue1AsObj() instanceof Long,
                         "BETWEEN: value1 is expected to be set as Long");
-                    Assert.isTrue(qualifier.getValue2AsObj() != null && qualifier.getValue2AsObj() instanceof Long,
+                    Assert.isTrue(qualifier.getValue2AsObj() instanceof Long,
                         "BETWEEN: value2 is expected to be set as Long");
                 }
                 case NOT_IN, IN -> Assert.isTrue(qualifier.getValue1AsObj() instanceof Collection
+                        && (!((Collection<Object>) qualifier.getValue1AsObj()).isEmpty())
                         && ((Collection<Object>) qualifier.getValue1AsObj()).toArray()[0] instanceof Long,
                     operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
                 default -> throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +

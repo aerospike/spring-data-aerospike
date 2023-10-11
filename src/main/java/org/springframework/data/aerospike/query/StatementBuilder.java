@@ -82,12 +82,6 @@ public class StatementBuilder {
                 if (filter != null) {
                     stmt.setFilter(filter);
                     qualifier.setQueryAsFilter(true);
-                    /* If this was the only qualifier, we do not need to do anymore work, just return
-                     * the query iterator.
-                     */
-                    if (qualifiers.length == 1) {
-                        return;
-                    }
                     break; // the first processed filter becomes statement filter
                 }
             }

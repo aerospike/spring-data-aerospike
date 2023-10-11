@@ -525,7 +525,7 @@ public interface ReactiveAerospikeOperations {
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param filter      Secondary index filter.
-     * @param qualifiers  Qualifiers to build filter expressions from.
+     * @param qualifiers  Qualifiers to build filter expressions from. Must not be {@literal null}.
      * @return Flux of entities.
      */
     <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers);

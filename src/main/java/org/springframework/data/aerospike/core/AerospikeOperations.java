@@ -558,12 +558,12 @@ public interface AerospikeOperations {
     boolean indexExists(String indexName);
 
     /**
-     * Find all documents in the given entityClass's set using provided qualifiers.
+     * Find all documents in the given entityClass's set using provided {@link Qualifier}s.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param filter      Secondary index filter.
-     * @param qualifiers  Qualifiers to build filter expressions from.
-     * @return Stream of entities
+     * @param qualifiers  Qualifiers to build filter expressions from. Must not be {@literal null}.
+     * @return Stream of entities.
      */
-    <T> Stream<?> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers);
+    <T> Stream<T> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers);
 }
