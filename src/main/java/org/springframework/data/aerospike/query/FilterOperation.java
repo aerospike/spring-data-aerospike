@@ -1309,14 +1309,11 @@ public enum FilterOperation {
 
     // expecting value1 always be of type Long
     private static Long getValue1AsLongOrFail(Object value1) {
-        Long longValue1;
         try {
-            longValue1 = (Long) value1;
+            return (Long) value1;
         } catch (Exception e) {
             throw new IllegalArgumentException("Expecting value1 to be of type Long");
         }
-
-        return longValue1;
     }
 
     private static Exp mapMetadataExp(CriteriaDefinition.AerospikeMetadata metadataField) {
