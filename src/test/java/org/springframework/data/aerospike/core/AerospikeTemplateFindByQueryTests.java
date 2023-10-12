@@ -480,23 +480,19 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
             .setFilterOperation(FilterOperation.EQ)
             .setField(fieldName)
             .setValue1(Value.get(fieldValue1))
-            // excludeFilter should be set to true in case of multiple qualifiers
-            // in order not to build secondary index filter which is applied to the whole query
-            // otherwise results that are not satisfying the filter will not be returned
-            .setExcludeFilter(true)
             .build();
         Qualifier dataEqFieldValue2 = new Qualifier.QualifierBuilder()
             .setFilterOperation(FilterOperation.EQ)
             .setField(fieldName)
             .setValue1(Value.get(fieldValue2))
-            // excludeFilter should be set to true in case of multiple qualifiers
-            // in order not to build secondary index filter which is applied to the whole query
-            // otherwise results that are not satisfying the filter will not be returned
-            .setExcludeFilter(true)
             .build();
         Qualifier qualifierOr = new Qualifier.QualifierBuilder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(dataEqFieldValue1, dataEqFieldValue2)
+            // excludeFilter in the upmost parent qualifier should be set to true in case there are inner qualifiers
+            // not to build secondary index filter applied to the whole query
+            // otherwise results that are not satisfying the filter will not be returned
+            .setExcludeFilter(true)
             .build();
         Stream<SampleClasses.CustomCollectionClass> result3 =
             template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, null, qualifierOr);

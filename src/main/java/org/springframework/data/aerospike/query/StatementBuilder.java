@@ -62,13 +62,12 @@ public class StatementBuilder {
          *  query with filters
          */
         for (Qualifier qualifier : qualifiers) {
-            if (qualifier == null) continue;
+            if (qualifier == null || qualifier.getExcludeFilter()) continue;
             if (qualifier.getOperation() == FilterOperation.AND) {
                 // no sense to use secondary index in case of OR
                 // as it requires to enlarge selection to more than 1 field
                 for (Qualifier innerQualifier : qualifier.getQualifiers()) {
-                    if (innerQualifier != null && !innerQualifier.getExcludeFilter()
-                        && isIndexedBin(stmt, innerQualifier)) {
+                    if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
                         Filter filter = innerQualifier.setQueryAsFilter();
                         if (filter != null) {
                             stmt.setFilter(filter);
@@ -77,7 +76,7 @@ public class StatementBuilder {
                         }
                     }
                 }
-            } else if (!qualifier.getExcludeFilter() && isIndexedBin(stmt, qualifier)) {
+            } else if (isIndexedBin(stmt, qualifier)) {
                 Filter filter = qualifier.setQueryAsFilter();
                 if (filter != null) {
                     stmt.setFilter(filter);
