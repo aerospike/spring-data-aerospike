@@ -166,6 +166,8 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         Assert.notNull(qualifiers, "Qualifiers must not be null");
 
         Arrays.stream(qualifiers).forEach(qualifier -> {
+            // not to build secondary index filter based on this qualifier
+            // as it might conflict with a combination of other qualifiers
             qualifier.setExcludeFilter(true);
             Qualifier.validate(qualifier);
         });

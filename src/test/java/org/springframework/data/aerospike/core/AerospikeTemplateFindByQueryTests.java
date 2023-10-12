@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.Value;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.RecordSet;
@@ -25,6 +26,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.SampleClasses;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
@@ -441,5 +445,71 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         assertThat(result)
             .hasSize(4)
             .containsExactlyInAnyOrder(zaipper, knowlen, xylophone, mitch);
+    }
+
+    @Test
+    public void findAllUsingQuery_shouldRunWithDifferentArgumentsCombinations() {
+        String fieldName = "data";
+        String fieldValue1 = "test";
+        String fieldValue2 = "test2";
+        SampleClasses.CustomCollectionClass doc1 = new SampleClasses.CustomCollectionClass(id, fieldValue1);
+        SampleClasses.CustomCollectionClass doc2 = new SampleClasses.CustomCollectionClass(nextId(), fieldValue2);
+        template.save(doc1);
+        template.save(doc2);
+        additionalAerospikeTestOperations.createIndex(SampleClasses.CustomCollectionClass.class,
+            "CustomCollectionClass_field", fieldName, IndexType.STRING);
+
+        // find by qualifiers, no predefined secondary index filter
+        Qualifier qualifier = new Qualifier.QualifierBuilder()
+            .setField(fieldName)
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get(fieldValue1))
+            .build();
+        Stream<SampleClasses.CustomCollectionClass> result1 =
+            template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, null, qualifier);
+        assertThat(result1).containsOnly(doc1);
+
+        // find by a predefined secondary index filter, no qualifiers
+        Filter filter = Filter.equal(fieldName, fieldValue1);
+        Stream<SampleClasses.CustomCollectionClass> result2 =
+            template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, filter);
+        assertThat(result2).containsOnly(doc1);
+
+        // find by a complex qualifier
+        Qualifier dataEqFieldValue1 = new Qualifier.QualifierBuilder()
+            .setFilterOperation(FilterOperation.EQ)
+            .setField(fieldName)
+            .setValue1(Value.get(fieldValue1))
+            // excludeFilter should be set to true in case of multiple qualifiers
+            // in order not to build secondary index filter which is applied to the whole query
+            // otherwise results that are not satisfying the filter will not be returned
+            .setExcludeFilter(true)
+            .build();
+        Qualifier dataEqFieldValue2 = new Qualifier.QualifierBuilder()
+            .setFilterOperation(FilterOperation.EQ)
+            .setField(fieldName)
+            .setValue1(Value.get(fieldValue2))
+            // excludeFilter should be set to true in case of multiple qualifiers
+            // in order not to build secondary index filter which is applied to the whole query
+            // otherwise results that are not satisfying the filter will not be returned
+            .setExcludeFilter(true)
+            .build();
+        Qualifier qualifierOr = new Qualifier.QualifierBuilder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(dataEqFieldValue1, dataEqFieldValue2)
+            .build();
+        Stream<SampleClasses.CustomCollectionClass> result3 =
+            template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, null, qualifierOr);
+        assertThat(result3).containsOnly(doc1, doc2);
+
+        // no secondary index filter and no qualifiers
+        Stream<SampleClasses.CustomCollectionClass> result4 =
+            template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, null);
+        assertThat(result4).containsOnly(doc1, doc2);
+
+        additionalAerospikeTestOperations.dropIndex(SampleClasses.CustomCollectionClass.class,
+            "CustomCollectionClass_field"); // cleanup
+        template.delete(doc1); // cleanup
+        template.delete(doc2); // cleanup
     }
 }

@@ -30,6 +30,7 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -563,7 +564,9 @@ public interface AerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param filter      Secondary index filter.
      * @param qualifiers  Qualifiers to build filter expressions from. Must not be {@literal null}.
+     *                    If filter param is null and qualifiers have {@link Qualifier#getExcludeFilter()} == false
+     *                    secondary index filter is built based on the first processed qualifier.
      * @return Stream of entities.
      */
-    <T> Stream<T> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers);
+    <T> Stream<T> findAllUsingQuery(Class<T> entityClass, @Nullable Filter filter, Qualifier... qualifiers);
 }

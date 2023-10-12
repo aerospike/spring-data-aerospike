@@ -29,6 +29,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.annotation.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -526,7 +527,9 @@ public interface ReactiveAerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param filter      Secondary index filter.
      * @param qualifiers  Qualifiers to build filter expressions from. Must not be {@literal null}.
+     *                    If filter param is null and qualifiers have {@link Qualifier#getExcludeFilter()} == false
+     *                    secondary index filter is built based on the first processed qualifier.
      * @return Flux of entities.
      */
-    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter, Qualifier... qualifiers);
+    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, @Nullable Filter filter, Qualifier... qualifiers);
 }
