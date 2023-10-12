@@ -72,7 +72,7 @@ public class StatementBuilder {
                         if (filter != null) {
                             stmt.setFilter(filter);
                             innerQualifier.setQueryAsFilter(true);
-                            break; // the first processed filter becomes statement filter
+                            break; // the filter from the first processed qualifier becomes statement's sIndex filter
                         }
                     }
                 }
@@ -81,7 +81,7 @@ public class StatementBuilder {
                 if (filter != null) {
                     stmt.setFilter(filter);
                     qualifier.setQueryAsFilter(true);
-                    break; // the first processed filter becomes statement filter
+                    break; // the filter from the first processed qualifier becomes statement's sIndex filter
                 }
             }
         }
