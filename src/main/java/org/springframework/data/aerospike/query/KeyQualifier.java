@@ -30,6 +30,7 @@ public class KeyQualifier extends Qualifier {
 
     @Serial
     private static final long serialVersionUID = 2430949321378171078L;
+    private static final String DIGEST_KEY = "digest";
 
     boolean hasDigest = false;
 
@@ -47,25 +48,24 @@ public class KeyQualifier extends Qualifier {
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(null)
         );
-        this.internalMap.put("digest", digest);
+        this.internalMap.put(DIGEST_KEY, digest);
         this.hasDigest = true;
     }
 
     @Override
     protected String luaFieldString(String field) {
-        return "digest";
+        return DIGEST_KEY;
     }
 
     public byte[] getDigest() {
-        return (byte[]) this.internalMap.get("digest");
+        return (byte[]) this.internalMap.get(DIGEST_KEY);
     }
 
     public Key makeKey(String namespace, String set) {
         if (hasDigest) {
             byte[] digest = getDigest();
             return new Key(namespace, digest, set, null);
-        } else {
-            return new Key(namespace, set, getValue1());
         }
+        return new Key(namespace, set, getValue1());
     }
 }

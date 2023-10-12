@@ -96,10 +96,8 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             // Convert NOT_IN to a collection of AND as Aerospike has no direct support for IN query
-
             return getMetadataExp(qualifierMap).orElseGet(() -> {
                 Value value1 = getValue1AsCollectionOrFail(qualifierMap);
-
                 Collection<?> collection = (Collection<?>) value1.getObject();
                 Exp[] arrElementsExp = collection.stream().map(item ->
                     new Qualifier(
@@ -139,9 +137,8 @@ public enum FilterOperation {
                     case BOOL -> Exp.eq(Exp.boolBin(getField(qualifierMap)), Exp.val((Boolean) value.getObject()));
                     case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::eq,
                         Exp::mapBin);
-                    case LIST ->
-                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::eq,
-                            Exp::listBin);
+                    case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::eq,
+                        Exp::listBin);
                     default -> throw new IllegalArgumentException("EQ FilterExpression unsupported particle type: " +
                         value.getClass().getSimpleName());
                 };
@@ -190,9 +187,8 @@ public enum FilterOperation {
                     }
                     case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::ne,
                         Exp::mapBin);
-                    case LIST ->
-                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ne,
-                            Exp::listBin);
+                    case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ne,
+                        Exp::listBin);
                     default -> throw new IllegalArgumentException("NOTEQ FilterExpression unsupported particle type: " +
                         value.getClass().getSimpleName());
                 };
@@ -216,9 +212,8 @@ public enum FilterOperation {
                         Exp.gt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
                     case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::gt,
                         Exp::mapBin);
-                    case LIST ->
-                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::gt,
-                            Exp::listBin);
+                    case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::gt,
+                        Exp::listBin);
                     default -> throw new IllegalArgumentException("GT FilterExpression unsupported particle type: " +
                         value.getClass().getSimpleName());
                 };
@@ -247,9 +242,8 @@ public enum FilterOperation {
                         Exp.ge(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
                     case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::ge,
                         Exp::mapBin);
-                    case LIST ->
-                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ge,
-                            Exp::listBin);
+                    case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::ge,
+                        Exp::listBin);
                     default -> throw new IllegalArgumentException("GTEQ FilterExpression unsupported particle type: " +
                         value.getClass().getSimpleName());
                 };
@@ -276,9 +270,8 @@ public enum FilterOperation {
                         Exp.lt(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
                     case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::lt,
                         Exp::mapBin);
-                    case LIST ->
-                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::lt,
-                            Exp::listBin);
+                    case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::lt,
+                        Exp::listBin);
                     default -> throw new IllegalArgumentException("LT FilterExpression unsupported particle type: " +
                         value.getClass().getSimpleName());
                 };
@@ -306,9 +299,8 @@ public enum FilterOperation {
                         Exp.le(Exp.stringBin(getField(qualifierMap)), Exp.val(getValue1(qualifierMap).toString()));
                     case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getField(qualifierMap), Exp::le,
                         Exp::mapBin);
-                    case LIST ->
-                        getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::le,
-                            Exp::listBin);
+                    case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getField(qualifierMap), Exp::le,
+                        Exp::listBin);
                     default -> throw new IllegalArgumentException("LTEQ FilterExpression unsupported particle type: " +
                         value.getClass().getSimpleName());
                 };
@@ -1217,6 +1209,14 @@ public enum FilterOperation {
         }
     };
 
+    /**
+     * FilterOperations that require both sIndexFilter and FilterExpression
+     */
+    public static final List<FilterOperation> dualFilterOperations = Arrays.asList(
+        MAP_VAL_EQ_BY_KEY, MAP_VAL_GT_BY_KEY, MAP_VAL_GTEQ_BY_KEY, MAP_VAL_LT_BY_KEY, MAP_VAL_LTEQ_BY_KEY,
+        MAP_VAL_BETWEEN_BY_KEY
+    );
+
     private static Exp processMetadataFieldInOrNot(Map<String, Object> qualifierMap, boolean notIn) {
         FilterOperation filterOperation = notIn ? NOTEQ : EQ;
         Object value1 = getValue1Object(qualifierMap);
@@ -1395,14 +1395,6 @@ public enum FilterOperation {
                 getValue2(qualifierMap).getClass().getSimpleName());
         }
     }
-
-    /**
-     * FilterOperations that require both sIndexFilter and FilterExpression
-     */
-    public static final List<FilterOperation> dualFilterOperations = Arrays.asList(
-        MAP_VAL_EQ_BY_KEY, MAP_VAL_GT_BY_KEY, MAP_VAL_GTEQ_BY_KEY, MAP_VAL_LT_BY_KEY, MAP_VAL_LTEQ_BY_KEY,
-        MAP_VAL_BETWEEN_BY_KEY
-    );
 
     private static Exp getFilterExpMapValOrFail(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator,
                                                 String opName) {
