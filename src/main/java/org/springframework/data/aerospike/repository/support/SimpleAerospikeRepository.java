@@ -28,7 +28,6 @@ import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -164,13 +163,19 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     @Override
     public Iterable<T> findByQualifiers(Qualifier... qualifiers) {
         Assert.notNull(qualifiers, "Qualifiers must not be null");
-
-        Arrays.stream(qualifiers).forEach(qualifier -> {
-            // not to build secondary index filter based on this qualifier
-            // as it might conflict with a combination of other qualifiers
-            qualifier.setExcludeFilter(true);
-            Qualifier.validate(qualifier);
-        });
+        validateQualifiers(qualifiers);
         return operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers).toList();
+    }
+
+    public static void validateQualifiers(Qualifier... qualifiers) {
+        boolean haveInternalQualifiers = qualifiers.length > 1;
+        for (Qualifier qualifier : qualifiers) {
+            Qualifier.validate(qualifier);
+            haveInternalQualifiers = haveInternalQualifiers || qualifier.hasQualifiers();
+            // if there are multiple qualifiers
+            // must not build secondary index filter based on any of them
+            // as it might conflict with the combination of qualifiers
+            qualifier.setExcludeFilter(haveInternalQualifiers);
+        }
     }
 }

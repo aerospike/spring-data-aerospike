@@ -98,6 +98,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
         return (Qualifier[]) internalMap.get(QUALIFIERS);
     }
 
+    public boolean hasQualifiers() {
+        return internalMap.get(QUALIFIERS) != null;
+    }
+
     public Value getValue1() {
         return (Value) internalMap.get(VALUE1);
     }
