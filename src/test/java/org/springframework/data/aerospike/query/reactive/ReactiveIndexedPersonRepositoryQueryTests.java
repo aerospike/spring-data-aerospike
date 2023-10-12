@@ -354,7 +354,6 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
             .setField("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(34))
-            .setExcludeFilter(true)
             .build();
         result = reactiveRepository.findByQualifiers(ageEq34).collectList().block();
         assertThat(result).containsOnly(petra);

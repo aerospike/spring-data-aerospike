@@ -172,6 +172,7 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         for (Qualifier qualifier : qualifiers) {
             Qualifier.validate(qualifier);
             haveInternalQualifiers = haveInternalQualifiers || qualifier.hasQualifiers();
+            // excludeFilter in the upmost parent qualifier is set to true
             // if there are multiple qualifiers
             // must not build secondary index filter based on any of them
             // as it might conflict with the combination of qualifiers
