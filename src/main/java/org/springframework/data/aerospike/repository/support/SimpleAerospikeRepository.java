@@ -163,20 +163,6 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     @Override
     public Iterable<T> findByQualifiers(Qualifier... qualifiers) {
         Assert.notNull(qualifiers, "Qualifiers must not be null");
-        validateQualifiers(qualifiers);
         return operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers).toList();
-    }
-
-    public static void validateQualifiers(Qualifier... qualifiers) {
-        boolean haveInternalQualifiers = qualifiers.length > 1;
-        for (Qualifier qualifier : qualifiers) {
-            Qualifier.validate(qualifier);
-            haveInternalQualifiers = haveInternalQualifiers || qualifier.hasQualifiers();
-            // excludeFilter in the upmost parent qualifier is set to true
-            // if there are multiple qualifiers
-            // must not build secondary index filter based on any of them
-            // as it might conflict with the combination of qualifiers
-            qualifier.setExcludeFilter(haveInternalQualifiers);
-        }
     }
 }

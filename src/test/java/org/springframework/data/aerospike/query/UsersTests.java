@@ -31,7 +31,7 @@ public class UsersTests extends BaseQueryEngineTests {
 
     @Test
     public void usersInNorthRegion() {
-        Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier qualifier = new Qualifier(new QualifierBuilder()
             .setField("region")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("n"))

@@ -20,10 +20,7 @@ import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
-import lombok.Data;
-import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.Serial;
@@ -106,16 +103,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
         return (Value) internalMap.get(VALUE1);
     }
 
-    public Object getValue1AsObj() {
-        return internalMap.get(VALUE1);
-    }
-
     public Value getValue2() {
         return (Value) internalMap.get(VALUE2);
-    }
-
-    public Object getValue2AsObj() {
-        return internalMap.get(VALUE2);
     }
 
     public String getDotPath() {
@@ -288,129 +277,15 @@ public class Qualifier implements Map<String, Object>, Serializable {
         }
     }
 
-    @Data
-    public static class QualifierBuilder {
-
-        private final Map<String, Object> map = new HashMap<>();
-
-        public QualifierBuilder() {
-        }
-
-        public QualifierBuilder setField(String field) {
-            this.map.put(FIELD, field);
-            return this;
-        }
-
-        public QualifierBuilder setMetadataField(CriteriaDefinition.AerospikeMetadata metadataField) {
-            this.map.put(METADATA_FIELD, metadataField);
-            return this;
-        }
-
-        public QualifierBuilder setIgnoreCase(boolean ignoreCase) {
-            this.map.put(IGNORE_CASE, ignoreCase);
-            return this;
-        }
-
-        public QualifierBuilder setFilterOperation(FilterOperation filterOperation) {
-            this.map.put(OPERATION, filterOperation);
-            return this;
-        }
-
-        public QualifierBuilder setQualifiers(Qualifier... qualifiers) {
-            this.map.put(QUALIFIERS, qualifiers);
-            return this;
-        }
-
-        public QualifierBuilder setExcludeFilter(boolean excludeFilter) {
-            this.map.put(EXCLUDE_FILTER, excludeFilter);
-            return this;
-        }
-
-        public QualifierBuilder setValue1(Value value1) {
-            this.map.put(VALUE1, value1);
-            return this;
-        }
-
-        public QualifierBuilder setValue1AsObj(Object object) {
-            this.map.put(VALUE1, object);
-            return this;
-        }
-
-        public QualifierBuilder setValue2(Value value2) {
-            this.map.put(VALUE2, value2);
-            return this;
-        }
-
-        public QualifierBuilder setValue2AsObj(Object object) {
-            this.map.put(VALUE2, object);
-            return this;
-        }
-
-        @SuppressWarnings("UnusedReturnValue")
-        public QualifierBuilder setValue3(Value value3) {
-            this.map.put(VALUE3, value3);
-            return this;
-        }
-
-        public void setDotPath(String dotPath) {
-            this.map.put(DOT_PATH, dotPath);
-        }
-
-        public QualifierBuilder setConverter(MappingAerospikeConverter converter) {
-            this.map.put(CONVERTER, converter);
-            return this;
-        }
-
-        public boolean hasValue1() {
-            return this.map.containsKey(VALUE1) && this.map.get(VALUE1) != null;
-        }
-
-        public boolean hasValue2() {
-            return this.map.containsKey(VALUE2) && this.map.get(VALUE2) != null;
-        }
-
-        public boolean hasValue3() {
-            return this.map.containsKey(VALUE3) && this.map.get(VALUE3) != null;
-        }
-
-        public boolean hasDotPath() {
-            return this.map.containsKey(DOT_PATH) && this.map.get(DOT_PATH) != null;
-        }
-
-        public Qualifier build() {
-            return new Qualifier(this);
-        }
-
-        public Map<String, Object> buildMap() {
-            return this.map;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static void validate(Qualifier qualifier) {
-        // metadata query
-        if (qualifier.getMetadataField() != null) {
-            if (qualifier.getField() == null) {
-                FilterOperation operation = qualifier.getOperation();
-                switch (operation) {
-                    case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(qualifier.getValue1AsObj() instanceof Long,
-                        operation.name() + ": value1 is expected to be set as Long");
-                    case BETWEEN -> {
-                        Assert.isTrue(qualifier.getValue1AsObj() instanceof Long,
-                            "BETWEEN: value1 is expected to be set as Long");
-                        Assert.isTrue(qualifier.getValue2AsObj() instanceof Long,
-                            "BETWEEN: value2 is expected to be set as Long");
-                    }
-                    case NOT_IN, IN -> Assert.isTrue(qualifier.getValue1AsObj() instanceof Collection
-                            && (!((Collection<Object>) qualifier.getValue1AsObj()).isEmpty())
-                            && ((Collection<Object>) qualifier.getValue1AsObj()).toArray()[0] instanceof Long,
-                        operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
-                    default -> throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
-                        "metadataField");
-                }
-            } else {
-                throw new IllegalArgumentException("Either a field or a metadataField must be set, not both");
-            }
+    public static void validateQualifiers(Qualifier... qualifiers) {
+        boolean haveInternalQualifiers = qualifiers.length > 1;
+        for (Qualifier qualifier : qualifiers) {
+            haveInternalQualifiers = haveInternalQualifiers || qualifier.hasQualifiers();
+            // excludeFilter in the upmost parent qualifier is set to true
+            // if there are multiple qualifiers
+            // must not build secondary index filter based on any of them
+            // as it might conflict with the combination of qualifiers
+            qualifier.setExcludeFilter(haveInternalQualifiers);
         }
     }
 }

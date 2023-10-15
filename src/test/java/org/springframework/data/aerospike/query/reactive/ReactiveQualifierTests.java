@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.QualifierBuilder;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -67,7 +68,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     void throwsExceptionWhenScansDisabled() {
         queryEngine.setScansEnabled(false);
         try {
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(LT)
                 .setValue1(Value.get(26))
@@ -85,7 +86,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void lTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age < 26
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField("age")
             .setFilterOperation(LT)
             .setValue1(Value.get(26))
@@ -108,7 +109,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void numericLTEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age <= 26
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField("age")
             .setFilterOperation(LTEQ)
             .setValue1(Value.get(26))
@@ -138,7 +139,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void numericEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age == 26
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField("age")
             .setFilterOperation(EQ)
             .setValue1(Value.get(26))
@@ -158,7 +159,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void numericGTEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age >= 28
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField("age")
             .setFilterOperation(GTEQ)
             .setValue1(Value.get(28))
@@ -188,7 +189,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void numericGTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField("age")
             .setFilterOperation(GT)
             .setValue1(Value.get(28))
@@ -206,7 +207,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void stringEQQualifier() {
-        Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier stringEqQualifier = new Qualifier(new QualifierBuilder()
             .setField("color")
             .setFilterOperation(EQ)
             .setValue1(Value.get(ORANGE))
@@ -225,7 +226,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void stringEQQualifierCaseSensitive() {
         Qualifier stringEqQualifier = new Qualifier(
-            new Qualifier.QualifierBuilder()
+            new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(EQ)
                 .setIgnoreCase(true)
@@ -246,7 +247,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void stringStartWithQualifier() {
         String bluePrefix = "blu";
 
-        Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier stringEqQualifier = new Qualifier(new QualifierBuilder()
             .setField("color")
             .setFilterOperation(STARTS_WITH)
             .setValue1(Value.get("blu"))
@@ -264,7 +265,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void stringStartWithEntireWordQualifier() {
-        Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier stringEqQualifier = new Qualifier(new QualifierBuilder()
             .setField("color")
             .setFilterOperation(STARTS_WITH)
             .setValue1(Value.get(BLUE))
@@ -285,7 +286,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String blue = "blu";
 
         Qualifier stringEqQualifier = new Qualifier(
-            new Qualifier.QualifierBuilder()
+            new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(STARTS_WITH)
                 .setIgnoreCase(true)
@@ -306,7 +307,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void stringEndsWithQualifier() {
         String greenEnding = GREEN.substring(2);
 
-        Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier stringEqQualifier = new Qualifier(new QualifierBuilder()
             .setField("color")
             .setFilterOperation(ENDS_WITH)
             .setValue1(Value.get(greenEnding))
@@ -324,7 +325,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void stringEndsWithEntireWordQualifier() {
-        Qualifier stringEqQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier stringEqQualifier = new Qualifier(new QualifierBuilder()
             .setField("color")
             .setFilterOperation(ENDS_WITH)
             .setValue1(Value.get(GREEN))
@@ -343,7 +344,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void betweenQualifier() {
         // Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
-        Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb = new QualifierBuilder()
             .setField("age")
             .setFilterOperation(BETWEEN)
             .setValue1(Value.get(26))
@@ -380,7 +381,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .filter(c -> c.contains("l"))
             .collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField("color")
             .setFilterOperation(CONTAINING)
             .setValue1(Value.get("l"))
@@ -403,7 +404,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         Map<String, Integer> expectedColorCounts = inColours.stream()
             .collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
-        Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier qualifier = new Qualifier(new QualifierBuilder()
             .setField("color")
             .setFilterOperation(IN)
             .setValue1(Value.get(inColours))
@@ -426,7 +427,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         String binName = "colorList";
 
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField(binName)
             .setFilterOperation(LIST_VAL_CONTAINING)
             .setValue1(Value.get(searchColor))
@@ -456,7 +457,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         String binName = "longList";
 
-        Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb = new QualifierBuilder()
             .setField(binName)
             .setFilterOperation(LIST_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
@@ -493,7 +494,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         String binName = "colorAgeMap";
 
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField(binName)
             .setFilterOperation(MAP_KEYS_CONTAIN)
             .setValue1(Value.get(searchColor))
@@ -521,7 +522,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         String binName = "ageColorMap";
 
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField(binName)
             .setFilterOperation(MAP_VALUES_CONTAIN)
             .setValue1(Value.get(searchColor))
@@ -550,7 +551,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         String binName = "ageColorMap";
 
-        Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb = new QualifierBuilder()
             .setField(binName)
             .setFilterOperation(MAP_KEYS_BETWEEN)
             .setValue1(Value.get(ageStart))
@@ -595,7 +596,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         String binName = "colorAgeMap";
 
-        Qualifier.QualifierBuilder qb = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb = new QualifierBuilder()
             .setField(binName)
             .setFilterOperation(MAP_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
@@ -635,7 +636,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void testContainingDoesNotUseSpecialCharacterQualifier() {
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField(SPECIAL_CHAR_BIN)
             .setFilterOperation(CONTAINING)
             .setValue1(Value.get(".*"))
@@ -653,7 +654,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void testStartWithDoesNotUseSpecialCharacterQualifier() {
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField(SPECIAL_CHAR_BIN)
             .setFilterOperation(STARTS_WITH)
             .setValue1(Value.get(".*"))
@@ -674,7 +675,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void testEndWithDoesNotUseSpecialCharacterQualifier() {
-        Qualifier AgeRangeQualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier AgeRangeQualifier = new Qualifier(new QualifierBuilder()
             .setField(SPECIAL_CHAR_BIN)
             .setFilterOperation(ENDS_WITH)
             .setValue1(Value.get(".*"))
@@ -696,7 +697,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void testEQIcaseDoesNotUseSpecialCharacter() {
         Qualifier AgeRangeQualifier = new Qualifier(
-            new Qualifier.QualifierBuilder()
+            new QualifierBuilder()
                 .setField(SPECIAL_CHAR_BIN)
                 .setFilterOperation(EQ)
                 .setIgnoreCase(true)
@@ -712,7 +713,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String[] specialStrings = new String[]{"[", "$", "\\", "^"};
         for (String specialString : specialStrings) {
             Qualifier AgeRangeQualifier = new Qualifier(
-                new Qualifier.QualifierBuilder()
+                new QualifierBuilder()
                     .setField(SPECIAL_CHAR_BIN)
                     .setFilterOperation(CONTAINING)
                     .setIgnoreCase(true)
@@ -741,7 +742,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             String expectedColor = "blue";
 
             Qualifier caseInsensitiveQual = new Qualifier(
-                new Qualifier.QualifierBuilder()
+                new QualifierBuilder()
                     .setField("color")
                     .setFilterOperation(FilterOperation.EQ)
                     .setIgnoreCase(ignoreCase)
@@ -766,11 +767,11 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String expectedColor = BLUE;
 
         // We are  expecting to get back all records where color == blue or (age == 28 || age == 29)
-        Qualifier.QualifierBuilder qb1 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb1 = new QualifierBuilder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(expectedColor));
-        Qualifier.QualifierBuilder qb2 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb2 = new QualifierBuilder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(28))
@@ -778,7 +779,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         Qualifier qual1 = new Qualifier(qb1);
         Qualifier qual2 = new Qualifier(qb2);
 
-        Qualifier.QualifierBuilder qbOr = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbOr = new QualifierBuilder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(qual1, qual2);
         Qualifier or = new Qualifier(qbOr);
@@ -810,20 +811,20 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void selectWithBetweenAndOrQualifiers() {
-        Qualifier.QualifierBuilder qbColorIsGreen = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbColorIsGreen = new QualifierBuilder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("green"));
-        Qualifier.QualifierBuilder qbAgeBetween28And29 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbAgeBetween28And29 = new QualifierBuilder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(28))
             .setValue2(Value.get(30)); // + 1 as upper limit is exclusive
-        Qualifier.QualifierBuilder qbAgeIs25 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbAgeIs25 = new QualifierBuilder()
             .setField("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(25));
-        Qualifier.QualifierBuilder qbNameIs696 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbNameIs696 = new QualifierBuilder()
             .setField("name")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("name:696"));
@@ -832,16 +833,16 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         Qualifier qualAgeIs25 = new Qualifier(qbAgeIs25);
         Qualifier qualNameIs696 = new Qualifier(qbNameIs696);
 
-        Qualifier.QualifierBuilder qbOr = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbOr = new QualifierBuilder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(qualAgeIs25, qualAgeBetween28And29, qualNameIs696);
-        Qualifier.QualifierBuilder qbOr2 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbOr2 = new QualifierBuilder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(qualColorIsGreen, qualNameIs696);
         Qualifier or = new Qualifier(qbOr);
         Qualifier or2 = new Qualifier(qbOr2);
 
-        Qualifier.QualifierBuilder qbAnd = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbAnd = new QualifierBuilder()
             .setFilterOperation(FilterOperation.AND)
             .setQualifiers(or, or2);
         Qualifier and = new Qualifier(qbAnd);

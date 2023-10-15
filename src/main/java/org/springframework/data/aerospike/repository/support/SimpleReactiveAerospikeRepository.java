@@ -26,8 +26,6 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static org.springframework.data.aerospike.repository.support.SimpleAerospikeRepository.validateQualifiers;
-
 /**
  * Stub implementation of {@link ReactiveAerospikeRepository}.
  *
@@ -158,7 +156,6 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     @Override
     public Flux<T> findByQualifiers(Qualifier... qualifiers) {
         Assert.notNull(qualifiers, "Qualifiers must not be null");
-        validateQualifiers(qualifiers);
         return operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers);
     }
 }

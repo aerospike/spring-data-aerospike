@@ -24,6 +24,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.QualifierBuilder;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -60,7 +61,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectOnIndexedLTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age < 26
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(LT)
                 .setValue1(Value.get(26))
@@ -91,7 +92,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectOnIndexedLTEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age <= 26
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(LTEQ)
                 .setValue1(Value.get(26))
@@ -125,7 +126,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age == 26
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(EQ)
                 .setValue1(Value.get(26))
@@ -148,7 +149,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age >= 28
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(GTEQ)
                 .setValue1(Value.get(28))
@@ -182,7 +183,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(GT)
                 .setValue1(Value.get(28))
@@ -204,7 +205,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     @Test
     public void selectOnIndexedStringEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(EQ)
                 .setValue1(Value.get(ORANGE))
@@ -259,7 +260,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectOnIndexWithQualifiers() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Filter filter = Filter.range("age", 25, 29);
-            Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qual1 = new Qualifier(new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(BLUE))
@@ -282,11 +283,11 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     @Test
     public void selectWithQualifiersOnly() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
-            Qualifier.QualifierBuilder qb1 = new Qualifier.QualifierBuilder()
+            QualifierBuilder qb1 = new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(GREEN));
-            Qualifier.QualifierBuilder qb2 = new Qualifier.QualifierBuilder()
+            QualifierBuilder qb2 = new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.BETWEEN)
                 .setValue1(Value.get(28))
@@ -317,7 +318,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             String rgnstr = String.format("{ \"type\": \"AeroCircle\", "
                     + "\"coordinates\": [[%.8f, %.8f], %f] }",
                 lon, lat, radius);
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField(GEO_BIN_NAME)
                 .setFilterOperation(GEO_WITHIN)
                 .setValue1(Value.getAsGeoJSON(rgnstr))

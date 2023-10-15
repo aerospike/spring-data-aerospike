@@ -1231,10 +1231,10 @@ public enum FilterOperation {
         }
         Exp[] listElementsExp = listOfLongs.stream().map(item ->
             new Qualifier(
-                new QualifierBuilder()
+                new MetadataQualifierBuilder()
                     .setMetadataField(getMetadataField(qualifierMap))
-                    .setFilterOperation(filterOperation)
                     .setValue1AsObj(item)
+                    .setFilterOperation(filterOperation)
             ).toFilterExp()
         ).toArray(Exp[]::new);
 

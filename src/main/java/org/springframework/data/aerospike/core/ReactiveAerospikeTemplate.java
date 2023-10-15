@@ -66,6 +66,7 @@ import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
+import static org.springframework.data.aerospike.query.Qualifier.validateQualifiers;
 
 /**
  * Primary implementation of {@link ReactiveAerospikeOperations}.
@@ -992,6 +993,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     <T, S> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                                     Qualifier... qualifiers) {
+        if (qualifiers != null && qualifiers.length > 0) {
+            validateQualifiers(qualifiers);
+        }
+
         String setName = getSetName(entityClass);
 
         if (targetClass != null) {

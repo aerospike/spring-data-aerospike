@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.QualifierBuilder;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
@@ -39,7 +40,7 @@ public class LoggingTests {
     @Test
     public void binIsIndexed() {
         IndexesCache indexesCacheMock = Mockito.mock(IndexesCache.class);
-        Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier qualifier = new Qualifier(new QualifierBuilder()
             .setField("testField")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("testValue1"))

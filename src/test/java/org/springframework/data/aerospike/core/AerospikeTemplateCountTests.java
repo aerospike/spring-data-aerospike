@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
@@ -62,7 +62,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         long vasyaCount = template.count
             (new Query
                     (new AerospikeCriteria
-                        (new Qualifier.QualifierBuilder()
+                        (new QualifierBuilder()
                             .setFilterOperation(FilterOperation.EQ)
                             .setField("firstName")
                             .setValue1(Value.get("vasili"))
@@ -73,17 +73,17 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
         assertThat(vasyaCount).isEqualTo(3);
 
-        Qualifier.QualifierBuilder qbIs1 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbIs1 = new QualifierBuilder()
             .setFilterOperation(FilterOperation.EQ)
             .setField("firstName")
             .setValue1(Value.get("vasili"));
 
-        Qualifier.QualifierBuilder qbIs2 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qbIs2 = new QualifierBuilder()
             .setFilterOperation(FilterOperation.EQ)
             .setField("age")
             .setValue1(Value.get(51));
 
-        long vasya51Count = template.count(new Query(new AerospikeCriteria(new Qualifier.QualifierBuilder()
+        long vasya51Count = template.count(new Query(new AerospikeCriteria(new QualifierBuilder()
                 .setFilterOperation(FilterOperation.AND)
                 .setQualifiers(qbIs1.build(), qbIs2.build())
             )
@@ -96,7 +96,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         long petyaCount = template.count
             (new Query
                     (new AerospikeCriteria
-                        (new Qualifier.QualifierBuilder()
+                        (new QualifierBuilder()
                             .setFilterOperation(FilterOperation.EQ)
                             .setField("firstName")
                             .setValue1(Value.get("petya"))
@@ -123,7 +123,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
         Query query1 = new Query
             (new AerospikeCriteria
-                (new Qualifier.QualifierBuilder()
+                (new QualifierBuilder()
                     .setField("firstName")
                     .setValue1(Value.get("vas"))
                     .setFilterOperation(FilterOperation.STARTS_WITH)
@@ -134,7 +134,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
         Query query2 = new Query
             (new AerospikeCriteria
-                (new Qualifier.QualifierBuilder()
+                (new QualifierBuilder()
                     .setField("firstName")
                     .setValue1(Value.get("VaS"))
                     .setFilterOperation(FilterOperation.STARTS_WITH)
@@ -153,7 +153,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
     public void countReturnsZeroIfNoDocumentsByProvidedCriteriaIsFound() {
         Query query1 = new Query
             (new AerospikeCriteria
-                (new Qualifier.QualifierBuilder()
+                (new QualifierBuilder()
                     .setField("firstName")
                     .setValue1(Value.get("nastyushka"))
                     .setFilterOperation(FilterOperation.STARTS_WITH)

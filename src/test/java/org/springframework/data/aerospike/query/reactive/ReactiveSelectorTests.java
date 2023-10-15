@@ -5,6 +5,7 @@ import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.KeyQualifier;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.QualifierBuilder;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -53,7 +54,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void selectEndssWith() {
-        Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier qual1 = new Qualifier(new QualifierBuilder()
             .setField("color")
             .setFilterOperation(ENDS_WITH)
             .setValue1(Value.get("e"))
@@ -71,7 +72,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void selectStartsWith() {
-        Qualifier startsWithQual = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier startsWithQual = new Qualifier(new QualifierBuilder()
             .setField("color")
             .setFilterOperation(STARTS_WITH)
             .setValue1(Value.get("bl"))
@@ -91,14 +92,14 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     public void startWithAndEqualIgnoreCaseReturnsAllItems() {
         boolean ignoreCase = true;
         Qualifier qual1 = new Qualifier(
-            new Qualifier.QualifierBuilder()
+            new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(EQ)
                 .setIgnoreCase(ignoreCase)
                 .setValue1(Value.get("BLUE"))
         );
         Qualifier qual2 = new Qualifier(
-            new Qualifier.QualifierBuilder()
+            new QualifierBuilder()
                 .setField("name")
                 .setFilterOperation(STARTS_WITH)
                 .setIgnoreCase(ignoreCase)
@@ -115,7 +116,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     public void equalIgnoreCaseReturnsNoItemsIfNoneMatched() {
         boolean ignoreCase = false;
         Qualifier qual1 = new Qualifier(
-            new Qualifier.QualifierBuilder()
+            new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(EQ)
                 .setIgnoreCase(ignoreCase)
@@ -131,7 +132,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     public void startWithIgnoreCaseReturnsNoItemsIfNoneMatched() {
         boolean ignoreCase = false;
         Qualifier qual1 = new Qualifier(
-            new Qualifier.QualifierBuilder()
+            new QualifierBuilder()
                 .setField("name")
                 .setFilterOperation(STARTS_WITH)
                 .setIgnoreCase(ignoreCase)
@@ -149,7 +150,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
         String expectedColor = "blue";
 
         Qualifier caseInsensitiveQual = new Qualifier(
-            new Qualifier.QualifierBuilder()
+            new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(EQ)
                 .setIgnoreCase(ignoreCase)
@@ -170,7 +171,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     public void stringEqualIgnoreCaseWorksRequiresFullMatch() {
         boolean ignoreCase = true;
         Qualifier caseInsensitiveQual = new Qualifier(
-            new Qualifier.QualifierBuilder()
+            new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(EQ)
                 .setIgnoreCase(ignoreCase)
@@ -191,7 +192,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
         String rgnstr = String.format("{ \"type\": \"AeroCircle\", "
                 + "\"coordinates\": [[%.8f, %.8f], %f] }",
             lon, lat, radius);
-        Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier qual1 = new Qualifier(new QualifierBuilder()
             .setField(GEO_BIN_NAME)
             .setFilterOperation(GEO_WITHIN)
             .setValue1(Value.getAsGeoJSON(rgnstr))

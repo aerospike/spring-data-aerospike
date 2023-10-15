@@ -70,6 +70,7 @@ import java.util.stream.Stream;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
+import static org.springframework.data.aerospike.query.Qualifier.validateQualifiers;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -1042,8 +1043,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     <T, S> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                                       Qualifier... qualifiers) {
-        String setName = getSetName(entityClass);
+        if (qualifiers != null && qualifiers.length > 0) {
+            validateQualifiers(qualifiers);
+        }
 
+        String setName = getSetName(entityClass);
         KeyRecordIterator recIterator;
 
         if (targetClass != null) {

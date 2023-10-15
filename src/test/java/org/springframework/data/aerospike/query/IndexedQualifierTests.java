@@ -50,7 +50,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     public void selectOnIndexedLTQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age < 26
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.LT)
                 .setValue1(Value.get(26))
@@ -69,7 +69,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     public void selectOnIndexedLTEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age <= 26
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.LTEQ)
                 .setValue1(Value.get(26))
@@ -91,7 +91,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     public void selectOnIndexedNumericEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age == 26
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(26))
@@ -110,7 +110,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     public void selectOnIndexWithQualifiers() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Filter filter = Filter.range("age", 25, 29);
-            Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qual1 = new Qualifier(new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(BLUE))
@@ -129,7 +129,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     public void selectOnIndexedGTEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age >= 28
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.GTEQ)
                 .setValue1(Value.get(28))
@@ -150,7 +150,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     @Test
     public void selectOnIndexedGTQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.GT)
                 .setValue1(Value.get(28))
@@ -168,7 +168,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     @Test
     public void selectOnIndexedStringEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = new Qualifier(new QualifierBuilder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(ORANGE))
@@ -194,7 +194,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
                         + "\"coordinates\": [[%.8f, %.8f], %f] }",
                     lon, lat, radius);
 
-                Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+                Qualifier qualifier = new Qualifier(new QualifierBuilder()
                     .setField(GEO_BIN_NAME)
                     .setFilterOperation(FilterOperation.GEO_WITHIN)
                     .setValue1(Value.getAsGeoJSON(rgnstr))
@@ -238,11 +238,11 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 
     @Test
     public void selectWithQualifiersOnly() {
-        Qualifier.QualifierBuilder qb1 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb1 = new QualifierBuilder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(GREEN));
-        Qualifier.QualifierBuilder qb2 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb2 = new QualifierBuilder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(28))
@@ -262,11 +262,11 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
 
     @Test
     public void selectWithAndQualifier() {
-        Qualifier.QualifierBuilder qb1 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb1 = new QualifierBuilder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(GREEN));
-        Qualifier.QualifierBuilder qb2 = new Qualifier.QualifierBuilder()
+        QualifierBuilder qb2 = new QualifierBuilder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(28))
@@ -278,7 +278,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
             Qualifier colorIsGreen = new Qualifier(qb1);
             Qualifier ageBetween28And29 = new Qualifier(qb2);
 
-            Qualifier.QualifierBuilder qbAnd = new Qualifier.QualifierBuilder()
+            QualifierBuilder qbAnd = new QualifierBuilder()
                 .setFilterOperation(FilterOperation.AND)
                 .setQualifiers(colorIsGreen, ageBetween28And29);
             Qualifier qualifier = new Qualifier(qbAnd);
