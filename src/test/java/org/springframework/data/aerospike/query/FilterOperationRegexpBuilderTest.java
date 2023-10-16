@@ -17,6 +17,7 @@
 package org.springframework.data.aerospike.query;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,14 +25,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 /*
  * Tests to ensure that Qualifiers are built successfully for non indexed bins.
  */
-public class QualifierRegexpBuilderTest {
+public class FilterOperationRegexpBuilderTest {
 
     @Test
     public void escapesBackslash() {
         String inputStr = "a\\b";
         String expectedStr = "a\\\\b"; // a\\b
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.escapeBRERegexp(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -41,7 +42,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "a.b";
         String expectedStr = "a\\.b"; // a\.b
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.escapeBRERegexp(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -51,7 +52,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "a[b";
         String expectedStr = "a\\[b"; // a\[b
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.escapeBRERegexp(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -61,7 +62,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "a*b";
         String expectedStr = "a\\*b"; // a\*b
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.escapeBRERegexp(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -71,7 +72,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "a^b";
         String expectedStr = "a\\^b"; // a\^b
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.escapeBRERegexp(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -81,7 +82,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "a$b";
         String expectedStr = "a\\$b"; // a\$b
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.escapeBRERegexp(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -90,7 +91,7 @@ public class QualifierRegexpBuilderTest {
     public void doesNotEscapeOtherCharacter() {
         String inputStr = "abcdefghijklmnopqrstuvwxyz";
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.escapeBRERegexp(inputStr);
 
         assertThat(escapedStr).isEqualTo(inputStr);
     }
@@ -100,7 +101,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "\\^aerospike$"; // \\\^aerospike\$
         String expectedStr = "\\\\\\^aerospike\\$"; // \^aerospike\$
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.escapeBRERegexp(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.escapeBRERegexp(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -110,7 +111,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "*aero";
         String expectedStr = "^\\*aero";
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.getStartsWith(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.getStartsWith(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -120,7 +121,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "*spike*";
         String expectedStr = "\\*spike\\*$";
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.getEndsWith(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.getEndsWith(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -130,7 +131,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "*erospi*";
         String expectedStr = "\\*erospi\\*"; // \*erospi\*
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.getContaining(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.getContaining(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }
@@ -140,7 +141,7 @@ public class QualifierRegexpBuilderTest {
         String inputStr = "\\*aerospike*";
         String expectedStr = "^\\\\\\*aerospike\\*$"; // ^\\\*aerospike\*$
 
-        String escapedStr = Qualifier.QualifierRegexpBuilder.getStringEquals(inputStr);
+        String escapedStr = FilterOperationRegexpBuilder.getStringEquals(inputStr);
 
         assertThat(escapedStr).isEqualTo(expectedStr);
     }

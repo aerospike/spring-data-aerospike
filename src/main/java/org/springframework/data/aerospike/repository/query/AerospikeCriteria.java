@@ -24,7 +24,7 @@ import org.springframework.data.aerospike.query.Qualifier;
  */
 public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 
-    public AerospikeCriteria(QualifierBuilder builder) {
+    public AerospikeCriteria(Qualifier.Builder builder) {
         super(builder);
     }
 

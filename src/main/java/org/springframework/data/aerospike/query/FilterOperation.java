@@ -11,7 +11,6 @@ import com.aerospike.client.exp.MapExp;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
-import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.util.Pair;
 import org.springframework.util.StringUtils;
@@ -31,7 +30,20 @@ import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.NULL;
 import static com.aerospike.client.command.ParticleType.STRING;
-import static org.springframework.data.aerospike.query.Qualifier.*;
+import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
+import static org.springframework.data.aerospike.query.Qualifier.FIELD;
+import static org.springframework.data.aerospike.query.Qualifier.IGNORE_CASE;
+import static org.springframework.data.aerospike.query.Qualifier.METADATA_FIELD;
+import static org.springframework.data.aerospike.query.Qualifier.OPERATION;
+import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
+import static org.springframework.data.aerospike.query.Qualifier.VALUE1;
+import static org.springframework.data.aerospike.query.Qualifier.VALUE2;
+import static org.springframework.data.aerospike.query.Qualifier.VALUE3;
+import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getContaining;
+import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getEndsWith;
+import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getNotContaining;
+import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getStartsWith;
+import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getStringEquals;
 
 public enum FilterOperation {
 
@@ -127,7 +139,7 @@ public enum FilterOperation {
                     case STRING -> {
                         if (ignoreCase(qualifierMap)) {
                             String equalsRegexp =
-                                QualifierRegexpBuilder.getStringEquals(getValue1(qualifierMap).toString());
+                                getStringEquals(getValue1(qualifierMap).toString());
                             yield Exp.regexCompare(equalsRegexp, RegexFlag.ICASE,
                                 Exp.stringBin(getField(qualifierMap)));
                         } else {
@@ -172,7 +184,7 @@ public enum FilterOperation {
                     case STRING -> {
                         if (ignoreCase(qualifierMap)) {
                             String equalsRegexp =
-                                QualifierRegexpBuilder.getStringEquals(getValue1(qualifierMap).toString());
+                                getStringEquals(getValue1(qualifierMap).toString());
                             Exp regexCompare = Exp.not(Exp.regexCompare(equalsRegexp, RegexFlag.ICASE,
                                 Exp.stringBin(getField(qualifierMap))));
                             yield Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))), regexCompare);
@@ -360,7 +372,7 @@ public enum FilterOperation {
     STARTS_WITH {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            String startWithRegexp = QualifierRegexpBuilder.getStartsWith(getValue1(qualifierMap).toString());
+            String startWithRegexp = getStartsWith(getValue1(qualifierMap).toString());
             return Exp.regexCompare(startWithRegexp, regexFlags(qualifierMap), Exp.stringBin(getField(qualifierMap)));
         }
 
@@ -372,7 +384,7 @@ public enum FilterOperation {
     ENDS_WITH {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            String endWithRegexp = QualifierRegexpBuilder.getEndsWith(getValue1(qualifierMap).toString());
+            String endWithRegexp = getEndsWith(getValue1(qualifierMap).toString());
             return Exp.regexCompare(endWithRegexp, regexFlags(qualifierMap), Exp.stringBin(getField(qualifierMap)));
         }
 
@@ -384,7 +396,7 @@ public enum FilterOperation {
     CONTAINING {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            String containingRegexp = QualifierRegexpBuilder.getContaining(getValue1(qualifierMap).toString());
+            String containingRegexp = getContaining(getValue1(qualifierMap).toString());
             return Exp.regexCompare(containingRegexp, regexFlags(qualifierMap), Exp.stringBin(getField(qualifierMap)));
         }
 
@@ -396,7 +408,7 @@ public enum FilterOperation {
     NOT_CONTAINING {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            String notContainingRegexp = QualifierRegexpBuilder.getNotContaining(getValue1(qualifierMap).toString());
+            String notContainingRegexp = getNotContaining(getValue1(qualifierMap).toString());
             return Exp.or(Exp.not(Exp.binExists(getField(qualifierMap))),
                 Exp.not(Exp.regexCompare(notContainingRegexp, regexFlags(qualifierMap),
                     Exp.stringBin(getField(qualifierMap)))));
@@ -660,7 +672,7 @@ public enum FilterOperation {
     MAP_VAL_STARTS_WITH_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            String startWithRegexp = QualifierRegexpBuilder.getStartsWith(getValue1(qualifierMap).toString());
+            String startWithRegexp = getStartsWith(getValue1(qualifierMap).toString());
 
             return Exp.regexCompare(startWithRegexp, regexFlags(qualifierMap),
                 MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(qualifierMap).toString()),
@@ -694,7 +706,7 @@ public enum FilterOperation {
     MAP_VAL_ENDS_WITH_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            String endWithRegexp = QualifierRegexpBuilder.getEndsWith(getValue1(qualifierMap).toString());
+            String endWithRegexp = getEndsWith(getValue1(qualifierMap).toString());
 
             return Exp.regexCompare(endWithRegexp, regexFlags(qualifierMap),
                 MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(qualifierMap).toString()),
@@ -710,7 +722,7 @@ public enum FilterOperation {
     MAP_VAL_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            String containingRegexp = QualifierRegexpBuilder.getContaining(getValue1(qualifierMap).toString());
+            String containingRegexp = getContaining(getValue1(qualifierMap).toString());
             Exp bin = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(qualifierMap).toString()),
                 Exp.mapBin(getField(qualifierMap)));
             return Exp.regexCompare(containingRegexp, regexFlags(qualifierMap), bin);
@@ -724,7 +736,7 @@ public enum FilterOperation {
     MAP_VAL_NOT_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            String containingRegexp = QualifierRegexpBuilder.getContaining(getValue1(qualifierMap).toString());
+            String containingRegexp = getContaining(getValue1(qualifierMap).toString());
             Exp mapIsNull = Exp.not(Exp.binExists(getField(qualifierMap)));
             Exp mapKeysNotContaining = Exp.eq(
                 MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getValue2(qualifierMap).toString()),
@@ -1577,10 +1589,6 @@ public enum FilterOperation {
 
     protected static String getDotPath(Map<String, Object> qualifierMap) {
         return (String) qualifierMap.get(DOT_PATH);
-    }
-
-    protected static MappingAerospikeConverter getConverter(Map<String, Object> qualifierMap) {
-        return (MappingAerospikeConverter) qualifierMap.get(CONVERTER);
     }
 
     public abstract Exp filterExp(Map<String, Object> qualifierMap);
