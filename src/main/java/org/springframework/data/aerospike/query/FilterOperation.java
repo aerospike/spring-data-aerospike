@@ -75,12 +75,12 @@ public enum FilterOperation {
                 Value value1 = getValue1AsCollectionOrFail(qualifierMap);
                 Collection<?> collection = (Collection<?>) value1.getObject();
                 Exp[] arrElementsExp = collection.stream().map(item ->
-                    new Qualifier(
-                        new QualifierBuilder()
-                            .setField(getField(qualifierMap))
-                            .setFilterOperation(FilterOperation.EQ)
-                            .setValue1(Value.get(item))
-                    ).toFilterExp()
+                    Qualifier.builder()
+                        .setField(getField(qualifierMap))
+                        .setFilterOperation(FilterOperation.EQ)
+                        .setValue1(Value.get(item))
+                        .build()
+                        .toFilterExp()
                 ).toArray(Exp[]::new);
 
                 return Exp.or(arrElementsExp);
@@ -100,12 +100,12 @@ public enum FilterOperation {
                 Value value1 = getValue1AsCollectionOrFail(qualifierMap);
                 Collection<?> collection = (Collection<?>) value1.getObject();
                 Exp[] arrElementsExp = collection.stream().map(item ->
-                    new Qualifier(
-                        new QualifierBuilder()
-                            .setField(getField(qualifierMap))
-                            .setFilterOperation(FilterOperation.NOTEQ)
-                            .setValue1(Value.get(item))
-                    ).toFilterExp()
+                    Qualifier.builder()
+                        .setField(getField(qualifierMap))
+                        .setFilterOperation(FilterOperation.NOTEQ)
+                        .setValue1(Value.get(item))
+                        .build()
+                        .toFilterExp()
                 ).toArray(Exp[]::new);
 
                 return Exp.and(arrElementsExp);
@@ -587,7 +587,8 @@ public enum FilterOperation {
             validateEquality(getValue1(qualifierMap).getType(), getValue3(qualifierMap).getType(), qualifierMap,
                 "MAP_VAL_BETWEEN_BY_KEY");
 
-            Exp value1, value2;
+            Exp value1;
+            Exp value2;
             Exp.Type type;
             switch (getValue1(qualifierMap).getType()) {
                 case INTEGER -> {
@@ -1212,11 +1213,12 @@ public enum FilterOperation {
     /**
      * FilterOperations that require both sIndexFilter and FilterExpression
      */
-    public static final List<FilterOperation> dualFilterOperations = Arrays.asList(
+    protected static final List<FilterOperation> dualFilterOperations = Arrays.asList(
         MAP_VAL_EQ_BY_KEY, MAP_VAL_GT_BY_KEY, MAP_VAL_GTEQ_BY_KEY, MAP_VAL_LT_BY_KEY, MAP_VAL_LTEQ_BY_KEY,
         MAP_VAL_BETWEEN_BY_KEY
     );
 
+    @SuppressWarnings("unchecked")
     private static Exp processMetadataFieldInOrNot(Map<String, Object> qualifierMap, boolean notIn) {
         FilterOperation filterOperation = notIn ? NOTEQ : EQ;
         Object value1 = getValue1Object(qualifierMap);
@@ -1230,12 +1232,12 @@ public enum FilterOperation {
                 "type List<Long>");
         }
         Exp[] listElementsExp = listOfLongs.stream().map(item ->
-            new Qualifier(
-                new MetadataQualifierBuilder()
-                    .setMetadataField(getMetadataField(qualifierMap))
-                    .setFilterOperation(filterOperation)
-                    .setValue1AsObj(item)
-            ).toFilterExp()
+            Qualifier.metadataBuilder()
+                .setMetadataField(getMetadataField(qualifierMap))
+                .setFilterOperation(filterOperation)
+                .setValue1AsObj(item)
+                .build()
+                .toFilterExp()
         ).toArray(Exp[]::new);
 
         return notIn ? Exp.and(listElementsExp) : Exp.or(listElementsExp);

@@ -17,7 +17,6 @@
 package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.query.QualifierBuilder;
 
 /**
  * @author Michael Zhang

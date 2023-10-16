@@ -25,7 +25,6 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.query.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyPath;
@@ -142,7 +141,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
     public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
                                          Iterator<?> parameters, FilterOperation op) {
-        QualifierBuilder qb = new QualifierBuilder();
+        Qualifier.QualifierBuilder qb = Qualifier.builder();
         String fieldName = getFieldName(part.getProperty().getSegment(), property);
         String dotPath = null;
         Object value3 = null;
@@ -284,13 +283,13 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         return segmentName;
     }
 
-    private AerospikeCriteria aerospikeCriteriaAndConcatenated(List<Object> params, QualifierBuilder qb,
+    private AerospikeCriteria aerospikeCriteriaAndConcatenated(List<Object> params, Qualifier.QualifierBuilder qb,
                                                                Part part, String fieldName, FilterOperation op,
                                                                String dotPath) {
         return aerospikeCriteriaAndConcatenated(params, qb, part, fieldName, op, dotPath, false);
     }
 
-    private AerospikeCriteria aerospikeCriteriaAndConcatenated(List<Object> params, QualifierBuilder qb,
+    private AerospikeCriteria aerospikeCriteriaAndConcatenated(List<Object> params, Qualifier.QualifierBuilder qb,
                                                                Part part, String fieldName, FilterOperation op,
                                                                String dotPath, boolean containingMapKeyValuePairs) {
         Qualifier[] qualifiers;
@@ -298,13 +297,12 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             qualifiers = new Qualifier[params.size() / 2]; // keys/values qty must be even
             for (int i = 0, j = 0; i < params.size(); i += 2) {
                 setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
-                Qualifier qualifier = setQualifierBuilderValues(qb, fieldName, op, part, params.get(i),
+                qualifiers[j++] = setQualifierBuilderValues(qb, fieldName, op, part, params.get(i),
                     null, null, dotPath).build();
-                qualifiers[j++] = qualifier;
             }
 
             return new AerospikeCriteria(
-                new QualifierBuilder()
+                Qualifier.builder()
                     .setQualifiers(qualifiers)
                     .setFilterOperation(FilterOperation.AND)
             );
@@ -312,20 +310,19 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             qualifiers = new Qualifier[params.size()];
             for (int i = 0; i < params.size(); i++) {
                 setQbValuesForMapByKey(qb, params.get(i), params.get(i));
-                Qualifier qualifier = setQualifierBuilderValues(qb, fieldName, op, part, params.get(i),
+                qualifiers[i] = setQualifierBuilderValues(qb, fieldName, op, part, params.get(i),
                     null, null, dotPath).build();
-                qualifiers[i] = qualifier;
             }
         }
 
         return new AerospikeCriteria(
-            new QualifierBuilder()
+            Qualifier.builder()
                 .setQualifiers(qualifiers)
                 .setFilterOperation(FilterOperation.AND)
         );
     }
 
-    private QualifierBuilder setQualifierBuilderValues(QualifierBuilder qb, String fieldName,
+    private Qualifier.QualifierBuilder setQualifierBuilderValues(Qualifier.QualifierBuilder qb, String fieldName,
                                                                  FilterOperation op, Part part, Object value1,
                                                                  Object value2, Object value3, String dotPath) {
         qb.setField(fieldName)
@@ -354,14 +351,14 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         }
     }
 
-    private void setNotNullQbValues(QualifierBuilder qb, Object v1, Object v2, Object v3, String dotPath) {
+    private void setNotNullQbValues(Qualifier.QualifierBuilder qb, Object v1, Object v2, Object v3, String dotPath) {
         if (v1 != null && !qb.hasValue1()) qb.setValue1(Value.get(v1));
         if (v2 != null && !qb.hasValue2()) qb.setValue2(Value.get(v2));
         if (v3 != null && !qb.hasValue3()) qb.setValue3(Value.get(v3));
         if (dotPath != null && !qb.hasDotPath()) qb.setDotPath(dotPath);
     }
 
-    private void setQbValuesForMapByKey(QualifierBuilder qb, Object key, Object value) {
+    private void setQbValuesForMapByKey(Qualifier.QualifierBuilder qb, Object key, Object value) {
         qb.setValue1(Value.get(value)); // contains value
         qb.setValue2(Value.get(key)); // contains key
     }
@@ -382,7 +379,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             context.getPersistentPropertyPath(part.getProperty());
         AerospikePersistentProperty property = path.getLeafProperty();
 
-        return new AerospikeCriteria(new QualifierBuilder()
+        return new AerospikeCriteria(Qualifier.builder()
             .setFilterOperation(FilterOperation.AND)
             .setQualifiers(base, create(part, property, iterator))
         );
@@ -390,7 +387,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
     @Override
     protected AerospikeCriteria or(AerospikeCriteria base, AerospikeCriteria criteria) {
-        return new AerospikeCriteria(new QualifierBuilder()
+        return new AerospikeCriteria(Qualifier.builder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(base, criteria)
         );

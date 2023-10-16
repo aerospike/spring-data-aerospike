@@ -33,7 +33,7 @@ public class ExpiryQualifier extends Qualifier {
     private static final long serialVersionUID = 13172814137477042L;
 
     public ExpiryQualifier(FilterOperation op, Value value) {
-        super(new QualifierBuilder()
+        super(Qualifier.builder()
             .setField(QueryEngine.Meta.EXPIRATION.toString())
             .setFilterOperation(op)
             .setValue1(value)

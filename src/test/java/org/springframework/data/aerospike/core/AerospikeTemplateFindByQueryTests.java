@@ -29,7 +29,6 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.query.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
@@ -461,7 +460,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
             "CustomCollectionClass_field", fieldName, IndexType.STRING);
 
         // find by qualifiers, no predefined secondary index filter
-        Qualifier qualifier = new QualifierBuilder()
+        Qualifier qualifier = Qualifier.builder()
             .setField(fieldName)
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(fieldValue1))
@@ -477,17 +476,17 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         assertThat(result2).containsOnly(doc1);
 
         // find by a complex qualifier
-        Qualifier dataEqFieldValue1 = new QualifierBuilder()
+        Qualifier dataEqFieldValue1 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
             .setField(fieldName)
             .setValue1(Value.get(fieldValue1))
             .build();
-        Qualifier dataEqFieldValue2 = new QualifierBuilder()
+        Qualifier dataEqFieldValue2 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
             .setField(fieldName)
             .setValue1(Value.get(fieldValue2))
             .build();
-        Qualifier qualifierOr = new QualifierBuilder()
+        Qualifier qualifierOr = Qualifier.builder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(dataEqFieldValue1, dataEqFieldValue2)
             // excludeFilter in the upmost parent qualifier should be set to true in case there are inner qualifiers

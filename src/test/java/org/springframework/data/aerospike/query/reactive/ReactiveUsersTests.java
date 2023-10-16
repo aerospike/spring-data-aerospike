@@ -5,7 +5,6 @@ import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.query.QualifierBuilder;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -16,11 +15,12 @@ public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void usersInNorthRegion() {
-        Qualifier qualifier = new Qualifier(new QualifierBuilder()
+        Qualifier qualifier = Qualifier.builder()
             .setField("region")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("n"))
-        );
+            .build();
+
         Flux<KeyRecord> flux = queryEngine.select(namespace, USERS_SET, null, qualifier);
 
         StepVerifier.create(flux.collectList())

@@ -35,7 +35,7 @@ public class KeyQualifier extends Qualifier {
     boolean hasDigest = false;
 
     public KeyQualifier(Value value) {
-        super(new QualifierBuilder()
+        super(Qualifier.builder()
             .setField(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(value)
@@ -43,7 +43,7 @@ public class KeyQualifier extends Qualifier {
     }
 
     public KeyQualifier(byte[] digest) {
-        super(new QualifierBuilder()
+        super(Qualifier.builder()
             .setField(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(null)

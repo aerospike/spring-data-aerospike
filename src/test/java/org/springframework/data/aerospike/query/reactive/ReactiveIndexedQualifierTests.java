@@ -24,7 +24,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.query.QualifierBuilder;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -61,11 +60,12 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectOnIndexedLTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age < 26
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Qualifier qualifier = new Qualifier(new QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(LT)
                 .setValue1(Value.get(26))
-            );
+                .build();
+
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             StepVerifier.create(flux.collectList())
@@ -92,11 +92,12 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectOnIndexedLTEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age <= 26
-            Qualifier qualifier = new Qualifier(new QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(LTEQ)
                 .setValue1(Value.get(26))
-            );
+                .build();
+
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             StepVerifier.create(flux.collectList())
@@ -126,11 +127,12 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age == 26
-            Qualifier qualifier = new Qualifier(new QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(EQ)
                 .setValue1(Value.get(26))
-            );
+                .build();
+
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -149,11 +151,12 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age >= 28
-            Qualifier qualifier = new Qualifier(new QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(GTEQ)
                 .setValue1(Value.get(28))
-            );
+                .build();
+
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             StepVerifier.create(flux.collectList())
@@ -183,11 +186,12 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
-            Qualifier qualifier = new Qualifier(new QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(GT)
                 .setValue1(Value.get(28))
-            );
+                .build();
+
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             StepVerifier.create(flux.collectList())
@@ -205,11 +209,12 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     @Test
     public void selectOnIndexedStringEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
-            Qualifier qualifier = new Qualifier(new QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(EQ)
                 .setValue1(Value.get(ORANGE))
-            );
+                .build();
+
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             StepVerifier.create(flux.collectList())
@@ -260,11 +265,12 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectOnIndexWithQualifiers() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Filter filter = Filter.range("age", 25, 29);
-            Qualifier qual1 = new Qualifier(new QualifierBuilder()
+            Qualifier qual1 = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(BLUE))
-            );
+                .build();
+
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter, qual1);
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -283,17 +289,18 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     @Test
     public void selectWithQualifiersOnly() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
-            QualifierBuilder qb1 = new QualifierBuilder()
+            Qualifier qual1 = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
-                .setValue1(Value.get(GREEN));
-            QualifierBuilder qb2 = new QualifierBuilder()
+                .setValue1(Value.get(GREEN))
+                .build();
+            Qualifier qual2 = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.BETWEEN)
                 .setValue1(Value.get(28))
-                .setValue2(Value.get(29));
-            Qualifier qual1 = new Qualifier(qb1);
-            Qualifier qual2 = new Qualifier(qb2);
+                .setValue2(Value.get(29))
+                .build();
+
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qual1, qual2);
 
             StepVerifier.create(flux.collectList())
@@ -318,11 +325,12 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             String rgnstr = String.format("{ \"type\": \"AeroCircle\", "
                     + "\"coordinates\": [[%.8f, %.8f], %f] }",
                 lon, lat, radius);
-            Qualifier qualifier = new Qualifier(new QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField(GEO_BIN_NAME)
                 .setFilterOperation(GEO_WITHIN)
                 .setValue1(Value.getAsGeoJSON(rgnstr))
-            );
+                .build();
+
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_GEO_SET, null, qualifier);
 
             StepVerifier.create(flux.collectList())

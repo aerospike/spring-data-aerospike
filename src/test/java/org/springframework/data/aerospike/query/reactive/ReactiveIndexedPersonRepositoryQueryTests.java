@@ -11,9 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.MetadataQualifierBuilder;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.query.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
@@ -33,8 +31,6 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveIntegrationTests {
 
-    @Autowired
-    ReactiveIndexedPersonRepository reactiveRepository;
     static final IndexedPerson alain = IndexedPerson.builder().id(nextId()).firstName("Alain").lastName("Sebastian")
         .age(42).strings(Arrays.asList("str1", "str2"))
         .address(new Address("Foo Street 1", 1, "C0123", "Bar")).build();
@@ -54,6 +50,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         .intMap(of("key1", 0, "key2", 1)).ints(Arrays.asList(450, 550, 990)).build();
     public static final List<IndexedPerson> allIndexedPersons = Arrays.asList(alain, luc, lilly, daniel, petra,
         emilien);
+    @Autowired
+    ReactiveIndexedPersonRepository reactiveRepository;
     @Autowired
     ReactiveBlockingAerospikeTestOperations reactiveBlockingAerospikeTestOperations;
 
@@ -246,9 +244,9 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @Test
     public void findByMapKeyValueContainingInt() {
         assertThat(emilien.getIntMap().containsKey("key1")).isTrue();
-        assertThat(emilien.getIntMap().get("key1") == 0).isTrue();
+        assertThat(emilien.getIntMap().get("key1")).isZero();
         assertThat(lilly.getIntMap().containsKey("key1")).isTrue();
-        assertThat(lilly.getIntMap().get("key1") == 0).isFalse();
+        assertThat(lilly.getIntMap().get("key1")).isNotZero();
 
         List<IndexedPerson> results = reactiveRepository.findByIntMapContaining("key1", 0)
             .subscribeOn(Schedulers.parallel()).collectList().block();
@@ -259,9 +257,9 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @Test
     public void findByMapKeyValueGreaterThan() {
         assertThat(emilien.getIntMap().containsKey("key2")).isTrue();
-        assertThat(emilien.getIntMap().get("key2") > 0).isTrue();
+        assertThat(emilien.getIntMap().get("key2")).isPositive();
         assertThat(lilly.getIntMap().containsKey("key2")).isTrue();
-        assertThat(lilly.getIntMap().get("key2") > 0).isTrue();
+        assertThat(lilly.getIntMap().get("key2")).isPositive();
 
         List<IndexedPerson> results = reactiveRepository.findByIntMapGreaterThan("key2", 0)
             .subscribeOn(Schedulers.parallel()).collectList().block();
@@ -272,9 +270,9 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @Test
     public void findByMapKeyValueLessThanOrEqual() {
         assertThat(emilien.getIntMap().containsKey("key2")).isTrue();
-        assertThat(emilien.getIntMap().get("key2") <= 1).isTrue();
+        assertThat(emilien.getIntMap().get("key2")).isLessThanOrEqualTo(1);
         assertThat(lilly.getIntMap().containsKey("key2")).isTrue();
-        assertThat(lilly.getIntMap().get("key2") <= 1).isFalse();
+        assertThat(lilly.getIntMap().get("key2")).isGreaterThan(1);
 
         List<IndexedPerson> results = reactiveRepository.findByIntMapLessThanEqual("key2", 1)
             .subscribeOn(Schedulers.parallel()).collectList().block();
@@ -285,8 +283,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     public void findByMapKeyValueBetween() {
         assertThat(lilly.getIntMap().containsKey("key2")).isTrue();
         assertThat(emilien.getIntMap().containsKey("key2")).isTrue();
-        assertThat(lilly.getIntMap().get("key2") >= 0).isTrue();
-        assertThat(emilien.getIntMap().get("key2") >= 0).isTrue();
+        assertThat(lilly.getIntMap().get("key2")).isNotNegative();
+        assertThat(emilien.getIntMap().get("key2")).isNotNegative();
 
         List<IndexedPerson> results = reactiveRepository.findByIntMapBetween("key2", 0, 1)
             .subscribeOn(Schedulers.parallel()).collectList().block();
@@ -297,7 +295,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @Test
     public void findPersonsByMetadata() {
         // creating a condition "since_update_time metadata value is less than 50 seconds"
-        Qualifier sinceUpdateTimeLt10Seconds = new MetadataQualifierBuilder()
+        Qualifier sinceUpdateTimeLt10Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(50000L)
@@ -306,7 +304,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
             .containsAll(allIndexedPersons);
 
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
-        Qualifier sinceUpdateTimeBetween1And50000 = new MetadataQualifierBuilder()
+        Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1AsObj(1L)
@@ -321,14 +319,14 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Iterable<IndexedPerson> result;
 
         // creating a condition "since_update_time metadata value is greater than 1 millisecond"
-        Qualifier sinceUpdateTimeGt1 = new MetadataQualifierBuilder()
+        Qualifier sinceUpdateTimeGt1 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
             .setValue1AsObj(1L)
             .build();
 
         // creating a condition "since_update_time metadata value is less than 50 seconds"
-        Qualifier sinceUpdateTimeLt50Seconds = new MetadataQualifierBuilder()
+        Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(50000L)
@@ -337,7 +335,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
             .containsAll(allIndexedPersons);
 
         // creating a condition "since_update_time metadata value is between 1 and 50 seconds"
-        Qualifier sinceUpdateTimeBetween1And50000 = new MetadataQualifierBuilder()
+        Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1AsObj(1L)
@@ -345,14 +343,14 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
             .build();
 
         // creating a condition "firsName is equal to Petra"
-        Qualifier firstNameEqPetra = new QualifierBuilder()
+        Qualifier firstNameEqPetra = Qualifier.builder()
             .setField("firstName")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("Petra"))
             .build();
 
         // creating a condition "age is equal to 34"
-        Qualifier ageEq34 = new QualifierBuilder()
+        Qualifier ageEq34 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(34))
@@ -361,7 +359,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         assertThat(result).containsOnly(petra);
 
         // creating a condition "age is greater than 34"
-        Qualifier ageGt34 = new QualifierBuilder()
+        Qualifier ageGt34 = Qualifier.builder()
             .setFilterOperation(FilterOperation.GT)
             .setField("age")
             .setValue1(Value.get(34))
@@ -377,7 +375,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
         // conditions "age == 34", "firstName is Petra" and "since_update_time metadata value is less than 50 seconds"
         // are combined with OR
-        Qualifier orWide = new QualifierBuilder()
+        Qualifier orWide = Qualifier.builder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(ageEq34, firstNameEqPetra, sinceUpdateTimeLt50Seconds)
             .build();
@@ -385,14 +383,14 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         assertThat(result).containsAll(allIndexedPersons);
 
         // conditions "age == 34" and "firstName is Petra" are combined with OR
-        Qualifier orNarrow = new QualifierBuilder()
+        Qualifier orNarrow = Qualifier.builder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(ageEq34, firstNameEqPetra)
             .build();
         result = reactiveRepository.findByQualifiers(orNarrow).collectList().block();
         assertThat(result).containsOnly(petra);
 
-        result = reactiveRepository.findByQualifiers(new QualifierBuilder()
+        result = reactiveRepository.findByQualifiers(Qualifier.builder()
             .setFilterOperation(FilterOperation.AND)
             .setQualifiers(ageEq34, ageGt34)
             .build()).collectList().block();
@@ -404,7 +402,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         assertThat(result).isEmpty();
 
         // conditions "age == 34" and "age > 34" are combined with OR
-        Qualifier ageEqOrGt34 = new QualifierBuilder()
+        Qualifier ageEqOrGt34 = Qualifier.builder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(ageEq34, ageGt34)
             .build();
@@ -420,7 +418,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
         // another way of running the same query
-        Qualifier orCombinedWithAnd = new QualifierBuilder()
+        Qualifier orCombinedWithAnd = Qualifier.builder()
             .setFilterOperation(FilterOperation.AND)
             .setQualifiers(orWide, orNarrow)
             .build();
