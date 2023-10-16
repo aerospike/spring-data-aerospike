@@ -19,6 +19,7 @@ import com.aerospike.client.query.IndexType;
 import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
@@ -150,5 +151,11 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
 
     public void deleteIndex(Class<T> domainType, String indexName) {
         operations.deleteIndex(domainType, indexName);
+    }
+
+    @Override
+    public Flux<T> findByQualifiers(Qualifier... qualifiers) {
+        Assert.notNull(qualifiers, "Qualifiers must not be null");
+        return operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers);
     }
 }

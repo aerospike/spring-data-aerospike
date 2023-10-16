@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
@@ -37,6 +39,7 @@ import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE_CONTAINING;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
@@ -1210,6 +1213,181 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         List<Person> result = repository.findByEmailAddress(email);
         assertThat(result).containsOnly(carter);
+    }
+
+    @Test
+    public void findPersonsByMetadata() {
+        // creating a condition "since_update_time metadata value is less than 50 seconds"
+        Qualifier sinceUpdateTimeLt10Seconds = Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(50000L)
+            .build();
+        assertThat(repository.findByQualifiers(sinceUpdateTimeLt10Seconds)).containsAll(allPersons);
+
+        // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
+        Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue1AsObj(1L)
+            .setValue2AsObj(50000L)
+            .build();
+        assertThat(repository.findByQualifiers(sinceUpdateTimeBetween1And50000))
+            .containsAll(repository.findByQualifiers(sinceUpdateTimeLt10Seconds));
+    }
+
+    @Test
+    public void findPersonsByQualifiers() {
+        Iterable<Person> result;
+
+        // creating a condition "since_update_time metadata value is greater than 1 millisecond"
+        Qualifier sinceUpdateTimeGt1 = Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.GT)
+            .setValue1AsObj(1L)
+            .build();
+
+        // creating a condition "since_update_time metadata value is less than 50 seconds"
+        Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(50000L)
+            .build();
+        assertThat(repository.findByQualifiers(sinceUpdateTimeLt50Seconds)).containsAll(allPersons);
+
+        // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
+        Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue1AsObj(1L)
+            .setValue2AsObj(50000L)
+            .build();
+
+        // creating a condition "firsName is equal to Carter"
+        Qualifier firstNameEqCarter = Qualifier.builder()
+            .setField("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get("Carter"))
+            .build();
+
+        // creating a condition "age is equal to 49"
+        Qualifier ageEq49 = Qualifier.builder()
+            .setField("age")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get(49))
+            .build();
+        result = repository.findByQualifiers(ageEq49);
+        assertThat(result).containsOnly(carter);
+
+        // creating a condition "age is greater than 49"
+        Qualifier ageGt49 = Qualifier.builder()
+            .setFilterOperation(FilterOperation.GT)
+            .setField("age")
+            .setValue1(Value.get(49))
+            .build();
+        result = repository.findByQualifiers(ageGt49);
+        assertThat(result).doesNotContain(carter);
+
+        // default conjunction for multiple qualifiers given to "findByMetadata" is AND
+        result = repository.findByQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
+            sinceUpdateTimeBetween1And50000);
+        assertThat(result).containsOnly(carter);
+
+        // conditions "age == 49", "firstName is Carter" and "since_update_time metadata value is less than 50 seconds"
+        // are combined with OR
+        Qualifier orWide = Qualifier.builder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(ageEq49, firstNameEqCarter, sinceUpdateTimeLt50Seconds)
+            .build();
+        result = repository.findByQualifiers(orWide);
+        assertThat(result).containsAll(allPersons);
+
+        // conditions "age == 49" and "firstName is Carter" are combined with OR
+        Qualifier orNarrow = Qualifier.builder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(ageEq49, firstNameEqCarter)
+            .build();
+        result = repository.findByQualifiers(orNarrow);
+        assertThat(result).containsOnly(carter);
+
+        // default conjunction for multiple qualifiers given to "findByMetadata" is AND
+        // conditions "age == 49" and "age > 49" are not overlapping
+        result = repository.findByQualifiers(ageEq49, ageGt49);
+        assertThat(result).isEmpty();
+
+        // conditions "age == 49" and "age > 49" are combined with OR
+        Qualifier ageEqOrGt49 = Qualifier.builder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(ageEq49, ageGt49)
+            .build();
+
+        result = repository.findByQualifiers(ageEqOrGt49);
+        List<Person> personsWithAgeEqOrGt49 = allPersons.stream().filter(person -> person.getAge() >= 49).toList();
+        assertThat(result).containsAll(personsWithAgeEqOrGt49);
+
+        // a condition that returns all entities and a condition that returns one entity are combined using AND
+        result = repository.findByQualifiers(orWide, orNarrow);
+        assertThat(result).containsOnly(carter);
+
+        // a condition that returns all entities and a condition that returns one entity are combined using AND
+        // another way of running the same query
+        Qualifier orCombinedWithAnd = Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(orWide, orNarrow)
+            .build();
+        result = repository.findByQualifiers(orCombinedWithAnd);
+        assertThat(result).containsOnly(carter);
+    }
+
+    @Test
+    public void findPersonsByQualifiersMustBeValid() {
+        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue1AsObj(1L)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("BETWEEN: value2 is expected to be set as Long");
+
+        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue2AsObj(1L)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("BETWEEN: value1 is expected to be set as Long");
+
+        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.GT)
+            .setValue1AsObj(1)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("GT: value1 is expected to be set as Long");
+
+        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(1)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("LT: value1 is expected to be set as Long");
+
+        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.LTEQ)
+            .setValue1AsObj(Value.get(1))
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("LTEQ: value1 is expected to be set as Long");
+
+        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.STARTS_WITH)
+            .setValue1AsObj(1L)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Operation STARTS_WITH cannot be applied to metadataField");
     }
 
     @Test

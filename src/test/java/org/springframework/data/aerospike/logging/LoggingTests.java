@@ -37,13 +37,14 @@ public class LoggingTests {
     }
 
     @Test
-    public void binIsIndexed() {
+    void binIsIndexed() {
         IndexesCache indexesCacheMock = Mockito.mock(IndexesCache.class);
-        Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier qualifier = Qualifier.builder()
             .setField("testField")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("testValue1"))
-        );
+            .build();
+
         StatementBuilder statementBuilder = new StatementBuilder(indexesCacheMock);
         statementBuilder.build("TEST", "testSet", null, new Qualifier[]{qualifier});
 
@@ -54,13 +55,13 @@ public class LoggingTests {
     }
 
     @Test
-    public void queryIsCreated() {
+    void queryIsCreated() {
         AerospikeMappingContext context = new AerospikeMappingContext();
         PartTree tree = new PartTree("findByFirstName", Person.class);
         AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor("TestName"), context);
         creator.createQuery();
 
-        assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isGreaterThan(0);
+        assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
         String msg = "Created query: firstName EQ TestName";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();

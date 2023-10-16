@@ -70,6 +70,7 @@ import java.util.stream.Stream;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
+import static org.springframework.data.aerospike.query.Qualifier.validateQualifiers;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -480,12 +481,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> Stream<T> findAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
 
-        return (Stream<T>) findAllUsingQuery(entityClass, null, null);
+        return findAllUsingQuery(entityClass, null, (Qualifier[]) null);
     }
 
     @SuppressWarnings("unchecked")
@@ -981,8 +981,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
     }
 
-    <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
-                                       Qualifier... qualifiers) {
+    @Override
+    public <T> Stream<T> findAllUsingQuery(Class<T> entityClass, Filter filter,
+                                           Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+            .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
+    }
+
+    public <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
+                                              Qualifier... qualifiers) {
         return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
             .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
     }
@@ -1036,8 +1043,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     <T, S> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                                       Qualifier... qualifiers) {
-        String setName = getSetName(entityClass);
+        if (qualifiers != null && qualifiers.length > 0) {
+            validateQualifiers(qualifiers);
+        }
 
+        String setName = getSetName(entityClass);
         KeyRecordIterator recIterator;
 
         if (targetClass != null) {

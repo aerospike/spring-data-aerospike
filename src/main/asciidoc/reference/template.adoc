@@ -71,7 +71,7 @@ template.insert(new Person(id, "John", 50));
 long count = template.count
             (new Query
                     (new AerospikeCriteria
-                        (new Qualifier.QualifierBuilder()
+                        (new QualifierBuilder()
                             .setFilterOperation(FilterOperation.EQ)
                             .setField("firstName")
                             .setValue1(Value.get("John"))

@@ -25,7 +25,7 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.util.StringUtils;
 
 import java.util.Optional;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Utility class containing useful methods for interacting with Aerospike across the entire implementation
@@ -64,12 +64,10 @@ public class Utils {
     }
 
     public static Node getRandomNode(Node[] nodes) {
-        Random random = new Random();
-
         if (nodes.length == 0) {
             throw new AerospikeException(ResultCode.SERVER_NOT_AVAILABLE, "Command failed because cluster is empty.");
         }
-        int offset = random.nextInt(nodes.length);
+        int offset = ThreadLocalRandom.current().nextInt(nodes.length);
         for (int i = 0; i < nodes.length; i++) {
             int index = (offset + i) % nodes.length;
             Node node = nodes[index];
@@ -82,7 +80,7 @@ public class Utils {
 
     public static long getObjectsCount(Node node, String namespace, String setName) {
         String infoString = Info.request(node, "sets/" + namespace + "/" + setName);
-        if (infoString.isEmpty()) {// set is not present
+        if (infoString.isEmpty()) { // set is not present
             return 0L;
         }
         return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);

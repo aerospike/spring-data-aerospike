@@ -39,7 +39,7 @@ import static org.springframework.data.aerospike.utility.CollectionUtils.countin
 /*
  * These tests generate qualifiers on indexed bins.
  */
-public class IndexedQualifierTests extends BaseQueryEngineTests {
+class IndexedQualifierTests extends BaseQueryEngineTests {
 
     @AfterEach
     public void assertNoScans() {
@@ -47,14 +47,15 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectOnIndexedLTQualifier() {
+    void selectOnIndexedLTQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age < 26
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.LT)
                 .setValue1(Value.get(26))
-            );
+                .build();
+
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             assertThat(iterator)
@@ -66,14 +67,15 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectOnIndexedLTEQQualifier() {
+    void selectOnIndexedLTEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age <= 26
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.LTEQ)
                 .setValue1(Value.get(26))
-            );
+                .build();
+
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             Map<Integer, Integer> ageCount = CollectionUtils.toStream(iterator)
@@ -88,14 +90,15 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectOnIndexedNumericEQQualifier() {
+    void selectOnIndexedNumericEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age == 26
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(26))
-            );
+                .build();
+
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             assertThat(iterator)
@@ -107,14 +110,15 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectOnIndexWithQualifiers() {
+    void selectOnIndexWithQualifiers() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Filter filter = Filter.range("age", 25, 29);
-            Qualifier qual1 = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qual1 = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(BLUE))
-            );
+                .build();
+
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter, qual1);
 
             assertThat(it)
@@ -126,14 +130,15 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectOnIndexedGTEQQualifier() {
+    void selectOnIndexedGTEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age >= 28
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.GTEQ)
                 .setValue1(Value.get(28))
-            );
+                .build();
+
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             Map<Integer, Integer> ageCount = CollectionUtils.toStream(iterator)
@@ -148,13 +153,14 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectOnIndexedGTQualifier() {
+    void selectOnIndexedGTQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.GT)
                 .setValue1(Value.get(28))
-            );
+                .build();
+
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             assertThat(iterator)
@@ -166,13 +172,14 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectOnIndexedStringEQQualifier() {
+    void selectOnIndexedStringEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
-            Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(ORANGE))
-            );
+                .build();
+
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 
             assertThat(iterator)
@@ -184,7 +191,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectWithGeoWithin() {
+    void selectWithGeoWithin() {
         if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
             withIndex(namespace, INDEXED_GEO_SET, "geo_index", GEO_BIN_NAME, IndexType.GEO2DSPHERE, () -> {
                 double lon = -122.0;
@@ -194,23 +201,24 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
                         + "\"coordinates\": [[%.8f, %.8f], %f] }",
                     lon, lat, radius);
 
-                Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+                Qualifier qualifier = Qualifier.builder()
                     .setField(GEO_BIN_NAME)
                     .setFilterOperation(FilterOperation.GEO_WITHIN)
                     .setValue1(Value.getAsGeoJSON(rgnstr))
-                );
+                    .build();
+
                 KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_GEO_SET, null, qualifier);
 
                 assertThat(iterator).toIterable()
                     .isNotEmpty()
-                    .allSatisfy(rec -> assertThat(rec.record.generation).isGreaterThanOrEqualTo(1));
+                    .allSatisfy(rec -> assertThat(rec.record.generation).isPositive());
                 additionalAerospikeTestOperations.assertNoScansForSet(INDEXED_GEO_SET);
             });
         }
     }
 
     @Test
-    public void selectOnIndexFilter() {
+    void selectOnIndexFilter() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Filter filter = Filter.range("age", 28, 29);
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter);
@@ -227,7 +235,7 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectOnIndexFilterNonExistingKeys() {
+    void selectOnIndexFilterNonExistingKeys() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Filter filter = Filter.range("age", 30, 35);
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter);
@@ -237,20 +245,20 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectWithQualifiersOnly() {
-        Qualifier.QualifierBuilder qb1 = new Qualifier.QualifierBuilder()
+    void selectWithQualifiersOnly() {
+        Qualifier qual1 = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(GREEN));
-        Qualifier.QualifierBuilder qb2 = new Qualifier.QualifierBuilder()
+            .setValue1(Value.get(GREEN))
+            .build();
+        Qualifier qual2 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(28))
-            .setValue2(Value.get(29));
+            .setValue2(Value.get(29))
+            .build();
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Qualifier qual1 = new Qualifier(qb1);
-            Qualifier qual2 = new Qualifier(qb2);
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, qual1, qual2);
 
             assertThat(it).toIterable()
@@ -261,27 +269,26 @@ public class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void selectWithAndQualifier() {
-        Qualifier.QualifierBuilder qb1 = new Qualifier.QualifierBuilder()
+    void selectWithAndQualifier() {
+        Qualifier colorIsGreen = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(GREEN));
-        Qualifier.QualifierBuilder qb2 = new Qualifier.QualifierBuilder()
+            .setValue1(Value.get(GREEN))
+            .build();
+        Qualifier ageBetween28And29 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(28))
-            .setValue2(Value.get(29));
+            .setValue2(Value.get(29))
+            .build();
 
         tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
         tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
         try {
-            Qualifier colorIsGreen = new Qualifier(qb1);
-            Qualifier ageBetween28And29 = new Qualifier(qb2);
-
-            Qualifier.QualifierBuilder qbAnd = new Qualifier.QualifierBuilder()
+            Qualifier qualifier = Qualifier.builder()
                 .setFilterOperation(FilterOperation.AND)
-                .setQualifiers(colorIsGreen, ageBetween28And29);
-            Qualifier qualifier = new Qualifier(qbAnd);
+                .setQualifiers(colorIsGreen, ageBetween28And29)
+                .build();
 
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 

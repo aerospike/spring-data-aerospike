@@ -60,7 +60,6 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                     excludeIdQualifier(qualifiers));
             }
         }
-
         return findByQuery(query, targetClass);
     }
 
@@ -80,6 +79,6 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     protected Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
                                Qualifier... qualifiers) {
         return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, targetClass,
-                qualifiers);
+            qualifiers);
     }
 }

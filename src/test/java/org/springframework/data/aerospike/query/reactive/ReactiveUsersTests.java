@@ -15,11 +15,12 @@ public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void usersInNorthRegion() {
-        Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+        Qualifier qualifier = Qualifier.builder()
             .setField("region")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("n"))
-        );
+            .build();
+
         Flux<KeyRecord> flux = queryEngine.select(namespace, USERS_SET, null, qualifier);
 
         StepVerifier.create(flux.collectList())

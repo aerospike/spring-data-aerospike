@@ -7,17 +7,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.RECORD_COUNT;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.USERS_SET;
 
-public class UsersTests extends BaseQueryEngineTests {
+class UsersTests extends BaseQueryEngineTests {
 
     @Test
-    public void allUsers() {
+    void allUsers() {
         KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null);
 
         assertThat(it).toIterable().hasSize(RECORD_COUNT);
     }
 
     @Test
-    public void usersInterrupted() {
+    void usersInterrupted() {
         try (KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null)) {
             int counter = 0;
             while (it.hasNext()) {
@@ -30,12 +30,12 @@ public class UsersTests extends BaseQueryEngineTests {
     }
 
     @Test
-    public void usersInNorthRegion() {
-        Qualifier qualifier = new Qualifier(new Qualifier.QualifierBuilder()
+    void usersInNorthRegion() {
+        Qualifier qualifier = Qualifier.builder()
             .setField("region")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("n"))
-        );
+            .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, qualifier);
 

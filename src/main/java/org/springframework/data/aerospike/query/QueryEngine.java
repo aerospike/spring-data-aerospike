@@ -44,6 +44,7 @@ public class QueryEngine {
     private final StatementBuilder statementBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
+    @Getter
     private final QueryPolicy queryPolicy;
     /**
      * Scans can potentially slow down Aerospike server, so we are disabling them by default. If you still need to use
@@ -126,10 +127,6 @@ public class QueryEngine {
         this.scansEnabled = scansEnabled;
     }
 
-    public QueryPolicy getQueryPolicy() {
-        return queryPolicy;
-    }
-
     public enum Meta {
         KEY,
         TTL,
@@ -138,16 +135,12 @@ public class QueryEngine {
 
         @Override
         public String toString() {
-            switch (this) {
-                case KEY:
-                    return "__key";
-                case EXPIRATION:
-                    return "__Expiration";
-                case GENERATION:
-                    return "__generation";
-                default:
-                    throw new IllegalArgumentException();
-            }
+            return switch (this) {
+                case KEY -> "__key";
+                case EXPIRATION -> "__Expiration";
+                case GENERATION -> "__generation";
+                default -> throw new IllegalArgumentException();
+            };
         }
     }
 }

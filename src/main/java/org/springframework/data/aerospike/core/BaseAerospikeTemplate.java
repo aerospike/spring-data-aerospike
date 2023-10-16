@@ -393,7 +393,7 @@ abstract class BaseAerospikeTemplate {
             operations = operations(data.getBinsAsArray(), Operation::put);
         }
 
-        return new BatchWriteData<T>(document, new BatchWrite(policy, data.getKey(), operations),
+        return new BatchWriteData<>(document, new BatchWrite(policy, data.getKey(), operations),
             entity.hasVersionProperty());
     }
 
@@ -418,7 +418,7 @@ abstract class BaseAerospikeTemplate {
                 .map(Operation::put)).toArray(Operation[]::new);
         }
 
-        return new BatchWriteData<T>(document, new BatchWrite(policy, data.getKey(), operations),
+        return new BatchWriteData<>(document, new BatchWrite(policy, data.getKey(), operations),
             entity.hasVersionProperty());
     }
 
