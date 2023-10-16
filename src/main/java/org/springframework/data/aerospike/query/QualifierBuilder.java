@@ -1,7 +1,6 @@
 package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Value;
-import lombok.Data;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 
 import java.util.HashMap;
@@ -9,13 +8,9 @@ import java.util.Map;
 
 import static org.springframework.data.aerospike.query.Qualifier.*;
 
-@Data
-public class QualifierBuilder {
+public class QualifierBuilder implements QualifierMapBuilder {
 
-    final Map<String, Object> map = new HashMap<>();
-
-    public QualifierBuilder() {
-    }
+    private final Map<String, Object> map = new HashMap<>();
 
     public QualifierBuilder setField(String field) {
         this.map.put(FIELD, field);
@@ -76,31 +71,26 @@ public class QualifierBuilder {
     }
 
     public boolean hasValue1() {
-        return this.map.containsKey(VALUE1) && this.map.get(VALUE1) != null;
+        return this.map.get(VALUE1) != null;
     }
 
     public boolean hasValue2() {
-        return this.map.containsKey(VALUE2) && this.map.get(VALUE2) != null;
+        return this.map.get(VALUE2) != null;
     }
 
     public boolean hasValue3() {
-        return this.map.containsKey(VALUE3) && this.map.get(VALUE3) != null;
+        return this.map.get(VALUE3) != null;
     }
 
     public boolean hasDotPath() {
-        return this.map.containsKey(DOT_PATH) && this.map.get(DOT_PATH) != null;
+        return this.map.get(DOT_PATH) != null;
     }
 
     public Qualifier build() {
-        validate();
         return new Qualifier(this);
     }
 
     public Map<String, Object> buildMap() {
         return this.map;
-    }
-
-    // is overridden in MetadataQualifierBuilder
-    protected void validate() {
     }
 }

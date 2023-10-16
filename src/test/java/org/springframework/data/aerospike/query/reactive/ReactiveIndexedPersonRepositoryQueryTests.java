@@ -299,8 +299,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         // creating a condition "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt10Seconds = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(50000L)
             .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(50000L)
             .build();
         assertThat(reactiveRepository.findByQualifiers(sinceUpdateTimeLt10Seconds).collectList().block())
             .containsAll(allIndexedPersons);
@@ -308,9 +308,9 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1AsObj(1L)
             .setValue2AsObj(50000L)
-            .setFilterOperation(FilterOperation.BETWEEN)
             .build();
         assertThat(reactiveRepository.findByQualifiers(sinceUpdateTimeBetween1And50000).collectList().block())
             .containsAll(reactiveRepository.findByQualifiers(sinceUpdateTimeLt10Seconds).collectList().block());
@@ -323,15 +323,15 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         // creating a condition "since_update_time metadata value is greater than 1 millisecond"
         Qualifier sinceUpdateTimeGt1 = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(1L)
             .setFilterOperation(FilterOperation.GT)
+            .setValue1AsObj(1L)
             .build();
 
         // creating a condition "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt50Seconds = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(50000L)
             .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(50000L)
             .build();
         assertThat(reactiveRepository.findByQualifiers(sinceUpdateTimeLt50Seconds).collectList().block())
             .containsAll(allIndexedPersons);
@@ -339,9 +339,9 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         // creating a condition "since_update_time metadata value is between 1 and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1AsObj(1L)
             .setValue2AsObj(50000L)
-            .setFilterOperation(FilterOperation.BETWEEN)
             .build();
 
         // creating a condition "firsName is equal to Petra"

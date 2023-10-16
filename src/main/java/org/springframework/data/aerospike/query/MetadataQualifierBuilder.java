@@ -4,13 +4,33 @@ import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
+import static org.springframework.data.aerospike.query.Qualifier.FIELD;
 import static org.springframework.data.aerospike.query.Qualifier.METADATA_FIELD;
+import static org.springframework.data.aerospike.query.Qualifier.OPERATION;
+import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
 import static org.springframework.data.aerospike.query.Qualifier.VALUE1;
 import static org.springframework.data.aerospike.query.Qualifier.VALUE2;
 
-public class MetadataQualifierBuilder extends QualifierBuilder {
+public class MetadataQualifierBuilder implements QualifierMapBuilder {
+
+    private final Map<String, Object> map = new HashMap<>();
+
+    public MetadataQualifierBuilder setFilterOperation(FilterOperation filterOperation) {
+        this.map.put(OPERATION, filterOperation);
+        return this;
+    }
+
+    public FilterOperation getFilterOperation() {
+        return (FilterOperation) this.map.get(OPERATION);
+    }
+
+    public MetadataQualifierBuilder setQualifiers(Qualifier... qualifiers) {
+        this.map.put(QUALIFIERS, qualifiers);
+        return this;
+    }
 
     public MetadataQualifierBuilder setMetadataField(CriteriaDefinition.AerospikeMetadata metadataField) {
         this.map.put(METADATA_FIELD, metadataField);
@@ -19,6 +39,10 @@ public class MetadataQualifierBuilder extends QualifierBuilder {
 
     public CriteriaDefinition.AerospikeMetadata getMetadataField() {
         return (CriteriaDefinition.AerospikeMetadata) map.get(METADATA_FIELD);
+    }
+
+    public String getField() {
+        return (String) this.map.get(FIELD);
     }
 
     public MetadataQualifierBuilder setValue1AsObj(Object object) {
@@ -39,12 +63,16 @@ public class MetadataQualifierBuilder extends QualifierBuilder {
         return this.map.get(VALUE2);
     }
 
+    public Qualifier build() {
+        validate();
+        return new Qualifier(this);
+    }
+
     public Map<String, Object> buildMap() {
         return this.map;
     }
 
     @SuppressWarnings("unchecked")
-    @Override
     protected void validate() {
         // metadata query
         if (this.getMetadataField() != null) {
@@ -71,5 +99,4 @@ public class MetadataQualifierBuilder extends QualifierBuilder {
             }
         }
     }
-
 }

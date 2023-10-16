@@ -55,7 +55,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     private static final long serialVersionUID = -2689196529952712849L;
     protected final Map<String, Object> internalMap;
 
-    public Qualifier(QualifierBuilder builder) {
+    public Qualifier(QualifierMapBuilder builder) {
         internalMap = new HashMap<>();
 
         if (!builder.buildMap().isEmpty()) {

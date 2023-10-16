@@ -1222,17 +1222,17 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         // creating a condition "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt10Seconds = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(50000L)
             .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(50000L)
             .build();
         assertThat(repository.findByQualifiers(sinceUpdateTimeLt10Seconds)).containsAll(allPersons);
 
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1AsObj(1L)
             .setValue2AsObj(50000L)
-            .setFilterOperation(FilterOperation.BETWEEN)
             .build();
         assertThat(repository.findByQualifiers(sinceUpdateTimeBetween1And50000))
             .containsAll(repository.findByQualifiers(sinceUpdateTimeLt10Seconds));
@@ -1245,24 +1245,24 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         // creating a condition "since_update_time metadata value is greater than 1 millisecond"
         Qualifier sinceUpdateTimeGt1 = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(1L)
             .setFilterOperation(FilterOperation.GT)
+            .setValue1AsObj(1L)
             .build();
 
         // creating a condition "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt50Seconds = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(50000L)
             .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(50000L)
             .build();
         assertThat(repository.findByQualifiers(sinceUpdateTimeLt50Seconds)).containsAll(allPersons);
 
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1AsObj(1L)
             .setValue2AsObj(50000L)
-            .setFilterOperation(FilterOperation.BETWEEN)
             .build();
 
         // creating a condition "firsName is equal to Carter"
@@ -1345,89 +1345,48 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void findPersonsByQualifiersMustBeValid() {
         assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(1L)
             .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue1AsObj(1L)
             .build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("BETWEEN: value2 is expected to be set as Long");
 
         assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue2AsObj(1L)
             .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue2AsObj(1L)
             .build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("BETWEEN: value1 is expected to be set as Long");
 
         assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(1)
             .setFilterOperation(FilterOperation.GT)
+            .setValue1AsObj(1)
             .build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("GT: value1 is expected to be set as Long");
 
         assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setFilterOperation(FilterOperation.GTEQ)
-            .setValue1(Value.get(1))
-            .build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("GTEQ: value1 is expected to be set as Long");
-
-        assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
-            .setMetadataField(SINCE_UPDATE_TIME)
-            .setFilterOperation(FilterOperation.NOT_IN)
-            .setValue1(Value.get(1))
-            .build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("NOT_IN: value1 is expected to be a non-empty Collection<Long>");
-
-        assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
-            .setMetadataField(SINCE_UPDATE_TIME)
-            .setFilterOperation(FilterOperation.IN)
-            .setValue1(Value.get(1))
-            .build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("IN: value1 is expected to be a non-empty Collection<Long>");
-
-        assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
-            .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(1)
             .setFilterOperation(FilterOperation.LT)
+            .setValue1AsObj(1)
             .build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("LT: value1 is expected to be set as Long");
 
         assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.LTEQ)
             .setValue1AsObj(Value.get(1))
-            .setFilterOperation(FilterOperation.LTEQ)
             .build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("LTEQ: value1 is expected to be set as Long");
 
         assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
-            .setFilterOperation(FilterOperation.LTEQ)
-            .setValue1(Value.get(1))
-            .build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("LTEQ: value1 is expected to be set as Long");
-
-        assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
-            .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(1L)
-            .setField("firstName")
-            .setFilterOperation(FilterOperation.LTEQ)
-            .build()))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Either a field or a metadataField must be set, not both");
-
-        assertThatThrownBy(() -> repository.findByQualifiers(new MetadataQualifierBuilder()
-            .setMetadataField(SINCE_UPDATE_TIME)
-            .setValue1AsObj(1L)
             .setFilterOperation(FilterOperation.STARTS_WITH)
+            .setValue1AsObj(1L)
             .build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Operation STARTS_WITH cannot be applied to metadataField");

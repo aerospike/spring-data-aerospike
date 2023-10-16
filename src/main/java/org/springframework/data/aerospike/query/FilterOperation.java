@@ -1233,8 +1233,8 @@ public enum FilterOperation {
             new Qualifier(
                 new MetadataQualifierBuilder()
                     .setMetadataField(getMetadataField(qualifierMap))
-                    .setValue1AsObj(item)
                     .setFilterOperation(filterOperation)
+                    .setValue1AsObj(item)
             ).toFilterExp()
         ).toArray(Exp[]::new);
 
