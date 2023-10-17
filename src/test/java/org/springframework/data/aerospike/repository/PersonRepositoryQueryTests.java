@@ -1288,7 +1288,37 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         result = repository.findByQualifiers(ageGt49);
         assertThat(result).doesNotContain(carter);
 
-        // default conjunction for multiple qualifiers given to "findByMetadata" is AND
+        // creating a condition "id equals Carter's id"
+        Qualifier keyEqCartersId = Qualifier.forId(carter.getId());
+        result = repository.findByQualifiers(keyEqCartersId);
+        assertThat(result).containsOnly(carter);
+
+        // creating a condition "id equals Boyd's id"
+        Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
+        result = repository.findByQualifiers(keyEqBoydsId);
+        assertThat(result).containsOnly(boyd);
+
+        // analogous to {@link SimpleAerospikeRepository#findAllById(Iterable)}
+        // creating a condition "id equals Carter's id or Boyd's id"
+        Qualifier keyEqMultipleIds = Qualifier.forIds(List.of(carter.getId(), boyd.getId()));
+        result = repository.findByQualifiers(keyEqMultipleIds);
+        assertThat(result).containsOnly(carter, boyd);
+
+        // default conjunction for multiple qualifiers given to "findByQualifiers" is AND
+        // not more than one id qualifier is allowed, otherwise the conditions will not overlap
+        result = repository.findByQualifiers(sinceUpdateTimeGt1, keyEqCartersId);
+        assertThat(result).containsOnly(carter);
+
+        // the same qualifiers in different order
+        result = repository.findByQualifiers(keyEqCartersId, sinceUpdateTimeGt1);
+        assertThat(result).containsOnly(carter);
+
+        // creating a condition "digest equals Carter's id"
+//        Qualifier digestEqCartersId = Qualifier.forDigest("Test".getBytes());
+//        result = repository.findByQualifiers(digestEqCartersId);
+//        assertThat(result).isEmpty();
+
+        // default conjunction for multiple qualifiers given to "findByQualifiers" is AND
         result = repository.findByQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
             sinceUpdateTimeBetween1And50000);
         assertThat(result).containsOnly(carter);
@@ -1310,7 +1340,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         result = repository.findByQualifiers(orNarrow);
         assertThat(result).containsOnly(carter);
 
-        // default conjunction for multiple qualifiers given to "findByMetadata" is AND
+        // default conjunction for multiple qualifiers given to "findByQualifiers" is AND
         // conditions "age == 49" and "age > 49" are not overlapping
         result = repository.findByQualifiers(ageEq49, ageGt49);
         assertThat(result).isEmpty();
@@ -1388,6 +1418,30 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Operation STARTS_WITH cannot be applied to metadataField");
+
+        Qualifier keyEqCartersId = Qualifier.forId(carter.getId());
+        Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
+
+        // not more than one id qualifier is allowed
+        assertThatThrownBy(() -> repository.findByQualifiers(keyEqCartersId, keyEqBoydsId))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
+
+        // not more than one id qualifier is allowed
+        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(keyEqCartersId, keyEqBoydsId)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
+
+        // not more than one id qualifier is allowed
+        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.builder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(keyEqCartersId, keyEqBoydsId)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
     }
 
     @Test

@@ -32,6 +32,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.springframework.data.aerospike.utility.Utils.excludeIdQualifier;
+import static org.springframework.data.aerospike.utility.Utils.getIdQualifier;
+import static org.springframework.data.aerospike.utility.Utils.getIdValue;
+
 /**
  * @author Peter Milne
  * @author Jean Mercier

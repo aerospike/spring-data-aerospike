@@ -26,6 +26,10 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import reactor.core.publisher.Flux;
 
+import static org.springframework.data.aerospike.utility.Utils.excludeIdQualifier;
+import static org.springframework.data.aerospike.utility.Utils.getIdQualifier;
+import static org.springframework.data.aerospike.utility.Utils.getIdValue;
+
 /**
  * @author Igor Ermolenko
  */

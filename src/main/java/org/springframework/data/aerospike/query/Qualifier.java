@@ -29,6 +29,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,6 +44,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
     public static final String FIELD = "field";
     public static final String METADATA_FIELD = "metadata_field";
+    protected static final String ID_VALUE = "id";
+    private static final String DIGEST = "digest";
     protected static final String IGNORE_CASE = "ignoreCase";
     protected static final String VALUE1 = "value1";
     protected static final String VALUE2 = "value2";
@@ -113,15 +116,27 @@ public class Qualifier implements Map<String, Object>, Serializable {
         internalMap.put(EXCLUDE_FILTER, excludeFilter);
     }
 
-    public Qualifier[] getQualifiers() {
-        return (Qualifier[]) internalMap.get(QUALIFIERS);
+    public byte[] getDigest() {
+        return (byte[]) this.internalMap.get(DIGEST);
     }
 
     public boolean hasQualifiers() {
         return internalMap.get(QUALIFIERS) != null;
     }
 
-    public Value getValue1() {
+    public boolean hasId() {
+        return internalMap.get(FIELD) != null && internalMap.get(FIELD).equals(ID_VALUE);
+    }
+
+    public boolean hasDigest() {
+        return internalMap.get(FIELD) != null && internalMap.get(FIELD).equals(DIGEST);
+    }
+
+    public Qualifier[] getQualifiers() {
+        return (Qualifier[]) internalMap.get(QUALIFIERS);
+    }
+
+    public Value  getValue1() {
         return (Value) internalMap.get(VALUE1);
     }
 
@@ -245,8 +260,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return this;
         }
 
-        public QualifierBuilder setExcludeFilter(boolean excludeFilter) {
-            this.map.put(EXCLUDE_FILTER, excludeFilter);
+        public QualifierBuilder setQualifiers(Qualifier... qualifiers) {
+            this.map.put(QUALIFIERS, qualifiers);
             return this;
         }
 
@@ -356,11 +371,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return (T) this;
         }
 
-        public T setQualifiers(Qualifier... qualifiers) {
-            this.map.put(QUALIFIERS, qualifiers);
-            return (T) this;
-        }
-
         public String getField() {
             return (String) this.map.get(FIELD);
         }
@@ -389,5 +399,76 @@ public class Qualifier implements Map<String, Object>, Serializable {
         protected void validate() {
             // do nothing
         }
+    }
+
+    public static Qualifier forId(String id) {
+        return new Qualifier(new QualifierBuilder()
+            .setField(ID_VALUE)
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get(id)));
+    }
+
+    public static Qualifier forIds(List<String> ids) {
+        return new Qualifier(new QualifierBuilder()
+            .setField(ID_VALUE)
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get(ids)));
+    }
+
+    public static Qualifier forDigest(byte[] digest) {
+        return new Qualifier(new QualifierBuilder()
+            .setField(DIGEST)
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get(digest)));
+    }
+
+    public static boolean haveOneIdQualifier(Qualifier[] qualifiers) {
+        if (qualifiers != null && qualifiers.length > 0) {
+            long idQualifiersCount = countIdQualifiers(qualifiers);
+            if (idQualifiersCount > 1) {
+                throw new IllegalArgumentException("Expecting not more than one id qualifier in qualifiers array," +
+                    " got " + idQualifiersCount);
+            } else return idQualifiersCount == 1;
+        }
+        return false;
+    }
+
+    public static boolean haveOneDigestQualifier(Qualifier[] qualifiers) {
+        if (qualifiers != null && qualifiers.length > 0) {
+            long digestQualifiersCount = countDigestQualifiers(qualifiers);
+            if (digestQualifiersCount > 1) {
+                throw new IllegalArgumentException("Expecting not more than one digest qualifier in qualifiers array," +
+                    " got " + digestQualifiersCount);
+            } else return digestQualifiersCount == 1;
+        }
+        return false;
+    }
+
+    private static long countIdQualifiers(Qualifier[] qualifiers) {
+        long count = 0;
+        for (Qualifier qualifier : qualifiers) {
+            if (qualifier.hasId()) {
+                count++;
+            } else {
+                if (qualifier.hasQualifiers()) {
+                    count = count + countIdQualifiers(qualifier.getQualifiers());
+                }
+            }
+        }
+        return count;
+    }
+
+    private static long countDigestQualifiers(Qualifier[] qualifiers) {
+        long count = 0;
+        for (Qualifier qualifier : qualifiers) {
+            if (qualifier.hasDigest()) {
+                count++;
+            } else {
+                if (qualifier.hasQualifiers()) {
+                    count = count + countDigestQualifiers(qualifier.getQualifiers());
+                }
+            }
+        }
+        return count;
     }
 }

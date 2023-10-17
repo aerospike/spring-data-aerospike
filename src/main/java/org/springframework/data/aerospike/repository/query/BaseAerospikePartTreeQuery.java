@@ -119,13 +119,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
     protected static boolean hasIdQualifier(AerospikeCriteria criteria) {
         Object qualifiers = criteria.get("qualifiers");
-        return qualifiers != null && qualifiers.getClass().isArray()
-            && Arrays.stream((Qualifier[]) qualifiers).anyMatch(qualifier -> qualifier.getField().equals("id"));
-    }
-
-    protected static Qualifier[] excludeIdQualifier(Qualifier[] qualifiers) {
-        return Arrays.stream(qualifiers).filter(qualifier -> !qualifier.getField().equals("id"))
-            .toArray(Qualifier[]::new);
+        return Qualifier.haveOneIdQualifier((Qualifier[]) qualifiers);
     }
 
     protected static Qualifier[] getQualifiers(AerospikeCriteria criteria) {
@@ -135,19 +129,6 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             return new Qualifier[]{(criteria)};
         }
         return criteria.getQualifiers();
-    }
-
-    protected static Qualifier getIdQualifier(Qualifier[] qualifiers) {
-        return Arrays.stream(qualifiers).filter(qualifier -> qualifier.getField().equals("id"))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Qualifier with 'id' field was not found"));
-    }
-
-    protected static Object getIdValue(Qualifier... qualifiers) {
-        return Arrays.stream(qualifiers).filter(qualifier -> qualifier.getField().equals("id"))
-            .map(qualifier -> qualifier.getValue1().getObject())
-            .findFirst()
-            .orElseThrow(() -> new IllegalStateException("Value of 'id' field in a Qualifier was not found"));
     }
 
     protected Object runIdQuery(Class<?> sourceClass, Class<?> targetClass, Object ids, Qualifier... qualifiers) {

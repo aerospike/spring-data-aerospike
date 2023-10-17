@@ -26,6 +26,7 @@ import java.io.Serial;
  * Qualifier used to query by latest update time
  *
  * @author eluppol
+ * @deprecated Since 4.6.0. Use {@link Qualifier} with {@link MetadataQualifierBuilder} for flexible querying
  */
 public class LatestUpdateQualifier extends Qualifier {
 

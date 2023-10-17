@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Key;
 import com.aerospike.client.Value;
+import org.springframework.data.aerospike.repository.support.SimpleAerospikeRepository;
 
 import java.io.Serial;
 
@@ -25,6 +26,8 @@ import java.io.Serial;
  * Qualifier used to query by primary key
  *
  * @author peter
+ * @deprecated Since 4.6.0. Use {@link SimpleAerospikeRepository#findById(Object)} or
+ * {@link SimpleAerospikeRepository#findByQualifiers(Qualifier...)} with {@link Qualifier#forId(String)}
  */
 public class KeyQualifier extends Qualifier {
 

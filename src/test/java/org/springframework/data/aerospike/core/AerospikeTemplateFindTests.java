@@ -112,7 +112,7 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findByKey() {
+    public void findByKey() { // findByUserKey
         client.put(null, new Key(getNameSpace(), "Person", id),
             new Bin("firstName", "Dave"),
             new Bin("age", 56));

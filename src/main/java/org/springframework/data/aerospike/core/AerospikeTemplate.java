@@ -70,7 +70,15 @@ import java.util.stream.Stream;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
+import static org.springframework.data.aerospike.query.Qualifier.haveOneDigestQualifier;
+import static org.springframework.data.aerospike.query.Qualifier.haveOneIdQualifier;
 import static org.springframework.data.aerospike.query.Qualifier.validateQualifiers;
+import static org.springframework.data.aerospike.utility.Utils.excludeDigestQualifier;
+import static org.springframework.data.aerospike.utility.Utils.excludeIdQualifier;
+import static org.springframework.data.aerospike.utility.Utils.getDigestQualifier;
+import static org.springframework.data.aerospike.utility.Utils.getDigestValue;
+import static org.springframework.data.aerospike.utility.Utils.getIdQualifier;
+import static org.springframework.data.aerospike.utility.Utils.getIdValue;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -516,6 +524,36 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return (S) findByIdInternal(id, entityClass, targetClass);
     }
 
+    public KeyRecord findByIdInternalWithoutMapping(Object id, Class<?> entityClass, Class<?> targetClass,
+                                                    Qualifier... qualifiers) {
+        try {
+            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+            Key key = getKey(id, entity);
+
+            if (targetClass != null && targetClass != entityClass) {
+                return new KeyRecord(key, getRecord(entity, key, targetClass, qualifiers));
+            }
+            return new KeyRecord(key, getRecord(entity, key, entityClass, qualifiers));
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
+    public KeyRecord findByDigestInternalWithoutMapping(byte[] digest, Class<?> entityClass, Class<?> targetClass,
+                                                        Qualifier... qualifiers) {
+        try {
+            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+            Key key = getKeyByDigest(digest, entity);
+
+            if (targetClass != null && targetClass != entityClass) {
+                return new KeyRecord(key, getRecord(entity, key, targetClass, qualifiers));
+            }
+            return new KeyRecord(key, getRecord(entity, key, entityClass, qualifiers));
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
     @Override
     public <T, S> Object findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass,
                                           Qualifier... qualifiers) {
@@ -527,6 +565,44 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 return getRecordMapToTargetClass(entity, key, targetClass, qualifiers);
             }
             return getRecordMapToEntityClass(entity, key, entityClass, qualifiers);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
+    public List<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<?> entityClass,
+                                                           Class<?> targetClass,
+                                                           Qualifier... qualifiers) {
+        if (ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+            Key[] keys = ids.stream()
+                .map(id -> getKey(id, entity))
+                .toArray(Key[]::new);
+
+            BatchPolicy policy = null;
+            if (qualifiers != null && qualifiers.length > 0) {
+                policy = new BatchPolicy(getAerospikeClient().getBatchPolicyDefault());
+                policy.filterExp = getQueryEngine().getFilterExpressionsBuilder().build(qualifiers);
+            }
+
+            Class<?> target;
+            Record[] aeroRecords;
+            if (targetClass != null && targetClass != entityClass) {
+                String[] binNames = getBinNamesFromTargetClass(targetClass);
+                aeroRecords = getAerospikeClient().get(policy, keys, binNames);
+            } else {
+                aeroRecords = getAerospikeClient().get(policy, keys);
+            }
+
+            return IntStream.range(0, keys.length)
+                .filter(index -> aeroRecords[index] != null)
+                .mapToObj(index -> toKeyRecord(keys[index], aeroRecords[index]))
+                .collect(Collectors.toList());
         } catch (AerospikeException e) {
             throw translateError(e);
         }
@@ -590,8 +666,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return mapToEntity(key, targetClass, aeroRecord);
     }
 
-    <T> Object getRecordMapToEntityClass(AerospikePersistentEntity<?> entity, Key key, Class<T> entityClass,
-                                         Qualifier... qualifiers) {
+    Record getRecord(AerospikePersistentEntity<?> entity, Key key, Class<?> entityClass,
+                     Qualifier... qualifiers) {
         Record aeroRecord;
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
@@ -604,7 +680,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             }
             aeroRecord = getAerospikeClient().get(policy, key);
         }
-        return mapToEntity(key, entityClass, aeroRecord);
+        return aeroRecord;
+    }
+
+    <T> Object getRecordMapToEntityClass(AerospikePersistentEntity<?> entity, Key key, Class<T> entityClass,
+                                         Qualifier... qualifiers) {
+        return mapToEntity(key, entityClass, getRecord(entity, key, entityClass, qualifiers));
     }
 
     Record getAndTouch(Key key, int expiration, String[] binNames, Qualifier... qualifiers) {
@@ -1045,6 +1126,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                                                       Qualifier... qualifiers) {
         if (qualifiers != null && qualifiers.length > 0) {
             validateQualifiers(qualifiers);
+
+            if (haveOneIdQualifier(qualifiers)) {
+                return runIdQuery(entityClass, targetClass, getIdValue(getIdQualifier(qualifiers)),
+                    excludeIdQualifier(qualifiers));
+            } else if (haveOneDigestQualifier(qualifiers)) {
+                return runDigestQuery(entityClass, targetClass, getDigestValue(getDigestQualifier(qualifiers)),
+                    excludeDigestQualifier(qualifiers));
+            }
         }
 
         String setName = getSetName(entityClass);
@@ -1065,5 +1154,32 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                     log.error("Caught exception while closing query", e);
                 }
             });
+    }
+
+    protected Stream<KeyRecord> runIdQuery(Class<?> sourceClass, Class<?> targetClass, Object ids,
+                                           Qualifier... qualifiers) {
+        Stream<KeyRecord> result;
+        if (ids == null) {
+            throw new IllegalArgumentException("Ids must not be null");
+        } else if (ids.getClass().isArray()) {
+            result = findByIdsInternalWithoutMapping(Arrays.stream(((Object[]) ids)).toList(), sourceClass, targetClass,
+                qualifiers).stream();
+        } else if (ids instanceof Iterable<?>) {
+            result = findByIdsInternalWithoutMapping(IterableConverter.toList((Iterable<?>) ids), sourceClass,
+                targetClass, qualifiers).stream();
+        } else {
+            result = Stream.of(findByIdInternalWithoutMapping(ids, sourceClass, targetClass, qualifiers));
+        }
+        return result;
+    }
+
+    protected Stream<KeyRecord> runDigestQuery(Class<?> sourceClass, Class<?> targetClass, byte[] digest,
+                                               Qualifier... qualifiers) {
+        Stream<KeyRecord> result;
+        if (digest == null) {
+            throw new IllegalArgumentException("Digest must not be null");
+        } else {
+            return Stream.of(findByDigestInternalWithoutMapping(digest, sourceClass, targetClass, qualifiers));
+        }
     }
 }
