@@ -964,8 +964,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter,
-                                         Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+                                         Qualifier qualifier) {
+        return findAllRecordsUsingQuery(entityClass, null, filter, qualifier)
             .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }
 

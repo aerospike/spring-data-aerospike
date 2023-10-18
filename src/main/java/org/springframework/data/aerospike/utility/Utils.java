@@ -25,7 +25,9 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -101,12 +103,6 @@ public class Utils {
         return Optional.empty();
     }
 
-    public static Qualifier getIdQualifier(Qualifier[] qualifiers) {
-        return Arrays.stream(qualifiers).filter(Qualifier::hasId)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Qualifier with 'id' field was not found"));
-    }
-
     public static Object getIdValue(Qualifier... qualifiers) {
         return Arrays.stream(qualifiers).filter(Qualifier::hasId)
             .filter(qualifier -> qualifier.getValue1() != null)
@@ -115,27 +111,20 @@ public class Utils {
             .orElseThrow(() -> new IllegalArgumentException("Value of 'id' field in a Qualifier was not found"));
     }
 
-    public static Qualifier getDigestQualifier(Qualifier[] qualifiers) {
-        return Arrays.stream(qualifiers).filter(Qualifier::hasDigest)
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Qualifier with 'digest' field was not found"));
-    }
-
-    public static byte[] getDigestValue(Qualifier... qualifiers) {
-        return Arrays.stream(qualifiers).filter(Qualifier::hasDigest)
-            .filter(qualifier -> qualifier.getValue1() != null)
-            .map(qualifier -> (byte[]) qualifier.getValue1().getObject())
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Value of 'digest' field in a Qualifier was not found"));
-    }
-
     public static Qualifier[] excludeIdQualifier(Qualifier[] qualifiers) {
-        return Arrays.stream(qualifiers).filter(qualifier -> !qualifier.hasId())
-            .toArray(Qualifier[]::new);
-    }
-
-    public static Qualifier[] excludeDigestQualifier(Qualifier[] qualifiers) {
-        return Arrays.stream(qualifiers).filter(qualifier -> !qualifier.hasDigest())
-            .toArray(Qualifier[]::new);
+        List<Qualifier> qualifiersWithoutId = new ArrayList<>();
+        if (qualifiers != null && qualifiers.length > 0) {
+            for (Qualifier qualifier : qualifiers) {
+                if (qualifier.hasQualifiers()) {
+                    Qualifier[] internalQuals = excludeIdQualifier(qualifier.getQualifiers());
+                    Qualifier.QualifierBuilder qb = Qualifier.builder().setFilterOperation(qualifier.getOperation());
+                    qualifiersWithoutId.add(qb.setQualifiers(internalQuals).build());
+                } else if (!qualifier.hasId()) {
+                    qualifiersWithoutId.add(qualifier);
+                }
+            }
+            return qualifiersWithoutId.toArray(Qualifier[]::new);
+        }
+        return null;
     }
 }

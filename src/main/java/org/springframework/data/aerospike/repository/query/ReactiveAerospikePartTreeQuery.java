@@ -27,7 +27,6 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import reactor.core.publisher.Flux;
 
 import static org.springframework.data.aerospike.utility.Utils.excludeIdQualifier;
-import static org.springframework.data.aerospike.utility.Utils.getIdQualifier;
 import static org.springframework.data.aerospike.utility.Utils.getIdValue;
 
 /**
@@ -57,10 +56,11 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         if (parameters != null && parameters.length > 0) {
             AerospikeCriteria criteria = query.getAerospikeCriteria();
             Qualifier[] qualifiers = getQualifiers(criteria);
+            Qualifier idQualifier;
             if (isIdQuery(criteria)) {
                 return runIdQuery(entityClass, targetClass, getIdValue(qualifiers));
-            } else if (hasIdQualifier(criteria)) {
-                return runIdQuery(entityClass, targetClass, getIdValue(getIdQualifier(qualifiers)),
+            } else if ((idQualifier = getIdQualifier(criteria)) != null) {
+                return runIdQuery(entityClass, targetClass, getIdValue(idQualifier),
                     excludeIdQualifier(qualifiers));
             }
         }

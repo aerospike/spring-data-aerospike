@@ -27,7 +27,7 @@ import java.io.Serial;
  *
  * @author peter
  * @deprecated Since 4.6.0. Use {@link SimpleAerospikeRepository#findById(Object)} or
- * {@link SimpleAerospikeRepository#findByQualifiers(Qualifier...)} with {@link Qualifier#forId(String)}
+ * {@link SimpleAerospikeRepository#findByQualifier(Qualifier)} with {@link Qualifier#forId(String)}
  */
 public class KeyQualifier extends Qualifier {
 

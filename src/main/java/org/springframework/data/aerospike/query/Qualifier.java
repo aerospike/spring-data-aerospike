@@ -27,6 +27,8 @@ import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -116,10 +118,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
         internalMap.put(EXCLUDE_FILTER, excludeFilter);
     }
 
-    public byte[] getDigest() {
-        return (byte[]) this.internalMap.get(DIGEST);
-    }
-
     public boolean hasQualifiers() {
         return internalMap.get(QUALIFIERS) != null;
     }
@@ -128,15 +126,11 @@ public class Qualifier implements Map<String, Object>, Serializable {
         return internalMap.get(FIELD) != null && internalMap.get(FIELD).equals(ID_VALUE);
     }
 
-    public boolean hasDigest() {
-        return internalMap.get(FIELD) != null && internalMap.get(FIELD).equals(DIGEST);
-    }
-
     public Qualifier[] getQualifiers() {
         return (Qualifier[]) internalMap.get(QUALIFIERS);
     }
 
-    public Value  getValue1() {
+    public Value getValue1() {
         return (Value) internalMap.get(VALUE1);
     }
 
@@ -408,67 +402,43 @@ public class Qualifier implements Map<String, Object>, Serializable {
             .setValue1(Value.get(id)));
     }
 
-    public static Qualifier forIds(List<String> ids) {
+    public static Qualifier forIds(String... ids) {
         return new Qualifier(new QualifierBuilder()
             .setField(ID_VALUE)
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(ids)));
+            .setValue1(Value.get(Arrays.stream(ids).toList())));
     }
 
-    public static Qualifier forDigest(byte[] digest) {
-        return new Qualifier(new QualifierBuilder()
-            .setField(DIGEST)
-            .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(digest)));
-    }
-
-    public static boolean haveOneIdQualifier(Qualifier[] qualifiers) {
+    /**
+     * Find id qualifier.
+     *
+     * @return The only id qualifier or null.
+     * @throws IllegalArgumentException if more than one id qualifier given
+     */
+    public static Qualifier getOneIdQualifier(Qualifier... qualifiers) {
         if (qualifiers != null && qualifiers.length > 0) {
-            long idQualifiersCount = countIdQualifiers(qualifiers);
-            if (idQualifiersCount > 1) {
+            List<Qualifier> idQualifiers = getIdQualifiers(qualifiers);
+            if (idQualifiers.size() > 1) {
                 throw new IllegalArgumentException("Expecting not more than one id qualifier in qualifiers array," +
-                    " got " + idQualifiersCount);
-            } else return idQualifiersCount == 1;
+                    " got " + idQualifiers.size());
+            } else if (idQualifiers.size() == 1) {
+                return idQualifiers.get(0);
+            }
         }
-        return false;
+        return null;
     }
 
-    public static boolean haveOneDigestQualifier(Qualifier[] qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0) {
-            long digestQualifiersCount = countDigestQualifiers(qualifiers);
-            if (digestQualifiersCount > 1) {
-                throw new IllegalArgumentException("Expecting not more than one digest qualifier in qualifiers array," +
-                    " got " + digestQualifiersCount);
-            } else return digestQualifiersCount == 1;
-        }
-        return false;
-    }
-
-    private static long countIdQualifiers(Qualifier[] qualifiers) {
-        long count = 0;
+    private static List<Qualifier> getIdQualifiers(Qualifier[] qualifiers) {
+        List<Qualifier> idQualifiers = new ArrayList<>();
         for (Qualifier qualifier : qualifiers) {
             if (qualifier.hasId()) {
-                count++;
+                idQualifiers.add(qualifier);
             } else {
                 if (qualifier.hasQualifiers()) {
-                    count = count + countIdQualifiers(qualifier.getQualifiers());
+                    idQualifiers.addAll(getIdQualifiers(qualifier.getQualifiers()));
                 }
             }
         }
-        return count;
-    }
-
-    private static long countDigestQualifiers(Qualifier[] qualifiers) {
-        long count = 0;
-        for (Qualifier qualifier : qualifiers) {
-            if (qualifier.hasDigest()) {
-                count++;
-            } else {
-                if (qualifier.hasQualifiers()) {
-                    count = count + countDigestQualifiers(qualifier.getQualifiers());
-                }
-            }
-        }
-        return count;
+        return idQualifiers;
     }
 }

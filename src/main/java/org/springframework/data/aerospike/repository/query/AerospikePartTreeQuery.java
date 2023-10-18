@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.utility.Utils.excludeIdQualifier;
-import static org.springframework.data.aerospike.utility.Utils.getIdQualifier;
 import static org.springframework.data.aerospike.utility.Utils.getIdValue;
 
 /**
@@ -66,11 +65,14 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         if (parameters != null && parameters.length > 0) {
             AerospikeCriteria criteria = query.getAerospikeCriteria();
             Qualifier[] qualifiers = getQualifiers(criteria);
+            Qualifier idQualifier;
             if (isIdQuery(criteria)) {
                 return runIdQuery(entityClass, targetClass, getIdValue(qualifiers));
-            } else if (hasIdQualifier(criteria)) {
-                return runIdQuery(entityClass, targetClass, getIdValue(getIdQualifier(qualifiers)),
-                    excludeIdQualifier(qualifiers));
+            } else {
+                if ((idQualifier = getIdQualifier(criteria)) != null) {
+                    return runIdQuery(entityClass, targetClass, getIdValue(idQualifier),
+                        excludeIdQualifier(qualifiers));
+                }
             }
         }
 

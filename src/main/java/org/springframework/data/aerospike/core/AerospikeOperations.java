@@ -563,10 +563,11 @@ public interface AerospikeOperations {
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param filter      Secondary index filter.
-     * @param qualifiers  Qualifiers to build filter expressions from. Must not be {@literal null}.
-     *                    If filter param is null and qualifiers have {@link Qualifier#getExcludeFilter()} == false
-     *                    secondary index filter is built based on the first processed qualifier.
+     * @param qualifier   Qualifier to build filter expressions from. Can contain other qualifiers. Must not be
+     *                    {@literal null}. If filter param is null and qualifier has
+     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
+     *                    first processed qualifier.
      * @return Stream of entities.
      */
-    <T> Stream<T> findAllUsingQuery(Class<T> entityClass, @Nullable Filter filter, Qualifier... qualifiers);
+    <T> Stream<T> findAllUsingQuery(Class<T> entityClass, @Nullable Filter filter, Qualifier qualifier);
 }

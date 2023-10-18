@@ -117,9 +117,9 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return Objects.equals(criteria.getField(), "id");
     }
 
-    protected static boolean hasIdQualifier(AerospikeCriteria criteria) {
+    protected static Qualifier getIdQualifier(AerospikeCriteria criteria) {
         Object qualifiers = criteria.get("qualifiers");
-        return Qualifier.haveOneIdQualifier((Qualifier[]) qualifiers);
+        return Qualifier.getOneIdQualifier((Qualifier[]) qualifiers);
     }
 
     protected static Qualifier[] getQualifiers(AerospikeCriteria criteria) {
