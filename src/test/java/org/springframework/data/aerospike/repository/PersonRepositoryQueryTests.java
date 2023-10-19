@@ -1178,9 +1178,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonByIdAndFirstNameNullResult() {
+    public void findPersonByIdAndFirstNameEmptyResult() {
         List<Person> persons = repository.findByIdAndFirstName(dave.getId(), carter.getFirstName());
-        assertThat(persons).isNull();
+        assertThat(persons).isEmpty();
     }
 
     @Test
@@ -1255,7 +1255,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(50000L)
             .build();
-//        assertThat(repository.findByQualifier(sinceUpdateTimeLt50Seconds)).containsAll(allPersons);
+        assertThat(repository.findByQualifier(sinceUpdateTimeLt50Seconds)).containsAll(allPersons);
 
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
@@ -1278,8 +1278,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(49))
             .build();
-//        result = repository.findByQualifier(ageEq49);
-//        assertThat(result).containsOnly(carter);
+        result = repository.findByQualifier(ageEq49);
+        assertThat(result).containsOnly(carter);
 
         // creating a condition "age is greater than 49"
         Qualifier ageGt49 = Qualifier.builder()
@@ -1287,44 +1287,45 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setField("age")
             .setValue1(Value.get(49))
             .build();
-//        result = repository.findByQualifier(ageGt49);
-//        assertThat(result).doesNotContain(carter);
+        result = repository.findByQualifier(ageGt49);
+        assertThat(result).doesNotContain(carter);
 
         // creating a condition "id equals Carter's id"
         Qualifier keyEqCartersId = Qualifier.forId(carter.getId());
-//        result = repository.findByQualifier(keyEqCartersId);
-//        assertThat(result).containsOnly(carter);
+        result = repository.findByQualifier(keyEqCartersId);
+        assertThat(result).containsOnly(carter);
 
         // creating a condition "id equals Boyd's id"
         Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
-//        result = repository.findByQualifier(keyEqBoydsId);
-//        assertThat(result).containsOnly(boyd);
+        result = repository.findByQualifier(keyEqBoydsId);
+        assertThat(result).containsOnly(boyd);
 
         // analogous to {@link SimpleAerospikeRepository#findAllById(Iterable)}
-        // creating a condition "id equals Carter's id or Boyd's id"
+        // creating a condition "id equals Carter's id OR Boyd's id"
         Qualifier keyEqMultipleIds = Qualifier.forIds(carter.getId(), boyd.getId());
-//        result = repository.findByQualifier(keyEqMultipleIds);
-//        assertThat(result).containsOnly(carter, boyd);
+        result = repository.findByQualifier(keyEqMultipleIds);
+        assertThat(result).containsOnly(carter, boyd);
 
+        // metadata and id qualifiers combined with AND
         // not more than one id qualifier is allowed, otherwise the conditions will not overlap
-//        result = repository.findByQualifier(Qualifier.builder()
-//            .setFilterOperation(FilterOperation.AND)
-//            .setQualifiers(sinceUpdateTimeGt1, keyEqCartersId)
-//            .build());
-//        assertThat(result).containsOnly(carter);
+        result = repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(sinceUpdateTimeGt1, keyEqCartersId)
+            .build());
+        assertThat(result).containsOnly(carter);
 
         // the same qualifiers in different order
-//        result = repository.findByQualifier(Qualifier.builder()
-//            .setFilterOperation(FilterOperation.AND)
-//            .setQualifiers(keyEqCartersId, sinceUpdateTimeGt1)
-//            .build());
-//        assertThat(result).containsOnly(carter);
+        result = repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(keyEqCartersId, sinceUpdateTimeGt1)
+            .build());
+        assertThat(result).containsOnly(carter);
 
         result = repository.findByQualifier(Qualifier.builder()
-                .setFilterOperation(FilterOperation.AND)
-                .setQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
-                    sinceUpdateTimeBetween1And50000, keyEqCartersId)
-                .build());
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
+                sinceUpdateTimeBetween1And50000, keyEqCartersId)
+            .build());
         assertThat(result).containsOnly(carter);
 
         // conditions "age == 49", "firstName is Carter" and "since_update_time metadata value is less than 50 seconds"
@@ -1491,7 +1492,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void findByIdAndLastNameDynamicProjectionNullResult() {
         List<PersonSomeFields> result = repository.findByIdAndLastName(carter.getId(), dave.getLastName(),
             PersonSomeFields.class);
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
     }
 
     @Test

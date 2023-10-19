@@ -26,10 +26,11 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -131,23 +132,14 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return criteria.getQualifiers();
     }
 
-    protected Object runIdQuery(Class<?> sourceClass, Class<?> targetClass, Object ids, Qualifier... qualifiers) {
-        Object result;
-        if (ids == null) {
-            throw new IllegalStateException("Parameters accessor value is null while parameters quantity is > 0");
-        } else if (ids.getClass().isArray()) {
-            result = findByIds(Arrays.stream(((Object[]) ids)).toList(), sourceClass, targetClass,
-                qualifiers);
-        } else if (ids instanceof Iterable<?>) {
-            result = findByIds((Iterable<?>) ids, sourceClass, targetClass, qualifiers);
-        } else {
-            result = findById(ids, sourceClass, targetClass, qualifiers);
-        }
-        return result;
+    protected Object runIdQuery(Class<?> sourceClass, Class<?> targetClass, Collection<Object> ids,
+                                Qualifier... qualifiers) {
+        Assert.notNull(ids, "Ids must not be null");
+        return findByIds(ids, sourceClass, targetClass, qualifiers);
     }
 
     abstract Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers);
 
-    abstract Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
+    abstract Object findByIds(Collection<?> ids, Class<?> sourceClass, Class<?> targetClass,
                               Qualifier... qualifiers);
 }

@@ -28,7 +28,6 @@ import com.aerospike.client.policy.BatchWritePolicy;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
-import com.aerospike.client.query.KeyRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -426,9 +425,4 @@ abstract class BaseAerospikeTemplate {
     protected boolean batchRecordFailed(BatchRecord batchRecord) {
         return batchRecord.resultCode != ResultCode.OK || batchRecord.record == null;
     }
-
-    KeyRecord toKeyRecord(Key key, Record aeroRecord) {
-        return new KeyRecord(key, aeroRecord);
-    }
-
 }

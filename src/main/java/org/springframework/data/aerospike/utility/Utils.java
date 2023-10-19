@@ -22,12 +22,10 @@ import com.aerospike.client.ResultCode;
 import com.aerospike.client.cluster.Node;
 import lombok.experimental.UtilityClass;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -103,28 +101,7 @@ public class Utils {
         return Optional.empty();
     }
 
-    public static Object getIdValue(Qualifier... qualifiers) {
-        return Arrays.stream(qualifiers).filter(Qualifier::hasId)
-            .filter(qualifier -> qualifier.getValue1() != null)
-            .map(qualifier -> qualifier.getValue1().getObject())
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Value of 'id' field in a Qualifier was not found"));
-    }
-
-    public static Qualifier[] excludeIdQualifier(Qualifier[] qualifiers) {
-        List<Qualifier> qualifiersWithoutId = new ArrayList<>();
-        if (qualifiers != null && qualifiers.length > 0) {
-            for (Qualifier qualifier : qualifiers) {
-                if (qualifier.hasQualifiers()) {
-                    Qualifier[] internalQuals = excludeIdQualifier(qualifier.getQualifiers());
-                    Qualifier.QualifierBuilder qb = Qualifier.builder().setFilterOperation(qualifier.getOperation());
-                    qualifiersWithoutId.add(qb.setQualifiers(internalQuals).build());
-                } else if (!qualifier.hasId()) {
-                    qualifiersWithoutId.add(qualifier);
-                }
-            }
-            return qualifiersWithoutId.toArray(Qualifier[]::new);
-        }
-        return null;
+    public static boolean allArrayElementsAreNull(Object[] array) {
+        return Arrays.stream(array).allMatch(Objects::isNull);
     }
 }

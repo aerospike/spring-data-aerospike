@@ -22,18 +22,18 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
-import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.springframework.data.aerospike.utility.Utils.excludeIdQualifier;
-import static org.springframework.data.aerospike.utility.Utils.getIdValue;
+import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 
 /**
  * @author Peter Milne
@@ -104,10 +104,9 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         return internalOperations.findByIdInternal(obj, entityClass, targetClass, qualifiers);
     }
 
-    protected Object findByIds(Iterable<?> iterable, Class<?> entityClass, Class<?> targetClass,
+    protected Object findByIds(Collection<?> ids, Class<?> entityClass, Class<?> targetClass,
                                Qualifier... qualifiers) {
-        return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), entityClass, targetClass,
-            qualifiers);
+        return internalOperations.findByIdsInternal(ids, entityClass, targetClass, qualifiers);
     }
 
     private Stream<?> findByQuery(Query query, Class<?> targetClass) {

@@ -30,7 +30,6 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -59,7 +58,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -71,10 +69,11 @@ import java.util.stream.Stream;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
+import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.Qualifier.getOneIdQualifier;
 import static org.springframework.data.aerospike.query.Qualifier.validateQualifiers;
-import static org.springframework.data.aerospike.utility.Utils.excludeIdQualifier;
-import static org.springframework.data.aerospike.utility.Utils.getIdValue;
+import static org.springframework.data.aerospike.utility.Utils.allArrayElementsAreNull;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -91,7 +90,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
     private final IAerospikeClient client;
-    @Getter
     private final QueryEngine queryEngine;
     private final IndexRefresher indexRefresher;
 
@@ -551,38 +549,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    public List<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<?> entityClass,
-                                                           Class<?> targetClass,
-                                                           Qualifier... qualifiers) {
-        if (ids.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        try {
-            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-
-
-            Key[] keys = getKeys(ids, entity);
-
-            BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
-
-            Record[] aeroRecords;
-            if (targetClass != null && targetClass != entityClass) {
-                String[] binNames = getBinNamesFromTargetClass(targetClass);
-                aeroRecords = getAerospikeClient().get(policy, keys, binNames);
-            } else {
-                aeroRecords = getAerospikeClient().get(policy, keys);
-            }
-
-            return IntStream.range(0, keys.length)
-                .filter(index -> aeroRecords[index] != null)
-                .mapToObj(index -> toKeyRecord(keys[index], aeroRecords[index]))
-                .collect(Collectors.toList());
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
-    }
-
     @Override
     public <T, S> List<?> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                             Qualifier... qualifiers) {
@@ -617,10 +583,42 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    public List<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<?> entityClass,
+                                                           Class<?> targetClass,
+                                                           Qualifier... qualifiers) {
+        Assert.notNull(ids, "Ids must not be null");
+        if (ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+            Key[] keys = getKeys(ids, entity);
+
+            BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
+
+            Record[] aeroRecords;
+            if (targetClass != null && targetClass != entityClass) {
+                String[] binNames = getBinNamesFromTargetClass(targetClass);
+                aeroRecords = getAerospikeClient().get(policy, keys, binNames);
+            } else {
+                aeroRecords = getAerospikeClient().get(policy, keys);
+            }
+
+            return IntStream.range(0, keys.length)
+                .filter(index -> aeroRecords[index] != null)
+                .mapToObj(index -> new KeyRecord(keys[index], aeroRecords[index]))
+                .collect(Collectors.toList());
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
     private BatchPolicy getBatchPolicyFilterExp(Qualifier[] qualifiers) {
         if (qualifiers != null && qualifiers.length > 0) {
             BatchPolicy policy = new BatchPolicy(getAerospikeClient().getBatchPolicyDefault());
-            policy.filterExp = getQueryEngine().getFilterExpressionsBuilder().build(qualifiers);
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
             return policy;
         }
         return null;
@@ -649,7 +647,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private Policy getPolicyFilterExp(Qualifier[] qualifiers) {
         if (qualifiers != null && qualifiers.length > 0) {
             Policy policy = new Policy(getAerospikeClient().getReadPolicyDefault());
-            policy.filterExp = getQueryEngine().getFilterExpressionsBuilder().build(qualifiers);
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
             return policy;
         }
         return null;
@@ -677,7 +675,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             .expiration(expiration);
 
         if (qualifiers != null && qualifiers.length > 0) {
-            writePolicyBuilder.filterExp(getQueryEngine().getFilterExpressionsBuilder().build(qualifiers));
+            writePolicyBuilder.filterExp(queryEngine.getFilterExpressionsBuilder().build(qualifiers));
         }
         WritePolicy writePolicy = writePolicyBuilder.build();
 
@@ -1108,13 +1106,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     <T, S> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                                       Qualifier... qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0 && !Arrays.stream(qualifiers).allMatch(Objects::isNull)) {
+        if (qualifiers != null && qualifiers.length > 0 && !allArrayElementsAreNull(qualifiers)) {
             validateQualifiers(qualifiers);
 
             Qualifier idQualifier = getOneIdQualifier(qualifiers);
             if (idQualifier != null) {
                 // it is a special flow if there is id given
-                return runIdQuery(entityClass, targetClass, getIdValue(idQualifier), excludeIdQualifier(qualifiers));
+                return findByIdsInternalWithoutMapping(getIdValue(idQualifier), entityClass, targetClass,
+                    excludeIdQualifier(qualifiers)).stream();
             }
         }
 
@@ -1136,22 +1135,5 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                     log.error("Caught exception while closing query", e);
                 }
             });
-    }
-
-    protected Stream<KeyRecord> runIdQuery(Class<?> sourceClass, Class<?> targetClass, Object ids,
-                                           Qualifier... qualifiers) {
-        Stream<KeyRecord> result;
-        if (ids == null) {
-            throw new IllegalArgumentException("Ids must not be null");
-        } else if (ids.getClass().isArray()) {
-            result = findByIdsInternalWithoutMapping(Arrays.stream(((Object[]) ids)).toList(), sourceClass, targetClass,
-                qualifiers).stream();
-        } else if (ids instanceof Iterable<?>) {
-            result = findByIdsInternalWithoutMapping(IterableConverter.toList((Iterable<?>) ids), sourceClass,
-                targetClass, qualifiers).stream();
-        } else {
-            result = Stream.of(findByIdInternalWithoutMapping(ids, sourceClass, targetClass, qualifiers));
-        }
-        return result;
     }
 }

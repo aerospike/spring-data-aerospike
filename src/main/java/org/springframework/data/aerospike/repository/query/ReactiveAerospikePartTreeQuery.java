@@ -19,15 +19,17 @@ import org.springframework.data.aerospike.core.ReactiveAerospikeInternalOperatio
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import reactor.core.publisher.Flux;
 
-import static org.springframework.data.aerospike.utility.Utils.excludeIdQualifier;
-import static org.springframework.data.aerospike.utility.Utils.getIdValue;
+import java.util.Collection;
+
+import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+
 
 /**
  * @author Igor Ermolenko
@@ -80,9 +82,8 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
     }
 
-    protected Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
+    protected Object findByIds(Collection<?> ids, Class<?> sourceClass, Class<?> targetClass,
                                Qualifier... qualifiers) {
-        return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, targetClass,
-            qualifiers);
+        return internalOperations.findByIdsInternal(ids, sourceClass, targetClass, qualifiers);
     }
 }
