@@ -29,7 +29,7 @@ import java.io.Serial;
  * @deprecated Since 4.6.0. Use {@link SimpleAerospikeRepository#findById(Object)} or
  * {@link SimpleAerospikeRepository#findByQualifier(Qualifier)} with {@link Qualifier#forId(String)}
  */
-@Deprecated
+@Deprecated(since = "4.6.0", forRemoval = true)
 public class KeyQualifier extends Qualifier {
 
     @Serial

@@ -34,6 +34,9 @@ import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.getQualifiers;
+import static org.springframework.data.aerospike.repository.query.AerospikeCriteria.isSingleIdQuery;
 
 /**
  * @author Peter Milne
@@ -66,8 +69,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             AerospikeCriteria criteria = query.getAerospikeCriteria();
             Qualifier[] qualifiers = getQualifiers(criteria);
             Qualifier idQualifier;
-            if (isIdQuery(criteria)) {
-                return runIdQuery(entityClass, targetClass, getIdValue(qualifiers));
+            if (isSingleIdQuery(criteria)) { //
+                return runIdQuery(entityClass, targetClass, getIdValue(qualifiers[0]));
             } else {
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
                     return runIdQuery(entityClass, targetClass, getIdValue(idQualifier),
@@ -98,10 +101,6 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         }
         throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " is not " +
             "supported");
-    }
-
-    protected Object findById(Object obj, Class<?> entityClass, Class<?> targetClass, Qualifier... qualifiers) {
-        return internalOperations.findByIdInternal(obj, entityClass, targetClass, qualifiers);
     }
 
     protected Object findByIds(Collection<?> ids, Class<?> entityClass, Class<?> targetClass,

@@ -28,7 +28,7 @@ import java.io.Serial;
  * @author peter
  * @deprecated Since 4.6.0. Use {@link Qualifier} with {@link MetadataQualifierBuilder} for flexible querying
  */
-@Deprecated
+@Deprecated(since = "4.6.0", forRemoval = true)
 public class ExpiryQualifier extends Qualifier {
 
     @Serial

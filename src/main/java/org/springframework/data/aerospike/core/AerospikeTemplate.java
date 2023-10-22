@@ -71,8 +71,8 @@ import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
-import static org.springframework.data.aerospike.query.Qualifier.getOneIdQualifier;
-import static org.springframework.data.aerospike.query.Qualifier.validateQualifiers;
+import static org.springframework.data.aerospike.query.QualifierUtils.getOneIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.validateQualifiers;
 import static org.springframework.data.aerospike.utility.Utils.allArrayElementsAreNull;
 
 /**
@@ -518,21 +518,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return (S) findByIdInternal(id, entityClass, targetClass);
     }
 
-    public KeyRecord findByIdInternalWithoutMapping(Object id, Class<?> entityClass, Class<?> targetClass,
-                                                    Qualifier... qualifiers) {
-        try {
-            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-            Key key = getKey(id, entity);
-
-            if (targetClass != null && targetClass != entityClass) {
-                return new KeyRecord(key, getRecord(entity, key, qualifiers));
-            }
-            return new KeyRecord(key, getRecord(entity, key, qualifiers));
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
-    }
-
     @Override
     public <T, S> Object findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass,
                                           Qualifier... qualifiers) {
@@ -543,7 +528,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             if (targetClass != null && targetClass != entityClass) {
                 return getRecordMapToTargetClass(entity, key, targetClass, qualifiers);
             }
-            return getRecordMapToEntityClass(entity, key, entityClass, qualifiers);
+            return mapToEntity(key, entityClass, getRecord(entity, key, qualifiers));
         } catch (AerospikeException e) {
             throw translateError(e);
         }
@@ -583,9 +568,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    public List<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<?> entityClass,
-                                                           Class<?> targetClass,
-                                                           Qualifier... qualifiers) {
+    private List<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<?> entityClass,
+                                                            Class<?> targetClass,
+                                                            Qualifier... qualifiers) {
         Assert.notNull(ids, "Ids must not be null");
         if (ids.isEmpty()) {
             return Collections.emptyList();
@@ -663,11 +648,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             aeroRecord = getAerospikeClient().get(policy, key);
         }
         return aeroRecord;
-    }
-
-    <T> Object getRecordMapToEntityClass(AerospikePersistentEntity<?> entity, Key key, Class<T> entityClass,
-                                         Qualifier... qualifiers) {
-        return mapToEntity(key, entityClass, getRecord(entity, key, qualifiers));
     }
 
     Record getAndTouch(Key key, int expiration, String[] binNames, Qualifier... qualifiers) {
@@ -1111,7 +1091,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
             Qualifier idQualifier = getOneIdQualifier(qualifiers);
             if (idQualifier != null) {
-                // it is a special flow if there is id given
+                // a special flow if there is id given
                 return findByIdsInternalWithoutMapping(getIdValue(idQualifier), entityClass, targetClass,
                     excludeIdQualifier(qualifiers)).stream();
             }

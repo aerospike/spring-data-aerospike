@@ -29,7 +29,8 @@ import java.util.Collection;
 
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
-
+import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.getQualifiers;
 
 /**
  * @author Igor Ermolenko
@@ -59,8 +60,8 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             AerospikeCriteria criteria = query.getAerospikeCriteria();
             Qualifier[] qualifiers = getQualifiers(criteria);
             Qualifier idQualifier;
-            if (isIdQuery(criteria)) {
-                return runIdQuery(entityClass, targetClass, getIdValue(qualifiers));
+            if (AerospikeCriteria.isSingleIdQuery(criteria)) {
+                return runIdQuery(entityClass, targetClass, getIdValue(qualifiers[0]));
             } else if ((idQualifier = getIdQualifier(criteria)) != null) {
                 return runIdQuery(entityClass, targetClass, getIdValue(idQualifier),
                     excludeIdQualifier(qualifiers));
@@ -76,10 +77,6 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         }
         // Run query and map to entity class type.
         return operations.find(query, entityClass);
-    }
-
-    protected Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers) {
-        return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
     }
 
     protected Object findByIds(Collection<?> ids, Class<?> sourceClass, Class<?> targetClass,

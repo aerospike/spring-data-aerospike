@@ -31,7 +31,6 @@ import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
 import java.util.Collection;
-import java.util.Objects;
 
 /**
  * @author Peter Milne
@@ -114,31 +113,11 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
     }
 
-    protected static boolean isIdQuery(AerospikeCriteria criteria) {
-        return Objects.equals(criteria.getField(), "id");
-    }
-
-    protected static Qualifier getIdQualifier(AerospikeCriteria criteria) {
-        Object qualifiers = criteria.get("qualifiers");
-        return Qualifier.getOneIdQualifier((Qualifier[]) qualifiers);
-    }
-
-    protected static Qualifier[] getQualifiers(AerospikeCriteria criteria) {
-        if (criteria == null) {
-            return null;
-        } else if (criteria.getQualifiers() == null) {
-            return new Qualifier[]{(criteria)};
-        }
-        return criteria.getQualifiers();
-    }
-
     protected Object runIdQuery(Class<?> sourceClass, Class<?> targetClass, Collection<Object> ids,
                                 Qualifier... qualifiers) {
         Assert.notNull(ids, "Ids must not be null");
         return findByIds(ids, sourceClass, targetClass, qualifiers);
     }
-
-    abstract Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers);
 
     abstract Object findByIds(Collection<?> ids, Class<?> sourceClass, Class<?> targetClass,
                               Qualifier... qualifiers);

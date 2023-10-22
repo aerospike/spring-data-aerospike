@@ -88,7 +88,7 @@ public class Utils {
         return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);
     }
 
-    public Optional<Integer> getIntegerProperty(String property) {
+    public static Optional<Integer> getIntegerProperty(String property) {
         if (StringUtils.hasText(property)) {
             int result;
             try {

@@ -68,8 +68,8 @@ import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredi
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
-import static org.springframework.data.aerospike.query.Qualifier.getOneIdQualifier;
-import static org.springframework.data.aerospike.query.Qualifier.validateQualifiers;
+import static org.springframework.data.aerospike.query.QualifierUtils.getOneIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.validateQualifiers;
 import static org.springframework.data.aerospike.utility.Utils.allArrayElementsAreNull;
 
 /**
@@ -1031,7 +1031,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
             Qualifier idQualifier = getOneIdQualifier(qualifiers);
             if (idQualifier != null) {
-                // it is a special flow if there is id given
+                // a special flow if there is id given
                 return findByIdsInternalWithoutMapping(getIdValue(idQualifier), entityClass, targetClass,
                     excludeIdQualifier(qualifiers));
             }

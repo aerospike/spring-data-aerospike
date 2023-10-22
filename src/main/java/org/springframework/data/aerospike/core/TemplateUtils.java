@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.core;
 
+import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.util.Assert;
 
@@ -10,23 +11,24 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+@UtilityClass
 public class TemplateUtils {
 
-    public static Collection<Object> getIdValue(Qualifier... qualifiers) {
-        return Arrays.stream(qualifiers).filter(Qualifier::hasId)
-            .filter(qualifier -> qualifier.getValue1() != null)
-            .map(qualifier -> idObjectToCollection(qualifier.getValue1().getObject()))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Value of 'id' field in a Qualifier was not found"));
+    public static List<Object> getIdValue(Qualifier qualifier) {
+        if (qualifier.hasId() && qualifier.getValue1() != null) {
+            return idObjectToList(qualifier.getValue1().getObject());
+        } else {
+            throw new IllegalArgumentException("Id qualifier must contain value");
+        }
     }
 
-    private static Collection<Object> idObjectToCollection(Object ids) {
-        Collection<Object> result;
+    private static List<Object> idObjectToList(Object ids) {
+        List<Object> result;
         Assert.notNull(ids, "Ids must not be null");
         if (ids.getClass().isArray()) {
             result = Arrays.stream(((Object[]) ids)).toList();
         } else if (ids instanceof Collection<?>) {
-            result = ((Collection<Object>) ids);
+            result = new ArrayList<Object>((Collection) ids);
         } else if (ids instanceof Iterable<?>) {
             result = StreamSupport.stream(((Iterable<?>) ids).spliterator(), false)
                 .collect(Collectors.toList());

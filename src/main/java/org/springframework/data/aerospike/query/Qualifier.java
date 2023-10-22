@@ -27,11 +27,9 @@ import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,10 +42,9 @@ import java.util.Set;
  */
 public class Qualifier implements Map<String, Object>, Serializable {
 
-    public static final String FIELD = "field";
-    public static final String METADATA_FIELD = "metadata_field";
+    protected static final String FIELD = "field";
+    protected static final String METADATA_FIELD = "metadata_field";
     protected static final String ID_VALUE = "id";
-    private static final String DIGEST = "digest";
     protected static final String IGNORE_CASE = "ignoreCase";
     protected static final String VALUE1 = "value1";
     protected static final String VALUE2 = "value2";
@@ -67,18 +64,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
         if (!builder.buildMap().isEmpty()) {
             internalMap.putAll(builder.buildMap());
-        }
-    }
-
-    public static void validateQualifiers(Qualifier... qualifiers) {
-        boolean haveInternalQualifiers = qualifiers.length > 1;
-        for (Qualifier qualifier : qualifiers) {
-            haveInternalQualifiers = haveInternalQualifiers || qualifier.hasQualifiers();
-            // excludeFilter in the upmost parent qualifier is set to true
-            // if there are multiple qualifiers
-            // must not build secondary index filter based on any of them
-            // as it might conflict with the combination of qualifiers
-            qualifier.setExcludeFilter(haveInternalQualifiers);
         }
     }
 
@@ -407,38 +392,5 @@ public class Qualifier implements Map<String, Object>, Serializable {
             .setField(ID_VALUE)
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(Arrays.stream(ids).toList())));
-    }
-
-    /**
-     * Find id qualifier.
-     *
-     * @return The only id qualifier or null.
-     * @throws IllegalArgumentException if more than one id qualifier given
-     */
-    public static Qualifier getOneIdQualifier(Qualifier... qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0) {
-            List<Qualifier> idQualifiers = getIdQualifiers(qualifiers);
-            if (idQualifiers.size() > 1) {
-                throw new IllegalArgumentException("Expecting not more than one id qualifier in qualifiers array," +
-                    " got " + idQualifiers.size());
-            } else if (idQualifiers.size() == 1) {
-                return idQualifiers.get(0);
-            }
-        }
-        return null;
-    }
-
-    private static List<Qualifier> getIdQualifiers(Qualifier[] qualifiers) {
-        List<Qualifier> idQualifiers = new ArrayList<>();
-        for (Qualifier qualifier : qualifiers) {
-            if (qualifier.hasId()) {
-                idQualifiers.add(qualifier);
-            } else {
-                if (qualifier.hasQualifiers()) {
-                    idQualifiers.addAll(getIdQualifiers(qualifier.getQualifiers()));
-                }
-            }
-        }
-        return idQualifiers;
     }
 }
