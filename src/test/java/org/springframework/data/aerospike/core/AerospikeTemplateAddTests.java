@@ -55,4 +55,18 @@ public class AerospikeTemplateAddTests extends BaseBlockingIntegrationTests {
         assertThat(result).isEqualTo(updated);
         template.delete(result);
     }
+
+    @Test
+    public void add_incrementWithSetName() {
+        String setName = "testSet1";
+        Person one = Person.builder().id(id).age(25).build();
+        template.insert(one, setName);
+
+        Person updated = template.add(one, setName, "age", 1);
+
+        assertThat(updated.getAge()).isEqualTo(26);
+        Person result = template.findById(id, Person.class, setName);
+        assertThat(result).isEqualTo(updated);
+        template.delete(result, setName);
+    }
 }
