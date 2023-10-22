@@ -381,8 +381,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     /**
+     * Create Qualifier with the condition "Id equal to the given String"
+     *
      * @param id String value
-     * @return Qualifier with the condition "Id equal to the given String"
+     * @return Single id qualifier
      */
     public static Qualifier forId(String id) {
         return new Qualifier(new QualifierBuilder()
@@ -392,8 +394,10 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     /**
+     * Create Qualifier with the condition "Id equal to one of the given Strings (logical OR)"
+     *
      * @param ids String values
-     * @return Qualifier with the condition "Id equal to one of the given Strings (logical OR)"
+     * @return Multiple ids qualifier with OR condition
      */
     public static Qualifier forIds(String... ids) {
         return new Qualifier(new QualifierBuilder()
