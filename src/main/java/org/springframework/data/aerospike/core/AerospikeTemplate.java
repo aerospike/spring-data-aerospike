@@ -30,7 +30,6 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -70,7 +69,11 @@ import java.util.stream.Stream;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
-import static org.springframework.data.aerospike.query.Qualifier.validateQualifiers;
+import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+import static org.springframework.data.aerospike.query.QualifierUtils.getOneIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.validateQualifiers;
+import static org.springframework.data.aerospike.utility.Utils.allArrayElementsAreNull;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -87,7 +90,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
     private final IAerospikeClient client;
-    @Getter
     private final QueryEngine queryEngine;
     private final IndexRefresher indexRefresher;
 
@@ -485,7 +487,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T> Stream<T> findAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
 
-        return findAllUsingQuery(entityClass, null, (Qualifier[]) null);
+        return findAllUsingQuery(entityClass, null, null);
     }
 
     @SuppressWarnings("unchecked")
@@ -526,7 +528,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             if (targetClass != null && targetClass != entityClass) {
                 return getRecordMapToTargetClass(entity, key, targetClass, qualifiers);
             }
-            return getRecordMapToEntityClass(entity, key, entityClass, qualifiers);
+            return mapToEntity(key, entityClass, getRecord(entity, key, qualifiers));
         } catch (AerospikeException e) {
             throw translateError(e);
         }
@@ -542,15 +544,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         try {
             AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 
-            Key[] keys = ids.stream()
-                .map(id -> getKey(id, entity))
-                .toArray(Key[]::new);
+            Key[] keys = getKeys(ids, entity);
 
-            BatchPolicy policy = null;
-            if (qualifiers != null && qualifiers.length > 0) {
-                policy = new BatchPolicy(getAerospikeClient().getBatchPolicyDefault());
-                policy.filterExp = getQueryEngine().getFilterExpressionsBuilder().build(qualifiers);
-            }
+            BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
 
             Class<?> target;
             Record[] aeroRecords;
@@ -572,6 +568,53 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    private List<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<?> entityClass,
+                                                            Class<?> targetClass,
+                                                            Qualifier... qualifiers) {
+        Assert.notNull(ids, "Ids must not be null");
+        if (ids.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        try {
+            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+            Key[] keys = getKeys(ids, entity);
+
+            BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
+
+            Record[] aeroRecords;
+            if (targetClass != null && targetClass != entityClass) {
+                String[] binNames = getBinNamesFromTargetClass(targetClass);
+                aeroRecords = getAerospikeClient().get(policy, keys, binNames);
+            } else {
+                aeroRecords = getAerospikeClient().get(policy, keys);
+            }
+
+            return IntStream.range(0, keys.length)
+                .filter(index -> aeroRecords[index] != null)
+                .mapToObj(index -> new KeyRecord(keys[index], aeroRecords[index]))
+                .collect(Collectors.toList());
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
+    private BatchPolicy getBatchPolicyFilterExp(Qualifier[] qualifiers) {
+        if (qualifiers != null && qualifiers.length > 0) {
+            BatchPolicy policy = new BatchPolicy(getAerospikeClient().getBatchPolicyDefault());
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
+            return policy;
+        }
+        return null;
+    }
+
+    private Key[] getKeys(Collection<?> ids, AerospikePersistentEntity<?> entity) {
+        return ids.stream()
+            .map(id -> getKey(id, entity))
+            .toArray(Key[]::new);
+    }
+
     <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass,
                                          Qualifier... qualifiers) {
         Record aeroRecord;
@@ -580,31 +623,31 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
             aeroRecord = getAndTouch(key, entity.getExpiration(), binNames, qualifiers);
         } else {
-            Policy policy = null;
-            if (qualifiers != null && qualifiers.length > 0) {
-                policy = new Policy(getAerospikeClient().getReadPolicyDefault());
-                policy.filterExp = getQueryEngine().getFilterExpressionsBuilder().build(qualifiers);
-            }
+            Policy policy = getPolicyFilterExp(qualifiers);
             aeroRecord = getAerospikeClient().get(policy, key, binNames);
         }
         return mapToEntity(key, targetClass, aeroRecord);
     }
 
-    <T> Object getRecordMapToEntityClass(AerospikePersistentEntity<?> entity, Key key, Class<T> entityClass,
-                                         Qualifier... qualifiers) {
+    private Policy getPolicyFilterExp(Qualifier[] qualifiers) {
+        if (qualifiers != null && qualifiers.length > 0) {
+            Policy policy = new Policy(getAerospikeClient().getReadPolicyDefault());
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
+            return policy;
+        }
+        return null;
+    }
+
+    Record getRecord(AerospikePersistentEntity<?> entity, Key key, Qualifier... qualifiers) {
         Record aeroRecord;
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
             aeroRecord = getAndTouch(key, entity.getExpiration(), null);
         } else {
-            Policy policy = null;
-            if (qualifiers != null && qualifiers.length > 0) {
-                policy = new Policy(getAerospikeClient().getReadPolicyDefault());
-                policy.filterExp = getQueryEngine().getFilterExpressionsBuilder().build(qualifiers);
-            }
+            Policy policy = getPolicyFilterExp(qualifiers);
             aeroRecord = getAerospikeClient().get(policy, key);
         }
-        return mapToEntity(key, entityClass, aeroRecord);
+        return aeroRecord;
     }
 
     Record getAndTouch(Key key, int expiration, String[] binNames, Qualifier... qualifiers) {
@@ -612,7 +655,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             .expiration(expiration);
 
         if (qualifiers != null && qualifiers.length > 0) {
-            writePolicyBuilder.filterExp(getQueryEngine().getFilterExpressionsBuilder().build(qualifiers));
+            writePolicyBuilder.filterExp(queryEngine.getFilterExpressionsBuilder().build(qualifiers));
         }
         WritePolicy writePolicy = writePolicyBuilder.build();
 
@@ -983,8 +1026,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> Stream<T> findAllUsingQuery(Class<T> entityClass, Filter filter,
-                                           Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(entityClass, null, filter, qualifiers)
+                                           Qualifier qualifier) {
+        return findAllRecordsUsingQuery(entityClass, null, filter, qualifier)
             .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }
 
@@ -1043,8 +1086,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     <T, S> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
                                                       Qualifier... qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0) {
+        if (qualifiers != null && qualifiers.length > 0 && !allArrayElementsAreNull(qualifiers)) {
             validateQualifiers(qualifiers);
+
+            Qualifier idQualifier = getOneIdQualifier(qualifiers);
+            if (idQualifier != null) {
+                // a special flow if there is id given
+                return findByIdsInternalWithoutMapping(getIdValue(idQualifier), entityClass, targetClass,
+                    excludeIdQualifier(qualifiers)).stream();
+            }
         }
 
         String setName = getSetName(entityClass);

@@ -23,6 +23,8 @@ import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.annotation.Id;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +46,8 @@ public class Person {
     private String firstName;
     private String lastName;
     private int age;
+    private BigInteger ageBigInteger;
+    private BigDecimal ageBigDecimal;
     private int waist;
     private Sex sex;
     private Map<String, String> stringMap;

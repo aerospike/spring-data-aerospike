@@ -21,6 +21,7 @@ import org.springframework.data.convert.WritingConverter;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -41,12 +42,15 @@ abstract class AerospikeConverters {
 
         converters.add(BigDecimalToStringConverter.INSTANCE);
         converters.add(StringToBigDecimalConverter.INSTANCE);
+        converters.add(BigIntegerToStringConverter.INSTANCE);
+        converters.add(StringToBigIntegerConverter.INSTANCE);
         converters.add(LongToBooleanConverter.INSTANCE);
         converters.add(EnumToStringConverter.INSTANCE);
 
         return converters;
     }
 
+    @WritingConverter
     public enum BigDecimalToStringConverter implements Converter<BigDecimal, String> {
         INSTANCE;
 
@@ -56,12 +60,33 @@ abstract class AerospikeConverters {
         }
     }
 
+    @ReadingConverter
     public enum StringToBigDecimalConverter implements Converter<String, BigDecimal> {
         INSTANCE;
 
         @Override
         public BigDecimal convert(String source) {
             return StringUtils.hasText(source) ? new BigDecimal(source) : null;
+        }
+    }
+
+    @WritingConverter
+    public enum BigIntegerToStringConverter implements Converter<BigInteger, String> {
+        INSTANCE;
+
+        @Override
+        public String convert(BigInteger source) {
+            return source.toString();
+        }
+    }
+
+    @ReadingConverter
+    public enum StringToBigIntegerConverter implements Converter<String, BigInteger> {
+        INSTANCE;
+
+        @Override
+        public BigInteger convert(String source) {
+            return new BigInteger(source);
         }
     }
 

@@ -23,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -123,6 +125,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Stream<P> findByFirstNameNotIn(Collection<String> firstNames);
 
     List<P> findByFirstNameAndLastName(String firstName, String lastName);
+
+    List<P> findByAgeBigInteger(BigInteger age);
+
+    List<P> findByAgeBigDecimal(BigDecimal age);
 
     /**
      * Find all entities that satisfy the condition "have age in the given range"

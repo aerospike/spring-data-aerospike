@@ -19,12 +19,18 @@ import org.springframework.data.aerospike.core.ReactiveAerospikeInternalOperatio
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import reactor.core.publisher.Flux;
+
+import java.util.Collection;
+
+import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.getQualifiers;
 
 /**
  * @author Igor Ermolenko
@@ -53,10 +59,11 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         if (parameters != null && parameters.length > 0) {
             AerospikeCriteria criteria = query.getAerospikeCriteria();
             Qualifier[] qualifiers = getQualifiers(criteria);
-            if (isIdQuery(criteria)) {
-                return runIdQuery(entityClass, targetClass, getIdValue(qualifiers));
-            } else if (hasIdQualifier(criteria)) {
-                return runIdQuery(entityClass, targetClass, getIdValue(getIdQualifier(qualifiers)),
+            Qualifier idQualifier;
+            if (AerospikeCriteria.isSingleIdQuery(criteria)) {
+                return runIdQuery(entityClass, targetClass, getIdValue(qualifiers[0]));
+            } else if ((idQualifier = getIdQualifier(criteria)) != null) {
+                return runIdQuery(entityClass, targetClass, getIdValue(idQualifier),
                     excludeIdQualifier(qualifiers));
             }
         }
@@ -72,13 +79,8 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         return operations.find(query, entityClass);
     }
 
-    protected Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers) {
-        return internalOperations.findByIdInternal(obj, sourceClass, targetClass, qualifiers);
-    }
-
-    protected Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
+    protected Object findByIds(Collection<?> ids, Class<?> sourceClass, Class<?> targetClass,
                                Qualifier... qualifiers) {
-        return internalOperations.findByIdsInternal(IterableConverter.toList(iterable), sourceClass, targetClass,
-            qualifiers);
+        return internalOperations.findByIdsInternal(ids, sourceClass, targetClass, qualifiers);
     }
 }

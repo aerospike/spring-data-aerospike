@@ -58,15 +58,13 @@ public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T
     boolean indexExists(String indexName);
 
     /**
-     * Run a query to find entities by providing {@link Qualifier}s.
+     * Run a query to find entities by providing {@link Qualifier}.
      * <p>
-     * If multiple qualifiers are given, they are combined using AND.
-     * <p>
-     * Each qualifier itself may contain internal qualifiers and combine them using either {@link FilterOperation#AND}
-     * or {@link FilterOperation#OR}.
+     * A qualifier may contain other qualifiers and combine them using either {@link FilterOperation#AND} or
+     * {@link FilterOperation#OR}.
      *
-     * @param qualifiers One or more qualifiers representing expressions. Must not be {@literal null}.
+     * @param qualifier A qualifier representing expressions to be performed. Must not be {@literal null}.
      * @return Iterable of entities.
      */
-    Iterable<T> findByQualifiers(Qualifier... qualifiers);
+    Iterable<T> findByQualifier(Qualifier qualifier);
 }

@@ -20,6 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1176,9 +1178,9 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonByIdAndFirstNameNullResult() {
+    public void findPersonByIdAndFirstNameEmptyResult() {
         List<Person> persons = repository.findByIdAndFirstName(dave.getId(), carter.getFirstName());
-        assertThat(persons).isNull();
+        assertThat(persons).isEmpty();
     }
 
     @Test
@@ -1223,7 +1225,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(50000L)
             .build();
-        assertThat(repository.findByQualifiers(sinceUpdateTimeLt10Seconds)).containsAll(allPersons);
+        assertThat(repository.findByQualifier(sinceUpdateTimeLt10Seconds)).containsAll(allPersons);
 
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
@@ -1232,8 +1234,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setValue1AsObj(1L)
             .setValue2AsObj(50000L)
             .build();
-        assertThat(repository.findByQualifiers(sinceUpdateTimeBetween1And50000))
-            .containsAll(repository.findByQualifiers(sinceUpdateTimeLt10Seconds));
+        assertThat(repository.findByQualifier(sinceUpdateTimeBetween1And50000))
+            .containsAll(repository.findByQualifier(sinceUpdateTimeLt10Seconds));
     }
 
     @Test
@@ -1253,7 +1255,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(50000L)
             .build();
-        assertThat(repository.findByQualifiers(sinceUpdateTimeLt50Seconds)).containsAll(allPersons);
+        assertThat(repository.findByQualifier(sinceUpdateTimeLt50Seconds)).containsAll(allPersons);
 
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
@@ -1276,7 +1278,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(49))
             .build();
-        result = repository.findByQualifiers(ageEq49);
+        result = repository.findByQualifier(ageEq49);
         assertThat(result).containsOnly(carter);
 
         // creating a condition "age is greater than 49"
@@ -1285,12 +1287,45 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setField("age")
             .setValue1(Value.get(49))
             .build();
-        result = repository.findByQualifiers(ageGt49);
+        result = repository.findByQualifier(ageGt49);
         assertThat(result).doesNotContain(carter);
 
-        // default conjunction for multiple qualifiers given to "findByMetadata" is AND
-        result = repository.findByQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
-            sinceUpdateTimeBetween1And50000);
+        // creating a condition "id equals Carter's id"
+        Qualifier keyEqCartersId = Qualifier.forId(carter.getId());
+        result = repository.findByQualifier(keyEqCartersId);
+        assertThat(result).containsOnly(carter);
+
+        // creating a condition "id equals Boyd's id"
+        Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
+        result = repository.findByQualifier(keyEqBoydsId);
+        assertThat(result).containsOnly(boyd);
+
+        // analogous to {@link SimpleAerospikeRepository#findAllById(Iterable)}
+        // creating a condition "id equals Carter's id OR Boyd's id"
+        Qualifier keyEqMultipleIds = Qualifier.forIds(carter.getId(), boyd.getId());
+        result = repository.findByQualifier(keyEqMultipleIds);
+        assertThat(result).containsOnly(carter, boyd);
+
+        // metadata and id qualifiers combined with AND
+        // not more than one id qualifier is allowed, otherwise the conditions will not overlap
+        result = repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(sinceUpdateTimeGt1, keyEqCartersId)
+            .build());
+        assertThat(result).containsOnly(carter);
+
+        // the same qualifiers in different order
+        result = repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(keyEqCartersId, sinceUpdateTimeGt1)
+            .build());
+        assertThat(result).containsOnly(carter);
+
+        result = repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
+                sinceUpdateTimeBetween1And50000, keyEqCartersId)
+            .build());
         assertThat(result).containsOnly(carter);
 
         // conditions "age == 49", "firstName is Carter" and "since_update_time metadata value is less than 50 seconds"
@@ -1299,7 +1334,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(ageEq49, firstNameEqCarter, sinceUpdateTimeLt50Seconds)
             .build();
-        result = repository.findByQualifiers(orWide);
+        result = repository.findByQualifier(orWide);
         assertThat(result).containsAll(allPersons);
 
         // conditions "age == 49" and "firstName is Carter" are combined with OR
@@ -1307,12 +1342,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(ageEq49, firstNameEqCarter)
             .build();
-        result = repository.findByQualifiers(orNarrow);
+        result = repository.findByQualifier(orNarrow);
         assertThat(result).containsOnly(carter);
 
-        // default conjunction for multiple qualifiers given to "findByMetadata" is AND
         // conditions "age == 49" and "age > 49" are not overlapping
-        result = repository.findByQualifiers(ageEq49, ageGt49);
+        result = repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(ageEq49, ageGt49)
+            .build());
         assertThat(result).isEmpty();
 
         // conditions "age == 49" and "age > 49" are combined with OR
@@ -1321,12 +1358,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setQualifiers(ageEq49, ageGt49)
             .build();
 
-        result = repository.findByQualifiers(ageEqOrGt49);
+        result = repository.findByQualifier(ageEqOrGt49);
         List<Person> personsWithAgeEqOrGt49 = allPersons.stream().filter(person -> person.getAge() >= 49).toList();
         assertThat(result).containsAll(personsWithAgeEqOrGt49);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
-        result = repository.findByQualifiers(orWide, orNarrow);
+        result = repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(orWide, orNarrow)
+            .build());
         assertThat(result).containsOnly(carter);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
@@ -1335,13 +1375,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.AND)
             .setQualifiers(orWide, orNarrow)
             .build();
-        result = repository.findByQualifiers(orCombinedWithAnd);
+        result = repository.findByQualifier(orCombinedWithAnd);
         assertThat(result).containsOnly(carter);
     }
 
     @Test
     public void findPersonsByQualifiersMustBeValid() {
-        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1AsObj(1L)
@@ -1349,7 +1389,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("BETWEEN: value2 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue2AsObj(1L)
@@ -1357,7 +1397,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("BETWEEN: value1 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
             .setValue1AsObj(1)
@@ -1365,7 +1405,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("GT: value1 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(1)
@@ -1373,7 +1413,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("LT: value1 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LTEQ)
             .setValue1AsObj(Value.get(1))
@@ -1381,13 +1421,40 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("LTEQ: value1 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifiers(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue1AsObj(1L)
             .build()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Operation STARTS_WITH cannot be applied to metadataField");
+
+        Qualifier keyEqCartersId = Qualifier.forId(carter.getId());
+        Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
+
+        // not more than one id qualifier is allowed
+        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(keyEqCartersId, keyEqBoydsId)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
+
+        // not more than one id qualifier is allowed
+        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(keyEqCartersId, keyEqBoydsId)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
+
+        // not more than one id qualifier is allowed
+        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.builder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(keyEqCartersId, keyEqBoydsId)
+            .build()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
     }
 
     @Test
@@ -1425,7 +1492,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     public void findByIdAndLastNameDynamicProjectionNullResult() {
         List<PersonSomeFields> result = repository.findByIdAndLastName(carter.getId(), dave.getLastName(),
             PersonSomeFields.class);
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -1618,6 +1685,30 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         result = repository.findByFirstNameIn(List.of("Alicia", "Stefan"));
         assertThat(result).contains(alicia, stefan);
+    }
+
+    @Test
+    public void findByBigInteger() {
+        BigInteger value = BigInteger.valueOf(10L);
+        stefan.setAgeBigInteger(value); // there must be a corresponding converter in AerospikeConverters
+        repository.save(stefan);
+        List<Person> persons = repository.findByAgeBigInteger(value);
+        assertThat(persons).containsOnly(stefan);
+
+        stefan.setAgeBigInteger(null); // cleanup
+        repository.save(stefan);
+    }
+
+    @Test
+    public void findByBigDecimal() {
+        BigDecimal value = BigDecimal.valueOf(10L);
+        stefan.setAgeBigDecimal(value); // there must be a corresponding converter in AerospikeConverters
+        repository.save(stefan);
+        List<Person> persons = repository.findByAgeBigDecimal(value);
+        assertThat(persons).containsOnly(stefan);
+
+        stefan.setAgeBigDecimal(null); // cleanup
+        repository.save(stefan);
     }
 
     @Test

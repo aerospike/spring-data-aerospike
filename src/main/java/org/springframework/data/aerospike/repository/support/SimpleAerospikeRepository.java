@@ -160,9 +160,8 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         return operations.indexExists(indexName);
     }
 
-    @Override
-    public Iterable<T> findByQualifiers(Qualifier... qualifiers) {
-        Assert.notNull(qualifiers, "Qualifiers must not be null");
-        return operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifiers).toList();
+    public Iterable<T> findByQualifier(Qualifier qualifier) {
+        Assert.notNull(qualifier, "Qualifier must not be null");
+        return operations.findAllUsingQuery(entityInformation.getJavaType(), null, qualifier).toList();
     }
 }
