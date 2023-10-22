@@ -50,6 +50,7 @@ abstract class AerospikeConverters {
         return converters;
     }
 
+    @WritingConverter
     public enum BigDecimalToStringConverter implements Converter<BigDecimal, String> {
         INSTANCE;
 
@@ -59,6 +60,7 @@ abstract class AerospikeConverters {
         }
     }
 
+    @ReadingConverter
     public enum StringToBigDecimalConverter implements Converter<String, BigDecimal> {
         INSTANCE;
 
@@ -68,6 +70,7 @@ abstract class AerospikeConverters {
         }
     }
 
+    @WritingConverter
     public enum BigIntegerToStringConverter implements Converter<BigInteger, String> {
         INSTANCE;
 
@@ -77,6 +80,7 @@ abstract class AerospikeConverters {
         }
     }
 
+    @ReadingConverter
     public enum StringToBigIntegerConverter implements Converter<String, BigInteger> {
         INSTANCE;
 
