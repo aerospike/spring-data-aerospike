@@ -38,6 +38,7 @@ public class QualifierUtils {
     /**
      * Find id qualifier.
      *
+     * @param qualifiers Qualifiers to search through
      * @return The only id qualifier or null.
      * @throws IllegalArgumentException if more than one id qualifier given
      */

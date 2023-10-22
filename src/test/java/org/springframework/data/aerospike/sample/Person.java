@@ -46,7 +46,7 @@ public class Person {
     private String firstName;
     private String lastName;
     private int age;
-    private BigInteger ageBigInt;
+    private BigInteger ageBigInteger;
     private BigDecimal ageBigDecimal;
     private int waist;
     private Sex sex;

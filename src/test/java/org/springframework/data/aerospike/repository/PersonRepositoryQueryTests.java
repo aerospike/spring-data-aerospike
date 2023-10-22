@@ -1690,12 +1690,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findByBigInteger() {
         BigInteger value = BigInteger.valueOf(10L);
-        stefan.setAgeBigInt(value); // there must be a corresponding converter in AerospikeConverters
+        stefan.setAgeBigInteger(value); // there must be a corresponding converter in AerospikeConverters
         repository.save(stefan);
-        List<Person> persons = repository.findByAgeBigInt(value);
+        List<Person> persons = repository.findByAgeBigInteger(value);
         assertThat(persons).containsOnly(stefan);
 
-        stefan.setAgeBigInt(null); // cleanup
+        stefan.setAgeBigInteger(null); // cleanup
         repository.save(stefan);
     }
 

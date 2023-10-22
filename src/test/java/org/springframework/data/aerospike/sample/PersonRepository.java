@@ -126,7 +126,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameAndLastName(String firstName, String lastName);
 
-    List<P> findByAgeBigInt(BigInteger age);
+    List<P> findByAgeBigInteger(BigInteger age);
 
     List<P> findByAgeBigDecimal(BigDecimal age);
 
