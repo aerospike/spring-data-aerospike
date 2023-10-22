@@ -69,7 +69,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             AerospikeCriteria criteria = query.getAerospikeCriteria();
             Qualifier[] qualifiers = getQualifiers(criteria);
             Qualifier idQualifier;
-            if (isSingleIdQuery(criteria)) { //
+            if (isSingleIdQuery(criteria)) {
                 return runIdQuery(entityClass, targetClass, getIdValue(qualifiers[0]));
             } else {
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
