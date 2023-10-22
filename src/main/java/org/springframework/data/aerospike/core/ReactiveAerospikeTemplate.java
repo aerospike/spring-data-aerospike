@@ -532,10 +532,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record));
     }
 
-    public <T, S> Flux<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<T> entityClass,
+    private <T, S> Flux<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<T> entityClass,
                                                                   Class<S> targetClass,
                                                                   Qualifier... qualifiers) {
-
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
 
