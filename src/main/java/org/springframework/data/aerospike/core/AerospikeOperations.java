@@ -971,29 +971,31 @@ public interface AerospikeOperations {
     boolean indexExists(String indexName);
 
     /**
-     * Find all documents in the given entityClass's set using provided {@link Qualifier}s.
+     * Find all documents in the given entityClass's set using provided {@link Qualifier}.
      *
      * @param entityClass The class to extract the Aerospike set from and to map the entity to. Must not be
      *                    {@literal null}.
      * @param filter      Secondary index filter.
-     * @param qualifiers  Qualifiers to build filter expressions from. Must not be {@literal null}. If filter param is
-     *                    null and qualifiers have {@link Qualifier#getExcludeFilter()} == false secondary index filter
-     *                    is built based on the first processed qualifier.
+     * @param qualifier   Qualifier to build filter expressions from. Can contain other qualifiers. Must not be
+     *                    {@literal null}. If filter param is null and qualifier has
+     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
+     *                    first processed qualifier.
      * @return Stream of entities.
      */
-    <T> Stream<T> findAllUsingQuery(Class<T> entityClass, @Nullable Filter filter, Qualifier... qualifiers);
+    <T> Stream<T> findAllUsingQuery(Class<T> entityClass, @Nullable Filter filter, Qualifier qualifier);
 
     /**
-     * Find all documents in the given set using provided {@link Qualifier}s.
+     * Find all documents in the given set using provided {@link Qualifier}.
      *
      * @param targetClass The class to map the entity to. Must not be {@literal null}.
      * @param setName     Set name to find the documents in.
      * @param filter      Secondary index filter.
-     * @param qualifiers  Qualifiers to build filter expressions from. Must not be {@literal null}. If filter param is
-     *                    null and qualifiers have {@link Qualifier#getExcludeFilter()} == false secondary index filter
-     *                    is built based on the first processed qualifier.
+     * @param qualifier   Qualifier to build filter expressions from. Can contain other qualifiers. Must not be
+     *                    {@literal null}. If filter param is null and qualifier has
+     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
+     *                    first processed qualifier.
      * @return Stream of entities.
      */
     <T> Stream<T> findAllUsingQuery(Class<T> targetClass, String setName, @Nullable Filter filter,
-                                    Qualifier... qualifiers);
+                                    Qualifier qualifier);
 }

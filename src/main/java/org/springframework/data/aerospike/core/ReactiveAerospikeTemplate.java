@@ -65,7 +65,11 @@ import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
-import static org.springframework.data.aerospike.query.Qualifier.validateQualifiers;
+import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+import static org.springframework.data.aerospike.query.QualifierUtils.getOneIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.validateQualifiers;
+import static org.springframework.data.aerospike.utility.Utils.allArrayElementsAreNull;
 
 /**
  * Primary implementation of {@link ReactiveAerospikeOperations}.
@@ -80,7 +84,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
     private final IAerospikeReactorClient reactorClient;
-    private final ReactorQueryEngine queryEngine;
+    private final ReactorQueryEngine reactorQueryEngine;
     private final ReactorIndexRefresher reactorIndexRefresher;
 
     public ReactiveAerospikeTemplate(IAerospikeReactorClient reactorClient,
@@ -92,8 +96,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         super(namespace, converter, mappingContext, exceptionTranslator, reactorClient.getWritePolicyDefault());
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
         this.reactorClient = reactorClient;
-        this.queryEngine = queryEngine;
+        this.reactorQueryEngine = queryEngine;
         this.reactorIndexRefresher = reactorIndexRefresher;
+    }
+
+    @Override
+    public void refreshIndexesCache() {
+        reactorIndexRefresher.refreshIndexes();
     }
 
     @Override
@@ -560,7 +569,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             Policy policy = null;
             if (qualifiers != null && qualifiers.length > 0) {
                 policy = new Policy(reactorClient.getReadPolicyDefault());
-                policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
+                policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(qualifiers);
             }
             return reactorClient.get(policy, key, binNames)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
@@ -611,13 +620,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return Flux.empty();
         }
 
-        final BatchPolicy policy;
-        if (qualifiers != null && qualifiers.length > 0) {
-            policy = new BatchPolicy(reactorClient.getBatchPolicyDefault());
-            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
-        } else {
-            policy = null;
-        }
+        BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
 
         Class<?> target;
         if (targetClass != null && targetClass != entityClass) {
@@ -631,6 +634,35 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .flatMap(key -> getFromClient(policy, key, entityClass, targetClass))
             .filter(keyRecord -> nonNull(keyRecord.record))
             .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record));
+    }
+
+    private <T, S> Flux<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<T> entityClass,
+                                                                  Class<S> targetClass,
+                                                                  Qualifier... qualifiers) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        if (ids.isEmpty()) {
+            return Flux.empty();
+        }
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+        BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
+
+        return Flux.fromIterable(ids)
+            .map(id -> getKey(id, entity))
+            .flatMap(key -> getFromClient(policy, key, entityClass, targetClass))
+            .filter(keyRecord -> nonNull(keyRecord.record));
+    }
+
+    private BatchPolicy getBatchPolicyFilterExp(Qualifier[] qualifiers) {
+        if (qualifiers != null && qualifiers.length > 0) {
+            BatchPolicy policy = new BatchPolicy(reactorClient.getAerospikeClient().getBatchPolicyDefault());
+            policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(qualifiers);
+            return policy;
+        }
+        return null;
     }
 
     private Mono<KeyRecord> getFromClient(BatchPolicy finalPolicy, Key key, Class<?> entityClass,
@@ -1025,7 +1057,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .expiration(expiration);
 
         if (qualifiers != null && qualifiers.length > 0) {
-            writePolicyBuilder.filterExp(queryEngine.getFilterExpressionsBuilder().build(qualifiers));
+            writePolicyBuilder.filterExp(reactorQueryEngine.getFilterExpressionsBuilder().build(qualifiers));
         }
         WritePolicy writePolicy = writePolicyBuilder.build();
 
@@ -1119,8 +1151,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter,
-                                         Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(getSetName(entityClass), entityClass, filter, qualifiers)
+                                         Qualifier qualifier) {
+        return findAllRecordsUsingQuery(getSetName(entityClass), entityClass, filter, qualifier)
             .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
     }
 
@@ -1148,20 +1180,22 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private <T> Flux<KeyRecord> findAllRecordsUsingQuery(String setName, Class<T> targetClass, Filter filter,
                                                             Qualifier... qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0) {
+        if (qualifiers != null && qualifiers.length > 0 && !allArrayElementsAreNull(qualifiers)) {
             validateQualifiers(qualifiers);
+
+            Qualifier idQualifier = getOneIdQualifier(qualifiers);
+            if (idQualifier != null) {
+                // a special flow if there is id given
+                return findByIdsInternalWithoutMapping(getIdValue(idQualifier), entityClass, targetClass,
+                    excludeIdQualifier(qualifiers));
+            }
         }
 
         if (targetClass != null) {
             String[] binNames = getBinNamesFromTargetClass(targetClass);
-            return this.queryEngine.select(this.namespace, setName, binNames, filter, qualifiers);
+            return this.reactorQueryEngine.select(this.namespace, setName, binNames, filter, qualifiers);
         } else {
-            return this.queryEngine.select(this.namespace, setName, filter, qualifiers);
+            return this.reactorQueryEngine.select(this.namespace, setName, filter, qualifiers);
         }
-    }
-
-    @Override
-    public void refreshIndexesCache() {
-        reactorIndexRefresher.refreshIndexes();
     }
 }

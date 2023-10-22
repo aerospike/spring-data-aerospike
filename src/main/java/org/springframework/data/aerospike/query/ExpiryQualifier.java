@@ -26,7 +26,9 @@ import java.io.Serial;
  * Qualifier used to query by expiry epoch
  *
  * @author peter
+ * @deprecated Since 4.6.0. Use {@link Qualifier} with {@link MetadataQualifierBuilder} for flexible querying
  */
+@Deprecated(since = "4.6.0", forRemoval = true)
 public class ExpiryQualifier extends Qualifier {
 
     @Serial

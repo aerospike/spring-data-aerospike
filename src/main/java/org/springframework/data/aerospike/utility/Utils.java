@@ -24,6 +24,8 @@ import lombok.experimental.UtilityClass;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -86,7 +88,7 @@ public class Utils {
         return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);
     }
 
-    public Optional<Integer> getIntegerProperty(String property) {
+    public static Optional<Integer> getIntegerProperty(String property) {
         if (StringUtils.hasText(property)) {
             int result;
             try {
@@ -97,5 +99,9 @@ public class Utils {
             return Optional.of(result);
         }
         return Optional.empty();
+    }
+
+    public static boolean allArrayElementsAreNull(Object[] array) {
+        return Arrays.stream(array).allMatch(Objects::isNull);
     }
 }

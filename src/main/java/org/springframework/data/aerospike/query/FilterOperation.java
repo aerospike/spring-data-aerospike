@@ -66,9 +66,18 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             Qualifier[] qs = (Qualifier[]) qualifierMap.get(QUALIFIERS);
-            Exp[] childrenExp = new Exp[qs.length];
-            for (int i = 0; i < qs.length; i++) {
-                childrenExp[i] = qs[i].toFilterExp();
+            Exp[] childrenExp;
+            if (qs != null && qs.length > 0) {
+                childrenExp = new Exp[qs.length];
+            } else {
+                throw new IllegalArgumentException("Expecting qualifiers not to be null with AND filter operation");
+            }
+            if (qs.length > 1) {
+                for (int i = 0; i < qs.length; i++) {
+                    childrenExp[i] = qs[i].toFilterExp();
+                }
+            } else {
+                return qs[0].toFilterExp();
             }
             return Exp.and(childrenExp);
         }
@@ -82,9 +91,18 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             Qualifier[] qs = (Qualifier[]) qualifierMap.get(QUALIFIERS);
-            Exp[] childrenExp = new Exp[qs.length];
-            for (int i = 0; i < qs.length; i++) {
-                childrenExp[i] = qs[i].toFilterExp();
+            Exp[] childrenExp;
+            if (qs != null && qs.length > 0) {
+                childrenExp = new Exp[qs.length];
+            } else {
+                throw new IllegalArgumentException("Expecting qualifiers not to be null with OR filter operation");
+            }
+            if (qs.length > 1) {
+                for (int i = 0; i < qs.length; i++) {
+                    childrenExp[i] = qs[i].toFilterExp();
+                }
+            } else {
+                return qs[0].toFilterExp();
             }
             return Exp.or(childrenExp);
         }

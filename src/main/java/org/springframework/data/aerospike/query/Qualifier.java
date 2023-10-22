@@ -27,6 +27,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,8 +42,9 @@ import java.util.Set;
  */
 public class Qualifier implements Map<String, Object>, Serializable {
 
-    public static final String FIELD = "field";
-    public static final String METADATA_FIELD = "metadata_field";
+    protected static final String FIELD = "field";
+    protected static final String METADATA_FIELD = "metadata_field";
+    protected static final String ID_VALUE = "id";
     protected static final String IGNORE_CASE = "ignoreCase";
     protected static final String VALUE1 = "value1";
     protected static final String VALUE2 = "value2";
@@ -62,18 +64,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
         if (!builder.buildMap().isEmpty()) {
             internalMap.putAll(builder.buildMap());
-        }
-    }
-
-    public static void validateQualifiers(Qualifier... qualifiers) {
-        boolean haveInternalQualifiers = qualifiers.length > 1;
-        for (Qualifier qualifier : qualifiers) {
-            haveInternalQualifiers = haveInternalQualifiers || qualifier.hasQualifiers();
-            // excludeFilter in the upmost parent qualifier is set to true
-            // if there are multiple qualifiers
-            // must not build secondary index filter based on any of them
-            // as it might conflict with the combination of qualifiers
-            qualifier.setExcludeFilter(haveInternalQualifiers);
         }
     }
 
@@ -113,12 +103,16 @@ public class Qualifier implements Map<String, Object>, Serializable {
         internalMap.put(EXCLUDE_FILTER, excludeFilter);
     }
 
-    public Qualifier[] getQualifiers() {
-        return (Qualifier[]) internalMap.get(QUALIFIERS);
-    }
-
     public boolean hasQualifiers() {
         return internalMap.get(QUALIFIERS) != null;
+    }
+
+    public boolean hasId() {
+        return internalMap.get(FIELD) != null && internalMap.get(FIELD).equals(ID_VALUE);
+    }
+
+    public Qualifier[] getQualifiers() {
+        return (Qualifier[]) internalMap.get(QUALIFIERS);
     }
 
     public Value getValue1() {
@@ -245,8 +239,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return this;
         }
 
-        public QualifierBuilder setExcludeFilter(boolean excludeFilter) {
-            this.map.put(EXCLUDE_FILTER, excludeFilter);
+        public QualifierBuilder setQualifiers(Qualifier... qualifiers) {
+            this.map.put(QUALIFIERS, qualifiers);
             return this;
         }
 
@@ -356,11 +350,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return (T) this;
         }
 
-        public T setQualifiers(Qualifier... qualifiers) {
-            this.map.put(QUALIFIERS, qualifiers);
-            return (T) this;
-        }
-
         public String getField() {
             return (String) this.map.get(FIELD);
         }
@@ -389,5 +378,31 @@ public class Qualifier implements Map<String, Object>, Serializable {
         protected void validate() {
             // do nothing
         }
+    }
+
+    /**
+     * Create qualifier "ID is equal to the given string"
+     *
+     * @param id String value
+     * @return Single id qualifier
+     */
+    public static Qualifier forId(String id) {
+        return new Qualifier(new QualifierBuilder()
+            .setField(ID_VALUE)
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get(id)));
+    }
+
+    /**
+     * Create qualifier "ID is equal to one of the given strings (logical OR)"
+     *
+     * @param ids String values
+     * @return Multiple ids qualifier with OR condition
+     */
+    public static Qualifier forIds(String... ids) {
+        return new Qualifier(new QualifierBuilder()
+            .setField(ID_VALUE)
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get(Arrays.stream(ids).toList())));
     }
 }

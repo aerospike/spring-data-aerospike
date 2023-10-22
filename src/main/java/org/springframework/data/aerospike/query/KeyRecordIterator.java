@@ -30,7 +30,7 @@ import java.util.Iterator;
 public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 
     private final String namespace;
-    private final Integer closeLock = 0;
+    private final Object closeLock = 0;
     private RecordSet recordSet;
     private Iterator<KeyRecord> recordSetIterator;
     private KeyRecord singleRecord;
@@ -53,7 +53,6 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
 
     @Override
     public void close() {
-        //noinspection synchronization
         synchronized (closeLock) {
             if (recordSet != null)
                 recordSet.close();
@@ -69,7 +68,6 @@ public class KeyRecordIterator implements Iterator<KeyRecord>, Closeable {
         else return this.singleRecord != null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public KeyRecord next() {
         KeyRecord keyRecord = null;

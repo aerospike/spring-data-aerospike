@@ -26,11 +26,11 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpression;
+import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.Collection;
 
 /**
  * @author Peter Milne
@@ -113,60 +113,12 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
     }
 
-    protected static boolean isIdQuery(AerospikeCriteria criteria) {
-        return Objects.equals(criteria.getField(), "id");
+    protected Object runIdQuery(Class<?> sourceClass, Class<?> targetClass, Collection<Object> ids,
+                                Qualifier... qualifiers) {
+        Assert.notNull(ids, "Ids must not be null");
+        return findByIds(ids, sourceClass, targetClass, qualifiers);
     }
 
-    protected static boolean hasIdQualifier(AerospikeCriteria criteria) {
-        Object qualifiers = criteria.get("qualifiers");
-        return qualifiers != null && qualifiers.getClass().isArray()
-            && Arrays.stream((Qualifier[]) qualifiers).anyMatch(qualifier -> qualifier.getField().equals("id"));
-    }
-
-    protected static Qualifier[] excludeIdQualifier(Qualifier[] qualifiers) {
-        return Arrays.stream(qualifiers).filter(qualifier -> !qualifier.getField().equals("id"))
-            .toArray(Qualifier[]::new);
-    }
-
-    protected static Qualifier[] getQualifiers(AerospikeCriteria criteria) {
-        if (criteria == null) {
-            return null;
-        } else if (criteria.getQualifiers() == null) {
-            return new Qualifier[]{(criteria)};
-        }
-        return criteria.getQualifiers();
-    }
-
-    protected static Qualifier getIdQualifier(Qualifier[] qualifiers) {
-        return Arrays.stream(qualifiers).filter(qualifier -> qualifier.getField().equals("id"))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("Qualifier with 'id' field was not found"));
-    }
-
-    protected static Object getIdValue(Qualifier... qualifiers) {
-        return Arrays.stream(qualifiers).filter(qualifier -> qualifier.getField().equals("id"))
-            .map(qualifier -> qualifier.getValue1().getObject())
-            .findFirst()
-            .orElseThrow(() -> new IllegalStateException("Value of 'id' field in a Qualifier was not found"));
-    }
-
-    protected Object runIdQuery(Class<?> sourceClass, Class<?> targetClass, Object ids, Qualifier... qualifiers) {
-        Object result;
-        if (ids == null) {
-            throw new IllegalStateException("Parameters accessor value is null while parameters quantity is > 0");
-        } else if (ids.getClass().isArray()) {
-            result = findByIds(Arrays.stream(((Object[]) ids)).toList(), sourceClass, targetClass,
-                qualifiers);
-        } else if (ids instanceof Iterable<?>) {
-            result = findByIds((Iterable<?>) ids, sourceClass, targetClass, qualifiers);
-        } else {
-            result = findById(ids, sourceClass, targetClass, qualifiers);
-        }
-        return result;
-    }
-
-    abstract Object findById(Object obj, Class<?> sourceClass, Class<?> targetClass, Qualifier... qualifiers);
-
-    abstract Object findByIds(Iterable<?> iterable, Class<?> sourceClass, Class<?> targetClass,
+    abstract Object findByIds(Collection<?> ids, Class<?> sourceClass, Class<?> targetClass,
                               Qualifier... qualifiers);
 }
