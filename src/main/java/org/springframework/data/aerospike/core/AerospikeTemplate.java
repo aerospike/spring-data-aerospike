@@ -454,13 +454,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> void delete(Class<T> entityClass) {
+    public <T> void deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
-        delete(getSetName(entityClass));
+        deleteAll(getSetName(entityClass));
     }
 
     @Override
-    public void delete(String setName) {
+    public void deleteAll(String setName) {
         Assert.notNull(setName, "Set name must not be null!");
 
         try {
@@ -471,15 +471,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> boolean delete(Object id, Class<T> entityClass) {
+    public <T> boolean deleteById(Object id, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
-        return delete(getSetName(entityClass), id);
+        return deleteById(id, getSetName(entityClass));
     }
 
-    // TODO: solve ambiguous param
-    // id and setName param order must be reversed since it collides with delete(T document, String setName)
-    //@Override
-    private boolean delete(String setName, Object id) {
+    @Override
+    public boolean deleteById(Object id, String setName) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 

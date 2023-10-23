@@ -699,14 +699,14 @@ public interface ReactiveAerospikeOperations {
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      */
-    <T> Mono<Void> delete(Class<T> entityClass);
+    <T> Mono<Void> deleteAll(Class<T> entityClass);
 
     /**
      * Reactively truncate/delete all the documents in the given entity's set.
      *
      * @param setName Set name to truncate/delete all the documents in.
      */
-    Mono<Void> delete(String setName);
+    Mono<Void> deleteAll(String setName);
 
     /**
      * Reactively delete document by id, set name will be determined by the given entityClass.
@@ -715,16 +715,16 @@ public interface ReactiveAerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @return A Mono of whether the document existed on server before deletion.
      */
-    <T> Mono<Boolean> delete(Object id, Class<T> entityClass);
+    <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass);
 
     /**
      * Reactively delete document by id with a given set name.
      *
-     * @param setName Set name to delete the document.
      * @param id      The id of the document to delete. Must not be {@literal null}.
+     * @param setName Set name to delete the document.
      * @return A Mono of whether the document existed on server before deletion.
      */
-    //Mono<Boolean> delete(String setName, Object id);
+    Mono<Boolean> deleteById(Object id, String setName);
 
     /**
      * Reactively delete document.
@@ -877,7 +877,7 @@ public interface ReactiveAerospikeOperations {
      * Check whether an index with the specified name exists in Aerospike.
      *
      * @param indexName The Aerospike index name. Must not be {@literal null}.
-     * @return true if exists.
+     * @return Mono of true if exists.
      */
     Mono<Boolean> indexExists(String indexName);
 

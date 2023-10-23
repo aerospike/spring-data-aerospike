@@ -69,7 +69,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         StepVerifier.create(created).expectNext(person).verifyComplete();
 
         // when
-        Mono<Boolean> deleted = reactiveTemplate.delete(id, Person.class).subscribeOn(Schedulers.parallel());
+        Mono<Boolean> deleted = reactiveTemplate.deleteById(id, Person.class).subscribeOn(Schedulers.parallel());
         StepVerifier.create(deleted).expectNext(true).verifyComplete();
 
         // then
@@ -97,7 +97,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteById_shouldReturnFalseIfValueIsAbsent() {
         // when
-        Mono<Boolean> deleted = reactiveTemplate.delete(id, Person.class).subscribeOn(Schedulers.parallel());
+        Mono<Boolean> deleted = reactiveTemplate.deleteById(id, Person.class).subscribeOn(Schedulers.parallel());
 
         // then
         StepVerifier.create(deleted).expectComplete().verify();

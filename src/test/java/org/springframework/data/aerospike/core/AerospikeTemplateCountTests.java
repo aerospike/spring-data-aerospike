@@ -189,8 +189,34 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         template.delete(template.findById(id4, Person.class));
     }
 
+    @Test
+    void countForObjectsWithSetName() {
+        String setName = "testSet1";
+        template.insert(new Person(id, "vasili", 50), setName);
+        String id2 = nextId();
+        template.insert(new Person(id2, "vasili", 51), setName);
+        String id3 = nextId();
+        template.insert(new Person(id3, "vasili", 52), setName);
+        String id4 = nextId();
+        template.insert(new Person(id4, "petya", 52), setName);
+
+        Awaitility.await()
+            .atMost(Duration.ofSeconds(15))
+            .until(() -> isCountExactlyNumWithSetName(4L, setName));
+
+        template.delete(template.findById(id, Person.class, setName), setName);
+        template.delete(template.findById(id2, Person.class, setName), setName);
+        template.delete(template.findById(id3, Person.class, setName), setName);
+        template.delete(template.findById(id4, Person.class, setName), setName);
+    }
+
     @SuppressWarnings("SameParameterValue")
     private boolean isCountExactlyNum(Long num) {
         return Objects.equals(template.count(Person.class), num);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private boolean isCountExactlyNumWithSetName(Long num, String setName) {
+        return Objects.equals(template.count(setName), num);
     }
 }

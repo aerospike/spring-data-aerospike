@@ -802,14 +802,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Void> delete(Class<T> entityClass) {
+    public <T> Mono<Void> deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
 
-        return delete(getSetName(entityClass));
+        return deleteAll(getSetName(entityClass));
     }
 
     @Override
-    public Mono<Void> delete(String setName) {
+    public Mono<Void> deleteAll(String setName) {
         Assert.notNull(setName, "Set name must not be null!");
 
         try {
@@ -821,18 +821,17 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Boolean> delete(Object id, Class<T> entityClass) {
+    public <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass) {
+        Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
 
-        return delete(getSetName(entityClass), id);
+        return deleteById(id, getSetName(entityClass));
     }
 
-    // TODO: solve ambiguous param
-    // id and setName param order must be reversed since it collides with delete(T document, String setName)
-    //@Override
-    private Mono<Boolean> delete(String setName, Object id) {
-        Assert.notNull(setName, "Set name must not be null!");
+    @Override
+    public Mono<Boolean> deleteById(Object id, String setName) {
         Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
         return reactorClient
             .delete(ignoreGenerationDeletePolicy(), getKey(id, setName))

@@ -307,14 +307,14 @@ public interface AerospikeOperations {
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      */
-    <T> void delete(Class<T> entityClass);
+    <T> void deleteAll(Class<T> entityClass);
 
     /**
      * Truncate/Delete all the documents in the given set.
      *
      * @param setName Set name to truncate/delete all the documents in.
      */
-    void delete(String setName);
+    void deleteAll(String setName);
 
     /**
      * Delete a document by id, set name will be determined by the given entityClass.
@@ -323,17 +323,16 @@ public interface AerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @return whether the document existed on server before deletion.
      */
-    <T> boolean delete(Object id, Class<T> entityClass);
-
+    <T> boolean deleteById(Object id, Class<T> entityClass);
 
     /**
      * Delete a document by id with a given set name.
      *
-     * @param setName Set name to delete the document from.
      * @param id      The id of the document to delete. Must not be {@literal null}.
+     * @param setName Set name to delete the document from.
      * @return whether the document existed on server before deletion.
      */
-    //boolean delete(String setName, Object id);
+    boolean deleteById(Object id, String setName);
 
     /**
      * Delete a document.

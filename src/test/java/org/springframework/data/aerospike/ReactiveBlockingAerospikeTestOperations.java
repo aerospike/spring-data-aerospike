@@ -36,7 +36,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
 
     @Override
     protected void truncateSetOfEntityClass(Class<?> clazz) {
-        template.delete(clazz).block();
+        template.deleteAll(clazz).block();
     }
 
     @Override
