@@ -60,10 +60,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setValue1(Value.get(51))
             .setFilterOperation(FilterOperation.EQ);
 
-        Query queryVasyaAnd = new Query(new AerospikeCriteria(Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(qbVasya1.build(), qbVasya2.build())
-        ));
+        Query queryVasyaAnd = new Query(new AerospikeCriteria(Qualifier.and(qbVasya1.build(), qbVasya2.build())));
 
         Long vasya51Count = reactiveTemplate.count(queryVasyaAnd, Person.class)
             .subscribeOn(Schedulers.parallel())

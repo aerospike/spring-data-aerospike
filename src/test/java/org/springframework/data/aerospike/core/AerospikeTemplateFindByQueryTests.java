@@ -486,10 +486,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
             .setField(fieldName)
             .setValue1(Value.get(fieldValue2))
             .build();
-        Qualifier qualifierOr = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(dataEqFieldValue1, dataEqFieldValue2)
-            .build();
+        Qualifier qualifierOr = Qualifier.or(dataEqFieldValue1, dataEqFieldValue2);
         Stream<SampleClasses.CustomCollectionClass> result3 =
             template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, null, qualifierOr);
         assertThat(result3).containsOnly(doc1, doc2);
