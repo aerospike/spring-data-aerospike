@@ -55,8 +55,12 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         // batch write operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
             template.insertAll(allPersons);
+            template.insertAll(allPersons, OVERRIDE_SET_NAME);
         } else {
-            allPersons.forEach(person -> template.insert(person));
+            allPersons.forEach(person -> {
+                template.insert(person);
+                template.insert(person, OVERRIDE_SET_NAME);
+            });
         }
 
         additionalAerospikeTestOperations.createIndex(Person.class, "person_age_index", "age",
@@ -64,6 +68,12 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         additionalAerospikeTestOperations.createIndex(Person.class, "person_first_name_index", "firstName"
             , IndexType.STRING);
         additionalAerospikeTestOperations.createIndex(Person.class, "person_last_name_index", "lastName",
+            IndexType.STRING);
+        additionalAerospikeTestOperations.createIndex(OVERRIDE_SET_NAME, "person_set_age_index", "age",
+            IndexType.NUMERIC);
+        additionalAerospikeTestOperations.createIndex(OVERRIDE_SET_NAME, "person_set_first_name_index", "firstName"
+            , IndexType.STRING);
+        additionalAerospikeTestOperations.createIndex(OVERRIDE_SET_NAME, "person_set_last_name_index", "lastName",
             IndexType.STRING);
     }
 
@@ -76,9 +86,13 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     @AfterAll
     public void afterAll() {
         deleteOneByOne(allPersons);
+        deleteOneByOne(allPersons, OVERRIDE_SET_NAME);
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_last_name_index");
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_set_age_index");
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_set_first_name_index");
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_set_last_name_index");
     }
 
     @Test
@@ -86,6 +100,19 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
 
         Stream<PersonSomeFields> result = template.find(query, Person.class, PersonSomeFields.class);
+
+        assertThat(result).containsOnly(PersonSomeFields.builder()
+            .firstName("Dave")
+            .lastName("Matthews")
+            .emailAddress("dave@gmail.com")
+            .build());
+    }
+
+    @Test
+    public void findWithFilterEqualProjectionWithSetName() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
+
+        Stream<PersonSomeFields> result = template.find(query, PersonSomeFields.class, OVERRIDE_SET_NAME);
 
         assertThat(result).containsOnly(PersonSomeFields.builder()
             .firstName("Dave")
@@ -122,6 +149,13 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     @Test
     public void findAll_findsAllExistingDocumentsProjection() {
         Stream<PersonSomeFields> result = template.findAll(Person.class, PersonSomeFields.class);
+
+        assertThat(result).containsAll(allPersons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void findAll_findsAllExistingDocumentsProjectionWithSetName() {
+        Stream<PersonSomeFields> result = template.findAll(PersonSomeFields.class, OVERRIDE_SET_NAME);
 
         assertThat(result).containsAll(allPersons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
     }
