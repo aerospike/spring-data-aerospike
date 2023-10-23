@@ -364,12 +364,12 @@ public class Qualifier implements Map<String, Object>, Serializable {
         }
     }
 
-    private static class ParentQualifierBuilder extends BaseQualifierBuilder<ParentQualifierBuilder> {
+    private static class ConjunctionQualifierBuilder extends BaseQualifierBuilder<ConjunctionQualifierBuilder> {
 
-        private ParentQualifierBuilder() {
+        private ConjunctionQualifierBuilder() {
         }
 
-        private ParentQualifierBuilder setQualifiers(Qualifier... qualifiers) {
+        private ConjunctionQualifierBuilder setQualifiers(Qualifier... qualifiers) {
             this.map.put(QUALIFIERS, qualifiers);
             return this;
         }
@@ -431,7 +431,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Create a qualifier "ID is equal to the given string"
+     * Create a qualifier for the condition when the primary key is equal to the given string
      *
      * @param id String value
      * @return Single id qualifier
@@ -443,7 +443,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Create a qualifier "ID is equal to one of the given strings (logical OR)"
+     * Create a qualifier for the condition when the primary key is equal to one of the given strings (logical OR)"
      *
      * @param ids String values
      * @return Multiple ids qualifier with OR condition
@@ -455,25 +455,25 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Create a parent qualifier that contains the given qualifiers connected using logical OR
+     * Create a parent qualifier that contains the given qualifiers combined using logical OR
      *
-     * @param qualifiers 2 or more qualifiers
+     * @param qualifiers Two or more qualifiers
      * @return Parent qualifier
      */
     public static Qualifier or(Qualifier... qualifiers) {
-        return new Qualifier(new ParentQualifierBuilder()
+        return new Qualifier(new ConjunctionQualifierBuilder()
             .setFilterOperation(FilterOperation.OR)
             .setQualifiers(qualifiers));
     }
 
     /**
-     * Create a parent qualifier that contains the given qualifiers connected using logical AND
+     * Create a parent qualifier that contains the given qualifiers combined using logical AND
      *
-     * @param qualifiers 2 or more qualifiers
+     * @param qualifiers Two or more qualifiers
      * @return Parent qualifier
      */
     public static Qualifier and(Qualifier... qualifiers) {
-        return new Qualifier(new ParentQualifierBuilder()
+        return new Qualifier(new ConjunctionQualifierBuilder()
             .setFilterOperation(FilterOperation.AND)
             .setQualifiers(qualifiers));
     }
