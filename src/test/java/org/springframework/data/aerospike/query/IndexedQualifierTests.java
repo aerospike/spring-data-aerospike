@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GREEN;
@@ -286,7 +285,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
         tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
         try {
-            Qualifier qualifier = forMultipleQualifiers(FilterOperation.AND, colorIsGreen, ageBetween28And29);
+            Qualifier qualifier = Qualifier.and(colorIsGreen, ageBetween28And29);
 
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 

@@ -25,9 +25,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.query.FilterOperation.AND;
-import static org.springframework.data.aerospike.query.FilterOperation.OR;
-import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 
@@ -370,30 +367,31 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         result = reactiveRepository.findByQualifier(ageGt34).collectList().block();
         assertThat(result).doesNotContain(petra);
 
-        result = reactiveRepository.findByQualifier(forMultipleQualifiers(AND, sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq34,
-                    firstNameEqPetra, sinceUpdateTimeBetween1And50000)).collectList().block();
+        result = reactiveRepository.findByQualifier(Qualifier.and(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds,
+            ageEq34,
+            firstNameEqPetra, sinceUpdateTimeBetween1And50000)).collectList().block();
         assertThat(result).containsOnly(petra);
 
         // conditions "age == 34", "firstName is Petra" and "since_update_time metadata value is less than 50 seconds"
         // are combined with OR
-        Qualifier orWide = forMultipleQualifiers(OR, ageEq34, firstNameEqPetra, sinceUpdateTimeLt50Seconds);
+        Qualifier orWide = Qualifier.or(ageEq34, firstNameEqPetra, sinceUpdateTimeLt50Seconds);
         result = reactiveRepository.findByQualifier(orWide).collectList().block();
         assertThat(result).containsAll(allIndexedPersons);
 
         // conditions "age == 34" and "firstName is Petra" are combined with OR
-        Qualifier orNarrow = forMultipleQualifiers(OR, ageEq34, firstNameEqPetra);
+        Qualifier orNarrow = Qualifier.or(ageEq34, firstNameEqPetra);
         result = reactiveRepository.findByQualifier(orNarrow).collectList().block();
         assertThat(result).containsOnly(petra);
 
-        result = reactiveRepository.findByQualifier(forMultipleQualifiers(AND, ageEq34, ageGt34)).collectList().block();
+        result = reactiveRepository.findByQualifier(Qualifier.and(ageEq34, ageGt34)).collectList().block();
         assertThat(result).isEmpty();
 
         // conditions "age == 34" and "age > 34" are not overlapping
-        result = reactiveRepository.findByQualifier(forMultipleQualifiers(AND, ageEq34, ageGt34)).collectList().block();
+        result = reactiveRepository.findByQualifier(Qualifier.and(ageEq34, ageGt34)).collectList().block();
         assertThat(result).isEmpty();
 
         // conditions "age == 34" and "age > 34" are combined with OR
-        Qualifier ageEqOrGt34 = forMultipleQualifiers(OR, ageEq34, ageGt34);
+        Qualifier ageEqOrGt34 = Qualifier.or(ageEq34, ageGt34);
 
         result = reactiveRepository.findByQualifier(ageEqOrGt34).collectList().block();
         List<IndexedPerson> personsWithAgeEqOrGt34 = allIndexedPersons.stream().filter(person -> person.getAge() >= 34)
@@ -401,12 +399,12 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         assertThat(result).containsAll(personsWithAgeEqOrGt34);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
-        result = reactiveRepository.findByQualifier(forMultipleQualifiers(AND, orWide, orNarrow)).collectList().block();
+        result = reactiveRepository.findByQualifier(Qualifier.and(orWide, orNarrow)).collectList().block();
         assertThat(result).containsOnly(petra);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
         // another way of running the same query
-        Qualifier orCombinedWithAnd = forMultipleQualifiers(AND, orWide, orNarrow);
+        Qualifier orCombinedWithAnd = Qualifier.and(orWide, orNarrow);
         result = reactiveRepository.findByQualifier(orCombinedWithAnd).collectList().block();
         assertThat(result).containsOnly(petra);
     }

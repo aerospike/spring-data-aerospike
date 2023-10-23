@@ -33,10 +33,6 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.query.FilterOperation.AND;
-import static org.springframework.data.aerospike.query.FilterOperation.LT;
-import static org.springframework.data.aerospike.query.FilterOperation.OR;
-import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.*;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
@@ -62,7 +58,7 @@ class QualifierTests extends BaseQueryEngineTests {
         try {
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
-                .setFilterOperation(LT)
+                .setFilterOperation(FilterOperation.LT)
                 .setValue1(Value.get(26)).build();
 
             //noinspection resource
@@ -74,6 +70,7 @@ class QualifierTests extends BaseQueryEngineTests {
         }
     }
 
+    @SuppressWarnings("removal")
     @Test
     void selectOneWitKey() {
         KeyQualifier kq = new KeyQualifier(Value.get("selector-test:3"));
@@ -83,6 +80,7 @@ class QualifierTests extends BaseQueryEngineTests {
         assertThat(iterator).toIterable().hasSize(1);
     }
 
+    @SuppressWarnings("removal")
     @Test
     void selectOneWitKeyNonExisting() {
         KeyQualifier kq = new KeyQualifier(Value.get("selector-test:unknown"));
@@ -814,9 +812,9 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("name:696"))
             .build();
 
-        Qualifier or = forMultipleQualifiers(OR, ageIs25, ageBetween28And29, nameIs696);
-        Qualifier or2 = forMultipleQualifiers(OR, colorIsGreen, nameIs696);
-        Qualifier qualifier = forMultipleQualifiers(AND, or, or2);
+        Qualifier or = Qualifier.or(ageIs25, ageBetween28And29, nameIs696);
+        Qualifier or2 = Qualifier.or(colorIsGreen, nameIs696);
+        Qualifier qualifier = Qualifier.and(or, or2);
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -853,7 +851,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue2(Value.get(30)) // + 1 as upper limit is exclusive
             .build();
 
-        Qualifier or = forMultipleQualifiers(OR, colorIsBlue, ageBetween28And29);
+        Qualifier or = Qualifier.or(colorIsBlue, ageBetween28And29);
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, or);
 

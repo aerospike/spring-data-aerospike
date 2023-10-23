@@ -43,10 +43,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.springframework.data.aerospike.query.FilterOperation.*;
+import static org.springframework.data.aerospike.query.FilterOperation.IS_NOT_NULL;
+import static org.springframework.data.aerospike.query.FilterOperation.IS_NULL;
+import static org.springframework.data.aerospike.query.FilterOperation.LIST_VAL_CONTAINING;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_KEYS_NOT_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_NOT_CONTAIN;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_CONTAINING_BY_KEY;
+import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_EQ_BY_KEY;
 import static org.springframework.data.aerospike.query.Qualifier.forId;
 import static org.springframework.data.aerospike.query.Qualifier.forIds;
-import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
 
 /**
  * @author Peter Milne
@@ -116,8 +123,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             case NOT_IN -> getCriteria(part, property, v1, null, parameters, FilterOperation.NOT_IN);
             case TRUE -> getCriteria(part, property, true, null, parameters, FilterOperation.EQ);
             case FALSE -> getCriteria(part, property, false, null, parameters, FilterOperation.EQ);
-            case EXISTS, IS_NOT_NULL ->
-                getCriteria(part, property, null, null, parameters, FilterOperation.IS_NOT_NULL);
+            case EXISTS, IS_NOT_NULL -> getCriteria(part, property, null, null, parameters, IS_NOT_NULL);
             case IS_NULL -> getCriteria(part, property, null, null, parameters, IS_NULL);
             default -> throw new IllegalArgumentException("Unsupported keyword '" + part.getType() + "'");
         };
@@ -144,11 +150,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         if (property.isIdProperty()) {
             if (value1 instanceof Collection<?>) {
                 return new AerospikeCriteria(forIds(((Collection<?>) value1).toArray(String[]::new)));
-            } else {
-                return new AerospikeCriteria(forId((String) value1));
             }
-        }
-        else if (property.isCollectionLike()) {
+            return new AerospikeCriteria(forId((String) value1));
+        } else if (property.isCollectionLike()) {
             List<Object> params = new ArrayList<>();
             parameters.forEachRemaining(params::add);
 
@@ -175,7 +179,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                             case VALUE -> op = MAP_VALUES_CONTAIN;
                         }
                     } else {
-                        op = FilterOperation.MAP_VAL_EQ_BY_KEY;
+                        op = MAP_VAL_EQ_BY_KEY;
                         dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
                         setQbValuesForMapByKey(qb, value1, nextParam);
                     }
@@ -222,7 +226,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                         }
                         params = params.stream().limit(params.size() - 1L).collect(Collectors.toList());
                     } else {
-                        op = FilterOperation.MAP_VAL_EQ_BY_KEY;
+                        op = MAP_VAL_EQ_BY_KEY;
                         dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
                     }
 
@@ -303,7 +307,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
                     null, null, dotPath).build();
             }
 
-            return new AerospikeCriteria(forMultipleQualifiers(AND, qualifiers));
+            return new AerospikeCriteria(Qualifier.and(qualifiers));
         } else {
             qualifiers = new Qualifier[params.size()];
             for (int i = 0; i < params.size(); i++) {
@@ -313,7 +317,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             }
         }
 
-        return new AerospikeCriteria(forMultipleQualifiers(AND, qualifiers));
+        return new AerospikeCriteria(Qualifier.and(qualifiers));
     }
 
     private Qualifier.QualifierBuilder setQualifierBuilderValues(Qualifier.QualifierBuilder qb, String fieldName,
@@ -373,13 +377,13 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             context.getPersistentPropertyPath(part.getProperty());
         AerospikePersistentProperty property = path.getLeafProperty();
 
-        return new AerospikeCriteria(forMultipleQualifiers(AND, base, create(part, property, iterator)));
+        return new AerospikeCriteria(Qualifier.and(base, create(part, property,
+            iterator)));
     }
 
     @Override
     protected AerospikeCriteria or(AerospikeCriteria base, AerospikeCriteria criteria) {
-        return new AerospikeCriteria(forMultipleQualifiers(OR, base, criteria));
-
+        return new AerospikeCriteria(Qualifier.or(base, criteria));
     }
 
     @Override

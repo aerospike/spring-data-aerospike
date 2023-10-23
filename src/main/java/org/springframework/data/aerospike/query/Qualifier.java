@@ -117,7 +117,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     public boolean hasId() {
-        return internalMap.get(SINGLE_ID_FIELD) != null ||  internalMap.get(MULTIPLE_IDS_FIELD) != null ;
+        return internalMap.get(SINGLE_ID_FIELD) != null || internalMap.get(MULTIPLE_IDS_FIELD) != null;
     }
 
     public boolean hasSingleId() {
@@ -455,15 +455,26 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Create a parent qualifier that contains the given qualifiers connected using logical AND/OR
+     * Create a parent qualifier that contains the given qualifiers connected using logical OR
      *
-     * @param logicalOp {@link FilterOperation#AND} or {@link FilterOperation#OR}
-     * @param qualifiers 2 or more qualifiers to be connected
+     * @param qualifiers 2 or more qualifiers
      * @return Parent qualifier
      */
-    public static Qualifier forMultipleQualifiers(FilterOperation logicalOp, Qualifier... qualifiers) {
+    public static Qualifier or(Qualifier... qualifiers) {
         return new Qualifier(new ParentQualifierBuilder()
-            .setFilterOperation(logicalOp)
+            .setFilterOperation(FilterOperation.OR)
             .setQualifiers(qualifiers));
-        }
+    }
+
+    /**
+     * Create a parent qualifier that contains the given qualifiers connected using logical AND
+     *
+     * @param qualifiers 2 or more qualifiers
+     * @return Parent qualifier
+     */
+    public static Qualifier and(Qualifier... qualifiers) {
+        return new Qualifier(new ParentQualifierBuilder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(qualifiers));
+    }
 }

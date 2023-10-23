@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.core;
 
 import lombok.experimental.UtilityClass;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.util.Assert;
 
@@ -11,7 +12,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
+import static org.springframework.data.aerospike.query.Qualifier.and;
+import static org.springframework.data.aerospike.query.Qualifier.or;
 
 @UtilityClass
 public class TemplateUtils {
@@ -46,7 +48,7 @@ public class TemplateUtils {
             for (Qualifier qualifier : qualifiers) {
                 if (qualifier.hasQualifiers()) {
                     Qualifier[] internalQuals = excludeIdQualifier(qualifier.getQualifiers());
-                    qualifiersWithoutId.add(forMultipleQualifiers(qualifier.getOperation(), internalQuals));
+                    qualifiersWithoutId.add(combineMultipleQualifiers(qualifier.getOperation(), internalQuals));
                 } else if (!qualifier.hasId()) {
                     qualifiersWithoutId.add(qualifier);
                 }
@@ -54,5 +56,15 @@ public class TemplateUtils {
             return qualifiersWithoutId.toArray(Qualifier[]::new);
         }
         return null;
+    }
+
+    private static Qualifier combineMultipleQualifiers(FilterOperation operation, Qualifier[] qualifiers) {
+        if (operation == FilterOperation.OR) {
+            return or(qualifiers);
+        } else if (operation == FilterOperation.AND) {
+            return and(qualifiers);
+        } else {
+            throw new UnsupportedOperationException("Only OR / AND operations are supported");
+        }
     }
 }
