@@ -191,23 +191,22 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
     @Test
     void countForObjectsWithSetName() {
-        String setName = "testSet1";
-        template.insert(new Person(id, "vasili", 50), setName);
+        template.insert(new Person(id, "vasili", 50), OVERRIDE_SET_NAME);
         String id2 = nextId();
-        template.insert(new Person(id2, "vasili", 51), setName);
+        template.insert(new Person(id2, "vasili", 51), OVERRIDE_SET_NAME);
         String id3 = nextId();
-        template.insert(new Person(id3, "vasili", 52), setName);
+        template.insert(new Person(id3, "vasili", 52), OVERRIDE_SET_NAME);
         String id4 = nextId();
-        template.insert(new Person(id4, "petya", 52), setName);
+        template.insert(new Person(id4, "petya", 52), OVERRIDE_SET_NAME);
 
         Awaitility.await()
             .atMost(Duration.ofSeconds(15))
-            .until(() -> isCountExactlyNumWithSetName(4L, setName));
+            .until(() -> isCountExactlyNumWithSetName(4L, OVERRIDE_SET_NAME));
 
-        template.delete(template.findById(id, Person.class, setName), setName);
-        template.delete(template.findById(id2, Person.class, setName), setName);
-        template.delete(template.findById(id3, Person.class, setName), setName);
-        template.delete(template.findById(id4, Person.class, setName), setName);
+        template.delete(template.findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME);
+        template.delete(template.findById(id2, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME);
+        template.delete(template.findById(id3, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME);
+        template.delete(template.findById(id4, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME);
     }
 
     @SuppressWarnings("SameParameterValue")

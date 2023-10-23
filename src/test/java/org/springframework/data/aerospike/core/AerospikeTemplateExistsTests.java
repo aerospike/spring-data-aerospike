@@ -34,12 +34,11 @@ public class AerospikeTemplateExistsTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void exists_shouldReturnTrueIfValueIsPresentWithSetName() {
-        String setName = "testSet1";
         Person one = Person.builder().id(id).firstName("tya").emailAddress("gmail.com").build();
-        template.insert(one, setName);
+        template.insert(one, OVERRIDE_SET_NAME);
 
-        assertThat(template.exists(id, setName)).isTrue();
-        template.delete(one, setName);
+        assertThat(template.exists(id, OVERRIDE_SET_NAME)).isTrue();
+        template.delete(one, OVERRIDE_SET_NAME);
     }
 
     @Test
@@ -49,7 +48,6 @@ public class AerospikeTemplateExistsTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void exists_shouldReturnFalseIfValueIsAbsentWithSetName() {
-        String setName = "testSet1";
-        assertThat(template.exists(id, setName)).isFalse();
+        assertThat(template.exists(id, OVERRIDE_SET_NAME)).isFalse();
     }
 }

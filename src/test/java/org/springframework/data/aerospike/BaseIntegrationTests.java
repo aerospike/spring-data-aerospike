@@ -10,6 +10,7 @@ import org.springframework.data.aerospike.utility.AerospikeUniqueId;
 public abstract class BaseIntegrationTests {
 
     public static final String DEFAULT_SET_NAME = "aerospike";
+    public static final String OVERRIDE_SET_NAME = "testSet1";
 
     @Value("${embedded.aerospike.namespace}")
     protected String namespace;

@@ -86,14 +86,13 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByObject_deletesDocumentWithSetName() {
-        String setName = "testSet1";
         Person document = new Person(id, "QLastName", 21);
-        template.insert(document, setName);
+        template.insert(document, OVERRIDE_SET_NAME);
 
-        boolean deleted = template.delete(document, setName);
+        boolean deleted = template.delete(document, OVERRIDE_SET_NAME);
         assertThat(deleted).isTrue();
 
-        Person result = template.findById(id, Person.class, setName);
+        Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
         assertThat(result).isNull();
     }
 
@@ -111,14 +110,13 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteById_deletesDocumentWithSetName() {
-        String setName = "testSet1";
         Person document = new Person(id, "QLastName", 21);
-        template.insert(document, setName);
+        template.insert(document, OVERRIDE_SET_NAME);
 
-        boolean deleted = template.deleteById(id, setName);
+        boolean deleted = template.deleteById(id, OVERRIDE_SET_NAME);
         assertThat(deleted).isTrue();
 
-        Person result = template.findById(id, Person.class, setName);
+        Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
         assertThat(result).isNull();
     }
 
@@ -241,18 +239,17 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteAll_ShouldDeleteAllDocumentsWithSetName() {
-        String setName = "testSet1";
         // batch delete operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
             String id1 = nextId();
             String id2 = nextId();
-            template.save(new DocumentWithExpiration(id1), setName);
-            template.save(new DocumentWithExpiration(id2), setName);
+            template.save(new DocumentWithExpiration(id1), OVERRIDE_SET_NAME);
+            template.save(new DocumentWithExpiration(id2), OVERRIDE_SET_NAME);
 
             List<String> ids = List.of(id1, id2);
-            template.deleteByIds(ids, setName);
+            template.deleteByIds(ids, OVERRIDE_SET_NAME);
 
-            assertThat(template.findByIds(ids, DocumentWithExpiration.class, setName)).isEmpty();
+            assertThat(template.findByIds(ids, DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
         }
     }
 }
