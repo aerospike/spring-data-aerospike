@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
 
-public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
+public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findById_shouldReadVersionedClassWithAllArgsConstructor() {

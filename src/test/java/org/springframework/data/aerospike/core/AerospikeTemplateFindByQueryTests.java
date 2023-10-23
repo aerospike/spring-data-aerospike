@@ -87,8 +87,12 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         // batch write operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
             template.insertAll(allPersons);
+            template.insertAll(allPersons, OVERRIDE_SET_NAME);
         } else {
-            allPersons.forEach(person -> template.insert(person));
+            allPersons.forEach(person -> {
+                template.insert(person);
+                template.insert(person, OVERRIDE_SET_NAME);
+            });
         }
 
         additionalAerospikeTestOperations.createIndex(Person.class, "person_age_index", "age",
@@ -96,6 +100,12 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         additionalAerospikeTestOperations.createIndex(Person.class, "person_first_name_index", "firstName",
             IndexType.STRING);
         additionalAerospikeTestOperations.createIndex(Person.class, "person_last_name_index", "lastName",
+            IndexType.STRING);
+        additionalAerospikeTestOperations.createIndex(OVERRIDE_SET_NAME, "person_set_age_index", "age",
+            IndexType.NUMERIC);
+        additionalAerospikeTestOperations.createIndex(OVERRIDE_SET_NAME, "person_set_first_name_index", "firstName"
+            , IndexType.STRING);
+        additionalAerospikeTestOperations.createIndex(OVERRIDE_SET_NAME, "person_set_last_name_index", "lastName",
             IndexType.STRING);
     }
 
@@ -108,15 +118,26 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @AfterAll
     public void afterAll() {
         deleteOneByOne(allPersons);
+        deleteOneByOne(allPersons, OVERRIDE_SET_NAME);
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_last_name_index");
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_set_age_index");
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_set_first_name_index");
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_set_last_name_index");
     }
 
     @Test
     public void findWithFilterEqual() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
         Stream<Person> result = template.find(query, Person.class);
+        assertThat(result).containsOnly(dave);
+    }
+
+    @Test
+    public void findWithFilterEqualWithSetName() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
+        Stream<Person> result = template.find(query, Person.class, OVERRIDE_SET_NAME);
         assertThat(result).containsOnly(dave);
     }
 
@@ -156,6 +177,14 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
 
         Stream<Person> result = template.find(query, Person.class);
+        assertThat(result).hasSize(6);
+    }
+
+    @Test
+    public void findWithFilterRangeWithSetName() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
+
+        Stream<Person> result = template.find(query, Person.class, OVERRIDE_SET_NAME);
         assertThat(result).hasSize(6);
     }
 
@@ -250,6 +279,16 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     public void findByListContainingInteger() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsContaining", 100);
         Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+            .hasSize(1)
+            .containsExactlyInAnyOrder(jean);
+    }
+
+    @Test
+    public void findByListContainingIntegerWithSetName() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsContaining", 100);
+        Stream<Person> result = template.find(query, Person.class, OVERRIDE_SET_NAME);
 
         assertThat(result)
             .hasSize(1)

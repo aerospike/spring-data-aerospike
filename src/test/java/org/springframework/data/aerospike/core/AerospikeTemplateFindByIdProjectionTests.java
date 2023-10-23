@@ -13,7 +13,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AerospikeTemplateFindProjectionTests extends BaseBlockingIntegrationTests {
+public class AerospikeTemplateFindByIdProjectionTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findByIdWithProjection() {

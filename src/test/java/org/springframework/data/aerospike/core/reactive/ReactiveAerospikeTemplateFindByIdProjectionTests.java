@@ -14,7 +14,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ReactiveAerospikeTemplateFindProjectionTests extends BaseReactiveIntegrationTests {
+public class ReactiveAerospikeTemplateFindByIdProjectionTests extends BaseReactiveIntegrationTests {
 
     @Test
     public void findByIdWithProjection() {
