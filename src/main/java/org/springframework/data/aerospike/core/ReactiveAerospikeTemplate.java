@@ -631,28 +631,26 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         return Flux.fromIterable(ids)
             .map(id -> getKey(id, setName))
-            .flatMap(key -> getFromClient(policy, key, entityClass, targetClass))
+            .flatMap(key -> getFromClient(policy, key, targetClass))
             .filter(keyRecord -> nonNull(keyRecord.record))
             .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record));
     }
 
-    private <T, S> Flux<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<T> entityClass,
-                                                                  Class<S> targetClass,
+    private <T> Flux<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, String setName,
+                                                                  Class<T> targetClass,
                                                                   Qualifier... qualifiers) {
         Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
         if (ids.isEmpty()) {
             return Flux.empty();
         }
 
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-
         BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
 
         return Flux.fromIterable(ids)
-            .map(id -> getKey(id, entity))
-            .flatMap(key -> getFromClient(policy, key, entityClass, targetClass))
+            .map(id -> getKey(id, setName))
+            .flatMap(key -> getFromClient(policy, key, targetClass))
             .filter(keyRecord -> nonNull(keyRecord.record));
     }
 
@@ -665,9 +663,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return null;
     }
 
-    private Mono<KeyRecord> getFromClient(BatchPolicy finalPolicy, Key key, Class<?> entityClass,
-                                          Class<?> targetClass) {
-        if (targetClass != null && targetClass != entityClass) {
+    private Mono<KeyRecord> getFromClient(BatchPolicy finalPolicy, Key key, Class<?> targetClass) {
+        if (targetClass != null) {
             String[] binNames = getBinNamesFromTargetClass(targetClass);
             return reactorClient.get(finalPolicy, key, binNames);
         } else {
@@ -1186,7 +1183,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             Qualifier idQualifier = getOneIdQualifier(qualifiers);
             if (idQualifier != null) {
                 // a special flow if there is id given
-                return findByIdsInternalWithoutMapping(getIdValue(idQualifier), entityClass, targetClass,
+                return findByIdsInternalWithoutMapping(getIdValue(idQualifier), setName, targetClass,
                     excludeIdQualifier(qualifiers));
             }
         }
