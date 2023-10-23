@@ -11,12 +11,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
+
 @UtilityClass
 public class TemplateUtils {
 
     public static List<Object> getIdValue(Qualifier qualifier) {
-        if (qualifier.hasId() && qualifier.getValue1() != null) {
-            return idObjectToList(qualifier.getValue1().getObject());
+        if (qualifier.hasId()) {
+            return idObjectToList(qualifier.getId());
         } else {
             throw new IllegalArgumentException("Id qualifier must contain value");
         }
@@ -44,8 +46,7 @@ public class TemplateUtils {
             for (Qualifier qualifier : qualifiers) {
                 if (qualifier.hasQualifiers()) {
                     Qualifier[] internalQuals = excludeIdQualifier(qualifier.getQualifiers());
-                    Qualifier.QualifierBuilder qb = Qualifier.builder().setFilterOperation(qualifier.getOperation());
-                    qualifiersWithoutId.add(qb.setQualifiers(internalQuals).build());
+                    qualifiersWithoutId.add(forMultipleQualifiers(qualifier.getOperation(), internalQuals));
                 } else if (!qualifier.hasId()) {
                     qualifiersWithoutId.add(qualifier);
                 }

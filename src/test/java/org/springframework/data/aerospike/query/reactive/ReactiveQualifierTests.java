@@ -801,10 +801,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setValue2(Value.get(30)) // + 1 as upper limit is exclusive
             .build();
 
-        Qualifier or = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(qual1, qual2)
-            .build();
+        Qualifier or = Qualifier.forMultipleQualifiers(OR, qual1, qual2);
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, or);
         StepVerifier.create(flux.collectList())
@@ -857,19 +854,9 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setValue1(Value.get("name:696"))
             .build();
 
-        Qualifier or = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(qualAgeIs25, qualAgeBetween28And29, qualNameIs696)
-            .build();
-        Qualifier or2 = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(qualColorIsGreen, qualNameIs696)
-            .build();
-
-        Qualifier and = Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(or, or2)
-            .build();
+        Qualifier or = Qualifier.forMultipleQualifiers(OR, qualAgeIs25, qualAgeBetween28And29, qualNameIs696);
+        Qualifier or2 = Qualifier.forMultipleQualifiers(OR, qualColorIsGreen, qualNameIs696);
+        Qualifier and = Qualifier.forMultipleQualifiers(AND, or, or2);
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, and);
         StepVerifier.create(flux.collectList())

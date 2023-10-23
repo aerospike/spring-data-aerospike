@@ -18,8 +18,6 @@ package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.data.aerospike.query.Qualifier;
 
-import java.util.Objects;
-
 /**
  * @author Michael Zhang
  * @author Jeff Boone
@@ -28,6 +26,10 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 
     public AerospikeCriteria(Qualifier.Builder builder) {
         super(builder);
+    }
+
+    public AerospikeCriteria(Qualifier qualifier) {
+        super(qualifier);
     }
 
     @Override
@@ -41,6 +43,6 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
     }
 
     protected static boolean isSingleIdQuery(AerospikeCriteria criteria) {
-        return Objects.equals(criteria.getField(), Qualifier.ID_VALUE);
+        return criteria.hasSingleId();
     }
 }

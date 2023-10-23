@@ -18,6 +18,8 @@ import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.FilterOperation.AND;
+import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
 
 /**
  * Tests for count related methods in {@link ReactiveAerospikeTemplate}.
@@ -60,10 +62,8 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setValue1(Value.get(51))
             .setFilterOperation(FilterOperation.EQ);
 
-        Query queryVasyaAnd = new Query(new AerospikeCriteria(Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(qbVasya1.build(), qbVasya2.build())
-        ));
+        Query queryVasyaAnd = new Query(new AerospikeCriteria(forMultipleQualifiers(AND, qbVasya1.build(),
+            qbVasya2.build())));
 
         Long vasya51Count = reactiveTemplate.count(queryVasyaAnd, Person.class)
             .subscribeOn(Schedulers.parallel())

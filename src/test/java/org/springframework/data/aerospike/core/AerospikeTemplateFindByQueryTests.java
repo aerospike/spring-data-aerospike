@@ -47,6 +47,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.springframework.data.aerospike.query.FilterOperation.OR;
+import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
 import static org.springframework.data.domain.Sort.Order.asc;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -486,10 +488,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
             .setField(fieldName)
             .setValue1(Value.get(fieldValue2))
             .build();
-        Qualifier qualifierOr = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(dataEqFieldValue1, dataEqFieldValue2)
-            .build();
+        Qualifier qualifierOr = forMultipleQualifiers(OR, dataEqFieldValue1, dataEqFieldValue2);
         Stream<SampleClasses.CustomCollectionClass> result3 =
             template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, null, qualifierOr);
         assertThat(result3).containsOnly(doc1, doc2);

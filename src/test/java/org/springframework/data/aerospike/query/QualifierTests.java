@@ -33,7 +33,10 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.FilterOperation.AND;
 import static org.springframework.data.aerospike.query.FilterOperation.LT;
+import static org.springframework.data.aerospike.query.FilterOperation.OR;
+import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.*;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
@@ -811,19 +814,9 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("name:696"))
             .build();
 
-        Qualifier or = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(ageIs25, ageBetween28And29, nameIs696)
-            .build();
-        Qualifier or2 = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(colorIsGreen, nameIs696)
-            .build();
-
-        Qualifier qualifier = Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(or, or2)
-            .build();
+        Qualifier or = forMultipleQualifiers(OR, ageIs25, ageBetween28And29, nameIs696);
+        Qualifier or2 = forMultipleQualifiers(OR, colorIsGreen, nameIs696);
+        Qualifier qualifier = forMultipleQualifiers(AND, or, or2);
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
 
@@ -860,10 +853,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue2(Value.get(30)) // + 1 as upper limit is exclusive
             .build();
 
-        Qualifier or = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(colorIsBlue, ageBetween28And29)
-            .build();
+        Qualifier or = forMultipleQualifiers(OR, colorIsBlue, ageBetween28And29);
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, or);
 

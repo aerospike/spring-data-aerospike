@@ -33,6 +33,8 @@ import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.FilterOperation.AND;
+import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
@@ -83,11 +85,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
             .build();
 
         long vasya51Count = template.count(
-            new Query(new AerospikeCriteria(Qualifier.builder()
-                .setFilterOperation(FilterOperation.AND)
-                .setQualifiers(qbIs1, qbIs2)
-            )),
-            Person.class
+            new Query(new AerospikeCriteria(forMultipleQualifiers(AND, qbIs1, qbIs2))), Person.class
         );
 
         assertThat(vasya51Count).isEqualTo(1);

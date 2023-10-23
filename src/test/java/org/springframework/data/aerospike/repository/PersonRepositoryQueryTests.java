@@ -38,6 +38,9 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.query.FilterOperation.AND;
+import static org.springframework.data.aerospike.query.FilterOperation.OR;
+import static org.springframework.data.aerospike.query.Qualifier.forMultipleQualifiers;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE_CONTAINING;
@@ -1308,73 +1311,47 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         // metadata and id qualifiers combined with AND
         // not more than one id qualifier is allowed, otherwise the conditions will not overlap
-        result = repository.findByQualifier(Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(sinceUpdateTimeGt1, keyEqCartersId)
-            .build());
+        result = repository.findByQualifier(forMultipleQualifiers(AND, sinceUpdateTimeGt1, keyEqCartersId));
         assertThat(result).containsOnly(carter);
 
         // the same qualifiers in different order
-        result = repository.findByQualifier(Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(keyEqCartersId, sinceUpdateTimeGt1)
-            .build());
+        result = repository.findByQualifier(forMultipleQualifiers(AND, keyEqCartersId, sinceUpdateTimeGt1));
         assertThat(result).containsOnly(carter);
 
-        result = repository.findByQualifier(Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(sinceUpdateTimeGt1, sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
-                sinceUpdateTimeBetween1And50000, keyEqCartersId)
-            .build());
+        result = repository.findByQualifier(forMultipleQualifiers(AND, sinceUpdateTimeGt1,
+            sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
+            sinceUpdateTimeBetween1And50000, keyEqCartersId));
         assertThat(result).containsOnly(carter);
 
         // conditions "age == 49", "firstName is Carter" and "since_update_time metadata value is less than 50 seconds"
         // are combined with OR
-        Qualifier orWide = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(ageEq49, firstNameEqCarter, sinceUpdateTimeLt50Seconds)
-            .build();
+        Qualifier orWide = forMultipleQualifiers(OR, ageEq49, firstNameEqCarter, sinceUpdateTimeLt50Seconds);
         result = repository.findByQualifier(orWide);
         assertThat(result).containsAll(allPersons);
 
         // conditions "age == 49" and "firstName is Carter" are combined with OR
-        Qualifier orNarrow = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(ageEq49, firstNameEqCarter)
-            .build();
+        Qualifier orNarrow = forMultipleQualifiers(OR, ageEq49, firstNameEqCarter);
         result = repository.findByQualifier(orNarrow);
         assertThat(result).containsOnly(carter);
 
         // conditions "age == 49" and "age > 49" are not overlapping
-        result = repository.findByQualifier(Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(ageEq49, ageGt49)
-            .build());
+        result = repository.findByQualifier(forMultipleQualifiers(AND, ageEq49, ageGt49));
         assertThat(result).isEmpty();
 
         // conditions "age == 49" and "age > 49" are combined with OR
-        Qualifier ageEqOrGt49 = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(ageEq49, ageGt49)
-            .build();
+        Qualifier ageEqOrGt49 = forMultipleQualifiers(OR, ageEq49, ageGt49);
 
         result = repository.findByQualifier(ageEqOrGt49);
         List<Person> personsWithAgeEqOrGt49 = allPersons.stream().filter(person -> person.getAge() >= 49).toList();
         assertThat(result).containsAll(personsWithAgeEqOrGt49);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
-        result = repository.findByQualifier(Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(orWide, orNarrow)
-            .build());
+        result = repository.findByQualifier(forMultipleQualifiers(AND, orWide, orNarrow));
         assertThat(result).containsOnly(carter);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
         // another way of running the same query
-        Qualifier orCombinedWithAnd = Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(orWide, orNarrow)
-            .build();
+        Qualifier orCombinedWithAnd = forMultipleQualifiers(AND, orWide, orNarrow);
         result = repository.findByQualifier(orCombinedWithAnd);
         assertThat(result).containsOnly(carter);
     }
@@ -1433,26 +1410,19 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
 
         // not more than one id qualifier is allowed
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(keyEqCartersId, keyEqBoydsId)
-            .build()))
+        assertThatThrownBy(() -> repository.findByQualifier(forMultipleQualifiers(AND, keyEqCartersId,
+            keyEqBoydsId)))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
 
         // not more than one id qualifier is allowed
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(keyEqCartersId, keyEqBoydsId)
-            .build()))
+        assertThatThrownBy(() -> repository.findByQualifier(forMultipleQualifiers(AND, keyEqCartersId,
+            keyEqBoydsId)))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
 
         // not more than one id qualifier is allowed
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(keyEqCartersId, keyEqBoydsId)
-            .build()))
+        assertThatThrownBy(() -> repository.findByQualifier(forMultipleQualifiers(OR, keyEqCartersId, keyEqBoydsId)))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
     }
