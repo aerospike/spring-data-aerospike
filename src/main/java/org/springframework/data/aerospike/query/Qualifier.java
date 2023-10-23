@@ -443,7 +443,7 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Create a qualifier for the condition when the primary key is equal to one of the given strings (logical OR)"
+     * Create a qualifier for the condition when the primary key is equal to one of the given strings (logical OR)
      *
      * @param ids String values
      * @return Multiple ids qualifier with OR condition
