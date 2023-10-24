@@ -27,8 +27,8 @@ import org.springframework.util.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -44,7 +44,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
     protected static final String FIELD = "field";
     protected static final String METADATA_FIELD = "metadata_field";
-    protected static final String ID_VALUE = "id";
+    protected static final String SINGLE_ID_FIELD = "id";
+    protected static final String MULTIPLE_IDS_FIELD = "ids";
     protected static final String IGNORE_CASE = "ignoreCase";
     protected static final String VALUE1 = "value1";
     protected static final String VALUE2 = "value2";
@@ -57,14 +58,22 @@ public class Qualifier implements Map<String, Object>, Serializable {
     protected static final String EXCLUDE_FILTER = "excludeFilter";
     @Serial
     private static final long serialVersionUID = -2689196529952712849L;
-    protected final Map<String, Object> internalMap;
+    protected final Map<String, Object> internalMap = new HashMap<>();
 
     protected Qualifier(Qualifier.Builder builder) {
-        internalMap = new HashMap<>();
-
-        if (!builder.buildMap().isEmpty()) {
-            internalMap.putAll(builder.buildMap());
+        if (!builder.getMap().isEmpty()) {
+            internalMap.putAll(builder.getMap());
         }
+    }
+
+    protected Qualifier(Qualifier qualifier) {
+        if (!qualifier.getMap().isEmpty()) {
+            internalMap.putAll(qualifier.getMap());
+        }
+    }
+
+    private Map<String, Object> getMap() {
+        return Collections.unmodifiableMap(this.internalMap);
     }
 
     public static QualifierBuilder builder() {
@@ -108,7 +117,15 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     public boolean hasId() {
-        return internalMap.get(FIELD) != null && internalMap.get(FIELD).equals(ID_VALUE);
+        return internalMap.get(SINGLE_ID_FIELD) != null || internalMap.get(MULTIPLE_IDS_FIELD) != null;
+    }
+
+    public boolean hasSingleId() {
+        return internalMap.get(SINGLE_ID_FIELD) != null;
+    }
+
+    public Object getId() {
+        return this.hasSingleId() ? internalMap.get(SINGLE_ID_FIELD) : internalMap.get(MULTIPLE_IDS_FIELD);
     }
 
     public Qualifier[] getQualifiers() {
@@ -217,9 +234,9 @@ public class Qualifier implements Map<String, Object>, Serializable {
             getOperation(), getValue1(), getValue2());
     }
 
-    public interface Builder {
+    protected interface Builder {
 
-        Map<String, Object> buildMap();
+        Map<String, Object> getMap();
 
         Qualifier build();
     }
@@ -236,11 +253,6 @@ public class Qualifier implements Map<String, Object>, Serializable {
 
         public QualifierBuilder setField(String field) {
             this.map.put(FIELD, field);
-            return this;
-        }
-
-        public QualifierBuilder setQualifiers(Qualifier... qualifiers) {
-            this.map.put(QUALIFIERS, qualifiers);
             return this;
         }
 
@@ -336,6 +348,44 @@ public class Qualifier implements Map<String, Object>, Serializable {
         }
     }
 
+    private static class IdQualifierBuilder extends BaseQualifierBuilder<IdQualifierBuilder> {
+
+        private IdQualifierBuilder() {
+        }
+
+        private IdQualifierBuilder setId(String id) {
+            this.map.put(SINGLE_ID_FIELD, id);
+            return this;
+        }
+
+        private IdQualifierBuilder setIds(String... ids) {
+            this.map.put(MULTIPLE_IDS_FIELD, ids);
+            return this;
+        }
+    }
+
+    private static class ConjunctionQualifierBuilder extends BaseQualifierBuilder<ConjunctionQualifierBuilder> {
+
+        private ConjunctionQualifierBuilder() {
+        }
+
+        private ConjunctionQualifierBuilder setQualifiers(Qualifier... qualifiers) {
+            this.map.put(QUALIFIERS, qualifiers);
+            return this;
+        }
+
+        private Qualifier[] getQualifiers() {
+            return (Qualifier[]) this.map.get(QUALIFIERS);
+        }
+
+        @Override
+        protected void validate() {
+            Assert.notNull(this.getQualifiers(), "Qualifiers must not be null");
+            Assert.notEmpty(this.getQualifiers(), "Qualifiers must not be empty");
+            Assert.isTrue(this.getQualifiers().length > 1, "There must be at least 2 qualifiers");
+        }
+    }
+
     @SuppressWarnings("unchecked")
     protected abstract static class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements Builder {
 
@@ -371,8 +421,8 @@ public class Qualifier implements Map<String, Object>, Serializable {
             return new Qualifier(this);
         }
 
-        public Map<String, Object> buildMap() {
-            return this.map;
+        public Map<String, Object> getMap() {
+            return Collections.unmodifiableMap(this.map);
         }
 
         protected void validate() {
@@ -381,28 +431,50 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Create qualifier "ID is equal to the given string"
+     * Create a qualifier for the condition when the primary key is equal to the given string
      *
      * @param id String value
      * @return Single id qualifier
      */
     public static Qualifier forId(String id) {
-        return new Qualifier(new QualifierBuilder()
-            .setField(ID_VALUE)
-            .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(id)));
+        return new Qualifier(new IdQualifierBuilder()
+            .setId(id)
+            .setFilterOperation(FilterOperation.EQ));
     }
 
     /**
-     * Create qualifier "ID is equal to one of the given strings (logical OR)"
+     * Create a qualifier for the condition when the primary key is equal to one of the given strings (logical OR)
      *
      * @param ids String values
      * @return Multiple ids qualifier with OR condition
      */
     public static Qualifier forIds(String... ids) {
-        return new Qualifier(new QualifierBuilder()
-            .setField(ID_VALUE)
-            .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(Arrays.stream(ids).toList())));
+        return new Qualifier(new IdQualifierBuilder()
+            .setIds(ids)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a parent qualifier that contains the given qualifiers combined using logical OR
+     *
+     * @param qualifiers Two or more qualifiers
+     * @return Parent qualifier
+     */
+    public static Qualifier or(Qualifier... qualifiers) {
+        return new Qualifier(new ConjunctionQualifierBuilder()
+            .setFilterOperation(FilterOperation.OR)
+            .setQualifiers(qualifiers));
+    }
+
+    /**
+     * Create a parent qualifier that contains the given qualifiers combined using logical AND
+     *
+     * @param qualifiers Two or more qualifiers
+     * @return Parent qualifier
+     */
+    public static Qualifier and(Qualifier... qualifiers) {
+        return new Qualifier(new ConjunctionQualifierBuilder()
+            .setFilterOperation(FilterOperation.AND)
+            .setQualifiers(qualifiers));
     }
 }

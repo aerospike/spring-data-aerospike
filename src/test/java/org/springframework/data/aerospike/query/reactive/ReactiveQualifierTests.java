@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.data.aerospike.query.FilterOperation.*;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.COLOURS;
@@ -69,7 +68,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         try {
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
-                .setFilterOperation(LT)
+                .setFilterOperation(FilterOperation.LT)
                 .setValue1(Value.get(26))
                 .build();
 
@@ -88,7 +87,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         // Ages range from 25 -> 29. We expected to only get back values with age < 26
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField("age")
-            .setFilterOperation(LT)
+            .setFilterOperation(FilterOperation.LT)
             .setValue1(Value.get(26))
             .build();
 
@@ -112,7 +111,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         // Ages range from 25 -> 29. We expected to only get back values with age <= 26
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField("age")
-            .setFilterOperation(LTEQ)
+            .setFilterOperation(FilterOperation.LTEQ)
             .setValue1(Value.get(26))
             .build();
 
@@ -143,7 +142,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         // Ages range from 25 -> 29. We expected to only get back values with age == 26
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField("age")
-            .setFilterOperation(EQ)
+            .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(26))
             .build();
 
@@ -164,7 +163,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         // Ages range from 25 -> 29. We expected to only get back values with age >= 28
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField("age")
-            .setFilterOperation(GTEQ)
+            .setFilterOperation(FilterOperation.GTEQ)
             .setValue1(Value.get(28))
             .build();
 
@@ -195,7 +194,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         // Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField("age")
-            .setFilterOperation(GT)
+            .setFilterOperation(FilterOperation.GT)
             .setValue1(Value.get(28))
             .build();
 
@@ -214,7 +213,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void stringEQQualifier() {
         Qualifier stringEqQualifier = Qualifier.builder()
             .setField("color")
-            .setFilterOperation(EQ)
+            .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(ORANGE))
             .build();
 
@@ -233,7 +232,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void stringEQQualifierCaseSensitive() {
         Qualifier stringEqQualifier = Qualifier.builder()
             .setField("color")
-            .setFilterOperation(EQ)
+            .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(true)
             .setValue1(Value.get(ORANGE.toUpperCase()))
             .build();
@@ -255,7 +254,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier stringEqQualifier = Qualifier.builder()
             .setField("color")
-            .setFilterOperation(STARTS_WITH)
+            .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue1(Value.get("blu"))
             .build();
 
@@ -274,7 +273,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void stringStartWithEntireWordQualifier() {
         Qualifier stringEqQualifier = Qualifier.builder()
             .setField("color")
-            .setFilterOperation(STARTS_WITH)
+            .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue1(Value.get(BLUE))
             .build();
 
@@ -295,7 +294,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier stringEqQualifier = Qualifier.builder()
             .setField("color")
-            .setFilterOperation(STARTS_WITH)
+            .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(true)
             .setValue1(Value.get("BLU"))
             .build();
@@ -317,7 +316,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier stringEqQualifier = Qualifier.builder()
             .setField("color")
-            .setFilterOperation(ENDS_WITH)
+            .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue1(Value.get(greenEnding))
             .build();
 
@@ -336,7 +335,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void stringEndsWithEntireWordQualifier() {
         Qualifier stringEqQualifier = Qualifier.builder()
             .setField("color")
-            .setFilterOperation(ENDS_WITH)
+            .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue1(Value.get(GREEN))
             .build();
 
@@ -356,7 +355,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         // Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField("age")
-            .setFilterOperation(BETWEEN)
+            .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1(Value.get(26))
             .setValue2(Value.get(29)) // + 1 as upper limit is exclusive
             .build();
@@ -394,7 +393,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField("color")
-            .setFilterOperation(CONTAINING)
+            .setFilterOperation(FilterOperation.CONTAINING)
             .setValue1(Value.get("l"))
             .build();
 
@@ -418,7 +417,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier qualifier = Qualifier.builder()
             .setField("color")
-            .setFilterOperation(IN)
+            .setFilterOperation(FilterOperation.IN)
             .setValue1(Value.get(inColours))
             .build();
 
@@ -442,7 +441,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField(binName)
-            .setFilterOperation(LIST_VAL_CONTAINING)
+            .setFilterOperation(FilterOperation.LIST_VAL_CONTAINING)
             .setValue1(Value.get(searchColor))
             .build();
 
@@ -473,7 +472,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField(binName)
-            .setFilterOperation(LIST_VAL_BETWEEN)
+            .setFilterOperation(FilterOperation.LIST_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
             .setValue2(Value.get(ageEnd))
             .build();
@@ -511,7 +510,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField(binName)
-            .setFilterOperation(MAP_KEYS_CONTAIN)
+            .setFilterOperation(FilterOperation.MAP_KEYS_CONTAIN)
             .setValue1(Value.get(searchColor))
             .build();
 
@@ -540,7 +539,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField(binName)
-            .setFilterOperation(MAP_VALUES_CONTAIN)
+            .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
             .setValue1(Value.get(searchColor))
             .build();
 
@@ -570,7 +569,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier ageRangeQualifier = Qualifier.builder()
             .setField(binName)
-            .setFilterOperation(MAP_KEYS_BETWEEN)
+            .setFilterOperation(FilterOperation.MAP_KEYS_BETWEEN)
             .setValue1(Value.get(ageStart))
             .setValue2(Value.get(ageEnd))
             .build();
@@ -616,7 +615,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier ageRangeQualifier = Qualifier.builder()
             .setField(binName)
-            .setFilterOperation(MAP_VAL_BETWEEN)
+            .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN)
             .setValue1(Value.get(ageStart))
             .setValue2(Value.get(ageEnd))
             .build();
@@ -657,7 +656,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void testContainingDoesNotUseSpecialCharacterQualifier() {
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField(SPECIAL_CHAR_BIN)
-            .setFilterOperation(CONTAINING)
+            .setFilterOperation(FilterOperation.CONTAINING)
             .setValue1(Value.get(".*"))
             .build();
 
@@ -676,7 +675,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void testStartWithDoesNotUseSpecialCharacterQualifier() {
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField(SPECIAL_CHAR_BIN)
-            .setFilterOperation(STARTS_WITH)
+            .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue1(Value.get(".*"))
             .build();
 
@@ -698,7 +697,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void testEndWithDoesNotUseSpecialCharacterQualifier() {
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField(SPECIAL_CHAR_BIN)
-            .setFilterOperation(ENDS_WITH)
+            .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue1(Value.get(".*"))
             .build();
 
@@ -720,7 +719,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void testEQIcaseDoesNotUseSpecialCharacter() {
         Qualifier AgeRangeQualifier = Qualifier.builder()
             .setField(SPECIAL_CHAR_BIN)
-            .setFilterOperation(EQ)
+            .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(true)
             .setValue1(Value.get(".*"))
             .build();
@@ -736,7 +735,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         for (String specialString : specialStrings) {
             Qualifier ageRangeQualifier = Qualifier.builder()
                 .setField(SPECIAL_CHAR_BIN)
-                .setFilterOperation(CONTAINING)
+                .setFilterOperation(FilterOperation.CONTAINING)
                 .setIgnoreCase(true)
                 .setValue1(Value.get(specialString))
                 .build();
@@ -801,10 +800,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setValue2(Value.get(30)) // + 1 as upper limit is exclusive
             .build();
 
-        Qualifier or = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(qual1, qual2)
-            .build();
+        Qualifier or = Qualifier.or(qual1, qual2);
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, or);
         StepVerifier.create(flux.collectList())
@@ -857,19 +853,9 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .setValue1(Value.get("name:696"))
             .build();
 
-        Qualifier or = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(qualAgeIs25, qualAgeBetween28And29, qualNameIs696)
-            .build();
-        Qualifier or2 = Qualifier.builder()
-            .setFilterOperation(FilterOperation.OR)
-            .setQualifiers(qualColorIsGreen, qualNameIs696)
-            .build();
-
-        Qualifier and = Qualifier.builder()
-            .setFilterOperation(FilterOperation.AND)
-            .setQualifiers(or, or2)
-            .build();
+        Qualifier or = Qualifier.or(qualAgeIs25, qualAgeBetween28And29, qualNameIs696);
+        Qualifier or2 = Qualifier.or(qualColorIsGreen, qualNameIs696);
+        Qualifier and = Qualifier.and(or, or2);
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, and);
         StepVerifier.create(flux.collectList())

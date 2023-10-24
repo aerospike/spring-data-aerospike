@@ -285,10 +285,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);
         tryCreateIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING);
         try {
-            Qualifier qualifier = Qualifier.builder()
-                .setFilterOperation(FilterOperation.AND)
-                .setQualifiers(colorIsGreen, ageBetween28And29)
-                .build();
+            Qualifier qualifier = Qualifier.and(colorIsGreen, ageBetween28And29);
 
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
 

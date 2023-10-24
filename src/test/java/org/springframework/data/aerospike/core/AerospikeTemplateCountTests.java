@@ -83,11 +83,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
             .build();
 
         long vasya51Count = template.count(
-            new Query(new AerospikeCriteria(Qualifier.builder()
-                .setFilterOperation(FilterOperation.AND)
-                .setQualifiers(qbIs1, qbIs2)
-            )),
-            Person.class
+            new Query(new AerospikeCriteria(Qualifier.and(qbIs1, qbIs2))), Person.class
         );
 
         assertThat(vasya51Count).isEqualTo(1);
