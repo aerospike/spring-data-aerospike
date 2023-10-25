@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
@@ -43,6 +44,7 @@ import org.springframework.data.convert.WritingConverter;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -533,7 +535,8 @@ public class SampleClasses {
             Collection<Bin> bins = new ArrayList<>();
             bins.add(new Bin("fs", user.name.firstName));
             bins.add(new Bin("ls", user.name.lastName));
-            return new AerospikeWriteData(new Key("custom-namespace", "custom-set", Long.toString(user.id)), bins, 0, null);
+            return new AerospikeWriteData(new Key("custom-namespace", "custom-set", Long.toString(user.id)), bins, 0,
+                null);
         }
     }
 
@@ -736,6 +739,42 @@ public class SampleClasses {
         private String id;
         @Field
         private byte[] array;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithArray {
+
+        @Id
+        private String id;
+        @Field
+        private int[] array;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithBigIntegerAndNestedArray {
+
+        @Id
+        @NonNull
+        private String id;
+        @Field
+        @NonNull
+        private BigInteger bigInteger;
+        private ObjectWithArray objectWithArray;
+    }
+
+    public static class ObjectWithArray {
+
+        @Version
+        public Long version;
+        Integer[] array;
+
+        public ObjectWithArray(Integer[] array) {
+            this.array = array;
+        }
     }
 
     @Data
