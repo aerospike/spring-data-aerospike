@@ -19,15 +19,19 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.SampleClasses;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
 import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -39,7 +43,18 @@ import static org.springframework.data.aerospike.SampleClasses.DocumentWithByteA
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
 import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
+
+    @AfterAll
+    public void afterAll() {
+        template.delete(VersionedClass.class);
+        template.delete(SampleClasses.DocumentWithArray.class);
+        template.delete(SampleClasses.DocumentWithBigIntegerAndNestedArray.class);
+        template.delete(Person.class);
+        template.delete(CustomCollectionClass.class);
+        template.delete(DocumentWithTouchOnRead.class);
+    }
 
     // test for RecordExistsAction.REPLACE_ONLY policy
     @Test
@@ -54,6 +69,31 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         Record aeroRecord = client.get(new Policy(), key);
         assertThat(aeroRecord.bins.get("notPresent")).isNull();
         assertThat(aeroRecord.bins.get("field")).isEqualTo("foo2");
+    }
+
+    @Test
+    public void shouldSaveDocumentWithArray() {
+        SampleClasses.DocumentWithArray doc = new SampleClasses.DocumentWithArray(id, new int[]{0, 1, 2, 3, 4, 5});
+        template.save(doc);
+
+        Key key = new Key(getNameSpace(), "DocumentWithArray", id);
+        Record aeroRecord = client.get(new Policy(), key);
+        assertThat(aeroRecord.bins.get("array")).isNotNull();
+    }
+
+    @Test
+    public void shouldSaveDocumentWithoutCustomConverter() {
+        SampleClasses.ObjectWithArray objectWithArray = new SampleClasses.ObjectWithArray(new Integer[]{0, 1, 2,
+            3, 4});
+        SampleClasses.DocumentWithBigIntegerAndNestedArray doc =
+            new SampleClasses.DocumentWithBigIntegerAndNestedArray(id,
+                new BigInteger("100"), objectWithArray);
+        template.save(doc);
+
+        Key key = new Key(getNameSpace(),
+            template.getSetName(SampleClasses.DocumentWithBigIntegerAndNestedArray.class), id);
+        Record aeroRecord = client.get(new Policy(), key);
+        assertThat(aeroRecord.bins).isNotEmpty();
     }
 
     @Test
