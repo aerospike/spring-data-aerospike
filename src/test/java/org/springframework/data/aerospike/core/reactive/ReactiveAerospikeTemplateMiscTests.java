@@ -50,8 +50,26 @@ public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveIntegrationT
     }
 
     @Test
+    public void existsWithSetName_shouldReturnTrueIfValueIsPresent() {
+        Person one = Person.builder().id(id).firstName("tya").emailAddress("gmail.com").build();
+        reactiveTemplate.insert(one, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+
+        StepVerifier.create(reactiveTemplate.exists(id, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()))
+            .expectNext(true)
+            .verifyComplete();
+        reactiveTemplate.delete(one, OVERRIDE_SET_NAME).block();
+    }
+
+    @Test
     public void exists_shouldReturnFalseIfValueIsAbsent() {
         StepVerifier.create(reactiveTemplate.exists(id, Person.class).subscribeOn(Schedulers.parallel()))
+            .expectNext(false)
+            .verifyComplete();
+    }
+
+    @Test
+    public void existsWithSetName_shouldReturnFalseIfValueIsAbsent() {
+        StepVerifier.create(reactiveTemplate.exists(id, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()))
             .expectNext(false)
             .verifyComplete();
     }

@@ -41,4 +41,8 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     protected void deleteAll(Collection<Person> persons) {
         Flux.fromIterable(persons).flatMap(person -> reactiveTemplate.delete(person)).blockLast();
     }
+
+    protected void deleteAll(Collection<Person> persons, String setName) {
+        Flux.fromIterable(persons).flatMap(person -> reactiveTemplate.delete(person, setName)).blockLast();
+    }
 }
