@@ -164,11 +164,15 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     Object getValueToWrite(Object value, TypeInformation<?> type) {
         if (value == null) {
             return null;
-        } else if (type == null || (conversions.isSimpleType(value.getClass()) && !value.getClass().isArray())) {
+        } else if (type == null || isSimpleValue(value.getClass())) {
             return getSimpleValueToWrite(value);
         } else {
             return getNonSimpleValueToWrite(value, type);
         }
+    }
+
+    private boolean isSimpleValue(Class<?> clazz) {
+        return conversions.isSimpleType(clazz) && (!clazz.isArray() || clazz == byte[].class);
     }
 
     private Object getSimpleValueToWrite(Object value) {
