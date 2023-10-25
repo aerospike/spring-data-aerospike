@@ -99,6 +99,34 @@ public class AerospikeTemplateFindByIdProjectionTests extends BaseBlockingIntegr
     }
 
     @Test
+    public void findByIdWithProjectionPersonWithMissingFieldsIncludingTouchOnReadAndSetName() {
+        PersonTouchOnRead firstPerson = PersonTouchOnRead.builder()
+            .id(nextId())
+            .firstName("first")
+            .lastName("lastName1")
+            .emailAddress("gmail.com")
+            .build();
+        PersonTouchOnRead secondPerson = PersonTouchOnRead.builder()
+            .id(nextId())
+            .firstName("second")
+            .lastName("lastName2")
+            .emailAddress("gmail.com")
+            .build();
+        template.save(firstPerson, OVERRIDE_SET_NAME);
+        template.save(secondPerson, OVERRIDE_SET_NAME);
+
+        PersonMissingAndRedundantFields result = template.findById(firstPerson.getId(), PersonTouchOnRead.class,
+            PersonMissingAndRedundantFields.class, OVERRIDE_SET_NAME);
+
+        assertThat(result.getFirstName()).isEqualTo("first");
+        assertThat(result.getLastName()).isEqualTo("lastName1");
+        assertThat(result.getMissingField()).isNull();
+        assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
+        template.delete(firstPerson, OVERRIDE_SET_NAME); // cleanup
+        template.delete(secondPerson, OVERRIDE_SET_NAME); //cleanup
+    }
+
+    @Test
     public void findByIdsWithTargetClass_shouldFindExisting() {
         Person firstPerson = Person.builder().id(nextId()).firstName("first").emailAddress("gmail.com").age(40).build();
         Person secondPerson = Person.builder().id(nextId()).firstName("second").emailAddress("gmail.com").age(50)
@@ -115,9 +143,32 @@ public class AerospikeTemplateFindByIdProjectionTests extends BaseBlockingIntegr
     }
 
     @Test
+    public void findByIdsWithTargetClassAndSetName_shouldFindExisting() {
+        Person firstPerson = Person.builder().id(nextId()).firstName("first").emailAddress("gmail.com").age(40).build();
+        Person secondPerson = Person.builder().id(nextId()).firstName("second").emailAddress("gmail.com").age(50)
+            .build();
+        template.save(firstPerson, OVERRIDE_SET_NAME);
+        template.save(secondPerson, OVERRIDE_SET_NAME);
+
+        List<String> ids = Arrays.asList(nextId(), firstPerson.getId(), secondPerson.getId());
+        List<PersonSomeFields> actual = template.findByIds(ids, Person.class, PersonSomeFields.class, OVERRIDE_SET_NAME);
+
+        assertThat(actual).containsExactly(firstPerson.toPersonSomeFields(), secondPerson.toPersonSomeFields());
+        template.delete(firstPerson, OVERRIDE_SET_NAME); // cleanup
+        template.delete(secondPerson, OVERRIDE_SET_NAME); //cleanup
+    }
+
+    @Test
     public void findByIdsWithTargetClass_shouldReturnEmptyList() {
         List<PersonSomeFields> actual = template.findByIds(Collections.emptyList(), Person.class,
             PersonSomeFields.class);
+        assertThat(actual).isEmpty();
+    }
+
+    @Test
+    public void findByIdsWithTargetClassAndSetName_shouldReturnEmptyList() {
+        List<PersonSomeFields> actual = template.findByIds(Collections.emptyList(), Person.class,
+            PersonSomeFields.class, OVERRIDE_SET_NAME);
         assertThat(actual).isEmpty();
     }
 }

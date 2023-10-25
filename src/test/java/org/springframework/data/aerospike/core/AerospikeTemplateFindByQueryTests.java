@@ -222,10 +222,27 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
+    public void findInRangeWithSetName_shouldFindLimitedNumberOfDocuments() {
+        int skip = 0;
+        int limit = 5;
+        Stream<Person> stream = template.findInRange(skip, limit, Sort.unsorted(), Person.class, OVERRIDE_SET_NAME);
+        assertThat(stream).hasSize(5);
+    }
+
+    @Test
     public void findInRange_shouldFailOnUnsortedQueryWithOffsetValue() {
         int skip = 3;
         int limit = 5;
         assertThatThrownBy(() -> template.findInRange(skip, limit, Sort.unsorted(), Person.class))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
+    }
+
+    @Test
+    public void findInRangeWithSetName_shouldFailOnUnsortedQueryWithOffsetValue() {
+        int skip = 3;
+        int limit = 5;
+        assertThatThrownBy(() -> template.findInRange(skip, limit, Sort.unsorted(), Person.class, OVERRIDE_SET_NAME))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
     }
@@ -247,6 +264,17 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     public void findAll_OrderByFirstName() {
         Sort sort = Sort.by(asc("firstName"));
         List<Person> result = template.findAll(sort, 0, 0, Person.class)
+            .collect(Collectors.toList());
+
+        assertThat(result)
+            .hasSize(10)
+            .containsExactly(aabbot, alister, ashley, beatrice, dave, jean, knowlen, mitch, xylophone, zaipper);
+    }
+
+    @Test
+    public void findAll_OrderByFirstNameWithSetName() {
+        Sort sort = Sort.by(asc("firstName"));
+        List<Person> result = template.findAll(sort, 0, 0, Person.class, OVERRIDE_SET_NAME)
             .collect(Collectors.toList());
 
         assertThat(result)
@@ -450,6 +478,16 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     public void findPersonsByFriendAgeLessThanOrEqual() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeLessThanEqual", 54);
         Stream<Person> result = template.find(query, Person.class);
+
+        assertThat(result)
+            .hasSize(4)
+            .containsExactlyInAnyOrder(jean, ashley, beatrice, dave);
+    }
+
+    @Test
+    public void findPersonsByFriendAgeLessThanOrEqualWithSetName() {
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeLessThanEqual", 54);
+        Stream<Person> result = template.find(query, Person.class, OVERRIDE_SET_NAME);
 
         assertThat(result)
             .hasSize(4)
