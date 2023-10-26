@@ -48,12 +48,12 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @AfterAll
     public void afterAll() {
-        template.delete(VersionedClass.class);
-        template.delete(SampleClasses.DocumentWithArray.class);
-        template.delete(SampleClasses.DocumentWithBigIntegerAndNestedArray.class);
-        template.delete(Person.class);
-        template.delete(CustomCollectionClass.class);
-        template.delete(DocumentWithTouchOnRead.class);
+        template.deleteAll(VersionedClass.class);
+        template.deleteAll(SampleClasses.DocumentWithArray.class);
+        template.deleteAll(SampleClasses.DocumentWithBigIntegerAndNestedArray.class);
+        template.deleteAll(Person.class);
+        template.deleteAll(CustomCollectionClass.class);
+        template.deleteAll(DocumentWithTouchOnRead.class);
     }
 
     // test for RecordExistsAction.REPLACE_ONLY policy

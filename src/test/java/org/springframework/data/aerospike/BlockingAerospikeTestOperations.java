@@ -37,6 +37,16 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
     }
 
     @Override
+    protected boolean isSetEmpty(Class<?> clazz, String setName) {
+        return template.findAll(clazz, setName).findAny().isEmpty();
+    }
+
+    @Override
+    protected void truncateSet(String setName) {
+        template.deleteAll(setName);
+    }
+
+    @Override
     protected String getNamespace() {
         return template.getNamespace();
     }

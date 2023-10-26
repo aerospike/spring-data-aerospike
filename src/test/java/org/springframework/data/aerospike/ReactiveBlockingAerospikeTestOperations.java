@@ -40,6 +40,16 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
     }
 
     @Override
+    protected boolean isSetEmpty(Class<?> clazz, String setName) {
+        return Boolean.FALSE.equals(template.findAll(clazz, setName).hasElements().block());
+    }
+
+    @Override
+    protected void truncateSet(String setName) {
+        template.deleteAll(setName).block();
+    }
+
+    @Override
     protected String getNamespace() {
         return template.getNamespace();
     }

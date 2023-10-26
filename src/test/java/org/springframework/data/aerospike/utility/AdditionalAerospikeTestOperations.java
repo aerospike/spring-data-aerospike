@@ -95,10 +95,21 @@ public abstract class AdditionalAerospikeTestOperations {
         Arrays.asList(entityClasses).forEach(this::awaitUntilSetIsEmpty);
     }
 
+    public void deleteAllAndVerify(Class<?> entityClass, String setName) {
+        truncateSet(setName);
+        awaitUntilSetIsEmpty(entityClass, setName);
+    }
+
     private void awaitUntilSetIsEmpty(Class<?> entityClass) {
         Awaitility.await()
             .atMost(Duration.ofSeconds(10))
             .until(() -> isEntityClassSetEmpty(entityClass));
+    }
+
+    private void awaitUntilSetIsEmpty(Class<?> entityClass, String setName) {
+        Awaitility.await()
+            .atMost(Duration.ofSeconds(10))
+            .until(() -> isSetEmpty(entityClass, setName));
     }
 
     public <T> void createIndex(Class<T> entityClass, String indexName, String binName,
@@ -226,6 +237,10 @@ public abstract class AdditionalAerospikeTestOperations {
     protected abstract boolean isEntityClassSetEmpty(Class<?> clazz);
 
     protected abstract void truncateSetOfEntityClass(Class<?> clazz);
+
+    protected abstract boolean isSetEmpty(Class<?> clazz, String setName);
+
+    protected abstract void truncateSet(String setName);
 
     protected abstract String getNamespace();
 
