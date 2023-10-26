@@ -119,6 +119,21 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     }
 
     @Test
+    public void saveWithSetName_shouldUpdateNullFieldForClassWithoutVersionField() {
+        Person person = new Person(id, "Oliver");
+        reactiveTemplate.save(person, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+
+        assertThat(findById(id, Person.class, OVERRIDE_SET_NAME).getFirstName()).isEqualTo("Oliver");
+
+        person.setFirstName(null);
+        reactiveTemplate.save(person, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+
+        Person result = findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(result.getFirstName()).isNull();
+        reactiveTemplate.delete(result, OVERRIDE_SET_NAME).block(); // cleanup
+    }
+
+    @Test
     public void save_shouldUpdateExistingDocument() {
         VersionedClass one = new VersionedClass(id, "foo");
         reactiveTemplate.save(one).subscribeOn(Schedulers.parallel()).block();
