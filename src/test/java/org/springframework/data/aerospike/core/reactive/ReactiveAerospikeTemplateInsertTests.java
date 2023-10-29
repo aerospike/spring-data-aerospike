@@ -66,6 +66,32 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
     }
 
     @Test
+    public void insertsDocumentWithListMapDateStringLongValuesAndSetName() {
+        Person customer = Person.builder()
+            .id(id)
+            .firstName("Dave")
+            .lastName("Grohl")
+            .age(45)
+            .waist(90)
+            .emailAddress("dave@gmail.com")
+            .stringMap(Collections.singletonMap("k", "v"))
+            .strings(Arrays.asList("a", "b", "c"))
+            .friend(new Person(null, "Anna", 43))
+            .isActive(true)
+            .sex(Person.Sex.MALE)
+            .dateOfBirth(new Date())
+            .build();
+
+        StepVerifier.create(reactiveTemplate.insert(customer, OVERRIDE_SET_NAME))
+            .expectNext(customer)
+            .verifyComplete();
+
+        Person actual = findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(actual).isEqualTo(customer);
+        reactiveTemplate.delete(actual, OVERRIDE_SET_NAME).block(); // cleanup
+    }
+
+    @Test
     public void insertsAndFindsDocumentWithByteArrayField() {
         DocumentWithByteArray document = new DocumentWithByteArray(id, new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
 
@@ -104,6 +130,16 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
     }
 
     @Test
+    public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKeyAndSetName() {
+        VersionedClass document = new VersionedClass(id, "any", 5L);
+        reactiveTemplate.insert(document, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+
+        assertThat(document.getVersion()).isEqualTo(1);
+        reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
+    }
+
+
+    @Test
     public void throwsExceptionForDuplicateId() {
         Person person = new Person(id, "Amol", 28);
 
@@ -112,6 +148,17 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             .expectError(DuplicateKeyException.class)
             .verify();
         reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
+    }
+
+    @Test
+    public void throwsExceptionForDuplicateIdAndSetName() {
+        Person person = new Person(id, "Amol", 28);
+
+        reactiveTemplate.insert(person, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+        StepVerifier.create(reactiveTemplate.insert(person, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()))
+            .expectError(DuplicateKeyException.class)
+            .verify();
+        reactiveTemplate.delete(findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
     }
 
     @Test
@@ -186,6 +233,22 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
     }
 
     @Test
+    public void insertAllWithSetName_shouldInsertAllDocuments() {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            Person customer1 = new Person(nextId(), "Dave");
+            Person customer2 = new Person(nextId(), "James");
+            reactiveTemplate.insertAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
+
+            Person result1 = findById(customer1.getId(), Person.class, OVERRIDE_SET_NAME);
+            Person result2 = findById(customer2.getId(), Person.class, OVERRIDE_SET_NAME);
+            assertThat(result1).isEqualTo(customer1);
+            assertThat(result2).isEqualTo(customer2);
+            reactiveTemplate.delete(result1, OVERRIDE_SET_NAME).block(); // cleanup
+            reactiveTemplate.delete(result2, OVERRIDE_SET_NAME).block(); // cleanup
+        }
+    }
+
+    @Test
     public void insertAll_rejectsDuplicateId() {
         if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             Person person = new Person(id, "Amol");
@@ -195,6 +258,19 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
                 .expectError(AerospikeException.BatchRecordArray.class)
                 .verify();
             reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
+        }
+    }
+
+    @Test
+    public void insertAllWithSetName_rejectsDuplicateId() {
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            Person person = new Person(id, "Amol");
+            person.setAge(28);
+
+            StepVerifier.create(reactiveTemplate.insertAll(List.of(person, person), OVERRIDE_SET_NAME))
+                .expectError(AerospikeException.BatchRecordArray.class)
+                .verify();
+            reactiveTemplate.delete(findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
         }
     }
 }

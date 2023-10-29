@@ -28,6 +28,7 @@ import com.aerospike.client.policy.BatchWritePolicy;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
+import com.aerospike.client.query.KeyRecord;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,8 +124,11 @@ abstract class BaseAerospikeTemplate {
     }
 
     public <T> String getSetName(Class<T> entityClass) {
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-        return entity.getSetName();
+        return mappingContext.getRequiredPersistentEntity(entityClass).getSetName();
+    }
+
+    public <T> String getSetName(T document) {
+        return mappingContext.getRequiredPersistentEntity(document.getClass()).getSetName();
     }
 
     public MappingContext<?, ?> getMappingContext() {
@@ -138,6 +142,10 @@ abstract class BaseAerospikeTemplate {
     @SuppressWarnings("unchecked")
     <T> Class<T> getEntityClass(T entity) {
         return (Class<T>) entity.getClass();
+    }
+
+    <T> T mapToEntity(KeyRecord keyRecord, Class<T> targetClass) {
+        return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
     }
 
     <T> T mapToEntity(Key key, Class<T> clazz, Record aeroRecord) {
@@ -194,14 +202,16 @@ abstract class BaseAerospikeTemplate {
         return translated == null ? e : translated;
     }
 
-    <T> AerospikeWriteData writeData(T document) {
+    <T> AerospikeWriteData writeData(T document, String setName) {
         AerospikeWriteData data = AerospikeWriteData.forWrite(getNamespace());
+        data.setSetName(setName);
         converter.write(document, data);
         return data;
     }
 
-    <T> AerospikeWriteData writeDataWithSpecificFields(T document, Collection<String> fields) {
+    <T> AerospikeWriteData writeDataWithSpecificFields(T document, String setName, Collection<String> fields) {
         AerospikeWriteData data = AerospikeWriteData.forWrite(getNamespace());
+        data.setSetName(setName);
         data.setRequestedBins(fieldsToBinNames(document, fields));
         converter.write(document, data);
         return data;
@@ -271,6 +281,13 @@ abstract class BaseAerospikeTemplate {
         Assert.notNull(id, "Id must not be null!");
         String userKey = convertIfNecessary(id, String.class);
         return new Key(this.namespace, entity.getSetName(), userKey);
+    }
+
+    Key getKey(Object id, String setName) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+        String userKey = convertIfNecessary(id, String.class);
+        return new Key(this.namespace, setName, userKey);
     }
 
     GroupedEntities toGroupedEntities(EntitiesKeys entitiesKeys, Record[] records) {
@@ -354,10 +371,10 @@ abstract class BaseAerospikeTemplate {
             : operations(bins, Operation::put, null, Operation.array(Operation.getHeader()));
     }
 
-    public <T> BatchWriteData<T> getBatchWriteForSave(T document) {
+    public <T> BatchWriteData<T> getBatchWriteForSave(T document, String setName) {
         Assert.notNull(document, "Document must not be null!");
 
-        AerospikeWriteData data = writeData(document);
+        AerospikeWriteData data = writeData(document, setName);
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         Operation[] operations;
@@ -379,10 +396,10 @@ abstract class BaseAerospikeTemplate {
             entity.hasVersionProperty());
     }
 
-    public <T> BatchWriteData<T> getBatchWriteForInsert(T document) {
+    public <T> BatchWriteData<T> getBatchWriteForInsert(T document, String setName) {
         Assert.notNull(document, "Document must not be null!");
 
-        AerospikeWriteData data = writeData(document);
+        AerospikeWriteData data = writeData(document, setName);
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         Operation[] operations;
@@ -397,10 +414,10 @@ abstract class BaseAerospikeTemplate {
             entity.hasVersionProperty());
     }
 
-    public <T> BatchWriteData<T> getBatchWriteForUpdate(T document) {
+    public <T> BatchWriteData<T> getBatchWriteForUpdate(T document, String setName) {
         Assert.notNull(document, "Document must not be null!");
 
-        AerospikeWriteData data = writeData(document);
+        AerospikeWriteData data = writeData(document, setName);
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         Operation[] operations;

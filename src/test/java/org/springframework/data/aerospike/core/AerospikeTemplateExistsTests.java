@@ -33,7 +33,21 @@ public class AerospikeTemplateExistsTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void existsWithSetName_shouldReturnTrueIfValueIsPresent() {
+        Person one = Person.builder().id(id).firstName("tya").emailAddress("gmail.com").build();
+        template.insert(one, OVERRIDE_SET_NAME);
+
+        assertThat(template.exists(id, OVERRIDE_SET_NAME)).isTrue();
+        template.delete(one, OVERRIDE_SET_NAME);
+    }
+
+    @Test
     public void exists_shouldReturnFalseIfValueIsAbsent() {
         assertThat(template.exists(id, Person.class)).isFalse();
+    }
+
+    @Test
+    public void existsWithSetName_shouldReturnFalseIfValueIsAbsent() {
+        assertThat(template.exists(id, OVERRIDE_SET_NAME)).isFalse();
     }
 }

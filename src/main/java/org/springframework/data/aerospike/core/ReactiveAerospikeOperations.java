@@ -74,6 +74,28 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> save(T document);
 
     /**
+     * Reactively save document with a given set name.
+     * <p>
+     * If document has version property - CAS algorithm is used for updating record. Version property is used for
+     * deciding whether to create new record or update existing. If version is set to zero - new record will be created,
+     * creation will fail is such record already exists. If version is greater than zero - existing record will be
+     * updated with {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with removing
+     * bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into
+     * consideration the version property of the document. Version property will be updated with the server's version
+     * after successful operation.
+     * <p>
+     * If document does not have version property - record is updated with
+     * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE} policy combined with removing bins at first
+     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
+     * does not exist it will be created, otherwise updated - an "upsert".
+     *
+     * @param document The document to save. Must not be {@literal null}.
+     * @param setName  The set name to save the document.
+     * @return A Mono of the new saved document.
+     */
+    <T> Mono<T> save(T document, String setName);
+
+    /**
      * Reactively save documents using one batch request. The policies are analogous to {@link #save(Object)}.
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
@@ -88,6 +110,22 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> saveAll(Iterable<T> documents);
 
     /**
+     * Reactively save documents using one batch request with a given set name. The policies are analogous to
+     * {@link #save(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * Requires Server version 6.0+.
+     *
+     * @param documents documents to save. Must not be {@literal null}.
+     * @param setName   The set name to save to documents.
+     * @return A Flux of the saved documents, otherwise onError is signalled with
+     * {@link AerospikeException.BatchRecordArray} if batch save results contain errors, or with
+     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    <T> Flux<T> saveAll(Iterable<T> documents, String setName);
+
+    /**
      * Reactively insert document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
@@ -96,6 +134,18 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new inserted document.
      */
     <T> Mono<T> insert(T document);
+
+    /**
+     * Reactively insert document with a given set name using
+     * {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
+     * <p>
+     * If document has version property it will be updated with the server's version after successful operation.
+     *
+     * @param document The document to insert. Must not be {@literal null}.
+     * @param setName  The set name to insert the document.
+     * @return A Mono of the new inserted document.
+     */
+    <T> Mono<T> insert(T document, String setName);
 
     /**
      * Reactively insert documents using one batch request. The policies are analogous to {@link #insert(Object)}.
@@ -112,6 +162,22 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> insertAll(Iterable<? extends T> documents);
 
     /**
+     * Reactively insert documents with a given set using one batch request. The policies are analogous to
+     * {@link #insert(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * Requires Server version 6.0+.
+     *
+     * @param documents Documents to insert. Must not be {@literal null}.
+     * @param setName   The set name to insert the documents.
+     * @return A Flux of the inserted documents, otherwise onError is signalled with
+     * {@link AerospikeException.BatchRecordArray} if batch insert results contain errors, or with
+     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    <T> Flux<T> insertAll(Iterable<? extends T> documents, String setName);
+
+    /**
      * Reactively update document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
      * combined with removing bins at first (analogous to
      * {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the version
@@ -125,6 +191,20 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> update(T document);
 
     /**
+     * Reactively update document with a given set using
+     * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with removing bins at first
+     * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the
+     * version property of the document if it is present.
+     * <p>
+     * If document has version property it will be updated with the server's version after successful operation.
+     *
+     * @param document The document to update. Must not be {@literal null}.
+     * @param setName  The set name to update the document.
+     * @return A Mono of the new updated document.
+     */
+    <T> Mono<T> update(T document, String setName);
+
+    /**
      * Reactively update document specific fields based on a given collection of fields. using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy - You can instantiate the document with
      * only relevant fields and specify the list of fields that you want to update. taking into consideration the
@@ -136,6 +216,20 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new updated document.
      */
     <T> Mono<T> update(T document, Collection<String> fields);
+
+    /**
+     * Reactively update document specific fields based on a given collection of fields with a given set name. using
+     * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy - You can instantiate the document with
+     * only relevant fields and specify the list of fields that you want to update. taking into consideration the
+     * version property of the document if it is present.
+     * <p>
+     * If document has version property it will be updated with the server's version after successful operation.
+     *
+     * @param document The document to update. Must not be {@literal null}.
+     * @param setName  The set name to update the document.
+     * @return A Mono of the new updated document.
+     */
+    <T> Mono<T> update(T document, String setName, Collection<String> fields);
 
     /**
      * Reactively update documents using one batch request. The policies are analogous to {@link #update(Object)}.
@@ -152,6 +246,22 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> updateAll(Iterable<? extends T> documents);
 
     /**
+     * Reactively update documents using one batch request with a given set name. The policies are analogous to
+     * {@link #update(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * Requires Server version 6.0+.
+     *
+     * @param documents Documents to update. Must not be {@literal null}.
+     * @param setName   The set name to update the documents.
+     * @return A Flux of the updated documents, otherwise onError is signalled with
+     * {@link AerospikeException.BatchRecordArray} if batch update results contain errors, or with
+     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    <T> Flux<T> updateAll(Iterable<? extends T> documents, String setName);
+
+    /**
      * Reactively add integer/double bin values to existing document bin values, read the new modified document and map
      * it back the given document class type.
      *
@@ -161,6 +271,18 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the modified document after add operations.
      */
     <T> Mono<T> add(T document, Map<String, Long> values);
+
+    /**
+     * Reactively add integer/double bin values to existing document bin values with a given set name, read the new
+     * modified document and map it back the given document class type.
+     *
+     * @param document The document to extract the Aerospike set from and to map the documents to. Must not be
+     *                 {@literal null}.
+     * @param setName  Set name for the operation.
+     * @param values   a Map of bin names and values to add. Must not be {@literal null}.
+     * @return A Mono of the modified document after add operations.
+     */
+    <T> Mono<T> add(T document, String setName, Map<String, Long> values);
 
     /**
      * Reactively add integer/double bin value to existing document bin value, read the new modified document and map it
@@ -175,6 +297,19 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> add(T document, String binName, long value);
 
     /**
+     * Reactively add integer/double bin value to existing document bin value with a given set name, read the new
+     * modified document and map it back the given document class type.
+     *
+     * @param document The document to extract the Aerospike set from and to map the documents to. Must not be
+     *                 {@literal null}.
+     * @param setName  Set name for the operation.
+     * @param binName  Bin name to use add operation on. Must not be {@literal null}.
+     * @param value    The value to add.
+     * @return A Mono of the modified document after add operation.
+     */
+    <T> Mono<T> add(T document, String setName, String binName, long value);
+
+    /**
      * Reactively append bin string values to existing document bin values, read the new modified document and map it
      * back the given document class type.
      *
@@ -184,6 +319,18 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the modified document after append operations.
      */
     <T> Mono<T> append(T document, Map<String, String> values);
+
+    /**
+     * Reactively append bin string values to existing document bin values with a given set name, read the new modified
+     * document and map it back the given document class type.
+     *
+     * @param document The document to extract the Aerospike set from and to map the documents to. Must not be
+     *                 {@literal null}.
+     * @param setName  Set name for the operation.
+     * @param values   a Map of bin names and values to append. Must not be {@literal null}.
+     * @return A Mono of the modified document after append operations.
+     */
+    <T> Mono<T> append(T document, String setName, Map<String, String> values);
 
     /**
      * Reactively append bin string value to existing document bin value, read the new modified document and map it back
@@ -198,6 +345,19 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> append(T document, String binName, String value);
 
     /**
+     * Reactively append bin string value to existing document bin value with a given set name, read the new modified
+     * document and map it back the given document class type.
+     *
+     * @param document The document to extract the Aerospike set from and to map the documents to. Must not be
+     *                 {@literal null}.
+     * @param binName  Bin name to use append operation on.
+     * @param setName  Set name for the operation.
+     * @param value    The value to append.
+     * @return A Mono of the modified document after append operation.
+     */
+    <T> Mono<T> append(T document, String setName, String binName, String value);
+
+    /**
      * Reactively prepend bin string values to existing document bin values, read the new modified document and map it
      * back the given document class type.
      *
@@ -207,6 +367,18 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the modified document after prepend operations.
      */
     <T> Mono<T> prepend(T document, Map<String, String> values);
+
+    /**
+     * Reactively prepend bin string values to existing document bin values with a given set name, read the new modified
+     * document and map it back the given document class type.
+     *
+     * @param document The document to extract the Aerospike set from and to map the documents to. Must not be
+     *                 {@literal null}.
+     * @param setName  Set name for the operation.
+     * @param values   a Map of bin names and values to prepend. Must not be {@literal null}.
+     * @return A Mono of the modified document after prepend operations.
+     */
+    <T> Mono<T> prepend(T document, String setName, Map<String, String> values);
 
     /**
      * Reactively prepend bin string value to existing document bin value, read the new modified document and map it
@@ -219,6 +391,19 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the modified document after prepend operation.
      */
     <T> Mono<T> prepend(T document, String binName, String value);
+
+    /**
+     * Reactively prepend bin string value to existing document bin value with a given set name, read the new modified
+     * document and map it back the given document class type.
+     *
+     * @param document The document to extract the Aerospike set from and to map the documents to. Must not be
+     *                 {@literal null}.
+     * @param binName  Bin name to use prepend operation on.
+     * @param setName  Set name for the operation.
+     * @param value    The value to prepend.
+     * @return A Mono of the modified document after prepend operation.
+     */
+    <T> Mono<T> prepend(T document, String setName, String binName, String value);
 
     /**
      * Reactively find all documents in the given entityClass's set and map them to the given class type.
@@ -237,6 +422,15 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Reactively find all documents in the given set and map them to the given class type.
+     *
+     * @param targetClass The class to map the documents to. Must not be {@literal null}.
+     * @param setName     The set name to find the document.
+     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Flux<T> findAll(Class<T> targetClass, String setName);
 
     /**
      * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given
@@ -258,10 +452,23 @@ public interface ReactiveAerospikeOperations {
      * @param offset      The offset to start the range from.
      * @param limit       The limit of the range.
      * @param entityClass The class to extract the Aerospike set from.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @param targetClass The class to map the documents to. Must not be {@literal null}.
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T, S> Flux<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given
+     * target class type.
+     *
+     * @param sort        The sort to affect the returned iterable documents order.
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
+     * @param targetClass The class to map the documents to. Must not be {@literal null}.
+     * @param setName     The set name to find the documents.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> targetClass, String setName);
 
     /**
      * Reactively find a document by id, set name will be determined by the given entityClass.
@@ -276,6 +483,19 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> findById(Object id, Class<T> entityClass);
 
     /**
+     * Reactively find a document by id with a given set name.
+     * <p>
+     * Document will be mapped to the given entityClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to map the document to and to get entity properties from (such expiration). Must not
+     *                    be {@literal null}.
+     * @param setName     Set name to find the document from.
+     * @return A Mono of the matching document, returned document will be mapped to entityClass's type.
+     */
+    <T> Mono<T> findById(Object id, Class<T> entityClass, String setName);
+
+    /**
      * Reactively find a document by id, set name will be determined by the given entityClass.
      * <p>
      * Document will be mapped to the given targetClass.
@@ -286,6 +506,20 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the matching document, returned document will be mapped to targetClass's type.
      */
     <T, S> Mono<S> findById(Object id, Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Reactively find a document by id with a given set name.
+     * <p>
+     * Document will be mapped to the given targetClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to map the document to and to get entity properties from (such expiration). Must not
+     *                    be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @param setName     Set name to find the document from.
+     * @return A Mono of the matching document, returned document will be mapped to targetClass's type.
+     */
+    <T, S> Mono<S> findById(Object id, Class<T> entityClass, Class<S> targetClass, String setName);
 
     /**
      * Reactively find documents by providing multiple ids using a single batch read operation, set name will be
@@ -308,10 +542,22 @@ public interface ReactiveAerospikeOperations {
      *
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @param targetClass The class to map the documents to. Must not be {@literal null}.
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T, S> Flux<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Reactively find documents by providing multiple ids using a single batch read operation with a given set name.
+     * <p>
+     * Documents will be mapped to the given entityClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param targetClass The class to map the documents to. Must not be {@literal null}.
+     * @param setName     Set name to find the documents from.
+     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Flux<T> findByIds(Iterable<?> ids, Class<T> targetClass, String setName);
 
     /**
      * Reactively executes a single batch request to get results for several entities.
@@ -347,6 +593,16 @@ public interface ReactiveAerospikeOperations {
     <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass);
 
     /**
+     * Reactively find documents in the given set using a query and map them to the given target class type.
+     *
+     * @param query       The query to filter results. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @param setName     Set name to find the documents from.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T> Flux<T> find(Query query, Class<T> targetClass, String setName);
+
+    /**
      * Reactively find documents in the given entityClass's set using a range (offset, limit) and a sort and map them to
      * the given class type.
      *
@@ -358,6 +614,19 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
      */
     <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> entityClass);
+
+    /**
+     * Reactively find documents in the given set using a range (offset, limit) and a sort and map them to the given
+     * class type.
+     *
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
+     * @param sort        The sort to affect the order of the returned Stream of documents.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @param setName     Set name to find the documents from.
+     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Flux<T> findInRange(long offset, long limit, Sort sort, Class<T> targetClass, String setName);
 
     /**
      * Reactively find documents in the given entityClass's set using a range (offset, limit) and a sort and map them to
@@ -417,11 +686,27 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> exists(Object id, Class<T> entityClass);
 
     /**
+     * Reactively check if document exists by providing document id with a given set name.
+     *
+     * @param id      The id to check if exists. Must not be {@literal null}.
+     * @param setName Set name to check if document exists.
+     * @return A Mono of whether the document exists.
+     */
+    Mono<Boolean> exists(Object id, String setName);
+
+    /**
      * Reactively truncate/delete all the documents in the given entity's set.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      */
-    <T> Mono<Void> delete(Class<T> entityClass);
+    <T> Mono<Void> deleteAll(Class<T> entityClass);
+
+    /**
+     * Reactively truncate/delete all the documents in the given entity's set.
+     *
+     * @param setName Set name to truncate/delete all the documents in.
+     */
+    Mono<Void> deleteAll(String setName);
 
     /**
      * Reactively delete document by id, set name will be determined by the given entityClass.
@@ -430,7 +715,16 @@ public interface ReactiveAerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @return A Mono of whether the document existed on server before deletion.
      */
-    <T> Mono<Boolean> delete(Object id, Class<T> entityClass);
+    <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass);
+
+    /**
+     * Reactively delete document by id with a given set name.
+     *
+     * @param id      The id of the document to delete. Must not be {@literal null}.
+     * @param setName Set name to delete the document.
+     * @return A Mono of whether the document existed on server before deletion.
+     */
+    Mono<Boolean> deleteById(Object id, String setName);
 
     /**
      * Reactively delete document.
@@ -439,6 +733,15 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of whether the document existed on server before deletion.
      */
     <T> Mono<Boolean> delete(T document);
+
+    /**
+     * Reactively delete document with a given set name.
+     *
+     * @param document The document to delete. Must not be {@literal null}.
+     * @param setName  Set name to delete the document.
+     * @return A Mono of whether the document existed on server before deletion.
+     */
+    <T> Mono<Boolean> delete(T document, String setName);
 
     /**
      * Reactively delete documents by providing multiple ids using a single batch delete operation, set name will be
@@ -453,6 +756,19 @@ public interface ReactiveAerospikeOperations {
      * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
     <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
+
+    /**
+     * Reactively delete documents by providing multiple ids using a single batch delete operation with a given set
+     * name.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to delete the document.
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    Mono<Void> deleteByIds(Iterable<?> ids, String setName);
 
     /**
      * Executes a single batch delete for several entities.
@@ -506,6 +822,42 @@ public interface ReactiveAerospikeOperations {
                                IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
 
     /**
+     * Reactively create index by specified name in Aerospike.
+     *
+     * @param setName   Set name to create the index.
+     * @param indexName The index name. Must not be {@literal null}.
+     * @param binName   The bin name to create the index on. Must not be {@literal null}.
+     * @param indexType The type of the index. Must not be {@literal null}.
+     */
+    Mono<Void> createIndex(String setName, String indexName,
+                           String binName, IndexType indexType);
+
+    /**
+     * Reactively create index by specified name in Aerospike.
+     *
+     * @param setName             Set name to create the index.
+     * @param indexName           The index name. Must not be {@literal null}.
+     * @param binName             The bin name to create the index on. Must not be {@literal null}.
+     * @param indexType           The type of the index. Must not be {@literal null}.
+     * @param indexCollectionType The collection type of the index. Must not be {@literal null}.
+     */
+    Mono<Void> createIndex(String setName, String indexName, String binName,
+                           IndexType indexType, IndexCollectionType indexCollectionType);
+
+    /**
+     * Reactively create index by specified name in Aerospike.
+     *
+     * @param setName             Set name to create the index.
+     * @param indexName           The index name. Must not be {@literal null}.
+     * @param binName             The bin name to create the index on. Must not be {@literal null}.
+     * @param indexType           The type of the index. Must not be {@literal null}.
+     * @param indexCollectionType The collection type of the index. Must not be {@literal null}.
+     * @param ctx                 optional context to index on elements within a CDT.
+     */
+    Mono<Void> createIndex(String setName, String indexName, String binName,
+                           IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
+
+    /**
      * Reactively delete index by specified name from Aerospike.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
@@ -514,10 +866,18 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Void> deleteIndex(Class<T> entityClass, String indexName);
 
     /**
+     * Reactively delete index by specified name from Aerospike.
+     *
+     * @param setName   Set name to delete the index from.
+     * @param indexName The index name. Must not be {@literal null}.
+     */
+    Mono<Void> deleteIndex(String setName, String indexName);
+
+    /**
      * Check whether an index with the specified name exists in Aerospike.
      *
      * @param indexName The Aerospike index name. Must not be {@literal null}.
-     * @return true if exists.
+     * @return Mono of true if exists.
      */
     Mono<Boolean> indexExists(String indexName);
 

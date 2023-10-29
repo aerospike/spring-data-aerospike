@@ -221,6 +221,21 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     }
 
     @Test
+    public void setsVersionEqualToNumberOfModificationsWithSetName() {
+        VersionedClass document = new VersionedClass(id, "foobar");
+        reactiveTemplate.insert(document, OVERRIDE_SET_NAME).block();
+        reactiveTemplate.update(document, OVERRIDE_SET_NAME).block();
+        reactiveTemplate.update(document, OVERRIDE_SET_NAME).block();
+
+        StepVerifier.create(reactorClient.get(new Policy(), new Key(getNameSpace(), OVERRIDE_SET_NAME, id)))
+            .assertNext(keyRecord -> assertThat(keyRecord.record.generation).isEqualTo(3))
+            .verifyComplete();
+        VersionedClass actual = findById(id, VersionedClass.class, OVERRIDE_SET_NAME);
+        assertThat(actual.version).isEqualTo(3);
+        reactiveTemplate.delete(actual, OVERRIDE_SET_NAME).block(); // cleanup
+    }
+
+    @Test
     public void onlyFirstUpdateSucceedsAndNextAttemptsShouldFailWithOptimisticLockingFailureExceptionForVersionedDocument() {
         VersionedClass document = new VersionedClass(id, "foobar");
         reactiveTemplate.insert(document).block();
@@ -327,6 +342,39 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         assertThat(personWithList2.getStringMap()).hasSize(4);
         assertThat(personWithList2.getStringMap().get("key4")).isEqualTo("Added something new");
         reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
+    }
+
+    @Test
+    public void TestAddToMapSpecifyingMapFieldOnlyWithSetName() {
+        Map<String, String> map = new HashMap<>();
+        map.put("key1", "value1");
+        map.put("key2", "value2");
+        map.put("key3", "value3");
+        List<String> list = new ArrayList<>();
+        list.add("string1");
+        list.add("string2");
+        list.add("string3");
+        Person person = Person.builder().id(id).firstName("QLastName").age(50)
+            .stringMap(map)
+            .strings(list)
+            .build();
+        reactiveTemplate.insert(person, OVERRIDE_SET_NAME).block();
+
+        Person personWithList = Person.builder().id(id).firstName("QLastName").age(50)
+            .stringMap(map)
+            .strings(list)
+            .build();
+        personWithList.getStringMap().put("key4", "Added something new");
+
+        List<String> fields = new ArrayList<>();
+        fields.add("stringMap");
+        reactiveTemplate.update(personWithList, OVERRIDE_SET_NAME, fields).block();
+
+        Person personWithList2 = findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(personWithList2).isEqualTo(personWithList);
+        assertThat(personWithList2.getStringMap()).hasSize(4);
+        assertThat(personWithList2.getStringMap().get("key4")).isEqualTo("Added something new");
+        reactiveTemplate.delete(findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
     }
 
     @Test

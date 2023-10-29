@@ -57,6 +57,26 @@ public class ReactiveAerospikeTemplateModificationRelatedTests extends BaseReact
     }
 
     @Test
+    public void shouldAppendWithSetName() {
+        // given
+        Person one = Person.builder().id(id).firstName("Nas").build();
+        Mono<Person> created = reactiveTemplate.insert(one, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel());
+        StepVerifier.create(created).expectNext(one).verifyComplete();
+
+        // when
+        Mono<Person> appended = reactiveTemplate.append(one, OVERRIDE_SET_NAME, "firstName", "tya")
+            .subscribeOn(Schedulers.parallel());
+
+        // then
+        Person expected = Person.builder().id(id).firstName("Nastya").build();
+        StepVerifier.create(appended).expectNext(expected).verifyComplete();
+
+        Mono<Person> storedPerson = reactiveTemplate.findById(id, Person.class, OVERRIDE_SET_NAME);
+        StepVerifier.create(storedPerson).expectNext(expected).verifyComplete();
+        reactiveTemplate.delete(storedPerson.block(), OVERRIDE_SET_NAME).block();
+    }
+
+    @Test
     public void shouldAppendMultipleFields() {
         // given
         Person one = Person.builder().id(id).firstName("Nas").emailAddress("nastya@").build();

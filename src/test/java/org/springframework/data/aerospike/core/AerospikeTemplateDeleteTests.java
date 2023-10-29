@@ -85,11 +85,23 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void deleteByObject_deletesDocumentWithSetName() {
+        Person document = new Person(id, "QLastName", 21);
+        template.insert(document, OVERRIDE_SET_NAME);
+
+        boolean deleted = template.delete(document, OVERRIDE_SET_NAME);
+        assertThat(deleted).isTrue();
+
+        Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(result).isNull();
+    }
+
+    @Test
     public void deleteById_deletesDocument() {
         Person document = new Person(id, "QLastName", 21);
         template.insert(document);
 
-        boolean deleted = template.delete(id, Person.class);
+        boolean deleted = template.deleteById(id, Person.class);
         assertThat(deleted).isTrue();
 
         Person result = template.findById(id, Person.class);
@@ -97,8 +109,20 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void deleteById_deletesDocumentWithSetName() {
+        Person document = new Person(id, "QLastName", 21);
+        template.insert(document, OVERRIDE_SET_NAME);
+
+        boolean deleted = template.deleteById(id, OVERRIDE_SET_NAME);
+        assertThat(deleted).isTrue();
+
+        Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(result).isNull();
+    }
+
+    @Test
     public void deleteById_returnsFalseIfValueIsAbsent() {
-        assertThat(template.delete(id, Person.class)).isFalse();
+        assertThat(template.deleteById(id, Person.class)).isFalse();
     }
 
     @Test
@@ -146,7 +170,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
         assertThat(template.findByIds(Arrays.asList(id1, id2), CustomCollectionClassToDelete.class)).hasSize(2);
 
-        template.delete(CustomCollectionClassToDelete.class);
+        template.deleteAll(CustomCollectionClassToDelete.class);
 
         // truncate is async operation that is why we need to wait until
         // it completes
@@ -162,7 +186,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         template.save(new DocumentWithExpiration(id1));
         template.save(new DocumentWithExpiration(id2));
 
-        template.delete(DocumentWithExpiration.class);
+        template.deleteAll(DocumentWithExpiration.class);
 
         // truncate is async operation that is why we need to wait until
         // it completes
@@ -175,7 +199,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByType_NullTypeThrowsException() {
-        assertThatThrownBy(() -> template.delete(null))
+        assertThatThrownBy(() -> template.deleteAll((Class<?>) null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Class must not be null!");
     }
@@ -210,6 +234,22 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             template.deleteByIds(ids, DocumentWithExpiration.class);
 
             assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
+        }
+    }
+
+    @Test
+    public void deleteAll_ShouldDeleteAllDocumentsWithSetName() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            String id1 = nextId();
+            String id2 = nextId();
+            template.save(new DocumentWithExpiration(id1), OVERRIDE_SET_NAME);
+            template.save(new DocumentWithExpiration(id2), OVERRIDE_SET_NAME);
+
+            List<String> ids = List.of(id1, id2);
+            template.deleteByIds(ids, OVERRIDE_SET_NAME);
+
+            assertThat(template.findByIds(ids, DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
         }
     }
 }

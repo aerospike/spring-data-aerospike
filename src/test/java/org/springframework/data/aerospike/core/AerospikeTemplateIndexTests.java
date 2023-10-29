@@ -28,13 +28,17 @@ import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTe
 public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
     private static final String INDEX_TEST_1 = "index-test-77777";
+    private static final String INDEX_TEST_1_WITH_SET = "index-test-77777" + OVERRIDE_SET_NAME;
     private static final String INDEX_TEST_2 = "index-test-88888";
+    private static final String INDEX_TEST_2_WITH_SET = "index-test-88888" + OVERRIDE_SET_NAME;
 
     @Override
     @BeforeEach
     public void setUp() {
         additionalAerospikeTestOperations.dropIndex(IndexedDocument.class, INDEX_TEST_1);
         additionalAerospikeTestOperations.dropIndex(IndexedDocument.class, INDEX_TEST_2);
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, INDEX_TEST_1_WITH_SET);
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, INDEX_TEST_2_WITH_SET);
     }
 
     @Test
@@ -85,6 +89,18 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         );
     }
 
+    @Test
+    public void createIndexWithSetName_createsIndex() {
+        template.createIndex(OVERRIDE_SET_NAME, INDEX_TEST_1_WITH_SET, "stringField", IndexType.STRING);
+        assertThat(template.indexExists(INDEX_TEST_1_WITH_SET)).isTrue();
+
+        awaitTenSecondsUntil(() ->
+            assertThat(additionalAerospikeTestOperations.getIndexes(OVERRIDE_SET_NAME))
+                .contains(Index.builder().name(INDEX_TEST_1_WITH_SET).namespace(namespace).set(OVERRIDE_SET_NAME).bin("stringField")
+                    .indexType(IndexType.STRING).build())
+        );
+    }
+
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_shouldNotThrowExceptionIfIndexAlreadyExists() {
@@ -112,6 +128,18 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void createIndexWithSetName_createsListIndex() {
+        template.createIndex(OVERRIDE_SET_NAME, INDEX_TEST_1_WITH_SET, "listField", IndexType.STRING,
+            IndexCollectionType.LIST);
+
+        awaitTenSecondsUntil(() ->
+            assertThat(additionalAerospikeTestOperations.getIndexes(OVERRIDE_SET_NAME))
+                .contains(Index.builder().name(INDEX_TEST_1_WITH_SET).namespace(namespace).set(OVERRIDE_SET_NAME).bin("listField")
+                    .indexType(IndexType.STRING).indexCollectionType(IndexCollectionType.LIST).build())
+        );
+    }
+
+    @Test
     public void createIndex_createsMapIndex() {
         template.createIndex(IndexedDocument.class, INDEX_TEST_1, "mapField", IndexType.STRING,
             IndexCollectionType.MAPKEYS);
@@ -121,6 +149,19 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
         awaitTenSecondsUntil(() -> {
             assertThat(template.indexExists(INDEX_TEST_1)).isTrue();
             assertThat(template.indexExists(INDEX_TEST_2)).isTrue();
+        });
+    }
+
+    @Test
+    public void createIndexWithSetName_createsMapIndex() {
+        template.createIndex(OVERRIDE_SET_NAME, INDEX_TEST_1_WITH_SET, "mapField", IndexType.STRING,
+            IndexCollectionType.MAPKEYS);
+        template.createIndex(OVERRIDE_SET_NAME, INDEX_TEST_2_WITH_SET, "mapField", IndexType.STRING,
+            IndexCollectionType.MAPVALUES);
+
+        awaitTenSecondsUntil(() -> {
+            assertThat(template.indexExists(INDEX_TEST_1_WITH_SET)).isTrue();
+            assertThat(template.indexExists(INDEX_TEST_2_WITH_SET)).isTrue();
         });
     }
 
@@ -140,6 +181,15 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
         if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
             assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
+                .doesNotThrowAnyException();
+        }
+    }
+
+    // for Aerospike Server ver. >= 6.1.0.1
+    @Test
+    public void deleteIndexWithSetName_doesNotThrowExceptionIfIndexDoesNotExist() {
+        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
+            assertThatCode(() -> template.deleteIndex(OVERRIDE_SET_NAME, "not-existing-index"))
                 .doesNotThrowAnyException();
         }
     }

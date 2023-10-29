@@ -48,12 +48,13 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @AfterAll
     public void afterAll() {
-        template.delete(VersionedClass.class);
-        template.delete(SampleClasses.DocumentWithArray.class);
-        template.delete(SampleClasses.DocumentWithBigIntegerAndNestedArray.class);
-        template.delete(Person.class);
-        template.delete(CustomCollectionClass.class);
-        template.delete(DocumentWithTouchOnRead.class);
+        template.deleteAll(VersionedClass.class);
+        template.deleteAll(SampleClasses.DocumentWithArray.class);
+        template.deleteAll(SampleClasses.DocumentWithBigIntegerAndNestedArray.class);
+        template.deleteAll(Person.class);
+        template.deleteAll(CustomCollectionClass.class);
+        template.deleteAll(DocumentWithTouchOnRead.class);
+        template.deleteAll(OVERRIDE_SET_NAME);
     }
 
     // test for RecordExistsAction.REPLACE_ONLY policy
@@ -339,6 +340,24 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
         template.delete(first); // cleanup
         template.delete(second); // cleanup
+    }
+
+    @Test
+    public void shouldSaveAllAndSetVersionWithSetName() {
+        VersionedClass first = new VersionedClass(id, "foo");
+        VersionedClass second = new VersionedClass(nextId(), "foo");
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            template.saveAll(List.of(first, second), OVERRIDE_SET_NAME);
+        } else {
+            List.of(first, second).forEach(person -> template.save(person, OVERRIDE_SET_NAME));
+        }
+
+        assertThat(first.version).isEqualTo(1);
+        assertThat(second.version).isEqualTo(1);
+        assertThat(template.findById(id, VersionedClass.class, OVERRIDE_SET_NAME).version).isEqualTo(1);
+        template.delete(first, OVERRIDE_SET_NAME); // cleanup
+        template.delete(second, OVERRIDE_SET_NAME); // cleanup
     }
 
     @Test

@@ -41,6 +41,15 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     }
 
     @Test
+    public void saveWithSetName_shouldSaveAndSetVersion() {
+        VersionedClass first = new VersionedClass(id, "foo");
+        reactiveTemplate.save(first, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+
+        assertThat(first.version).isEqualTo(1);
+        assertThat(findById(id, VersionedClass.class, OVERRIDE_SET_NAME).version).isEqualTo(1);
+    }
+
+    @Test
     public void save_shouldNotSaveDocumentIfItAlreadyExistsWithZeroVersion() {
         reactiveTemplate.save(new VersionedClass(id, "foo", 0L))
             .subscribeOn(Schedulers.parallel()).block();
@@ -75,6 +84,13 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     }
 
     @Test
+    public void saveWithSetName_shouldUpdateNullField() {
+        VersionedClass versionedClass = new VersionedClass(id, null);
+        VersionedClass saved = reactiveTemplate.save(versionedClass, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.save(saved, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+    }
+
+    @Test
     public void save_shouldUpdateNullFieldForClassWithVersionField() {
         VersionedClass versionedClass = new VersionedClass(id, "field");
         reactiveTemplate.save(versionedClass).subscribeOn(Schedulers.parallel()).block();
@@ -100,6 +116,21 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         Person result = findById(id, Person.class);
         assertThat(result.getFirstName()).isNull();
         reactiveTemplate.delete(result).block(); // cleanup
+    }
+
+    @Test
+    public void saveWithSetName_shouldUpdateNullFieldForClassWithoutVersionField() {
+        Person person = new Person(id, "Oliver");
+        reactiveTemplate.save(person, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+
+        assertThat(findById(id, Person.class, OVERRIDE_SET_NAME).getFirstName()).isEqualTo("Oliver");
+
+        person.setFirstName(null);
+        reactiveTemplate.save(person, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+
+        Person result = findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(result.getFirstName()).isNull();
+        reactiveTemplate.delete(result, OVERRIDE_SET_NAME).block(); // cleanup
     }
 
     @Test
@@ -239,6 +270,23 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     }
 
     @Test
+    public void saveAllWithSetName_shouldSaveAllDocuments() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            Person customer1 = new Person(nextId(), "Dave");
+            Person customer2 = new Person(nextId(), "James");
+            reactiveTemplate.saveAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
+
+            Person result1 = findById(customer1.getId(), Person.class, OVERRIDE_SET_NAME);
+            Person result2 = findById(customer2.getId(), Person.class, OVERRIDE_SET_NAME);
+            assertThat(result1).isEqualTo(customer1);
+            assertThat(result2).isEqualTo(customer2);
+            reactiveTemplate.delete(result1, OVERRIDE_SET_NAME).block(); // cleanup
+            reactiveTemplate.delete(result2, OVERRIDE_SET_NAME).block(); // cleanup
+        }
+    }
+
+    @Test
     public void saveAll_rejectsDuplicateId() {
         // batch delete operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
@@ -248,6 +296,19 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
                 .expectError(AerospikeException.BatchRecordArray.class)
                 .verify();
             reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
+        }
+    }
+
+    @Test
+    public void saveAllWithSetName_rejectsDuplicateId() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            VersionedClass first = new VersionedClass(id, "foo");
+
+            StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first), OVERRIDE_SET_NAME))
+                .expectError(AerospikeException.BatchRecordArray.class)
+                .verify();
+            reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
         }
     }
 }

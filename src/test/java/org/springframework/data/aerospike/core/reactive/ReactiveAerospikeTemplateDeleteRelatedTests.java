@@ -69,7 +69,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         StepVerifier.create(created).expectNext(person).verifyComplete();
 
         // when
-        Mono<Boolean> deleted = reactiveTemplate.delete(id, Person.class).subscribeOn(Schedulers.parallel());
+        Mono<Boolean> deleted = reactiveTemplate.deleteById(id, Person.class).subscribeOn(Schedulers.parallel());
         StepVerifier.create(deleted).expectNext(true).verifyComplete();
 
         // then
@@ -95,9 +95,35 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     }
 
     @Test
+    public void simpleDeleteByObjectWithSetName() {
+        // given
+        Person person = new Person(id, "QLastName", 21);
+
+        Mono<Person> created = reactiveTemplate.insert(person, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel());
+        StepVerifier.create(created).expectNext(person).verifyComplete();
+
+        // when
+        Mono<Boolean> deleted = reactiveTemplate.delete(person, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel());
+        StepVerifier.create(deleted).expectNext(true).verifyComplete();
+
+        // then
+        Mono<Person> result = reactiveTemplate.findById(id, Person.class, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel());
+        StepVerifier.create(result).expectComplete().verify();
+    }
+
+    @Test
     public void deleteById_shouldReturnFalseIfValueIsAbsent() {
         // when
-        Mono<Boolean> deleted = reactiveTemplate.delete(id, Person.class).subscribeOn(Schedulers.parallel());
+        Mono<Boolean> deleted = reactiveTemplate.deleteById(id, Person.class).subscribeOn(Schedulers.parallel());
+
+        // then
+        StepVerifier.create(deleted).expectComplete().verify();
+    }
+
+    @Test
+    public void deleteByIdWithSetName_shouldReturnFalseIfValueIsAbsent() {
+        // when
+        Mono<Boolean> deleted = reactiveTemplate.deleteById(id, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel());
 
         // then
         StepVerifier.create(deleted).expectComplete().verify();
@@ -129,6 +155,25 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
 
             List<SampleClasses.DocumentWithExpiration> list = reactiveTemplate.findByIds(ids,
                 SampleClasses.DocumentWithExpiration.class).subscribeOn(Schedulers.parallel()).collectList().block();
+            assertThat(list).isEmpty();
+        }
+    }
+
+    @Test
+    public void deleteAllWithSetName_ShouldDeleteAllDocuments() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            String id1 = nextId();
+            String id2 = nextId();
+            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1), OVERRIDE_SET_NAME);
+            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id2), OVERRIDE_SET_NAME);
+
+            List<String> ids = List.of(id1, id2);
+            reactiveTemplate.deleteByIds(ids, OVERRIDE_SET_NAME);
+
+            List<SampleClasses.DocumentWithExpiration> list = reactiveTemplate.findByIds(ids,
+                SampleClasses.DocumentWithExpiration.class, OVERRIDE_SET_NAME)
+                .subscribeOn(Schedulers.parallel()).collectList().block();
             assertThat(list).isEmpty();
         }
     }

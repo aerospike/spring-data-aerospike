@@ -105,7 +105,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     @Override
     public Mono<Void> deleteById(ID id) {
         Assert.notNull(id, "The given id must not be null!");
-        return operations.delete(id, entityInformation.getJavaType()).then();
+        return operations.deleteById(id, entityInformation.getJavaType()).then();
     }
 
     @Override
@@ -142,7 +142,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
 
     @Override
     public Mono<Void> deleteAll() {
-        return operations.delete(entityInformation.getJavaType());
+        return operations.deleteAll(entityInformation.getJavaType());
     }
 
     public void createIndex(Class<T> domainType, String indexName, String binName, IndexType indexType) {

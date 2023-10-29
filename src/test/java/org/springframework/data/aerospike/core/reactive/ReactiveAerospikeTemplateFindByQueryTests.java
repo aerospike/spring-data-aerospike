@@ -71,6 +71,21 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     }
 
     @Test
+    public void findAllWithSetName_findAllExistingDocuments() {
+        List<Person> persons = IntStream.rangeClosed(1, 10)
+            .mapToObj(age -> Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(age).build())
+            .collect(Collectors.toList());
+        reactiveTemplate.insertAll(persons, OVERRIDE_SET_NAME).blockLast();
+
+        List<Person> result = reactiveTemplate.findAll(Person.class, OVERRIDE_SET_NAME)
+            .subscribeOn(Schedulers.parallel())
+            .collectList().block();
+        assertThat(result).hasSameElementsAs(persons);
+
+        deleteAll(persons, OVERRIDE_SET_NAME); // cleanup
+    }
+
+    @Test
     public void findAll_findNothing() {
         List<Person> actual = reactiveTemplate.findAll(Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -110,6 +125,23 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsAnyElementsOf(allUsers);
 
         deleteAll(allUsers); // cleanup
+    }
+
+    @Test
+    public void findInRangeWithSetName_shouldFindLimitedNumberOfDocumentsAndSkip() {
+        List<Person> allUsers = IntStream.range(20, 27)
+            .mapToObj(id -> new Person(nextId(), "Firstname", "Lastname")).collect(Collectors.toList());
+        reactiveTemplate.insertAll(allUsers, OVERRIDE_SET_NAME).blockLast();
+
+        List<Person> actual = reactiveTemplate.findInRange(0, 5, Sort.unsorted(), Person.class, OVERRIDE_SET_NAME)
+            .subscribeOn(Schedulers.parallel())
+            .collectList().block();
+
+        assertThat(actual)
+            .hasSize(5)
+            .containsAnyElementsOf(allUsers);
+
+        deleteAll(allUsers, OVERRIDE_SET_NAME); // cleanup
     }
 
     @Test
@@ -228,6 +260,27 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .containsExactlyElementsOf(allUsers);
 
         deleteAll(allUsers); // cleanup
+    }
+
+    @Test
+    public void findByFilterEqualOrderByDescWithSetName() {
+        List<Person> allUsers = IntStream.rangeClosed(1, 10)
+            .mapToObj(id -> new Person(nextId(), "Dave" + id, "Matthews")).collect(Collectors.toList());
+        Collections.shuffle(allUsers); // Shuffle user list
+        reactiveTemplate.insertAll(allUsers, OVERRIDE_SET_NAME).blockLast();
+        allUsers.sort((o1, o2) -> o2.getFirstName()
+            .compareTo(o1.getFirstName())); // Order user list by firstname descending
+
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameDesc", "Matthews");
+
+        List<Person> actual = reactiveTemplate.find(query, Person.class, OVERRIDE_SET_NAME)
+            .subscribeOn(Schedulers.parallel())
+            .collectList().block();
+        assertThat(actual)
+            .hasSize(10)
+            .containsExactlyElementsOf(allUsers);
+
+        deleteAll(allUsers, OVERRIDE_SET_NAME); // cleanup
     }
 
     @Test

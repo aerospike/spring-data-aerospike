@@ -32,6 +32,12 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             Person.class, "person_last_name_index", "lastName", IndexType.STRING);
         additionalAerospikeTestOperations.createIndex(
             Person.class, "person_first_name_index", "firstName", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndex(
+            OVERRIDE_SET_NAME, "person_age_index" + OVERRIDE_SET_NAME, "age", IndexType.NUMERIC);
+        additionalAerospikeTestOperations.createIndex(
+            OVERRIDE_SET_NAME, "person_last_name_index" + OVERRIDE_SET_NAME, "lastName", IndexType.STRING);
+        additionalAerospikeTestOperations.createIndex(
+            OVERRIDE_SET_NAME, "person_first_name_index" + OVERRIDE_SET_NAME, "firstName", IndexType.STRING);
     }
 
     @Override
@@ -45,6 +51,9 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_last_name_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_age_index" + OVERRIDE_SET_NAME);
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_last_name_index" + OVERRIDE_SET_NAME);
+        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_first_name_index"+ OVERRIDE_SET_NAME);
     }
 
     @Test
@@ -60,6 +69,21 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
         assertThat(result)
             .hasSameElementsAs(persons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
         deleteAll(persons); // cleanup
+    }
+
+    @Test
+    public void findAllWithSetName_findsAllExistingDocumentsProjection() {
+        List<Person> persons = IntStream.rangeClosed(1, 10)
+            .mapToObj(age -> Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(age).build())
+            .collect(Collectors.toList());
+        reactiveTemplate.insertAll(persons, OVERRIDE_SET_NAME).blockLast();
+
+        List<PersonSomeFields> result = reactiveTemplate.findAll(PersonSomeFields.class, OVERRIDE_SET_NAME)
+            .subscribeOn(Schedulers.parallel())
+            .collectList().block();
+        assertThat(result)
+            .hasSameElementsAs(persons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
+        deleteAll(persons, OVERRIDE_SET_NAME); // cleanup
     }
 
     @Test
@@ -131,6 +155,27 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .containsExactlyInAnyOrderElementsOf(
                 allUsers.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()).subList(4, 10));
         deleteAll(allUsers); // cleanup
+    }
+
+    @Test
+    public void findByFilterRangeProjectionWithSetName() {
+        List<Person> allUsers = IntStream.rangeClosed(21, 30)
+            .mapToObj(age -> Person.builder().id(nextId()).firstName("Dave" + age).lastName("Matthews").age(age)
+                .build())
+            .collect(Collectors.toList());
+        reactiveTemplate.insertAll(allUsers, OVERRIDE_SET_NAME).blockLast();
+
+        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 30);
+
+        List<PersonSomeFields> actual = reactiveTemplate.find(query, PersonSomeFields.class, OVERRIDE_SET_NAME)
+            .subscribeOn(Schedulers.parallel())
+            .collectList().block();
+
+        assertThat(actual)
+            .hasSize(6)
+            .containsExactlyInAnyOrderElementsOf(
+                allUsers.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()).subList(4, 10));
+        deleteAll(allUsers, OVERRIDE_SET_NAME); // cleanup
     }
 
     @Test

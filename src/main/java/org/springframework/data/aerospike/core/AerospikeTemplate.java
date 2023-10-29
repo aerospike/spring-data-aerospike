@@ -114,12 +114,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void createIndex(Class<T> entityClass, String indexName,
                                 String binName, IndexType indexType) {
+        Assert.notNull(entityClass, "Class must not be null!");
         createIndex(entityClass, indexName, binName, indexType, IndexCollectionType.DEFAULT);
     }
 
     @Override
     public <T> void createIndex(Class<T> entityClass, String indexName,
                                 String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
+        Assert.notNull(entityClass, "Class must not be null!");
         createIndex(entityClass, indexName, binName, indexType, indexCollectionType, new CTX[0]);
     }
 
@@ -128,6 +130,25 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                                 String binName, IndexType indexType, IndexCollectionType indexCollectionType,
                                 CTX... ctx) {
         Assert.notNull(entityClass, "Class must not be null!");
+        createIndex(getSetName(entityClass), indexName, binName, indexType, indexCollectionType, ctx);
+    }
+
+    @Override
+    public void createIndex(String setName, String indexName,
+                            String binName, IndexType indexType) {
+        createIndex(setName, indexName, binName, indexType, IndexCollectionType.DEFAULT);
+    }
+
+    @Override
+    public void createIndex(String setName, String indexName, String binName, IndexType indexType,
+                            IndexCollectionType indexCollectionType) {
+        createIndex(setName, indexName, binName, indexType, indexCollectionType, new CTX[0]);
+    }
+
+    @Override
+    public void createIndex(String setName, String indexName, String binName,
+                            IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
+        Assert.notNull(setName, "Set name type must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
         Assert.notNull(binName, "Bin name must not be null!");
         Assert.notNull(indexType, "Index type must not be null!");
@@ -135,7 +156,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(ctx, "Ctx must not be null!");
 
         try {
-            String setName = getSetName(entityClass);
             IndexTask task = client.createIndex(null, this.namespace,
                 setName, indexName, binName, indexType, indexCollectionType, ctx);
             if (task != null) {
@@ -155,10 +175,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void deleteIndex(Class<T> entityClass, String indexName) {
         Assert.notNull(entityClass, "Class must not be null!");
+        deleteIndex(getSetName(entityClass), indexName);
+    }
+
+    @Override
+    public void deleteIndex(String setName, String indexName) {
+        Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
 
         try {
-            String setName = getSetName(entityClass);
             IndexTask task = client.dropIndex(null, this.namespace, setName, indexName);
             if (task != null) {
                 task.waitTillComplete();
@@ -213,9 +238,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void save(T document) {
         Assert.notNull(document, "Document must not be null!");
+        save(document, getSetName(document));
+    }
 
-        AerospikeWriteData data = writeData(document);
+    @Override
+    public <T> void save(T document, String setName) {
+        Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
+        AerospikeWriteData data = writeData(document, setName);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
             WritePolicy policy = expectGenerationCasAwareSavePolicy(data);
@@ -235,9 +266,16 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void saveAll(Iterable<T> documents) {
         Assert.notNull(documents, "Documents for saving must not be null!");
+        saveAll(documents, getSetName(documents.iterator().next()));
+    }
+
+    @Override
+    public <T> void saveAll(Iterable<T> documents, String setName) {
+        Assert.notNull(documents, "Documents for saving must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
         List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document)));
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document, setName)));
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
         try {
@@ -271,8 +309,16 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T> void persist(T document, WritePolicy policy) {
         Assert.notNull(document, "Document must not be null!");
         Assert.notNull(policy, "Policy must not be null!");
+        persist(document, policy, getSetName(document));
+    }
 
-        AerospikeWriteData data = writeData(document);
+    @Override
+    public <T> void persist(T document, WritePolicy policy, String setName) {
+        Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(policy, "Policy must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        AerospikeWriteData data = writeData(document, setName);
 
         Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
         doPersistAndHandleError(data, policy, operations);
@@ -281,8 +327,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void insert(T document) {
         Assert.notNull(document, "Document must not be null!");
+        insert(document, getSetName(document));
+    }
 
-        AerospikeWriteData data = writeData(document);
+    @Override
+    public <T> void insert(T document, String setName) {
+        Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        AerospikeWriteData data = writeData(document, setName);
         WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.CREATE_ONLY);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
@@ -301,10 +354,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void insertAll(Iterable<? extends T> documents) {
+        Assert.notNull(documents, "Documents must not be null!");
+        insertAll(documents, getSetName(documents.iterator().next()));
+    }
+
+    @Override
+    public <T> void insertAll(Iterable<? extends T> documents, String setName) {
         Assert.notNull(documents, "Documents for inserting must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
         List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document)));
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document, setName)));
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
         try {
@@ -319,8 +379,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void update(T document) {
         Assert.notNull(document, "Document must not be null!");
+        update(document, getSetName(document));
+    }
 
-        AerospikeWriteData data = writeData(document);
+    @Override
+    public <T> void update(T document, String setName) {
+        Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        AerospikeWriteData data = writeData(document, setName);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
             WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
@@ -340,8 +407,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void update(T document, Collection<String> fields) {
         Assert.notNull(document, "Document must not be null!");
+        update(document, getSetName(document), fields);
+    }
 
-        AerospikeWriteData data = writeDataWithSpecificFields(document, fields);
+    @Override
+    public <T> void update(T document, String setName, Collection<String> fields) {
+        Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        AerospikeWriteData data = writeDataWithSpecificFields(document, setName, fields);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
             WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
@@ -357,10 +431,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void updateAll(Iterable<T> documents) {
-        Assert.notNull(documents, "Documents for inserting must not be null!");
+        Assert.notNull(documents, "Documents must not be null!");
+        updateAll(documents, getSetName(documents.iterator().next()));
+    }
+
+    @Override
+    public <T> void updateAll(Iterable<T> documents, String setName) {
+        Assert.notNull(documents, "Documents must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
         List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document)));
+        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document, setName)));
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
         try {
@@ -372,26 +453,58 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "update");
     }
 
+    @Deprecated
     @Override
     public <T> void delete(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
+        delete(getSetName(entityClass));
+    }
+
+    @Deprecated
+    @Override
+    public <T> boolean delete(Object id, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(id, "Id must not be null!");
 
         try {
-            String set = getSetName(entityClass);
-            client.truncate(null, getNamespace(), set, null);
+            Key key = getKey(id, getSetName(entityClass));
+
+            return this.client.delete(ignoreGenerationDeletePolicy(), key);
         } catch (AerospikeException e) {
             throw translateError(e);
         }
     }
 
     @Override
-    public <T> boolean delete(Object id, Class<T> entityClass) {
-        Assert.notNull(id, "Id must not be null!");
+    public <T> void deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
+        deleteAll(getSetName(entityClass));
+    }
+
+    @Override
+    public void deleteAll(String setName) {
+        Assert.notNull(setName, "Set name must not be null!");
 
         try {
-            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-            Key key = getKey(id, entity);
+            client.truncate(null, getNamespace(), setName, null);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
+    @Override
+    public <T> boolean deleteById(Object id, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        return deleteById(id, getSetName(entityClass));
+    }
+
+    @Override
+    public boolean deleteById(Object id, String setName) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        try {
+            Key key = getKey(id, setName);
 
             return this.client.delete(ignoreGenerationDeletePolicy(), key);
         } catch (AerospikeException e) {
@@ -402,9 +515,16 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> boolean delete(T document) {
         Assert.notNull(document, "Document must not be null!");
+        return delete(document, getSetName(document));
+    }
+
+    @Override
+    public <T> boolean delete(T document, String setName) {
+        Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
         try {
-            AerospikeWriteData data = writeData(document);
+            AerospikeWriteData data = writeData(document, setName);
 
             return this.client.delete(ignoreGenerationDeletePolicy(), data.getKey());
         } catch (AerospikeException e) {
@@ -416,20 +536,35 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
+        deleteByIds(ids, getSetName(entityClass));
+    }
 
-        deleteByIdsInternal(IterableConverter.toList(ids), entityClass);
+    @Override
+    public void deleteByIds(Iterable<?> ids, String setName) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        deleteByIdsInternal(IterableConverter.toList(ids), setName);
     }
 
     @Override
     public <T> void deleteByIdsInternal(Collection<?> ids, Class<T> entityClass) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        deleteByIdsInternal(ids, getSetName(entityClass));
+    }
+
+    @Override
+    public void deleteByIdsInternal(Collection<?> ids, String setName) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
         if (ids.isEmpty()) {
             return;
         }
 
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-
         Key[] keys = ids.stream()
-            .map(id -> getKey(id, entity))
+            .map(id -> getKey(id, setName))
             .toArray(Key[]::new);
 
         checkForErrors(client, keys);
@@ -469,12 +604,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> boolean exists(Object id, Class<T> entityClass) {
-        Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
+        return exists(id, getSetName(entityClass));
+    }
+
+    @Override
+    public boolean exists(Object id, String setName) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
         try {
-            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-            Key key = getKey(id, entity);
+            Key key = getKey(id, setName);
 
             Record aeroRecord = this.client.operate(null, key, Operation.getHeader());
             return aeroRecord != null;
@@ -485,45 +625,74 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> Stream<T> findAll(Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(entityClass, "Entity class must not be null!");
 
-        return findAllUsingQuery(entityClass, null, null);
+        return findAll(entityClass, getSetName(entityClass));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T, S> Stream<S> findAll(Class<T> entityClass, Class<S> targetClass) {
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(targetClass, "Target class must not be null!");
 
-        return (Stream<S>) findAllUsingQuery(entityClass, targetClass, null);
+        return findAll(targetClass, getSetName(entityClass));
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Stream<T> findAll(Class<T> targetClass, String setName) {
+        Assert.notNull(targetClass, "Target class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        return findAllUsingQuery(targetClass, setName, null, null);
+    }
+
     @Override
     public <T> T findById(Object id, Class<T> entityClass) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
+        return findById(id, entityClass, getSetName(entityClass));
+    }
 
-        return (T) findByIdInternal(id, entityClass, null);
+    @Override
+    public <T> T findById(Object id, Class<T> entityClass, String setName) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        return findById(id, entityClass, null, setName);
+    }
+
+    @Override
+    public <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        return findById(id, entityClass, targetClass, getSetName(entityClass));
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass) {
+    public <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass, String setName) {
         Assert.notNull(id, "Id must not be null!");
-        Assert.notNull(entityClass, "Entity class must not be null!");
-        Assert.notNull(targetClass, "Target class must not be null!");
-
-        return (S) findByIdInternal(id, entityClass, targetClass);
+        Assert.notNull(entityClass, "Class must not be null!");
+        return (S) findByIdInternal(id, entityClass, targetClass, setName);
     }
 
     @Override
     public <T, S> Object findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass,
                                           Qualifier... qualifiers) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+        return findByIdInternal(id, entityClass, targetClass, getSetName(entityClass), qualifiers);
+    }
+
+    @Override
+    public <T, S> Object findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
+                                          Qualifier... qualifiers) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(entityClass, "Entity class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
         try {
             AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-            Key key = getKey(id, entity);
+            Key key = getKey(id, setName);
 
             if (targetClass != null && targetClass != entityClass) {
                 return getRecordMapToTargetClass(entity, key, targetClass, qualifiers);
@@ -537,14 +706,25 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T, S> List<?> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                             Qualifier... qualifiers) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        return findByIdsInternal(ids, entityClass, targetClass, getSetName(entityClass), qualifiers);
+    }
+
+    @Override
+    public <T, S> List<?> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                            String setName, Qualifier... qualifiers) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Entity class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
         if (ids.isEmpty()) {
             return Collections.emptyList();
         }
 
         try {
-            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-
-            Key[] keys = getKeys(ids, entity);
+            Key[] keys = ids.stream()
+                .map(id -> getKey(id, setName))
+                .toArray(Key[]::new);
 
             BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
 
@@ -568,7 +748,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    private List<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, Class<?> entityClass,
+    private List<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, String setName,
                                                             Class<?> targetClass,
                                                             Qualifier... qualifiers) {
         Assert.notNull(ids, "Ids must not be null");
@@ -577,14 +757,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
 
         try {
-            AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-
-            Key[] keys = getKeys(ids, entity);
+            Key[] keys = getKeys(ids, setName);
 
             BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
 
             Record[] aeroRecords;
-            if (targetClass != null && targetClass != entityClass) {
+            if (targetClass != null) {
                 String[] binNames = getBinNamesFromTargetClass(targetClass);
                 aeroRecords = getAerospikeClient().get(policy, keys, binNames);
             } else {
@@ -609,9 +787,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return null;
     }
 
-    private Key[] getKeys(Collection<?> ids, AerospikePersistentEntity<?> entity) {
+    private Key[] getKeys(Collection<?> ids, String setName) {
         return ids.stream()
-            .map(id -> getKey(id, entity))
+            .map(id -> getKey(id, setName))
             .toArray(Key[]::new);
     }
 
@@ -690,23 +868,29 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return binNamesList.toArray(new String[0]);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass) {
-        Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(entityClass, "Class must not be null!");
+        return findByIds(ids, entityClass, getSetName(entityClass));
+    }
 
-        return (List<T>) findByIdsInternal(IterableConverter.toList(ids), entityClass, null);
+    @Override
+    public <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass, String setName) {
+        return findByIds(ids, entityClass, null, setName);
+    }
+
+    @Override
+    public <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass) {
+        return findByIds(ids, entityClass, targetClass, getSetName(entityClass));
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass) {
+    public <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass, String setName) {
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
-        Assert.notNull(targetClass, "Target class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
-        return (List<S>) findByIdsInternal(IterableConverter.toList(ids), entityClass, targetClass);
+        return (List<S>) findByIdsInternal(IterableConverter.toList(ids), entityClass, targetClass, setName);
     }
 
     @Override
@@ -730,14 +914,18 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> ResultSet aggregate(Filter filter, Class<T> entityClass,
                                    String module, String function, List<Value> arguments) {
-        Assert.notNull(entityClass, "Class must not be null!");
+        return aggregate(filter, getSetName(entityClass), module, function, arguments);
+    }
 
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+    @Override
+    public ResultSet aggregate(Filter filter, String setName,
+                               String module, String function, List<Value> arguments) {
+        Assert.notNull(setName, "Set name must not be null!");
 
         Statement statement = new Statement();
         if (filter != null)
             statement.setFilter(filter);
-        statement.setSetName(entity.getSetName());
+        statement.setSetName(setName);
         statement.setNamespace(this.namespace);
         ResultSet resultSet;
         if (arguments != null && !arguments.isEmpty())
@@ -748,30 +936,35 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return resultSet;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> Stream<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        return (Stream<T>) findAllUsingQueryWithPostProcessing(entityClass, null, sort, offset, limit,
-            null, (Qualifier[]) null);
+        return findAll(sort, offset, limit, entityClass, getSetName(entityClass));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T, S> Stream<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
+        return findAll(sort, offset, limit, targetClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T> Stream<T> findAll(Sort sort, long offset, long limit, Class<T> targetClass, String setName) {
+        Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(targetClass, "Target class must not be null!");
 
-        return (Stream<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, sort, offset, limit,
-            null, (Qualifier[]) null);
+        return findAllUsingQueryWithPostProcessing(setName, targetClass, sort, offset, limit,
+            null, null);
     }
 
     public <T> boolean exists(Query query, Class<T> entityClass) {
+        return exists(query, entityClass, getSetName(entityClass));
+    }
+
+    public <T> boolean exists(Query query, Class<T> entityClass, String setName) {
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
-        return find(query, entityClass).findAny().isPresent();
+        return find(query, entityClass, setName).findAny().isPresent();
     }
 
     @Override
@@ -788,62 +981,65 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> long count(Query query, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
+        return count(query, getSetName(entityClass));
+    }
 
-        Stream<KeyRecord> results = findAllRecordsUsingQuery(entityClass, query);
+    @Override
+    public long count(Query query, String setName) {
+        Stream<KeyRecord> results = findAllRecordsUsingQuery(setName, query);
         return results.count();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> Stream<T> find(Query query, Class<T> entityClass) {
-        Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        return (Stream<T>) findAllUsingQueryWithPostProcessing(entityClass, null, query);
+        return find(query, entityClass, getSetName(entityClass));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T, S> Stream<S> find(Query query, Class<T> entityClass, Class<S> targetClass) {
-        Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Entity class must not be null!");
-        Assert.notNull(targetClass, "Target lass must not be null!");
-
-        return (Stream<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, query);
+        return find(query, targetClass, getSetName(entityClass));
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Stream<T> find(Query query, Class<T> targetClass, String setName) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(targetClass, "Target class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        return findAllUsingQueryWithPostProcessing(setName, targetClass, query);
+    }
+
     @Override
     public <T> Stream<T> findInRange(long offset, long limit, Sort sort,
                                      Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class for count must not be null!");
-
-        return (Stream<T>) findAllUsingQueryWithPostProcessing(entityClass, null, sort, offset, limit,
-            null, (Qualifier[]) null);
+        return findInRange(offset, limit, sort, entityClass, getSetName(entityClass));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T, S> Stream<S> findInRange(long offset, long limit, Sort sort,
                                         Class<T> entityClass, Class<S> targetClass) {
-        Assert.notNull(entityClass, "Class for count must not be null!");
-        Assert.notNull(targetClass, "Target class must not be null!");
+        return findInRange(offset, limit, sort, targetClass, getSetName(entityClass));
+    }
 
-        return (Stream<S>) findAllUsingQueryWithPostProcessing(entityClass, targetClass, sort, offset, limit,
-            null, (Qualifier[]) null);
+    @Override
+    public <T> Stream<T> findInRange(long offset, long limit, Sort sort,
+                                     Class<T> targetClass, String setName) {
+        Assert.notNull(targetClass, "Target class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        return findAllUsingQueryWithPostProcessing(setName, targetClass, sort, offset, limit,
+            null, null);
     }
 
     @Override
     public <T> long count(Class<T> entityClass) {
-        Assert.notNull(entityClass, "Type for count must not be null!");
-
-        String setName = getSetName(entityClass);
-        return count(setName);
+        Assert.notNull(entityClass, "Class must not be null!");
+        return count(getSetName(entityClass));
     }
 
     @Override
     public long count(String setName) {
-        Assert.notNull(setName, "Set for count must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
         try {
             Node[] nodes = client.getNodes();
@@ -862,10 +1058,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> T prepend(T document, String fieldName, String value) {
+        return prepend(document, getSetName(document), fieldName, value);
+    }
+
+    @Override
+    public <T> T prepend(T document, String setName, String fieldName, String value) {
         Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(fieldName, "Field name must not be null!");
 
         try {
-            AerospikeWriteData data = writeData(document);
+            AerospikeWriteData data = writeData(document, setName);
             Record aeroRecord = this.client.operate(null, data.getKey(),
                 Operation.prepend(new Bin(fieldName, value)),
                 Operation.get(fieldName));
@@ -878,11 +1081,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> T prepend(T document, Map<String, String> values) {
+        return prepend(document, getSetName(document), values);
+    }
+
+    @Override
+    public <T> T prepend(T document, String setName, Map<String, String> values) {
         Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(values, "Values must not be null!");
 
         try {
-            AerospikeWriteData data = writeData(document);
+            AerospikeWriteData data = writeData(document, setName);
             Operation[] ops = operations(values, Operation.Type.PREPEND, Operation.get());
             Record aeroRecord = this.client.operate(null, data.getKey(), ops);
 
@@ -894,11 +1103,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> T append(T document, Map<String, String> values) {
+        return append(document, getSetName(document), values);
+    }
+
+    @Override
+    public <T> T append(T document, String setName, Map<String, String> values) {
         Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(values, "Values must not be null!");
 
         try {
-            AerospikeWriteData data = writeData(document);
+            AerospikeWriteData data = writeData(document, setName);
             Operation[] ops = operations(values, Operation.Type.APPEND, Operation.get());
             Record aeroRecord = this.client.operate(null, data.getKey(), ops);
 
@@ -910,10 +1125,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> T append(T document, String binName, String value) {
+        return append(document, getSetName(document), binName, value);
+    }
+
+    @Override
+    public <T> T append(T document, String setName, String binName, String value) {
         Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+        Assert.notNull(binName, "Bin name must not be null!");
 
         try {
-            AerospikeWriteData data = writeData(document);
+            AerospikeWriteData data = writeData(document, setName);
             Record aeroRecord = this.client.operate(null, data.getKey(),
                 Operation.append(new Bin(binName, value)),
                 Operation.get(binName));
@@ -926,11 +1148,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> T add(T document, Map<String, Long> values) {
+        return add(document, getSetName(document), values);
+    }
+
+    @Override
+    public <T> T add(T document, String setName, Map<String, Long> values) {
         Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(values, "Values must not be null!");
 
         try {
-            AerospikeWriteData data = writeData(document);
+            AerospikeWriteData data = writeData(document, setName);
             Operation[] ops = operations(values, Operation.Type.ADD, Operation.get());
 
             WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
@@ -947,11 +1175,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> T add(T document, String binName, long value) {
+        return add(document, getSetName(document), binName, value);
+    }
+
+    @Override
+    public <T> T add(T document, String setName, String binName, long value) {
         Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(binName, "Bin name must not be null!");
 
         try {
-            AerospikeWriteData data = writeData(document);
+            AerospikeWriteData data = writeData(document, setName);
 
             WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
                 .expiration(data.getExpiration())
@@ -1000,49 +1234,48 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return client.operate(policy, key, operations);
     }
 
-    <T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query) {
+    private <T> Stream<T> findAllUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Stream<?> results = findAllUsingQueryWithDistinctPredicate(entityClass, targetClass,
+        Stream<T> results = findAllUsingQueryWithDistinctPredicate(setName, targetClass,
             getDistinctPredicate(query), qualifier);
         return applyPostProcessingOnResults(results, query);
     }
 
     @SuppressWarnings("SameParameterValue")
-    <T, S> Stream<?> findAllUsingQueryWithPostProcessing(Class<T> entityClass, Class<S> targetClass, Sort sort,
-                                                         long offset, long limit, Filter filter,
-                                                         Qualifier... qualifiers) {
+    private <T> Stream<T> findAllUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
+                                                              long offset, long limit, Filter filter,
+                                                              Qualifier qualifier) {
         verifyUnsortedWithOffset(sort, offset);
-        Stream<?> results = findAllUsingQuery(entityClass, targetClass, filter, qualifiers);
+        Stream<T> results = findAllUsingQuery(targetClass, setName, filter, qualifier);
         return applyPostProcessingOnResults(results, sort, offset, limit);
-    }
-
-    <T, S> Object mapToEntity(KeyRecord keyRecord, Class<T> entityClass, Class<S> targetClass) {
-        if (targetClass != null) {
-            return mapToEntity(keyRecord.key, targetClass, keyRecord.record);
-        }
-        return mapToEntity(keyRecord.key, entityClass, keyRecord.record);
     }
 
     @Override
     public <T> Stream<T> findAllUsingQuery(Class<T> entityClass, Filter filter,
                                            Qualifier qualifier) {
-        return findAllRecordsUsingQuery(entityClass, null, filter, qualifier)
-            .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
+        return findAllUsingQuery(entityClass, getSetName(entityClass), filter, qualifier);
     }
 
     public <T, S> Stream<?> findAllUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
-                                              Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(entityClass, targetClass, filter, qualifiers)
-            .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
+                                              Qualifier qualifier) {
+        return findAllRecordsUsingQuery(getSetName(entityClass), targetClass, filter, qualifier)
+            .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
-    <T, S> Stream<?> findAllUsingQueryWithDistinctPredicate(Class<T> entityClass, Class<S> targetClass,
-                                                            Predicate<KeyRecord> distinctPredicate,
-                                                            Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(entityClass, targetClass, null, qualifiers)
+    @Override
+    public <T> Stream<T> findAllUsingQuery(Class<T> targetClass, String setName, Filter filter,
+                                           Qualifier qualifier) {
+        return findAllRecordsUsingQuery(setName, targetClass, filter, qualifier)
+            .map(keyRecord -> mapToEntity(keyRecord, targetClass));
+    }
+
+    private <T> Stream<T> findAllUsingQueryWithDistinctPredicate(String setName, Class<T> targetClass,
+                                                                 Predicate<KeyRecord> distinctPredicate,
+                                                                 Qualifier... qualifiers) {
+        return findAllRecordsUsingQuery(setName, targetClass, null, qualifiers)
             .filter(distinctPredicate)
-            .map(keyRecord -> mapToEntity(keyRecord, entityClass, targetClass));
+            .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
     private <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
@@ -1076,28 +1309,27 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return results;
     }
 
-    <T> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {
+    private Stream<KeyRecord> findAllRecordsUsingQuery(String setName, Query query) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        return findAllRecordsUsingQuery(entityClass, null, null, qualifier);
+        return findAllRecordsUsingQuery(setName, null, null, qualifier);
     }
 
-    <T, S> Stream<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Class<S> targetClass, Filter filter,
-                                                      Qualifier... qualifiers) {
+    private <T> Stream<KeyRecord> findAllRecordsUsingQuery(String setName, Class<T> targetClass, Filter filter,
+                                                           Qualifier... qualifiers) {
         if (qualifiers != null && qualifiers.length > 0 && !allArrayElementsAreNull(qualifiers)) {
             validateQualifiers(qualifiers);
 
             Qualifier idQualifier = getOneIdQualifier(qualifiers);
             if (idQualifier != null) {
                 // a special flow if there is id given
-                return findByIdsInternalWithoutMapping(getIdValue(idQualifier), entityClass, targetClass,
+                return findByIdsInternalWithoutMapping(getIdValue(idQualifier), setName, targetClass,
                     excludeIdQualifier(qualifiers)).stream();
             }
         }
 
-        String setName = getSetName(entityClass);
         KeyRecordIterator recIterator;
 
         if (targetClass != null) {

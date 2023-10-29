@@ -22,7 +22,7 @@ import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MI
  *
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikeTemplateFindTests extends BaseReactiveIntegrationTests {
+public class ReactiveAerospikeTemplateFindByIdTests extends BaseReactiveIntegrationTests {
 
     @Test
     public void findById_shouldReturnValueForExistingKey() {

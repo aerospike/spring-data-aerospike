@@ -41,6 +41,8 @@ public class AerospikeWriteData {
     private Key key;
     @Getter
     private final String namespace;
+    @Getter
+    private String setName;
     private Collection<Bin> bins;
     @Getter
     private int expiration;
