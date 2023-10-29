@@ -134,7 +134,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
     public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
                                          Iterator<?> parameters, FilterOperation op) {
-        Qualifier.QualifierBuilder qb = Qualifier.builder();
         String fieldName = getFieldName(part.getProperty().getSegment(), property);
         Qualifier qualifier;
 
@@ -145,24 +144,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         } else if (property.isMap()) {
             qualifier = processMap(part, value1, value2, parameters, op, fieldName);
         } else { // if it is neither a collection nor a map
-            String dotPath = null;
-            Object value3 = null;
-            if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)
-                if (op == FilterOperation.BETWEEN) {
-                    value3 = Value.get(value2); // contains upper limit
-                } else if (op == IS_NOT_NULL || op == IS_NULL) {
-                    value1 = Value.get(property.getFieldName()); // contains key (field name)
-                }
-                op = getCorrespondingMapValueFilterOperationOrFail(op);
-                value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
-                dotPath = part.getProperty().toDotPath();
-            } else if (isPojo(part)) { // if it is a first level POJO
-                if (op != FilterOperation.BETWEEN) {
-                    // if it is a POJO compared for equality it already has op == FilterOperation.EQ
-                    value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
-                }
-            }
-            qualifier = setQualifier(qb, fieldName, op, part, value1, value2, value3, dotPath);
+            qualifier = processOther(part, value1, value2, property, op, fieldName);
         }
 
         return new AerospikeCriteria(qualifier);
@@ -324,6 +306,31 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         }
 
         return setQualifier(qb, fieldName, op, part, value1, value2, null, dotPath);
+    }
+
+    private Qualifier processOther(Part part, Object value1, Object value2, AerospikePersistentProperty property,
+                                   FilterOperation op, String fieldName) {
+        String dotPath = null;
+        Object value3 = null;
+        Qualifier.QualifierBuilder qb = Qualifier.builder();
+
+        if (part.getProperty().hasNext()) { // if it is a POJO field (a simple field or an inner POJO)
+            if (op == FilterOperation.BETWEEN) {
+                value3 = Value.get(value2); // contains upper limit
+            } else if (op == IS_NOT_NULL || op == IS_NULL) {
+                value1 = Value.get(property.getFieldName()); // contains key (field name)
+            }
+            op = getCorrespondingMapValueFilterOperationOrFail(op);
+            value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+            dotPath = part.getProperty().toDotPath();
+        } else if (isPojo(part)) { // if it is a first level POJO
+            if (op != FilterOperation.BETWEEN) {
+                // if it is a POJO compared for equality it already has op == FilterOperation.EQ
+                value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
+            }
+        }
+
+        return setQualifier(qb, fieldName, op, part, value1, value2, value3, dotPath);
     }
 
     private String getFieldName(String segmentName, AerospikePersistentProperty property) {
