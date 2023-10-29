@@ -306,6 +306,24 @@ public interface AerospikeOperations {
      * Truncate/Delete all the documents in the given entity's set.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @deprecated since 4.6.0, use deleteAll(Class<T> entityClass) instead.
+     */
+    <T> void delete(Class<T> entityClass);
+
+    /**
+     * Delete a document by id, set name will be determined by the given entityClass.
+     *
+     * @param id          The id of the document to delete. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return whether the document existed on server before deletion.
+     * @deprecated since 4.6.0, use deleteById(Object id, Class<T> entityClass) instead.
+     */
+    <T> boolean delete(Object id, Class<T> entityClass);
+
+    /**
+     * Truncate/Delete all the documents in the given entity's set.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      */
     <T> void deleteAll(Class<T> entityClass);
 

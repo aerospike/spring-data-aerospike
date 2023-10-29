@@ -453,6 +453,28 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "update");
     }
 
+    @Deprecated
+    @Override
+    public <T> void delete(Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        delete(getSetName(entityClass));
+    }
+
+    @Deprecated
+    @Override
+    public <T> boolean delete(Object id, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(id, "Id must not be null!");
+
+        try {
+            Key key = getKey(id, getSetName(entityClass));
+
+            return this.client.delete(ignoreGenerationDeletePolicy(), key);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
     @Override
     public <T> void deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
