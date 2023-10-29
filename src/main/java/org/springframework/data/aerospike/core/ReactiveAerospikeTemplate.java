@@ -801,6 +801,34 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .onErrorMap(this::translateError);
     }
 
+    @Deprecated
+    @Override
+    public <T> Mono<Void> delete(Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        try {
+            String set = getSetName(entityClass);
+            return Mono.fromRunnable(
+                () -> reactorClient.getAerospikeClient().truncate(null, this.namespace, set, null));
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
+    @Deprecated
+    @Override
+    public <T> Mono<Boolean> delete(Object id, Class<T> entityClass) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+        return reactorClient
+            .delete(ignoreGenerationDeletePolicy(), getKey(id, entity))
+            .map(k -> true)
+            .onErrorMap(this::translateError);
+    }
+
     @Override
     public <T> Mono<Void> deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
