@@ -57,4 +57,18 @@ public class AerospikeTemplateAppendTests extends BaseBlockingIntegrationTests {
         assertThat(actual.getEmailAddress()).isEqualTo("nastya@gmail.com");
         template.delete(actual); // cleanup
     }
+
+    @Test
+    public void shouldAppendWithSetName() {
+        Person one = Person.builder().id(id).firstName("Nas").build();
+        template.insert(one, OVERRIDE_SET_NAME);
+
+        Person appended = template.append(one, OVERRIDE_SET_NAME, "firstName", "tya");
+
+        assertThat(appended).isEqualTo(Person.builder().id(id).firstName("Nastya").build());
+        assertThat(appended.getFirstName()).isEqualTo("Nastya");
+        Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(result.getFirstName()).isEqualTo("Nastya");
+        template.delete(result, OVERRIDE_SET_NAME); // cleanup
+    }
 }

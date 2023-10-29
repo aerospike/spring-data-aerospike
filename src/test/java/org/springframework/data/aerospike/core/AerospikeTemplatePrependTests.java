@@ -39,6 +39,18 @@ public class AerospikeTemplatePrependTests extends BaseBlockingIntegrationTests 
     }
 
     @Test
+    public void shouldPrependWithSetName() {
+        Person one = Person.builder().id(id).firstName("tya").build();
+        template.insert(one, OVERRIDE_SET_NAME);
+        Person appended = template.prepend(one, OVERRIDE_SET_NAME, "firstName", "Nas");
+
+        assertThat(appended.getFirstName()).isEqualTo("Nastya");
+        Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(result.getFirstName()).isEqualTo("Nastya");
+        template.delete(result, OVERRIDE_SET_NAME); // cleanup
+    }
+
+    @Test
     public void shouldPrependMultipleFields() {
         Person one = Person.builder().id(id).firstName("tya").emailAddress("gmail.com").build();
         template.insert(one);
@@ -54,5 +66,23 @@ public class AerospikeTemplatePrependTests extends BaseBlockingIntegrationTests 
         assertThat(actual.getFirstName()).isEqualTo("Nastya");
         assertThat(actual.getEmailAddress()).isEqualTo("nastya@gmail.com");
         template.delete(actual);
+    }
+
+    @Test
+    public void shouldPrependMultipleFieldsWithSetName() {
+        Person one = Person.builder().id(id).firstName("tya").emailAddress("gmail.com").build();
+        template.insert(one, OVERRIDE_SET_NAME);
+
+        Map<String, String> toBeUpdated = new HashMap<>();
+        toBeUpdated.put("firstName", "Nas");
+        toBeUpdated.put("email", "nastya@");
+        Person appended = template.prepend(one, OVERRIDE_SET_NAME, toBeUpdated);
+
+        assertThat(appended.getFirstName()).isEqualTo("Nastya");
+        assertThat(appended.getEmailAddress()).isEqualTo("nastya@gmail.com");
+        Person actual = template.findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(actual.getFirstName()).isEqualTo("Nastya");
+        assertThat(actual.getEmailAddress()).isEqualTo("nastya@gmail.com");
+        template.delete(actual, OVERRIDE_SET_NAME);
     }
 }

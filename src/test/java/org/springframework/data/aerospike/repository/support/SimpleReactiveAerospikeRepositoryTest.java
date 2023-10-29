@@ -178,19 +178,19 @@ public class SimpleReactiveAerospikeRepositoryTest {
     @Test
     public void testDeleteById() {
         when(metadata.getJavaType()).thenReturn(Customer.class);
-        when(operations.delete("77", Customer.class)).thenReturn(Mono.just(true));
+        when(operations.deleteById("77", Customer.class)).thenReturn(Mono.just(true));
 
         repository.deleteById("77").block();
-        verify(operations, times(1)).delete("77", Customer.class);
+        verify(operations, times(1)).deleteById("77", Customer.class);
     }
 
     @Test
     public void testDeleteByIdPublisher() {
         when(metadata.getJavaType()).thenReturn(Customer.class);
-        when(operations.delete("77", Customer.class)).thenReturn(Mono.just(true));
+        when(operations.deleteById("77", Customer.class)).thenReturn(Mono.just(true));
 
         repository.deleteById(Flux.just("77", "88", "99")).block();
-        verify(operations, times(1)).delete("77", Customer.class);
+        verify(operations, times(1)).deleteById("77", Customer.class);
     }
 
     @Test

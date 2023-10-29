@@ -45,7 +45,7 @@ public class ReactiveAerospikeTemplateCompositeKeyTests extends BaseReactiveInte
 
     @Test
     public void delete() {
-        StepVerifier.create(reactiveTemplate.delete(document.getId(), DocumentWithCompositeKey.class))
+        StepVerifier.create(reactiveTemplate.deleteById(document.getId(), DocumentWithCompositeKey.class))
             .expectNext(true)
             .verifyComplete();
     }

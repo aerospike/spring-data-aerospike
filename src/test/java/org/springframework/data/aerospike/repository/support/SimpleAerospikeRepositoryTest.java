@@ -169,7 +169,7 @@ public class SimpleAerospikeRepositoryTest {
     public void deleteID() {
         aerospikeRepository.deleteById("one");
 
-        verify(operations).delete("one", Person.class);
+        verify(operations).deleteById("one", Person.class);
     }
 
     @Test
@@ -193,7 +193,7 @@ public class SimpleAerospikeRepositoryTest {
     public void deleteAll() {
         aerospikeRepository.deleteAll();
 
-        verify(operations).delete(Person.class);
+        verify(operations).deleteAll(Person.class);
     }
 
     @Test

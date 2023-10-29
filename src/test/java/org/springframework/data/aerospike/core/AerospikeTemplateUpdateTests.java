@@ -124,6 +124,26 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void updateSpecificFieldsWithFieldAnnotatedPropertyAndSetName() {
+        Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
+            .emailAddress("andrew@gmail.com").build();
+        template.insert(person, OVERRIDE_SET_NAME);
+
+        List<String> fields = new ArrayList<>();
+        fields.add("age");
+        fields.add("emailAddress");
+        template.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), OVERRIDE_SET_NAME, fields);
+
+        assertThat(template.findById(id, Person.class, OVERRIDE_SET_NAME)).satisfies(doc -> {
+            assertThat(doc.getFirstName()).isEqualTo("Andrew");
+            assertThat(doc.getAge()).isEqualTo(41);
+            assertThat(doc.getWaist()).isEqualTo(20);
+            assertThat(doc.getEmailAddress()).isEqualTo("andrew2@gmail.com");
+        });
+        template.delete(template.findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME); // cleanup
+    }
+
+    @Test
     public void updateSpecificFieldsWithFieldAnnotatedPropertyActualValue() {
         Person person = Person.builder().id(id).firstName("Andrew").lastName("Yo").age(40).waist(20)
             .emailAddress("andrew@gmail.com").build();
@@ -413,6 +433,26 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             assertThat(result2.getAge()).isEqualTo(age2);
             template.delete(result1); // cleanup
             template.delete(result2); // cleanup
+        }
+    }
+
+    @Test
+    public void updateAllIfDocumentsNotChangedWithSetName() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            int age1 = 140335200;
+            int age2 = 177652800;
+            Person person1 = new Person(id, "Wolfgang", age1);
+            Person person2 = new Person(nextId(), "Johann", age2);
+            template.insertAll(List.of(person1, person2), OVERRIDE_SET_NAME);
+            template.updateAll(List.of(person1, person2), OVERRIDE_SET_NAME);
+
+            Person result1 = template.findById(person1.getId(), Person.class, OVERRIDE_SET_NAME);
+            Person result2 = template.findById(person2.getId(), Person.class, OVERRIDE_SET_NAME);
+            assertThat(result1.getAge()).isEqualTo(age1);
+            assertThat(result2.getAge()).isEqualTo(age2);
+            template.delete(result1, OVERRIDE_SET_NAME); // cleanup
+            template.delete(result2, OVERRIDE_SET_NAME); // cleanup
         }
     }
 }

@@ -38,7 +38,7 @@ public class QueryUtils {
         return c.isPrimitive() ? (Class<T>) WRAPPERS_TO_PRIMITIVES.get(c) : c;
     }
 
-    public static <T> Query createQueryForMethodWithArgs(String methodName, Object... args) {
+    public static Query createQueryForMethodWithArgs(String methodName, Object... args) {
         //noinspection rawtypes
         Class[] argTypes = Stream.of(args).map(Object::getClass).toArray(Class[]::new);
         Method method = ReflectionUtils.findMethod(PersonRepository.class, methodName, argTypes);

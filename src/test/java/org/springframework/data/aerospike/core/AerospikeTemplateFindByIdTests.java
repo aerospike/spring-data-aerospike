@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
 
-public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
+public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findById_shouldReadVersionedClassWithAllArgsConstructor() {
@@ -48,6 +48,17 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
         VersionedClassWithAllArgsConstructor result = template.findById(id, VersionedClassWithAllArgsConstructor.class);
         assertThat(result.version).isEqualTo(2L);
         template.delete(result); // cleanup
+    }
+
+    @Test
+    public void findById_shouldReadVersionedClassWithAllArgsConstructorAndSetName() {
+        VersionedClassWithAllArgsConstructor inserted = new VersionedClassWithAllArgsConstructor(id, "foobar", 0L);
+        template.insert(inserted, OVERRIDE_SET_NAME);
+        assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class, OVERRIDE_SET_NAME).version).isEqualTo(1L);
+        template.update(new VersionedClassWithAllArgsConstructor(id, "foobar1", inserted.version), OVERRIDE_SET_NAME);
+        VersionedClassWithAllArgsConstructor result = template.findById(id, VersionedClassWithAllArgsConstructor.class, OVERRIDE_SET_NAME);
+        assertThat(result.version).isEqualTo(2L);
+        template.delete(result, OVERRIDE_SET_NAME); // cleanup
     }
 
     @Test
@@ -97,10 +108,29 @@ public class AerospikeTemplateFindTests extends BaseBlockingIntegrationTests {
         template.delete(secondPerson); //cleanup
     }
 
+    @Test
+    public void findByIdsWithSetName_shouldFindExisting() {
+        Person firstPerson = Person.builder().id(nextId()).firstName("first").emailAddress("gmail.com").build();
+        Person secondPerson = Person.builder().id(nextId()).firstName("second").emailAddress("gmail.com").build();
+        template.save(firstPerson, OVERRIDE_SET_NAME);
+        template.save(secondPerson, OVERRIDE_SET_NAME);
+
+        List<String> ids = Arrays.asList(nextId(), firstPerson.getId(), secondPerson.getId());
+        List<Person> actual = template.findByIds(ids, Person.class, OVERRIDE_SET_NAME);
+        assertThat(actual).containsExactly(firstPerson, secondPerson);
+        template.delete(firstPerson, OVERRIDE_SET_NAME); // cleanup
+        template.delete(secondPerson, OVERRIDE_SET_NAME); //cleanup
+    }
 
     @Test
     public void findByIds_shouldReturnEmptyList() {
         List<Person> actual = template.findByIds(Collections.emptyList(), Person.class);
+        assertThat(actual).isEmpty();
+    }
+
+    @Test
+    public void findByIdsWithSetName_shouldReturnEmptyList() {
+        List<Person> actual = template.findByIds(Collections.emptyList(), Person.class, OVERRIDE_SET_NAME);
         assertThat(actual).isEmpty();
     }
 

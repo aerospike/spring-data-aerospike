@@ -42,6 +42,20 @@ public class AerospikeTemplatePersistTests extends BaseBlockingIntegrationTests 
     }
 
     @Test
+    public void shouldPersistWithCustomWritePolicyWithSetName() {
+        CustomCollectionClass initial = new CustomCollectionClass(id, "data");
+
+        WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+            .recordExistsAction(RecordExistsAction.CREATE_ONLY)
+            .build();
+
+        template.persist(initial, writePolicy, OVERRIDE_SET_NAME);
+
+        CustomCollectionClass actual = template.findById(id, CustomCollectionClass.class, OVERRIDE_SET_NAME);
+        assertThat(actual).isEqualTo(initial);
+    }
+
+    @Test
     public void shouldNotPersistWithCustomWritePolicy() {
         CustomCollectionClass initial = new CustomCollectionClass(id, "data");
 
@@ -50,6 +64,18 @@ public class AerospikeTemplatePersistTests extends BaseBlockingIntegrationTests 
             .build();
 
         assertThatThrownBy(() -> template.persist(initial, writePolicy))
+            .isInstanceOf(DataRetrievalFailureException.class);
+    }
+
+    @Test
+    public void shouldNotPersistWithCustomWritePolicyWithSetName() {
+        CustomCollectionClass initial = new CustomCollectionClass(id, "data");
+
+        WritePolicy writePolicy = WritePolicyBuilder.builder(client.getWritePolicyDefault())
+            .recordExistsAction(RecordExistsAction.UPDATE_ONLY)
+            .build();
+
+        assertThatThrownBy(() -> template.persist(initial, writePolicy, OVERRIDE_SET_NAME))
             .isInstanceOf(DataRetrievalFailureException.class);
     }
 }

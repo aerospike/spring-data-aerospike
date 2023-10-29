@@ -55,4 +55,34 @@ public class AerospikeTemplateAddTests extends BaseBlockingIntegrationTests {
         assertThat(result).isEqualTo(updated);
         template.delete(result);
     }
+
+    @Test
+    public void add_incrementWithSetName() {
+        Person one = Person.builder().id(id).age(25).build();
+        template.insert(one, OVERRIDE_SET_NAME);
+
+        Person updated = template.add(one, OVERRIDE_SET_NAME, "age", 1);
+
+        assertThat(updated.getAge()).isEqualTo(26);
+        Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(result).isEqualTo(updated);
+        template.delete(result, OVERRIDE_SET_NAME);
+    }
+
+    @Test
+    public void add_incrementsMultipleValuesWithSetName() {
+        Person person = Person.builder().id(id).age(45).waist(90).build();
+        template.insert(person, OVERRIDE_SET_NAME);
+
+        Map<String, Long> values = new HashMap<>();
+        values.put("age", 10L);
+        values.put("waist", 4L);
+        Person updated = template.add(person, OVERRIDE_SET_NAME, values);
+
+        assertThat(updated.getAge()).isEqualTo(55);
+        assertThat(updated.getWaist()).isEqualTo(94);
+        Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(result).isEqualTo(updated);
+        template.delete(result, OVERRIDE_SET_NAME);
+    }
 }

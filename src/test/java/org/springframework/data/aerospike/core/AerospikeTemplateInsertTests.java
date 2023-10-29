@@ -81,6 +81,29 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void insertsDocumentWithListMapDateStringLongValuesAndSetName() {
+        Person customer = Person.builder()
+            .id(id)
+            .firstName("Dave")
+            .lastName("Grohl")
+            .age(45)
+            .waist(90)
+            .emailAddress("dave@gmail.com")
+            .stringMap(Collections.singletonMap("k", "v"))
+            .strings(Arrays.asList("a", "b", "c"))
+            .friend(new Person(null, "Anna", 43))
+            .isActive(true)
+            .sex(Person.Sex.MALE)
+            .dateOfBirth(new Date())
+            .build();
+        template.insert(customer, OVERRIDE_SET_NAME);
+
+        Person actual = template.findById(id, Person.class, OVERRIDE_SET_NAME);
+        assertThat(actual).isEqualTo(customer);
+        template.delete(actual, OVERRIDE_SET_NAME); // cleanup
+    }
+
+    @Test
     public void insertsAndFindsDocumentWithByteArrayField() {
         DocumentWithByteArray document = new DocumentWithByteArray(id, new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
         template.insert(document);
@@ -200,6 +223,30 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         assertThat(result).hasSameElementsAs(persons);
         for (Person person : result) {
             template.delete(person); // cleanup
+        }
+    }
+
+    @Test
+    public void insertAllWithSetName_insertsAllDocuments() {
+        List<Person> persons = IntStream.range(1, 10)
+            .mapToObj(age -> Person.builder().id(nextId())
+                .firstName("Gregor")
+                .age(age).build())
+            .collect(Collectors.toList());
+
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            template.insertAll(persons, OVERRIDE_SET_NAME);
+        } else {
+            persons.forEach(person -> template.insert(person, OVERRIDE_SET_NAME));
+        }
+
+        List<Person> result = template.findByIds(persons.stream().map(Person::getId)
+            .collect(Collectors.toList()), Person.class, OVERRIDE_SET_NAME);
+
+        assertThat(result).hasSameElementsAs(persons);
+        for (Person person : result) {
+            template.delete(person, OVERRIDE_SET_NAME); // cleanup
         }
     }
 

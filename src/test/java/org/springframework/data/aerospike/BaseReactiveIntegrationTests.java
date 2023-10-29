@@ -34,7 +34,15 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
         return reactiveTemplate.findById(id, type).block();
     }
 
+    protected <T> T findById(Serializable id, Class<T> type, String setName) {
+        return reactiveTemplate.findById(id, type, setName).block();
+    }
+
     protected void deleteAll(Collection<Person> persons) {
         Flux.fromIterable(persons).flatMap(person -> reactiveTemplate.delete(person)).blockLast();
+    }
+
+    protected void deleteAll(Collection<Person> persons, String setName) {
+        Flux.fromIterable(persons).flatMap(person -> reactiveTemplate.delete(person, setName)).blockLast();
     }
 }

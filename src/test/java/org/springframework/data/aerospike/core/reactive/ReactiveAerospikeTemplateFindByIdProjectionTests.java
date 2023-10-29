@@ -14,7 +14,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ReactiveAerospikeTemplateFindProjectionTests extends BaseReactiveIntegrationTests {
+public class ReactiveAerospikeTemplateFindByIdProjectionTests extends BaseReactiveIntegrationTests {
 
     @Test
     public void findByIdWithProjection() {
@@ -73,6 +73,35 @@ public class ReactiveAerospikeTemplateFindProjectionTests extends BaseReactiveIn
         assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
         reactiveTemplate.delete(firstPerson).block(); // cleanup
         reactiveTemplate.delete(secondPerson).block(); //cleanup
+    }
+
+    @Test
+    public void findByIdWithProjectionPersonWithMissingFieldsWithSetName() {
+        Person firstPerson = Person.builder()
+            .id(nextId())
+            .firstName("first")
+            .lastName("lastName1")
+            .emailAddress("gmail.com")
+            .build();
+        Person secondPerson = Person.builder()
+            .id(nextId())
+            .firstName("second")
+            .lastName("lastName2")
+            .emailAddress("gmail.com")
+            .build();
+        reactiveTemplate.save(firstPerson, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.save(secondPerson, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+
+        PersonMissingAndRedundantFields result = reactiveTemplate.findById(firstPerson.getId(), Person.class,
+            PersonMissingAndRedundantFields.class, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+
+        assert result != null;
+        assertThat(result.getFirstName()).isEqualTo("first");
+        assertThat(result.getLastName()).isEqualTo("lastName1");
+        assertThat(result.getMissingField()).isNull();
+        assertThat(result.getEmailAddress()).isNull(); // Not annotated with @Field("email").
+        reactiveTemplate.delete(firstPerson, OVERRIDE_SET_NAME).block(); // cleanup
+        reactiveTemplate.delete(secondPerson, OVERRIDE_SET_NAME).block(); //cleanup
     }
 
     @Test

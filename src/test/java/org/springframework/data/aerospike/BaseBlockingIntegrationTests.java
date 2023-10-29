@@ -36,4 +36,8 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     protected <T> void deleteOneByOne(Collection<T> collection) {
         collection.forEach(item -> template.delete(item));
     }
+
+    protected <T> void deleteOneByOne(Collection<T> collection, String setName) {
+        collection.forEach(item -> template.delete(item, setName));
+    }
 }

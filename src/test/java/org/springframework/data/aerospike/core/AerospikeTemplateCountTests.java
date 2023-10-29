@@ -47,6 +47,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
     public void setUp() {
         super.setUp();
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class, OVERRIDE_SET_NAME);
     }
 
     @Test
@@ -185,8 +186,33 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         template.delete(template.findById(id4, Person.class));
     }
 
+    @Test
+    void countForObjectsWithSetName() {
+        template.insert(new Person(id, "vasili", 50), OVERRIDE_SET_NAME);
+        String id2 = nextId();
+        template.insert(new Person(id2, "vasili", 51), OVERRIDE_SET_NAME);
+        String id3 = nextId();
+        template.insert(new Person(id3, "vasili", 52), OVERRIDE_SET_NAME);
+        String id4 = nextId();
+        template.insert(new Person(id4, "petya", 52), OVERRIDE_SET_NAME);
+
+        Awaitility.await()
+            .atMost(Duration.ofSeconds(15))
+            .until(() -> isCountExactlyNumWithSetName(4L, OVERRIDE_SET_NAME));
+
+        template.delete(template.findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME);
+        template.delete(template.findById(id2, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME);
+        template.delete(template.findById(id3, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME);
+        template.delete(template.findById(id4, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME);
+    }
+
     @SuppressWarnings("SameParameterValue")
     private boolean isCountExactlyNum(Long num) {
         return Objects.equals(template.count(Person.class), num);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private boolean isCountExactlyNumWithSetName(Long num, String setName) {
+        return Objects.equals(template.count(setName), num);
     }
 }
