@@ -145,8 +145,6 @@ public class MappingAerospikeReadConverter implements EntityReader<Object, Aeros
              */
             if (source instanceof byte[] && targetClass == byte[].class) {
                 return (T) source;
-//            } else if () {
-//
             }
             return convertCollection(asCollection(source), propertyType);
         } else if (propertyType.isMap()) {
