@@ -78,7 +78,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
             5});
         template.save(doc);
 
-        Key key = new Key(getNameSpace(), "DocumentWithArray", id);
+        Key key = new Key(getNameSpace(), template.getSetName(SampleClasses.DocumentWithIntArray.class), id);
         Record aeroRecord = client.get(new Policy(), key);
         assertThat(aeroRecord.bins.get("array")).isNotNull();
     }
