@@ -49,7 +49,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @AfterAll
     public void afterAll() {
         template.deleteAll(VersionedClass.class);
-        template.deleteAll(SampleClasses.DocumentWithArray.class);
+        template.deleteAll(SampleClasses.DocumentWithIntArray.class);
         template.deleteAll(SampleClasses.DocumentWithBigIntegerAndNestedArray.class);
         template.deleteAll(Person.class);
         template.deleteAll(CustomCollectionClass.class);
@@ -74,7 +74,8 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldSaveDocumentWithArray() {
-        SampleClasses.DocumentWithArray doc = new SampleClasses.DocumentWithArray(id, new int[]{0, 1, 2, 3, 4, 5});
+        SampleClasses.DocumentWithIntArray doc = new SampleClasses.DocumentWithIntArray(id, new int[]{0, 1, 2, 3, 4,
+            5});
         template.save(doc);
 
         Key key = new Key(getNameSpace(), "DocumentWithArray", id);
@@ -84,11 +85,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldSaveDocumentWithoutCustomConverter() {
-        SampleClasses.ObjectWithArray objectWithArray = new SampleClasses.ObjectWithArray(new Integer[]{0, 1, 2,
-            3, 4});
+        SampleClasses.ObjectWithArray objectWithArray = new SampleClasses.ObjectWithArray(new Integer[]{0, 1, 2, 3, 4});
         SampleClasses.DocumentWithBigIntegerAndNestedArray doc =
-            new SampleClasses.DocumentWithBigIntegerAndNestedArray(id,
-                new BigInteger("100"), objectWithArray);
+            new SampleClasses.DocumentWithBigIntegerAndNestedArray(id, new BigInteger("100"), objectWithArray);
         template.save(doc);
 
         Key key = new Key(getNameSpace(),

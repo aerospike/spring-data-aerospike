@@ -45,15 +45,8 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
+import java.time.Duration;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
@@ -744,7 +737,7 @@ public class SampleClasses {
     @Data
     @AllArgsConstructor
     @Document
-    public static class DocumentWithArray {
+    public static class DocumentWithIntArray {
 
         @Id
         private String id;
@@ -786,6 +779,39 @@ public class SampleClasses {
         private String id;
         @Field
         private List<Byte> array;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithDate {
+
+        @Id
+        private String id;
+        @Field
+        private Date date;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithCalendar {
+
+        @Id
+        private String id;
+        @Field
+        private Calendar calendar;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithDuration {
+
+        @Id
+        private String id;
+        @Field
+        private Duration duration;
     }
 
     @Data

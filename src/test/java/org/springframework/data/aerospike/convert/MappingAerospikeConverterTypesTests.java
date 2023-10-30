@@ -8,6 +8,8 @@ import org.springframework.data.aerospike.assertions.KeyAssert;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -354,6 +356,51 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             "DocumentWithByteArray", "my-id",
             new Bin("@_class", DocumentWithByteArray.class.getName()),
             new Bin("array", new byte[]{1, 0, 0, 1, 1, 1, 0, 0}));
+    }
+
+    @Test
+    void ObjectWithArrayField() {
+        int[] array = new int[]{1, 0, 0, 1, 1, 1, 0, 0};
+        DocumentWithIntArray object = new DocumentWithIntArray("my-id", array);
+
+        assertWriteAndRead(object,
+            "DocumentWithIntArray", "my-id",
+            new Bin("@_class", DocumentWithIntArray.class.getName()),
+            new Bin("array", Arrays.stream(array).boxed().toList()));
+    }
+
+    @Test
+    void ObjectWithDateField() {
+        Date date = Date.from(Instant.now());
+        DocumentWithDate object = new DocumentWithDate("my-id", date);
+
+        assertWriteAndRead(object,
+            "DocumentWithDate", "my-id",
+            new Bin("@_class", DocumentWithDate.class.getName()),
+            new Bin("date", DateConverters.DateToLongConverter.INSTANCE.convert(date)));
+    }
+
+    @Test
+    void ObjectWithCalendarField() {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("PTC"));
+        calendar.setTime(Date.from(Instant.now()));
+        DocumentWithCalendar object = new DocumentWithCalendar("my-id", calendar);
+
+        assertWriteAndRead(object,
+            "DocumentWithCalendar", "my-id",
+            new Bin("@_class", DocumentWithCalendar.class.getName()),
+            new Bin("calendar", DateConverters.CalendarToMapConverter.INSTANCE.convert(calendar)));
+    }
+
+    @Test
+    void ObjectWithDurationField() {
+        Duration duration = Duration.ofSeconds(12345678910L);
+        DocumentWithDuration object = new DocumentWithDuration("my-id", duration);
+
+        assertWriteAndRead(object,
+            "DocumentWithDuration", "my-id",
+            new Bin("@_class", DocumentWithDuration.class.getName()),
+            new Bin("duration", DateConverters.DurationToStringConverter.INSTANCE.convert(duration)));
     }
 
     @Test
