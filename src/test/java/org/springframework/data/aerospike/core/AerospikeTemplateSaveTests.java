@@ -60,9 +60,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     // test for RecordExistsAction.REPLACE_ONLY policy
     @Test
     public void shouldReplaceAllBinsPresentInAerospikeWhenSavingDocument() {
-        Key key = new Key(getNameSpace(), "versioned-set", id);
         VersionedClass first = new VersionedClass(id, "foo");
         template.save(first);
+        Key key = new Key(getNameSpace(), template.getSetName(VersionedClass.class), id);
         additionalAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
 
         template.save(new VersionedClass(id, "foo2", 2L));
@@ -74,26 +74,30 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldSaveDocumentWithArray() {
-        SampleClasses.DocumentWithIntArray doc = new SampleClasses.DocumentWithIntArray(id, new int[]{0, 1, 2, 3, 4,
-            5});
+        int[] array = new int[]{0, 1, 2, 3, 4, 5};
+        SampleClasses.DocumentWithIntArray doc = new SampleClasses.DocumentWithIntArray(id, array);
         template.save(doc);
 
         Key key = new Key(getNameSpace(), template.getSetName(SampleClasses.DocumentWithIntArray.class), id);
         Record aeroRecord = client.get(new Policy(), key);
         assertThat(aeroRecord.bins.get("array")).isNotNull();
+        SampleClasses.DocumentWithIntArray result = template.findById(id, SampleClasses.DocumentWithIntArray.class);
+        assertThat(result.getArray()).isEqualTo(array);
     }
 
     @Test
-    public void shouldSaveDocumentWithoutCustomConverter() {
-        SampleClasses.ObjectWithArray objectWithArray = new SampleClasses.ObjectWithArray(new Integer[]{0, 1, 2, 3, 4});
+    public void shouldSaveDocumentWithNestedArrayAndBigInteger() {
+        Integer[] array = new Integer[]{0, 1, 2, 3, 4};
+        SampleClasses.ObjectWithArray objectWithArray = new SampleClasses.ObjectWithArray(array);
+        BigInteger bigInteger = new BigInteger("100");
         SampleClasses.DocumentWithBigIntegerAndNestedArray doc =
-            new SampleClasses.DocumentWithBigIntegerAndNestedArray(id, new BigInteger("100"), objectWithArray);
+            new SampleClasses.DocumentWithBigIntegerAndNestedArray(id, bigInteger, objectWithArray);
         template.save(doc);
 
-        Key key = new Key(getNameSpace(),
-            template.getSetName(SampleClasses.DocumentWithBigIntegerAndNestedArray.class), id);
-        Record aeroRecord = client.get(new Policy(), key);
-        assertThat(aeroRecord.bins).isNotEmpty();
+        SampleClasses.DocumentWithBigIntegerAndNestedArray result =
+            template.findById(id, SampleClasses.DocumentWithBigIntegerAndNestedArray.class);
+        assertThat(result.getBigInteger()).isEqualTo(bigInteger);
+        assertThat(result.getObjectWithArray().getArray()).isEqualTo(array);
     }
 
     @Test

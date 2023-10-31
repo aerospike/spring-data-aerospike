@@ -808,6 +808,7 @@ public class SampleClasses {
         private ObjectWithArray objectWithArray;
     }
 
+    @Data
     public static class ObjectWithArray {
 
         @Version
