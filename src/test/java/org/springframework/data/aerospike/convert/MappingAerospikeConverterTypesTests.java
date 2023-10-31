@@ -8,9 +8,13 @@ import org.springframework.data.aerospike.assertions.KeyAssert;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -370,6 +374,62 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
+    void ObjectWithAtomicField() {
+        AtomicInteger atomicInteger = new AtomicInteger(10);
+        AtomicLong atomicLong = new AtomicLong(10L);
+        DocumentWithAtomicFields object = new DocumentWithAtomicFields("my-id", atomicInteger, atomicLong);
+
+        DocumentWithAtomicFields readDoc = readObjectAfterWriting(object,
+            "DocumentWithAtomicFields", "my-id",
+            new Bin("@_class", DocumentWithAtomicFields.class.getName()),
+            new Bin("atomicInteger", AerospikeConverters.AtomicIntegerToIntegerConverter.INSTANCE.convert(atomicInteger)),
+            new Bin("atomicLong", AerospikeConverters.AtomicLongToLongConverter.INSTANCE.convert(atomicLong)));
+
+
+        assertThat(readDoc.getId()).isEqualTo(object.getId());
+        assertThat(readDoc.getAtomicInteger().intValue()).isEqualTo(object.getAtomicInteger().intValue());
+        assertThat(readDoc.getAtomicLong().longValue()).isEqualTo(object.getAtomicLong().longValue());
+    }
+
+    @Test
+    void ObjectWithURLField() {
+        URL url;
+        try {
+            url = new URL("http://example.com");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+        DocumentWithURL object = new DocumentWithURL("my-id", url);
+
+        assertWriteAndRead(object,
+            "DocumentWithURL", "my-id",
+            new Bin("@_class", DocumentWithURL.class.getName()),
+            new Bin("url", AerospikeConverters.URLToStringConverter.INSTANCE.convert(url)));
+    }
+
+    @Test
+    void ObjectWithUUIDField() {
+        UUID uuid = new UUID(10L, 5L);
+        DocumentWithUUID object = new DocumentWithUUID("my-id", uuid);
+
+        assertWriteAndRead(object,
+            "DocumentWithUUID", "my-id",
+            new Bin("@_class", DocumentWithUUID.class.getName()),
+            new Bin("uuid", AerospikeConverters.UuidToStringConverter.INSTANCE.convert(uuid)));
+    }
+
+    @Test
+    void ObjectWithCurrencyField() {
+        Currency currency = Currency.getInstance("USD");
+        DocumentWithCurrency object = new DocumentWithCurrency("my-id", currency);
+
+        assertWriteAndRead(object,
+            "DocumentWithCurrency", "my-id",
+            new Bin("@_class", DocumentWithCurrency.class.getName()),
+            new Bin("currency", AerospikeConverters.CurrencyToStringConverter.INSTANCE.convert(currency)));
+    }
+
+    @Test
     void ObjectWithDateField() {
         Date date = Date.from(Instant.now());
         DocumentWithDate object = new DocumentWithDate("my-id", date);
@@ -487,5 +547,24 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         @SuppressWarnings("unchecked") T actual = (T) converter.read(object.getClass(), forRead);
 
         assertThat(actual).isEqualTo(object);
+    }
+
+    private <T> T readObjectAfterWriting(T object,
+                                        String expectedSet,
+                                        Object expectedUserKey,
+                                        Bin... expectedBins) {
+
+        AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
+
+        converter.write(object, forWrite);
+
+        KeyAssert.assertThat(forWrite.getKey()).consistsOf(NAMESPACE, expectedSet, expectedUserKey);
+        assertThat(forWrite.getBins()).containsOnly(expectedBins);
+
+        AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
+
+        @SuppressWarnings("unchecked") T actual = (T) converter.read(object.getClass(), forRead);
+
+        return actual;
     }
 }

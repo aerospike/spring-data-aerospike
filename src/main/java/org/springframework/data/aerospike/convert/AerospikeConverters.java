@@ -64,8 +64,8 @@ abstract class AerospikeConverters {
         converters.add(LongToAtomicLongConverter.INSTANCE);
         converters.add(CurrencyToStringConverter.INSTANCE);
         converters.add(StringToCurrencyConverter.INSTANCE);
-        converters.add(UuidToString.INSTANCE);
-        converters.add(StringToUuid.INSTANCE);
+        converters.add(UuidToStringConverter.INSTANCE);
+        converters.add(StringToUuidConverter.INSTANCE);
 
         return converters;
     }
@@ -147,7 +147,6 @@ abstract class AerospikeConverters {
         private static final TypeDescriptor target = TypeDescriptor.valueOf(URL.class);
 
         public URL convert(String source) {
-
             try {
                 return new URL(source);
             } catch (MalformedURLException e) {
@@ -219,7 +218,7 @@ abstract class AerospikeConverters {
     }
 
     @WritingConverter
-    public enum UuidToString implements Converter<UUID, String> {
+    public enum UuidToStringConverter implements Converter<UUID, String> {
         INSTANCE;
 
         @Override
@@ -229,7 +228,7 @@ abstract class AerospikeConverters {
     }
 
     @ReadingConverter
-    public enum StringToUuid implements Converter<String, UUID> {
+    public enum StringToUuidConverter implements Converter<String, UUID> {
         INSTANCE;
 
         @Override

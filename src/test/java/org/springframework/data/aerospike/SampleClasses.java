@@ -45,9 +45,12 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URL;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
@@ -743,6 +746,52 @@ public class SampleClasses {
         private String id;
         @Field
         private int[] array;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithAtomicFields {
+
+        @Id
+        private String id;
+        @Field
+        private AtomicInteger atomicInteger;
+        @Field
+        private AtomicLong atomicLong;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithURL {
+
+        @Id
+        private String id;
+        @Field
+        private URL url;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithUUID {
+
+        @Id
+        private String id;
+        @Field
+        private UUID uuid;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithCurrency {
+
+        @Id
+        private String id;
+        @Field
+        private Currency currency;
     }
 
     @Data
