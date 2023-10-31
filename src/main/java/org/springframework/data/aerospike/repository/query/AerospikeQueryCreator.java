@@ -374,9 +374,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         Qualifier[] qualifiers;
         if (containingMapKeyValuePairs) {
             qualifiers = new Qualifier[params.size() / 2]; // keys/values qty must be even
-            for (int i = 0, j = 0; i < params.size(); i += 2) {
+            for (int i = 0, j = 0; i < params.size(); i += 2, j++) {
                 setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
-                qualifiers[j++] = setQualifier(qb, fieldName, op, part, params.get(i),
+                qualifiers[j] = setQualifier(qb, fieldName, op, part, params.get(i),
                     null, null, dotPath);
             }
 
