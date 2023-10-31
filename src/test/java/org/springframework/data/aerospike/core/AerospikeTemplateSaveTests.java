@@ -88,7 +88,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveDocumentWithNestedArrayAndBigInteger() {
         Integer[] array = new Integer[]{0, 1, 2, 3, 4};
-        SampleClasses.ObjectWithArray objectWithArray = new SampleClasses.ObjectWithArray(array);
+        SampleClasses.ObjectWithIntegerArray objectWithArray = new SampleClasses.ObjectWithIntegerArray(array);
         BigInteger bigInteger = new BigInteger("100");
         SampleClasses.DocumentWithBigIntegerAndNestedArray doc =
             new SampleClasses.DocumentWithBigIntegerAndNestedArray(id, bigInteger, objectWithArray);

@@ -751,6 +751,43 @@ public class SampleClasses {
     @Data
     @AllArgsConstructor
     @Document
+    public static class DocumentWithBigIntegerAndNestedArray {
+
+        @Id
+        @NonNull
+        private String id;
+        @Field
+        @NonNull
+        private BigInteger bigInteger;
+        private ObjectWithIntegerArray objectWithArray;
+    }
+
+    @Data
+    public static class ObjectWithIntegerArray {
+
+        @Version
+        public Long version;
+        Integer[] array;
+
+        public ObjectWithIntegerArray(Integer[] array) {
+            this.array = array;
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithByteArrayList {
+
+        @Id
+        private String id;
+        @Field
+        private List<Byte> array;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
     public static class DocumentWithAtomicFields {
 
         @Id
@@ -792,43 +829,6 @@ public class SampleClasses {
         private String id;
         @Field
         private Currency currency;
-    }
-
-    @Data
-    @AllArgsConstructor
-    @Document
-    public static class DocumentWithBigIntegerAndNestedArray {
-
-        @Id
-        @NonNull
-        private String id;
-        @Field
-        @NonNull
-        private BigInteger bigInteger;
-        private ObjectWithArray objectWithArray;
-    }
-
-    @Data
-    public static class ObjectWithArray {
-
-        @Version
-        public Long version;
-        Integer[] array;
-
-        public ObjectWithArray(Integer[] array) {
-            this.array = array;
-        }
-    }
-
-    @Data
-    @AllArgsConstructor
-    @Document
-    public static class DocumentWithByteArrayList {
-
-        @Id
-        private String id;
-        @Field
-        private List<Byte> array;
     }
 
     @Data
