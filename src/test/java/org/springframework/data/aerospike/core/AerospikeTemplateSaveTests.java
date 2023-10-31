@@ -60,9 +60,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     // test for RecordExistsAction.REPLACE_ONLY policy
     @Test
     public void shouldReplaceAllBinsPresentInAerospikeWhenSavingDocument() {
-        Key key = new Key(getNameSpace(), "versioned-set", id);
         VersionedClass first = new VersionedClass(id, "foo");
         template.save(first);
+        Key key = new Key(getNameSpace(), template.getSetName(VersionedClass.class), id);
         additionalAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
 
         template.save(new VersionedClass(id, "foo2", 2L));
@@ -78,7 +78,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         SampleClasses.DocumentWithArray doc = new SampleClasses.DocumentWithArray(id, array);
         template.save(doc);
 
-        Key key = new Key(getNameSpace(), "DocumentWithArray", id);
+        Key key = new Key(getNameSpace(), template.getSetName(SampleClasses.DocumentWithArray.class), id);
         Record aeroRecord = client.get(new Policy(), key);
         assertThat(aeroRecord.bins.get("array")).isNotNull();
         SampleClasses.DocumentWithArray result = template.findById(id, SampleClasses.DocumentWithArray.class);
