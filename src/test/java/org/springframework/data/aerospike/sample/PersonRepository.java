@@ -832,6 +832,27 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsContaining(int integer1, int integer2, int integer3);
 
     /**
+     * Find all entities that satisfy the condition "have the array which contains the given integer"
+     * <p>
+     * Array name in this case is IntArray
+     * </p>
+     *
+     * @param integer number to check
+     */
+    List<P> findByIntArrayContaining(int integer);
+
+    /**
+     * Find all entities that satisfy the condition "have the array which contains the given integers"
+     * <p>
+     * Array name in this case is IntArray
+     * </p>
+     *
+     * @param integer1 number to check
+     * @param integer2 number to check
+     */
+    List<P> findByIntArrayContaining(int integer1, int integer2);
+
+    /**
      * Find all entities that satisfy the condition "have the list which contains the given boolean"
      *
      * @param value boolean to check
@@ -885,6 +906,28 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param list List to compare with
      */
     List<P> findByListOfIntListsGreaterThan(List<List<Integer>> list);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one array value which is greater than the given
+     * integer"
+     * <p>
+     * Array name in this case is IntArray
+     * </p>
+     *
+     * @param integer lower limit, exclusive, [Long.MIN_VALUE..Long.MAX_VALUE-1]
+     */
+    List<P> findByIntArrayGreaterThan(int integer);
+
+    /**
+     * Find all entities that satisfy the condition "have at least one array value which is greater than the given
+     * integer"
+     * <p>
+     * Array name in this case is IntArray
+     * </p>
+     *
+     * @param value lower limit, exclusive
+     */
+    List<P> findByIntArrayGreaterThan(long value);
 
     /**
      * Find all entities that satisfy the condition "have at least one map value (with the given key) which is greater
