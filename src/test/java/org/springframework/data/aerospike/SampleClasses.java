@@ -45,16 +45,12 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
+import java.net.URL;
+import java.time.Duration;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
@@ -744,7 +740,7 @@ public class SampleClasses {
     @Data
     @AllArgsConstructor
     @Document
-    public static class DocumentWithArray {
+    public static class DocumentWithIntArray {
 
         @Id
         private String id;
@@ -763,17 +759,17 @@ public class SampleClasses {
         @Field
         @NonNull
         private BigInteger bigInteger;
-        private ObjectWithArray objectWithArray;
+        private ObjectWithIntegerArray objectWithArray;
     }
 
     @Data
-    public static class ObjectWithArray {
+    public static class ObjectWithIntegerArray {
 
         @Version
         public Long version;
         Integer[] array;
 
-        public ObjectWithArray(Integer[] array) {
+        public ObjectWithIntegerArray(Integer[] array) {
             this.array = array;
         }
     }
@@ -787,6 +783,85 @@ public class SampleClasses {
         private String id;
         @Field
         private List<Byte> array;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithAtomicFields {
+
+        @Id
+        private String id;
+        @Field
+        private AtomicInteger atomicInteger;
+        @Field
+        private AtomicLong atomicLong;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithURL {
+
+        @Id
+        private String id;
+        @Field
+        private URL url;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithUUID {
+
+        @Id
+        private String id;
+        @Field
+        private UUID uuid;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithCurrency {
+
+        @Id
+        private String id;
+        @Field
+        private Currency currency;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithDate {
+
+        @Id
+        private String id;
+        @Field
+        private Date date;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithCalendar {
+
+        @Id
+        private String id;
+        @Field
+        private Calendar calendar;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithDuration {
+
+        @Id
+        private String id;
+        @Field
+        private Duration duration;
     }
 
     @Data

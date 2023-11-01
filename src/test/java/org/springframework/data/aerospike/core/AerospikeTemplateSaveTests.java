@@ -49,7 +49,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @AfterAll
     public void afterAll() {
         template.deleteAll(VersionedClass.class);
-        template.deleteAll(SampleClasses.DocumentWithArray.class);
+        template.deleteAll(SampleClasses.DocumentWithIntArray.class);
         template.deleteAll(SampleClasses.DocumentWithBigIntegerAndNestedArray.class);
         template.deleteAll(Person.class);
         template.deleteAll(CustomCollectionClass.class);
@@ -75,20 +75,20 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveDocumentWithArray() {
         int[] array = new int[]{0, 1, 2, 3, 4, 5};
-        SampleClasses.DocumentWithArray doc = new SampleClasses.DocumentWithArray(id, array);
+        SampleClasses.DocumentWithIntArray doc = new SampleClasses.DocumentWithIntArray(id, array);
         template.save(doc);
 
-        Key key = new Key(getNameSpace(), template.getSetName(SampleClasses.DocumentWithArray.class), id);
+        Key key = new Key(getNameSpace(), template.getSetName(SampleClasses.DocumentWithIntArray.class), id);
         Record aeroRecord = client.get(new Policy(), key);
         assertThat(aeroRecord.bins.get("array")).isNotNull();
-        SampleClasses.DocumentWithArray result = template.findById(id, SampleClasses.DocumentWithArray.class);
+        SampleClasses.DocumentWithIntArray result = template.findById(id, SampleClasses.DocumentWithIntArray.class);
         assertThat(result.getArray()).isEqualTo(array);
     }
 
     @Test
     public void shouldSaveDocumentWithNestedArrayAndBigInteger() {
         Integer[] array = new Integer[]{0, 1, 2, 3, 4};
-        SampleClasses.ObjectWithArray objectWithArray = new SampleClasses.ObjectWithArray(array);
+        SampleClasses.ObjectWithIntegerArray objectWithArray = new SampleClasses.ObjectWithIntegerArray(array);
         BigInteger bigInteger = new BigInteger("100");
         SampleClasses.DocumentWithBigIntegerAndNestedArray doc =
             new SampleClasses.DocumentWithBigIntegerAndNestedArray(id, bigInteger, objectWithArray);
