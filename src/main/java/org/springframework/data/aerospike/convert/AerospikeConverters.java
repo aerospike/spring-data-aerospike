@@ -55,7 +55,6 @@ abstract class AerospikeConverters {
         converters.add(StringToBigIntegerConverter.INSTANCE);
         converters.add(LongToBooleanConverter.INSTANCE);
         converters.add(EnumToStringConverter.INSTANCE);
-
         converters.add(URLToStringConverter.INSTANCE);
         converters.add(StringToURLConverter.INSTANCE);
         converters.add(AtomicIntegerToIntegerConverter.INSTANCE);
