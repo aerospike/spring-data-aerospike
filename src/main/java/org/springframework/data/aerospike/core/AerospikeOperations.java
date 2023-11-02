@@ -76,58 +76,6 @@ public interface AerospikeOperations {
     IAerospikeClient getAerospikeClient();
 
     /**
-     * Insert a document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
-     * <p>
-     * If document has version property it will be updated with the server's version after successful operation.
-     *
-     * @param document The document to insert. Must not be {@literal null}.
-     */
-    <T> void insert(T document);
-
-    /**
-     * Insert a document with a given set name (overrides the set associated with the document) using
-     * {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
-     * <p>
-     * If document has version property it will be updated with the server's version after successful operation.
-     *
-     * @param document The document to insert. Must not be {@literal null}.
-     * @param setName  Set name to override the set associated with the document.
-     */
-    <T> void insert(T document, String setName);
-
-    /**
-     * Insert multiple documents in one batch request. The policies are analogous to {@link #insert(Object)}.
-     * <p>
-     * The order of returned results is preserved. The execution order is NOT preserved.
-     * <p>
-     * This operation requires Server version 6.0+.
-     *
-     * @param documents Documents to insert. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
-     *                                                     records
-     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
-     */
-    <T> void insertAll(Iterable<? extends T> documents);
-
-    /**
-     * Insert multiple documents with a given set name (overrides the set associated with the document) in one batch
-     * request. The policies are analogous to {@link #insert(Object)}.
-     * <p>
-     * The order of returned results is preserved. The execution order is NOT preserved.
-     * <p>
-     * This operation requires Server version 6.0+.
-     *
-     * @param documents Documents to insert. Must not be {@literal null}.
-     * @param setName   Set name to override the set associated with the document.
-     * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
-     *                                                     records
-     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
-     */
-    <T> void insertAll(Iterable<? extends T> documents, String setName);
-
-    /**
      * Save a document.
      * <p>
      * If the document has version property - CAS algorithm is used for updating record. Version property is used for
@@ -199,6 +147,58 @@ public interface AerospikeOperations {
      *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
      */
     <T> void saveAll(Iterable<T> documents, String setName);
+
+    /**
+     * Insert a document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
+     * <p>
+     * If document has version property it will be updated with the server's version after successful operation.
+     *
+     * @param document The document to insert. Must not be {@literal null}.
+     */
+    <T> void insert(T document);
+
+    /**
+     * Insert a document with a given set name (overrides the set associated with the document) using
+     * {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
+     * <p>
+     * If document has version property it will be updated with the server's version after successful operation.
+     *
+     * @param document The document to insert. Must not be {@literal null}.
+     * @param setName  Set name to override the set associated with the document.
+     */
+    <T> void insert(T document, String setName);
+
+    /**
+     * Insert multiple documents in one batch request. The policies are analogous to {@link #insert(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param documents Documents to insert. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
+     *                                                     records
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     */
+    <T> void insertAll(Iterable<? extends T> documents);
+
+    /**
+     * Insert multiple documents with a given set name (overrides the set associated with the document) in one batch
+     * request. The policies are analogous to {@link #insert(Object)}.
+     * <p>
+     * The order of returned results is preserved. The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param documents Documents to insert. Must not be {@literal null}.
+     * @param setName   Set name to override the set associated with the document.
+     * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
+     *                                                     records
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     */
+    <T> void insertAll(Iterable<? extends T> documents, String setName);
 
     /**
      * Persist a document using specified WritePolicy.
@@ -321,18 +321,21 @@ public interface AerospikeOperations {
     <T> boolean delete(Object id, Class<T> entityClass);
 
     /**
-     * Truncate/Delete all the documents in the given entity's set.
+     * Delete a document.
      *
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param document The document to delete. Must not be {@literal null}.
+     * @return whether the document existed on server before deletion.
      */
-    <T> void deleteAll(Class<T> entityClass);
+    <T> boolean delete(T document);
 
     /**
-     * Truncate/Delete all the documents in the given set.
+     * Delete a document with a given set name.
      *
-     * @param setName Set name to truncate/delete all the documents in.
+     * @param document The document to delete. Must not be {@literal null}.
+     * @param setName  Set name to delete the document from.
+     * @return whether the document existed on server before deletion.
      */
-    void deleteAll(String setName);
+    <T> boolean delete(T document, String setName);
 
     /**
      * Delete a document by id, set name will be determined by the given entityClass.
@@ -351,23 +354,6 @@ public interface AerospikeOperations {
      * @return whether the document existed on server before deletion.
      */
     boolean deleteById(Object id, String setName);
-
-    /**
-     * Delete a document.
-     *
-     * @param document The document to delete. Must not be {@literal null}.
-     * @return whether the document existed on server before deletion.
-     */
-    <T> boolean delete(T document);
-
-    /**
-     * Delete a document with a given set name.
-     *
-     * @param document The document to delete. Must not be {@literal null}.
-     * @param setName  Set name to delete the document from.
-     * @return whether the document existed on server before deletion.
-     */
-    <T> boolean delete(T document, String setName);
 
     /**
      * Delete documents by providing multiple ids using a single batch delete operation, set name will be determined by
@@ -398,6 +384,28 @@ public interface AerospikeOperations {
     void deleteByIds(Iterable<?> ids, String setName);
 
     /**
+     * Batch delete documents by providing their ids. Set name will be determined by the given entityClass.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids         The ids of the documents to delete. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
+     */
+    <T> void deleteByIds(Collection<?> ids, Class<T> entityClass);
+
+    /**
+     * Batch delete documents by providing their ids with a given set name.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids     The ids of the documents to delete. Must not be {@literal null}.
+     * @param setName Set name to delete the documents from.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
+     */
+    void deleteByIds(Collection<?> ids, String setName);
+
+    /**
      * Executes a single batch delete for several entities.
      * <p>
      * Aerospike provides functionality to delete documents from different sets in 1 batch request. The methods allow to
@@ -414,201 +422,18 @@ public interface AerospikeOperations {
     void deleteByIds(GroupedKeys groupedKeys);
 
     /**
-     * Check if a document exists by providing document id and entityClass (set name will be determined by the given
-     * entityClass).
-     *
-     * @param id          The id to check if exists. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @return whether the document exists.
-     */
-    <T> boolean exists(Object id, Class<T> entityClass);
-
-    /**
-     * Check if a document exists by providing document id and a set name.
-     *
-     * @param id      The id to check if exists. Must not be {@literal null}.
-     * @param setName Set name to check if document exists.
-     * @return whether the document exists.
-     */
-    boolean exists(Object id, String setName);
-
-    /**
-     * Find documents in the given entityClass's set using a query and map them to the given class type.
-     *
-     * @param query       The query to filter results. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
-     *                    {@literal null}.
-     * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
-     */
-    <T> Stream<T> find(Query query, Class<T> entityClass);
-
-    /**
-     * Find documents in the given entityClass's set using a query and map them to the given target class type.
-     *
-     * @param query       The query to filter results. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
-     */
-    <T, S> Stream<S> find(Query query, Class<T> entityClass, Class<S> targetClass);
-
-    /**
-     * Find documents in the given set using a query and map them to the given target class type.
-     *
-     * @param query       The query to filter results. Must not be {@literal null}.
-     * @param setName     Set name to find the documents in.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
-     */
-    <T> Stream<T> find(Query query, Class<T> targetClass, String setName);
-
-    /**
-     * Find all documents in the given entityClass's set and map them to the given class type.
-     *
-     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
-     *                    {@literal null}.
-     * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
-     */
-    <T> Stream<T> findAll(Class<T> entityClass);
-
-    /**
-     * Find all documents in the given entityClass's set and map them to the given target class type.
+     * Truncate/Delete all the documents in the given entity's set.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
      */
-    <T, S> Stream<S> findAll(Class<T> entityClass, Class<S> targetClass);
+    <T> void deleteAll(Class<T> entityClass);
 
     /**
-     * Find all documents in the given set and map them to the given class type.
+     * Truncate/Delete all the documents in the given set.
      *
-     * @param targetClass The class to map the documents to. Must not be {@literal null}.
-     * @param setName     Set name to find all documents.
-     * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
+     * @param setName Set name to truncate/delete all the documents in.
      */
-    <T> Stream<T> findAll(Class<T> targetClass, String setName);
-
-    /**
-     * Find a document by id, set name will be determined by the given entityClass.
-     * <p>
-     * Document will be mapped to the given entityClass.
-     *
-     * @param id          The id of the document to find. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set from and to map the document to. Must not be
-     *                    {@literal null}.
-     * @return The document from Aerospike, returned document will be mapped to entityClass's type, if document doesn't
-     * exist return null.
-     */
-    <T> T findById(Object id, Class<T> entityClass);
-
-    /**
-     * Find a document by id with a given set name.
-     * <p>
-     * Document will be mapped to the given entityClass.
-     *
-     * @param id          The id of the document to find. Must not be {@literal null}.
-     * @param entityClass The class to map the document to and to get entity properties from (such expiration). Must not
-     *                    be {@literal null}.
-     * @param setName     Set name to find the document from.
-     * @return The document from Aerospike, returned document will be mapped to entityClass's type, if document doesn't
-     * exist return null.
-     */
-    <T> T findById(Object id, Class<T> entityClass, String setName);
-
-    /**
-     * Find a document by id, set name will be determined by the given entityClass.
-     * <p>
-     * Document will be mapped to the given entityClass.
-     *
-     * @param id          The id of the document to find. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @return The document from Aerospike, returned document will be mapped to targetClass's type, if document doesn't
-     * exist return null.
-     */
-    <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass);
-
-    /**
-     * Find a document by id with a given set name.
-     * <p>
-     * Document will be mapped to the given entityClass.
-     *
-     * @param id          The id of the document to find. Must not be {@literal null}.
-     * @param entityClass The class to get entity properties from (such as expiration). Must not be {@literal null}.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @param setName     Set name to find the document from.
-     * @return The document from Aerospike, returned document will be mapped to targetClass's type, if document doesn't
-     * exist return null.
-     */
-    <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass, String setName);
-
-    /**
-     * Find documents by providing multiple ids using a single batch read operation, set name will be determined by the
-     * given entityClass.
-     * <p>
-     * Documents will be mapped to the given entityClass.
-     *
-     * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
-     *                    {@literal null}.
-     * @return The documents from Aerospike, returned documents will be mapped to entityClass's type, if no document
-     * exists, an empty list is returned.
-     */
-    <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass);
-
-    /**
-     * Find documents with a given set name by providing multiple ids using a single batch read operation.
-     * <p>
-     * Documents will be mapped to the given entityClass.
-     *
-     * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to map the documents to. Must not be {@literal null}.
-     * @param setName     Set name to find the document from.
-     * @return The documents from Aerospike, returned documents will be mapped to entityClass's type, if no document
-     * exists, an empty list is returned.
-     */
-    <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass, String setName);
-
-    /**
-     * Find documents by providing multiple ids using a single batch read operation, set name will be determined by the
-     * given entityClass.
-     * <p>
-     * Documents will be mapped to the given targetClass.
-     *
-     * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
-     * exists, an empty list is returned.
-     */
-    <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass);
-
-    /**
-     * Find documents with a given set name by providing multiple ids using a single batch read operation.
-     * <p>
-     * Documents will be mapped to the given targetClass.
-     *
-     * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to get entity properties from (such as expiration). Must not be {@literal null}.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @param setName     Set name to find the document from.
-     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
-     * exists, an empty list is returned.
-     */
-    <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass, String setName);
-
-    /**
-     * Executes a single batch request to get results for several entities.
-     * <p>
-     * Aerospike provides functionality to get documents from different sets in 1 batch request. The methods allow to
-     * put grouped keys by entity type as parameter and get result as spring data aerospike entities grouped by entity
-     * type.
-     *
-     * @param groupedKeys Must not be {@literal null}.
-     * @return grouped entities.
-     */
-    GroupedEntities findByIds(GroupedKeys groupedKeys);
+    void deleteAll(String setName);
 
     /**
      * Add integer/double bin values to existing document bin values, read the new modified document and map it back the
@@ -751,36 +576,297 @@ public interface AerospikeOperations {
     <T> T prepend(T document, String setName, String binName, String value);
 
     /**
-     * Execute query, apply statement's aggregation function, and return result iterator.
-     *
-     * @param filter      The filter to pass to the query.
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param module      server package where user defined function resides.
-     * @param function    aggregation function name.
-     * @param arguments   arguments to pass to function name, if any.
-     * @return Result iterator.
-     */
-    <T> ResultSet aggregate(Filter filter, Class<T> entityClass, String module, String function, List<Value> arguments);
-
-    /**
-     * Execute query with a given set name, apply statement's aggregation function, and return result iterator.
-     *
-     * @param filter    The filter to pass to the query.
-     * @param setName   Set name to aggregate the documents from.
-     * @param module    server package where user defined function resides.
-     * @param function  aggregation function name.
-     * @param arguments arguments to pass to function name, if any.
-     * @return Result iterator.
-     */
-    ResultSet aggregate(Filter filter, String setName, String module, String function, List<Value> arguments);
-
-    /**
      * Execute operation against underlying store.
      *
      * @param supplier must not be {@literal null}.
      * @return Execution result.
      */
     <T> T execute(Supplier<T> supplier);
+
+    /**
+     * Find a document by id, set name will be determined by the given entityClass.
+     * <p>
+     * Document will be mapped to the given entityClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from and to map the document to. Must not be
+     *                    {@literal null}.
+     * @return The document from Aerospike, returned document will be mapped to entityClass's type, if document doesn't
+     * exist return null.
+     */
+    <T> T findById(Object id, Class<T> entityClass);
+
+    /**
+     * Find a document by id with a given set name.
+     * <p>
+     * Document will be mapped to the given entityClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to map the document to and to get entity properties from (such expiration). Must not
+     *                    be {@literal null}.
+     * @param setName     Set name to find the document from.
+     * @return The document from Aerospike, returned document will be mapped to entityClass's type, if document doesn't
+     * exist return null.
+     */
+    <T> T findById(Object id, Class<T> entityClass, String setName);
+
+    /**
+     * Find a document by id, set name will be determined by the given entityClass.
+     * <p>
+     * Document will be mapped to the given entityClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return The document from Aerospike, returned document will be mapped to targetClass's type, if document doesn't
+     * exist return null.
+     */
+    <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Find a document by id with a given set name.
+     * <p>
+     * Document will be mapped to the given entityClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to get entity properties from (such as expiration). Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @param setName     Set name to find the document from.
+     * @return The document from Aerospike, returned document will be mapped to targetClass's type, if document doesn't
+     * exist return null.
+     */
+    <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass, String setName);
+
+    /**
+     * Find documents by providing multiple ids using a single batch read operation, set name will be determined by the
+     * given entityClass.
+     * <p>
+     * Documents will be mapped to the given entityClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
+     *                    {@literal null}.
+     * @return The documents from Aerospike, returned documents will be mapped to entityClass's type, if no document
+     * exists, an empty list is returned.
+     */
+    <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass);
+
+    /**
+     * Find documents with a given set name by providing multiple ids using a single batch read operation.
+     * <p>
+     * Documents will be mapped to the given entityClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to map the documents to. Must not be {@literal null}.
+     * @param setName     Set name to find the document from.
+     * @return The documents from Aerospike, returned documents will be mapped to entityClass's type, if no document
+     * exists, an empty list is returned.
+     */
+    <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass, String setName);
+
+    /**
+     * Find documents by providing multiple ids using a single batch read operation, set name will be determined by the
+     * given entityClass.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
+     * exists, an empty list is returned.
+     */
+    <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Find documents with a given set name by providing multiple ids using a single batch read operation.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to get entity properties from (such as expiration). Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @param setName     Set name to find the document from.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
+     * exists, an empty list is returned.
+     */
+    <T, S> List<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass, String setName);
+
+    /**
+     * Executes a single batch request to get results for several entities.
+     * <p>
+     * Aerospike provides functionality to get documents from different sets in 1 batch request. The methods allow to
+     * put grouped keys by entity type as parameter and get result as spring data aerospike entities grouped by entity
+     * type.
+     *
+     * @param groupedKeys Must not be {@literal null}.
+     * @return grouped entities.
+     */
+    GroupedEntities findByIds(GroupedKeys groupedKeys);
+
+    /**
+     * Find document by providing id, set name will be determined by the given entityClass.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @return The document from Aerospike, returned document will be mapped to targetClass's type.
+     */
+    <T, S> Object findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass,
+                                          Qualifier... qualifiers);
+
+    /**
+     * Find document by providing id with a given set name.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to get the entity properties from (such as expiration). Must not be
+     *                    {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param setName     Set name to find the document from.
+     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @return The document from Aerospike, returned document will be mapped to targetClass's type.
+     */
+    <T, S> Object findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
+                                          Qualifier... qualifiers);
+
+    /**
+     * Find documents by providing multiple ids, set name will be determined by the given entityClass.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
+     * exists, an empty list is returned.
+     */
+    <T, S> List<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                            Qualifier... qualifiers);
+
+    /**
+     * Find documents by providing multiple ids with a given set name.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to get the entity properties from (such as expiration). Must not be
+     *                    {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param setName     Set name to find the document from.
+     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
+     * exists, an empty list is returned.
+     */
+    <T, S> List<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                            String setName, Qualifier... qualifiers);
+
+    /**
+     * Find documents in the given entityClass's set using a query and map them to the given class type.
+     *
+     * @param query       The query to filter results. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
+     *                    {@literal null}.
+     * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Stream<T> find(Query query, Class<T> entityClass);
+
+    /**
+     * Find documents in the given entityClass's set using a query and map them to the given target class type.
+     *
+     * @param query       The query to filter results. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Stream<S> find(Query query, Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Find documents in the given set using a query and map them to the given target class type.
+     *
+     * @param query       The query to filter results. Must not be {@literal null}.
+     * @param setName     Set name to find the documents in.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T> Stream<T> find(Query query, Class<T> targetClass, String setName);
+
+    /**
+     * Find all documents in the given entityClass's set using provided {@link Qualifier}.
+     *
+     * @param entityClass The class to extract the Aerospike set from and to map the entity to. Must not be
+     *                    {@literal null}.
+     * @param filter      Secondary index filter.
+     * @param qualifier   Qualifier to build filter expressions from. Can contain other qualifiers. Must not be
+     *                    {@literal null}. If filter param is null and qualifier has
+     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
+     *                    first processed qualifier.
+     * @return Stream of entities.
+     */
+    <T> Stream<T> findUsingQualifier(Class<T> entityClass, @Nullable Filter filter, Qualifier qualifier);
+
+    /**
+     * Find all documents in the given entityClass's set using provided {@link Qualifier}.
+     *
+     * @param entityClass The class to extract the Aerospike set from and to map the entity to. Must not be
+     *                    {@literal null}.
+     * @param targetClass The class to map the entity to. Must not be {@literal null}.
+     * @param filter      Secondary index filter.
+     * @param qualifier   Qualifier to build filter expressions from. Can contain other qualifiers. Must not be
+     *                    {@literal null}. If filter param is null and qualifier has
+     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
+     *                    first processed qualifier.
+     * @return Stream of entities.
+     */
+    <T, S> Stream<?> findUsingQualifier(Class<T> entityClass, Class<S> targetClass, @Nullable Filter filter,
+                                        Qualifier qualifier);
+
+    /**
+     * Find all documents in the given set using provided {@link Qualifier}.
+     *
+     * @param targetClass The class to map the entity to. Must not be {@literal null}.
+     * @param setName     Set name to find the documents in.
+     * @param filter      Secondary index filter.
+     * @param qualifier   Qualifier to build filter expressions from. Can contain other qualifiers. Must not be
+     *                    {@literal null}. If filter param is null and qualifier has
+     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
+     *                    first processed qualifier.
+     * @return Stream of entities.
+     */
+    <T> Stream<T> findUsingQualifier(Class<T> targetClass, String setName, @Nullable Filter filter,
+                                     Qualifier qualifier);
+
+    /**
+     * Find all documents in the given entityClass's set and map them to the given class type.
+     *
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
+     *                    {@literal null}.
+     * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Stream<T> findAll(Class<T> entityClass);
+
+    /**
+     * Find all documents in the given entityClass's set and map them to the given target class type.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Stream<S> findAll(Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Find all documents in the given set and map them to the given class type.
+     *
+     * @param targetClass The class to map the documents to. Must not be {@literal null}.
+     * @param setName     Set name to find all documents.
+     * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Stream<T> findAll(Class<T> targetClass, String setName);
 
     /**
      * Find all documents in the given entityClass's set using a provided sort and map them to the given class type.
@@ -858,6 +944,61 @@ public interface AerospikeOperations {
     <T> Stream<T> findInRange(long offset, long limit, Sort sort, Class<T> targetClass, String setName);
 
     /**
+     * Check if a document exists by providing document id and entityClass (set name will be determined by the given
+     * entityClass).
+     *
+     * @param id          The id to check if exists. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return whether the document exists.
+     */
+    <T> boolean exists(Object id, Class<T> entityClass);
+
+    /**
+     * Check if a document exists by providing document id and a set name.
+     *
+     * @param id      The id to check if exists. Must not be {@literal null}.
+     * @param setName Set name to check if document exists.
+     * @return whether the document exists.
+     */
+    boolean exists(Object id, String setName);
+
+    /**
+     * Check if any document exists by defining a query and entityClass (set name will be determined by the given
+     * entityClass).
+     *
+     * @param query       The query to check if any returned document exists. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return whether any document exists.
+     */
+    <T> boolean existsByQuery(Query query, Class<T> entityClass);
+
+    /**
+     * Check if any document exists by defining a query, entityClass and a given set name.
+     *
+     * @param query       The query to check if any returned document exists. Must not be {@literal null}.
+     * @param entityClass The class to translate to returned results into. Must not be {@literal null}.
+     * @param setName     The set name to check if documents exists in. Must not be {@literal null}.
+     * @return whether any document exists.
+     */
+    <T> boolean existsByQuery(Query query, Class<T> entityClass, String setName);
+
+    /**
+     * Return the amount of documents in the given entityClass's Aerospike set.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return amount of documents in the set (of the given entityClass).
+     */
+    <T> long count(Class<T> entityClass);
+
+    /**
+     * Return the amount of documents in the given Aerospike set.
+     *
+     * @param setName The name of the set to count. Must not be {@literal null}.
+     * @return amount of documents in the given set.
+     */
+    long count(String setName);
+
+    /**
      * Return the amount of documents in query results. Set name will be determined by the given entityClass.
      *
      * @param query       The query that provides the result set for count.
@@ -876,20 +1017,28 @@ public interface AerospikeOperations {
     long count(Query query, String setName);
 
     /**
-     * Return the amount of documents in the given Aerospike set.
+     * Execute query, apply statement's aggregation function, and return result iterator.
      *
-     * @param setName The name of the set to count. Must not be {@literal null}.
-     * @return amount of documents in the given set.
+     * @param filter      The filter to pass to the query.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param module      server package where user defined function resides.
+     * @param function    aggregation function name.
+     * @param arguments   arguments to pass to function name, if any.
+     * @return Result iterator.
      */
-    long count(String setName);
+    <T> ResultSet aggregate(Filter filter, Class<T> entityClass, String module, String function, List<Value> arguments);
 
     /**
-     * Return the amount of documents in the given entityClass's Aerospike set.
+     * Execute query with a given set name, apply statement's aggregation function, and return result iterator.
      *
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @return amount of documents in the set (of the given entityClass).
+     * @param filter    The filter to pass to the query.
+     * @param setName   Set name to aggregate the documents from.
+     * @param module    server package where user defined function resides.
+     * @param function  aggregation function name.
+     * @param arguments arguments to pass to function name, if any.
+     * @return Result iterator.
      */
-    <T> long count(Class<T> entityClass);
+    ResultSet aggregate(Filter filter, String setName, String module, String function, List<Value> arguments);
 
     /**
      * Create an index with the specified name in Aerospike.
@@ -986,33 +1135,4 @@ public interface AerospikeOperations {
      * @return true if exists
      */
     boolean indexExists(String indexName);
-
-    /**
-     * Find all documents in the given entityClass's set using provided {@link Qualifier}.
-     *
-     * @param entityClass The class to extract the Aerospike set from and to map the entity to. Must not be
-     *                    {@literal null}.
-     * @param filter      Secondary index filter.
-     * @param qualifier   Qualifier to build filter expressions from. Can contain other qualifiers. Must not be
-     *                    {@literal null}. If filter param is null and qualifier has
-     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
-     *                    first processed qualifier.
-     * @return Stream of entities.
-     */
-    <T> Stream<T> findAllUsingQuery(Class<T> entityClass, @Nullable Filter filter, Qualifier qualifier);
-
-    /**
-     * Find all documents in the given set using provided {@link Qualifier}.
-     *
-     * @param targetClass The class to map the entity to. Must not be {@literal null}.
-     * @param setName     Set name to find the documents in.
-     * @param filter      Secondary index filter.
-     * @param qualifier   Qualifier to build filter expressions from. Can contain other qualifiers. Must not be
-     *                    {@literal null}. If filter param is null and qualifier has
-     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
-     *                    first processed qualifier.
-     * @return Stream of entities.
-     */
-    <T> Stream<T> findAllUsingQuery(Class<T> targetClass, String setName, @Nullable Filter filter,
-                                    Qualifier qualifier);
 }

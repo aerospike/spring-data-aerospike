@@ -431,24 +431,24 @@ public class Qualifier implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Create a qualifier for the condition when the primary key is equal to the given string
+     * Create a qualifier for the condition when the primary key is equal to the given string.
      *
      * @param id String value
      * @return Single id qualifier
      */
-    public static Qualifier forId(String id) {
+    public static Qualifier idEquals(String id) {
         return new Qualifier(new IdQualifierBuilder()
             .setId(id)
             .setFilterOperation(FilterOperation.EQ));
     }
 
     /**
-     * Create a qualifier for the condition when the primary key is equal to one of the given strings (logical OR)
+     * Create a qualifier for the condition when the primary key is equal to one of the given strings (logical OR).
      *
      * @param ids String values
      * @return Multiple ids qualifier with OR condition
      */
-    public static Qualifier forIds(String... ids) {
+    public static Qualifier idIn(String... ids) {
         return new Qualifier(new IdQualifierBuilder()
             .setIds(ids)
             .setFilterOperation(FilterOperation.EQ));

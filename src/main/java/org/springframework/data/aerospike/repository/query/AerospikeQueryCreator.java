@@ -52,8 +52,8 @@ import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUE
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VALUES_NOT_CONTAIN;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_CONTAINING_BY_KEY;
 import static org.springframework.data.aerospike.query.FilterOperation.MAP_VAL_EQ_BY_KEY;
-import static org.springframework.data.aerospike.query.Qualifier.forId;
-import static org.springframework.data.aerospike.query.Qualifier.forIds;
+import static org.springframework.data.aerospike.query.Qualifier.idEquals;
+import static org.springframework.data.aerospike.query.Qualifier.idIn;
 
 /**
  * @author Peter Milne
@@ -149,9 +149,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
         if (property.isIdProperty()) {
             if (value1 instanceof Collection<?>) {
-                return new AerospikeCriteria(forIds(((Collection<?>) value1).toArray(String[]::new)));
+                return new AerospikeCriteria(idIn(((Collection<?>) value1).toArray(String[]::new)));
             }
-            return new AerospikeCriteria(forId((String) value1));
+            return new AerospikeCriteria(idEquals((String) value1));
         } else if (property.isCollectionLike()) {
             List<Object> params = new ArrayList<>();
             parameters.forEachRemaining(params::add);

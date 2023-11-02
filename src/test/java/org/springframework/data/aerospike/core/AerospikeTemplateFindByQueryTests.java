@@ -543,13 +543,13 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
             .setValue1(Value.get(fieldValue1))
             .build();
         Stream<SampleClasses.CustomCollectionClass> result1 =
-            template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, null, qualifier);
+            template.findUsingQualifier(SampleClasses.CustomCollectionClass.class, null, qualifier);
         assertThat(result1).containsOnly(doc1);
 
         // find by a predefined secondary index filter, no qualifiers
         Filter filter = Filter.equal(fieldName, fieldValue1);
         Stream<SampleClasses.CustomCollectionClass> result2 =
-            template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, filter, null);
+            template.findUsingQualifier(SampleClasses.CustomCollectionClass.class, filter, null);
         assertThat(result2).containsOnly(doc1);
 
         // find by a complex qualifier
@@ -565,12 +565,12 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
             .build();
         Qualifier qualifierOr = Qualifier.or(dataEqFieldValue1, dataEqFieldValue2);
         Stream<SampleClasses.CustomCollectionClass> result3 =
-            template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, null, qualifierOr);
+            template.findUsingQualifier(SampleClasses.CustomCollectionClass.class, null, qualifierOr);
         assertThat(result3).containsOnly(doc1, doc2);
 
         // no secondary index filter and no qualifiers
         Stream<SampleClasses.CustomCollectionClass> result4 =
-            template.findAllUsingQuery(SampleClasses.CustomCollectionClass.class, null, null);
+            template.findUsingQualifier(SampleClasses.CustomCollectionClass.class, null, null);
         assertThat(result4).contains(doc1, doc2);
 
         additionalAerospikeTestOperations.dropIndex(SampleClasses.CustomCollectionClass.class,
