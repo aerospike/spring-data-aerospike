@@ -62,9 +62,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
         .build();
     static final Person stefan = Person.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34).build();
-    static final Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(44).build();
+    static final Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(44)
+        .intArray(new int[]{5, 6, 7, 8, 9, 10}).build();
     static final Person leroi2 = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(25).build();
-    static final Person matias = Person.builder().id(nextId()).firstName("Matias").lastName("Craft").age(24).build();
+    static final Person matias = Person.builder().id(nextId()).firstName("Matias").lastName("Craft").age(24)
+        .intArray(new int[]{1, 2, 3, 4, 5}).build();
     static final Person douglas = Person.builder().id(nextId()).firstName("Douglas").lastName("Ford").age(25).build();
     public static final List<Person> allPersons = List.of(dave, donny, oliver, alicia, carter, boyd, stefan,
         leroi, leroi2, matias, douglas);
@@ -186,6 +188,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findByArrayContainingInteger_forExistingResult() {
+        assertThat(repository.findByIntArrayContaining(1)).containsOnly(matias);
+        assertThat(repository.findByIntArrayContaining(5)).containsOnly(matias, leroi);
+        assertThat(repository.findByIntArrayContaining(10)).containsOnly(leroi);
+
+        assertThat(repository.findByIntArrayContaining(1, 2)).containsOnly(matias);
+        assertThat(repository.findByIntArrayContaining(6, 7)).containsOnly(leroi);
+    }
+
+    @Test
     void findByBooleanInt() {
         boolean initialValue = Value.UseBoolBin;
         Value.UseBoolBin = false; // save boolean as int
@@ -268,6 +280,23 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(persons).isEmpty();
 
         assertThatThrownBy(() -> repository.findByIntsGreaterThan(Long.MAX_VALUE))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("LIST_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
+    }
+
+    @Test
+    void findByArrayValueGreaterThanNumber() {
+        List<Person> persons;
+        persons = repository.findByIntArrayGreaterThan(1);
+        assertThat(persons).containsOnly(matias, leroi);
+
+        persons = repository.findByIntArrayGreaterThan(Long.MIN_VALUE);
+        assertThat(persons).containsOnly(matias, leroi);
+
+        persons = repository.findByIntArrayGreaterThan(Long.MAX_VALUE - 1);
+        assertThat(persons).isEmpty();
+
+        assertThatThrownBy(() -> repository.findByIntArrayGreaterThan(Long.MAX_VALUE))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("LIST_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
     }
