@@ -90,7 +90,7 @@ Data Aerospike - Projections]
 
 == Quick Start
 
-=== Maven configuration
+=== 1. Maven configuration
 
 Add the `spring-data-aerospike` Maven dependency:
 
@@ -109,7 +109,7 @@ Notes:
 https://github.com/aerospike/spring-data-aerospike/releases[GitHub releases] to find out the latest version number.
 * Spring Data Aerospike uses the Aerospike Java Client (and Aerospike Reactive Java Client) under the hood.
 
-=== AerospikeRepository
+=== 2. AerospikeRepository
 
 `AerospikeRepository` is the simplest way to interact with Aerospike using Spring Data Aerospike.
 
@@ -134,7 +134,7 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 
 For non-blocking reactive API use `ReactiveAerospikeRepository`.
 
-=== Configuration
+=== 3. Configuration
 
 In order to configure Spring Data Aerospike you will need to create a configuration class that extends
 `AbstractAerospikeDataConfiguration`, defines the relevant Spring Data Repositories via `@EnableAerospikeRepositories`
