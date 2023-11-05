@@ -202,20 +202,19 @@ public class PersonService {
 
 === AerospikeOperations
 
-`AerospikeOperations` is the pivotal interface for Aerospike database
-operations which is implemented by `AerospikeTemplate` class.
+`AerospikeOperations` is the base interface for Aerospike database operations. It is implemented by
+`AerospikeTemplate` class.
 
-It's a lower-level alternative to the AerospikeRepository, it supports a wider variety of operations,
-provides more flexibility but the tradeoff is that it requires a bit more code writing and less out-of-the-box
-functionality.
+As a lower-level alternative to `AerospikeRepository`, `AerospikeOperations` supports wider variety of operations and
+greater flexibility, but requires a bit more code writing and less out-of-the-box functionality.
 
-AerospikeOperations supported features are:
+Features supported by `AerospikeOperations`:
 
-* Basic POJO mapping support to and from Aerospike bins
-* Convenience CRUD (Create, Read, Update and Delete) methods to interact with Aerospike
+* Basic support for mapping POJOs to and from Aerospike bins
+* Convenience CRUD (Create, Read, Update and Delete) methods for interacting with Aerospike
 * Rich Query API
 * Access to the native Aerospike Java Client (reactive and non-reactive)
-* Exception translation into Spring’s
+* Translating exceptions into Spring's
 https://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions[technology-agnostic
 DAO exception hierarchy]
 
@@ -224,27 +223,23 @@ For non-blocking reactive API use `ReactiveAerospikeOperations`.
 == Getting Help
 
 * See <<Documentation, documentation section>>
-* You can review questions or open a new question on
-https://stackoverflow.com/questions/tagged/spring-data-aerospike[Spring Data Aerospike on StackOverflow], and we will
-try to assist as soon as possible
+* Ask a specific question using
+https://stackoverflow.com/questions/tagged/spring-data-aerospike[Spring Data Aerospike tag on StackOverflow]
 
 == Contributing to Spring Data Aerospike
 
 Here are some ways you can get involved:
 
-* Get involved with the Spring community on StackOverflow and help out
-on the
-https://stackoverflow.com/questions/tagged/spring-data-aerospike[spring-data-aerospike]
-tag by responding to questions and joining the debate.
-* Create
+* Help out on the StackOverflow https://stackoverflow.com/questions/tagged/spring-data-aerospike[spring-data-aerospike]
+tag by responding to questions and joining the debate
+* Create a
 https://github.com/aerospike/spring-data-aerospike/issues[GitHub
-issue] for bugs and new feature requests and comment and vote on the ones that
-you are interested in.
-* GitHub is for social coding: if you want to write code, we encourage
-contributions through pull requests from
-https://help.github.com/forking/[forks of this repository]. If you want
-to contribute code this way, please reference a GitHub issue as well
-covering the specific case you are addressing.
+issue] for a feature request or bug fixing, comment and vote on the ones that
+you are interested in
+* GitHub is for social coding: we encourage contributions through pull requests from
+https://help.github.com/forking/[forks of this repository]. when contributing code,
+please reference a specific GitHub issue you are addressing
+covering the specific case you are addressing
 * Watch for upcoming articles by
 https://www.aerospike.com/forms/subscribe-the-aerospike-standup/[subscribing]
-to Aerospike Stand-Up.
+to Aerospike Stand-Up
