@@ -106,8 +106,8 @@ Add the `spring-data-aerospike` Maven dependency:
 Notes:
 
 * It is recommended to use the latest version of Spring Data Aerospike, checkout Spring Data Aerospike
-https://github.com/aerospike/spring-data-aerospike/releases[GitHub releases] to find out the latest version number.
-* Spring Data Aerospike uses the Aerospike Java Client (and Aerospike Reactive Java Client) under the hood.
+https://github.com/aerospike/spring-data-aerospike/releases[GitHub releases].
+* Spring Data Aerospike uses the https://github.com/aerospike/aerospike-client-java[Aerospike Java Client] (and https://github.com/aerospike/aerospike-client-java-reactive[Aerospike Reactive Java Client]) under the hood.
 
 === 2. AerospikeRepository
 
@@ -211,7 +211,7 @@ functionality.
 
 AerospikeOperations supported features are:
 
-* Basic POJO mapping support to and from Bins
+* Basic POJO mapping support to and from Aerospike bins
 * Convenience CRUD (Create, Read, Update and Delete) methods to interact with Aerospike
 * Rich Query API
 * Access to the native Aerospike Java Client (reactive and non-reactive)
