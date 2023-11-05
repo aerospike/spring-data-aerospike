@@ -114,7 +114,7 @@ https://github.com/aerospike/spring-data-aerospike/releases[GitHub releases] to 
 `AerospikeRepository` is the simplest way to interact with Aerospike using Spring Data Aerospike.
 
 Create your own custom repository that extends `AerospikeRepository` which will provide out-of-the-box CRUD operations
-and query implementations so that you easily save, find, delete and query single entities and collections of them.
+and query implementations, so you can easily save, find, delete and query single entities and collections of them.
 
 Implementation will be determined by the method names automatically, no need to write any implementation.
 
@@ -138,7 +138,7 @@ For non-blocking reactive API use `ReactiveAerospikeRepository`.
 
 In order to configure Spring Data Aerospike you will need to create a configuration class that extends
 `AbstractAerospikeDataConfiguration`, defines the relevant Spring Data Repositories via `@EnableAerospikeRepositories`
-annotation and overrides `getHosts()` and `nameSpace()` methods with the requested connection details.
+annotation and overrides `getHosts()` and `nameSpace()` methods with the required connection details.
 
 You can optionally override other methods of `AbstractAerospikeDataConfiguration` to customize your configuration.
 
@@ -168,7 +168,7 @@ Below is an example of a service that uses PersonRepository operations.
 
 * `deleteAll` and `save` are provided automatically by extending `AerospikeRepository` interface.
 * `findByFirstnameLike` and `findByLastname` methods were defined in `PersonRepository` but there was no need to write
-the actual implementation, it was determined automatically by the method names behind the scenes.
+the actual implementation, it is determined automatically from the method names.
 
 [source,java]
 ----
@@ -192,9 +192,9 @@ public class PersonService {
         // Save the new created person
         personRepository.save(person);
 
-        // Get all persons that their first name starts with "Jo"
+        // Get all persons whose first name starts with "Jo"
         List<Person> firstNameResults = personRepository.findByFirstnameLike("Jo*");
-        // Get all persons that their last name is equal to "Smith"
+        // Get all persons whose last name is equal to "Smith"
         List<Person> lastNameResults = personRepository.findByLastname("Smith");
     }
 }
@@ -202,7 +202,7 @@ public class PersonService {
 
 === AerospikeOperations
 
-`AerospikeOperations` is the central support interface for Aerospike database
+`AerospikeOperations` is the pivotal interface for Aerospike database
 operations which is implemented by `AerospikeTemplate` class.
 
 It's a lower-level alternative to the AerospikeRepository, it supports a wider variety of operations,
@@ -225,14 +225,14 @@ For non-blocking reactive API use `ReactiveAerospikeOperations`.
 
 * See <<Documentation, documentation section>>
 * You can review questions or open a new question on
-https://stackoverflow.com/questions/tagged/spring-data-aerospike[Spring Data Aerospike on StackOverFlow], and we will
+https://stackoverflow.com/questions/tagged/spring-data-aerospike[Spring Data Aerospike on StackOverflow], and we will
 try to assist as soon as possible
 
 == Contributing to Spring Data Aerospike
 
 Here are some ways you can get involved:
 
-* Get involved with the Spring community on StackOverFlow and help out
+* Get involved with the Spring community on StackOverflow and help out
 on the
 https://stackoverflow.com/questions/tagged/spring-data-aerospike[spring-data-aerospike]
 tag by responding to questions and joining the debate.
