@@ -22,14 +22,14 @@ writing a repository style data access layer.
 * Java code documentation on https://www.javadoc.io/doc/com.aerospike/spring-data-aerospike[javadoc.io]
 * Aerospike https://docs.aerospike.com/[Official Documentation]
 * If you are new to Spring as well as to Spring Data, look for information
-about https://projects.spring.io/[Spring Projects].
+about https://projects.spring.io/[Spring Projects]
 
 == Examples
 
 . Demo project example with a step-by-step tutorial can be found
-https://github.com/aerospike-examples/simple-springboot-aerospike-demo[here].
+https://github.com/aerospike-examples/simple-springboot-aerospike-demo[here]
 . Demo project with detailed guides is located
-https://github.com/aerospike-community/spring-data-aerospike-demo[here].
+https://github.com/aerospike-community/spring-data-aerospike-demo[here]
 
 == Getting Started Blog Posts
 
@@ -106,8 +106,9 @@ Add the `spring-data-aerospike` Maven dependency:
 Notes:
 
 * It is recommended to use the latest version of Spring Data Aerospike, checkout Spring Data Aerospike
-https://github.com/aerospike/spring-data-aerospike/releases[GitHub releases].
-* Spring Data Aerospike uses the https://github.com/aerospike/aerospike-client-java[Aerospike Java Client] (and https://github.com/aerospike/aerospike-client-java-reactive[Aerospike Reactive Java Client]) under the hood.
+https://github.com/aerospike/spring-data-aerospike/releases[GitHub releases]
+* Spring Data Aerospike uses the https://github.com/aerospike/aerospike-client-java[Aerospike Java Client]
+(and https://github.com/aerospike/aerospike-client-java-reactive[Aerospike Reactive Java Client]) under the hood
 
 === 2. AerospikeRepository
 
@@ -164,11 +165,11 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 === Usage
 
-Below is an example of a service that uses PersonRepository operations.
+Below is an example of a service that uses `PersonRepository` operations.
 
-* `deleteAll` and `save` are provided automatically by extending `AerospikeRepository` interface.
+* `deleteAll` and `save` are provided automatically by extending `AerospikeRepository` interface
 * `findByFirstnameLike` and `findByLastname` methods were defined in `PersonRepository` but there was no need to write
-the actual implementation, it is determined automatically from the method names.
+the actual implementation, it is determined automatically from the method names
 
 [source,java]
 ----
