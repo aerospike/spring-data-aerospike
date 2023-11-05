@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
@@ -1254,7 +1255,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(50000L)
             .build();
-        assertThat(repository.findByQualifier(sinceUpdateTimeLt10Seconds)).containsAll(allPersons);
+        assertThat(repository.findUsingQuery(new Query(sinceUpdateTimeLt10Seconds))).containsAll(allPersons);
 
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
@@ -1263,12 +1264,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setValue1AsObj(1L)
             .setValue2AsObj(50000L)
             .build();
-        assertThat(repository.findByQualifier(sinceUpdateTimeBetween1And50000))
-            .containsAll(repository.findByQualifier(sinceUpdateTimeLt10Seconds));
+        assertThat(repository.findUsingQuery(new Query(sinceUpdateTimeBetween1And50000)))
+            .containsAll(repository.findUsingQuery(new Query(sinceUpdateTimeLt10Seconds)));
     }
 
     @Test
-    public void findPersonsByQualifiers() {
+    public void findPersonsByQuery() {
         Iterable<Person> result;
 
         // creating a condition "since_update_time metadata value is greater than 1 millisecond"
@@ -1284,7 +1285,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(50000L)
             .build();
-        assertThat(repository.findByQualifier(sinceUpdateTimeLt50Seconds)).containsAll(allPersons);
+        assertThat(repository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds))).containsAll(allPersons);
 
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
@@ -1294,7 +1295,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setValue2AsObj(50000L)
             .build();
 
-        // creating a condition "firsName is equal to Carter"
+        // creating a condition "firstName is equal to Carter"
         Qualifier firstNameEqCarter = Qualifier.builder()
             .setField("firstName")
             .setFilterOperation(FilterOperation.EQ)
@@ -1307,8 +1308,20 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(49))
             .build();
-        result = repository.findByQualifier(ageEq49);
+        result = repository.findUsingQuery(new Query(ageEq49));
         assertThat(result).containsOnly(carter);
+
+        // creating a condition "firstName is equal to Leroi" with sorting by age and limiting by 1 row
+        Qualifier firstNameEqLeroi = Qualifier.builder()
+            .setField("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue1(Value.get("Leroi"))
+            .build();
+        Query query = new Query(firstNameEqLeroi);
+        query.setSort(Sort.by("age"));
+        query.setRows(1);
+        result = repository.findUsingQuery(query);
+        assertThat(result).containsOnly(leroi2);
 
         // creating a condition "age is greater than 49"
         Qualifier ageGt49 = Qualifier.builder()
@@ -1316,119 +1329,119 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setField("age")
             .setValue1(Value.get(49))
             .build();
-        result = repository.findByQualifier(ageGt49);
+        result = repository.findUsingQuery(new Query(ageGt49));
         assertThat(result).doesNotContain(carter);
 
         // creating a condition "id equals Carter's id"
         Qualifier keyEqCartersId = Qualifier.forId(carter.getId());
-        result = repository.findByQualifier(keyEqCartersId);
+        result = repository.findUsingQuery(new Query(keyEqCartersId));
         assertThat(result).containsOnly(carter);
 
         // creating a condition "id equals Boyd's id"
         Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
-        result = repository.findByQualifier(keyEqBoydsId);
+        result = repository.findUsingQuery(new Query(keyEqBoydsId));
         assertThat(result).containsOnly(boyd);
 
         // analogous to {@link SimpleAerospikeRepository#findAllById(Iterable)}
         // creating a condition "id equals Carter's id OR Boyd's id"
         Qualifier keyEqMultipleIds = Qualifier.forIds(carter.getId(), boyd.getId());
-        result = repository.findByQualifier(keyEqMultipleIds);
+        result = repository.findUsingQuery(new Query(keyEqMultipleIds));
         assertThat(result).containsOnly(carter, boyd);
 
         // metadata and id qualifiers combined with AND
         // not more than one id qualifier is allowed, otherwise the conditions will not overlap
-        result = repository.findByQualifier(Qualifier.and(sinceUpdateTimeGt1, keyEqCartersId));
+        result = repository.findUsingQuery(new Query(Qualifier.and(sinceUpdateTimeGt1, keyEqCartersId)));
         assertThat(result).containsOnly(carter);
 
         // the same qualifiers in different order
-        result = repository.findByQualifier(Qualifier.and(keyEqCartersId, sinceUpdateTimeGt1));
+        result = repository.findUsingQuery(new Query(Qualifier.and(keyEqCartersId, sinceUpdateTimeGt1)));
         assertThat(result).containsOnly(carter);
 
-        result = repository.findByQualifier(Qualifier.and(sinceUpdateTimeGt1,
+        result = repository.findUsingQuery(new Query(Qualifier.and(sinceUpdateTimeGt1,
             sinceUpdateTimeLt50Seconds, ageEq49, firstNameEqCarter,
-            sinceUpdateTimeBetween1And50000, keyEqCartersId));
+            sinceUpdateTimeBetween1And50000, keyEqCartersId)));
         assertThat(result).containsOnly(carter);
 
         // conditions "age == 49", "firstName is Carter" and "since_update_time metadata value is less than 50 seconds"
         // are combined with OR
         Qualifier orWide = Qualifier.or(ageEq49, firstNameEqCarter, sinceUpdateTimeLt50Seconds);
-        result = repository.findByQualifier(orWide);
+        result = repository.findUsingQuery(new Query(orWide));
         assertThat(result).containsAll(allPersons);
 
         // conditions "age == 49" and "firstName is Carter" are combined with OR
         Qualifier orNarrow = Qualifier.or(ageEq49, firstNameEqCarter);
-        result = repository.findByQualifier(orNarrow);
+        result = repository.findUsingQuery(new Query(orNarrow));
         assertThat(result).containsOnly(carter);
 
         // conditions "age == 49" and "age > 49" are not overlapping
-        result = repository.findByQualifier(Qualifier.and(ageEq49, ageGt49));
+        result = repository.findUsingQuery(new Query(Qualifier.and(ageEq49, ageGt49)));
         assertThat(result).isEmpty();
 
         // conditions "age == 49" and "age > 49" are combined with OR
         Qualifier ageEqOrGt49 = Qualifier.or(ageEq49, ageGt49);
 
-        result = repository.findByQualifier(ageEqOrGt49);
+        result = repository.findUsingQuery(new Query(ageEqOrGt49));
         List<Person> personsWithAgeEqOrGt49 = allPersons.stream().filter(person -> person.getAge() >= 49).toList();
         assertThat(result).containsAll(personsWithAgeEqOrGt49);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
-        result = repository.findByQualifier(Qualifier.and(orWide, orNarrow));
+        result = repository.findUsingQuery(new Query(Qualifier.and(orWide, orNarrow)));
         assertThat(result).containsOnly(carter);
 
         // a condition that returns all entities and a condition that returns one entity are combined using AND
         // another way of running the same query
         Qualifier orCombinedWithAnd = Qualifier.and(orWide, orNarrow);
-        result = repository.findByQualifier(orCombinedWithAnd);
+        result = repository.findUsingQuery(new Query(orCombinedWithAnd));
         assertThat(result).containsOnly(carter);
     }
 
     @Test
     public void findPersonsByQualifiersMustBeValid() {
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue1AsObj(1L)
-            .build()))
+            .build())))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("BETWEEN: value2 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue2AsObj(1L)
-            .build()))
+            .build())))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("BETWEEN: value1 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
             .setValue1AsObj(1)
-            .build()))
+            .build())))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("GT: value1 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(1)
-            .build()))
+            .build())))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("LT: value1 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LTEQ)
             .setValue1AsObj(Value.get(1))
-            .build()))
+            .build())))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("LTEQ: value1 is expected to be set as Long");
 
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.metadataBuilder()
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue1AsObj(1L)
-            .build()))
+            .build())))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Operation STARTS_WITH cannot be applied to metadataField");
 
@@ -1436,19 +1449,19 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
 
         // not more than one id qualifier is allowed
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.and(keyEqCartersId,
-            keyEqBoydsId)))
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.and(keyEqCartersId,
+            keyEqBoydsId))))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
 
         // not more than one id qualifier is allowed
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.and(keyEqCartersId,
-            keyEqBoydsId)))
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.and(keyEqCartersId,
+            keyEqBoydsId))))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
 
         // not more than one id qualifier is allowed
-        assertThatThrownBy(() -> repository.findByQualifier(Qualifier.or(keyEqCartersId, keyEqBoydsId)))
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.or(keyEqCartersId, keyEqBoydsId))))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Expecting not more than one id qualifier in qualifiers array, got 2");
     }

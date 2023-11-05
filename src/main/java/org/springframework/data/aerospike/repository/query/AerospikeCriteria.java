@@ -21,7 +21,9 @@ import org.springframework.data.aerospike.query.Qualifier;
 /**
  * @author Michael Zhang
  * @author Jeff Boone
+ * @deprecated Since 4.6.0. Use {@link Qualifier}
  */
+@Deprecated(since = "4.6.0", forRemoval = true)
 public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 
     public AerospikeCriteria(Qualifier.Builder builder) {

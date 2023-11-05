@@ -40,7 +40,7 @@ import java.util.Set;
  *
  * @author Peter Milne
  */
-public class Qualifier implements Map<String, Object>, Serializable {
+public class Qualifier implements Map<String, Object>, Serializable, CriteriaDefinition {
 
     protected static final String FIELD = "field";
     protected static final String METADATA_FIELD = "metadata_field";
@@ -70,6 +70,16 @@ public class Qualifier implements Map<String, Object>, Serializable {
         if (!qualifier.getMap().isEmpty()) {
             internalMap.putAll(qualifier.getMap());
         }
+    }
+
+    @Override
+    public Qualifier getCriteriaObject() {
+        return this;
+    }
+
+    @Override
+    public String getKey() {
+        return this.getField();
     }
 
     private Map<String, Object> getMap() {

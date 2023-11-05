@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Key;
 import com.aerospike.client.Value;
+import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.support.SimpleAerospikeRepository;
 
 import java.io.Serial;
@@ -27,7 +28,8 @@ import java.io.Serial;
  *
  * @author peter
  * @deprecated Since 4.6.0. Use {@link SimpleAerospikeRepository#findById(Object)} or
- * {@link SimpleAerospikeRepository#findByQualifier(Qualifier)} with {@link Qualifier#forId(String)}
+ * {@link AerospikeRepository#findUsingQuery(org.springframework.data.aerospike.repository.query.Query)} with
+ * {@link Qualifier#forId(String)}
  */
 @Deprecated(since = "4.6.0", forRemoval = true)
 public class KeyQualifier extends Qualifier {
