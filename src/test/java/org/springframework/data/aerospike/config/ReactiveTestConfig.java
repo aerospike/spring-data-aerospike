@@ -3,7 +3,14 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.async.EventLoops;
-import com.aerospike.client.async.NioEventLoops;
+import com.aerospike.client.async.EventPolicy;
+import com.aerospike.client.async.NettyEventLoops;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
@@ -63,23 +71,22 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
 
     @Override
     protected EventLoops eventLoops() {
-        return new NioEventLoops();
-        // TODO: support parameterized EventLoopType
-        /*
-		case DIRECT_NIO: {
-			return new NioEventLoops(1);
-		}
+        int nThreads = Math.max(2, Runtime.getRuntime().availableProcessors() * 2);
+        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
 
-		case NETTY_NIO: {
-			EventLoopGroup group = new NioEventLoopGroup(1);
-			return new NettyEventLoops(group);
-		}
+        EventLoopGroup eventLoopGroup;
+        if (os.contains("nux") && Epoll.isAvailable()) {
+            eventLoopGroup = new EpollEventLoopGroup(nThreads);
+        } else if (os.contains("mac") && KQueue.isAvailable()) {
+            eventLoopGroup = new KQueueEventLoopGroup(nThreads);
+        } else {
+            eventLoopGroup = new NioEventLoopGroup(nThreads);
+        }
 
-		case NETTY_EPOLL: {
-			EventLoopGroup group = new EpollEventLoopGroup(1);
-			return new NettyEventLoops(group);
-		}
-         */
+        EventPolicy eventPolicy = new EventPolicy();
+        eventPolicy.maxCommandsInProcess = 40;
+        eventPolicy.maxCommandsInQueue = 1024;
+        return new NettyEventLoops(eventPolicy, eventLoopGroup);
     }
 
     @Override
