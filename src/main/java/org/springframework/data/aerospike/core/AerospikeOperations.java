@@ -448,7 +448,7 @@ public interface AerospikeOperations {
 
     /**
      * Add integer/double bin values to existing document bin values with a given set name, read the new modified
-     * document and map it back the given document class type.
+     * document and map it back to the given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be
      *                 {@literal null}.
@@ -472,7 +472,7 @@ public interface AerospikeOperations {
 
     /**
      * Add integer/double bin value to existing document bin value with a given set name, read the new modified document
-     * and map it back the given document class type.
+     * and map it back to the given document class type.
      *
      * @param document The document to extract the Aerospike set from and to map the documents to. Must not be
      *                 {@literal null}.
@@ -496,7 +496,7 @@ public interface AerospikeOperations {
 
     /**
      * Append bin string values to existing document bin values with a given set name, read the new modified document
-     * and map it back the given document class type.
+     * and map it back to the given document class type.
      *
      * @param document The document to map the document to. Must not be {@literal null}.
      * @param setName  Set name for the operation.
@@ -519,7 +519,7 @@ public interface AerospikeOperations {
 
     /**
      * Append bin string value to existing document bin value with a given set name, read the new modified document and
-     * map it back the given document class type.
+     * map it back to the given document class type.
      *
      * @param document The document to map the document to. Must not be {@literal null}.
      * @param setName  Set name for the operation.
@@ -542,7 +542,7 @@ public interface AerospikeOperations {
 
     /**
      * Prepend bin string values to existing document bin values with a given set name, read the new modified document
-     * and map it back the given document class type.
+     * and map it back to the given document class type.
      *
      * @param document The document to map the document to. Must not be {@literal null}.
      * @param setName  Set name for the operation.
@@ -565,7 +565,7 @@ public interface AerospikeOperations {
 
     /**
      * Prepend bin string value to existing document bin value with a given set name, read the new modified document and
-     * map it back the given document class type.
+     * map it back to the given document class type.
      *
      * @param document The document to map the document to. Must not be {@literal null}.
      * @param setName  Set name for the operation.

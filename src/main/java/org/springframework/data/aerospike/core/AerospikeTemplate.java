@@ -431,7 +431,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             .map(id -> getKey(id, setName))
             .toArray(Key[]::new);
 
-        checkForErrors(client, keys);
+        deleteAndHandleErrors(client, keys);
     }
 
     @Override
@@ -445,7 +445,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private void deleteGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
-        checkForErrors(client, entitiesKeys.getKeys());
+        deleteAndHandleErrors(client, entitiesKeys.getKeys());
     }
 
     @Override
@@ -465,7 +465,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    private void checkForErrors(IAerospikeClient client, Key[] keys) {
+    private void deleteAndHandleErrors(IAerospikeClient client, Key[] keys) {
         BatchResults results;
         try {
             // requires server ver. >= 6.0.0

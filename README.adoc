@@ -238,9 +238,8 @@ https://github.com/aerospike/spring-data-aerospike/issues[GitHub
 issue] for a feature request or bug fixing, comment and vote on the ones that
 you are interested in
 * GitHub is for social coding: we encourage contributions through pull requests from
-https://help.github.com/forking/[forks of this repository]. when contributing code,
-please reference a specific GitHub issue you are addressing
-covering the specific case you are addressing
+https://help.github.com/forking/[forks of this repository]. When contributing code, please reference a specific
+GitHub issue you are addressing
 * Watch for upcoming articles by
 https://www.aerospike.com/forms/subscribe-the-aerospike-standup/[subscribing]
 to Aerospike Stand-Up
