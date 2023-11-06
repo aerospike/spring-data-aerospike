@@ -1320,18 +1320,18 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(result).doesNotContain(carter);
 
         // creating a condition "id equals Carter's id"
-        Qualifier keyEqCartersId = Qualifier.forId(carter.getId());
+        Qualifier keyEqCartersId = Qualifier.idEquals(carter.getId());
         result = repository.findByQualifier(keyEqCartersId);
         assertThat(result).containsOnly(carter);
 
         // creating a condition "id equals Boyd's id"
-        Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
+        Qualifier keyEqBoydsId = Qualifier.idEquals(boyd.getId());
         result = repository.findByQualifier(keyEqBoydsId);
         assertThat(result).containsOnly(boyd);
 
         // analogous to {@link SimpleAerospikeRepository#findAllById(Iterable)}
         // creating a condition "id equals Carter's id OR Boyd's id"
-        Qualifier keyEqMultipleIds = Qualifier.forIds(carter.getId(), boyd.getId());
+        Qualifier keyEqMultipleIds = Qualifier.idIn(carter.getId(), boyd.getId());
         result = repository.findByQualifier(keyEqMultipleIds);
         assertThat(result).containsOnly(carter, boyd);
 
@@ -1432,8 +1432,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Operation STARTS_WITH cannot be applied to metadataField");
 
-        Qualifier keyEqCartersId = Qualifier.forId(carter.getId());
-        Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
+        Qualifier keyEqCartersId = Qualifier.idEquals(carter.getId());
+        Qualifier keyEqBoydsId = Qualifier.idEquals(boyd.getId());
 
         // not more than one id qualifier is allowed
         assertThatThrownBy(() -> repository.findByQualifier(Qualifier.and(keyEqCartersId,
