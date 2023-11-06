@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
@@ -193,7 +194,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
 
     @Test
     public void find_throwsExceptionForUnsortedQueryWithSpecifiedOffsetValue() {
-        Query query = new Query((Sort) null);
+        Query query = new Query((Qualifier) null);
         query.setOffset(1);
 
         assertThatThrownBy(() -> reactiveTemplate.find(query, Person.class)

@@ -33,7 +33,8 @@ public class Query {
     private long offset = NOT_SPECIFIED;
     private int rows = NOT_SPECIFIED;
     private CriteriaDefinition criteria;
-    @Setter @Getter
+    @Setter
+    @Getter
     private boolean isDistinct;
 
     /**
@@ -49,7 +50,9 @@ public class Query {
      * Creates new instance of {@link Query} with given {@link Sort}.
      *
      * @param sort can be {@literal null}.
+     * @deprecated Since 4.6.0. Use {@link Query#Query(CriteriaDefinition)}} instead
      */
+    @Deprecated(since = "4.6.0", forRemoval = true)
     public Query(Sort sort) {
         this.sort = sort;
     }
