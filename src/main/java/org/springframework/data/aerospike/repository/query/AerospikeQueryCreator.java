@@ -44,8 +44,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.aerospike.query.FilterOperation.*;
-import static org.springframework.data.aerospike.query.Qualifier.forId;
-import static org.springframework.data.aerospike.query.Qualifier.forIds;
+import static org.springframework.data.aerospike.query.Qualifier.idEquals;
+import static org.springframework.data.aerospike.query.Qualifier.idIn;
 
 /**
  * @author Peter Milne
@@ -155,9 +155,9 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         if (value1 instanceof Collection<?>) {
             // currently id can only be a String
             List<String> ids = ((Collection<?>) value1).stream().map(String::valueOf).toList();
-            qualifier = forIds(ids.toArray(String[]::new));
+            qualifier = idIn(ids.toArray(String[]::new));
         } else {
-            qualifier = forId((String) value1);
+            qualifier = idEquals((String) value1);
         }
         return qualifier;
     }

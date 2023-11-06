@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.cdt.CTX;
+import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
@@ -178,6 +179,28 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> insertAll(Iterable<? extends T> documents, String setName);
 
     /**
+     * Reactively persist a document using specified WritePolicy.
+     *
+     * @param document    The document to persist. Must not be {@literal null}.
+     * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
+     *                    {@literal null}.
+     * @return A Mono of the new persisted document.
+     */
+    <T> Mono<T> persist(T document, WritePolicy writePolicy);
+
+    /**
+     * Reactively persist a document using specified WritePolicy and a given set (overrides the set associated with the
+     * document).
+     *
+     * @param document    The document to persist. Must not be {@literal null}.
+     * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
+     *                    {@literal null}.
+     * @param setName     Set name to override the set associated with the document.
+     * @return A Mono of the new persisted document.
+     */
+    <T> Mono<T> persist(T document, WritePolicy writePolicy, String setName);
+
+    /**
      * Reactively update document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
      * combined with removing bins at first (analogous to
      * {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the version
@@ -260,6 +283,142 @@ public interface ReactiveAerospikeOperations {
      * {@link org.springframework.dao.DataAccessException} if batch operation failed.
      */
     <T> Flux<T> updateAll(Iterable<? extends T> documents, String setName);
+
+    /**
+     * Reactively truncate/delete all the documents in the given entity's set.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @deprecated since 4.6.0, use deleteAll(Class<T> entityClass) instead.
+     */
+    <T> Mono<Void> delete(Class<T> entityClass);
+
+    /**
+     * Reactively delete document by id, set name will be determined by the given entityClass.
+     *
+     * @param id          The id of the document to delete. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return A Mono of whether the document existed on server before deletion.
+     * @deprecated since 4.6.0, use deleteById(Object id, Class<T> entityClass) instead.
+     */
+    <T> Mono<Boolean> delete(Object id, Class<T> entityClass);
+
+    /**
+     * Reactively delete document.
+     *
+     * @param document The document to delete. Must not be {@literal null}.
+     * @return A Mono of whether the document existed on server before deletion.
+     */
+    <T> Mono<Boolean> delete(T document);
+
+    /**
+     * Reactively delete document with a given set name.
+     *
+     * @param document The document to delete. Must not be {@literal null}.
+     * @param setName  Set name to delete the document.
+     * @return A Mono of whether the document existed on server before deletion.
+     */
+    <T> Mono<Boolean> delete(T document, String setName);
+
+    /**
+     * Reactively delete document by id, set name will be determined by the given entityClass.
+     *
+     * @param id          The id of the document to delete. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return A Mono of whether the document existed on server before deletion.
+     */
+    <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass);
+
+    /**
+     * Reactively delete document by id with a given set name.
+     *
+     * @param id      The id of the document to delete. Must not be {@literal null}.
+     * @param setName Set name to delete the document.
+     * @return A Mono of whether the document existed on server before deletion.
+     */
+    Mono<Boolean> deleteById(Object id, String setName);
+
+    /**
+     * Reactively delete documents by providing multiple ids using a single batch delete operation, set name will be
+     * determined by the given entityClass.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
+     *                    {@literal null}.
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
+
+    /**
+     * Reactively delete documents by providing multiple ids using a single batch delete operation with a given set
+     * name.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to delete the document.
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    Mono<Void> deleteByIds(Iterable<?> ids, String setName);
+
+    /**
+     * Reactively delete documents by providing multiple ids using a single batch delete operation, set name will be
+     * determined by the given entityClass.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
+     *                    {@literal null}.
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    <T> Mono<Void> deleteByIds(Collection<?> ids, Class<T> entityClass);
+
+    /**
+     * Reactively delete documents by providing multiple ids using a single batch delete operation with a given set
+     * name.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to delete the document.
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    Mono<Void> deleteByIds(Collection<?> ids, String setName);
+
+    /**
+     * Executes a single batch delete for several entities.
+     * <p>
+     * Aerospike provides functionality to delete documents from different sets in 1 batch request. The methods allow to
+     * put grouped keys by entity type as parameter and get result as spring data aerospike entities grouped by entity
+     * type.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param groupedKeys Must not be {@literal null}.
+     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
+     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     */
+    Mono<Void> deleteByIds(GroupedKeys groupedKeys);
+
+    /**
+     * Reactively truncate/delete all the documents in the given entity's set.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     */
+    <T> Mono<Void> deleteAll(Class<T> entityClass);
+
+    /**
+     * Reactively truncate/delete all the documents in the given entity's set.
+     *
+     * @param setName Set name to truncate/delete all the documents in.
+     */
+    Mono<Void> deleteAll(String setName);
 
     /**
      * Reactively add integer/double bin values to existing document bin values, read the new modified document and map
@@ -406,69 +565,12 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> prepend(T document, String setName, String binName, String value);
 
     /**
-     * Reactively find all documents in the given entityClass's set and map them to the given class type.
+     * Reactively execute operation against underlying store.
      *
-     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
-     *                    {@literal null}.
-     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
+     * @param supplier must not be {@literal null}.
+     * @return A Mono of the execution result.
      */
-    <T> Flux<T> findAll(Class<T> entityClass);
-
-    /**
-     * Reactively find all documents in the given entityClass's set and map them to the given target class type.
-     *
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
-     */
-    <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass);
-
-    /**
-     * Reactively find all documents in the given set and map them to the given class type.
-     *
-     * @param targetClass The class to map the documents to. Must not be {@literal null}.
-     * @param setName     The set name to find the document.
-     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
-     */
-    <T> Flux<T> findAll(Class<T> targetClass, String setName);
-
-    /**
-     * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given
-     * class type.
-     *
-     * @param sort        The sort to affect the returned iterable documents order.
-     * @param offset      The offset to start the range from.
-     * @param limit       The limit of the range.
-     * @param entityClass The class to extract the Aerospike set from and to map the documents to.
-     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
-     */
-    <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass);
-
-    /**
-     * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given
-     * target class type.
-     *
-     * @param sort        The sort to affect the returned iterable documents order.
-     * @param offset      The offset to start the range from.
-     * @param limit       The limit of the range.
-     * @param entityClass The class to extract the Aerospike set from.
-     * @param targetClass The class to map the documents to. Must not be {@literal null}.
-     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
-     */
-    <T, S> Flux<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass);
-
-    /**
-     * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given
-     * target class type.
-     *
-     * @param sort        The sort to affect the returned iterable documents order.
-     * @param offset      The offset to start the range from.
-     * @param limit       The limit of the range.
-     * @param targetClass The class to map the documents to. Must not be {@literal null}.
-     * @param setName     The set name to find the documents.
-     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
-     */
-    <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> targetClass, String setName);
+    <T> Mono<T> execute(Supplier<T> supplier);
 
     /**
      * Reactively find a document by id, set name will be determined by the given entityClass.
@@ -572,6 +674,69 @@ public interface ReactiveAerospikeOperations {
     Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys);
 
     /**
+     * Find document by providing id, set name will be determined by the given entityClass.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @return The document from Aerospike, returned document will be mapped to targetClass's type.
+     */
+    <T, S> Mono<?> findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass,
+                                           Qualifier... qualifiers);
+
+    /**
+     * Find document by providing id with a given set name.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param id          The id of the document to find. Must not be {@literal null}.
+     * @param entityClass The class to get the entity properties from (such as expiration). Must not be
+     *                    {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param setName     Set name to find the document from.
+     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @return The document from Aerospike, returned document will be mapped to targetClass's type.
+     */
+    <T, S> Mono<?> findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
+                                           Qualifier... qualifiers);
+
+    /**
+     * Find documents by providing multiple ids, set name will be determined by the given entityClass.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
+     * exists, an empty list is returned.
+     */
+    <T, S> Flux<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                            Qualifier... qualifiers);
+
+    /**
+     * Find documents by providing multiple ids with a given set name.
+     * <p>
+     * Documents will be mapped to the given targetClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to get the entity properties from (such as expiration). Must not be
+     *                    {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param setName     Set name to find the document from.
+     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
+     * exists, an empty list is returned.
+     */
+    <T, S> Flux<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                            String setName,
+                                            Qualifier... qualifiers);
+
+    /**
      * Reactively find documents in the given entityClass's set using a query and map them to the given class type.
      *
      * @param query       The query to filter results. Must not be {@literal null}.
@@ -601,6 +766,111 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T> Flux<T> find(Query query, Class<T> targetClass, String setName);
+
+    /**
+     * Find all documents in the given entityClass's set using provided {@link Qualifier}.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param filter      Secondary index filter.
+     * @param qualifier   Qualifier to build filter expressions from. Must not be {@literal null}. If filter param is
+     *                    null and qualifier has {@link Qualifier#getExcludeFilter()} == false, secondary index filter
+     *                    is built based on the first processed qualifier.
+     * @return Flux of entities.
+     */
+    <T> Flux<T> findUsingQualifier(Class<T> entityClass, @Nullable Filter filter, Qualifier qualifier);
+
+    /**
+     * Find all documents in the given entityClass's set using provided {@link Qualifier} and map them to the given
+     * target class type.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @param filter      Secondary index filter.
+     * @param qualifier   Qualifier to build filter expressions from. Must not be {@literal null}. If filter param is
+     *                    null and qualifier has {@link Qualifier#getExcludeFilter()} == false, secondary index filter
+     *                    is built based on the first processed qualifier.
+     * @return Flux of entities.
+     */
+    <T, S> Flux<?> findUsingQualifier(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier qualifier);
+
+    /**
+     * Find all documents in the given set using provided {@link Qualifier} and map them to the given target class
+     * type.
+     *
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @param filter      Secondary index filter.
+     * @param qualifier   Qualifier to build filter expressions from. Must not be {@literal null}. If filter param is
+     *                    null and qualifier has {@link Qualifier#getExcludeFilter()} == false, secondary index filter
+     *                    is built based on the first processed qualifier.
+     * @return Flux of entities.
+     */
+    <T> Flux<T> findUsingQualifier(Class<T> targetClass, String setName, Filter filter,
+                                   Qualifier qualifier);
+
+    /**
+     * Reactively find all documents in the given entityClass's set and map them to the given class type.
+     *
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
+     *                    {@literal null}.
+     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Flux<T> findAll(Class<T> entityClass);
+
+    /**
+     * Reactively find all documents in the given entityClass's set and map them to the given target class type.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to. Must not be {@literal null}.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Reactively find all documents in the given set and map them to the given class type.
+     *
+     * @param targetClass The class to map the documents to. Must not be {@literal null}.
+     * @param setName     The set name to find the document.
+     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Flux<T> findAll(Class<T> targetClass, String setName);
+
+    /**
+     * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given
+     * class type.
+     *
+     * @param sort        The sort to affect the returned iterable documents order.
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
+     * @param entityClass The class to extract the Aerospike set from and to map the documents to.
+     * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
+     */
+    <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass);
+
+    /**
+     * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given
+     * target class type.
+     *
+     * @param sort        The sort to affect the returned iterable documents order.
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
+     * @param entityClass The class to extract the Aerospike set from.
+     * @param targetClass The class to map the documents to. Must not be {@literal null}.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T, S> Flux<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Reactively find all documents in the given entityClass's set using a provided sort and map them to the given
+     * target class type.
+     *
+     * @param sort        The sort to affect the returned iterable documents order.
+     * @param offset      The offset to start the range from.
+     * @param limit       The limit of the range.
+     * @param targetClass The class to map the documents to. Must not be {@literal null}.
+     * @param setName     The set name to find the documents.
+     * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
+     */
+    <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> targetClass, String setName);
 
     /**
      * Reactively find documents in the given entityClass's set using a range (offset, limit) and a sort and map them to
@@ -642,40 +912,6 @@ public interface ReactiveAerospikeOperations {
     <T, S> Flux<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass);
 
     /**
-     * Reactively return the amount of documents in a query results. set name will be determined by the given
-     * entityClass.
-     *
-     * @param query       The query that provides the result set for count.
-     * @param entityClass entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @return A Mono of the amount of documents that the given query and entity class supplied.
-     */
-    <T> Mono<Long> count(Query query, Class<T> entityClass);
-
-    /**
-     * Reactively return the amount of documents in the given Aerospike set.
-     *
-     * @param setName The name of the set to count. Must not be {@literal null}.
-     * @return A Mono of the amount of documents in the given set.
-     */
-    Mono<Long> count(String setName);
-
-    /**
-     * Reactively return the amount of documents in the given entityClass's Aerospike set.
-     *
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @return A Mono of the amount of documents in the set (of the given entityClass).
-     */
-    <T> Mono<Long> count(Class<T> entityClass);
-
-    /**
-     * Reactively execute operation against underlying store.
-     *
-     * @param supplier must not be {@literal null}.
-     * @return A Mono of the execution result.
-     */
-    <T> Mono<T> execute(Supplier<T> supplier);
-
-    /**
      * Reactively check if document exists by providing document id and entityClass (set name will be determined by the
      * given entityClass).
      *
@@ -695,95 +931,59 @@ public interface ReactiveAerospikeOperations {
     Mono<Boolean> exists(Object id, String setName);
 
     /**
-     * Reactively truncate/delete all the documents in the given entity's set.
+     * Reactively check if any document exists by defining a query and entityClass (set name will be determined by the
+     * given entityClass).
+     *
+     * @param query       The query to check if any returned document exists. Must not be {@literal null}.
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return A Mono of whether the document exists.
+     */
+    <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass);
+
+    /**
+     * Reactively check if any document exists by defining a query, entityClass and a given set name.
+     *
+     * @param query       The query to check if any returned document exists. Must not be {@literal null}.
+     * @param entityClass The class to translate to returned results into. Must not be {@literal null}.
+     * @param setName     The set name to check if documents exists in. Must not be {@literal null}.
+     * @return A Mono of whether the document exists.
+     */
+    <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass, String setName);
+
+    /**
+     * Reactively return the amount of documents in the given entityClass's Aerospike set.
      *
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return A Mono of the amount of documents in the set (of the given entityClass).
      */
-    <T> Mono<Void> deleteAll(Class<T> entityClass);
+    <T> Mono<Long> count(Class<T> entityClass);
 
     /**
-     * Reactively truncate/delete all the documents in the given entity's set.
+     * Reactively return the amount of documents in the given Aerospike set.
      *
-     * @param setName Set name to truncate/delete all the documents in.
+     * @param setName The name of the set to count. Must not be {@literal null}.
+     * @return A Mono of the amount of documents in the given set.
      */
-    Mono<Void> deleteAll(String setName);
+    Mono<Long> count(String setName);
 
     /**
-     * Reactively delete document by id, set name will be determined by the given entityClass.
+     * Reactively return the amount of documents in a query results. set name will be determined by the given
+     * entityClass.
      *
-     * @param id          The id of the document to delete. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @return A Mono of whether the document existed on server before deletion.
+     * @param query       The query that provides the result set for count.
+     * @param entityClass entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @return A Mono of the amount of documents that the given query and entity class supplied.
      */
-    <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass);
+    <T> Mono<Long> count(Query query, Class<T> entityClass);
 
     /**
-     * Reactively delete document by id with a given set name.
+     * Reactively return the amount of documents in a query results with a given set name.
      *
-     * @param id      The id of the document to delete. Must not be {@literal null}.
-     * @param setName Set name to delete the document.
-     * @return A Mono of whether the document existed on server before deletion.
+     * @param query   The query that provides the result set for count.
+     * @param setName The name of the set to count. Must not be {@literal null}.
+     * @return A Mono of the amount of documents that the given query and set name.
      */
-    Mono<Boolean> deleteById(Object id, String setName);
-
-    /**
-     * Reactively delete document.
-     *
-     * @param document The document to delete. Must not be {@literal null}.
-     * @return A Mono of whether the document existed on server before deletion.
-     */
-    <T> Mono<Boolean> delete(T document);
-
-    /**
-     * Reactively delete document with a given set name.
-     *
-     * @param document The document to delete. Must not be {@literal null}.
-     * @param setName  Set name to delete the document.
-     * @return A Mono of whether the document existed on server before deletion.
-     */
-    <T> Mono<Boolean> delete(T document, String setName);
-
-    /**
-     * Reactively delete documents by providing multiple ids using a single batch delete operation, set name will be
-     * determined by the given entityClass.
-     * <p>
-     * This operation requires Server version 6.0+.
-     *
-     * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
-     *                    {@literal null}.
-     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
-     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
-     */
-    <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
-
-    /**
-     * Reactively delete documents by providing multiple ids using a single batch delete operation with a given set
-     * name.
-     * <p>
-     * This operation requires Server version 6.0+.
-     *
-     * @param ids     The ids of the documents to find. Must not be {@literal null}.
-     * @param setName Set name to delete the document.
-     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
-     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
-     */
-    Mono<Void> deleteByIds(Iterable<?> ids, String setName);
-
-    /**
-     * Executes a single batch delete for several entities.
-     * <p>
-     * Aerospike provides functionality to delete documents from different sets in 1 batch request. The methods allow to
-     * put grouped keys by entity type as parameter and get result as spring data aerospike entities grouped by entity
-     * type.
-     * <p>
-     * This operation requires Server version 6.0+.
-     *
-     * @param groupedKeys Must not be {@literal null}.
-     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
-     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
-     */
-    Mono<Void> deleteByIds(GroupedKeys groupedKeys);
+    Mono<Long> count(Query query, String setName);
 
     /**
      * Reactively create index by specified name in Aerospike.
@@ -880,16 +1080,4 @@ public interface ReactiveAerospikeOperations {
      * @return Mono of true if exists.
      */
     Mono<Boolean> indexExists(String indexName);
-
-    /**
-     * Find all documents in the given entityClass's set using provided {@link Qualifier}.
-     *
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param filter      Secondary index filter.
-     * @param qualifier   Qualifier to build filter expressions from. Must not be {@literal null}. If filter param is
-     *                    null and qualifier has {@link Qualifier#getExcludeFilter()} == false, secondary index filter
-     *                    is built based on the first processed qualifier.
-     * @return Flux of entities.
-     */
-    <T> Flux<T> findAllUsingQuery(Class<T> entityClass, @Nullable Filter filter, Qualifier qualifier);
 }

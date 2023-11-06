@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import org.springframework.data.aerospike.core.AerospikeInternalOperations;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.Qualifier;
@@ -45,7 +44,6 @@ import static org.springframework.data.aerospike.repository.query.AerospikeCrite
 public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
     private final AerospikeOperations operations;
-    private final AerospikeInternalOperations internalOperations;
 
     public AerospikePartTreeQuery(QueryMethod queryMethod,
                                   QueryMethodEvaluationContextProvider evalContextProvider,
@@ -54,7 +52,6 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         super(queryMethod, evalContextProvider, queryCreator);
 
         this.operations = aerospikeTemplate;
-        this.internalOperations = aerospikeTemplate;
     }
 
     @Override
@@ -105,7 +102,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
     protected Object findByIds(Collection<?> ids, Class<?> entityClass, Class<?> targetClass,
                                Qualifier... qualifiers) {
-        return internalOperations.findByIdsInternal(ids, entityClass, targetClass, qualifiers);
+        return operations.findByIdsUsingQualifiers(ids, entityClass, targetClass, qualifiers);
     }
 
     private Stream<?> findByQuery(Query query, Class<?> targetClass) {

@@ -1445,8 +1445,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Operation STARTS_WITH cannot be applied to metadataField");
 
-        Qualifier keyEqCartersId = Qualifier.forId(carter.getId());
-        Qualifier keyEqBoydsId = Qualifier.forId(boyd.getId());
+        Qualifier keyEqCartersId = Qualifier.idEquals(carter.getId());
+        Qualifier keyEqBoydsId = Qualifier.idEquals(boyd.getId());
 
         // not more than one id qualifier is allowed
         assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.and(keyEqCartersId,
