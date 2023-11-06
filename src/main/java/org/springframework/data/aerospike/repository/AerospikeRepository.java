@@ -61,7 +61,7 @@ public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T
     /**
      * Run a query to find entities.
      * <p>
-     * A {@link Query} can be created using qualifiers. A {@link Qualifier} may contain other qualifiers and combine
+     * A {@link Query} can be created using a qualifier. A {@link Qualifier} may contain other qualifiers and combine
      * them using either {@link FilterOperation#AND} or {@link FilterOperation#OR}.
      *
      * @param query A query to be performed. Must not be {@literal null}.
