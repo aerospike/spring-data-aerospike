@@ -40,7 +40,7 @@ import java.util.Set;
  *
  * @author Peter Milne
  */
-public class Qualifier implements Map<String, Object>, Serializable, CriteriaDefinition {
+public class Qualifier implements CriteriaDefinition, Map<String, Object>, Serializable {
 
     protected static final String FIELD = "field";
     protected static final String METADATA_FIELD = "metadata_field";
