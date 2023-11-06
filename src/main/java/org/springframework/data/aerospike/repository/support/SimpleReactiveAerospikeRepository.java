@@ -19,8 +19,8 @@ import com.aerospike.client.query.IndexType;
 import lombok.RequiredArgsConstructor;
 import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
-import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
@@ -154,8 +154,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     }
 
     @Override
-    public Flux<T> findByQualifier(Qualifier qualifier) {
-        Assert.notNull(qualifier, "Qualifiers must not be null");
-        return operations.findUsingQualifier(entityInformation.getJavaType(), null, qualifier);
+    public Flux<T> findUsingQuery(Query query) {
+        return operations.find(query, entityInformation.getJavaType());
     }
 }

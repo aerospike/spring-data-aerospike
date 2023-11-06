@@ -18,7 +18,6 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.policy.WritePolicy;
-import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
@@ -30,7 +29,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.annotation.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -766,46 +764,6 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T> Flux<T> find(Query query, Class<T> targetClass, String setName);
-
-    /**
-     * Find all documents in the given entityClass's set using provided {@link Qualifier}.
-     *
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param filter      Secondary index filter.
-     * @param qualifier   Qualifier to build filter expressions from. Must not be {@literal null}. If filter param is
-     *                    null and qualifier has {@link Qualifier#getExcludeFilter()} == false, secondary index filter
-     *                    is built based on the first processed qualifier.
-     * @return Flux of entities.
-     */
-    <T> Flux<T> findUsingQualifier(Class<T> entityClass, @Nullable Filter filter, Qualifier qualifier);
-
-    /**
-     * Find all documents in the given entityClass's set using provided {@link Qualifier} and map them to the given
-     * target class type.
-     *
-     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @param filter      Secondary index filter.
-     * @param qualifier   Qualifier to build filter expressions from. Must not be {@literal null}. If filter param is
-     *                    null and qualifier has {@link Qualifier#getExcludeFilter()} == false, secondary index filter
-     *                    is built based on the first processed qualifier.
-     * @return Flux of entities.
-     */
-    <T, S> Flux<?> findUsingQualifier(Class<T> entityClass, Class<S> targetClass, Filter filter, Qualifier qualifier);
-
-    /**
-     * Find all documents in the given set using provided {@link Qualifier} and map them to the given target class
-     * type.
-     *
-     * @param targetClass The class to map the document to. Must not be {@literal null}.
-     * @param filter      Secondary index filter.
-     * @param qualifier   Qualifier to build filter expressions from. Must not be {@literal null}. If filter param is
-     *                    null and qualifier has {@link Qualifier#getExcludeFilter()} == false, secondary index filter
-     *                    is built based on the first processed qualifier.
-     * @return Flux of entities.
-     */
-    <T> Flux<T> findUsingQualifier(Class<T> targetClass, String setName, Filter filter,
-                                   Qualifier qualifier);
 
     /**
      * Reactively find all documents in the given entityClass's set and map them to the given class type.

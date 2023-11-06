@@ -813,26 +813,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Flux<T> findUsingQualifier(Class<T> entityClass, Filter filter,
-                                          Qualifier qualifier) {
-        return findUsingQualifier(entityClass, getSetName(entityClass), filter, qualifier);
-    }
-
-    @Override
-    public <T, S> Flux<?> findUsingQualifier(Class<T> entityClass, Class<S> targetClass, Filter filter,
-                                             Qualifier qualifier) {
-        return findRecordsUsingQualifiers(getSetName(entityClass), targetClass, filter, qualifier)
-            .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
-    }
-
-    @Override
-    public <T> Flux<T> findUsingQualifier(Class<T> targetClass, String setName, Filter filter,
-                                          Qualifier qualifier) {
-        return findRecordsUsingQualifiers(setName, targetClass, filter, qualifier)
-            .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
-    }
-
-    @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Entity class must not be null!");
 

@@ -29,7 +29,7 @@ import java.io.Serial;
  * @author peter
  * @deprecated Since 4.6.0. Use {@link SimpleAerospikeRepository#findById(Object)} or
  * {@link AerospikeRepository#findUsingQuery(org.springframework.data.aerospike.repository.query.Query)} with
- * {@link Qualifier#forId(String)}
+ * {@link Qualifier#idEquals(String)}
  */
 @Deprecated(since = "4.6.0", forRemoval = true)
 public class KeyQualifier extends Qualifier {
