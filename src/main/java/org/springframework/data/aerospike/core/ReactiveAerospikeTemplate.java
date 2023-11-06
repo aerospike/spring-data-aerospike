@@ -43,10 +43,12 @@ import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -59,7 +61,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.StreamSupport;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
@@ -80,7 +81,7 @@ import static org.springframework.data.aerospike.utility.Utils.allArrayElementsA
  */
 @Slf4j
 public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations,
-    ReactiveAerospikeInternalOperations, IndexesCacheRefresher {
+    IndexesCacheRefresher {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
     private final IAerospikeReactorClient reactorClient;
@@ -233,6 +234,25 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public <T> Mono<T> persist(T document, WritePolicy policy) {
+        Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(policy, "Policy must not be null!");
+        return persist(document, policy, getSetName(document));
+    }
+
+    @Override
+    public <T> Mono<T> persist(T document, WritePolicy policy, String setName) {
+        Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(policy, "Policy must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        AerospikeWriteData data = writeData(document, setName);
+
+        Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
+        return doPersistAndHandleError(document, data, policy, operations);
+    }
+
+    @Override
     public <T> Mono<T> update(T document) {
         return update(document, getSetName(document));
     }
@@ -306,51 +326,159 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, "update");
     }
 
+    @Deprecated
     @Override
-    public <T> Flux<T> findAll(Class<T> entityClass) {
-        Assert.notNull(entityClass, "Entity class must not be null!");
-
-        return findAll(entityClass, getSetName(entityClass));
-    }
-
-    @Override
-    public <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass) {
-        Assert.notNull(entityClass, "Entity class must not be null!");
-        Assert.notNull(targetClass, "Target class must not be null!");
-
-        return findAll(targetClass, getSetName(entityClass));
-    }
-
-    @Override
-    public <T> Flux<T> findAll(Class<T> targetClass, String setName) {
-        Assert.notNull(targetClass, "Target class must not be null!");
-        Assert.notNull(setName, "Set name must not be null!");
-
-        return findAllUsingQuery(setName, targetClass, null, (Qualifier[]) null);
-    }
-
-    @Override
-    public <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass) {
+    public <T> Mono<Void> delete(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
 
-        return findAll(sort, offset, limit, entityClass, getSetName(entityClass));
+        try {
+            String set = getSetName(entityClass);
+            return Mono.fromRunnable(
+                () -> reactorClient.getAerospikeClient().truncate(null, this.namespace, set, null));
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
     }
 
+    @Deprecated
     @Override
-    public <T, S> Flux<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass) {
+    public <T> Mono<Boolean> delete(Object id, Class<T> entityClass) {
+        Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
-        Assert.notNull(targetClass, "Target class must not be null!");
 
-        return findAll(sort, offset, limit, targetClass, getSetName(entityClass));
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
+
+        return reactorClient
+            .delete(ignoreGenerationDeletePolicy(), getKey(id, entity))
+            .map(k -> true)
+            .onErrorMap(this::translateError);
     }
 
     @Override
-    public <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> targetClass, String setName) {
-        Assert.notNull(targetClass, "Target class must not be null!");
+    public <T> Mono<Boolean> delete(T document) {
+        return delete(document, getSetName(document));
+    }
+
+    @Override
+    public <T> Mono<Boolean> delete(T document, String setName) {
+        Assert.notNull(document, "Document must not be null!");
+        Assert.notNull(document, "Set name must not be null!");
+
+        AerospikeWriteData data = writeData(document, setName);
+
+        return reactorClient
+            .delete(ignoreGenerationDeletePolicy(), data.getKey())
+            .map(key -> true)
+            .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass) {
+        Assert.notNull(id, "Id must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        return deleteById(id, getSetName(entityClass));
+    }
+
+    @Override
+    public Mono<Boolean> deleteById(Object id, String setName) {
+        Assert.notNull(id, "Id must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findAllUsingQueryWithPostProcessing(setName, targetClass, sort, offset, limit,
-            null, (Qualifier[]) null);
+        return reactorClient
+            .delete(ignoreGenerationDeletePolicy(), getKey(id, setName))
+            .map(k -> true)
+            .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        return deleteByIds(ids, getSetName(entityClass));
+    }
+
+    @Override
+    public Mono<Void> deleteByIds(Iterable<?> ids, String setName) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        return deleteByIds(IterableConverter.toList(ids), setName);
+    }
+
+    @Override
+    public <T> Mono<Void> deleteByIds(Collection<?> ids, Class<T> entityClass) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        return deleteByIds(ids, getSetName(entityClass));
+    }
+
+    @Override
+    public Mono<Void> deleteByIds(Collection<?> ids, String setName) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        Key[] keys = ids.stream()
+            .map(id -> getKey(id, setName))
+            .toArray(Key[]::new);
+
+        return batchDeleteAndCheckForErrors(reactorClient, keys);
+    }
+
+    private Mono<Void> batchDeleteAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys) {
+        Function<BatchResults, Mono<Void>> checkForErrors = results -> {
+            for (BatchRecord record : results.records) {
+                if (batchRecordFailed(record)) {
+                    return Mono.error(new AerospikeException.BatchRecordArray(results.records,
+                        new AerospikeException("Errors during batch delete")));
+                }
+            }
+            return Mono.empty();
+        };
+
+        // requires server ver. >= 6.0.0
+        return reactorClient.delete(null, null, keys)
+            .onErrorMap(this::translateError)
+            .flatMap(checkForErrors);
+    }
+
+    @Override
+    public Mono<Void> deleteByIds(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+        Assert.notNull(groupedKeys.getEntitiesKeys(), "Entities keys must not be null!");
+        Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
+
+        return deleteEntitiesByGroupedKeys(groupedKeys);
+    }
+
+    private Mono<Void> deleteEntitiesByGroupedKeys(GroupedKeys groupedKeys) {
+        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
+
+        reactorClient.delete(null, null, entitiesKeys.getKeys())
+            .doOnError(this::translateError);
+
+        return batchDeleteAndCheckForErrors(reactorClient, entitiesKeys.getKeys());
+    }
+
+    @Override
+    public <T> Mono<Void> deleteAll(Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        return deleteAll(getSetName(entityClass));
+    }
+
+    @Override
+    public Mono<Void> deleteAll(String setName) {
+        Assert.notNull(setName, "Set name must not be null!");
+
+        try {
+            return Mono.fromRunnable(
+                () -> reactorClient.getAerospikeClient().truncate(null, this.namespace, setName, null));
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
     }
 
     @Override
@@ -473,6 +601,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
+    public <T> Mono<T> execute(Supplier<T> supplier) {
+        Assert.notNull(supplier, "Supplier must not be null!");
+
+        return Mono.fromSupplier(supplier)
+            .onErrorMap(this::translateError);
+    }
+
+    @Override
     public <T> Mono<T> findById(Object id, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
         return findById(id, entityClass, getSetName(entityClass));
@@ -534,14 +670,58 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T, S> Mono<?> findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass,
-                                           Qualifier... qualifiers) {
-        return findByIdInternal(id, entityClass, targetClass, getSetName(entityClass), qualifiers);
+    public <T> Flux<T> findByIds(Iterable<?> ids, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        return findByIds(ids, entityClass, getSetName(entityClass));
     }
 
     @Override
-    public <T, S> Mono<?> findByIdInternal(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
-                                           Qualifier... qualifiers) {
+    public <T, S> Flux<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        return findByIds(ids, targetClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T> Flux<T> findByIds(Iterable<?> ids, Class<T> targetClass, String setName) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(targetClass, "Class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        return Flux.fromIterable(ids)
+            .map(id -> getKey(id, setName))
+            .flatMap(reactorClient::get)
+            .filter(keyRecord -> nonNull(keyRecord.record))
+            .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+    }
+
+    @Override
+    public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+
+        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
+            return Mono.just(GroupedEntities.builder().build());
+        }
+
+        return findGroupedEntitiesByGroupedKeys(groupedKeys);
+    }
+
+    private Mono<GroupedEntities> findGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys) {
+        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
+
+        return reactorClient.get(null, entitiesKeys.getKeys())
+            .map(item -> toGroupedEntities(entitiesKeys, item.records))
+            .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public <T, S> Mono<?> findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass,
+                                                  Qualifier... qualifiers) {
+        return findByIdUsingQualifiers(id, entityClass, targetClass, getSetName(entityClass), qualifiers);
+    }
+
+    @Override
+    public <T, S> Mono<?> findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
+                                                  Qualifier... qualifiers) {
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
         Key key = getKey(id, setName);
 
@@ -579,40 +759,15 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Flux<T> findByIds(Iterable<?> ids, Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        return findByIds(ids, entityClass, getSetName(entityClass));
+    public <T, S> Flux<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                                   Qualifier... qualifiers) {
+        return findByIdsUsingQualifiers(ids, entityClass, targetClass, getSetName(entityClass), qualifiers);
     }
 
     @Override
-    public <T, S> Flux<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        return findByIds(ids, targetClass, getSetName(entityClass));
-    }
-
-    @Override
-    public <T> Flux<T> findByIds(Iterable<?> ids, Class<T> targetClass, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(targetClass, "Class must not be null!");
-        Assert.notNull(setName, "Set name must not be null!");
-
-        return Flux.fromIterable(ids)
-            .map(id -> getKey(id, setName))
-            .flatMap(reactorClient::get)
-            .filter(keyRecord -> nonNull(keyRecord.record))
-            .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
-    }
-
-    @Override
-    public <T, S> Flux<?> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                            Qualifier... qualifiers) {
-        return findByIdsInternal(ids, entityClass, targetClass, getSetName(entityClass), qualifiers);
-    }
-
-    @Override
-    public <T, S> Flux<?> findByIdsInternal(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                            String setName,
-                                            Qualifier... qualifiers) {
+    public <T, S> Flux<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                                   String setName,
+                                                   Qualifier... qualifiers) {
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
 
@@ -636,61 +791,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record));
     }
 
-    private <T> Flux<KeyRecord> findByIdsInternalWithoutMapping(Collection<?> ids, String setName,
-                                                                  Class<T> targetClass,
-                                                                  Qualifier... qualifiers) {
-        Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(setName, "Set name must not be null!");
-
-        if (ids.isEmpty()) {
-            return Flux.empty();
-        }
-
-        BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
-
-        return Flux.fromIterable(ids)
-            .map(id -> getKey(id, setName))
-            .flatMap(key -> getFromClient(policy, key, targetClass))
-            .filter(keyRecord -> nonNull(keyRecord.record));
-    }
-
-    private BatchPolicy getBatchPolicyFilterExp(Qualifier[] qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0) {
-            BatchPolicy policy = new BatchPolicy(reactorClient.getAerospikeClient().getBatchPolicyDefault());
-            policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(qualifiers);
-            return policy;
-        }
-        return null;
-    }
-
-    private Mono<KeyRecord> getFromClient(BatchPolicy finalPolicy, Key key, Class<?> targetClass) {
-        if (targetClass != null) {
-            String[] binNames = getBinNamesFromTargetClass(targetClass);
-            return reactorClient.get(finalPolicy, key, binNames);
-        } else {
-            return reactorClient.get(finalPolicy, key);
-        }
-    }
-
-    @Override
-    public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-
-        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
-            return Mono.just(GroupedEntities.builder().build());
-        }
-
-        return findEntitiesByIdsInternal(groupedKeys);
-    }
-
-    private Mono<GroupedEntities> findEntitiesByIdsInternal(GroupedKeys groupedKeys) {
-        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
-
-        return reactorClient.get(null, entitiesKeys.getKeys())
-            .map(item -> toGroupedEntities(entitiesKeys, item.records))
-            .onErrorMap(this::translateError);
-    }
-
     @Override
     public <T> Flux<T> find(Query query, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
@@ -709,7 +809,74 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findAllUsingQueryWithPostProcessing(setName, targetClass, query);
+        return findUsingQueryWithPostProcessing(setName, targetClass, query);
+    }
+
+    @Override
+    public <T> Flux<T> findUsingQualifier(Class<T> entityClass, Filter filter,
+                                          Qualifier qualifier) {
+        return findUsingQualifier(entityClass, getSetName(entityClass), filter, qualifier);
+    }
+
+    @Override
+    public <T, S> Flux<?> findUsingQualifier(Class<T> entityClass, Class<S> targetClass, Filter filter,
+                                             Qualifier qualifier) {
+        return findRecordsUsingQualifiers(getSetName(entityClass), targetClass, filter, qualifier)
+            .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+    }
+
+    @Override
+    public <T> Flux<T> findUsingQualifier(Class<T> targetClass, String setName, Filter filter,
+                                          Qualifier qualifier) {
+        return findRecordsUsingQualifiers(setName, targetClass, filter, qualifier)
+            .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+    }
+
+    @Override
+    public <T> Flux<T> findAll(Class<T> entityClass) {
+        Assert.notNull(entityClass, "Entity class must not be null!");
+
+        return findAll(entityClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T, S> Flux<S> findAll(Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Entity class must not be null!");
+        Assert.notNull(targetClass, "Target class must not be null!");
+
+        return findAll(targetClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T> Flux<T> findAll(Class<T> targetClass, String setName) {
+        Assert.notNull(targetClass, "Target class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        return findUsingQualifiers(setName, targetClass, null, (Qualifier[]) null);
+    }
+
+    @Override
+    public <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        return findAll(sort, offset, limit, entityClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T, S> Flux<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(targetClass, "Target class must not be null!");
+
+        return findAll(sort, offset, limit, targetClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T> Flux<T> findAll(Sort sort, long offset, long limit, Class<T> targetClass, String setName) {
+        Assert.notNull(targetClass, "Target class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        return findUsingQualifiersWithPostProcessing(setName, targetClass, sort, offset, limit,
+            null, (Qualifier[]) null);
     }
 
     @Override
@@ -732,60 +899,32 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findAllUsingQueryWithPostProcessing(setName, targetClass, sort, offset, limit,
+        return findUsingQualifiersWithPostProcessing(setName, targetClass, sort, offset, limit,
             null, (Qualifier[]) null);
     }
 
-    @Override
-    public <T> Mono<Long> count(Query query, Class<T> entityClass) {
-        Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        return findAllRecordsUsingQuery(entityClass, query).count();
+    private BatchPolicy getBatchPolicyFilterExp(Qualifier[] qualifiers) {
+        if (qualifiers != null && qualifiers.length > 0) {
+            BatchPolicy policy = new BatchPolicy(reactorClient.getAerospikeClient().getBatchPolicyDefault());
+            policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(qualifiers);
+            return policy;
+        }
+        return null;
     }
 
-    @Override
-    public Mono<Long> count(String setName) {
-        Assert.notNull(setName, "Set for count must not be null!");
-
-        try {
-            return Mono.fromCallable(() -> countSet(setName));
-        } catch (AerospikeException e) {
-            throw translateError(e);
+    private Mono<KeyRecord> getFromClient(BatchPolicy finalPolicy, Key key, Class<?> targetClass) {
+        if (targetClass != null) {
+            String[] binNames = getBinNamesFromTargetClass(targetClass);
+            return reactorClient.get(finalPolicy, key, binNames);
+        } else {
+            return reactorClient.get(finalPolicy, key);
         }
     }
 
     @Override
-    public <T> Mono<Long> count(Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        String setName = getSetName(entityClass);
-        return count(setName);
-    }
-
-    private long countSet(String setName) {
-        Node[] nodes = reactorClient.getAerospikeClient().getNodes();
-
-        int replicationFactor = Utils.getReplicationFactor(nodes, this.namespace);
-
-        long totalObjects = Arrays.stream(nodes)
-            .mapToLong(node -> Utils.getObjectsCount(node, this.namespace, setName))
-            .sum();
-
-        return (nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects;
-    }
-
-    @Override
-    public <T> Mono<T> execute(Supplier<T> supplier) {
-        Assert.notNull(supplier, "Supplier must not be null!");
-
-        return Mono.fromSupplier(supplier)
-            .onErrorMap(this::translateError);
-    }
-
-    @Override
     public <T> Mono<Boolean> exists(Object id, Class<T> entityClass) {
+        Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
-
         return exists(id, getSetName(entityClass));
     }
 
@@ -802,113 +941,72 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Void> deleteAll(Class<T> entityClass) {
+    public <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass) {
+        Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
-
-        return deleteAll(getSetName(entityClass));
+        return existsByQuery(query, entityClass, getSetName(entityClass));
     }
 
     @Override
-    public Mono<Void> deleteAll(String setName) {
+    public <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass, String setName) {
+        Assert.notNull(query, "Query passed in to exist can't be null");
+        Assert.notNull(entityClass, "Class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+        return find(query, entityClass, setName).hasElements();
+    }
+
+    @Override
+    public <T> Mono<Long> count(Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        String setName = getSetName(entityClass);
+        return count(setName);
+    }
+
+    @Override
+    public Mono<Long> count(String setName) {
         Assert.notNull(setName, "Set name must not be null!");
 
         try {
-            return Mono.fromRunnable(
-                () -> reactorClient.getAerospikeClient().truncate(null, this.namespace, setName, null));
+            return Mono.fromCallable(() -> countSet(setName));
         } catch (AerospikeException e) {
             throw translateError(e);
         }
     }
 
+    private long countSet(String setName) {
+        Node[] nodes = reactorClient.getAerospikeClient().getNodes();
+
+        int replicationFactor = Utils.getReplicationFactor(nodes, this.namespace);
+
+        long totalObjects = Arrays.stream(nodes)
+            .mapToLong(node -> Utils.getObjectsCount(node, this.namespace, setName))
+            .sum();
+
+        return (nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects;
+    }
+
     @Override
-    public <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass) {
-        Assert.notNull(id, "Id must not be null!");
+    public <T> Mono<Long> count(Query query, Class<T> entityClass) {
+        Assert.notNull(query, "Query must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
 
-        return deleteById(id, getSetName(entityClass));
+        return count(query, getSetName(entityClass));
     }
 
     @Override
-    public Mono<Boolean> deleteById(Object id, String setName) {
-        Assert.notNull(id, "Id must not be null!");
+    public Mono<Long> count(Query query, String setName) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(setName, "Set for count must not be null!");
+
+        return findRecordsUsingQuery(setName, query).count();
+    }
+
+    private Flux<KeyRecord> findRecordsUsingQuery(String setName, Query query) {
+        Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return reactorClient
-            .delete(ignoreGenerationDeletePolicy(), getKey(id, setName))
-            .map(k -> true)
-            .onErrorMap(this::translateError);
-    }
-
-    @Override
-    public <T> Mono<Boolean> delete(T document) {
-        return delete(document, getSetName(document));
-    }
-
-    @Override
-    public <T> Mono<Boolean> delete(T document, String setName) {
-        Assert.notNull(document, "Document must not be null!");
-        Assert.notNull(document, "Set name must not be null!");
-
-        AerospikeWriteData data = writeData(document, setName);
-
-        return reactorClient
-            .delete(ignoreGenerationDeletePolicy(), data.getKey())
-            .map(key -> true)
-            .onErrorMap(this::translateError);
-    }
-
-    @Override
-    public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        return deleteByIds(ids, getSetName(entityClass));
-    }
-
-    @Override
-    public Mono<Void> deleteByIds(Iterable<?> ids, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(setName, "Set name must not be null!");
-
-        Key[] keys = StreamSupport.stream(ids.spliterator(), false)
-            .map(id -> getKey(id, setName))
-            .toArray(Key[]::new);
-
-        return batchDeleteAndCheckForErrors(reactorClient, keys);
-    }
-
-    private Mono<Void> batchDeleteAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys) {
-        Function<BatchResults, Mono<Void>> checkForErrors = results -> {
-            for (BatchRecord record : results.records) {
-                if (batchRecordFailed(record)) {
-                    return Mono.error(new AerospikeException.BatchRecordArray(results.records,
-                        new AerospikeException("Errors during batch delete")));
-                }
-            }
-            return Mono.empty();
-        };
-
-        // requires server ver. >= 6.0.0
-        return reactorClient.delete(null, null, keys)
-            .onErrorMap(this::translateError)
-            .flatMap(checkForErrors);
-    }
-
-    @Override
-    public Mono<Void> deleteByIds(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        Assert.notNull(groupedKeys.getEntitiesKeys(), "Entities keys must not be null!");
-        Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
-
-        return deleteEntitiesByIdsInternal(groupedKeys);
-    }
-
-    private Mono<Void> deleteEntitiesByIdsInternal(GroupedKeys groupedKeys) {
-        EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
-
-        reactorClient.delete(null, null, entitiesKeys.getKeys())
-            .doOnError(this::translateError);
-
-        return batchDeleteAndCheckForErrors(reactorClient, entitiesKeys.getKeys());
+        Qualifier qualifier = query.getCriteria().getCriteriaObject();
+        return findRecordsUsingQualifiers(setName, null, null, qualifier);
     }
 
     @Override
@@ -932,20 +1030,20 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public Mono<Void> createIndex(String setName, String indexName,
-                                      String binName, IndexType indexType) {
+                                  String binName, IndexType indexType) {
         return createIndex(setName, indexName, binName, indexType, IndexCollectionType.DEFAULT);
     }
 
     @Override
     public Mono<Void> createIndex(String setName, String indexName,
-                                      String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
+                                  String binName, IndexType indexType, IndexCollectionType indexCollectionType) {
         return createIndex(setName, indexName, binName, indexType, indexCollectionType, new CTX[0]);
     }
 
     @Override
     public Mono<Void> createIndex(String setName, String indexName,
-                                      String binName, IndexType indexType, IndexCollectionType indexCollectionType,
-                                      CTX... ctx) {
+                                  String binName, IndexType indexType, IndexCollectionType indexCollectionType,
+                                  CTX... ctx) {
         Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
         Assert.notNull(binName, "Bin name must not be null!");
@@ -1087,21 +1185,21 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return e;
     }
 
-    public <T> Flux<T> findAllUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Query query) {
+    private <T> Flux<T> findUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Flux<T> results = findAllUsingQueryWithDistinctPredicate(setName, targetClass,
+        Flux<T> results = findUsingQualifiersWithDistinctPredicate(setName, targetClass,
             getDistinctPredicate(query), qualifier);
         results = applyPostProcessingOnResults(results, query);
         return results;
     }
 
     @SuppressWarnings("SameParameterValue")
-    public <T> Flux<T> findAllUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
-                                                       long offset, long limit, Filter filter,
-                                                       Qualifier... qualifiers) {
+    private <T> Flux<T> findUsingQualifiersWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
+                                                              long offset, long limit, Filter filter,
+                                                              Qualifier... qualifiers) {
         verifyUnsortedWithOffset(sort, offset);
-        Flux<T> results = findAllUsingQuery(setName, targetClass, filter, qualifiers);
+        Flux<T> results = findUsingQualifiers(setName, targetClass, filter, qualifiers);
         results = applyPostProcessingOnResults(results, sort, offset, limit);
         return results;
     }
@@ -1145,44 +1243,29 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
-    @Override
-    public <T> Flux<T> findAllUsingQuery(Class<T> entityClass, Filter filter,
-                                         Qualifier qualifier) {
-        return findAllRecordsUsingQuery(getSetName(entityClass), entityClass, filter, qualifier)
-            .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record));
-    }
-
-    private <T> Flux<T> findAllUsingQuery(String setName, Class<T> targetClass, Filter filter,
-                                             Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(setName, targetClass, filter, qualifiers)
+    private <T> Flux<T> findUsingQualifiers(String setName, Class<T> targetClass, Filter filter,
+                                            Qualifier... qualifiers) {
+        return findRecordsUsingQualifiers(setName, targetClass, filter, qualifiers)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
-    private <T> Flux<T> findAllUsingQueryWithDistinctPredicate(String setName, Class<T> targetClass,
-                                                                  Predicate<KeyRecord> distinctPredicate,
-                                                                  Qualifier... qualifiers) {
-        return findAllRecordsUsingQuery(setName, targetClass, null, qualifiers)
+    private <T> Flux<T> findUsingQualifiersWithDistinctPredicate(String setName, Class<T> targetClass,
+                                                                 Predicate<KeyRecord> distinctPredicate,
+                                                                 Qualifier... qualifiers) {
+        return findRecordsUsingQualifiers(setName, targetClass, null, qualifiers)
             .filter(distinctPredicate)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
-    private <T> Flux<KeyRecord> findAllRecordsUsingQuery(Class<T> entityClass, Query query) {
-        Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        return findAllRecordsUsingQuery(getSetName(entityClass), entityClass, null, qualifier);
-    }
-
-    private <T> Flux<KeyRecord> findAllRecordsUsingQuery(String setName, Class<T> targetClass, Filter filter,
-                                                            Qualifier... qualifiers) {
+    private <T> Flux<KeyRecord> findRecordsUsingQualifiers(String setName, Class<T> targetClass, Filter filter,
+                                                           Qualifier... qualifiers) {
         if (qualifiers != null && qualifiers.length > 0 && !allArrayElementsAreNull(qualifiers)) {
             validateQualifiers(qualifiers);
 
             Qualifier idQualifier = getOneIdQualifier(qualifiers);
             if (idQualifier != null) {
                 // a special flow if there is id given
-                return findByIdsInternalWithoutMapping(getIdValue(idQualifier), setName, targetClass,
+                return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
                     excludeIdQualifier(qualifiers));
             }
         }
@@ -1193,5 +1276,23 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         } else {
             return this.reactorQueryEngine.select(this.namespace, setName, filter, qualifiers);
         }
+    }
+
+    private <T> Flux<KeyRecord> findByIdsWithoutMapping(Collection<?> ids, String setName,
+                                                        Class<T> targetClass,
+                                                        Qualifier... qualifiers) {
+        Assert.notNull(ids, "List of ids must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        if (ids.isEmpty()) {
+            return Flux.empty();
+        }
+
+        BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
+
+        return Flux.fromIterable(ids)
+            .map(id -> getKey(id, setName))
+            .flatMap(key -> getFromClient(policy, key, targetClass))
+            .filter(keyRecord -> nonNull(keyRecord.record));
     }
 }
