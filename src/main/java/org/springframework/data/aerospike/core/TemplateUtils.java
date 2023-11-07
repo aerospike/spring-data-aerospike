@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.core;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -58,6 +59,25 @@ public class TemplateUtils {
         return null;
     }
 
+    public static Qualifier excludeIdQualifier(Qualifier criteria) {
+        List<Qualifier> qualifiersWithoutId = new ArrayList<>();
+        if (criteria != null && criteria.hasQualifiers()) {
+            for (Qualifier qualifier : criteria.getQualifiers()) {
+                if (qualifier.hasQualifiers()) {
+                    Qualifier[] internalQuals = excludeIdQualifier(qualifier.getQualifiers());
+                    qualifiersWithoutId.add(combineMultipleQualifiers(qualifier.getOperation(), internalQuals));
+                } else if (!qualifier.hasId()) {
+                    qualifiersWithoutId.add(qualifier);
+                }
+            }
+            return combineMultipleQualifiers(criteria.getOperation() != null ? criteria.getOperation() :
+                FilterOperation.AND, qualifiersWithoutId.toArray(Qualifier[]::new));
+        } else if (criteria.hasId()) {
+            return null;
+        }
+        return criteria;
+    }
+
     private static Qualifier combineMultipleQualifiers(FilterOperation operation, Qualifier[] qualifiers) {
         if (operation == FilterOperation.OR) {
             return or(qualifiers);
@@ -66,5 +86,9 @@ public class TemplateUtils {
         } else {
             throw new UnsupportedOperationException("Only OR / AND operations are supported");
         }
+    }
+
+    static boolean queryCriteriaIsNotNull(Query query) {
+        return query != null && query.getCriteria() != null;
     }
 }

@@ -1202,21 +1202,35 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void findPersonByIdAndFirstName() {
-        List<Person> persons = repository.findByIdAndFirstName(dave.getId(), dave.getFirstName());
+    public void findPersonByIdsAndFields() {
+        List<Person> persons = repository.findByIdAndFirstName(List.of(boyd.getId(), dave.getId(), carter.getId()),
+            dave.getFirstName());
         assertThat(persons).containsOnly(dave);
+
+        List<Person> persons2 = repository.findByIdAndFirstNameAndAge(List.of(leroi.getId(), leroi2.getId(),
+                carter.getId()),
+            leroi.getFirstName(), leroi2.getAge());
+        assertThat(persons2).containsOnly(leroi2);
+
+        // "findByIdOr..." will return empty list because primary keys are used to firstly narrow down the results.parts
+        // In a combined id query "OR" can be put only between the non-id fields like shown below,
+        // and the results are limited by the given ids
+        List<Person> persons3 = repository.findByIdAndFirstNameOrAge(List.of(leroi.getId(), leroi2.getId(),
+                carter.getId()),
+            leroi.getFirstName(), leroi2.getAge());
+        assertThat(persons3).containsOnly(leroi, leroi2);
+
+        List<Person> persons4 = repository.findByIdAndFirstNameOrAge(List.of(leroi.getId(), leroi2.getId(),
+                carter.getId()),
+            leroi.getFirstName(), stefan.getAge());
+        assertThat(persons4).containsOnly(leroi, leroi2);
     }
 
     @Test
-    public void findPersonByIdAndFirstNameEmptyResult() {
-        List<Person> persons = repository.findByIdAndFirstName(dave.getId(), carter.getFirstName());
+    public void findPersonByIdsAndFirstNameEmptyResult() {
+        List<Person> persons = repository.findByIdAndFirstName(List.of(dave.getId(), boyd.getId()),
+            carter.getFirstName());
         assertThat(persons).isEmpty();
-    }
-
-    @Test
-    public void findPersonByFirstNameAndId() {
-        List<Person> persons = repository.findByFirstNameAndId(dave.getFirstName(), dave.getId());
-        assertThat(persons).containsOnly(dave);
     }
 
     @Test
@@ -1349,9 +1363,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(result).containsOnly(carter, boyd);
 
         // metadata and id qualifiers combined with AND
-        // not more than one id qualifier is allowed, otherwise the conditions will not overlap
+        // not more than one id qualifier is allowed, otherwise the conditions will not overlap because of uniqueness
         result = repository.findUsingQuery(new Query(Qualifier.and(sinceUpdateTimeGt1, keyEqCartersId)));
+        // if a query contains id qualifier the results are firstly narrowed down to satisfy the given id(s)
+        // that's why queries with qualifier like Qualifier.or(Qualifier.idEquals(...), ageGt49)) return empty result
         assertThat(result).containsOnly(carter);
+
+        // if a query contains id qualifier the results are firstly narrowed down to satisfy the given id(s)
+        result = repository.findUsingQuery(new Query(Qualifier.and(sinceUpdateTimeGt1, Qualifier.idIn(carter.getId(),
+            dave.getId(), boyd.getId()))));
+        assertThat(result).containsOnly(carter, dave, boyd);
 
         // the same qualifiers in different order
         result = repository.findUsingQuery(new Query(Qualifier.and(keyEqCartersId, sinceUpdateTimeGt1)));
@@ -1492,14 +1513,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findByIdAndLastNameDynamicProjection() {
-        List<PersonSomeFields> result = repository.findByIdAndLastName(carter.getId(), carter.getLastName(),
+        List<PersonSomeFields> result = repository.findByIdAndLastName(List.of(carter.getId(), leroi.getId(),
+                leroi2.getId()), carter.getLastName(),
             PersonSomeFields.class);
         assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
     public void findByIdAndLastNameDynamicProjectionNullResult() {
-        List<PersonSomeFields> result = repository.findByIdAndLastName(carter.getId(), dave.getLastName(),
+        List<PersonSomeFields> result = repository.findByIdAndLastName(List.of(carter.getId(), boyd.getId()),
+            dave.getLastName(),
             PersonSomeFields.class);
         assertThat(result).isEmpty();
     }

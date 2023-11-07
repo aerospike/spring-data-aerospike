@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.policy.WritePolicy;
+import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
@@ -27,6 +28,7 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -679,11 +681,11 @@ public interface ReactiveAerospikeOperations {
      * @param id          The id of the document to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to.
-     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @param query       {@link Query} provided to build a filter expression. Optional argument.
      * @return The document from Aerospike, returned document will be mapped to targetClass's type.
      */
-    <T, S> Mono<?> findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass,
-                                           Qualifier... qualifiers);
+    <T, S> Mono<?> findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass,
+                                      Query query);
 
     /**
      * Find document by providing id with a given set name.
@@ -695,11 +697,11 @@ public interface ReactiveAerospikeOperations {
      *                    {@literal null}.
      * @param targetClass The class to map the document to.
      * @param setName     Set name to find the document from.
-     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @param query       {@link Query} provided to build a filter expression. Optional argument.
      * @return The document from Aerospike, returned document will be mapped to targetClass's type.
      */
-    <T, S> Mono<?> findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
-                                           Qualifier... qualifiers);
+    <T, S> Mono<?> findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
+                                      Query query);
 
     /**
      * Find documents by providing multiple ids, set name will be determined by the given entityClass.
@@ -709,12 +711,11 @@ public interface ReactiveAerospikeOperations {
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to.
-     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @param query       {@link Query} provided to build a filter expression. Optional argument.
      * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
      * exists, an empty list is returned.
      */
-    <T, S> Flux<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                            Qualifier... qualifiers);
+    <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass, Query query);
 
     /**
      * Find documents by providing multiple ids with a given set name.
@@ -726,13 +727,12 @@ public interface ReactiveAerospikeOperations {
      *                    {@literal null}.
      * @param targetClass The class to map the document to.
      * @param setName     Set name to find the document from.
-     * @param qualifiers  {@link Qualifier}s provided to build a filter Expression for the query. Optional argument.
+     * @param query       {@link Query} provided to build a filter expression. Optional argument.
      * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
      * exists, an empty list is returned.
      */
-    <T, S> Flux<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                            String setName,
-                                            Qualifier... qualifiers);
+    <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass, String setName,
+                                       Query query);
 
     /**
      * Reactively find documents in the given entityClass's set using a query and map them to the given class type.
@@ -764,6 +764,49 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T> Flux<T> find(Query query, Class<T> targetClass, String setName);
+
+    /**
+     * Find all documents in the given entityClass's set using provided {@link Query}.
+     *
+     * @param query       Query to build filter expression from. Constructed using a {@link Qualifier} that can contain
+     *                    other qualifiers. Must not be {@literal null}. If filter param is null and qualifier has
+     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
+     *                    first processed qualifier.
+     * @param entityClass The class to extract the Aerospike set from and to map the entity to. Must not be
+     *                    {@literal null}.
+     * @param filter      Secondary index filter.
+     * @return Stream of entities.
+     */
+    <T> Flux<T> find(Query query, Class<T> entityClass, @Nullable Filter filter);
+
+    /**
+     * Find all documents in the given entityClass's set using provided {@link Query}.
+     *
+     * @param query       Query to build filter expression from. Constructed using a {@link Qualifier} that can contain
+     *                    other qualifiers. Must not be {@literal null}. If filter param is null and qualifier has
+     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
+     *                    first processed qualifier.
+     * @param entityClass The class to extract the Aerospike set from and to map the entity to. Must not be
+     *                    {@literal null}.
+     * @param targetClass The class to map the entity to. Must not be {@literal null}.
+     * @param filter      Secondary index filter.
+     * @return Stream of entities.
+     */
+    <T, S> Flux<?> find(Query query, Class<T> entityClass, Class<S> targetClass, @Nullable Filter filter);
+
+    /**
+     * Find all documents in the given set using provided {@link Query}.
+     *
+     * @param query       Query to build filter expression from. Constructed using a {@link Qualifier} that can contain
+     *                    other qualifiers. Must not be {@literal null}. If filter param is null and qualifier has
+     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
+     *                    first processed qualifier.
+     * @param targetClass The class to map the entity to. Must not be {@literal null}.
+     * @param setName     Set name to find the documents in.
+     * @param filter      Secondary index filter.
+     * @return Stream of entities.
+     */
+    <T> Flux<T> find(Query query, Class<T> targetClass, String setName, @Nullable Filter filter);
 
     /**
      * Reactively find all documents in the given entityClass's set and map them to the given class type.

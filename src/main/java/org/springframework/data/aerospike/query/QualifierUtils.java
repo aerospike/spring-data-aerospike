@@ -9,12 +9,28 @@ import java.util.List;
 @UtilityClass
 public class QualifierUtils {
 
+    @Deprecated(since = "4.6.0", forRemoval = true)
     public static Qualifier getIdQualifier(AerospikeCriteria criteria) {
         Object qualifiers = getQualifiers(criteria);
         return getOneIdQualifier((Qualifier[]) qualifiers);
     }
 
+    public static Qualifier getIdQualifier(Qualifier criteria) {
+        Object qualifiers = getQualifiers(criteria);
+        return getOneIdQualifier((Qualifier[]) qualifiers);
+    }
+
+    @Deprecated(since = "4.6.0", forRemoval = true)
     public static Qualifier[] getQualifiers(AerospikeCriteria criteria) {
+        if (criteria == null) {
+            return null;
+        } else if (criteria.getQualifiers() == null) {
+            return new Qualifier[]{(criteria)};
+        }
+        return criteria.getQualifiers();
+    }
+
+    public static Qualifier[] getQualifiers(Qualifier criteria) {
         if (criteria == null) {
             return null;
         } else if (criteria.getQualifiers() == null) {
