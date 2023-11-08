@@ -60,8 +60,8 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         PartTree tree = new PartTree(queryMethod.getName(), entityClass);
         Query baseQuery = createQuery(accessor, tree);
 
-        Qualifier qualifiers = baseQuery.getCriteria().getCriteriaObject();
-        Query query = new Query(qualifiers);
+        Qualifier criteria = baseQuery.getCriteria().getCriteriaObject();
+        Query query = new Query(criteria);
 
         if (accessor.getPageable().isPaged()) {
             query.setOffset(accessor.getPageable().getOffset());

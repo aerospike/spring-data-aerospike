@@ -64,7 +64,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             List<Object> ids;
             if (criteria.hasSingleId()) {
                 ids = getIdValue(criteria);
-                return operations.findByIdsUsingQuery(ids, entityClass, targetClass, (Query) null);
+                return operations.findByIdsUsingQuery(ids, entityClass, targetClass, null);
             } else {
                 Qualifier idQualifier;
                 if ((idQualifier = getIdQualifier(criteria)) != null) {

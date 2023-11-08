@@ -668,13 +668,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return (S) findByIdUsingQuery(id, entityClass, targetClass, setName, null);
     }
 
-    private Record getRecord(AerospikePersistentEntity<?> entity, Key key, Qualifier... qualifiers) {
+    private Record getRecord(AerospikePersistentEntity<?> entity, Key key, Qualifier criteria) {
         Record aeroRecord;
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
             aeroRecord = getAndTouch(key, entity.getExpiration(), null);
         } else {
-            Policy policy = getPolicyFilterExp(qualifiers);
+            Policy policy = getPolicyFilterExp(criteria);
             aeroRecord = getAerospikeClient().get(policy, key);
         }
         return aeroRecord;
@@ -696,14 +696,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass,
-                                                 Qualifier... qualifiers) {
+                                                 Qualifier criteria) {
         Record aeroRecord;
         String[] binNames = getBinNamesFromTargetClass(targetClass);
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-            aeroRecord = getAndTouch(key, entity.getExpiration(), binNames, qualifiers);
+            aeroRecord = getAndTouch(key, entity.getExpiration(), binNames, criteria);
         } else {
-            Policy policy = getPolicyFilterExp(qualifiers);
+            Policy policy = getPolicyFilterExp(criteria);
             aeroRecord = getAerospikeClient().get(policy, key, binNames);
         }
         return mapToEntity(key, targetClass, aeroRecord);
@@ -720,7 +720,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return binNamesList.toArray(new String[0]);
     }
 
-    private Policy getPolicyFilterExp(Qualifier[] qualifiers) {
+    private Policy getPolicyFilterExp(Qualifier... qualifiers) {
         if (qualifiers != null && qualifiers.length > 0) {
             Policy policy = new Policy(getAerospikeClient().getReadPolicyDefault());
             policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
@@ -901,7 +901,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T, S> Stream<?> find(Query query, Class<T> entityClass, Class<S> targetClass, Filter filter) {
+    public <T, S> Stream<S> find(Query query, Class<T> entityClass, Class<S> targetClass, Filter filter) {
         return findRecordsUsingQualifiers(getSetName(entityClass), targetClass, filter)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }

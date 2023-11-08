@@ -823,7 +823,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T, S> Flux<?> find(Query query, Class<T> entityClass, Class<S> targetClass, Filter filter) {
+    public <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass, Filter filter) {
         return findRecordsUsingQualifiers(getSetName(entityClass), targetClass, filter)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }

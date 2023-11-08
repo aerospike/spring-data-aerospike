@@ -681,7 +681,7 @@ public interface ReactiveAerospikeOperations {
      * @param id          The id of the document to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to.
-     * @param query       {@link Query} provided to build a filter expression. Optional argument.
+     * @param query       The {@link Query} to filter results. Optional argument.
      * @return The document from Aerospike, returned document will be mapped to targetClass's type.
      */
     <T, S> Mono<?> findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass,
@@ -697,7 +697,7 @@ public interface ReactiveAerospikeOperations {
      *                    {@literal null}.
      * @param targetClass The class to map the document to.
      * @param setName     Set name to find the document from.
-     * @param query       {@link Query} provided to build a filter expression. Optional argument.
+     * @param query       The {@link Query} to filter results. Optional argument.
      * @return The document from Aerospike, returned document will be mapped to targetClass's type.
      */
     <T, S> Mono<?> findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
@@ -711,7 +711,7 @@ public interface ReactiveAerospikeOperations {
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to.
-     * @param query       {@link Query} provided to build a filter expression. Optional argument.
+     * @param query       The {@link Query} to filter results. Optional argument.
      * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
      * exists, an empty list is returned.
      */
@@ -727,7 +727,7 @@ public interface ReactiveAerospikeOperations {
      *                    {@literal null}.
      * @param targetClass The class to map the document to.
      * @param setName     Set name to find the document from.
-     * @param query       {@link Query} provided to build a filter expression. Optional argument.
+     * @param query       The {@link Query} to filter results. Optional argument.
      * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
      * exists, an empty list is returned.
      */
@@ -737,7 +737,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Reactively find documents in the given entityClass's set using a query and map them to the given class type.
      *
-     * @param query       The query to filter results. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from and to map the documents to. Must not be
      *                    {@literal null}.
      * @return A Flux of matching documents, returned documents will be mapped to entityClass's type.
@@ -748,7 +748,7 @@ public interface ReactiveAerospikeOperations {
      * Reactively find documents in the given entityClass's set using a query and map them to the given target class
      * type.
      *
-     * @param query       The query to filter results. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to. Must not be {@literal null}.
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
@@ -758,7 +758,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Reactively find documents in the given set using a query and map them to the given target class type.
      *
-     * @param query       The query to filter results. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Must not be {@literal null}.
      * @param targetClass The class to map the document to. Must not be {@literal null}.
      * @param setName     Set name to find the documents from.
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
@@ -768,7 +768,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Find all documents in the given entityClass's set using provided {@link Query}.
      *
-     * @param query       Query to build filter expression from. Constructed using a {@link Qualifier} that can contain
+     * @param query       The {@link Query} to filter results. Constructed using a {@link Qualifier} that can contain
      *                    other qualifiers. Must not be {@literal null}. If filter param is null and qualifier has
      *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
      *                    first processed qualifier.
@@ -782,7 +782,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Find all documents in the given entityClass's set using provided {@link Query}.
      *
-     * @param query       Query to build filter expression from. Constructed using a {@link Qualifier} that can contain
+     * @param query       The {@link Query} to filter results. Constructed using a {@link Qualifier} that can contain
      *                    other qualifiers. Must not be {@literal null}. If filter param is null and qualifier has
      *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
      *                    first processed qualifier.
@@ -792,12 +792,12 @@ public interface ReactiveAerospikeOperations {
      * @param filter      Secondary index filter.
      * @return Stream of entities.
      */
-    <T, S> Flux<?> find(Query query, Class<T> entityClass, Class<S> targetClass, @Nullable Filter filter);
+    <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass, @Nullable Filter filter);
 
     /**
      * Find all documents in the given set using provided {@link Query}.
      *
-     * @param query       Query to build filter expression from. Constructed using a {@link Qualifier} that can contain
+     * @param query       The {@link Query} to filter results. Constructed using a {@link Qualifier} that can contain
      *                    other qualifiers. Must not be {@literal null}. If filter param is null and qualifier has
      *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
      *                    first processed qualifier.

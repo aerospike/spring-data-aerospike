@@ -34,7 +34,7 @@ public class QualifierUtils {
         if (criteria == null) {
             return null;
         } else if (criteria.getQualifiers() == null) {
-            return new Qualifier[]{(criteria)};
+            return new Qualifier[]{criteria};
         }
         return criteria.getQualifiers();
     }
