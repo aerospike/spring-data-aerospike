@@ -59,23 +59,23 @@ public class TemplateUtils {
         return null;
     }
 
-    public static Qualifier excludeIdQualifier(Qualifier criteria) {
+    public static Qualifier excludeIdQualifier(Qualifier qualifier) {
         List<Qualifier> qualifiersWithoutId = new ArrayList<>();
-        if (criteria != null && criteria.hasQualifiers()) {
-            for (Qualifier qualifier : criteria.getQualifiers()) {
-                if (qualifier.hasQualifiers()) {
-                    Qualifier[] internalQuals = excludeIdQualifier(qualifier.getQualifiers());
-                    qualifiersWithoutId.add(combineMultipleQualifiers(qualifier.getOperation(), internalQuals));
-                } else if (!qualifier.hasId()) {
-                    qualifiersWithoutId.add(qualifier);
+        if (qualifier != null && qualifier.hasQualifiers()) {
+            for (Qualifier innerQual : qualifier.getQualifiers()) {
+                if (innerQual.hasQualifiers()) {
+                    Qualifier[] internalQuals = excludeIdQualifier(innerQual.getQualifiers());
+                    qualifiersWithoutId.add(combineMultipleQualifiers(innerQual.getOperation(), internalQuals));
+                } else if (!innerQual.hasId()) {
+                    qualifiersWithoutId.add(innerQual);
                 }
             }
-            return combineMultipleQualifiers(criteria.getOperation() != null ? criteria.getOperation() :
+            return combineMultipleQualifiers(qualifier.getOperation() != null ? qualifier.getOperation() :
                 FilterOperation.AND, qualifiersWithoutId.toArray(Qualifier[]::new));
-        } else if (criteria.hasId()) {
+        } else if (qualifier.hasId()) {
             return null;
         }
-        return criteria;
+        return qualifier;
     }
 
     private static Qualifier combineMultipleQualifiers(FilterOperation operation, Qualifier[] qualifiers) {

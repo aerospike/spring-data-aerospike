@@ -18,17 +18,14 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.policy.WritePolicy;
-import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
-import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -764,49 +761,6 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T> Flux<T> find(Query query, Class<T> targetClass, String setName);
-
-    /**
-     * Find all documents in the given entityClass's set using provided {@link Query}.
-     *
-     * @param query       The {@link Query} to filter results. Constructed using a {@link Qualifier} that can contain
-     *                    other qualifiers. Must not be {@literal null}. If filter param is null and qualifier has
-     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
-     *                    first processed qualifier.
-     * @param entityClass The class to extract the Aerospike set from and to map the entity to. Must not be
-     *                    {@literal null}.
-     * @param filter      Secondary index filter.
-     * @return Stream of entities.
-     */
-    <T> Flux<T> find(Query query, Class<T> entityClass, @Nullable Filter filter);
-
-    /**
-     * Find all documents in the given entityClass's set using provided {@link Query}.
-     *
-     * @param query       The {@link Query} to filter results. Constructed using a {@link Qualifier} that can contain
-     *                    other qualifiers. Must not be {@literal null}. If filter param is null and qualifier has
-     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
-     *                    first processed qualifier.
-     * @param entityClass The class to extract the Aerospike set from and to map the entity to. Must not be
-     *                    {@literal null}.
-     * @param targetClass The class to map the entity to. Must not be {@literal null}.
-     * @param filter      Secondary index filter.
-     * @return Stream of entities.
-     */
-    <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass, @Nullable Filter filter);
-
-    /**
-     * Find all documents in the given set using provided {@link Query}.
-     *
-     * @param query       The {@link Query} to filter results. Constructed using a {@link Qualifier} that can contain
-     *                    other qualifiers. Must not be {@literal null}. If filter param is null and qualifier has
-     *                    {@link Qualifier#getExcludeFilter()} == false, secondary index filter is built based on the
-     *                    first processed qualifier.
-     * @param targetClass The class to map the entity to. Must not be {@literal null}.
-     * @param setName     Set name to find the documents in.
-     * @param filter      Secondary index filter.
-     * @return Stream of entities.
-     */
-    <T> Flux<T> find(Query query, Class<T> targetClass, String setName, @Nullable Filter filter);
 
     /**
      * Reactively find all documents in the given entityClass's set and map them to the given class type.

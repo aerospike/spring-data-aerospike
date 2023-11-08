@@ -71,7 +71,6 @@ import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.core.TemplateUtils.queryCriteriaIsNotNull;
 import static org.springframework.data.aerospike.query.QualifierUtils.getOneIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.validateQualifiers;
-import static org.springframework.data.aerospike.utility.Utils.allArrayElementsAreNull;
 
 /**
  * Primary implementation of {@link ReactiveAerospikeOperations}.
@@ -623,7 +622,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(),
                 "Touch on read is not supported for entity without expiration property");
-            return getAndTouch(key, entity.getExpiration(), null)
+            return getAndTouch(key, entity.getExpiration(), null, null)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record))
                 .onErrorResume(
@@ -654,7 +653,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(),
                 "Touch on read is not supported for entity without expiration property");
-            return getAndTouch(key, entity.getExpiration(), binNames)
+            return getAndTouch(key, entity.getExpiration(), binNames, null)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
                 .onErrorResume(
@@ -735,12 +734,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             target = entityClass;
         }
 
-        Qualifier[] qualifiers = queryCriteriaIsNotNull(query) ?
-            new Qualifier[]{query.getCriteria().getCriteriaObject()} : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(),
                 "Touch on read is not supported for entity without expiration property");
-            return getAndTouch(key, entity.getExpiration(), binNames, qualifiers)
+            return getAndTouch(key, entity.getExpiration(), binNames, qualifier)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record))
                 .onErrorResume(
@@ -750,9 +748,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 .onErrorMap(this::translateError);
         } else {
             Policy policy = null;
-            if (qualifiers != null && qualifiers.length > 0) {
+            if (qualifier != null) {
                 policy = new Policy(reactorClient.getReadPolicyDefault());
-                policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(qualifiers);
+                policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(new Qualifier[]{qualifier});
             }
             return reactorClient.get(policy, key, binNames)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
@@ -818,24 +816,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Flux<T> find(Query query, Class<T> entityClass, Filter filter) {
-        return find(query, entityClass, getSetName(entityClass), filter);
-    }
-
-    @Override
-    public <T, S> Flux<S> find(Query query, Class<T> entityClass, Class<S> targetClass, Filter filter) {
-        return findRecordsUsingQualifiers(getSetName(entityClass), targetClass, filter)
-            .map(keyRecord -> mapToEntity(keyRecord, targetClass));
-    }
-
-    @Override
-    public <T> Flux<T> find(Query query, Class<T> targetClass, String setName, Filter filter) {
-        Qualifier criteria = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
-        return findRecordsUsingQualifiers(setName, targetClass, filter, criteria)
-            .map(keyRecord -> mapToEntity(keyRecord, targetClass));
-    }
-
-    @Override
     public <T> Flux<T> findAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Entity class must not be null!");
 
@@ -855,7 +835,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifiers(setName, targetClass, null, (Qualifier[]) null);
+        return findUsingQualifier(setName, targetClass, null, null);
     }
 
     @Override
@@ -878,8 +858,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifiersWithPostProcessing(setName, targetClass, sort, offset, limit,
-            null, (Qualifier[]) null);
+        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit, null);
     }
 
     @Override
@@ -902,8 +881,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifiersWithPostProcessing(setName, targetClass, sort, offset, limit,
-            null, (Qualifier[]) null);
+        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit, null);
     }
 
     private BatchPolicy getBatchPolicyFilterExp(Qualifier[] qualifiers) {
@@ -1009,7 +987,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        return findRecordsUsingQualifiers(setName, null, null, qualifier);
+        return findRecordsUsingQualifier(setName, null, null, qualifier);
     }
 
     @Override
@@ -1149,12 +1127,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(keyRecord -> keyRecord.record);
     }
 
-    private Mono<KeyRecord> getAndTouch(Key key, int expiration, String[] binNames, Qualifier... qualifiers) {
+    private Mono<KeyRecord> getAndTouch(Key key, int expiration, String[] binNames, Qualifier qualifiers) {
         WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(this.writePolicyDefault)
             .expiration(expiration);
 
-        if (qualifiers != null && qualifiers.length > 0) {
-            writePolicyBuilder.filterExp(reactorQueryEngine.getFilterExpressionsBuilder().build(qualifiers));
+        if (qualifiers != null) {
+            writePolicyBuilder.filterExp(reactorQueryEngine.getFilterExpressionsBuilder()
+                .build(new Qualifier[]{qualifiers}));
         }
         WritePolicy writePolicy = writePolicyBuilder.build();
 
@@ -1191,18 +1170,17 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private <T> Flux<T> findUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Flux<T> results = findUsingQualifiersWithDistinctPredicate(setName, targetClass,
+        Flux<T> results = findUsingQualifierWithDistinctPredicate(setName, targetClass,
             getDistinctPredicate(query), qualifier);
         results = applyPostProcessingOnResults(results, query);
         return results;
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T> Flux<T> findUsingQualifiersWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
-                                                              long offset, long limit, Filter filter,
-                                                              Qualifier... qualifiers) {
+    private <T> Flux<T> findUsingQualifierWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
+                                                             long offset, long limit, Qualifier qualifier) {
         verifyUnsortedWithOffset(sort, offset);
-        Flux<T> results = findUsingQualifiers(setName, targetClass, filter, qualifiers);
+        Flux<T> results = findUsingQualifier(setName, targetClass, null, qualifier);
         results = applyPostProcessingOnResults(results, sort, offset, limit);
         return results;
     }
@@ -1246,44 +1224,44 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
-    private <T> Flux<T> findUsingQualifiers(String setName, Class<T> targetClass, Filter filter,
-                                            Qualifier... qualifiers) {
-        return findRecordsUsingQualifiers(setName, targetClass, filter, qualifiers)
+    private <T> Flux<T> findUsingQualifier(String setName, Class<T> targetClass, Filter filter,
+                                           Qualifier qualifier) {
+        return findRecordsUsingQualifier(setName, targetClass, filter, qualifier)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
-    private <T> Flux<T> findUsingQualifiersWithDistinctPredicate(String setName, Class<T> targetClass,
-                                                                 Predicate<KeyRecord> distinctPredicate,
-                                                                 Qualifier... qualifiers) {
-        return findRecordsUsingQualifiers(setName, targetClass, null, qualifiers)
+    private <T> Flux<T> findUsingQualifierWithDistinctPredicate(String setName, Class<T> targetClass,
+                                                                Predicate<KeyRecord> distinctPredicate,
+                                                                Qualifier qualifier) {
+        return findRecordsUsingQualifier(setName, targetClass, null, qualifier)
             .filter(distinctPredicate)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
-    private <T> Flux<KeyRecord> findRecordsUsingQualifiers(String setName, Class<T> targetClass, Filter filter,
-                                                           Qualifier... qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0 && !allArrayElementsAreNull(qualifiers)) {
-            validateQualifiers(qualifiers);
+    private <T> Flux<KeyRecord> findRecordsUsingQualifier(String setName, Class<T> targetClass, Filter filter,
+                                                          Qualifier qualifier) {
+        if (qualifier != null) {
+            validateQualifiers(qualifier);
 
-            Qualifier idQualifier = getOneIdQualifier(qualifiers);
+            Qualifier idQualifier = getOneIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a special flow if there is id given
                 return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
-                    excludeIdQualifier(qualifiers));
+                    excludeIdQualifier(qualifier));
             }
         }
 
         if (targetClass != null) {
             String[] binNames = getBinNamesFromTargetClass(targetClass);
-            return this.reactorQueryEngine.select(this.namespace, setName, binNames, filter, qualifiers);
+            return this.reactorQueryEngine.select(this.namespace, setName, binNames, filter, qualifier);
         } else {
-            return this.reactorQueryEngine.select(this.namespace, setName, filter, qualifiers);
+            return this.reactorQueryEngine.select(this.namespace, setName, filter, qualifier);
         }
     }
 
     private <T> Flux<KeyRecord> findByIdsWithoutMapping(Collection<?> ids, String setName,
                                                         Class<T> targetClass,
-                                                        Qualifier... qualifiers) {
+                                                        Qualifier qualifier) {
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
@@ -1291,7 +1269,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return Flux.empty();
         }
 
-        BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
+        BatchPolicy policy = getBatchPolicyFilterExp(new Qualifier[]{qualifier});
 
         return Flux.fromIterable(ids)
             .map(id -> getKey(id, setName))
