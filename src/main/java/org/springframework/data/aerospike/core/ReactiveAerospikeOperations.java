@@ -28,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.annotation.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -678,11 +679,11 @@ public interface ReactiveAerospikeOperations {
      * @param id          The id of the document to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to.
-     * @param query       The {@link Query} to filter results. Optional argument.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return The document from Aerospike, returned document will be mapped to targetClass's type.
      */
     <T, S> Mono<?> findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass,
-                                      Query query);
+                                      @Nullable Query query);
 
     /**
      * Find document by providing id with a given set name.
@@ -694,11 +695,11 @@ public interface ReactiveAerospikeOperations {
      *                    {@literal null}.
      * @param targetClass The class to map the document to.
      * @param setName     Set name to find the document from.
-     * @param query       The {@link Query} to filter results. Optional argument.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return The document from Aerospike, returned document will be mapped to targetClass's type.
      */
     <T, S> Mono<?> findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
-                                      Query query);
+                                      @Nullable Query query);
 
     /**
      * Find documents by providing multiple ids, set name will be determined by the given entityClass.
@@ -708,11 +709,12 @@ public interface ReactiveAerospikeOperations {
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to.
-     * @param query       The {@link Query} to filter results. Optional argument.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
      * exists, an empty list is returned.
      */
-    <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass, Query query);
+    <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                       @Nullable Query query);
 
     /**
      * Find documents by providing multiple ids with a given set name.
@@ -724,12 +726,12 @@ public interface ReactiveAerospikeOperations {
      *                    {@literal null}.
      * @param targetClass The class to map the document to.
      * @param setName     Set name to find the document from.
-     * @param query       The {@link Query} to filter results. Optional argument.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
      * exists, an empty list is returned.
      */
     <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass, String setName,
-                                       Query query);
+                                       @Nullable Query query);
 
     /**
      * Reactively find documents in the given entityClass's set using a query and map them to the given class type.
