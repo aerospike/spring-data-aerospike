@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Value;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.repository.query.Query;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.RECORD_COUNT;
@@ -11,14 +12,14 @@ class UsersTests extends BaseQueryEngineTests {
 
     @Test
     void allUsers() {
-        KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null);
+        KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, null);
 
         assertThat(it).toIterable().hasSize(RECORD_COUNT);
     }
 
     @Test
     void usersInterrupted() {
-        try (KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null)) {
+        try (KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, null)) {
             int counter = 0;
             while (it.hasNext()) {
                 it.next();
@@ -37,7 +38,7 @@ class UsersTests extends BaseQueryEngineTests {
             .setValue1(Value.get("n"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, new Query(qualifier));
 
         assertThat(it).toIterable()
             .isNotEmpty()

@@ -3,7 +3,6 @@ package org.springframework.data.aerospike.core;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -86,9 +85,5 @@ public class TemplateUtils {
         } else {
             throw new UnsupportedOperationException("Only OR / AND operations are supported");
         }
-    }
-
-    static boolean queryCriteriaIsNotNull(Query query) {
-        return query != null && query.getCriteria() != null;
     }
 }

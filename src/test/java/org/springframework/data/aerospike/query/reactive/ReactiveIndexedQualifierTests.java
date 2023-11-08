@@ -24,6 +24,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -66,7 +67,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(26))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -98,7 +99,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(26))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -133,7 +134,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(26))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
                     assertThat(results)
@@ -157,7 +158,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(28))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -192,7 +193,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(28))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -215,7 +216,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(ORANGE))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -233,7 +234,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectOnIndexFilter() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Filter filter = Filter.range("age", 28, 29);
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter, null);
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
                     Map<Integer, Integer> ageCount = results.stream()
@@ -254,7 +255,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     void selectOnIndexFilterNonExistingKeys() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Filter filter = Filter.range("age", 30, 35);
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter, null);
             StepVerifier.create(flux)
                 .expectNextCount(0)
                 .verifyComplete();
@@ -271,7 +272,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(BLUE))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter, qual1);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter, new Query(qual1));
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
                     assertThat(results)
@@ -301,7 +302,8 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue2(Value.get(29))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qual1, qual2);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(Qualifier.and(qual1, qual2)));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -331,7 +333,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.getAsGeoJSON(rgnstr))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_GEO_SET, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_GEO_SET, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {

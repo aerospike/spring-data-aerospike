@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.CollectionUtils;
 
 import java.util.Arrays;
@@ -62,7 +63,7 @@ class QualifierTests extends BaseQueryEngineTests {
                 .setValue1(Value.get(26)).build();
 
             //noinspection resource
-            assertThatThrownBy(() -> queryEngine.select(namespace, SET_NAME, null, qualifier))
+            assertThatThrownBy(() -> queryEngine.select(namespace, SET_NAME, null, new Query(qualifier)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("disabled by default");
         } finally {
@@ -75,7 +76,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void selectOneWitKey() {
         KeyQualifier kq = new KeyQualifier(Value.get("selector-test:3"));
 
-        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, kq);
+        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(kq));
 
         assertThat(iterator).toIterable().hasSize(1);
     }
@@ -85,14 +86,14 @@ class QualifierTests extends BaseQueryEngineTests {
     void selectOneWitKeyNonExisting() {
         KeyQualifier kq = new KeyQualifier(Value.get("selector-test:unknown"));
 
-        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, kq);
+        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(kq));
 
         assertThat(iterator).toIterable().isEmpty();
     }
 
     @Test
     void selectAll() {
-        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null);
+        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, null);
 
         assertThat(iterator).toIterable().hasSize(RECORD_COUNT);
     }
@@ -106,7 +107,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(26))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -124,7 +125,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(26))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         Map<Integer, Integer> ageCount = CollectionUtils.toStream(it)
             .map(rec -> rec.record.getInt("age"))
@@ -145,7 +146,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(26))
             .build();
 
-        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(iterator)
             .toIterable()
@@ -163,7 +164,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(28))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         Map<Integer, Integer> ageCount = CollectionUtils.toStream(it)
             .map(rec -> rec.record.getInt("age"))
@@ -184,7 +185,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(28))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -201,7 +202,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1AsObj(1L)
             .build();
 
-        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(iterator)
             .toIterable()
@@ -218,7 +219,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(ORANGE))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -236,7 +237,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(ORANGE.toUpperCase()))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -255,7 +256,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("BlUe"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -275,7 +276,7 @@ class QualifierTests extends BaseQueryEngineTests {
                 .setValue1(Value.get("BlUe"))
                 .build();
 
-            KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, qualifier);
+            KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
             assertThat(iterator)
                 .toIterable()
@@ -298,7 +299,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("lue"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it).toIterable().isEmpty();
     }
@@ -311,7 +312,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(BLUE.substring(0, 2)))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -328,7 +329,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(BLUE))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -346,7 +347,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("BLU"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -363,7 +364,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(GREEN.substring(2)))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -380,7 +381,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("e"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -397,7 +398,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(GREEN))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it)
             .toIterable()
@@ -416,7 +417,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue2(Value.get(29)) // + 1 as upper limit is exclusive
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         Map<Integer, Integer> ageCount = CollectionUtils.toStream(it)
             .map(rec -> rec.record.getInt("age"))
@@ -441,7 +442,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("l"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         Map<String, Integer> colorCount = CollectionUtils.toStream(it)
             .map(rec -> rec.record.getString("color"))
@@ -461,7 +462,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(inColors))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         Map<String, Integer> colorCount = CollectionUtils.toStream(it)
             .map(rec -> rec.record.getString("color"))
@@ -480,7 +481,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(searchColor))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it).toIterable()
             .isNotEmpty()
@@ -506,7 +507,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue2(Value.get(ageEnd + 1L))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
             .map(rec -> {
@@ -533,7 +534,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(searchColor))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it).toIterable()
             .isNotEmpty()
@@ -556,7 +557,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(searchColor))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it).toIterable()
             .isNotEmpty()
@@ -581,7 +582,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue2(Value.get(ageEnd + 1L))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
             .map(rec -> {
@@ -613,7 +614,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue2(Value.get(ageEnd + 1L))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
             .map(rec -> {
@@ -640,7 +641,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(".*"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
 
         assertThat(it).toIterable()
             .isNotEmpty()
@@ -656,7 +657,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(".*"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
 
         assertThat(it).toIterable()
             .isNotEmpty()
@@ -672,7 +673,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(".*"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
 
         assertThat(it).toIterable()
             .isNotEmpty()
@@ -689,7 +690,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(".*"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
 
         assertThat(it).toIterable().isEmpty();
     }
@@ -704,7 +705,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(specialString))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
 
         assertThat(it).toIterable()
             .isNotEmpty()
@@ -726,7 +727,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.getAsGeoJSON(rgnstr))
             .build();
 
-        KeyRecordIterator iterator = queryEngine.select(namespace, GEO_SET, null, qualifier);
+        KeyRecordIterator iterator = queryEngine.select(namespace, GEO_SET, null, new Query(qualifier));
 
         assertThat(iterator).toIterable()
             .isNotEmpty()
@@ -750,7 +751,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("NA"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qual1, qual2);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qual2));
 
         assertThat(it).toIterable()
             .isNotEmpty()
@@ -768,7 +769,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get(BLUE.toUpperCase()))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qual1);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
 
         assertThat(it).toIterable().isEmpty();
     }
@@ -783,7 +784,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("NA"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qual1);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
 
         assertThat(it).toIterable().isEmpty();
     }
@@ -816,7 +817,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier or2 = Qualifier.or(colorIsGreen, nameIs696);
         Qualifier qualifier = Qualifier.and(or, or2);
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, qualifier);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
 
         assertThat(it).toIterable().isNotEmpty()
             .allSatisfy(rec -> {
@@ -853,7 +854,7 @@ class QualifierTests extends BaseQueryEngineTests {
 
         Qualifier or = Qualifier.or(colorIsBlue, ageBetween28And29);
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, or);
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(or));
 
         List<KeyRecord> result = CollectionUtils.toStream(it).collect(Collectors.toList());
         assertThat(result)

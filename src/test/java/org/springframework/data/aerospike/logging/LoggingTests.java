@@ -14,6 +14,7 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.StubParameterAccessor;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.MemoryAppender;
@@ -46,7 +47,7 @@ public class LoggingTests {
             .build();
 
         StatementBuilder statementBuilder = new StatementBuilder(indexesCacheMock);
-        statementBuilder.build("TEST", "testSet", null, new Qualifier[]{qualifier});
+        statementBuilder.build("TEST", "testSet", null, new Query(qualifier));
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(1);
         String msg = "Bin TEST.testSet.testField has secondary index: false";

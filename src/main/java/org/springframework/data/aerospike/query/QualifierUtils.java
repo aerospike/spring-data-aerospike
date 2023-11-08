@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.query;
 
 import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
+import org.springframework.data.aerospike.repository.query.Query;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,5 +84,9 @@ public class QualifierUtils {
             }
         }
         return idQualifiers;
+    }
+
+    public static boolean queryCriteriaIsNotNull(Query query) {
+        return query != null && query.getCriteria() != null;
     }
 }
