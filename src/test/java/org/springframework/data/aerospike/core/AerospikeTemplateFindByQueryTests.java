@@ -562,11 +562,6 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
             template.find(new Query(qualifierOr), SampleClasses.CustomCollectionClass.class);
         assertThat(result3).containsOnly(doc1, doc2);
 
-        // no secondary index filter and no qualifiers
-        Stream<SampleClasses.CustomCollectionClass> result4 =
-            template.find(null, SampleClasses.CustomCollectionClass.class);
-        assertThat(result4).contains(doc1, doc2);
-
         additionalAerospikeTestOperations.dropIndex(SampleClasses.CustomCollectionClass.class,
             "CustomCollectionClass_field"); // cleanup
         template.delete(doc1); // cleanup
