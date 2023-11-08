@@ -29,7 +29,7 @@ import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
-import reactor.util.annotation.Nullable;
+import org.springframework.lang.Nullable;
 
 import java.util.Collection;
 import java.util.List;
