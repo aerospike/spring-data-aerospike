@@ -21,7 +21,6 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.QueryPolicy;
-import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
@@ -65,33 +64,31 @@ public class QueryEngine {
     }
 
     /**
-     * Select records filtered by a Filter and Qualifiers
+     * Select records filtered by a query
      *
      * @param namespace Namespace to storing the data
      * @param set       Set storing the data
-     * @param filter    Secondary index Filter to be used
-     * @param query     Query for filtering results
+     * @param query     {@link Query} for filtering results
      * @return A KeyRecordIterator to iterate over the results
      */
-    public KeyRecordIterator select(String namespace, String set, @Nullable Filter filter, @Nullable Query query) {
-        return select(namespace, set, null, filter, query);
+    public KeyRecordIterator select(String namespace, String set, @Nullable Query query) {
+        return select(namespace, set, null, query);
     }
 
     /**
-     * Select records filtered by a Filter and Qualifiers
+     * Select records filtered by a query
      *
      * @param namespace Namespace to storing the data
      * @param set       Set storing the data
      * @param binNames  Bin names to return from the query
-     * @param query     Query for filtering results
+     * @param query     {@link Query} for filtering results
      * @return A KeyRecordIterator to iterate over the results
      */
-    public KeyRecordIterator select(String namespace, String set, String[] binNames, Filter filter, Query query) {
+    public KeyRecordIterator select(String namespace, String set, String[] binNames, @Nullable Query query) {
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
         /*
          * singleton using primary key
          */
-        // TODO: if filter is provided together with KeyQualifier it is completely ignored (Anastasiia Smirnova)
         // KeyQualifier is deprecated and marked for removal
         if (qualifier instanceof KeyQualifier kq) {
             Key key = kq.makeKey(namespace, set);
@@ -107,7 +104,7 @@ public class QueryEngine {
         /*
          *  query with filters
          */
-        Statement statement = statementBuilder.build(namespace, set, filter, query, binNames);
+        Statement statement = statementBuilder.build(namespace, set, query, binNames);
         QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
         localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
 

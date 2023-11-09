@@ -47,7 +47,7 @@ public class LoggingTests {
             .build();
 
         StatementBuilder statementBuilder = new StatementBuilder(indexesCacheMock);
-        statementBuilder.build("TEST", "testSet", null, new Query(qualifier));
+        statementBuilder.build("TEST", "testSet", new Query(qualifier));
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(1);
         String msg = "Bin TEST.testSet.testField has secondary index: false";

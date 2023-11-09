@@ -892,8 +892,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return findUsingQueryWithPostProcessing(setName, targetClass, query);
     }
 
-    private <T> Stream<T> find(Query query, Class<T> targetClass, String setName, Filter filter) {
-        return findRecordsUsingQualifier(setName, targetClass, filter, query)
+    private <T> Stream<T> find(Class<T> targetClass, String setName) {
+        return findRecordsUsingQuery(setName, targetClass, null)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
@@ -917,7 +917,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return find(null, targetClass, setName, null);
+        return find(targetClass, setName);
     }
 
     @Override
@@ -948,7 +948,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private <T> Stream<T> findUsingQueryWithDistinctPredicate(String setName, Class<T> targetClass,
                                                               Predicate<KeyRecord> distinctPredicate,
                                                               Query query) {
-        return findRecordsUsingQualifier(setName, targetClass, null, query)
+        return findRecordsUsingQuery(setName, targetClass, query)
             .filter(distinctPredicate)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
@@ -1053,7 +1053,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findRecordsUsingQualifier(setName, null, null, query);
+        return findRecordsUsingQuery(setName, null, query);
     }
 
     @Override
@@ -1238,8 +1238,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private <T> Stream<T> findUsingQualifierWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
                                                                long offset, long limit, Qualifier qualifier) {
         verifyUnsortedWithOffset(sort, offset);
-        Query query = qualifier != null ? new Query(qualifier) : null;
-        Stream<T> results = find(query, targetClass, setName, null);
+        Stream<T> results = find(targetClass, setName);
         return applyPostProcessingOnResults(results, sort, offset, limit);
     }
 
@@ -1274,8 +1273,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return results;
     }
 
-    private <T> Stream<KeyRecord> findRecordsUsingQualifier(String setName, Class<T> targetClass, Filter filter,
-                                                            Query query) {
+    private <T> Stream<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
         if (qualifier != null) {
             validateQualifiers(qualifier);
@@ -1292,9 +1290,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         if (targetClass != null) {
             String[] binNames = getBinNamesFromTargetClass(targetClass);
-            recIterator = queryEngine.select(namespace, setName, binNames, filter, query);
+            recIterator = queryEngine.select(namespace, setName, binNames, query);
         } else {
-            recIterator = queryEngine.select(namespace, setName, filter, query);
+            recIterator = queryEngine.select(namespace, setName, query);
         }
 
         return StreamUtils.createStreamFromIterator(recIterator)

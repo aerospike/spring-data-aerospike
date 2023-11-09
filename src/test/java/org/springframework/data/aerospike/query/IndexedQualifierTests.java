@@ -17,7 +17,6 @@
 package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Value;
-import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -114,16 +113,15 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void selectOnIndexWithQualifiers() {
+    void selectWithBlueColorQuery() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Filter filter = Filter.range("age", 25, 29);
             Qualifier qual1 = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(BLUE))
                 .build();
 
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter, new Query(qual1));
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, new Query(qual1));
 
             assertThat(it)
                 .toIterable()
@@ -226,10 +224,9 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void selectOnIndexFilter() {
+    void selectWithoutQuery() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Filter filter = Filter.range("age", 28, 29);
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter, null);
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null);
 
             Map<Integer, Integer> ageCount = CollectionUtils.toStream(it)
                 .map(rec -> rec.record.getInt("age"))
@@ -239,16 +236,6 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 .allSatisfy(age -> assertThat(age).isBetween(28, 29));
             assertThat(ageCount.get(28)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(28));
             assertThat(ageCount.get(29)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(29));
-        });
-    }
-
-    @Test
-    void selectOnIndexFilterNonExistingKeys() {
-        withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Filter filter = Filter.range("age", 30, 35);
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter, null);
-
-            assertThat(it).toIterable().isEmpty();
         });
     }
 
@@ -267,7 +254,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             .build();
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(Qualifier.and(qual1, qual2)));
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(Qualifier.and(qual1, qual2)));
 
             assertThat(it).toIterable()
                 .isNotEmpty()

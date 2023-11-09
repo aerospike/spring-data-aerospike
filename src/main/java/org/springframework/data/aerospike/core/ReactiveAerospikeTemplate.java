@@ -23,7 +23,6 @@ import com.aerospike.client.policy.BatchPolicy;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
-import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
@@ -833,7 +832,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifier(setName, targetClass, null, null);
+        return findUsingQuery(setName, targetClass, null);
     }
 
     @Override
@@ -856,7 +855,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit, null);
+        return findUsingQueryWithPostProcessing(setName, targetClass, sort, offset, limit, null);
     }
 
     @Override
@@ -879,7 +878,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit, null);
+        return findUsingQueryWithPostProcessing(setName, targetClass, sort, offset, limit, null);
     }
 
     private BatchPolicy getBatchPolicyFilterExp(Query query) {
@@ -985,7 +984,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        return findRecordsUsingQualifier(setName, null, null, query);
+        return findRecordsUsingQuery(setName, null, query);
     }
 
     @Override
@@ -1166,17 +1165,17 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private <T> Flux<T> findUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
-        Flux<T> results = findUsingQualifierWithDistinctPredicate(setName, targetClass, getDistinctPredicate(query),
+        Flux<T> results = findUsingQueryWithDistinctPredicate(setName, targetClass, getDistinctPredicate(query),
             query);
         results = applyPostProcessingOnResults(results, query);
         return results;
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T> Flux<T> findUsingQualifierWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
-                                                             long offset, long limit, Query query) {
+    private <T> Flux<T> findUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
+                                                         long offset, long limit, Query query) {
         verifyUnsortedWithOffset(sort, offset);
-        Flux<T> results = findUsingQualifier(setName, targetClass, null, query);
+        Flux<T> results = findUsingQuery(setName, targetClass, query);
         results = applyPostProcessingOnResults(results, sort, offset, limit);
         return results;
     }
@@ -1220,21 +1219,19 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
-    private <T> Flux<T> findUsingQualifier(String setName, Class<T> targetClass, Filter filter, Query query) {
-        return findRecordsUsingQualifier(setName, targetClass, filter, query)
+    private <T> Flux<T> findUsingQuery(String setName, Class<T> targetClass, Query query) {
+        return findRecordsUsingQuery(setName, targetClass, query)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
-    private <T> Flux<T> findUsingQualifierWithDistinctPredicate(String setName, Class<T> targetClass,
-                                                                Predicate<KeyRecord> distinctPredicate,
-                                                                Query query) {
-        return findRecordsUsingQualifier(setName, targetClass, null, query)
+    private <T> Flux<T> findUsingQueryWithDistinctPredicate(String setName, Class<T> targetClass,
+                                                            Predicate<KeyRecord> distinctPredicate, Query query) {
+        return findRecordsUsingQuery(setName, targetClass, query)
             .filter(distinctPredicate)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
-    private <T> Flux<KeyRecord> findRecordsUsingQualifier(String setName, Class<T> targetClass, Filter filter,
-                                                          Query query) {
+    private <T> Flux<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
         if (qualifier != null) {
             validateQualifiers(qualifier);
@@ -1249,9 +1246,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         if (targetClass != null) {
             String[] binNames = getBinNamesFromTargetClass(targetClass);
-            return this.reactorQueryEngine.select(this.namespace, setName, binNames, filter, query);
+            return this.reactorQueryEngine.select(this.namespace, setName, binNames, query);
         } else {
-            return this.reactorQueryEngine.select(this.namespace, setName, filter, query);
+            return this.reactorQueryEngine.select(this.namespace, setName, query);
         }
     }
 

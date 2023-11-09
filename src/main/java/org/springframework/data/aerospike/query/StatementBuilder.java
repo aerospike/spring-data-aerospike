@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.model.IndexedField;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
@@ -39,22 +40,19 @@ public class StatementBuilder {
         this.indexesCache = indexesCache;
     }
 
-    public Statement build(String namespace, String set, Filter filter, Query query) {
-        return build(namespace, set, filter, query, null);
+    public Statement build(String namespace, String set, Query query) {
+        return build(namespace, set, query, null);
     }
 
-    public Statement build(String namespace, String set, Filter filter, Query query, String[] binNames) {
+    public Statement build(String namespace, String set, @Nullable Query query, String[] binNames) {
         Statement stmt = new Statement();
         stmt.setNamespace(namespace);
         stmt.setSetName(set);
         if (binNames != null && binNames.length != 0) {
             stmt.setBinNames(binNames);
         }
-        if (filter != null) {
-            stmt.setFilter(filter);
-        } else if (queryCriteriaIsNotNull(query)) {
+        if (queryCriteriaIsNotNull(query)) {
             // statement's filter is set based on the first processed qualifier's filter
-            // if the qualifier doesn't have EXCLUDE_FILTER set to true
             setStatementFilterFromQualifiers(stmt, query.getCriteria().getCriteriaObject());
         }
         return stmt;
