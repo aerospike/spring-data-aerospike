@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GREEN;
@@ -233,7 +234,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 .collect(Collectors.groupingBy(k -> k, countingInt()));
             assertThat(ageCount.keySet())
                 .isNotEmpty()
-                .allSatisfy(age -> assertThat(age).isBetween(28, 29));
+                .allSatisfy(age -> assertThat(age).isIn((Object[]) AGES));
             assertThat(ageCount.get(28)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(28));
             assertThat(ageCount.get(29)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(29));
         });
