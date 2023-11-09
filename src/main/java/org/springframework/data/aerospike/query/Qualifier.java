@@ -55,7 +55,6 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     protected static final String QUALIFIERS = "qualifiers";
     protected static final String OPERATION = "operation";
     protected static final String AS_FILTER = "queryAsFilter";
-    protected static final String EXCLUDE_FILTER = "excludeFilter";
     @Serial
     private static final long serialVersionUID = -2689196529952712849L;
     protected final Map<String, Object> internalMap = new HashMap<>();
@@ -112,14 +111,6 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
 
     public Boolean queryAsFilter() {
         return internalMap.containsKey(AS_FILTER) && (Boolean) internalMap.get(AS_FILTER);
-    }
-
-    public boolean getExcludeFilter() {
-        return internalMap.containsKey(EXCLUDE_FILTER) && (Boolean) internalMap.get(EXCLUDE_FILTER);
-    }
-
-    public void setExcludeFilter(boolean excludeFilter) {
-        internalMap.put(EXCLUDE_FILTER, excludeFilter);
     }
 
     public boolean hasQualifiers() {

@@ -69,7 +69,6 @@ import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQua
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getOneIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
-import static org.springframework.data.aerospike.query.QualifierUtils.validateQualifiers;
 
 /**
  * Primary implementation of {@link ReactiveAerospikeOperations}.
@@ -1232,8 +1231,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private <T> Flux<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
         if (qualifier != null) {
-            validateQualifiers(qualifier);
-
             Qualifier idQualifier = getOneIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a special flow if there is id given

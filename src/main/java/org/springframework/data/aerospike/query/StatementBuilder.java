@@ -62,7 +62,7 @@ public class StatementBuilder {
         /*
          *  query with qualifier
          */
-        if (qualifier == null || qualifier.getExcludeFilter()) return;
+        if (qualifier == null) return;
         if (qualifier.getOperation() == FilterOperation.AND) {
             // no sense to use secondary index in case of OR
             // as it requires to enlarge selection to more than 1 field
