@@ -733,7 +733,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             target = entityClass;
         }
 
-//        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(),
                 "Touch on read is not supported for entity without expiration property");
@@ -983,7 +982,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        Qualifier qualifier = query.getCriteria().getCriteriaObject();
         return findRecordsUsingQuery(setName, null, query);
     }
 
