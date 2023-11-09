@@ -26,11 +26,9 @@ import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.expression.EvaluationContext;
 import org.springframework.expression.spel.standard.SpelExpression;
-import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
-import java.util.Collection;
 
 /**
  * @author Peter Milne
@@ -62,7 +60,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         PartTree tree = new PartTree(queryMethod.getName(), entityClass);
         Query baseQuery = createQuery(accessor, tree);
 
-        AerospikeCriteria criteria = baseQuery.getAerospikeCriteria();
+        Qualifier criteria = baseQuery.getCriteria().getCriteriaObject();
         Query query = new Query(criteria);
 
         if (accessor.getPageable().isPaged()) {
@@ -112,13 +110,4 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class);
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
     }
-
-    protected Object runIdQuery(Class<?> sourceClass, Class<?> targetClass, Collection<Object> ids,
-                                Qualifier... qualifiers) {
-        Assert.notNull(ids, "Ids must not be null");
-        return findByIds(ids, sourceClass, targetClass, qualifiers);
-    }
-
-    abstract Object findByIds(Collection<?> ids, Class<?> sourceClass, Class<?> targetClass,
-                              Qualifier... qualifiers);
 }

@@ -56,7 +56,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     <T> List<T> findById(String id, Class<T> type);
 
     // Dynamic Projection
-    <T> List<T> findByIdAndLastName(String id, String lastName, Class<T> type);
+    <T> List<T> findByIdAndLastName(List<String> ids, String lastName, Class<T> type);
 
     // Dynamic Projection
     <T> List<T> findByLastNameAndId(String lastName, String id, Class<T> type);
@@ -64,11 +64,33 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     // Dynamic Projection
     <T> List<T> findByFirstNameAndLastName(String firstName, String lastName, Class<T> type);
 
+    /**
+     * Find all entities that have primary key in the given list.
+     *
+     * @param ids List of primary keys
+     */
     List<P> findById(List<String> ids);
 
-    List<P> findByIdAndFirstName(String id, String firstName);
+    /**
+     * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
+     * specified string".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare with
+     */
+    List<P> findByIdAndFirstName(List<String> ids, String firstName);
 
-    List<P> findByFirstNameAndId(String firstName, String id);
+    /**
+     * Find all entities that satisfy the condition "have primary key in the given list and either first name equal to
+     * the specified string or age equal to the specified integer".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare firstName with
+     * @param age       integer to compare age with
+     */
+    List<P> findByIdAndFirstNameAndAge(List<String> ids, String firstName, int age);
+
+    List<P> findByIdAndFirstNameOrAge(List<String> ids, String firstName, int age);
 
     Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 

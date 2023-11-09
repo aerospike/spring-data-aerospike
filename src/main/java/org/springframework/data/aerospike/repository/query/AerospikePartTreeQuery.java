@@ -26,7 +26,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,8 +33,6 @@ import java.util.stream.Stream;
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
-import static org.springframework.data.aerospike.query.QualifierUtils.getQualifiers;
-import static org.springframework.data.aerospike.repository.query.AerospikeCriteria.isSingleIdQuery;
 
 /**
  * @author Peter Milne
@@ -63,15 +60,17 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
         // queries that include id have their own processing flow
         if (parameters != null && parameters.length > 0) {
-            AerospikeCriteria criteria = query.getAerospikeCriteria();
-            Qualifier[] qualifiers = getQualifiers(criteria);
-            Qualifier idQualifier;
-            if (isSingleIdQuery(criteria)) {
-                return runIdQuery(entityClass, targetClass, getIdValue(qualifiers[0]));
+            Qualifier criteria = query.getCriteria().getCriteriaObject();
+            List<Object> ids;
+            if (criteria.hasSingleId()) {
+                ids = getIdValue(criteria);
+                return operations.findByIdsUsingQuery(ids, entityClass, targetClass, null);
             } else {
+                Qualifier idQualifier;
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
-                    return runIdQuery(entityClass, targetClass, getIdValue(idQualifier),
-                        excludeIdQualifier(qualifiers));
+                    ids = getIdValue(idQualifier);
+                    return operations.findByIdsUsingQuery(ids, entityClass, targetClass,
+                        new Query(excludeIdQualifier(criteria)));
                 }
             }
         }
@@ -98,11 +97,6 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         }
         throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " is not " +
             "supported");
-    }
-
-    protected Object findByIds(Collection<?> ids, Class<?> entityClass, Class<?> targetClass,
-                               Qualifier... qualifiers) {
-        return operations.findByIdsUsingQualifiers(ids, entityClass, targetClass, qualifiers);
     }
 
     private Stream<?> findByQuery(Query query, Class<?> targetClass) {

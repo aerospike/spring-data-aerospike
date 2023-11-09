@@ -536,23 +536,17 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         additionalAerospikeTestOperations.createIndex(SampleClasses.CustomCollectionClass.class,
             "CustomCollectionClass_field", fieldName, IndexType.STRING);
 
-        // find by qualifiers, no predefined secondary index filter
+        // find by query
         Qualifier qualifier = Qualifier.builder()
             .setField(fieldName)
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(fieldValue1))
             .build();
         Stream<SampleClasses.CustomCollectionClass> result1 =
-            template.findUsingQualifier(SampleClasses.CustomCollectionClass.class, null, qualifier);
+            template.find(new Query(qualifier), SampleClasses.CustomCollectionClass.class);
         assertThat(result1).containsOnly(doc1);
 
-        // find by a predefined secondary index filter, no qualifiers
-        Filter filter = Filter.equal(fieldName, fieldValue1);
-        Stream<SampleClasses.CustomCollectionClass> result2 =
-            template.findUsingQualifier(SampleClasses.CustomCollectionClass.class, filter, null);
-        assertThat(result2).containsOnly(doc1);
-
-        // find by a complex qualifier
+        // find by query with a complex qualifier
         Qualifier dataEqFieldValue1 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
             .setField(fieldName)
@@ -565,13 +559,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
             .build();
         Qualifier qualifierOr = Qualifier.or(dataEqFieldValue1, dataEqFieldValue2);
         Stream<SampleClasses.CustomCollectionClass> result3 =
-            template.findUsingQualifier(SampleClasses.CustomCollectionClass.class, null, qualifierOr);
+            template.find(new Query(qualifierOr), SampleClasses.CustomCollectionClass.class);
         assertThat(result3).containsOnly(doc1, doc2);
-
-        // no secondary index filter and no qualifiers
-        Stream<SampleClasses.CustomCollectionClass> result4 =
-            template.findUsingQualifier(SampleClasses.CustomCollectionClass.class, null, null);
-        assertThat(result4).contains(doc1, doc2);
 
         additionalAerospikeTestOperations.dropIndex(SampleClasses.CustomCollectionClass.class,
             "CustomCollectionClass_field"); // cleanup

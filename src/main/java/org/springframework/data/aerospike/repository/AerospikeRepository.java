@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.repository;
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.Repository;
@@ -58,13 +59,13 @@ public interface AerospikeRepository<T, ID> extends PagingAndSortingRepository<T
     boolean indexExists(String indexName);
 
     /**
-     * Run a query to find entities by providing {@link Qualifier}.
+     * Run a query to find entities.
      * <p>
-     * A qualifier may contain other qualifiers and combine them using either {@link FilterOperation#AND} or
-     * {@link FilterOperation#OR}.
+     * A {@link Query} can be created using a qualifier. A {@link Qualifier} may contain other qualifiers and combine
+     * them using either {@link FilterOperation#AND} or {@link FilterOperation#OR}.
      *
-     * @param qualifier A qualifier representing expressions to be performed. Must not be {@literal null}.
+     * @param query A query to be performed. Must not be {@literal null}.
      * @return Iterable of entities.
      */
-    Iterable<T> findByQualifier(Qualifier qualifier);
+    Iterable<T> findUsingQuery(Query query);
 }

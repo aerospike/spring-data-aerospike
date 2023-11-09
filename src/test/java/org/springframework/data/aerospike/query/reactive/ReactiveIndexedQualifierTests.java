@@ -17,19 +17,17 @@
 package org.springframework.data.aerospike.query.reactive;
 
 import com.aerospike.client.Value;
-import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.FilterOperation.EQ;
@@ -44,7 +42,6 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.INDEXED_GEO_SET;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.INDEXED_SET_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.ORANGE;
-import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
 
 /*
  * These tests generate qualifiers on indexed bins.
@@ -66,7 +63,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(26))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -98,7 +95,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(26))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -133,7 +130,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(26))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
                     assertThat(results)
@@ -157,7 +154,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(28))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -192,7 +189,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(28))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -215,7 +212,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.get(ORANGE))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -230,48 +227,15 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     }
 
     @Test
-    public void selectOnIndexFilter() {
+    public void selectWithBlueColorQuery() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Filter filter = Filter.range("age", 28, 29);
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter);
-            StepVerifier.create(flux.collectList())
-                .expectNextMatches(results -> {
-                    Map<Integer, Integer> ageCount = results.stream()
-                        .map(rec -> rec.record.getInt("age"))
-                        .collect(Collectors.groupingBy(k -> k, countingInt()));
-                    assertThat(ageCount.keySet())
-                        .isNotEmpty()
-                        .allSatisfy(age -> assertThat(age).isBetween(28, 29));
-                    assertThat(ageCount.get(28)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(28));
-                    assertThat(ageCount.get(29)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(29));
-                    return true;
-                })
-                .verifyComplete();
-        });
-    }
-
-    @Test
-    void selectOnIndexFilterNonExistingKeys() {
-        withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Filter filter = Filter.range("age", 30, 35);
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter);
-            StepVerifier.create(flux)
-                .expectNextCount(0)
-                .verifyComplete();
-        });
-    }
-
-    @Test
-    public void selectOnIndexWithQualifiers() {
-        withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Filter filter = Filter.range("age", 25, 29);
             Qualifier qual1 = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(BLUE))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, filter, qual1);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, new Query(qual1));
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
                     assertThat(results)
@@ -301,7 +265,8 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue2(Value.get(29))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, qual1, qual2);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(Qualifier.and(qual1, qual2)));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -331,7 +296,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue1(Value.getAsGeoJSON(rgnstr))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_GEO_SET, null, qualifier);
+            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_GEO_SET, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {

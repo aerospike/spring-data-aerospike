@@ -17,8 +17,8 @@ package org.springframework.data.aerospike.repository.support;
 
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.core.AerospikeOperations;
-import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -160,8 +160,7 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
         return operations.indexExists(indexName);
     }
 
-    public Iterable<T> findByQualifier(Qualifier qualifier) {
-        Assert.notNull(qualifier, "Qualifier must not be null");
-        return operations.findUsingQualifier(entityInformation.getJavaType(), null, qualifier).toList();
+    public Iterable<T> findUsingQuery(Query query) {
+        return operations.find(query, entityInformation.getJavaType()).toList();
     }
 }

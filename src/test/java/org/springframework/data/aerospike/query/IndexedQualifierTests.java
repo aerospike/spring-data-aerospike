@@ -17,10 +17,10 @@
 package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Value;
-import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.CollectionUtils;
 import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.AGES;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.BLUE;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GEO_BIN_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.GREEN;
@@ -56,7 +57,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 .setValue1(Value.get(26))
                 .build();
 
-            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(qualifier));
 
             assertThat(iterator)
                 .toIterable()
@@ -76,7 +78,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 .setValue1(Value.get(26))
                 .build();
 
-            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(qualifier));
 
             Map<Integer, Integer> ageCount = CollectionUtils.toStream(iterator)
                 .map(rec -> rec.record.getInt("age"))
@@ -99,7 +102,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 .setValue1(Value.get(26))
                 .build();
 
-            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(qualifier));
 
             assertThat(iterator)
                 .toIterable()
@@ -110,16 +114,15 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void selectOnIndexWithQualifiers() {
+    void selectWithBlueColorQuery() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Filter filter = Filter.range("age", 25, 29);
             Qualifier qual1 = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue1(Value.get(BLUE))
                 .build();
 
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter, qual1);
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, new Query(qual1));
 
             assertThat(it)
                 .toIterable()
@@ -139,7 +142,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 .setValue1(Value.get(28))
                 .build();
 
-            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(qualifier));
 
             Map<Integer, Integer> ageCount = CollectionUtils.toStream(iterator)
                 .map(rec -> rec.record.getInt("age"))
@@ -161,7 +165,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 .setValue1(Value.get(28))
                 .build();
 
-            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(qualifier));
 
             assertThat(iterator)
                 .toIterable()
@@ -180,7 +185,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 .setValue1(Value.get(ORANGE))
                 .build();
 
-            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(qualifier));
 
             assertThat(iterator)
                 .toIterable()
@@ -207,7 +213,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                     .setValue1(Value.getAsGeoJSON(rgnstr))
                     .build();
 
-                KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_GEO_SET, null, qualifier);
+                KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_GEO_SET, null,
+                    new Query(qualifier));
 
                 assertThat(iterator).toIterable()
                     .isNotEmpty()
@@ -218,29 +225,18 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void selectOnIndexFilter() {
+    void selectWithoutQuery() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Filter filter = Filter.range("age", 28, 29);
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter);
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null);
 
             Map<Integer, Integer> ageCount = CollectionUtils.toStream(it)
                 .map(rec -> rec.record.getInt("age"))
                 .collect(Collectors.groupingBy(k -> k, countingInt()));
             assertThat(ageCount.keySet())
                 .isNotEmpty()
-                .allSatisfy(age -> assertThat(age).isBetween(28, 29));
+                .allSatisfy(age -> assertThat(age).isIn((Object[]) AGES));
             assertThat(ageCount.get(28)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(28));
             assertThat(ageCount.get(29)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(29));
-        });
-    }
-
-    @Test
-    void selectOnIndexFilterNonExistingKeys() {
-        withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            Filter filter = Filter.range("age", 30, 35);
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, filter);
-
-            assertThat(it).toIterable().isEmpty();
         });
     }
 
@@ -259,7 +255,8 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             .build();
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, qual1, qual2);
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+                new Query(Qualifier.and(qual1, qual2)));
 
             assertThat(it).toIterable()
                 .isNotEmpty()
@@ -287,7 +284,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         try {
             Qualifier qualifier = Qualifier.and(colorIsGreen, ageBetween28And29);
 
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, qualifier);
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             assertThat(it).toIterable().isNotEmpty()
                 .allSatisfy(rec -> {

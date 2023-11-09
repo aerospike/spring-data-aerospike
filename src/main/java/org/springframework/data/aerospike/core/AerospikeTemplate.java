@@ -72,8 +72,7 @@ import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWi
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getOneIdQualifier;
-import static org.springframework.data.aerospike.query.QualifierUtils.validateQualifiers;
-import static org.springframework.data.aerospike.utility.Utils.allArrayElementsAreNull;
+import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -664,25 +663,25 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass, String setName) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
-        return (S) findByIdUsingQualifiers(id, entityClass, targetClass, setName);
+        return (S) findByIdUsingQuery(id, entityClass, targetClass, setName, null);
     }
 
-    private Record getRecord(AerospikePersistentEntity<?> entity, Key key, Qualifier... qualifiers) {
+    private Record getRecord(AerospikePersistentEntity<?> entity, Key key, Query query) {
         Record aeroRecord;
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-            aeroRecord = getAndTouch(key, entity.getExpiration(), null);
+            aeroRecord = getAndTouch(key, entity.getExpiration(), null, null);
         } else {
-            Policy policy = getPolicyFilterExp(qualifiers);
+            Policy policy = getPolicyFilterExp(query);
             aeroRecord = getAerospikeClient().get(policy, key);
         }
         return aeroRecord;
     }
 
-    private BatchPolicy getBatchPolicyFilterExp(Qualifier[] qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0) {
+    private BatchPolicy getBatchPolicyFilterExp(Query query) {
+        if (queryCriteriaIsNotNull(query)) {
             BatchPolicy policy = new BatchPolicy(getAerospikeClient().getBatchPolicyDefault());
-            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(query);
             return policy;
         }
         return null;
@@ -695,14 +694,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass,
-                                                 Qualifier... qualifiers) {
+                                                 Query query) {
         Record aeroRecord;
         String[] binNames = getBinNamesFromTargetClass(targetClass);
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
-            aeroRecord = getAndTouch(key, entity.getExpiration(), binNames, qualifiers);
+            aeroRecord = getAndTouch(key, entity.getExpiration(), binNames, query);
         } else {
-            Policy policy = getPolicyFilterExp(qualifiers);
+            Policy policy = getPolicyFilterExp(query);
             aeroRecord = getAerospikeClient().get(policy, key, binNames);
         }
         return mapToEntity(key, targetClass, aeroRecord);
@@ -719,21 +718,21 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return binNamesList.toArray(new String[0]);
     }
 
-    private Policy getPolicyFilterExp(Qualifier[] qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0) {
+    private Policy getPolicyFilterExp(Query query) {
+        if (queryCriteriaIsNotNull(query)) {
             Policy policy = new Policy(getAerospikeClient().getReadPolicyDefault());
-            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifiers);
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(query);
             return policy;
         }
         return null;
     }
 
-    private Record getAndTouch(Key key, int expiration, String[] binNames, Qualifier... qualifiers) {
+    private Record getAndTouch(Key key, int expiration, String[] binNames, Query query) {
         WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(client.getWritePolicyDefault())
             .expiration(expiration);
 
-        if (qualifiers != null && qualifiers.length > 0) {
-            writePolicyBuilder.filterExp(queryEngine.getFilterExpressionsBuilder().build(qualifiers));
+        if (queryCriteriaIsNotNull(query)) {
+            writePolicyBuilder.filterExp(queryEngine.getFilterExpressionsBuilder().build(query));
         }
         WritePolicy writePolicy = writePolicyBuilder.build();
 
@@ -779,7 +778,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return (List<S>) findByIdsUsingQualifiers(IterableConverter.toList(ids), entityClass, targetClass, setName);
+        return (List<S>) findByIdsUsingQuery(IterableConverter.toList(ids), entityClass, targetClass, setName, null);
     }
 
     @Override
@@ -801,44 +800,44 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T, S> Object findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass,
-                                                 Qualifier... qualifiers) {
+    public <T, S> Object findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass,
+                                            Query query) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
-        return findByIdUsingQualifiers(id, entityClass, targetClass, getSetName(entityClass), qualifiers);
+        return findByIdUsingQuery(id, entityClass, targetClass, getSetName(entityClass), query);
     }
 
     @Override
-    public <T, S> Object findByIdUsingQualifiers(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
-                                                 Qualifier... qualifiers) {
+    public <T, S> Object findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
+                                            Query query) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
         try {
             AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
             Key key = getKey(id, setName);
 
             if (targetClass != null && targetClass != entityClass) {
-                return getRecordMapToTargetClass(entity, key, targetClass, qualifiers);
+                return getRecordMapToTargetClass(entity, key, targetClass, query);
             }
-            return mapToEntity(key, entityClass, getRecord(entity, key, qualifiers));
+            return mapToEntity(key, entityClass, getRecord(entity, key, query));
         } catch (AerospikeException e) {
             throw translateError(e);
         }
     }
 
     @Override
-    public <T, S> List<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                                   Qualifier... qualifiers) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        return findByIdsUsingQualifiers(ids, entityClass, targetClass, getSetName(entityClass), qualifiers);
+    public <T, S> List<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                              Query query) {
+        return findByIdsUsingQuery(ids, entityClass, targetClass, getSetName(entityClass), query);
     }
 
     @Override
-    public <T, S> List<?> findByIdsUsingQualifiers(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                                   String setName, Qualifier... qualifiers) {
-        Assert.notNull(ids, "List of ids must not be null!");
+    public <T, S> List<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
+                                              String setName, Query query) {
+        Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
@@ -851,7 +850,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 .map(id -> getKey(id, setName))
                 .toArray(Key[]::new);
 
-            BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
+            BatchPolicy policy = getBatchPolicyFilterExp(query);
 
             Class<?> target;
             Record[] aeroRecords;
@@ -892,23 +891,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return findUsingQueryWithPostProcessing(setName, targetClass, query);
     }
 
-    @Override
-    public <T> Stream<T> findUsingQualifier(Class<T> entityClass, Filter filter,
-                                            Qualifier qualifier) {
-        return findUsingQualifier(entityClass, getSetName(entityClass), filter, qualifier);
-    }
-
-    @Override
-    public <T, S> Stream<?> findUsingQualifier(Class<T> entityClass, Class<S> targetClass, Filter filter,
-                                               Qualifier qualifier) {
-        return findRecordsUsingQualifiers(getSetName(entityClass), targetClass, filter, qualifier)
-            .map(keyRecord -> mapToEntity(keyRecord, targetClass));
-    }
-
-    @Override
-    public <T> Stream<T> findUsingQualifier(Class<T> targetClass, String setName, Filter filter,
-                                            Qualifier qualifier) {
-        return findRecordsUsingQualifiers(setName, targetClass, filter, qualifier)
+    private <T> Stream<T> find(Class<T> targetClass, String setName) {
+        return findRecordsUsingQuery(setName, targetClass, null)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 
@@ -932,7 +916,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifier(targetClass, setName, null, null);
+        return find(targetClass, setName);
     }
 
     @Override
@@ -950,22 +934,20 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(targetClass, "Target class must not be null!");
 
-        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit,
-            null, null);
+        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit, null);
     }
 
     private <T> Stream<T> findUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
-        Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        Stream<T> results = findUsingQualifiersWithDistinctPredicate(setName, targetClass,
-            getDistinctPredicate(query), qualifier);
+        Stream<T> results = findUsingQueryWithDistinctPredicate(setName, targetClass,
+            getDistinctPredicate(query), query);
         return applyPostProcessingOnResults(results, query);
     }
 
-    private <T> Stream<T> findUsingQualifiersWithDistinctPredicate(String setName, Class<T> targetClass,
-                                                                   Predicate<KeyRecord> distinctPredicate,
-                                                                   Qualifier... qualifiers) {
-        return findRecordsUsingQualifiers(setName, targetClass, null, qualifiers)
+    private <T> Stream<T> findUsingQueryWithDistinctPredicate(String setName, Class<T> targetClass,
+                                                              Predicate<KeyRecord> distinctPredicate,
+                                                              Query query) {
+        return findRecordsUsingQuery(setName, targetClass, query)
             .filter(distinctPredicate)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
@@ -988,8 +970,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit,
-            null, null);
+        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit, null);
     }
 
     @Override
@@ -1071,8 +1052,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        Qualifier qualifier = query.getCriteria().getCriteriaObject();
-        return findRecordsUsingQualifiers(setName, null, null, qualifier);
+        return findRecordsUsingQuery(setName, null, query);
     }
 
     @Override
@@ -1255,10 +1235,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @SuppressWarnings("SameParameterValue")
     private <T> Stream<T> findUsingQualifierWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
-                                                               long offset, long limit, Filter filter,
-                                                               Qualifier qualifier) {
+                                                               long offset, long limit, Qualifier qualifier) {
         verifyUnsortedWithOffset(sort, offset);
-        Stream<T> results = findUsingQualifier(targetClass, setName, filter, qualifier);
+        Stream<T> results = find(targetClass, setName);
         return applyPostProcessingOnResults(results, sort, offset, limit);
     }
 
@@ -1293,16 +1272,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return results;
     }
 
-    private <T> Stream<KeyRecord> findRecordsUsingQualifiers(String setName, Class<T> targetClass, Filter filter,
-                                                             Qualifier... qualifiers) {
-        if (qualifiers != null && qualifiers.length > 0 && !allArrayElementsAreNull(qualifiers)) {
-            validateQualifiers(qualifiers);
-
-            Qualifier idQualifier = getOneIdQualifier(qualifiers);
+    private <T> Stream<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
+        if (qualifier != null) {
+            Qualifier idQualifier = getOneIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a special flow if there is id given
                 return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
-                    excludeIdQualifier(qualifiers)).stream();
+                    new Query(excludeIdQualifier(qualifier))).stream();
             }
         }
 
@@ -1310,9 +1287,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         if (targetClass != null) {
             String[] binNames = getBinNamesFromTargetClass(targetClass);
-            recIterator = queryEngine.select(namespace, setName, binNames, filter, qualifiers);
+            recIterator = queryEngine.select(namespace, setName, binNames, query);
         } else {
-            recIterator = queryEngine.select(namespace, setName, filter, qualifiers);
+            recIterator = queryEngine.select(namespace, setName, query);
         }
 
         return StreamUtils.createStreamFromIterator(recIterator)
@@ -1326,8 +1303,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private List<KeyRecord> findByIdsWithoutMapping(Collection<?> ids, String setName,
-                                                    Class<?> targetClass,
-                                                    Qualifier... qualifiers) {
+                                                    Class<?> targetClass, Query query) {
         Assert.notNull(ids, "Ids must not be null");
         if (ids.isEmpty()) {
             return Collections.emptyList();
@@ -1336,7 +1312,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         try {
             Key[] keys = getKeys(ids, setName);
 
-            BatchPolicy policy = getBatchPolicyFilterExp(qualifiers);
+            BatchPolicy policy = getBatchPolicyFilterExp(query);
 
             Record[] aeroRecords;
             if (targetClass != null) {
