@@ -267,7 +267,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             .build();
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
-            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qual2));
+            KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(Qualifier.and(qual1, qual2)));
 
             assertThat(it).toIterable()
                 .isNotEmpty()

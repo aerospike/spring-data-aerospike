@@ -751,7 +751,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setValue1(Value.get("NA"))
             .build();
 
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qual2));
+        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(Qualifier.and(qual1, qual2)));
 
         assertThat(it).toIterable()
             .isNotEmpty()
