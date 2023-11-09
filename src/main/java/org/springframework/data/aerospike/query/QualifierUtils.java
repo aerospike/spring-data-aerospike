@@ -22,7 +22,7 @@ public class QualifierUtils {
      */
     public static Qualifier getOneIdQualifier(Qualifier qualifier) {
         if (qualifier != null) {
-            List<Qualifier> idQualifiers = getIdQualifiers(new Qualifier[]{qualifier});
+            List<Qualifier> idQualifiers = getIdQualifiers(qualifier);
             if (idQualifiers.size() > 1) {
                 throw new IllegalArgumentException("Expecting not more than one id qualifier in qualifiers array," +
                     " got " + idQualifiers.size());
@@ -33,7 +33,7 @@ public class QualifierUtils {
         return null;
     }
 
-    private static List<Qualifier> getIdQualifiers(Qualifier[] qualifiers) {
+    private static List<Qualifier> getIdQualifiers(Qualifier... qualifiers) {
         List<Qualifier> idQualifiers = new ArrayList<>();
         for (Qualifier qualifier : qualifiers) {
             if (qualifier.hasId()) {
