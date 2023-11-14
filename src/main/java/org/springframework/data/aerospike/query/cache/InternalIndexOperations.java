@@ -72,7 +72,6 @@ public class InternalIndexOperations {
 
     public void enrichIndexesWithCardinality(IAerospikeClient client, Map<IndexKey, Index> indexes) {
         log.debug("Enriching secondary indexes with cardinality");
-        // TODO: can improve by fetching index stats with 1 request instead of per index
         indexes.values().forEach(
             index -> index.setBinValuesRatio(getIndexBinValuesRatio(client, index.getNamespace(), index.getName()))
         );

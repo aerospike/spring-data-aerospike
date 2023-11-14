@@ -96,11 +96,7 @@ public class StatementBuilder {
 
         // If index with min bin values ratio found, set filter with the matching qualifier
         if (minBinValuesRatioQualifier != null) {
-            Filter filter = minBinValuesRatioQualifier.setQueryAsFilter();
-            if (filter != null) {
-                stmt.setFilter(filter);
-                minBinValuesRatioQualifier.setQueryAsFilter(true);
-            }
+            setFilterFromSingleQualifier(stmt, minBinValuesRatioQualifier);
         } else { // No index with bin values ratio found, do not consider cardinality when setting a filter
             for (Qualifier innerQualifier : qualifier.getQualifiers()) {
                 if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
@@ -119,7 +115,6 @@ public class StatementBuilder {
         Filter filter = qualifier.setQueryAsFilter();
         if (filter != null) {
             stmt.setFilter(filter);
-            // the filter from the first processed qualifier becomes statement's sIndex filter
             qualifier.setQueryAsFilter(true);
         }
     }
