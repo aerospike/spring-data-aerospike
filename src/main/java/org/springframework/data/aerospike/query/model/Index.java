@@ -58,6 +58,5 @@ public class Index {
         this.indexType = indexType;
         this.indexCollectionType = indexCollectionType;
         this.ctx = null;
-        this.binValuesRatio = 0;
     }
 }
