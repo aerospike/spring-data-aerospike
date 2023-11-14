@@ -47,7 +47,7 @@ public class Index {
     private final IndexCollectionType indexCollectionType;
     private final CTX[] ctx;
     @Setter
-    private Integer binValuesRatio;
+    private int binValuesRatio;
 
     public Index(String name, String namespace, String set, String bin, IndexType indexType,
                  IndexCollectionType indexCollectionType) {

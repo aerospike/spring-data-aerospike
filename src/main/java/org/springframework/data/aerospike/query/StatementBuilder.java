@@ -87,7 +87,7 @@ public class StatementBuilder {
                 int currBinValuesRatio = getMinBinValuesRatioForQualifier(stmt, innerQualifier);
                 // Compare the cardinality of each qualifier and select the qualifier that has the index with
                 // the lowest bin values ratio
-                if (currBinValuesRatio < minBinValuesRatio && currBinValuesRatio != 0) {
+                if (currBinValuesRatio != 0 && currBinValuesRatio < minBinValuesRatio) {
                     minBinValuesRatio = currBinValuesRatio;
                     minBinValuesRatioQualifier = innerQualifier;
                 }
@@ -145,9 +145,6 @@ public class StatementBuilder {
             .filter(index -> index.getBinValuesRatio() != 0)
             .min(Comparator.comparing(Index::getBinValuesRatio));
 
-        if (minBinValuesRatio.isPresent()) {
-            return minBinValuesRatio.get().getBinValuesRatio();
-        }
-        return 0;
+        return minBinValuesRatio.map(Index::getBinValuesRatio).orElse(0);
     }
 }
