@@ -15,12 +15,19 @@
  */
 package org.springframework.data.aerospike.query.cache;
 
+import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.Info;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toMap;
@@ -36,6 +43,8 @@ public class InternalIndexOperations {
     private static final String SINDEX_WITH_BASE64 = "sindex-list:;b64=true";
 
     private final IndexInfoParser indexInfoParser;
+
+    private final Logger log = LoggerFactory.getLogger(InternalIndexOperations.class);
 
     public InternalIndexOperations(IndexInfoParser indexInfoParser) {
         this.indexInfoParser = indexInfoParser;
@@ -59,5 +68,36 @@ public class InternalIndexOperations {
 
     public String buildGetIndexesCommand() {
         return SINDEX_WITH_BASE64;
+    }
+
+    public void enrichIndexesWithCardinality(IAerospikeClient client, Map<IndexKey, Index> indexes) {
+        log.debug("Enriching secondary indexes with cardinality");
+        // TODO: can improve by fetching index stats with 1 request instead of per index
+        indexes.values().forEach(
+            index -> index.setBinValuesRatio(getIndexBinValuesRatio(client, index.getNamespace(), index.getName()))
+        );
+    }
+
+    public Integer getIndexBinValuesRatio(IAerospikeClient client, String namespace, String indexName) {
+        if (ServerVersionUtils.isSIndexCardinalitySupported(client)) {
+
+            try {
+                String indexStatData = Info.request(null, client.getCluster().getRandomNode(),
+                    String.format("sindex-stat:ns=%s;indexname=%s", namespace, indexName));
+
+                return Integer.valueOf(
+                    Arrays.stream(indexStatData.split(";"))
+                        .map(String::trim)
+                        .toList().stream()
+                        .map(stat -> Arrays.stream(stat.split("="))
+                            .map(String::trim)
+                            .collect(Collectors.toList()))
+                        .collect(Collectors.toMap(t -> t.get(0), t -> t.get(1)))
+                        .get("entries_per_bval"));
+            } catch (Exception e) {
+                log.warn("Failed to fetch secondary index %s cardinality".formatted(indexName), e);
+            }
+        }
+        return 0;
     }
 }

@@ -19,19 +19,32 @@ import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.model.IndexedField;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface IndexesCache {
 
     /**
-     * @param indexKey to search by
+     * Get index from the indexes cache by providing an index key.
+     *
+     * @param indexKey Index key to search by.
      * @return Optional {@link Index}
      */
     Optional<Index> getIndex(IndexKey indexKey);
 
     /**
-     * @param indexedField to search by
-     * @return true if there is an index for the given indexed field
+     * Get all indexes for a given indexed field object.
+     *
+     * @param indexedField Indexed field to search by.
+     * @return List of indexes matching the indexed field properties.
+     */
+    List<Index> getAllIndexesForField(IndexedField indexedField);
+
+    /**
+     * Boolean indication of whether an index exists for the given indexed field
+     *
+     * @param indexedField Indexed field to search by
+     * @return True if there is an index for the given indexed field.
      */
     boolean hasIndexFor(IndexedField indexedField);
 }

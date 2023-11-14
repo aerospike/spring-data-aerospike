@@ -2,12 +2,15 @@ package org.springframework.data.aerospike.utility;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Info;
+import lombok.experimental.UtilityClass;
 
 import java.lang.module.ModuleDescriptor;
 
+@UtilityClass
 public class ServerVersionUtils {
 
     private static final ModuleDescriptor.Version SERVER_VERSION_6_0_0_0 = ModuleDescriptor.Version.parse("6.0.0.0");
+    private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_0 = ModuleDescriptor.Version.parse("6.1.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_1 = ModuleDescriptor.Version.parse("6.1.0.1");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_3_0_0 = ModuleDescriptor.Version.parse("6.3.0.0");
 
@@ -36,5 +39,10 @@ public class ServerVersionUtils {
     public static boolean isBatchWriteSupported(IAerospikeClient client) {
         return ModuleDescriptor.Version.parse(ServerVersionUtils.getServerVersion(client))
             .compareTo(SERVER_VERSION_6_0_0_0) >= 0;
+    }
+
+    public static boolean isSIndexCardinalitySupported(IAerospikeClient client) {
+        return ModuleDescriptor.Version.parse(ServerVersionUtils.getServerVersion(client))
+            .compareTo(SERVER_VERSION_6_1_0_0) >= 0;
     }
 }
