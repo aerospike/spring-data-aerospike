@@ -868,6 +868,8 @@ public interface ReactiveAerospikeOperations {
      */
     <T, S> Flux<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass);
 
+    <T> Flux<T> findUsingQueryWithoutPostProcessing(Class<?> entityClass, Class<T> targetClass, Query query);
+
     /**
      * Reactively check if document exists by providing document id and entityClass (set name will be determined by the
      * given entityClass).

@@ -2,7 +2,10 @@ package org.springframework.data.aerospike.sample;
 
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Reactive repository interface managing {@link IndexedPerson}s.
@@ -89,6 +92,8 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param value - lower limit, exclusive
      */
     Flux<IndexedPerson> findByFriendAgeGreaterThan(int value);
+    Mono<Page<IndexedPerson>> findByFriendAgeGreaterThan(int value, Pageable pageable);
+
 
     /**
      * Find all entities that satisfy the condition "have a friend with the age less than or equal to the given integer"

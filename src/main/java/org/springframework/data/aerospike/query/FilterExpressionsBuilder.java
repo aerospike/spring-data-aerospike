@@ -24,7 +24,7 @@ import static org.springframework.data.aerospike.query.QualifierUtils.queryCrite
 public class FilterExpressionsBuilder {
 
     public Expression build(Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         if (qualifier != null && excludeIrrelevantFilters(qualifier)) {
             return Exp.build(qualifier.toFilterExp());
         }

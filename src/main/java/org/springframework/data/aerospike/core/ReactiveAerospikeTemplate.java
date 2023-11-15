@@ -1177,6 +1177,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
+    public <T> Flux<T> findUsingQueryWithoutPostProcessing(Class<?> entityClass, Class<T> targetClass, Query query) {
+        verifyUnsortedWithOffset(query.getSort(), query.getOffset());
+        return findUsingQueryWithDistinctPredicate(getSetName(entityClass), targetClass,
+            getDistinctPredicate(query), query);
+    }
+
     private void verifyUnsortedWithOffset(Sort sort, long offset) {
         if ((sort == null || sort.isUnsorted())
             && offset > 0) {
@@ -1229,7 +1235,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private <T> Flux<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         if (qualifier != null) {
             Qualifier idQualifier = getOneIdQualifier(qualifier);
             if (idQualifier != null) {

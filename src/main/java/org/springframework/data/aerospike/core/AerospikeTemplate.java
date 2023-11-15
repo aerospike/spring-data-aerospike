@@ -814,7 +814,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         try {
             AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
             Key key = getKey(id, setName);
@@ -942,6 +942,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Stream<T> results = findUsingQueryWithDistinctPredicate(setName, targetClass,
             getDistinctPredicate(query), query);
         return applyPostProcessingOnResults(results, query);
+    }
+
+    public <T> Stream<T> findUsingQueryWithoutPostProcessing(Class<?> entityClass, Class<T> targetClass, Query query) {
+        verifyUnsortedWithOffset(query.getSort(), query.getOffset());
+        return findUsingQueryWithDistinctPredicate(getSetName(entityClass), targetClass,
+            getDistinctPredicate(query), query);
     }
 
     private <T> Stream<T> findUsingQueryWithDistinctPredicate(String setName, Class<T> targetClass,
@@ -1273,7 +1279,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private <T> Stream<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         if (qualifier != null) {
             Qualifier idQualifier = getOneIdQualifier(qualifier);
             if (idQualifier != null) {

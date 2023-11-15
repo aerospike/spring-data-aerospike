@@ -86,7 +86,7 @@ public class QueryEngine {
      * @return A KeyRecordIterator to iterate over the results
      */
     public KeyRecordIterator select(String namespace, String set, String[] binNames, @Nullable Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         /*
          * singleton using primary key
          */

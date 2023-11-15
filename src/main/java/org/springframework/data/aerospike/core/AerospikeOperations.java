@@ -896,6 +896,8 @@ public interface AerospikeOperations {
      */
     <T> Stream<T> findInRange(long offset, long limit, Sort sort, Class<T> targetClass, String setName);
 
+    <T> Stream<T> findUsingQueryWithoutPostProcessing(Class<?> entityClass, Class<T> targetClass, Query query);
+
     /**
      * Check if a document exists by providing document id and entityClass (set name will be determined by the given
      * entityClass).

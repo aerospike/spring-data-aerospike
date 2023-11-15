@@ -109,6 +109,13 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         assertThat(results).containsExactlyInAnyOrder(alain);
     }
 
+//    @Test
+//    public void findByPaginatedQuery_forExistingResult() {
+//        Page<IndexedPerson> page1 = reactiveRepository.findByFriendAgeGreaterThan(1, PageRequest.of(0, 1))
+//            .subscribeOn(Schedulers.parallel()).block();
+//        assertThat(page1).containsAnyElementsOf(allIndexedPersons);
+//    }
+
     @Test
     public void findByListContainingInteger_forExistingResult() {
         List<IndexedPerson> results = reactiveRepository.findByIntsContaining(550)
