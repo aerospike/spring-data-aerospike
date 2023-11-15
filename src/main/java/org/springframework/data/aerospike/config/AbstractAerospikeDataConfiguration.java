@@ -57,6 +57,9 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         boolean scansEnabled = aerospikeDataSettings().isScansEnabled();
         log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
         queryEngine.setScansEnabled(scansEnabled);
+        int queryMaxRecords = aerospikeDataSettings().getQueryMaxRecords();
+        log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
+        queryEngine.setQueryMaxRecords(queryMaxRecords);
         return queryEngine;
     }
 

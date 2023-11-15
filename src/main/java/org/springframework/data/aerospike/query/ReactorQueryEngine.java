@@ -50,6 +50,7 @@ public class ReactorQueryEngine {
      * scans, set this property to true.
      */
     private boolean scansEnabled = false;
+    private int queryMaxRecords = 100000;
 
     public ReactorQueryEngine(IAerospikeReactorClient client, StatementBuilder statementBuilder,
                               FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
@@ -96,6 +97,7 @@ public class ReactorQueryEngine {
          *  query with filters
          */
         Statement statement = statementBuilder.build(namespace, set, query, binNames);
+        statement.setMaxRecords(queryMaxRecords);
         QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
         localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
         if (!scansEnabled && statement.getFilter() == null) {
@@ -114,5 +116,9 @@ public class ReactorQueryEngine {
 
     public void setScansEnabled(boolean scansEnabled) {
         this.scansEnabled = scansEnabled;
+    }
+
+    public void setQueryMaxRecords(int queryMaxRecords) {
+        this.queryMaxRecords = queryMaxRecords;
     }
 }

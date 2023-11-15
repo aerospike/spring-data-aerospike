@@ -54,6 +54,7 @@ public class QueryEngine {
      * scans, set this property to true.
      */
     private boolean scansEnabled = false;
+    private int queryMaxRecords = 100000;
 
     public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
                        FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
@@ -105,6 +106,7 @@ public class QueryEngine {
          *  query with filters
          */
         Statement statement = statementBuilder.build(namespace, set, query, binNames);
+        statement.setMaxRecords(queryMaxRecords);
         QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
         localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
 
@@ -128,6 +130,11 @@ public class QueryEngine {
         this.scansEnabled = scansEnabled;
     }
 
+    public void setQueryMaxRecords(int queryMaxRecords) {
+        this.queryMaxRecords = queryMaxRecords;
+    }
+
+    @Deprecated(since = "4.6.0", forRemoval = true)
     public enum Meta {
         KEY,
         TTL,
