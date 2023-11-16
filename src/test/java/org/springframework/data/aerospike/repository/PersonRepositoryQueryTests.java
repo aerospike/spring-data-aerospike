@@ -1299,7 +1299,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.LT)
             .setValue1AsObj(50000L)
             .build();
-//        assertThat(repository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds))).containsAll(allPersons);
+        assertThat(repository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds))).containsAll(allPersons);
 
         // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
@@ -1322,8 +1322,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get(49))
             .build();
-//        result = repository.findUsingQuery(new Query(ageEq49));
-//        assertThat(result).containsOnly(carter);
+        result = repository.findUsingQuery(new Query(ageEq49));
+        assertThat(result).containsOnly(carter);
 
         // creating a condition "firstName is equal to Leroi" with sorting by age and limiting by 1 row
         Qualifier firstNameEqLeroi = Qualifier.builder()
@@ -1334,8 +1334,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         Query query = new Query(firstNameEqLeroi);
         query.setSort(Sort.by("age"));
         query.setRows(1);
-//        result = repository.findUsingQuery(query);
-//        assertThat(result).containsOnly(leroi2);
+        result = repository.findUsingQuery(query);
+        assertThat(result).containsOnly(leroi2);
 
         // creating a condition "age is greater than 49"
         Qualifier ageGt49 = Qualifier.builder()
@@ -1343,8 +1343,8 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .setField("age")
             .setValue1(Value.get(49))
             .build();
-//        result = repository.findUsingQuery(new Query(ageGt49));
-//        assertThat(result).doesNotContain(carter);
+        result = repository.findUsingQuery(new Query(ageGt49));
+        assertThat(result).doesNotContain(carter);
 
         // creating a condition "id equals Carter's id"
         Qualifier keyEqCartersId = Qualifier.idEquals(carter.getId());

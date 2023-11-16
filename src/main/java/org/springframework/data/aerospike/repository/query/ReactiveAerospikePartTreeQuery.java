@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.domain.PageImpl;
@@ -38,14 +39,14 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
  */
 public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
-    private final ReactiveAerospikeTemplate template;
+    private final ReactiveAerospikeOperations operations;
 
     public ReactiveAerospikePartTreeQuery(QueryMethod queryMethod,
                                           QueryMethodEvaluationContextProvider evalContextProvider,
-                                          ReactiveAerospikeTemplate aerospikeTemplate,
+                                          ReactiveAerospikeTemplate operations,
                                           Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(queryMethod, evalContextProvider, queryCreator);
-        this.template = aerospikeTemplate;
+        this.operations = operations;
     }
 
     @Override
@@ -60,19 +61,19 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             List<Object> ids;
             if (criteria.hasSingleId()) {
                 ids = getIdValue(criteria);
-                return template.findByIdsUsingQuery(ids, entityClass, targetClass, null);
+                return operations.findByIdsUsingQuery(ids, entityClass, targetClass, null);
             } else {
                 Qualifier idQualifier;
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
                     ids = getIdValue(idQualifier);
-                    return template.findByIdsUsingQuery(ids, entityClass, targetClass,
+                    return operations.findByIdsUsingQuery(ids, entityClass, targetClass,
                         new Query(excludeIdQualifier(criteria)));
                 }
             }
         }
 
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
-            Flux<?> results = template.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
+            Flux<?> results = operations.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
             Mono<? extends List<?>> unprocessedResultsListMono = results.collectList();
             Mono<Long> sizeMono = results.count();
             return sizeMono.flatMap(size ->
@@ -98,9 +99,9 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     private Flux<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
         if (targetClass != entityClass) {
-            return template.find(query, entityClass, targetClass);
+            return operations.find(query, entityClass, targetClass);
         }
         // Run query and map to entity class type.
-        return template.find(query, entityClass);
+        return operations.find(query, entityClass);
     }
 }

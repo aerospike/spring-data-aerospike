@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.domain.PageImpl;
@@ -39,15 +40,15 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
  */
 public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
-    private final AerospikeTemplate template;
+    private final AerospikeOperations operations;
 
     public AerospikePartTreeQuery(QueryMethod queryMethod,
                                   QueryMethodEvaluationContextProvider evalContextProvider,
-                                  AerospikeTemplate aerospikeTemplate,
+                                  AerospikeTemplate operations,
                                   Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(queryMethod, evalContextProvider, queryCreator);
 
-        this.template = aerospikeTemplate;
+        this.operations = operations;
     }
 
     @Override
@@ -63,12 +64,12 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             List<Object> ids;
             if (criteria.hasSingleId()) {
                 ids = getIdValue(criteria);
-                return template.findByIdsUsingQuery(ids, entityClass, targetClass, null);
+                return operations.findByIdsUsingQuery(ids, entityClass, targetClass, null);
             } else {
                 Qualifier idQualifier;
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
                     ids = getIdValue(idQualifier);
-                    return template.findByIdsUsingQuery(ids, entityClass, targetClass,
+                    return operations.findByIdsUsingQuery(ids, entityClass, targetClass,
                         new Query(excludeIdQualifier(criteria)));
                 }
             }
@@ -76,7 +77,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
             Stream<?> unprocessedResultsStream =
-                template.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
+                operations.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
             // Assuming there is enough memory
             // and configuration parameter AerospikeDataSettings.queryMaxRecords is less than Integer.MAX_VALUE
             List<?> unprocessedResults = unprocessedResultsStream.toList();
@@ -105,9 +106,9 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     private Stream<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
         if (targetClass != null && targetClass != entityClass) {
-            return template.find(query, entityClass, targetClass);
+            return operations.find(query, entityClass, targetClass);
         }
         // Run query and map to entity class type.
-        return template.find(query, entityClass);
+        return operations.find(query, entityClass);
     }
 }
