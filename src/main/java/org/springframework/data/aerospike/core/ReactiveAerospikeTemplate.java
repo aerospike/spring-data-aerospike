@@ -1177,6 +1177,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
+    @Override
     public <T> Flux<T> findUsingQueryWithoutPostProcessing(Class<?> entityClass, Class<T> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         return findUsingQueryWithDistinctPredicate(getSetName(entityClass), targetClass,

@@ -896,6 +896,16 @@ public interface AerospikeOperations {
      */
     <T> Stream<T> findInRange(long offset, long limit, Sort sort, Class<T> targetClass, String setName);
 
+    /**
+     * Find documents in the given entityClass's set using a query and map them to the given target class type. If the
+     * query has pagination and/or sorting, post-processing must be applied separately.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param query       The {@link Query} to filter results.
+     * @return A Stream of all matching documents regardless of pagination/sorting, returned documents will be mapped to
+     * targetClass's type.
+     */
     <T> Stream<T> findUsingQueryWithoutPostProcessing(Class<?> entityClass, Class<T> targetClass, Query query);
 
     /**

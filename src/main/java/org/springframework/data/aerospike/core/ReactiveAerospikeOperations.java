@@ -868,6 +868,16 @@ public interface ReactiveAerospikeOperations {
      */
     <T, S> Flux<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass);
 
+    /**
+     * Reactively find documents in the given entityClass's set using a query and map them to the given target class
+     * type. If the query has pagination and/or sorting, post-processing must be applied separately.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param query       The {@link Query} to filter results.
+     * @return A Flux of all matching documents regardless of pagination/sorting, returned documents will be mapped to
+     * targetClass's type.
+     */
     <T> Flux<T> findUsingQueryWithoutPostProcessing(Class<?> entityClass, Class<T> targetClass, Query query);
 
     /**

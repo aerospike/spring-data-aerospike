@@ -23,6 +23,7 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
@@ -49,8 +50,10 @@ public class ReactorQueryEngine {
      * Scans can potentially slow down Aerospike server, so we are disabling them by default. If you still need to use
      * scans, set this property to true.
      */
-    private boolean scansEnabled = false;
-    private int queryMaxRecords = 100000;
+    @Setter
+    private boolean scansEnabled;
+    @Setter
+    private int queryMaxRecords;
 
     public ReactorQueryEngine(IAerospikeReactorClient client, StatementBuilder statementBuilder,
                               FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
@@ -112,13 +115,5 @@ public class ReactorQueryEngine {
             return client.get(policy, key);
         }
         return client.get(policy, key, binNames);
-    }
-
-    public void setScansEnabled(boolean scansEnabled) {
-        this.scansEnabled = scansEnabled;
-    }
-
-    public void setQueryMaxRecords(int queryMaxRecords) {
-        this.queryMaxRecords = queryMaxRecords;
     }
 }

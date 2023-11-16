@@ -944,6 +944,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return applyPostProcessingOnResults(results, query);
     }
 
+    @Override
     public <T> Stream<T> findUsingQueryWithoutPostProcessing(Class<?> entityClass, Class<T> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         return findUsingQueryWithDistinctPredicate(getSetName(entityClass), targetClass,
