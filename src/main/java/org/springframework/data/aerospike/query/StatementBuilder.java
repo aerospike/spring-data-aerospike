@@ -20,10 +20,15 @@ import com.aerospike.client.query.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
+import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexedField;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
@@ -59,13 +64,40 @@ public class StatementBuilder {
     }
 
     private void setStatementFilterFromQualifiers(Statement stmt, Qualifier qualifier) {
-        /*
-         *  query with qualifier
-         */
-        if (qualifier == null) return;
+        // No qualifier, no need to set statement filter
+        if (qualifier == null) {
+            return;
+        }
+
+        // Multiple qualifiers
+        // No sense to use secondary index in case of OR as it requires to enlarge selection to more than 1 field
         if (qualifier.getOperation() == FilterOperation.AND) {
-            // no sense to use secondary index in case of OR
-            // as it requires to enlarge selection to more than 1 field
+            setFilterFromMultipleQualifiers(stmt, qualifier);
+        } else if (isIndexedBin(stmt, qualifier)) { // Single qualifier
+            setFilterFromSingleQualifier(stmt, qualifier);
+        }
+    }
+
+    private void setFilterFromMultipleQualifiers(Statement stmt, Qualifier qualifier) {
+        int minBinValuesRatio = Integer.MAX_VALUE;
+        Qualifier minBinValuesRatioQualifier = null;
+
+        for (Qualifier innerQualifier : qualifier.getQualifiers()) {
+            if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
+                int currBinValuesRatio = getMinBinValuesRatioForQualifier(stmt, innerQualifier);
+                // Compare the cardinality of each qualifier and select the qualifier that has the index with
+                // the lowest bin values ratio
+                if (currBinValuesRatio != 0 && currBinValuesRatio < minBinValuesRatio) {
+                    minBinValuesRatio = currBinValuesRatio;
+                    minBinValuesRatioQualifier = innerQualifier;
+                }
+            }
+        }
+
+        // If index with min bin values ratio found, set filter with the matching qualifier
+        if (minBinValuesRatioQualifier != null) {
+            setFilterFromSingleQualifier(stmt, minBinValuesRatioQualifier);
+        } else { // No index with bin values ratio found, do not consider cardinality when setting a filter
             for (Qualifier innerQualifier : qualifier.getQualifiers()) {
                 if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
                     Filter filter = innerQualifier.setQueryAsFilter();
@@ -76,13 +108,14 @@ public class StatementBuilder {
                     }
                 }
             }
-        } else if (isIndexedBin(stmt, qualifier)) {
-            Filter filter = qualifier.setQueryAsFilter();
-            if (filter != null) {
-                stmt.setFilter(filter);
-                // the filter from the first processed qualifier becomes statement's sIndex filter
-                qualifier.setQueryAsFilter(true);
-            }
+        }
+    }
+
+    private void setFilterFromSingleQualifier(Statement stmt, Qualifier qualifier) {
+        Filter filter = qualifier.setQueryAsFilter();
+        if (filter != null) {
+            stmt.setFilter(filter);
+            qualifier.setQueryAsFilter(true);
         }
     }
 
@@ -100,5 +133,18 @@ public class StatementBuilder {
                 stmt.getNamespace(), stmt.getSetName(), qualifier.getField(), hasIndex);
         }
         return hasIndex;
+    }
+
+    private int getMinBinValuesRatioForQualifier(Statement stmt, Qualifier qualifier) {
+        // Get all indexes that uses this field
+        List<Index> indexList = indexesCache.getAllIndexesForField(
+            new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField()));
+
+        // Return the lowest bin values ratio of the indexes in indexList
+        Optional<Index> minBinValuesRatio = indexList.stream()
+            .filter(index -> index.getBinValuesRatio() != 0)
+            .min(Comparator.comparing(Index::getBinValuesRatio));
+
+        return minBinValuesRatio.map(Index::getBinValuesRatio).orElse(0);
     }
 }
