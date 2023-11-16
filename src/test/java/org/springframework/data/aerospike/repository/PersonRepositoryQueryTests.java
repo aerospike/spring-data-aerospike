@@ -1813,6 +1813,10 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThat(result)
             .hasSize(4)
             .containsSequence(dave, leroi, boyd, carter);
+
+        assertThatThrownBy(() -> repository.findByAgeGreaterThan(1, PageRequest.of(1, 2)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
     }
 
     @Test

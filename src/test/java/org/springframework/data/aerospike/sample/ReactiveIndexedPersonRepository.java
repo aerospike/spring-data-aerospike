@@ -19,8 +19,8 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     Flux<IndexedPerson> findByAgeBetween(int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have address with zip code equal to the given argument"
-     * (find by POJO field)
+     * Find all entities that satisfy the condition "have address with zip code equal to the given argument" (find by
+     * POJO field)
      *
      * @param zipCode - Zip code to check for equality
      */
@@ -29,6 +29,8 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     Flux<IndexedPerson> findPersonByFirstName(String firstName);
 
     Flux<IndexedPerson> findByAgeGreaterThan(int age);
+
+    Mono<Page<IndexedPerson>> findByAgeGreaterThan(int value, Pageable pageable);
 
     Flux<IndexedPerson> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
 
@@ -92,8 +94,6 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param value - lower limit, exclusive
      */
     Flux<IndexedPerson> findByFriendAgeGreaterThan(int value);
-    Mono<Page<IndexedPerson>> findByFriendAgeGreaterThan(int value, Pageable pageable);
-
 
     /**
      * Find all entities that satisfy the condition "have a friend with the age less than or equal to the given integer"

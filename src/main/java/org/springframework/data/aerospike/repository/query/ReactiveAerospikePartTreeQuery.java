@@ -25,8 +25,8 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.Comparator;
 import java.util.List;
 
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
@@ -72,24 +72,27 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         }
 
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
-            Flux<?> unprocessedResultsStream =
-                template.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
-            // Assuming there is enough memory
-            // and configuration parameter AerospikeDataSettings.queryMaxRecords is less than Integer.MAX_VALUE
-            List<?> unprocessedResults = unprocessedResultsStream.collectList().block();
-            long numberOfAllResults = unprocessedResults.size();
-            List<?> resultsPaginated = applyPostProcessingOnResults(Flux.fromIterable(unprocessedResults), query).collectList().block();
-
-            Pageable pageable = accessor.getPageable();
-            if (queryMethod.isSliceQuery()) {
-                boolean hasNext = numberOfAllResults > pageable.getPageSize() * (pageable.getOffset() + 1);
-                return new SliceImpl(resultsPaginated, pageable, hasNext);
-            } else {
-                return new PageImpl(resultsPaginated, pageable, numberOfAllResults);
-            }
+            Flux<?> results = template.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
+            Mono<? extends List<?>> unprocessedResultsListMono = results.collectList();
+            Mono<Long> sizeMono = results.count();
+            return sizeMono.flatMap(size ->
+                unprocessedResultsListMono.map(list -> processElements(list, size.intValue(), accessor, query))
+            );
         }
 
         return findByQuery(query, targetClass);
+    }
+
+    public Object processElements(List<?> unprocessedResults, int overallSize, ParametersParameterAccessor accessor,
+                                  Query query) {
+        List<?> resultsPaginated = applyPostProcessingOnResults(unprocessedResults.stream(), query).toList();
+        Pageable pageable = accessor.getPageable();
+        if (queryMethod.isSliceQuery()) {
+            boolean hasNext = overallSize > pageable.getPageSize() * (pageable.getOffset() + 1);
+            return new SliceImpl<>(resultsPaginated, pageable, hasNext);
+        } else {
+            return new PageImpl<>(resultsPaginated, pageable, overallSize);
+        }
     }
 
     private Flux<?> findByQuery(Query query, Class<?> targetClass) {
@@ -99,20 +102,5 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         }
         // Run query and map to entity class type.
         return template.find(query, entityClass);
-    }
-
-    protected <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, Query query) {
-        if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator<T> comparator = getComparator(query);
-            results = results.sort(comparator);
-        }
-
-        if (query.hasOffset()) {
-            results = results.skip(query.getOffset());
-        }
-        if (query.hasRows()) {
-            results = results.take(query.getRows());
-        }
-        return results;
     }
 }

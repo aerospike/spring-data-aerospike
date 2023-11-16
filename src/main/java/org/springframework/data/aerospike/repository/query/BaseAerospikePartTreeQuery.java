@@ -32,6 +32,7 @@ import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
 import java.util.Comparator;
+import java.util.stream.Stream;
 
 /**
  * @author Peter Milne
@@ -112,6 +113,21 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         Constructor<? extends AbstractQueryCreator<?, ?>> constructor = ClassUtils
             .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class);
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
+    }
+
+    protected <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
+        if (query.getSort() != null && query.getSort().isSorted()) {
+            Comparator<T> comparator = getComparator(query);
+            results = results.sorted(comparator);
+        }
+        if (query.hasOffset()) {
+            results = results.skip(query.getOffset());
+        }
+        if (query.hasRows()) {
+            results = results.limit(query.getRows());
+        }
+
+        return results;
     }
 
     protected <T> Comparator<T> getComparator(Query query) {

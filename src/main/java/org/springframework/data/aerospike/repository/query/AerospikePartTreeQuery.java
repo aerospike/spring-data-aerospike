@@ -25,7 +25,6 @@ import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -110,20 +109,5 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         }
         // Run query and map to entity class type.
         return template.find(query, entityClass);
-    }
-
-    protected <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
-        if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator<T> comparator = getComparator(query);
-            results = results.sorted(comparator);
-        }
-        if (query.hasOffset()) {
-            results = results.skip(query.getOffset());
-        }
-        if (query.hasRows()) {
-            results = results.limit(query.getRows());
-        }
-
-        return results;
     }
 }
