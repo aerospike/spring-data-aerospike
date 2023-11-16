@@ -76,14 +76,14 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             Mono<? extends List<?>> unprocessedResultsListMono = results.collectList();
             Mono<Long> sizeMono = results.count();
             return sizeMono.flatMap(size ->
-                unprocessedResultsListMono.map(list -> processElements(list, size.intValue(), accessor, query))
+                unprocessedResultsListMono.map(list -> getPaginatedResult(list, size.intValue(), accessor, query))
             );
         }
 
         return findByQuery(query, targetClass);
     }
 
-    public Object processElements(List<?> unprocessedResults, int overallSize, ParametersParameterAccessor accessor,
+    public Object getPaginatedResult(List<?> unprocessedResults, int overallSize, ParametersParameterAccessor accessor,
                                   Query query) {
         List<?> resultsPaginated = applyPostProcessingOnResults(unprocessedResults.stream(), query).toList();
         Pageable pageable = accessor.getPageable();
