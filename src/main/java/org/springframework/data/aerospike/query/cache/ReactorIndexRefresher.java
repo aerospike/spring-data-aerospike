@@ -47,6 +47,7 @@ public class ReactorIndexRefresher {
             .doOnSubscribe(subscription -> log.trace("Loading indexes"))
             .doOnNext(indexInfo -> {
                 IndexesInfo cache = indexOperations.parseIndexesInfo(indexInfo);
+                indexOperations.enrichIndexesWithCardinality(client.getAerospikeClient(), cache.indexes);
                 this.indexesCacheUpdater.update(cache);
                 log.debug("Loaded indexes: {}", cache.indexes);
             }).then();

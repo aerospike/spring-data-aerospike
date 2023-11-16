@@ -19,10 +19,12 @@ package org.springframework.data.aerospike.query.model;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import lombok.Setter;
 
 /**
  * This class represents a Secondary Index created in the cluster.
@@ -30,19 +32,22 @@ import lombok.Value;
  * @author Peter Milne
  * @author Anastasiia Smirnova
  */
-@Value
 @Builder
 @RequiredArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
 @Getter
 public class Index {
 
-    String name;
-    String namespace;
-    String set;
-    String bin;
-    IndexType indexType;
-    IndexCollectionType indexCollectionType;
-    CTX[] ctx;
+    private final String name;
+    private final String namespace;
+    private final String set;
+    private final String bin;
+    private final IndexType indexType;
+    private final IndexCollectionType indexCollectionType;
+    private final CTX[] ctx;
+    @Setter
+    private int binValuesRatio;
 
     public Index(String name, String namespace, String set, String bin, IndexType indexType,
                  IndexCollectionType indexCollectionType) {

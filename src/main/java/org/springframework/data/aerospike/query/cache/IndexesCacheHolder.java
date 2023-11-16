@@ -20,6 +20,9 @@ import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.model.IndexedField;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -32,6 +35,21 @@ public class IndexesCacheHolder implements IndexesCache, IndexesCacheUpdater {
     @Override
     public Optional<Index> getIndex(IndexKey indexKey) {
         return Optional.ofNullable(cache.indexes.get(indexKey));
+    }
+
+    @Override
+    public List<Index> getAllIndexesForField(IndexedField indexedField) {
+        List<Index> indexList = new ArrayList<>();
+
+        cache.indexes.forEach((key, value) -> {
+            if (Objects.equals(key.getNamespace(), indexedField.getNamespace()) &&
+                Objects.equals(key.getSet(), indexedField.getSet()) &&
+                Objects.equals(key.getField(), indexedField.getField())
+            ) {
+                indexList.add(value);
+            }
+        });
+        return indexList;
     }
 
     @Override

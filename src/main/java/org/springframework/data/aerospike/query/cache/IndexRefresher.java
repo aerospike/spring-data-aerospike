@@ -62,7 +62,11 @@ public class IndexRefresher {
             .findAny() // we do want to send info request to the random node (sending request to the first node may
             // lead to uneven request distribution)
             .map(node -> Info.request(infoPolicy, node, indexOperations.buildGetIndexesCommand()))
-            .map(indexOperations::parseIndexesInfo)
+            .map(response -> {
+                IndexesInfo indexesInfo = indexOperations.parseIndexesInfo(response);
+                indexOperations.enrichIndexesWithCardinality(client, indexesInfo.indexes);
+                return indexesInfo;
+            })
             .orElse(IndexesInfo.empty());
         log.debug("Loaded indexes: {}", cache.indexes);
         this.indexesCacheUpdater.update(cache);
