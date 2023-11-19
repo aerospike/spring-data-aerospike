@@ -1329,10 +1329,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         KeyRecordIterator recIterator;
 
         if (targetClass != null) {
-            String[] binNames = getBinNamesFromTargetClass(targetClass);
-            recIterator = queryEngine.selectForCount(namespace, setName, binNames, query);
+            recIterator = queryEngine.selectForCount(namespace, setName, query);
         } else {
-            recIterator = queryEngine.selectForCount(namespace, setName, null, query);
+            recIterator = queryEngine.selectForCount(namespace, setName, query);
         }
 
         return StreamUtils.createStreamFromIterator(recIterator)

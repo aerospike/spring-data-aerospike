@@ -1271,11 +1271,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
 
         if (targetClass != null) {
-            String[] binNames = getBinNamesFromTargetClass(targetClass);
-            return this.reactorQueryEngine.selectForCount(this.namespace, setName, binNames, query);
-        } else {
-            return this.reactorQueryEngine.selectForCount(this.namespace, setName, null, query);
+            return this.reactorQueryEngine.selectForCount(this.namespace, setName, query);
         }
+        return this.reactorQueryEngine.selectForCount(this.namespace, setName, query);
     }
 
     private <T> Flux<KeyRecord> findByIdsWithoutMapping(Collection<?> ids, String setName,

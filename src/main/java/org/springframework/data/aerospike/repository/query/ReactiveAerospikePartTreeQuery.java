@@ -90,20 +90,19 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                                      Query query) {
         List<?> resultsPaginated;
         if (queryMethod.isSliceQuery()) {
-
-            if (pageable.isUnpaged()) return new SliceImpl<>(unprocessedResults, pageable, false);
-
+            if (pageable.isUnpaged()) {
+                return new SliceImpl<>(unprocessedResults, pageable, false);
+            }
             resultsPaginated = applyPostProcessing(unprocessedResults.stream(), query).toList();
             boolean hasNext = overallSize > pageable.getPageSize() * (pageable.getOffset() + 1);
             return new SliceImpl<>(resultsPaginated, pageable, hasNext);
+        } else {
+            if (pageable.isUnpaged()) {
+                return new PageImpl<>(unprocessedResults, pageable, overallSize);
+            }
+            resultsPaginated = applyPostProcessing(unprocessedResults.stream(), query).toList();
+            return new PageImpl<>(resultsPaginated, pageable, overallSize);
         }
-
-        if (pageable.isUnpaged()) {
-            return new PageImpl<>(unprocessedResults, pageable, overallSize);
-        }
-
-        resultsPaginated = applyPostProcessing(unprocessedResults.stream(), query).toList();
-        return new PageImpl<>(resultsPaginated, pageable, overallSize);
     }
 
     private Flux<?> findByQuery(Query query, Class<?> targetClass) {

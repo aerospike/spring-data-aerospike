@@ -117,12 +117,11 @@ public class ReactorQueryEngine {
      *
      * @param namespace Namespace to storing the data
      * @param set       Set storing the data
-     * @param binNames  Bin names to return from the query
      * @param query     {@link Query} for filtering results
      * @return A Flux<KeyRecord> to iterate over the results
      */
-    public Flux<KeyRecord> selectForCount(String namespace, String set, String[] binNames, @Nullable Query query) {
-        Statement statement = statementBuilder.build(namespace, set, query, binNames);
+    public Flux<KeyRecord> selectForCount(String namespace, String set, @Nullable Query query) {
+        Statement statement = statementBuilder.build(namespace, set, query);
         statement.setMaxRecords(queryMaxRecords);
         QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
         localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
