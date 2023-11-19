@@ -912,7 +912,7 @@ public interface AerospikeOperations {
      * @return A Stream of all matching documents regardless of pagination/sorting, returned documents will be mapped to
      * targetClass's type.
      */
-    <T, S> Stream<T> findUsingQueryWithoutPostProcessing(Class<S> entityClass, Class<T> targetClass, Query query);
+    <T, S> Stream<S> findUsingQueryWithoutPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query);
 
     /**
      * Check if a document exists by providing document id and entityClass (set name will be determined by the given

@@ -884,7 +884,7 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of all matching documents regardless of pagination/sorting, returned documents will be mapped to
      * targetClass's type.
      */
-    <T> Flux<T> findUsingQueryWithoutPostProcessing(Class<?> entityClass, Class<T> targetClass, Query query);
+    <T, S> Flux<S> findUsingQueryWithoutPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query);
 
     /**
      * Reactively check if document exists by providing document id and entityClass (set name will be determined by the
