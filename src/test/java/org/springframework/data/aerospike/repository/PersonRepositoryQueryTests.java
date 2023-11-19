@@ -18,6 +18,7 @@ import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.aerospike.utility.TestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
@@ -1822,17 +1823,34 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     public void findByAgeGreaterThan_returnsValidValuesForNextAndPrev() {
         Slice<Person> first = repository.findByAgeGreaterThan(40, PageRequest.of(0, 1, Sort.by("age")));
+
         assertThat(first.hasContent()).isTrue();
         assertThat(first.getNumberOfElements()).isEqualTo(1);
         assertThat(first.hasNext()).isTrue();
         assertThat(first.isFirst()).isTrue();
         assertThat(first.isLast()).isFalse();
 
-        Slice<Person> last = repository.findByAgeGreaterThan(40, PageRequest.of(3, 1, Sort.by("age")));
+        Slice<Person> last = repository.findByAgeGreaterThan(20, PageRequest.of(4, 2, Sort.by("age")));
         assertThat(last.hasContent()).isTrue();
-        assertThat(last.getNumberOfElements()).isEqualTo(1);
+        assertThat(last.getNumberOfElements()).isEqualTo(2);
         assertThat(last.hasNext()).isFalse();
         assertThat(last.isLast()).isTrue();
+    }
+
+    @Test
+    public void findByAgeGreaterThanWithPageableUnpaged() {
+        Slice<Person> slice = repository.findByAgeGreaterThan(40, Pageable.unpaged());
+        assertThat(slice.hasContent()).isTrue();
+        assertThat(slice.getNumberOfElements()).isGreaterThan(0);
+        assertThat(slice.hasNext()).isFalse();
+        assertThat(slice.isLast()).isTrue();
+
+        Page<Person> page = repository.findByAgeLessThan(40, Pageable.unpaged());
+        assertThat(page.hasContent()).isTrue();
+        assertThat(page.getNumberOfElements()).isGreaterThan(1);
+        assertThat(page.hasNext()).isFalse();
+        assertThat(page.getTotalPages()).isEqualTo(1);
+        assertThat(page.getTotalElements()).isEqualTo(page.getSize());
     }
 
     @Test
@@ -1850,6 +1868,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         assertThat(first.getNumberOfElements()).isEqualTo(1);
         assertThat(first.getTotalPages()).isEqualTo(2);
+        assertThat(first.get()).hasSize(1).containsOnly(leroi2);
         assertThat(first.get()).hasSize(1).containsOnly(leroi2);
 
         Page<Person> last = repository.findByLastNameStartsWithOrderByAgeAsc("Mo", first.nextPageable());

@@ -57,7 +57,8 @@ public class QueryEngine {
     @Setter
     private boolean scansEnabled;
     @Setter
-    private int queryMaxRecords;
+    @Getter
+    private long queryMaxRecords;
 
     public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
                        FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
@@ -112,6 +113,30 @@ public class QueryEngine {
         statement.setMaxRecords(queryMaxRecords);
         QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
         localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
+
+        if (!scansEnabled && statement.getFilter() == null) {
+            throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
+        }
+
+        RecordSet rs = client.query(localQueryPolicy, statement);
+        return new KeyRecordIterator(namespace, rs);
+    }
+
+    /**
+     * Select records filtered by a query to be counted
+     *
+     * @param namespace Namespace to storing the data
+     * @param set       Set storing the data
+     * @param binNames  Bin names to return from the query
+     * @param query     {@link Query} for filtering results
+     * @return A KeyRecordIterator to iterate over the results
+     */
+    public KeyRecordIterator selectForCount(String namespace, String set, String[] binNames, @Nullable Query query) {
+        Statement statement = statementBuilder.build(namespace, set, query, binNames);
+        statement.setMaxRecords(queryMaxRecords);
+        QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
+        localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        localQueryPolicy.includeBinData = false;
 
         if (!scansEnabled && statement.getFilter() == null) {
             throw new IllegalStateException(SCANS_DISABLED_MESSAGE);

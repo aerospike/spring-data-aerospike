@@ -21,6 +21,7 @@ import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -50,6 +51,11 @@ public interface ReactiveAerospikeOperations {
      * @return aerospike reactive client in use.
      */
     IAerospikeReactorClient getAerospikeReactorClient();
+
+    /**
+     * @return value of configuration parameter {@link AerospikeDataSettings#getQueryMaxRecords()}.
+     */
+    long getQueryMaxRecords();
 
     /**
      * Reactively save document.

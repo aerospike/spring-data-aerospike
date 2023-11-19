@@ -76,20 +76,38 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         }
 
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
+            Pageable pageable = accessor.getPageable();
             Stream<?> unprocessedResultsStream =
                 operations.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
-            // Assuming there is enough memory
-            // and configuration parameter AerospikeDataSettings.queryMaxRecords is less than Integer.MAX_VALUE
-            List<?> unprocessedResults = unprocessedResultsStream.toList();
-            long numberOfAllResults = unprocessedResults.size();
-            List<?> resultsPaginated = applyPostProcessingOnResults(unprocessedResults.stream(), query).toList();
-
-            Pageable pageable = accessor.getPageable();
             if (queryMethod.isSliceQuery()) {
-                boolean hasNext = numberOfAllResults > pageable.getPageSize() * (pageable.getOffset() + 1);
-                return new SliceImpl(resultsPaginated, pageable, hasNext);
+                if (pageable.isUnpaged()) {
+                    return new SliceImpl<>(unprocessedResultsStream.toList(), pageable, false);
+                }
+
+                Query modifiedQuery = query.limit(pageable.getPageSize() + 1);
+                List<?> modifiedResults = applyPostProcessing(unprocessedResultsStream, modifiedQuery).toList();
+
+                boolean hasNext = modifiedResults.size() > pageable.getPageSize();
+                return new SliceImpl(hasNext ? modifiedResults.subList(0, pageable.getPageSize()) : modifiedResults,
+                    pageable, hasNext);
             } else {
-                return new PageImpl(resultsPaginated, pageable, numberOfAllResults);
+                long numberOfAllResults;
+                List<?> resultsPage;
+                if (operations.getQueryMaxRecords() > 0) {
+                    // Assuming there is enough memory
+                    // and configuration parameter AerospikeDataSettings.queryMaxRecords is less than Integer.MAX_VALUE
+                    List<?> unprocessedResults = unprocessedResultsStream.toList();
+                    numberOfAllResults = unprocessedResults.size();
+
+                    if (pageable.isUnpaged()) {
+                        return new PageImpl<>(unprocessedResults, pageable, numberOfAllResults);
+                    }
+                    resultsPage = applyPostProcessing(unprocessedResults.stream(), query).toList();
+                } else {
+                    numberOfAllResults = operations.count(query, entityClass);
+                    resultsPage = applyPostProcessing(unprocessedResultsStream, query).toList();
+                }
+                return new PageImpl(resultsPage, pageable, numberOfAllResults);
             }
         } else if (queryMethod.isStreamQuery()) {
             return findByQuery(query, targetClass);

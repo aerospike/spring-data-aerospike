@@ -96,7 +96,7 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
         builder.createIndexesOnStartup(indexesOnStartup);
         Optional<Integer> indexRefreshFrequency = getIntegerProperty(env.getProperty(INDEX_CACHE_REFRESH_SECONDS));
         indexRefreshFrequency.ifPresent(builder::indexCacheRefreshFrequencySeconds);
-        builder.queryMaxRecords(50000);
+        builder.queryMaxRecords(5000);
     }
 
     @Bean

@@ -111,6 +111,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
+    public long getQueryMaxRecords() {
+        return queryEngine.getQueryMaxRecords();
+    }
+
+    @Override
     public void refreshIndexesCache() {
         indexRefresher.refreshIndexes();
     }
@@ -945,7 +950,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T, S> Stream<T> findUsingQueryWithoutPostProcessing(Class<S> entityClass, Class<T> targetClass, Query query) {
+    public <T, S> Stream<T> findUsingQueryWithoutPostProcessing(Class<S> entityClass, Class<T> targetClass,
+                                                                Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         return findUsingQueryWithDistinctPredicate(getSetName(entityClass), targetClass,
             getDistinctPredicate(query), query);
@@ -1051,15 +1057,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public long count(Query query, String setName) {
-        Stream<KeyRecord> results = findRecordsUsingQuery(setName, query);
+        Stream<KeyRecord> results = countRecordsUsingQuery(setName, query);
         return results.count();
     }
 
-    private Stream<KeyRecord> findRecordsUsingQuery(String setName, Query query) {
+    private Stream<KeyRecord> countRecordsUsingQuery(String setName, Query query) {
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findRecordsUsingQuery(setName, null, query);
+        return countRecordsUsingQuery(setName, null, query);
     }
 
     @Override
@@ -1297,6 +1303,36 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             recIterator = queryEngine.select(namespace, setName, binNames, query);
         } else {
             recIterator = queryEngine.select(namespace, setName, query);
+        }
+
+        return StreamUtils.createStreamFromIterator(recIterator)
+            .onClose(() -> {
+                try {
+                    recIterator.close();
+                } catch (Exception e) {
+                    log.error("Caught exception while closing query", e);
+                }
+            });
+    }
+
+    private <T> Stream<KeyRecord> countRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
+        if (qualifier != null) {
+            Qualifier idQualifier = getOneIdQualifier(qualifier);
+            if (idQualifier != null) {
+                // a special flow if there is id given
+                return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
+                    new Query(excludeIdQualifier(qualifier))).stream();
+            }
+        }
+
+        KeyRecordIterator recIterator;
+
+        if (targetClass != null) {
+            String[] binNames = getBinNamesFromTargetClass(targetClass);
+            recIterator = queryEngine.selectForCount(namespace, setName, binNames, query);
+        } else {
+            recIterator = queryEngine.selectForCount(namespace, setName, null, query);
         }
 
         return StreamUtils.createStreamFromIterator(recIterator)

@@ -73,27 +73,37 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         }
 
         if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
+            Pageable pageable = accessor.getPageable();
             Flux<?> results = operations.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
             Mono<? extends List<?>> unprocessedResultsListMono = results.collectList();
+
             Mono<Long> sizeMono = results.count();
             return sizeMono.flatMap(size ->
-                unprocessedResultsListMono.map(list -> getPaginatedResult(list, size.intValue(), accessor, query))
+                unprocessedResultsListMono.map(list -> getPaginatedResult(list, size.intValue(), pageable, query))
             );
         }
 
         return findByQuery(query, targetClass);
     }
 
-    public Object getPaginatedResult(List<?> unprocessedResults, int overallSize, ParametersParameterAccessor accessor,
-                                  Query query) {
-        List<?> resultsPaginated = applyPostProcessingOnResults(unprocessedResults.stream(), query).toList();
-        Pageable pageable = accessor.getPageable();
+    public Object getPaginatedResult(List<?> unprocessedResults, int overallSize, Pageable pageable,
+                                     Query query) {
+        List<?> resultsPaginated;
         if (queryMethod.isSliceQuery()) {
+
+            if (pageable.isUnpaged()) return new SliceImpl<>(unprocessedResults, pageable, false);
+
+            resultsPaginated = applyPostProcessing(unprocessedResults.stream(), query).toList();
             boolean hasNext = overallSize > pageable.getPageSize() * (pageable.getOffset() + 1);
             return new SliceImpl<>(resultsPaginated, pageable, hasNext);
-        } else {
-            return new PageImpl<>(resultsPaginated, pageable, overallSize);
         }
+
+        if (pageable.isUnpaged()) {
+            return new PageImpl<>(unprocessedResults, pageable, overallSize);
+        }
+
+        resultsPaginated = applyPostProcessing(unprocessedResults.stream(), query).toList();
+        return new PageImpl<>(resultsPaginated, pageable, overallSize);
     }
 
     private Flux<?> findByQuery(Query query, Class<?> targetClass) {

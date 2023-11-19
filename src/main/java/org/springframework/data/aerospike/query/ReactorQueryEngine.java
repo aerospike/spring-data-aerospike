@@ -53,7 +53,8 @@ public class ReactorQueryEngine {
     @Setter
     private boolean scansEnabled;
     @Setter
-    private int queryMaxRecords;
+    @Getter
+    private long queryMaxRecords;
 
     public ReactorQueryEngine(IAerospikeReactorClient client, StatementBuilder statementBuilder,
                               FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
@@ -103,9 +104,34 @@ public class ReactorQueryEngine {
         statement.setMaxRecords(queryMaxRecords);
         QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
         localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
+
         if (!scansEnabled && statement.getFilter() == null) {
             return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
         }
+
+        return client.query(localQueryPolicy, statement);
+    }
+
+    /**
+     * Select records filtered by a query to be counted
+     *
+     * @param namespace Namespace to storing the data
+     * @param set       Set storing the data
+     * @param binNames  Bin names to return from the query
+     * @param query     {@link Query} for filtering results
+     * @return A Flux<KeyRecord> to iterate over the results
+     */
+    public Flux<KeyRecord> selectForCount(String namespace, String set, String[] binNames, @Nullable Query query) {
+        Statement statement = statementBuilder.build(namespace, set, query, binNames);
+        statement.setMaxRecords(queryMaxRecords);
+        QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
+        localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        localQueryPolicy.includeBinData = false;
+
+        if (!scansEnabled && statement.getFilter() == null) {
+            return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
+        }
+
         return client.query(localQueryPolicy, statement);
     }
 

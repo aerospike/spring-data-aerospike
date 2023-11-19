@@ -974,14 +974,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set for count must not be null!");
 
-        return findRecordsUsingQuery(setName, query).count();
+        return countRecordsUsingQuery(setName, query).count();
     }
 
-    private Flux<KeyRecord> findRecordsUsingQuery(String setName, Query query) {
+    private Flux<KeyRecord> countRecordsUsingQuery(String setName, Query query) {
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findRecordsUsingQuery(setName, null, query);
+        return countRecordsUsingQuery(setName, null, query);
     }
 
     @Override
@@ -1092,6 +1092,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public IAerospikeReactorClient getAerospikeReactorClient() {
         return reactorClient;
+    }
+
+    @Override
+    public long getQueryMaxRecords() {
+        return reactorQueryEngine.getQueryMaxRecords();
     }
 
     private <T> Mono<T> doPersistAndHandleError(T document, AerospikeWriteData data, WritePolicy policy,
@@ -1250,7 +1255,26 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             String[] binNames = getBinNamesFromTargetClass(targetClass);
             return this.reactorQueryEngine.select(this.namespace, setName, binNames, query);
         } else {
-            return this.reactorQueryEngine.select(this.namespace, setName, query);
+            return this.reactorQueryEngine.select(this.namespace, setName, null, query);
+        }
+    }
+
+    private <T> Flux<KeyRecord> countRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
+        if (qualifier != null) {
+            Qualifier idQualifier = getOneIdQualifier(qualifier);
+            if (idQualifier != null) {
+                // a special flow if there is id given
+                return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
+                    new Query(excludeIdQualifier(qualifier)));
+            }
+        }
+
+        if (targetClass != null) {
+            String[] binNames = getBinNamesFromTargetClass(targetClass);
+            return this.reactorQueryEngine.selectForCount(this.namespace, setName, binNames, query);
+        } else {
+            return this.reactorQueryEngine.selectForCount(this.namespace, setName, null, query);
         }
     }
 

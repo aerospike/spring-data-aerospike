@@ -115,7 +115,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
     }
 
-    protected <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
+    protected <T> Stream<T> applyPostProcessing(Stream<T> results, Query query) {
         if (query.getSort() != null && query.getSort().isSorted()) {
             Comparator<T> comparator = getComparator(query);
             results = results.sorted(comparator);
