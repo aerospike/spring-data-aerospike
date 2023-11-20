@@ -981,7 +981,16 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return countRecordsUsingQuery(setName, null, query);
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
+        if (qualifier != null) {
+            Qualifier idQualifier = getOneIdQualifier(qualifier);
+            if (idQualifier != null) {
+                // a special flow if there is id given
+                return findByIdsWithoutMapping(getIdValue(idQualifier), setName, null,
+                    new Query(excludeIdQualifier(qualifier)));
+            }
+        }
+        return this.reactorQueryEngine.selectForCount(this.namespace, setName, query);
     }
 
     @Override
@@ -1257,23 +1266,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         } else {
             return this.reactorQueryEngine.select(this.namespace, setName, null, query);
         }
-    }
-
-    private <T> Flux<KeyRecord> countRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
-        if (qualifier != null) {
-            Qualifier idQualifier = getOneIdQualifier(qualifier);
-            if (idQualifier != null) {
-                // a special flow if there is id given
-                return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
-                    new Query(excludeIdQualifier(qualifier)));
-            }
-        }
-
-        if (targetClass != null) {
-            return this.reactorQueryEngine.selectForCount(this.namespace, setName, query);
-        }
-        return this.reactorQueryEngine.selectForCount(this.namespace, setName, query);
     }
 
     private <T> Flux<KeyRecord> findByIdsWithoutMapping(Collection<?> ids, String setName,

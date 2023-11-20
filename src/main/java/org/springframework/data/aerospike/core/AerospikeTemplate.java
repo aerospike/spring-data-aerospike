@@ -1065,7 +1065,26 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return countRecordsUsingQuery(setName, null, query);
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
+        if (qualifier != null) {
+            Qualifier idQualifier = getOneIdQualifier(qualifier);
+            if (idQualifier != null) {
+                // a special flow if there is id given
+                return findByIdsWithoutMapping(getIdValue(idQualifier), setName, null,
+                    new Query(excludeIdQualifier(qualifier))).stream();
+            }
+        }
+
+        KeyRecordIterator recIterator = queryEngine.selectForCount(namespace, setName, query);
+
+        return StreamUtils.createStreamFromIterator(recIterator)
+            .onClose(() -> {
+                try {
+                    recIterator.close();
+                } catch (Exception e) {
+                    log.error("Caught exception while closing query", e);
+                }
+            });
     }
 
     @Override
@@ -1303,35 +1322,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             recIterator = queryEngine.select(namespace, setName, binNames, query);
         } else {
             recIterator = queryEngine.select(namespace, setName, query);
-        }
-
-        return StreamUtils.createStreamFromIterator(recIterator)
-            .onClose(() -> {
-                try {
-                    recIterator.close();
-                } catch (Exception e) {
-                    log.error("Caught exception while closing query", e);
-                }
-            });
-    }
-
-    private <T> Stream<KeyRecord> countRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
-        if (qualifier != null) {
-            Qualifier idQualifier = getOneIdQualifier(qualifier);
-            if (idQualifier != null) {
-                // a special flow if there is id given
-                return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
-                    new Query(excludeIdQualifier(qualifier))).stream();
-            }
-        }
-
-        KeyRecordIterator recIterator;
-
-        if (targetClass != null) {
-            recIterator = queryEngine.selectForCount(namespace, setName, query);
-        } else {
-            recIterator = queryEngine.selectForCount(namespace, setName, query);
         }
 
         return StreamUtils.createStreamFromIterator(recIterator)
