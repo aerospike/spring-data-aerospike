@@ -819,7 +819,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         try {
             AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
             Key key = getKey(id, setName);

@@ -48,8 +48,6 @@ public class QueryEngine {
     private final StatementBuilder statementBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
-    @Getter
-    private final QueryPolicy queryPolicy;
     /**
      * Scans can potentially slow down Aerospike server, so we are disabling them by default. If you still need to use
      * scans, set this property to true.
@@ -61,11 +59,10 @@ public class QueryEngine {
     private long queryMaxRecords;
 
     public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
-                       FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
+                       FilterExpressionsBuilder filterExpressionsBuilder) {
         this.client = client;
         this.statementBuilder = statementBuilder;
         this.filterExpressionsBuilder = filterExpressionsBuilder;
-        this.queryPolicy = queryPolicy;
     }
 
     /**
@@ -151,7 +148,7 @@ public class QueryEngine {
     }
 
     private QueryPolicy getQueryPolicy(Query query, boolean includeBins) {
-        QueryPolicy queryPolicy = new QueryPolicy(this.queryPolicy);
+        QueryPolicy queryPolicy = new QueryPolicy(client.getQueryPolicyDefault());
         queryPolicy.filterExp = filterExpressionsBuilder.build(query);
         queryPolicy.includeBinData = includeBins;
         return queryPolicy;
