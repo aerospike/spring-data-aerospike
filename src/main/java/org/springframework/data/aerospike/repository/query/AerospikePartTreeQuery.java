@@ -94,9 +94,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             operations.findUsingQueryWithoutPostProcessing(entityClass, targetClass, query);
         if (queryMethod.isSliceQuery()) {
             return processSliceQuery(unprocessedResultsStream, pageable, query);
-        } else {
-            return processPageQuery(unprocessedResultsStream, pageable, query);
         }
+        return processPageQuery(unprocessedResultsStream, pageable, query);
     }
 
     private Object processSliceQuery(Stream<?> unprocessedResultsStream, Pageable pageable, Query query) {
@@ -121,7 +120,6 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             // and configuration parameter AerospikeDataSettings.queryMaxRecords is less than Integer.MAX_VALUE
             List<?> unprocessedResults = unprocessedResultsStream.toList();
             numberOfAllResults = unprocessedResults.size();
-
             resultsPage = pageable.isUnpaged() ? unprocessedResults : applyPostProcessing(unprocessedResults.stream(),
                 query).toList();
         } else {

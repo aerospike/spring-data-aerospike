@@ -85,22 +85,20 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                 return sizeMono.flatMap(size ->
                     unprocessedResultsListMono.map(list -> getPage(list, size, pageable, query))
                 );
-            } else {
-                return sizeMono.map(size -> {
-                    if (pageable.isUnpaged()) {
-                        Mono<? extends List<?>> unprocessedResultsListMono = unprocessedResults.collectList();
-                        return unprocessedResultsListMono.map(list -> getPage(list, size, pageable, query));
-                    }
-                    return getPage(unprocessedResults, size, pageable, query);
-                });
             }
+            return sizeMono.map(size -> {
+                if (pageable.isUnpaged()) {
+                    Mono<? extends List<?>> unprocessedResultsListMono = unprocessedResults.collectList();
+                    return unprocessedResultsListMono.map(list -> getPage(list, size, pageable, query));
+                }
+                return getPage(unprocessedResults, size, pageable, query);
+            });
         }
 
         return findByQuery(query, targetClass);
     }
 
-    public Object getPage(List<?> unprocessedResults, long overallSize, Pageable pageable,
-                          Query query) {
+    public Object getPage(List<?> unprocessedResults, long overallSize, Pageable pageable, Query query) {
         if (queryMethod.isSliceQuery()) {
             return processSliceQuery(unprocessedResults, overallSize, pageable, query);
         } else {
@@ -108,16 +106,14 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         }
     }
 
-    public Object getPage(Flux<?> unprocessedResults, long overallSize, Pageable pageable,
-                          Query query) {
+    public Object getPage(Flux<?> unprocessedResults, long overallSize, Pageable pageable, Query query) {
         if (queryMethod.isSliceQuery()) {
             List<?> resultsPaginated = applyPostProcessing(unprocessedResults, query).toList();
             boolean hasNext = overallSize > pageable.getPageSize() * (pageable.getOffset() + 1);
             return new SliceImpl<>(resultsPaginated, pageable, hasNext);
-        } else {
-            List<?> resultsPaginated = applyPostProcessing(unprocessedResults, query).toList();
-            return new PageImpl<>(resultsPaginated, pageable, overallSize);
         }
+        List<?> resultsPaginated = applyPostProcessing(unprocessedResults, query).toList();
+        return new PageImpl<>(resultsPaginated, pageable, overallSize);
     }
 
     private Object processSliceQuery(List<?> unprocessedResults, long overallSize, Pageable pageable, Query query) {

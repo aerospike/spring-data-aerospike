@@ -9,10 +9,6 @@ import java.util.List;
 @UtilityClass
 public class QualifierUtils {
 
-    public static Qualifier getIdQualifier(Qualifier qualifier) {
-        return getOneIdQualifier(qualifier);
-    }
-
     /**
      * Find id qualifier.
      *
@@ -20,7 +16,7 @@ public class QualifierUtils {
      * @return The only id qualifier or null
      * @throws IllegalArgumentException if more than one id qualifier given
      */
-    public static Qualifier getOneIdQualifier(Qualifier qualifier) {
+    public static Qualifier getIdQualifier(Qualifier qualifier) {
         if (qualifier != null) {
             List<Qualifier> idQualifiers = getIdQualifiers(qualifier);
             if (idQualifiers.size() > 1) {

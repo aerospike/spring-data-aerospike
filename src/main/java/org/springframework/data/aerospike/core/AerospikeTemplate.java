@@ -71,7 +71,7 @@ import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
-import static org.springframework.data.aerospike.query.QualifierUtils.getOneIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
 /**
@@ -1062,12 +1062,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private Stream<KeyRecord> countRecordsUsingQuery(String setName, Query query) {
-        Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         if (qualifier != null) {
-            Qualifier idQualifier = getOneIdQualifier(qualifier);
+            Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query with id
                 return findByIdsWithoutMapping(getIdValue(idQualifier), setName, null,
@@ -1307,7 +1306,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private <T> Stream<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         if (qualifier != null) {
-            Qualifier idQualifier = getOneIdQualifier(qualifier);
+            Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query with id
                 return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,

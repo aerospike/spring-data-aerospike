@@ -79,7 +79,7 @@ public class ReactorQueryEngine {
     /**
      * Select records filtered by a Filter and Qualifiers
      *
-     * @param namespace Namespace to storing the data
+     * @param namespace Namespace to store the data
      * @param set       Set storing the data
      * @param binNames  Bin names to return from the query
      * @param query     {@link Query} for filtering results
@@ -102,8 +102,7 @@ public class ReactorQueryEngine {
          */
         Statement statement = statementBuilder.build(namespace, set, query, binNames);
         statement.setMaxRecords(queryMaxRecords);
-        QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
-        localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        QueryPolicy localQueryPolicy = getQueryPolicy(query, true);
 
         if (!scansEnabled && statement.getFilter() == null) {
             return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
@@ -115,23 +114,28 @@ public class ReactorQueryEngine {
     /**
      * Select records filtered by a query to be counted
      *
-     * @param namespace Namespace to storing the data
+     * @param namespace Namespace to store the data
      * @param set       Set storing the data
      * @param query     {@link Query} for filtering results
-     * @return A Flux<KeyRecord> to iterate over the results
+     * @return A Flux<KeyRecord> for counting
      */
     public Flux<KeyRecord> selectForCount(String namespace, String set, @Nullable Query query) {
         Statement statement = statementBuilder.build(namespace, set, query);
         statement.setMaxRecords(queryMaxRecords);
-        QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
-        localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
-        localQueryPolicy.includeBinData = false;
+        QueryPolicy localQueryPolicy = getQueryPolicy(query, false);
 
         if (!scansEnabled && statement.getFilter() == null) {
             return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
         }
 
         return client.query(localQueryPolicy, statement);
+    }
+
+    private QueryPolicy getQueryPolicy(Query query, boolean includeBins) {
+        QueryPolicy queryPolicy = new QueryPolicy(this.queryPolicy);
+        queryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        queryPolicy.includeBinData = includeBins;
+        return queryPolicy;
     }
 
     @SuppressWarnings("SameParameterValue")

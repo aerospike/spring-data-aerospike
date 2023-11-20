@@ -67,7 +67,7 @@ import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredi
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
-import static org.springframework.data.aerospike.query.QualifierUtils.getOneIdQualifier;
+import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
 /**
@@ -332,7 +332,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         try {
             String set = getSetName(entityClass);
             return Mono.fromRunnable(
-                () -> reactorClient.getAerospikeClient().truncate(null, this.namespace, set, null));
+                () -> reactorClient.getAerospikeClient().truncate(null, namespace, set, null));
         } catch (AerospikeException e) {
             throw translateError(e);
         }
@@ -473,7 +473,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         try {
             return Mono.fromRunnable(
-                () -> reactorClient.getAerospikeClient().truncate(null, this.namespace, setName, null));
+                () -> reactorClient.getAerospikeClient().truncate(null, namespace, setName, null));
         } catch (AerospikeException e) {
             throw translateError(e);
         }
@@ -500,7 +500,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
         operations[x] = Operation.get();
 
-        WritePolicy writePolicy = WritePolicyBuilder.builder(this.writePolicyDefault)
+        WritePolicy writePolicy = WritePolicyBuilder.builder(writePolicyDefault)
             .expiration(data.getExpiration())
             .build();
 
@@ -520,7 +520,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         AerospikeWriteData data = writeData(document, setName);
 
-        WritePolicy writePolicy = WritePolicyBuilder.builder(this.writePolicyDefault)
+        WritePolicy writePolicy = WritePolicyBuilder.builder(writePolicyDefault)
             .expiration(data.getExpiration())
             .build();
 
@@ -952,10 +952,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private long countSet(String setName) {
         Node[] nodes = reactorClient.getAerospikeClient().getNodes();
 
-        int replicationFactor = Utils.getReplicationFactor(nodes, this.namespace);
+        int replicationFactor = Utils.getReplicationFactor(nodes, namespace);
 
         long totalObjects = Arrays.stream(nodes)
-            .mapToLong(node -> Utils.getObjectsCount(node, this.namespace, setName))
+            .mapToLong(node -> Utils.getObjectsCount(node, namespace, setName))
             .sum();
 
         return (nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects;
@@ -963,7 +963,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<Long> count(Query query, Class<T> entityClass) {
-        Assert.notNull(query, "Query must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
 
         return count(query, getSetName(entityClass));
@@ -971,26 +970,24 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public Mono<Long> count(Query query, String setName) {
-        Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set for count must not be null!");
 
         return countRecordsUsingQuery(setName, query).count();
     }
 
     private Flux<KeyRecord> countRecordsUsingQuery(String setName, Query query) {
-        Assert.notNull(query, "Query must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         if (qualifier != null) {
-            Qualifier idQualifier = getOneIdQualifier(qualifier);
+            Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query with id
                 return findByIdsWithoutMapping(getIdValue(idQualifier), setName, null,
                     new Query(excludeIdQualifier(qualifier)));
             }
         }
-        return this.reactorQueryEngine.selectForCount(this.namespace, setName, query);
+        return reactorQueryEngine.selectForCount(namespace, setName, query);
     }
 
     @Override
@@ -1035,7 +1032,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(indexCollectionType, "Index collection type must not be null!");
         Assert.notNull(ctx, "Ctx must not be null!");
 
-        return reactorClient.createIndex(null, this.namespace,
+        return reactorClient.createIndex(null, namespace,
                 setName, indexName, binName, indexType, indexCollectionType, ctx)
             .then(reactorIndexRefresher.refreshIndexes())
             .onErrorMap(this::translateError);
@@ -1052,7 +1049,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(indexName, "Index name must not be null!");
 
-        return reactorClient.dropIndex(null, this.namespace, setName, indexName)
+        return reactorClient.dropIndex(null, namespace, setName, indexName)
             .then(reactorIndexRefresher.refreshIndexes())
             .onErrorMap(this::translateError);
     }
@@ -1136,7 +1133,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private Mono<KeyRecord> getAndTouch(Key key, int expiration, String[] binNames, Query query) {
-        WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(this.writePolicyDefault)
+        WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(writePolicyDefault)
             .expiration(expiration);
 
         if (queryCriteriaIsNotNull(query)) {
@@ -1252,7 +1249,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private <T> Flux<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         if (qualifier != null) {
-            Qualifier idQualifier = getOneIdQualifier(qualifier);
+            Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
                 // a separate flow for a query with id
                 return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
@@ -1262,10 +1259,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         if (targetClass != null) {
             String[] binNames = getBinNamesFromTargetClass(targetClass);
-            return this.reactorQueryEngine.select(this.namespace, setName, binNames, query);
-        } else {
-            return this.reactorQueryEngine.select(this.namespace, setName, null, query);
+            return reactorQueryEngine.select(namespace, setName, binNames, query);
         }
+        return reactorQueryEngine.select(namespace, setName, null, query);
     }
 
     private <T> Flux<KeyRecord> findByIdsWithoutMapping(Collection<?> ids, String setName,

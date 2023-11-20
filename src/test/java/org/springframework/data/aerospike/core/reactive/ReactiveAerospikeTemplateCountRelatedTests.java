@@ -76,6 +76,9 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .block();
         assertThat(petyaCount).isEqualTo(1);
 
+        assertThat(reactiveTemplate.count(null, Person.class).subscribeOn(Schedulers.parallel())
+            .block()).isEqualTo(4);
+
         reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()).block(); // cleanup
         reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()).block(); // cleanup
         reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()).block(); // cleanup
