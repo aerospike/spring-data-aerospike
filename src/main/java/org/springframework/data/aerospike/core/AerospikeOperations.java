@@ -747,8 +747,8 @@ public interface AerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
-     * exists, an empty list is returned.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type if provided
+     * (otherwise to entityClass's type), if no document exists, an empty list is returned.
      */
     <T, S> List<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                        @Nullable Query query);
@@ -764,8 +764,8 @@ public interface AerospikeOperations {
      * @param targetClass The class to map the document to.
      * @param setName     Set name to find the document from.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
-     * exists, an empty list is returned.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type if provided
+     * (otherwise to entityClass's type), if no document exists, an empty list is returned.
      */
     <T, S> List<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass, String setName,
                                        @Nullable Query query);
