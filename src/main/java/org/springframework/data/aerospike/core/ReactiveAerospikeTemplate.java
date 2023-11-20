@@ -985,7 +985,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (qualifier != null) {
             Qualifier idQualifier = getOneIdQualifier(qualifier);
             if (idQualifier != null) {
-                // a special flow if there is id given
+                // a separate flow for a query with id
                 return findByIdsWithoutMapping(getIdValue(idQualifier), setName, null,
                     new Query(excludeIdQualifier(qualifier)));
             }
@@ -1254,7 +1254,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (qualifier != null) {
             Qualifier idQualifier = getOneIdQualifier(qualifier);
             if (idQualifier != null) {
-                // a special flow if there is id given
+                // a separate flow for a query with id
                 return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
                     new Query(excludeIdQualifier(qualifier)));
             }
