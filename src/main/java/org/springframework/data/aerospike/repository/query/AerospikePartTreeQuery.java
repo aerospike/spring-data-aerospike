@@ -122,13 +122,12 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             List<?> unprocessedResults = unprocessedResultsStream.toList();
             numberOfAllResults = unprocessedResults.size();
 
-            if (pageable.isUnpaged()) {
-                return new PageImpl<>(unprocessedResults, pageable, numberOfAllResults);
-            }
-            resultsPage = applyPostProcessing(unprocessedResults.stream(), query).toList();
+            resultsPage = pageable.isUnpaged() ? unprocessedResults : applyPostProcessing(unprocessedResults.stream(),
+                query).toList();
         } else {
             numberOfAllResults = operations.count(query, entityClass);
-            resultsPage = applyPostProcessing(unprocessedResultsStream, query).toList();
+            resultsPage = pageable.isUnpaged() ? unprocessedResultsStream.toList()
+                : applyPostProcessing(unprocessedResultsStream, query).toList();
         }
         return new PageImpl<>(resultsPage, pageable, numberOfAllResults);
     }

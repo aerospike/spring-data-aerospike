@@ -32,6 +32,8 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
 
     Mono<Page<IndexedPerson>> findByAgeGreaterThan(int value, Pageable pageable);
 
+    Mono<Page<IndexedPerson>> findByAgeLessThan(int value, Pageable pageable);
+
     Flux<IndexedPerson> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
 
     /**
