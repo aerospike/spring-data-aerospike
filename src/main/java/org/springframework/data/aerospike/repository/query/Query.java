@@ -67,7 +67,9 @@ public class Query {
 
     /**
      * Get the CriteriaDefinition object cast to AerospikeCriteria.
+     * @deprecated Since 4.6.0. Use {@link Query#getCriteriaObject()}} instead
      */
+    @Deprecated(since = "4.6.0", forRemoval = true)
     public AerospikeCriteria getAerospikeCriteria() {
         return (AerospikeCriteria) criteria;
     }
@@ -75,7 +77,7 @@ public class Query {
     /**
      * Get the {@link Qualifier} object.
      */
-    public Qualifier getQualifier() {
+    public Qualifier getCriteriaObject() {
         return criteria.getCriteriaObject();
     }
 

@@ -84,7 +84,7 @@ public class ReactorQueryEngine {
      * @return A Flux<KeyRecord> to iterate over the results
      */
     public Flux<KeyRecord> select(String namespace, String set, String[] binNames, @Nullable Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
         /*
          * singleton using primary key
          */

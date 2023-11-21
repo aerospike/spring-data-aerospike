@@ -978,7 +978,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private Flux<KeyRecord> countRecordsUsingQuery(String setName, Query query) {
         Assert.notNull(setName, "Set name must not be null!");
 
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
         if (qualifier != null) {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
@@ -1247,7 +1247,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private <T> Flux<KeyRecord> findRecordsUsingQuery(String setName, Class<T> targetClass, Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
         if (qualifier != null) {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {

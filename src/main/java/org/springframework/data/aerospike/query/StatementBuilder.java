@@ -58,7 +58,7 @@ public class StatementBuilder {
         }
         if (queryCriteriaIsNotNull(query)) {
             // statement's filter is set based on the first processed qualifier's filter
-            setStatementFilterFromQualifiers(stmt, query.getQualifier());
+            setStatementFilterFromQualifiers(stmt, query.getCriteriaObject());
         }
         return stmt;
     }

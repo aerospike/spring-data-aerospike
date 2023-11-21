@@ -95,7 +95,7 @@ public class CoreUtils {
     static Predicate<KeyRecord> getDistinctPredicate(Query query) {
         Predicate<KeyRecord> distinctPredicate;
         if (query != null && query.isDistinct()) {
-            String dotPathString = query.getQualifier().getDotPath();
+            String dotPathString = query.getCriteriaObject().getDotPath();
             if (StringUtils.hasLength(dotPathString)) {
                 throw new UnsupportedOperationException("DISTINCT queries are currently supported only for the first " +
                     "level objects, got a query for " + dotPathString);
@@ -103,7 +103,7 @@ public class CoreUtils {
 
             final Set<Object> distinctValues = ConcurrentHashMap.newKeySet();
             distinctPredicate = kr -> {
-                final String distinctField = query.getQualifier().getField();
+                final String distinctField = query.getCriteriaObject().getField();
                 if (kr.record == null || kr.record.bins == null) {
                     return false;
                 }

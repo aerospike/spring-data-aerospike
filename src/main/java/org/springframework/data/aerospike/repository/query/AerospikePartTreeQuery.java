@@ -60,7 +60,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
         // queries that include id have their own processing flow
         if (parameters != null && parameters.length > 0) {
-            Qualifier criteria = query.getQualifier();
+            Qualifier criteria = query.getCriteriaObject();
             List<Object> ids;
             if (criteria.hasSingleId()) {
                 ids = getIdValue(criteria);
