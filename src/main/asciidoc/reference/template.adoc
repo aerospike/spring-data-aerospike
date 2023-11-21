@@ -1,9 +1,11 @@
 [[aerospike.template]]
 = Aerospike Template
 
-Aerospike Template provides a set of features for interacting with the database. It allows lower-level access than a Repository and also serves as the foundation for repositories.
+Aerospike Template provides a set of features for interacting with the database.
+It allows lower-level access than a Repository and also serves as the foundation for repositories.
 
-Template is the central support class for Aerospike database operations. It provides the following functionality:
+Template is the central support class for Aerospike database operations.
+It provides the following functionality:
 
 - Mapping between Java objects and Aerospike Bins (see Mapping)
 - Methods to interact with the database
@@ -15,7 +17,7 @@ Template is the central support class for Aerospike database operations. It prov
 
 If you are subclassing `AbstractAerospikeDataConfiguration` then the `aerospikeTemplate` bean is already present in your context, and you can use it.
 
-[source, java]
+[source,java]
 ----
 @Autowired
 protected AerospikeTemplate template;
@@ -31,16 +33,17 @@ For CAS updates `save` operation must be used.
 
 `AerospikeTemplate` provides operations for interacting with the database (`exists`, `find`, `insert`, `update` etc.) as well as basic operations with indexes: `createIndex`, `deleteIndex`, `indexExists`.
 
-The names of operations are typically self-descriptive. For reading from DB you can use `findById` or `findByIds` operations, to delete documents use `delete` methods etc.
+The names of operations are typically self-descriptive.
+For reading from DB you can use `findById` or `findByIds` operations, to delete documents use `delete` methods etc.
 
-[source, java]
+[source,java]
 ----
 template.findById(id, Person.class)
 ----
 
 For indexed documents use `find` with provided `Query` object.
 
-[source, java]
+[source,java]
 ----
 Stream<Person> result = template.find(query, Person.class);
 assertThat(result).hasSize(6);
@@ -52,7 +55,7 @@ The simple case of using the save operation is to save a POJO.
 
 NOTE: For more information about Id property when inserting or saving see xref:#mapping-conventions-id-field[Mapping Conventions: Id Field] for more information.
 
-[source, java]
+[source,java]
 ----
 public class Person {
 
@@ -64,18 +67,17 @@ public class Person {
 }
 ----
 
-[source, java]
+[source,java]
 ----
 template.insert(new Person(id, "John", 50));
 
 long count = template.count
             (new Query
-                    (new AerospikeCriteria
-                        (new QualifierBuilder()
-                            .setFilterOperation(FilterOperation.EQ)
-                            .setField("firstName")
-                            .setValue1(Value.get("John"))
-                        )
+                    (new QualifierBuilder()
+                        .setFilterOperation(FilterOperation.EQ)
+                        .setField("firstName")
+                        .setValue1(Value.get("John"))
+                            .build()
                     ),
                 Person.class
             );
