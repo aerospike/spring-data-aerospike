@@ -77,7 +77,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @BeforeAll
     public void beforeAll() {
         template.refreshIndexesCache();
-        additionalAerospikeTestOperations.deleteAll(repository, allPersons);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         additionalAerospikeTestOperations.saveAll(repository, allPersons);
     }
 
