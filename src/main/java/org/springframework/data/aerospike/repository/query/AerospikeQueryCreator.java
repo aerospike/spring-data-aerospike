@@ -51,7 +51,7 @@ import static org.springframework.data.aerospike.query.Qualifier.idIn;
  * @author Peter Milne
  * @author Jean Mercier
  */
-public class AerospikeQueryCreator extends AbstractQueryCreator<Query, AerospikeCriteria> {
+public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaDefinition> {
 
     private static final Logger LOG = LoggerFactory.getLogger(AerospikeQueryCreator.class);
     private final AerospikeMappingContext context;
@@ -77,14 +77,14 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     }
 
     @Override
-    protected AerospikeCriteria create(Part part, Iterator<Object> iterator) {
+    protected CriteriaDefinition create(Part part, Iterator<Object> iterator) {
         PersistentPropertyPath<AerospikePersistentProperty> path =
             context.getPersistentPropertyPath(part.getProperty());
         AerospikePersistentProperty property = path.getLeafProperty();
         return create(part, property, iterator);
     }
 
-    private AerospikeCriteria create(Part part, AerospikePersistentProperty property, Iterator<?> parameters) {
+    private CriteriaDefinition create(Part part, AerospikePersistentProperty property, Iterator<?> parameters) {
         Object v1 = null;
         if (parameters.hasNext()) {
             v1 = parameters.next();
@@ -132,7 +132,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         return converter.toWritableValue(value, valueType);
     }
 
-    public AerospikeCriteria getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
+    public CriteriaDefinition getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
                                          Iterator<?> parameters, FilterOperation op) {
         String fieldName = getFieldName(part.getProperty().getSegment(), property);
         Qualifier qualifier;
@@ -147,7 +147,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             qualifier = processOther(part, value1, value2, property, op, fieldName);
         }
 
-        return new AerospikeCriteria(qualifier);
+        return qualifier;
     }
 
     private Qualifier processId(Object value1) {
@@ -440,7 +440,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
     }
 
     @Override
-    protected AerospikeCriteria and(Part part, AerospikeCriteria base, Iterator<Object> iterator) {
+    protected CriteriaDefinition and(Part part, CriteriaDefinition base, Iterator<Object> iterator) {
         if (base == null) {
             return create(part, iterator);
         }
@@ -449,17 +449,16 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
             context.getPersistentPropertyPath(part.getProperty());
         AerospikePersistentProperty property = path.getLeafProperty();
 
-        return new AerospikeCriteria(Qualifier.and(base, create(part, property,
-            iterator)));
+        return Qualifier.and(base.getCriteriaObject(), create(part, property, iterator).getCriteriaObject());
     }
 
     @Override
-    protected AerospikeCriteria or(AerospikeCriteria base, AerospikeCriteria criteria) {
-        return new AerospikeCriteria(Qualifier.or(base, criteria));
+    protected CriteriaDefinition or(CriteriaDefinition base, CriteriaDefinition criteria) {
+        return Qualifier.or(base.getCriteriaObject(), criteria.getCriteriaObject());
     }
 
     @Override
-    protected Query complete(AerospikeCriteria criteria, Sort sort) {
+    protected Query complete(CriteriaDefinition criteria, Sort sort) {
         Query query = criteria == null ? null : new Query(criteria).with(sort);
 
         if (LOG.isDebugEnabled() && criteria != null) {
@@ -469,19 +468,20 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
         return query;
     }
 
-    private void logQualifierDetails(Qualifier criteria) {
-        Qualifier[] qualifiers = criteria.getQualifiers();
+    private void logQualifierDetails(CriteriaDefinition criteria) {
+        Qualifier qualifier = criteria.getCriteriaObject();
+        Qualifier[] qualifiers = qualifier.getQualifiers();
         if (qualifiers != null && qualifiers.length > 0) {
             Arrays.stream(qualifiers).forEach(this::logQualifierDetails);
         }
 
-        String field = (StringUtils.hasLength(criteria.getField()) ? criteria.getField() : "");
-        String operation = (StringUtils.hasLength(criteria.getOperation().toString()) ?
-            criteria.getOperation().toString() : "N/A");
-        String value1 = (criteria.getValue1() != null && !criteria.getValue1().toString().isEmpty() ?
-            criteria.getValue1().toString() : "");
-        String value2 = (criteria.getValue2() != null && !criteria.getValue2().toString().isEmpty() ?
-            criteria.getValue2().toString() : "");
+        String field = (StringUtils.hasLength(qualifier.getField()) ? qualifier.getField() : "");
+        String operation = (StringUtils.hasLength(qualifier.getOperation().toString()) ?
+            qualifier.getOperation().toString() : "N/A");
+        String value1 = (qualifier.getValue1() != null && !qualifier.getValue1().toString().isEmpty() ?
+            qualifier.getValue1().toString() : "");
+        String value2 = (qualifier.getValue2() != null && !qualifier.getValue2().toString().isEmpty() ?
+            qualifier.getValue2().toString() : "");
 
         LOG.debug("Created query: {} {} {} {}", field, operation, value1, value2);
     }

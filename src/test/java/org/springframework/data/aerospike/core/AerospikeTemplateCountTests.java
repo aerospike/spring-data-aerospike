@@ -24,7 +24,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 
@@ -61,11 +60,12 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         template.insert(new Person(id4, "petya", 52));
 
         long vasyaCount = template.count(
-            new Query(new AerospikeCriteria(Qualifier.builder()
+            new Query(Qualifier.builder()
                 .setFilterOperation(FilterOperation.EQ)
                 .setField("firstName")
                 .setValue1(Value.get("vasili"))
-            )),
+                .build()
+            ),
             Person.class
         );
 
@@ -84,17 +84,18 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
             .build();
 
         long vasya51Count = template.count(
-            new Query(new AerospikeCriteria(Qualifier.and(qbIs1, qbIs2))), Person.class
+            new Query(Qualifier.and(qbIs1, qbIs2)), Person.class
         );
 
         assertThat(vasya51Count).isEqualTo(1);
 
         long petyaCount = template.count(
-            new Query(new AerospikeCriteria(Qualifier.builder()
+            new Query(Qualifier.builder()
                 .setFilterOperation(FilterOperation.EQ)
                 .setField("firstName")
                 .setValue1(Value.get("petya"))
-            )),
+                .build()
+            ),
             Person.class
         );
 
@@ -114,20 +115,22 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         String id3 = nextId();
         template.insert(new Person(id3, "vasili", 52));
 
-        Query query1 = new Query(new AerospikeCriteria(Qualifier.builder()
+        Query query1 = new Query(Qualifier.builder()
             .setField("firstName")
             .setValue1(Value.get("vas"))
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(true)
-        ));
+            .build()
+        );
         assertThat(template.count(query1, Person.class)).isEqualTo(3);
 
-        Query query2 = new Query(new AerospikeCriteria(Qualifier.builder()
+        Query query2 = new Query(Qualifier.builder()
             .setField("firstName")
             .setValue1(Value.get("VaS"))
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(false)
-        ));
+            .build()
+        );
 
         assertThat(template.count(query2, Person.class)).isEqualTo(1);
 
@@ -141,12 +144,11 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
     @Test
     public void countReturnsZeroIfNoDocumentsByProvidedCriteriaIsFound() {
         Query query1 = new Query
-            (new AerospikeCriteria
-                (Qualifier.builder()
-                    .setField("firstName")
-                    .setValue1(Value.get("nastyushka"))
-                    .setFilterOperation(FilterOperation.STARTS_WITH)
-                )
+            (Qualifier.builder()
+                .setField("firstName")
+                .setValue1(Value.get("nastyushka"))
+                .setFilterOperation(FilterOperation.STARTS_WITH)
+                .build()
             );
 
         long count = template.count(query1, Person.class);

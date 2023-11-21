@@ -43,8 +43,4 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
     public String getKey() {
         return this.getField();
     }
-
-    protected static boolean isSingleIdQuery(AerospikeCriteria criteria) {
-        return criteria.hasSingleId();
-    }
 }

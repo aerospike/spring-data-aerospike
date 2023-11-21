@@ -8,7 +8,6 @@ import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.repository.query.AerospikeCriteria;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import reactor.core.scheduler.Schedulers;
@@ -48,7 +47,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setValue1(Value.get("vasili"))
             .setFilterOperation(FilterOperation.EQ);
 
-        Query queryVasya1 = new Query(new AerospikeCriteria(qbVasya1));
+        Query queryVasya1 = new Query(qbVasya1.build());
 
         Long vasyaCount = reactiveTemplate.count(queryVasya1, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -60,7 +59,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setValue1(Value.get(51))
             .setFilterOperation(FilterOperation.EQ);
 
-        Query queryVasyaAnd = new Query(new AerospikeCriteria(Qualifier.and(qbVasya1.build(), qbVasya2.build())));
+        Query queryVasyaAnd = new Query(Qualifier.and(qbVasya1.build(), qbVasya2.build()));
 
         Long vasya51Count = reactiveTemplate.count(queryVasyaAnd, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -71,7 +70,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setField("firstName")
             .setValue1(Value.get("petya"))
             .setFilterOperation(FilterOperation.EQ);
-        Long petyaCount = reactiveTemplate.count(new Query(new AerospikeCriteria(qbPetya)), Person.class)
+        Long petyaCount = reactiveTemplate.count(new Query(qbPetya.build()), Person.class)
             .subscribeOn(Schedulers.parallel())
             .block();
         assertThat(petyaCount).isEqualTo(1);
@@ -100,7 +99,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setIgnoreCase(true)
             .setFilterOperation(FilterOperation.STARTS_WITH);
 
-        Query query1 = new Query(new AerospikeCriteria(qbVasya1));
+        Query query1 = new Query(qbVasya1.build());
         assertThat(reactiveTemplate.count(query1, Person.class).block()).isEqualTo(3);
 
         Qualifier.QualifierBuilder qbVasya2 = Qualifier.builder()
@@ -109,7 +108,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setIgnoreCase(false)
             .setFilterOperation(FilterOperation.STARTS_WITH);
 
-        Query query2 = new Query(new AerospikeCriteria(qbVasya2));
+        Query query2 = new Query(qbVasya2.build());
         assertThat(reactiveTemplate.count(query2, Person.class)
             .subscribeOn(Schedulers.parallel())
             .block()).isEqualTo(1);
@@ -126,7 +125,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .setValue1(Value.get("nastyushka"))
             .setFilterOperation(FilterOperation.EQ);
 
-        Long count = reactiveTemplate.count(new Query(new AerospikeCriteria(qb1)), Person.class)
+        Long count = reactiveTemplate.count(new Query(qb1.build()), Person.class)
             .subscribeOn(Schedulers.parallel())
             .block();
 
