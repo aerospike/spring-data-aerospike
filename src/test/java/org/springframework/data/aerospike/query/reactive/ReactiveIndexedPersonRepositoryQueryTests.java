@@ -18,6 +18,11 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.ReactiveIndexedPersonRepository;
 import org.springframework.data.aerospike.utility.TestUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.Arrays;
@@ -107,6 +112,44 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactlyInAnyOrder(alain);
+    }
+
+    @Test
+    public void findByPaginatedQuery_forExistingResult() {
+        Page<IndexedPerson> page = reactiveRepository.findByAgeGreaterThan(1, PageRequest.of(0, 1))
+            .subscribeOn(Schedulers.parallel()).block();
+        assertThat(page).containsAnyElementsOf(allIndexedPersons);
+
+        Slice<IndexedPerson> slice = reactiveRepository.findByAgeGreaterThan(1, PageRequest.of(0, 2))
+            .subscribeOn(Schedulers.parallel()).block();
+        assertThat(slice).hasSize(2).containsAnyElementsOf(allIndexedPersons);
+
+        Slice<IndexedPerson> sliceSorted = reactiveRepository.findByAgeGreaterThan(1, PageRequest.of(1, 2, Sort.by(
+                "age")))
+            .subscribeOn(Schedulers.parallel()).block();
+        assertThat(sliceSorted).hasSize(2).containsAnyElementsOf(allIndexedPersons);
+
+        assertThatThrownBy(() -> reactiveRepository.findByAgeGreaterThan(1, PageRequest.of(1, 2)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Unsorted query must not have offset value. For retrieving paged results use sorted query.");
+    }
+
+    @Test
+    public void findByAgeGreaterThanWithPageableUnpaged() {
+        Slice<IndexedPerson> slice = reactiveRepository.findByAgeGreaterThan(40, Pageable.unpaged())
+            .subscribeOn(Schedulers.parallel()).block();
+        assertThat(slice.hasContent()).isTrue();
+        assertThat(slice.getNumberOfElements()).isGreaterThan(0);
+        assertThat(slice.hasNext()).isFalse();
+        assertThat(slice.isLast()).isTrue();
+
+        Page<IndexedPerson> page = reactiveRepository.findByAgeLessThan(40, Pageable.unpaged())
+            .subscribeOn(Schedulers.parallel()).block();
+        assertThat(page.hasContent()).isTrue();
+        assertThat(page.getNumberOfElements()).isGreaterThan(1);
+        assertThat(page.hasNext()).isFalse();
+        assertThat(page.getTotalPages()).isEqualTo(1);
+        assertThat(page.getTotalElements()).isEqualTo(page.getSize());
     }
 
     @Test

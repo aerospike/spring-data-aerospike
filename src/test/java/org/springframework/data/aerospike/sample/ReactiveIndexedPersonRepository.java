@@ -2,7 +2,10 @@ package org.springframework.data.aerospike.sample;
 
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Reactive repository interface managing {@link IndexedPerson}s.
@@ -16,8 +19,8 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     Flux<IndexedPerson> findByAgeBetween(int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have address with zip code equal to the given argument"
-     * (find by POJO field)
+     * Find all entities that satisfy the condition "have address with zip code equal to the given argument" (find by
+     * POJO field)
      *
      * @param zipCode - Zip code to check for equality
      */
@@ -26,6 +29,10 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
     Flux<IndexedPerson> findPersonByFirstName(String firstName);
 
     Flux<IndexedPerson> findByAgeGreaterThan(int age);
+
+    Mono<Page<IndexedPerson>> findByAgeGreaterThan(int value, Pageable pageable);
+
+    Mono<Page<IndexedPerson>> findByAgeLessThan(int value, Pageable pageable);
 
     Flux<IndexedPerson> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
 

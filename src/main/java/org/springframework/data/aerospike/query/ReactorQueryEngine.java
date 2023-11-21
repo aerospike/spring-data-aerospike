@@ -23,6 +23,7 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
@@ -44,19 +45,21 @@ public class ReactorQueryEngine {
     private final StatementBuilder statementBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
-    private final QueryPolicy queryPolicy;
     /**
      * Scans can potentially slow down Aerospike server, so we are disabling them by default. If you still need to use
      * scans, set this property to true.
      */
-    private boolean scansEnabled = false;
+    @Setter
+    private boolean scansEnabled;
+    @Setter
+    @Getter
+    private long queryMaxRecords;
 
     public ReactorQueryEngine(IAerospikeReactorClient client, StatementBuilder statementBuilder,
-                              FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
+                              FilterExpressionsBuilder filterExpressionsBuilder) {
         this.client = client;
         this.statementBuilder = statementBuilder;
         this.filterExpressionsBuilder = filterExpressionsBuilder;
-        this.queryPolicy = queryPolicy;
     }
 
     /**
@@ -74,14 +77,14 @@ public class ReactorQueryEngine {
     /**
      * Select records filtered by a Filter and Qualifiers
      *
-     * @param namespace Namespace to storing the data
+     * @param namespace Namespace to store the data
      * @param set       Set storing the data
      * @param binNames  Bin names to return from the query
      * @param query     {@link Query} for filtering results
      * @return A Flux<KeyRecord> to iterate over the results
      */
     public Flux<KeyRecord> select(String namespace, String set, String[] binNames, @Nullable Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         /*
          * singleton using primary key
          */
@@ -96,12 +99,41 @@ public class ReactorQueryEngine {
          *  query with filters
          */
         Statement statement = statementBuilder.build(namespace, set, query, binNames);
-        QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
-        localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        statement.setMaxRecords(queryMaxRecords);
+        QueryPolicy localQueryPolicy = getQueryPolicy(query, true);
+
         if (!scansEnabled && statement.getFilter() == null) {
             return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
         }
+
         return client.query(localQueryPolicy, statement);
+    }
+
+    /**
+     * Select records filtered by a query to be counted
+     *
+     * @param namespace Namespace to store the data
+     * @param set       Set storing the data
+     * @param query     {@link Query} for filtering results
+     * @return A Flux<KeyRecord> for counting
+     */
+    public Flux<KeyRecord> selectForCount(String namespace, String set, @Nullable Query query) {
+        Statement statement = statementBuilder.build(namespace, set, query);
+        statement.setMaxRecords(queryMaxRecords);
+        QueryPolicy localQueryPolicy = getQueryPolicy(query, false);
+
+        if (!scansEnabled && statement.getFilter() == null) {
+            return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
+        }
+
+        return client.query(localQueryPolicy, statement);
+    }
+
+    private QueryPolicy getQueryPolicy(Query query, boolean includeBins) {
+        QueryPolicy queryPolicy = new QueryPolicy(client.getQueryPolicyDefault());
+        queryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        queryPolicy.includeBinData = includeBins;
+        return queryPolicy;
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -110,9 +142,5 @@ public class ReactorQueryEngine {
             return client.get(policy, key);
         }
         return client.get(policy, key, binNames);
-    }
-
-    public void setScansEnabled(boolean scansEnabled) {
-        this.scansEnabled = scansEnabled;
     }
 }

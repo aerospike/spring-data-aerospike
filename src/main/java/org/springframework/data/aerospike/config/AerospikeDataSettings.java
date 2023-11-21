@@ -30,6 +30,8 @@ public class AerospikeDataSettings {
     boolean createIndexesOnStartup = true;
     @Builder.Default
     int indexCacheRefreshFrequencySeconds = 3600;
+    @Builder.Default
+    long queryMaxRecords = 10_000L;
 
     /*
      * (non-Javadoc)
