@@ -938,7 +938,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(targetClass, "Target class must not be null!");
 
-        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit, null);
+        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit);
     }
 
     private <T> Stream<T> findUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Query query) {
@@ -982,7 +982,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit, null);
+        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit);
     }
 
     @Override
@@ -1265,7 +1265,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @SuppressWarnings("SameParameterValue")
     private <T> Stream<T> findUsingQualifierWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
-                                                               long offset, long limit, Qualifier qualifier) {
+                                                               long offset, long limit) {
         verifyUnsortedWithOffset(sort, offset);
         Stream<T> results = find(targetClass, setName);
         return applyPostProcessingOnResults(results, sort, offset, limit);
