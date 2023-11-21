@@ -807,7 +807,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQueryWithPostProcessing(setName, targetClass, query);
+        return findWithPostProcessing(setName, targetClass, query);
     }
 
     @Override
@@ -830,7 +830,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQuery(setName, targetClass, null);
+        return find(setName, targetClass);
     }
 
     @Override
@@ -853,7 +853,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQueryWithPostProcessing(setName, targetClass, sort, offset, limit, null);
+        return findWithPostProcessing(setName, targetClass, sort, offset, limit);
     }
 
     @Override
@@ -876,7 +876,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Target Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQueryWithPostProcessing(setName, targetClass, sort, offset, limit, null);
+        return findWithPostProcessing(setName, targetClass, sort, offset, limit);
     }
 
     private BatchPolicy getBatchPolicyFilterExp(Query query) {
@@ -1171,7 +1171,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return e;
     }
 
-    private <T> Flux<T> findUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Query query) {
+    private <T> Flux<T> findWithPostProcessing(String setName, Class<T> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Flux<T> results = findUsingQueryWithDistinctPredicate(setName, targetClass, getDistinctPredicate(query),
             query);
@@ -1180,10 +1180,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T> Flux<T> findUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
-                                                         long offset, long limit, Query query) {
+    private <T> Flux<T> findWithPostProcessing(String setName, Class<T> targetClass, Sort sort, long offset,
+                                               long limit) {
         verifyUnsortedWithOffset(sort, offset);
-        Flux<T> results = findUsingQuery(setName, targetClass, query);
+        Flux<T> results = find(setName, targetClass);
         results = applyPostProcessingOnResults(results, sort, offset, limit);
         return results;
     }
@@ -1234,8 +1234,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return results;
     }
 
-    private <T> Flux<T> findUsingQuery(String setName, Class<T> targetClass, Query query) {
-        return findRecordsUsingQuery(setName, targetClass, query)
+    private <T> Flux<T> find(String setName, Class<T> targetClass) {
+        return findRecordsUsingQuery(setName, targetClass, null)
             .map(keyRecord -> mapToEntity(keyRecord, targetClass));
     }
 

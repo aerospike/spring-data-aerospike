@@ -892,7 +892,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQueryWithPostProcessing(setName, targetClass, query);
+        return findWithPostProcessing(setName, targetClass, query);
     }
 
     private <T> Stream<T> find(Class<T> targetClass, String setName) {
@@ -938,10 +938,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(setName, "Set name must not be null!");
         Assert.notNull(targetClass, "Target class must not be null!");
 
-        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit);
+        return findWithPostProcessing(setName, targetClass, sort, offset, limit);
     }
 
-    private <T> Stream<T> findUsingQueryWithPostProcessing(String setName, Class<T> targetClass, Query query) {
+    private <T> Stream<T> findWithPostProcessing(String setName, Class<T> targetClass, Query query) {
         verifyUnsortedWithOffset(query.getSort(), query.getOffset());
         Stream<T> results = findUsingQueryWithDistinctPredicate(setName, targetClass,
             getDistinctPredicate(query), query);
@@ -982,7 +982,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(targetClass, "Target class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return findUsingQualifierWithPostProcessing(setName, targetClass, sort, offset, limit);
+        return findWithPostProcessing(setName, targetClass, sort, offset, limit);
     }
 
     @Override
@@ -1264,8 +1264,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @SuppressWarnings("SameParameterValue")
-    private <T> Stream<T> findUsingQualifierWithPostProcessing(String setName, Class<T> targetClass, Sort sort,
-                                                               long offset, long limit) {
+    private <T> Stream<T> findWithPostProcessing(String setName, Class<T> targetClass, Sort sort, long offset,
+                                                 long limit) {
         verifyUnsortedWithOffset(sort, offset);
         Stream<T> results = find(targetClass, setName);
         return applyPostProcessingOnResults(results, sort, offset, limit);
