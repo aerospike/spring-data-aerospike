@@ -16,7 +16,9 @@
 package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.support.PropertyComparator;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
@@ -29,6 +31,8 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
 /**
  * @author Peter Milne
@@ -60,7 +64,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         PartTree tree = new PartTree(queryMethod.getName(), entityClass);
         Query baseQuery = createQuery(accessor, tree);
 
-        Qualifier criteria = baseQuery.getCriteria().getCriteriaObject();
+        Qualifier criteria = baseQuery.getQualifier();
         Query query = new Query(criteria);
 
         if (accessor.getPageable().isPaged()) {
@@ -109,5 +113,33 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         Constructor<? extends AbstractQueryCreator<?, ?>> constructor = ClassUtils
             .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class);
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor).createQuery();
+    }
+
+    protected <T> Stream<T> applyPostProcessing(Stream<T> results, Query query) {
+        if (query.getSort() != null && query.getSort().isSorted()) {
+            Comparator<T> comparator = getComparator(query);
+            results = results.sorted(comparator);
+        }
+        if (query.hasOffset()) {
+            results = results.skip(query.getOffset());
+        }
+        if (query.hasRows()) {
+            results = results.limit(query.getRows());
+        }
+
+        return results;
+    }
+
+    protected <T> Comparator<T> getComparator(Query query) {
+        return query.getSort().stream()
+            .map(this::<T>getPropertyComparator)
+            .reduce(Comparator::thenComparing)
+            .orElseThrow(() -> new IllegalStateException("Comparator can not be created if sort orders are empty"));
+    }
+
+    private <T> Comparator<T> getPropertyComparator(Sort.Order order) {
+        boolean ignoreCase = true;
+        boolean ascending = order.getDirection().isAscending();
+        return new PropertyComparator<>(order.getProperty(), ignoreCase, ascending);
     }
 }

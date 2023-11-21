@@ -64,10 +64,13 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                  StatementBuilder statementBuilder,
                                                  FilterExpressionsBuilder filterExpressionsBuilder) {
         ReactorQueryEngine queryEngine = new ReactorQueryEngine(aerospikeReactorClient, statementBuilder,
-            filterExpressionsBuilder, aerospikeReactorClient.getQueryPolicyDefault());
+            filterExpressionsBuilder);
         boolean scansEnabled = aerospikeDataSettings().isScansEnabled();
         queryEngine.setScansEnabled(scansEnabled);
         log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
+        long queryMaxRecords = aerospikeDataSettings().getQueryMaxRecords();
+        log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
+        queryEngine.setQueryMaxRecords(queryMaxRecords);
         return queryEngine;
     }
 

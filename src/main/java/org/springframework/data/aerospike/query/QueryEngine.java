@@ -25,6 +25,7 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 
@@ -47,20 +48,21 @@ public class QueryEngine {
     private final StatementBuilder statementBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
-    @Getter
-    private final QueryPolicy queryPolicy;
     /**
      * Scans can potentially slow down Aerospike server, so we are disabling them by default. If you still need to use
      * scans, set this property to true.
      */
-    private boolean scansEnabled = false;
+    @Setter
+    private boolean scansEnabled;
+    @Setter
+    @Getter
+    private long queryMaxRecords;
 
     public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
-                       FilterExpressionsBuilder filterExpressionsBuilder, QueryPolicy queryPolicy) {
+                       FilterExpressionsBuilder filterExpressionsBuilder) {
         this.client = client;
         this.statementBuilder = statementBuilder;
         this.filterExpressionsBuilder = filterExpressionsBuilder;
-        this.queryPolicy = queryPolicy;
     }
 
     /**
@@ -78,14 +80,14 @@ public class QueryEngine {
     /**
      * Select records filtered by a query
      *
-     * @param namespace Namespace to storing the data
+     * @param namespace Namespace to store the data
      * @param set       Set storing the data
      * @param binNames  Bin names to return from the query
      * @param query     {@link Query} for filtering results
      * @return A KeyRecordIterator to iterate over the results
      */
     public KeyRecordIterator select(String namespace, String set, String[] binNames, @Nullable Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteria().getCriteriaObject() : null;
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getQualifier() : null;
         /*
          * singleton using primary key
          */
@@ -105,8 +107,29 @@ public class QueryEngine {
          *  query with filters
          */
         Statement statement = statementBuilder.build(namespace, set, query, binNames);
-        QueryPolicy localQueryPolicy = new QueryPolicy(queryPolicy);
-        localQueryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        statement.setMaxRecords(queryMaxRecords);
+        QueryPolicy localQueryPolicy = getQueryPolicy(query, true);
+
+        if (!scansEnabled && statement.getFilter() == null) {
+            throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
+        }
+
+        RecordSet rs = client.query(localQueryPolicy, statement);
+        return new KeyRecordIterator(namespace, rs);
+    }
+
+    /**
+     * Select records filtered by a query to be counted
+     *
+     * @param namespace Namespace to store the data
+     * @param set       Set storing the data
+     * @param query     {@link Query} for filtering results
+     * @return A KeyRecordIterator for counting
+     */
+    public KeyRecordIterator selectForCount(String namespace, String set, @Nullable Query query) {
+        Statement statement = statementBuilder.build(namespace, set, query);
+        statement.setMaxRecords(queryMaxRecords);
+        QueryPolicy localQueryPolicy = getQueryPolicy(query, false);
 
         if (!scansEnabled && statement.getFilter() == null) {
             throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
@@ -124,10 +147,14 @@ public class QueryEngine {
         return client.get(policy, key, binNames);
     }
 
-    public void setScansEnabled(boolean scansEnabled) {
-        this.scansEnabled = scansEnabled;
+    private QueryPolicy getQueryPolicy(Query query, boolean includeBins) {
+        QueryPolicy queryPolicy = new QueryPolicy(client.getQueryPolicyDefault());
+        queryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        queryPolicy.includeBinData = includeBins;
+        return queryPolicy;
     }
 
+    @Deprecated(since = "4.6.0", forRemoval = true)
     public enum Meta {
         KEY,
         TTL,
