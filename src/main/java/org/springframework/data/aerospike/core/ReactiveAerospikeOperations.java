@@ -21,6 +21,7 @@ import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -50,6 +51,11 @@ public interface ReactiveAerospikeOperations {
      * @return aerospike reactive client in use.
      */
     IAerospikeReactorClient getAerospikeReactorClient();
+
+    /**
+     * @return value of configuration parameter {@link AerospikeDataSettings#getQueryMaxRecords()}.
+     */
+    long getQueryMaxRecords();
 
     /**
      * Reactively save document.
@@ -710,8 +716,8 @@ public interface ReactiveAerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
-     * exists, an empty list is returned.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type if provided
+     * (otherwise to entityClass's type), if no document exists, an empty list is returned.
      */
     <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                        @Nullable Query query);
@@ -727,8 +733,8 @@ public interface ReactiveAerospikeOperations {
      * @param targetClass The class to map the document to.
      * @param setName     Set name to find the document from.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
-     * exists, an empty list is returned.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type if provided
+     * (otherwise to entityClass's type), if no document exists, an empty list is returned.
      */
     <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass, String setName,
                                        @Nullable Query query);
@@ -867,6 +873,18 @@ public interface ReactiveAerospikeOperations {
      * @return A Flux of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T, S> Flux<S> findInRange(long offset, long limit, Sort sort, Class<T> entityClass, Class<S> targetClass);
+
+    /**
+     * Reactively find documents in the given entityClass's set using a query and map them to the given target class
+     * type. If the query has pagination and/or sorting, post-processing must be applied separately.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param query       The {@link Query} to filter results.
+     * @return A Flux of all matching documents regardless of pagination/sorting, returned documents will be mapped to
+     * targetClass's type.
+     */
+    <T, S> Flux<S> findUsingQueryWithoutPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query);
 
     /**
      * Reactively check if document exists by providing document id and entityClass (set name will be determined by the

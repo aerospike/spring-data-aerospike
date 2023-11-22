@@ -32,7 +32,7 @@ public class TemplateUtils {
         if (ids.getClass().isArray()) {
             result = Arrays.stream(((Object[]) ids)).toList();
         } else if (ids instanceof Collection<?>) {
-            result = new ArrayList<Object>((Collection) ids);
+            result = new ArrayList<>((Collection<?>) ids);
         } else if (ids instanceof Iterable<?>) {
             result = StreamSupport.stream(((Iterable<?>) ids).spliterator(), false)
                 .collect(Collectors.toList());
@@ -71,7 +71,7 @@ public class TemplateUtils {
             }
             return combineMultipleQualifiers(qualifier.getOperation() != null ? qualifier.getOperation() :
                 FilterOperation.AND, qualifiersWithoutId.toArray(Qualifier[]::new));
-        } else if (qualifier.hasId()) {
+        } else if (qualifier != null && qualifier.hasId()) {
             return null;
         }
         return qualifier;

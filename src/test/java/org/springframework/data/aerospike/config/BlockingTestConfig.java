@@ -68,6 +68,7 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         builder.createIndexesOnStartup(indexesOnStartup);
         Optional<Integer> indexRefreshFrequency = getIntegerProperty(env.getProperty(INDEX_CACHE_REFRESH_SECONDS));
         indexRefreshFrequency.ifPresent(builder::indexCacheRefreshFrequencySeconds);
+        builder.queryMaxRecords(5000L);
     }
 
     @Override

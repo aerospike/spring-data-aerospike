@@ -31,6 +31,8 @@ public class AerospikeDataSettings {
     @Builder.Default
     int indexCacheRefreshFrequencySeconds = 3600;
     @Builder.Default
+    long queryMaxRecords = 10_000L;
+    @Builder.Default
     boolean keepOriginalKeyTypes = false;
 
     /*

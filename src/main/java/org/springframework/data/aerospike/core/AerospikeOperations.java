@@ -24,6 +24,7 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.ResultSet;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -73,6 +74,11 @@ public interface AerospikeOperations {
      * @return aerospike client in use.
      */
     IAerospikeClient getAerospikeClient();
+
+    /**
+     * @return value of configuration parameter {@link AerospikeDataSettings#getQueryMaxRecords()}.
+     */
+    long getQueryMaxRecords();
 
     /**
      * Save a document.
@@ -741,8 +747,8 @@ public interface AerospikeOperations {
      * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
      * @param targetClass The class to map the document to.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
-     * exists, an empty list is returned.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type if provided
+     * (otherwise to entityClass's type), if no document exists, an empty list is returned.
      */
     <T, S> List<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
                                        @Nullable Query query);
@@ -758,8 +764,8 @@ public interface AerospikeOperations {
      * @param targetClass The class to map the document to.
      * @param setName     Set name to find the document from.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type, if no document
-     * exists, an empty list is returned.
+     * @return The documents from Aerospike, returned documents will be mapped to targetClass's type if provided
+     * (otherwise to entityClass's type), if no document exists, an empty list is returned.
      */
     <T, S> List<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass, String setName,
                                        @Nullable Query query);
@@ -895,6 +901,18 @@ public interface AerospikeOperations {
      * @return A Stream of matching documents, returned documents will be mapped to targetClass's type.
      */
     <T> Stream<T> findInRange(long offset, long limit, Sort sort, Class<T> targetClass, String setName);
+
+    /**
+     * Find documents in the given entityClass's set using a query and map them to the given target class type. If the
+     * query has pagination and/or sorting, post-processing must be applied separately.
+     *
+     * @param entityClass The class to extract the Aerospike set from. Must not be {@literal null}.
+     * @param targetClass The class to map the document to.
+     * @param query       The {@link Query} to filter results.
+     * @return A Stream of all matching documents regardless of pagination/sorting, returned documents will be mapped to
+     * targetClass's type.
+     */
+    <T, S> Stream<S> findUsingQueryWithoutPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query);
 
     /**
      * Check if a document exists by providing document id and entityClass (set name will be determined by the given

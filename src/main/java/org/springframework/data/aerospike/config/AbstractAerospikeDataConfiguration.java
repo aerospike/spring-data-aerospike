@@ -52,11 +52,13 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
                                    StatementBuilder statementBuilder,
                                    FilterExpressionsBuilder filterExpressionsBuilder) {
-        QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder,
-            aerospikeClient.getQueryPolicyDefault());
+        QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder);
         boolean scansEnabled = aerospikeDataSettings().isScansEnabled();
         log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
         queryEngine.setScansEnabled(scansEnabled);
+        long queryMaxRecords = aerospikeDataSettings().getQueryMaxRecords();
+        log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
+        queryEngine.setQueryMaxRecords(queryMaxRecords);
         return queryEngine;
     }
 

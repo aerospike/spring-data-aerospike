@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.repository.query;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.keyvalue.core.query.KeyValueQuery;
@@ -66,9 +67,18 @@ public class Query {
 
     /**
      * Get the CriteriaDefinition object cast to AerospikeCriteria.
+     * @deprecated Since 4.6.0. Use {@link Query#getCriteriaObject()}} instead
      */
+    @Deprecated(since = "4.6.0", forRemoval = true)
     public AerospikeCriteria getAerospikeCriteria() {
         return (AerospikeCriteria) criteria;
+    }
+
+    /**
+     * Get the {@link Qualifier} object.
+     */
+    public Qualifier getCriteriaObject() {
+        return criteria.getCriteriaObject();
     }
 
     /**
