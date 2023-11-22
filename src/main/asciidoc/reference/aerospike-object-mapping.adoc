@@ -1,4 +1,4 @@
-[[mapping-chapter]]
+[[aerospike.object-mapping]]
 = Aerospike Object Mapping
 
 Rich mapping support is provided by the `AerospikeMappingConverter`. `AerospikeMappingConverter` has a rich metadata model that provides a full feature set of functionality to map domain objects to Aerospike clusters and objects.The mapping metadata model is populated using annotations on your domain objects. However, the infrastructure is not limited to using annotations as the only source of metadata information. The `AerospikeMappingConverter` also allows you to map objects without providing any additional metadata, by following a set of conventions.

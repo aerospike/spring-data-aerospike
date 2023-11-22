@@ -4,12 +4,17 @@
 [[aerospike-repo-intro]]
 == Introduction
 
-This chapter will point out the specialties for repository support for Aerospike. This builds on the <<repositories, Core SpringData Repository Support>>, so make sure you've got a sound understanding of the basic concepts explained there.
+One of the main goals of the Spring Data is to significantly reduce the amount of boilerplate code required to implement data access layers for various persistence stores.
+
+The core interface in Spring Data is Repository.
+This interface acts primarily to capture the types to work with and to help user to discover interfaces that extend Repository.
+
+In other words, it allows user to have basic and complicated queries without writing the implementation. This builds on the <<repositories, Core SpringData Repository Support>>, so make sure you've got a sound understanding of this concept.
 
 [[aerospike-repo-usage]]
 == Usage
 
-To access domain entities stored in a Aerospike you can leverage our sophisticated repository support that eases implementing those quite significantly. To do so, simply create an interface for your repository:
+To access entities stored in Aerospike you can leverage repository support that eases implementing those quite significantly. To do so, simply create an interface for your repository:
 
 .Sample Person entity
 ====
@@ -142,7 +147,7 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
  }
 ----
 <1> The method shows a query for all people with the given name. The query will be derived by parsing the method name for constraints that can be concatenated with `And` and `Or`.
-<2> Applies pagination to a query. Just equip your method signature with a `Pageable` parameter and let the method return a `Page` instance and we will automatically page the query accordingly.
+<2> Applies pagination to a query. Just equip your method signature with a `Pageable` parameter and let the method return a `Page` instance, and we will automatically page the query accordingly.
 <3> Shows that you can query-based partial name searches.
 ====
 [[aerospike.repositories.example]]

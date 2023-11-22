@@ -1,6 +1,6 @@
 = Spring Data Aerospike - Documentation
 :doctype: book
-:revnumber: 4.5.0
+:revnumber: 4.6.0
 :revdate: {localdate}
 :toc:
 :toc-placement!:
@@ -24,9 +24,8 @@ include::preface.adoc[]
 
 :leveloffset: +1
 
-include::reference/introduction.adoc[]
-include::reference/aerospike.adoc[]
-include::reference/getting-started.adoc[]
+include::reference/functionality.adoc[]
+include::reference/installation-and-usage.adoc[]
 include::spring-data-commons-docs/repositories.adoc[]
 include::reference/aerospike-repositories.adoc[]
 include::reference/aerospike-reactive-repositories.adoc[]
@@ -40,6 +39,7 @@ include::reference/template.adoc[]
 include::reference/secondary-indexes.adoc[]
 include::reference/indexed-annotation.adoc[]
 include::reference/caching.adoc[]
+include::reference/configure-data-settings.adoc[]
 include::spring-data-commons-docs/dependencies.adoc[]
 include::spring-data-commons-docs/auditing.adoc[]
 

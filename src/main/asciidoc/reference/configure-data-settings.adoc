@@ -1,0 +1,84 @@
+[[configure-data-settings]]
+= Configure Data Settings
+
+The `AbstractAerospikeDataConfiguration` class exposes a number of beans that Spring Data Aerospike uses internally. User can optionally override `configureDataSettings` method to customize configuration.
+
+Here is an example:
+
+[source,java]
+----
+@EnableAerospikeRepositories(basePackageClasses = PersonRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+    @Override
+    protected Collection<Host> getHosts() {
+        return Collections.singleton(new Host("localhost", 3000));
+    }
+
+    @Override
+    protected String nameSpace() {
+        return "test";
+    }
+
+    @Override
+    protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
+        builder.createIndexesOnStartup(true);
+        builder.indexCacheRefreshFrequencySeconds(3600);
+        builder.queryMaxRecords(10000L);
+    }
+}
+----
+
+[[configure-data-settings.parameters]]
+== Configuration Parameters
+
+[[configure-data-settings.scans-enabled]]
+=== scansEnabled
+
+A scan can be an expensive operation as all records in the set must be read by the Aerospike server, and then the condition is applied to see if they match.
+
+Due to the cost of performing this operation, scans from Spring Data Aerospike are disabled by default.
+
+NOTE: Once this flag is enabled, scans run whenever needed with no warnings. This may or may not be optimal in a particular use case.
+
+Default: `false`.
+
+[[configure-data-settings.send-key]]
+=== sendKey
+
+Send user defined key in addition to hash digest on both reads and writes. If the key is sent on write, it will be stored with the record on the server.
+
+Default: `false` (do not send the user defined key).
+
+[[configure-data-settings.create-indexes-on-startup]]
+=== createIndexesOnStartup
+
+Create secondary indexes specified using `@Indexed` annotation on startup.
+
+Default: `true`.
+
+[[configure-data-settings.index-cache-refresh-frequency-seconds]]
+=== indexCacheRefreshFrequencySeconds
+
+Automatically refresh indexes cache every <N> seconds.
+
+Default: `3600`.
+
+[[configure-data-settings.query-max-records]]
+=== queryMaxRecords
+
+Limit amount of results returned by server. Non-positive value means no limit.
+
+Default: `10 000`.
+
+[[configure-data-settings.keep-original-key-types]]
+=== keepOriginalKeyTypes
+
+If `true`, keep original type of `@Id` field for `long`, `String` and `byte[]`.
+
+If `false`, keep original type of `@Id` field for `String`.
+
+If `@Id` field's type cannot be persisted as is, it must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
+
+Default: `false` (keep only original `String` type).
+

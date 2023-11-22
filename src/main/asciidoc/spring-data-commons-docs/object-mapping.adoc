@@ -436,3 +436,4 @@ You can exclude properties by annotating these with `@Transient`.
 2. How to represent properties in your data store?
 Using the same field/column name for different values typically leads to corrupt data so you should annotate least one of the properties using an explicit field/column name.
 3. Using `@AccessType(PROPERTY)` cannot be used as the super-property cannot be set.
+
