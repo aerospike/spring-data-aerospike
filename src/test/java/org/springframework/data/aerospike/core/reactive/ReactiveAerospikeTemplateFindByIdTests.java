@@ -2,8 +2,8 @@ package org.springframework.data.aerospike.core.reactive;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.sample.Person;
 import reactor.core.scheduler.Schedulers;
@@ -15,7 +15,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
+import static org.springframework.data.aerospike.sample.SampleClasses.EXPIRATION_ONE_MINUTE;
 
 /**
  * Tests for find related methods in {@link ReactiveAerospikeTemplate}.

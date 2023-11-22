@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
-import org.springframework.data.aerospike.SampleClasses;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;

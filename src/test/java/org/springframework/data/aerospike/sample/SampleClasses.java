@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike;
+package org.springframework.data.aerospike.sample;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
@@ -52,9 +52,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
-import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
-import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
+import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
+import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
+import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
 
 public class SampleClasses {
 
@@ -384,10 +384,34 @@ public class SampleClasses {
 
     @Data
     @AllArgsConstructor
-    public static class DocumentWithIntId {
+    public static class DocumentWithPrimitiveIntId {
 
         @Id
         public int id;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class DocumentWithPrimitiveLongId {
+
+        @Id
+        public long id;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class DocumentWithIntegerId {
+
+        @Id
+        public Integer id;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class DocumentWithLongId {
+
+        @Id
+        public Long id;
     }
 
     @Data
@@ -397,6 +421,15 @@ public class SampleClasses {
 
         @Id
         public String id;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DocumentWithByteArrayId {
+
+        @Id
+        public byte[] id;
     }
 
     @Document(expiration = EXPIRATION_ONE_SECOND)

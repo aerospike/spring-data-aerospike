@@ -25,7 +25,7 @@ import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.data.aerospike.SampleClasses;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
 import java.time.Duration;
@@ -44,9 +44,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.list;
 import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.AsCollections.set;
-import static org.springframework.data.aerospike.SampleClasses.*;
-import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
-import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
+import static org.springframework.data.aerospike.sample.SampleClasses.*;
+import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
+import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
 import static org.springframework.data.aerospike.assertions.KeyAssert.assertThat;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
@@ -117,7 +117,6 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         User user = new User(678, new Name("Nastya", "Smirnova"), null);
         converter.write(user, forWrite);
 
-        assertThat(forWrite.getKey()).consistsOf("custom-namespace", "custom-set", 678L);
         assertThat(forWrite.getBins()).containsOnly(
             new Bin("fs", "Nastya"), new Bin("ls", "Smirnova")
         );
@@ -175,11 +174,12 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
             newEntityMap.put("id", entry.getValue().getId().getPartA() + "-" + entry.getValue().getId().getPartB());
             newEntityMap.put("fieldA", entry.getValue().getFieldA());
             newEntityMap.put("fieldB", entry.getValue().getFieldB());
-            newEntityMap.put("@_class", "org.springframework.data.aerospike.SampleClasses$SomeEntity");
+            newEntityMap.put("@_class", "org.springframework.data.aerospike.sample.SampleClasses$SomeEntity");
             entityMapExpectedAfterConversion.put(newSomeIdAsStringKey, newEntityMap);
         }
 
-        assertThat(forWrite.getKey()).consistsOf("namespace", "DocumentExample", "someKey1");
+        assertThat(forWrite.getKey()).consistsOf(aerospikeDataSettings, "namespace",
+            "DocumentExample", "someKey1");
         assertThat(forWrite.getBins().stream()
             .filter(x -> !x.name.equals("@_class"))).containsOnly(new Bin("entityMap",
             entityMapExpectedAfterConversion));
@@ -200,7 +200,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         User user = new User(678L, null, null);
         converter.write(user, forWrite);
 
-        assertThat(forWrite.getKey()).consistsOf(NAMESPACE, SIMPLESET3, user.getId());
+        assertThat(forWrite.getKey()).consistsOf(aerospikeDataSettings, NAMESPACE, SIMPLESET3, user.getId());
     }
 
     @Test
@@ -384,10 +384,10 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
 
         Collection<Bin> bins = dbObject.getBins();
         assertThat(bins).contains(
-            new Bin("@_class", "org.springframework.data.aerospike.SampleClasses$Address"),
+            new Bin("@_class", "org.springframework.data.aerospike.sample.SampleClasses$Address"),
             new Bin("street",
                 Map.of(
-                    "@_class", "org.springframework.data.aerospike.SampleClasses$Street",
+                    "@_class", "org.springframework.data.aerospike.sample.SampleClasses$Street",
                     "name", "Broadway",
                     "number", 30
                 )

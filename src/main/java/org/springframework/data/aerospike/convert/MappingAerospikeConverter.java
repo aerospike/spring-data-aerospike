@@ -19,6 +19,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.convert.DefaultTypeMapper;
@@ -47,7 +48,8 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
      * Creates a new {@link MappingAerospikeConverter}.
      */
     public MappingAerospikeConverter(AerospikeMappingContext mappingContext, CustomConversions conversions,
-                                     AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor) {
+                                     AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
+                                     AerospikeDataSettings aerospikeDataSettings) {
         this.conversions = conversions;
         this.conversionService = new DefaultConversionService();
 
@@ -56,7 +58,8 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
             mappingContext, List.of(new SimpleTypeInformationMapper()));
 
         this.writeConverter =
-            new MappingAerospikeWriteConverter(typeMapper, mappingContext, conversions, conversionService);
+            new MappingAerospikeWriteConverter(typeMapper, mappingContext, conversions, conversionService,
+                aerospikeDataSettings);
         this.readConverter = new MappingAerospikeReadConverter(entityInstantiators, aerospikeTypeAliasAccessor,
             typeMapper, mappingContext, conversions, conversionService);
     }

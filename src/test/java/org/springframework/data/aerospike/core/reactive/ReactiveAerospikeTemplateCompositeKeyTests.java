@@ -3,8 +3,8 @@ package org.springframework.data.aerospike.core.reactive;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.CompositeKey;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithCompositeKey;
+import org.springframework.data.aerospike.sample.SampleClasses.CompositeKey;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithCompositeKey;
 import reactor.test.StepVerifier;
 
 import java.util.List;

@@ -5,7 +5,8 @@ import com.aerospike.client.Record;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.env.Environment;
-import org.springframework.data.aerospike.SampleClasses;
+import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.convert.CustomConversions;
 
@@ -21,6 +22,7 @@ import static org.mockito.Mockito.when;
 public abstract class BaseMappingAerospikeConverterTest {
 
     protected static final String NAMESPACE = "namespace";
+    public final AerospikeDataSettings aerospikeDataSettings = AerospikeDataSettings.builder().build();
 
     protected final MappingAerospikeConverter converter = getMappingAerospikeConverter(
         new SampleClasses.ComplexIdToStringConverter(),
@@ -47,7 +49,7 @@ public abstract class BaseMappingAerospikeConverterTest {
         CustomConversions customConversions = new AerospikeCustomConversions(asList(customConverters));
 
         MappingAerospikeConverter converter = new MappingAerospikeConverter(mappingContext, customConversions,
-            typeAliasAccessor);
+            typeAliasAccessor, aerospikeDataSettings);
         converter.afterPropertiesSet();
         return converter;
     }

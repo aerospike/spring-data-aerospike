@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.repository.query;
 import com.aerospike.client.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -71,7 +72,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, Aerospike
 
     private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
         MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor());
+            conversions, new AerospikeTypeAliasAccessor(), AerospikeDataSettings.builder().build());
         converter.afterPropertiesSet();
         return converter;
     }

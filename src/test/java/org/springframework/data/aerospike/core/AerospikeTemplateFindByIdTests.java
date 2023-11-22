@@ -22,9 +22,9 @@ import com.aerospike.client.cdt.MapOperation;
 import com.aerospike.client.cdt.MapPolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
-import org.springframework.data.aerospike.SampleClasses.MapWithNonStringKeys;
-import org.springframework.data.aerospike.SampleClasses.VersionedClassWithAllArgsConstructor;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
+import org.springframework.data.aerospike.sample.SampleClasses.MapWithNonStringKeys;
+import org.springframework.data.aerospike.sample.SampleClasses.VersionedClassWithAllArgsConstructor;
 import org.springframework.data.aerospike.sample.Person;
 
 import java.util.Arrays;
@@ -34,8 +34,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
-import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
+import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
+import static org.springframework.data.aerospike.sample.SampleClasses.EXPIRATION_ONE_MINUTE;
 
 public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests {
 
@@ -151,6 +151,21 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
         assertThat(result.getFirstName()).isEqualTo("Dave");
         assertThat(result.getAge()).isEqualTo(56);
         template.delete(result);
+    }
+
+    // Relevant test once we started supporting non String types for map keys
+    @Test
+    public void findById_shouldReadClassWithNumericKeyMapWrittenByTemplate() {
+        int intKey = 1;
+        double doubleKey = 100.25;
+        String value = "String value";
+
+        template.save(new MapWithNonStringKeys(id, Map.of(intKey, value), Map.of(doubleKey, value)));
+
+        MapWithNonStringKeys result = template.findById(id, MapWithNonStringKeys.class);
+        assertThat(result.getIntKeyMap()).isEqualTo(Map.of(intKey, value));
+        assertThat(result.getDoubleKeyMap()).isEqualTo(Map.of(doubleKey, value));
+        template.delete(result); // cleanup
     }
 
     @Test

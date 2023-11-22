@@ -2,8 +2,8 @@ package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.Bin;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.SampleClasses;
-import org.springframework.data.aerospike.SampleClasses.*;
+import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.sample.SampleClasses.*;
 import org.springframework.data.aerospike.assertions.KeyAssert;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
 
@@ -21,32 +21,58 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.list;
 import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.AsCollections.set;
-import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
-import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
-import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
+import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
+import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
+import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
 
 public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeConverterTest {
-
     private final String id = "my-id";
 
     @Test
-    void NullObjectIfAerospikeDataNull() {
+    void nullObjectIfAerospikeDataNull() {
         SimpleClass actual = converter.read(SimpleClass.class, null);
 
         assertThat(actual).isNull();
     }
 
     @Test
-    void IntegerId() {
-        DocumentWithIntId object = new DocumentWithIntId(5);
+    void primitiveIntId() {
+        DocumentWithPrimitiveIntId object = new DocumentWithPrimitiveIntId(5);
 
-        assertWriteAndRead(object, "DocumentWithIntId", 5,
-            new Bin("@_class", DocumentWithIntId.class.getName())
+        assertWriteAndRead(object, "DocumentWithPrimitiveIntId", 5,
+            new Bin("@_class", DocumentWithPrimitiveIntId.class.getName())
         );
     }
 
     @Test
-    void StringId() {
+    void primitiveLongId() {
+        DocumentWithPrimitiveLongId object = new DocumentWithPrimitiveLongId(5L);
+
+        assertWriteAndRead(object, "DocumentWithPrimitiveLongId", 5L,
+            new Bin("@_class", DocumentWithPrimitiveLongId.class.getName())
+        );
+    }
+
+    @Test
+    void integerId() {
+        DocumentWithIntegerId object = new DocumentWithIntegerId(5);
+
+        assertWriteAndRead(object, "DocumentWithIntegerId", 5,
+            new Bin("@_class", DocumentWithIntegerId.class.getName())
+        );
+    }
+
+    @Test
+    void longId() {
+        DocumentWithLongId object = new DocumentWithLongId(5L);
+
+        assertWriteAndRead(object, "DocumentWithLongId", 5L,
+            new Bin("@_class", DocumentWithLongId.class.getName())
+        );
+    }
+
+    @Test
+    void stringId() {
         DocumentWithStringId object = new DocumentWithStringId("my-amazing-string-id");
 
         assertWriteAndRead(object, "DocumentWithStringId", "my-amazing-string-id",
@@ -55,7 +81,16 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void SetWithSimpleValue() {
+    void byteArrayId() {
+        DocumentWithByteArrayId object = new DocumentWithByteArrayId(new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
+
+        assertWriteAndRead(object, "DocumentWithByteArrayId", new byte[]{1, 0, 0, 1, 1, 1, 0, 0},
+            new Bin("@_class", DocumentWithByteArrayId.class.getName())
+        );
+    }
+
+    @Test
+    void setWithSimpleValue() {
         SetWithSimpleValue object = new SetWithSimpleValue(1L, set("a", "b", "c", null));
 
         assertWriteAndRead(object, "SetWithSimpleValue", 1L,
@@ -65,7 +100,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void MapWithSimpleValue() {
+    void mapWithSimpleValue() {
         Map<String, String> map = of("key1", "value1", "key2", "value2", "key3", null);
         MapWithSimpleValue object = new MapWithSimpleValue(10L, map);
 
@@ -77,7 +112,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void IdClassConverterNotFound() {
+    void idClassConverterNotFound() {
         SampleClasses.SomeId someId1 = new SampleClasses.SomeId("partA", "partB1");
         SampleClasses.SomeEntity someEntity1 = new SampleClasses.SomeEntity(someId1, "fieldA", 42L);
         Map<SampleClasses.SomeId, SampleClasses.SomeEntity> entityMap = new HashMap<>();
@@ -93,11 +128,11 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         ))
             .isInstanceOf(org.springframework.core.convert.ConverterNotFoundException.class)
             .hasMessage("No converter found capable of converting from type " +
-                "[org.springframework.data.aerospike.SampleClasses$DocumentExample] to type [java.lang.String]");
+                "[org.springframework.data.aerospike.sample.SampleClasses$DocumentExample] to type [java.lang.String]");
     }
 
     @Test
-    void MapWithCollectionValues() {
+    void mapWithCollectionValues() {
         Map<String, List<String>> map = of("key1", list(), "key2", list("a", "b", "c"));
         MapWithCollectionValue object = new MapWithCollectionValue(10L, map);
 
@@ -109,7 +144,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void MapWithNonSimpleValue() {
+    void mapWithNonSimpleValue() {
         Map<String, Address> map = of("key1", new Address(new Street("Gogolya str.", 15), 567),
             "key2", new Address(new Street("Shakespeare str.", 40), 765));
         MapWithGenericValue<Address> object = new MapWithGenericValue<>(10L, map);
@@ -125,7 +160,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ListsAndMapsWithObjectValue() {
+    void listsAndMapsWithObjectValue() {
         CustomTypeWithListAndMap object = new CustomTypeWithListAndMap(id, ImmutableList.of("firstItem",
             of("keyInList", "valueInList"),
             new Address(new Street("Gogolya str.", 15), 567)),
@@ -142,7 +177,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void CustomTypeWithCustomType() {
+    void customTypeWithCustomType() {
         CustomTypeWithCustomType object = new CustomTypeWithCustomType(id, new ImmutableListAndMap(
             ImmutableList.of("firstItem", of("keyInList", "valueInList")),
             of("map", of("key", "value"),
@@ -161,7 +196,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ListsAndMapsWithObjectImmutable() {
+    void listsAndMapsWithObjectImmutable() {
         CustomTypeWithListAndMapImmutable object = new CustomTypeWithListAndMapImmutable(id,
             ImmutableList.of("firstItem", of("keyInList", "valueInList")),
             of("map", of("key", "value")));
@@ -174,7 +209,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithSimpleFields() {
+    void objectWithSimpleFields() {
         Set<String> field9 = set("val1", "val2");
         Set<Set<String>> field10 = set(set("1", "2"), set("3", "4"), set());
         SimpleClass object = new SimpleClass(777L, "abyrvalg", 13, 14L, (float) 15, 16.0, true, new Date(8878888),
@@ -199,7 +234,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithPersistenceConstructor() {
+    void objectWithPersistenceConstructor() {
         SimpleClassWithPersistenceConstructor object = new SimpleClassWithPersistenceConstructor(17, "abyrvalg", 13);
 
         assertWriteAndRead(object, SIMPLESET2, 17,
@@ -209,7 +244,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ComplexClass() {
+    void complexClass() {
         Name name = new Name("Vasya", "Pupkin");
         Address address = new Address(new Street("Gogolya street", 24), 777);
         User object = new User(10, name, address);
@@ -226,7 +261,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void SetWithComplexValue() {
+    void setWithComplexValue() {
         Set<Address> addresses = set(
             new Address(new Street("Southwark Street", 110), 876),
             new Address(new Street("Finsbury Pavement", 125), 13));
@@ -245,10 +280,10 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void EnumProperties() {
+    void enumProperties() {
         List<TYPES> list = list(TYPES.FIRST, TYPES.SECOND);
         EnumSet<TYPES> set = EnumSet.allOf(TYPES.class);
-        EnumMap<TYPES, String> map = new EnumMap<TYPES, String>(of(TYPES.FIRST, "a", TYPES.SECOND, "b"));
+        EnumMap<TYPES, String> map = new EnumMap<>(of(TYPES.FIRST, "a", TYPES.SECOND, "b"));
         ClassWithEnumProperties object = new ClassWithEnumProperties("id", TYPES.SECOND, list, set, map);
 
         assertWriteAndRead(object, "ClassWithEnumProperties", "id",
@@ -261,7 +296,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void SortedMapWithSimpleValue() {
+    void sortedMapWithSimpleValue() {
         SortedMap<String, String> map = new TreeMap<>(of("a", "b", "c", "d"));
         SortedMapWithSimpleValue object = new SortedMapWithSimpleValue(id, map);
 
@@ -272,7 +307,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void NestedMapsWithSimpleValue() {
+    void nestedMapsWithSimpleValue() {
         Map<String, Map<String, Map<String, String>>> map = of(
             "level-1", of("level-1-1", of("1", "2")),
             "level-2", of("level-2-2", of("1", "2")));
@@ -287,7 +322,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void GenericType() {
+    void genericType() {
         //noinspection rawtypes
         @SuppressWarnings("unchecked") GenericType<GenericType<String>> object = new GenericType(id, "string");
 
@@ -298,7 +333,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ListOfLists() {
+    void listOfLists() {
         ListOfLists object = new ListOfLists(id, list(list("a", "b", "c"), list("d", "e"), list()));
 
         assertWriteAndRead(object, "ListOfLists", id,
@@ -308,7 +343,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ListOfMaps() {
+    void listOfMaps() {
         ListOfMaps object = new ListOfMaps(id, list(of("vasya", new Name("Vasya", "Pukin")), of("nastya",
             new Name("Nastya", "Smirnova"))));
 
@@ -321,7 +356,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ContainerOfCustomFieldNames() {
+    void containerOfCustomFieldNames() {
         ContainerOfCustomFieldNames object = new ContainerOfCustomFieldNames(id, "value", new CustomFieldNames(1
             , "2"));
 
@@ -334,7 +369,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ClassWithComplexId() {
+    void classWithComplexId() {
         ClassWithComplexId object = new ClassWithComplexId(new ComplexId(10L));
 
         assertWriteAndRead(object, ClassWithComplexId.class.getSimpleName(), "id::10",
@@ -343,7 +378,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void IdFieldOfNonDocumentClass() {
+    void idFieldOfNonDocumentClass() {
         MapWithGenericValue<ClassWithIdField> object = new MapWithGenericValue<>(788L,
             of("key", new ClassWithIdField(45L, "v")));
 
@@ -355,7 +390,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithByteArrayField() {
+    void objectWithByteArrayField() {
         DocumentWithByteArray object = new DocumentWithByteArray(id, new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
 
         assertWriteAndRead(object,
@@ -365,7 +400,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithArrayField() {
+    void objectWithArrayField() {
         int[] array = new int[]{1, 0, 0, 1, 1, 1, 0, 0};
         DocumentWithIntArray object = new DocumentWithIntArray(id, array);
 
@@ -376,7 +411,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithAtomicField() {
+    void objectWithAtomicField() {
         AtomicInteger atomicInteger = new AtomicInteger(10);
         AtomicLong atomicLong = new AtomicLong(10L);
         DocumentWithAtomicFields object = new DocumentWithAtomicFields(id, atomicInteger, atomicLong);
@@ -394,7 +429,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithURLField() {
+    void objectWithURLField() {
         URL url;
         try {
             url = new URL("http://example.com");
@@ -410,7 +445,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithUUIDField() {
+    void objectWithUUIDField() {
         UUID uuid = new UUID(10L, 5L);
         DocumentWithUUID object = new DocumentWithUUID(id, uuid);
 
@@ -421,7 +456,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithCurrencyField() {
+    void objectWithCurrencyField() {
         Currency currency = Currency.getInstance("USD");
         DocumentWithCurrency object = new DocumentWithCurrency(id, currency);
 
@@ -432,7 +467,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithDateField() {
+    void objectWithDateField() {
         Date date = Date.from(Instant.now());
         DocumentWithDate object = new DocumentWithDate(id, date);
 
@@ -443,7 +478,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithCalendarField() {
+    void objectWithCalendarField() {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("PTC"));
         calendar.setTime(Date.from(Instant.now()));
         DocumentWithCalendar object = new DocumentWithCalendar(id, calendar);
@@ -455,7 +490,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithDurationField() {
+    void objectWithDurationField() {
         Duration duration = Duration.ofSeconds(12345678910L);
         DocumentWithDuration object = new DocumentWithDuration(id, duration);
 
@@ -466,7 +501,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithBigDecimal() {
+    void objectWithBigDecimal() {
         Map<String, BigDecimal> bigDecimalMap = new HashMap<>();
         bigDecimalMap.put("big-decimal-val", new BigDecimal("767867678687678"));
         List<BigDecimal> bigDecimalList = List.of(new BigDecimal("988687642340235"));
@@ -483,7 +518,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void ObjectWithByteArrayFieldWithOneValueInData() {
+    void objectWithByteArrayFieldWithOneValueInData() {
         DocumentWithByteArray object = new DocumentWithByteArray(id, new byte[]{1});
 
         assertWriteAndRead(object, "DocumentWithByteArray", id,
@@ -541,7 +576,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         converter.write(object, forWrite);
 
-        KeyAssert.assertThat(forWrite.getKey()).consistsOf(NAMESPACE, expectedSet, expectedUserKey);
+        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeDataSettings, NAMESPACE, expectedSet, expectedUserKey);
         assertThat(forWrite.getBins()).containsOnly(expectedBins);
 
         AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
@@ -551,6 +586,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertThat(actual).isEqualTo(object);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <T> T readObjectAfterWriting(T object,
                                         String expectedSet,
                                         Object expectedUserKey,
@@ -560,7 +596,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         converter.write(object, forWrite);
 
-        KeyAssert.assertThat(forWrite.getKey()).consistsOf(NAMESPACE, expectedSet, expectedUserKey);
+        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeDataSettings, NAMESPACE, expectedSet, expectedUserKey);
         assertThat(forWrite.getBins()).containsOnly(expectedBins);
 
         AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
