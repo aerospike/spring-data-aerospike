@@ -23,8 +23,16 @@ public abstract class BaseMappingAerospikeConverterTest {
 
     protected static final String NAMESPACE = "namespace";
     public final AerospikeDataSettings aerospikeDataSettings = AerospikeDataSettings.builder().build();
+    public final AerospikeDataSettings aerospikeDataSettingsReversedKeyTypesOption = AerospikeDataSettings.builder()
+        .keepOriginalKeyTypes(!aerospikeDataSettings.isKeepOriginalKeyTypes()).build();
 
     protected final MappingAerospikeConverter converter = getMappingAerospikeConverter(
+        aerospikeDataSettings,
+        new SampleClasses.ComplexIdToStringConverter(),
+        new SampleClasses.StringToComplexIdConverter());
+
+    protected final MappingAerospikeConverter converterReversedKeyTypes = getMappingAerospikeConverter(
+        aerospikeDataSettingsReversedKeyTypesOption,
         new SampleClasses.ComplexIdToStringConverter(),
         new SampleClasses.StringToComplexIdConverter());
 
@@ -38,12 +46,21 @@ public abstract class BaseMappingAerospikeConverterTest {
         return new Record(bins, 0, 0);
     }
 
-    protected MappingAerospikeConverter getMappingAerospikeConverter(Converter<?, ?>... customConverters) {
-        return getMappingAerospikeConverter(new AerospikeTypeAliasAccessor(), customConverters);
+    protected MappingAerospikeConverter getAerospikeMappingConverterByOption(int converterOption) {
+        if (converterOption == 0) {
+            return converter;
+        }
+        return converterReversedKeyTypes;
     }
 
-    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeTypeAliasAccessor typeAliasAccessor,
+    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeDataSettings aerospikeDataSettings,
                                                                      Converter<?, ?>... customConverters) {
+        return getMappingAerospikeConverter(aerospikeDataSettings, new AerospikeTypeAliasAccessor(), customConverters);
+    }
+
+    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeDataSettings aerospikeDataSettings,
+                                                                   AerospikeTypeAliasAccessor typeAliasAccessor,
+                                                                   Converter<?, ?>... customConverters) {
         AerospikeMappingContext mappingContext = new AerospikeMappingContext();
         mappingContext.setApplicationContext(getApplicationContext());
         CustomConversions customConversions = new AerospikeCustomConversions(asList(customConverters));

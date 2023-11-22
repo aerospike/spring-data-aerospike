@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 import static com.aerospike.client.ResultCode.OP_NOT_APPLICABLE;
 import static org.springframework.data.aerospike.utility.TimeUtils.unixTimeToOffsetInSeconds;
 
+@Slf4j
 public class MappingAerospikeWriteConverter implements EntityWriter<Object, AerospikeWriteData> {
 
     private final TypeMapper<Map<String, Object>> typeMapper;
@@ -128,6 +130,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
                 // Store record key as it is (if Aerospike supports it natively and configured)
                 if (aerospikeDataSettings.isKeepOriginalKeyTypes() &&
                     isValidAerospikeRecordKeyType(idProperty.getType())) {
+                    log.debug("Attempt to construct record key with original key type");
                     Object nativeTypeId = accessor.getProperty(idProperty, idProperty.getType());
                     Assert.notNull(nativeTypeId, "Id must not be null!");
                     Key aerospikeRecordKey = constructAerospikeRecordKey(data.getNamespace(), setName, nativeTypeId);
@@ -138,6 +141,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
                 // Store record key as a String (Used for unsupported Aerospike key types and older versions)
                 String stringId = accessor.getProperty(idProperty, String.class);
                 Assert.notNull(stringId, "Id must not be null!");
+                log.debug("Attempt to construct record key as String");
                 return Optional.of(new Key(data.getNamespace(), setName, stringId));
             } else {
                 // id is mandatory

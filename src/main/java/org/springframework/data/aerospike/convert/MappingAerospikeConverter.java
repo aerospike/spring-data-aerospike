@@ -15,8 +15,8 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import lombok.Getter;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
@@ -40,7 +40,10 @@ import java.util.Map;
 public class MappingAerospikeConverter implements InitializingBean, AerospikeConverter {
 
     private final CustomConversions conversions;
+    @Getter
     private final GenericConversionService conversionService;
+    @Getter
+    private final AerospikeDataSettings aerospikeDataSettings;
     private final MappingAerospikeReadConverter readConverter;
     private final MappingAerospikeWriteConverter writeConverter;
 
@@ -52,6 +55,7 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
                                      AerospikeDataSettings aerospikeDataSettings) {
         this.conversions = conversions;
         this.conversionService = new DefaultConversionService();
+        this.aerospikeDataSettings = aerospikeDataSettings;
 
         EntityInstantiators entityInstantiators = new EntityInstantiators();
         TypeMapper<Map<String, Object>> typeMapper = new DefaultTypeMapper<>(aerospikeTypeAliasAccessor,
@@ -67,11 +71,6 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
     @Override
     public void afterPropertiesSet() {
         conversions.registerConvertersIn(conversionService);
-    }
-
-    @Override
-    public ConversionService getConversionService() {
-        return conversionService;
     }
 
     @Override

@@ -110,7 +110,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     @Test
     public void shouldWriteAndReadUsingCustomConverter() {
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(new UserToAerospikeWriteDataConverter(),
+            getMappingAerospikeConverter(aerospikeDataSettings, new UserToAerospikeWriteDataConverter(),
                 new AerospikeReadDataToUserConverter());
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
@@ -137,7 +137,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         }
 
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(new UserToAerospikeWriteDataConverter(),
+            getMappingAerospikeConverter(aerospikeDataSettings, new UserToAerospikeWriteDataConverter(),
                 new AerospikeReadDataToUserConverter());
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
@@ -150,7 +150,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     @Test
     public void shouldWriteAndReadUsingCustomConverterOnNestedMapKeyObject() {
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(new SampleClasses.SomeIdToStringConverter(),
+            getMappingAerospikeConverter(aerospikeDataSettings, new SampleClasses.SomeIdToStringConverter(),
                 new SampleClasses.StringToSomeIdConverter());
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
@@ -194,7 +194,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     @Test
     public void shouldWriteAndReadIfTypeKeyIsNull() {
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(new AerospikeTypeAliasAccessor(null));
+            getMappingAerospikeConverter(aerospikeDataSettings, new AerospikeTypeAliasAccessor(null));
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
         User user = new User(678L, null, null);
@@ -369,7 +369,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     @Test
     public void getConversionService() {
         MappingAerospikeConverter mappingAerospikeConverter =
-            getMappingAerospikeConverter(new AerospikeTypeAliasAccessor());
+            getMappingAerospikeConverter(aerospikeDataSettings, new AerospikeTypeAliasAccessor());
         assertThat(mappingAerospikeConverter.getConversionService()).isNotNull()
             .isInstanceOf(DefaultConversionService.class);
     }
