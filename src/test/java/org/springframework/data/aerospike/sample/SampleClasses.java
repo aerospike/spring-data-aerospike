@@ -407,6 +407,24 @@ public class SampleClasses {
     }
 
     @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DocumentWithPrimitiveCharId {
+
+        @Id
+        public char id;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DocumentWithPrimitiveByteId {
+
+        @Id
+        public byte id;
+    }
+
+    @Data
     @AllArgsConstructor
     public static class DocumentWithShortId {
 
@@ -428,6 +446,22 @@ public class SampleClasses {
 
         @Id
         public Long id;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class DocumentWithCharacterId {
+
+        @Id
+        public Character id;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class DocumentWithByteId {
+
+        @Id
+        public Byte id;
     }
 
     @Data

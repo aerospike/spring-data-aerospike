@@ -315,10 +315,11 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     }
 
     private boolean isValidAerospikeRecordKeyType(Class<?> type) {
-        return type == Short.TYPE || type == Integer.TYPE || type == Long.TYPE || // Primitives
-            type == Short.class || type == Integer.class || type == Long.class || // Primitive wrappers
-            type == String.class || // String
-            type == byte[].class; // Byte array
+        return type == Short.TYPE || type == Integer.TYPE || type == Long.TYPE || type == Byte.TYPE ||
+            type == Character.TYPE ||
+            type == Short.class || type == Integer.class || type == Long.class || type == Byte.class ||
+            type == Character.class || type == String.class ||
+            type == byte[].class;
     }
 
     private Key constructAerospikeRecordKey(String namespace, String set, Object userKey) {
@@ -326,11 +327,15 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         if (userKey.getClass() == String.class) {
             return new Key(namespace, set, (String) userKey);
         } else if (userKey.getClass() == Short.class) {
-            return new Key(namespace, set, (Short) userKey);
+            return new Key(namespace, set, (short) userKey);
         } else if (userKey.getClass() == Integer.class) {
             return new Key(namespace, set, (int) userKey);
         } else if (userKey.getClass() == Long.class) {
             return new Key(namespace, set, (long) userKey);
+        } else if (userKey.getClass() == Character.class) {
+            return new Key(namespace, set, (char) userKey);
+        } else if (userKey.getClass() == Byte.class) {
+            return new Key(namespace, set, (byte) userKey);
         } else if (userKey.getClass() == byte[].class) {
             return new Key(namespace, set, (byte[]) userKey);
         }

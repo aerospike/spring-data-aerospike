@@ -26,6 +26,7 @@ import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClas
 import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
 
 public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeConverterTest {
+
     private final String id = "my-id";
 
     @ParameterizedTest()
@@ -68,6 +69,26 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
+    void primitiveCharId(int converterOption) {
+        DocumentWithPrimitiveCharId object = new DocumentWithPrimitiveCharId('a');
+
+        assertWriteAndRead(converterOption, object, "DocumentWithPrimitiveCharId", 'a',
+            new Bin("@_class", DocumentWithPrimitiveCharId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void primitiveByteId(int converterOption) {
+        DocumentWithPrimitiveByteId object = new DocumentWithPrimitiveByteId((byte) 100);
+
+        assertWriteAndRead(converterOption, object, "DocumentWithPrimitiveByteId",
+            (byte) 100, new Bin("@_class", DocumentWithPrimitiveByteId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
     void shortId(int converterOption) {
         DocumentWithShortId object = new DocumentWithShortId((short) 5);
 
@@ -93,6 +114,26 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object, "DocumentWithLongId", 5L,
             new Bin("@_class", DocumentWithLongId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void characterId(int converterOption) {
+        DocumentWithCharacterId object = new DocumentWithCharacterId('a');
+
+        assertWriteAndRead(converterOption, object, "DocumentWithCharacterId", 'a',
+            new Bin("@_class", DocumentWithCharacterId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void byteId(int converterOption) {
+        DocumentWithByteId object = new DocumentWithByteId((byte) 100);
+
+        assertWriteAndRead(converterOption, object, "DocumentWithByteId", (byte) 100,
+            new Bin("@_class", DocumentWithByteId.class.getName())
         );
     }
 
