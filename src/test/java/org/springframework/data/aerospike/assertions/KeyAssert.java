@@ -32,7 +32,7 @@ public class KeyAssert extends AbstractAssert<KeyAssert, Key> {
     }
 
     private boolean verifyActualUserKeyType(Object expectedUserKey) {
-        if (expectedUserKey.getClass() == Integer.class) {
+        if (expectedUserKey.getClass() == Short.class || expectedUserKey.getClass() == Integer.class) {
             return actual.userKey.getObject() instanceof Long;
         } else { // String, Long and byte[] can be compared directly
             return actual.userKey.getObject().getClass().equals(expectedUserKey.getClass());

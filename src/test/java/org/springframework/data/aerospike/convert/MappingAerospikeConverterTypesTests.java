@@ -38,6 +38,16 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
+    void primitiveShortId(int converterOption) {
+        DocumentWithPrimitiveShortId object = new DocumentWithPrimitiveShortId((short) 5);
+
+        assertWriteAndRead(converterOption, object, "DocumentWithPrimitiveShortId", (short) 5,
+            new Bin("@_class", DocumentWithPrimitiveShortId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
     void primitiveIntId(int converterOption) {
         DocumentWithPrimitiveIntId object = new DocumentWithPrimitiveIntId(5);
 
@@ -53,6 +63,16 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object, "DocumentWithPrimitiveLongId", 5L,
             new Bin("@_class", DocumentWithPrimitiveLongId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void shortId(int converterOption) {
+        DocumentWithShortId object = new DocumentWithShortId((short) 5);
+
+        assertWriteAndRead(converterOption, object, "DocumentWithShortId", (short) 5,
+            new Bin("@_class", DocumentWithShortId.class.getName())
         );
     }
 

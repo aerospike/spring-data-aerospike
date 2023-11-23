@@ -384,6 +384,14 @@ public class SampleClasses {
 
     @Data
     @AllArgsConstructor
+    public static class DocumentWithPrimitiveShortId {
+
+        @Id
+        public short id;
+    }
+
+    @Data
+    @AllArgsConstructor
     public static class DocumentWithPrimitiveIntId {
 
         @Id
@@ -396,6 +404,14 @@ public class SampleClasses {
 
         @Id
         public long id;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class DocumentWithShortId {
+
+        @Id
+        public Short id;
     }
 
     @Data

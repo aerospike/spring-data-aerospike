@@ -315,8 +315,8 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     }
 
     private boolean isValidAerospikeRecordKeyType(Class<?> type) {
-        return type == Integer.TYPE || type == Long.TYPE || // Primitives
-            type == Integer.class || type == Long.class || // Primitive wrappers
+        return type == Short.TYPE || type == Integer.TYPE || type == Long.TYPE || // Primitives
+            type == Short.class || type == Integer.class || type == Long.class || // Primitive wrappers
             type == String.class || // String
             type == byte[].class; // Byte array
     }
@@ -325,6 +325,8 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         // At this point there are no primitives types for userKey, only wrappers
         if (userKey.getClass() == String.class) {
             return new Key(namespace, set, (String) userKey);
+        } else if (userKey.getClass() == Short.class) {
+            return new Key(namespace, set, (Short) userKey);
         } else if (userKey.getClass() == Integer.class) {
             return new Key(namespace, set, (int) userKey);
         } else if (userKey.getClass() == Long.class) {
