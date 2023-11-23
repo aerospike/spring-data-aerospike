@@ -41,7 +41,7 @@ Due to the cost of performing this operation, scans from Spring Data Aerospike a
 
 NOTE: Once this flag is enabled, scans run whenever needed with no warnings. This may or may not be optimal in a particular use case.
 
-Default: `false`.
+*Default:* `false`.
 
 [[configure-data-settings.send-key]]
 === sendKey
@@ -55,30 +55,49 @@ Default: `false` (do not send the user defined key).
 
 Create secondary indexes specified using `@Indexed` annotation on startup.
 
-Default: `true`.
+*Default*: `true`.
 
 [[configure-data-settings.index-cache-refresh-frequency-seconds]]
 === indexCacheRefreshFrequencySeconds
 
 Automatically refresh indexes cache every <N> seconds.
 
-Default: `3600`.
+*Default*: `3600`.
 
 [[configure-data-settings.query-max-records]]
 === queryMaxRecords
 
 Limit amount of results returned by server. Non-positive value means no limit.
 
-Default: `10 000`.
+*Default*: `10 000`.
 
 [[configure-data-settings.keep-original-key-types]]
 === keepOriginalKeyTypes
 
-If `true`, keep original type of `@Id` field for `long`, `String` and `byte[]`.
+Define how `@Id` fields (primary keys) and `Map` keys are persisted in the Aerospike database.
 
-If `false`, keep original type of `@Id` field for `String`.
+[width="100%",cols="<20%,<30%,<30%",options="header",]
+|===
+|`@Id` field type |keepOriginalKeyTypes = `false` |keepOriginalKeyTypes = `true`
+|`long` |`String` | `long`
+|`int` |`String` | `long`
+|`String` |`String` | `String`
+|`byte[]` |`String` | `byte[]`
+|other types |`String` | `String`
+|===
 
-If `@Id` field's type cannot be persisted as is, it must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
+NOTE: If `@Id` field's type cannot be persisted as is, it must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
 
-Default: `false` (keep only original `String` type).
+[width="100%",cols="<20%,<30%,<30%",options="header",]
+|===
+|`Map` key type |keepOriginalKeyTypes = `false` |keepOriginalKeyTypes = `true`
+|`long` |`String` | `long`
+|`int` |`String` | `long`
+|`double` |`String` | `double`
+|`String` |`String` | `String`
+|`byte[]` |`String` | `byte[]`
+|other types |`String` | `String`
+|===
+
+*Default*: `false` (only keep original `String` type).
 
