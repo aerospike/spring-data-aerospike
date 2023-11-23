@@ -24,6 +24,8 @@ import lombok.Data;
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
@@ -44,10 +46,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.list;
 import static org.springframework.data.aerospike.AsCollections.of;
 import static org.springframework.data.aerospike.AsCollections.set;
+import static org.springframework.data.aerospike.assertions.KeyAssert.assertThat;
 import static org.springframework.data.aerospike.sample.SampleClasses.*;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
-import static org.springframework.data.aerospike.assertions.KeyAssert.assertThat;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
 
@@ -60,32 +62,37 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         return (int) Duration.between(aerospikeExpirationOffset, documentExpiration).getSeconds();
     }
 
-    @Test
-    public void readsCollectionOfObjectsToSetByDefault() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void readsCollectionOfObjectsToSetByDefault(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         CollectionOfObjects object = new CollectionOfObjects("my-id", list(new Person(null,
             set(new SampleClasses.Address(new SampleClasses.Street("Zarichna", 1), 202)))));
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
-        converter.write(object, forWrite);
+        aerospikeConverter.write(object, forWrite);
 
         AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
-        CollectionOfObjects actual = converter.read(CollectionOfObjects.class, forRead);
+        CollectionOfObjects actual = aerospikeConverter.read(CollectionOfObjects.class, forRead);
 
         assertThat(actual).isEqualTo(
             new CollectionOfObjects("my-id", set(new Person(null,
                 set(new SampleClasses.Address(new SampleClasses.Street("Zarichna", 1), 202))))));
     }
 
-    @Test
-    public void shouldReadCustomTypeWithCustomTypeImmutable() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldReadCustomTypeWithCustomTypeImmutable(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         Map<String, Object> bins = of("field", of(
             "listOfObjects", ImmutableList.of("firstItem", of("keyInList", "valueInList")),
             "mapWithObjectValue", of("map", of("key", "value"))
         ));
         AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, SIMPLESET, 10L), aeroRecord(bins));
 
-        CustomTypeWithCustomTypeImmutable actual = converter.read(CustomTypeWithCustomTypeImmutable.class, forRead);
+        CustomTypeWithCustomTypeImmutable actual = aerospikeConverter.read(CustomTypeWithCustomTypeImmutable.class,
+            forRead);
 
         CustomTypeWithCustomTypeImmutable expected =
             new CustomTypeWithCustomTypeImmutable(new SampleClasses.ImmutableListAndMap(ImmutableList.of("firstItem",
@@ -94,8 +101,10 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         assertThat(actual).isEqualTo(expected);
     }
 
-    @Test
-    public void usesDocumentsStoredTypeIfSubtypeOfRequest() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void usesDocumentsStoredTypeIfSubtypeOfRequest(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         Map<String, Object> bins = of(
             "@_class", Person.class.getName(),
             "addresses", list()
@@ -103,7 +112,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         AerospikeReadData dbObject = AerospikeReadData.forRead(new Key(NAMESPACE, "Person", "kate-01"),
             aeroRecord(bins));
 
-        Contact result = converter.read(Contact.class, dbObject);
+        Contact result = aerospikeConverter.read(Contact.class, dbObject);
         assertThat(result).isInstanceOf(Person.class);
     }
 
@@ -203,18 +212,22 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         assertThat(forWrite.getKey()).consistsOf(aerospikeDataSettings, NAMESPACE, SIMPLESET3, user.getId());
     }
 
-    @Test
-    public void shouldWriteExpirationValue() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldWriteExpirationValue(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         Person person = new Person("personId", Collections.emptySet());
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
-        converter.write(person, forWrite);
+        aerospikeConverter.write(person, forWrite);
 
         assertThat(forWrite.getExpiration()).isEqualTo(EXPIRATION_ONE_SECOND);
     }
 
-    @Test
-    public void shouldReadExpirationFieldValue() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldReadExpirationFieldValue(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         Key key = new Key(NAMESPACE, "docId", 10L);
 
         int recordExpiration = toRecordExpiration(EXPIRATION_ONE_MINUTE);
@@ -222,131 +235,156 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
 
         AerospikeReadData readData = AerospikeReadData.forRead(key, record);
 
-        DocumentWithExpirationAnnotation forRead = converter.read(DocumentWithExpirationAnnotation.class, readData);
+        DocumentWithExpirationAnnotation forRead = aerospikeConverter.read(DocumentWithExpirationAnnotation.class,
+            readData);
         // Because of converting record expiration to TTL in Record.getTimeToLive method,
         // we may have expected expiration minus one second
         assertThat(forRead.getExpiration()).isIn(EXPIRATION_ONE_MINUTE, EXPIRATION_ONE_MINUTE - 1);
     }
 
-    @Test
-    public void shouldReadUnixTimeExpirationFieldValue() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldReadUnixTimeExpirationFieldValue(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         Key key = new Key(NAMESPACE, "docId", 10L);
         int recordExpiration = toRecordExpiration(EXPIRATION_ONE_MINUTE);
         Record record = new Record(Collections.emptyMap(), 0, recordExpiration);
 
         AerospikeReadData readData = AerospikeReadData.forRead(key, record);
-        DocumentWithUnixTimeExpiration forRead = converter.read(DocumentWithUnixTimeExpiration.class, readData);
+        DocumentWithUnixTimeExpiration forRead = aerospikeConverter.read(DocumentWithUnixTimeExpiration.class,
+            readData);
 
         DateTime actual = forRead.getExpiration();
         DateTime expected = DateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
         assertThat(actual.getMillis()).isCloseTo(expected.getMillis(), Offset.offset(100L));
     }
 
-    @Test
-    public void shouldWriteUnixTimeExpirationFieldValue() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldWriteUnixTimeExpirationFieldValue(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         DateTime unixTimeExpiration = DateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
         DocumentWithUnixTimeExpiration document = new DocumentWithUnixTimeExpiration("docId", unixTimeExpiration);
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
-        converter.write(document, forWrite);
+        aerospikeConverter.write(document, forWrite);
 
         assertThat(forWrite.getExpiration()).isIn(EXPIRATION_ONE_MINUTE, EXPIRATION_ONE_MINUTE - 1);
     }
 
-    @Test
-    public void shouldFailWithExpirationFromThePast() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldFailWithExpirationFromThePast(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         DateTime expirationFromThePast = DateTime.now().minusSeconds(EXPIRATION_ONE_MINUTE);
         DocumentWithUnixTimeExpiration document = new DocumentWithUnixTimeExpiration("docId", expirationFromThePast);
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
-        assertThatThrownBy(() -> converter.write(document, forWrite))
+        assertThatThrownBy(() -> aerospikeConverter.write(document, forWrite))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageStartingWith("Expiration value must be greater than zero, but was: ");
     }
 
-    @Test
-    public void shouldWriteExpirationFieldValue() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldWriteExpirationFieldValue(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId",
             EXPIRATION_ONE_SECOND);
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
-        converter.write(document, forWrite);
+        aerospikeConverter.write(document, forWrite);
 
         assertThat(forWrite.getExpiration()).isEqualTo(EXPIRATION_ONE_SECOND);
     }
 
-    @Test
-    public void shouldNotSaveExpirationFieldAsBin() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldNotSaveExpirationFieldAsBin(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId",
             EXPIRATION_ONE_SECOND);
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
-        converter.write(document, forWrite);
+        aerospikeConverter.write(document, forWrite);
 
         assertThat(forWrite.getBins()).doesNotContain(new Bin("expiration", Value.get(EXPIRATION_ONE_SECOND)));
     }
 
-    @Test
-    public void shouldFailWithNullExpirationFieldValue() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldFailWithNullExpirationFieldValue(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId", null);
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
-        assertThatThrownBy(() -> converter.write(document, forWrite))
+        assertThatThrownBy(() -> aerospikeConverter.write(document, forWrite))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Expiration must not be null!");
     }
 
-    @Test
-    public void shouldNotFailWithNeverExpirePolicy() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldNotFailWithNeverExpirePolicy(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId", NEVER_EXPIRE);
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
-        converter.write(document, forWrite);
+        aerospikeConverter.write(document, forWrite);
 
         assertThat(forWrite.getExpiration()).isEqualTo(NEVER_EXPIRE);
     }
 
-    @Test
-    public void shouldNotFailWithDoNotUpdateExpirePolicy() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldNotFailWithDoNotUpdateExpirePolicy(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         DocumentWithExpirationAnnotation document = new DocumentWithExpirationAnnotation("docId",
             DO_NOT_UPDATE_EXPIRATION);
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
-        converter.write(document, forWrite);
+        aerospikeConverter.write(document, forWrite);
 
         assertThat(forWrite.getExpiration()).isEqualTo(DO_NOT_UPDATE_EXPIRATION);
     }
 
-    @Test
-    public void shouldReadExpirationForDocumentWithDefaultConstructor() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldReadExpirationForDocumentWithDefaultConstructor(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         int recordExpiration = toRecordExpiration(EXPIRATION_ONE_MINUTE);
         Record record = new Record(Collections.emptyMap(), 0, recordExpiration);
         Key key = new Key(NAMESPACE, "DocumentWithDefaultConstructor", "docId");
         AerospikeReadData forRead = AerospikeReadData.forRead(key, record);
 
-        DocumentWithDefaultConstructor document = converter.read(DocumentWithDefaultConstructor.class, forRead);
+        DocumentWithDefaultConstructor document = aerospikeConverter.read(DocumentWithDefaultConstructor.class,
+            forRead);
         DateTime actual = document.getExpiration();
         DateTime expected = DateTime.now().plusSeconds(EXPIRATION_ONE_MINUTE);
         assertThat(actual.getMillis()).isCloseTo(expected.getMillis(), Offset.offset(100L));
     }
 
-    @Test
-    public void shouldReadExpirationForDocumentWithPersistenceConstructor() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldReadExpirationForDocumentWithPersistenceConstructor(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         int recordExpiration = toRecordExpiration(EXPIRATION_ONE_MINUTE);
         Record record = new Record(Collections.emptyMap(), 0, recordExpiration);
         Key key = new Key(NAMESPACE, "DocumentWithExpirationAnnotationAndPersistenceConstructor", "docId");
         AerospikeReadData forRead = AerospikeReadData.forRead(key, record);
 
         DocumentWithExpirationAnnotationAndPersistenceConstructor document =
-            converter.read(DocumentWithExpirationAnnotationAndPersistenceConstructor.class, forRead);
+            aerospikeConverter.read(DocumentWithExpirationAnnotationAndPersistenceConstructor.class, forRead);
         assertThat(document.getExpiration()).isCloseTo(TimeUnit.MINUTES.toSeconds(1), Offset.offset(100L));
     }
 
-    @Test
-    public void shouldNotWriteVersionToBins() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldNotWriteVersionToBins(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
-        converter.write(new VersionedClass("id", "data", 42L), forWrite);
+        aerospikeConverter.write(new VersionedClass("id", "data", 42L), forWrite);
 
         assertThat(forWrite.getBins()).containsOnly(
             new Bin("@_class", VersionedClass.class.getName()),
@@ -354,14 +392,16 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         );
     }
 
-    @Test
-    public void shouldReadObjectWithByteArrayFieldWithOneValueInData() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldReadObjectWithByteArrayFieldWithOneValueInData(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         Map<String, Object> bins = new HashMap<>();
         bins.put("array", 1);
         AerospikeReadData forRead = AerospikeReadData.forRead(new Key(NAMESPACE, "DocumentWithByteArray", "user-id"),
             aeroRecord(bins));
 
-        DocumentWithByteArray actual = converter.read(DocumentWithByteArray.class, forRead);
+        DocumentWithByteArray actual = aerospikeConverter.read(DocumentWithByteArray.class, forRead);
 
         assertThat(actual).isEqualTo(new DocumentWithByteArray("user-id", new byte[]{1}));
     }
@@ -374,13 +414,15 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
             .isInstanceOf(DefaultConversionService.class);
     }
 
-    @Test
-    public void shouldConvertAddressCorrectlyToAerospikeData() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldConvertAddressCorrectlyToAerospikeData(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         Address address = new Address(new Street("Broadway", 30), 3);
 
         AerospikeWriteData dbObject = AerospikeWriteData.forWrite(NAMESPACE);
         dbObject.setKey(new Key(NAMESPACE, "Address", 90));
-        converter.write(address, dbObject);
+        aerospikeConverter.write(address, dbObject);
 
         Collection<Bin> bins = dbObject.getBins();
         assertThat(bins).contains(
@@ -399,8 +441,10 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         assertThat(streetBin).isInstanceOf(TreeMap.class);
     }
 
-    @Test
-    public void shouldConvertAerospikeDataToAddressCorrectly() {
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    public void shouldConvertAerospikeDataToAddressCorrectly(int converterOption) {
+        MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         Address address = new Address(new Street("Broadway", 30), 3);
 
         Map<String, Object> bins = new TreeMap<>() {
@@ -415,7 +459,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         };
 
         AerospikeReadData dbObject = AerospikeReadData.forRead(new Key(NAMESPACE, "Address", 90), aeroRecord(bins));
-        Address convertedAddress = converter.read(Address.class, dbObject);
+        Address convertedAddress = aerospikeConverter.read(Address.class, dbObject);
 
         assertThat(convertedAddress).isEqualTo(address);
     }
