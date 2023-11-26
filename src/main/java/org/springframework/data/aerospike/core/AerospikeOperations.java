@@ -808,7 +808,6 @@ public interface AerospikeOperations {
      * @return A Stream of matching documents, returned documents will be mapped to entityClass's type.
      */
     <T> Stream<T> findAll(Class<T> entityClass);
-
     /**
      * Find all documents in the given entityClass's set and map them to the given target class type.
      *

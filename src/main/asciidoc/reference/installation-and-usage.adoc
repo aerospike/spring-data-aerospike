@@ -153,8 +153,7 @@ aql> select * from test.Person where pk = "1"
 ----
 
 NOTE: The fully qualified path of the class is listed in each record. This is needed to instantiate the class correctly, especially in cases when the compile-time type and runtime type of the object differ. For example, where a field is declared as a super class but the instantiated class is a subclass.
-. The `long` id field is turned into a `String` to be stored in the database if `keepOriginalKeyTypes` configuration parameter is `false` (by default), otherwise it is stored as `long`.
 
-NOTE: If `@Id` field's type cannot be persisted as is (see xref:#configure-data-settings.keep-original-key-types[keepOriginalKeyTypes] for details), it must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
+NOTE: By default, the type of the field annotated with `@id` is turned into a `String` to be stored in Aerospike database. If the original type cannot be persisted (see xref:#configure-data-settings.keep-original-key-types[keepOriginalKeyTypes] for details), it must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
 
 

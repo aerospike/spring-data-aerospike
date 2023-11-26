@@ -135,7 +135,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKey() {
         VersionedClass document = new VersionedClass(id, "any", 5L);
         // initially given versions are ignored
-        // RecordExistsAction.CREATE_ONLY is set
+        // RecordExistsAction.CREATE_ONLY is used
         template.insert(document);
 
         assertThat(document.getVersion()).isEqualTo(1);
@@ -274,7 +274,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             template.insertAll(List.of(first));
 
             // initially given versions are ignored
-            // RecordExistsAction.CREATE_ONLY is set
+            // RecordExistsAction.CREATE_ONLY is used
             assertThatNoException().isThrownBy(() -> template.insertAll(
                 List.of(second, third)));
 

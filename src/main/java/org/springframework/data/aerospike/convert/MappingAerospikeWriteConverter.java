@@ -114,7 +114,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             || key.setName == null || key.namespace == null) {
             AerospikePersistentProperty idProperty = entity.getIdProperty();
             if (idProperty != null) {
-                String id = accessor.getProperty(idProperty, String.class); // currently id can only be a String
+                String id = accessor.getProperty(idProperty, String.class); // currently id is read as a String
                 Assert.notNull(id, "Id must not be null!");
                 String setName;
                 if (data.getSetName() != null) {

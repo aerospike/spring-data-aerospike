@@ -1162,7 +1162,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void findPersonsByIds() {
-        List<Person> persons = repository.findById(List.of(dave.getId(), carter.getId()));
+        List<Person> persons = (List<Person>) repository.findAllById(List.of(dave.getId(), carter.getId()));
         assertThat(persons).containsOnly(dave, carter);
     }
 

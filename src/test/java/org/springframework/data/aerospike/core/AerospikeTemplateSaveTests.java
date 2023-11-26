@@ -128,7 +128,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldSaveDocumentWithEqualVersion() {
-        // if an object has version property, GenerationPolicy.EXPECT_GEN_EQUAL is set
+        // if an object has version property, GenerationPolicy.EXPECT_GEN_EQUAL is used
         VersionedClass first = new VersionedClass(id, "foo", 0L);
         VersionedClass second = new VersionedClass(id, "foo", 1L);
         VersionedClass third = new VersionedClass(id, "foo", 2L);
@@ -330,7 +330,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveAllAndSetVersion() {
         VersionedClass first = new VersionedClass(id, "foo");
-        VersionedClass second = new VersionedClass(nextId(), "foo");
+        VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
         // batch write operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
             template.saveAll(List.of(first, second));
@@ -339,7 +339,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         }
 
         assertThat(first.version).isEqualTo(1);
-        assertThat(second.version).isEqualTo(1);
+        assertThat(second.version).isEqualTo(2);
         assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
         template.delete(first); // cleanup
         template.delete(second); // cleanup
@@ -390,7 +390,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
             person.setAge(28);
             template.save(person);
 
-            // If an object has no version property, RecordExistsAction.UPDATE is set
+            // If an object has no version property, RecordExistsAction.UPDATE is used
             assertThatNoException().isThrownBy(() -> template.saveAll(List.of(person, person)));
 
             template.delete(person); // cleanup

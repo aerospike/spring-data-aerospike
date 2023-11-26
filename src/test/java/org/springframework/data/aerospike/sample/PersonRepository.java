@@ -65,13 +65,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     <T> List<T> findByFirstNameAndLastName(String firstName, String lastName, Class<T> type);
 
     /**
-     * Find all entities that have primary key in the given list.
-     *
-     * @param ids List of primary keys
-     */
-    List<P> findById(List<String> ids);
-
-    /**
      * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
      * specified string".
      *
