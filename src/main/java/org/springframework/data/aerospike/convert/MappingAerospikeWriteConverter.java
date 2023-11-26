@@ -120,16 +120,11 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             || key.setName == null || key.namespace == null) {
             AerospikePersistentProperty idProperty = entity.getIdProperty();
             if (idProperty != null) {
-                String setName;
-                if (data.getSetName() != null) {
-                    setName = data.getSetName();
-                } else {
-                    setName = entity.getSetName();
-                }
+                String setName = Optional.ofNullable(data.getSetName()).orElse(entity.getSetName());
 
                 // Store record key as it is (if Aerospike supports it natively and configured)
-                if (aerospikeDataSettings.isKeepOriginalKeyTypes() &&
-                    isValidAerospikeRecordKeyType(idProperty.getType())) {
+                if (aerospikeDataSettings.isKeepOriginalKeyTypes()
+                    && isValidAerospikeRecordKeyType(idProperty.getType())) {
                     log.debug("Attempt to construct record key with original key type");
                     Object nativeTypeId = accessor.getProperty(idProperty, idProperty.getType());
                     Assert.notNull(nativeTypeId, "Id must not be null!");

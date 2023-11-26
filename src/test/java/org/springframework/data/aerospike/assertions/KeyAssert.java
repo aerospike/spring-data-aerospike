@@ -4,6 +4,7 @@ import com.aerospike.client.Key;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.util.Assert;
 
 public class KeyAssert extends AbstractAssert<KeyAssert, Key> {
 
@@ -18,15 +19,19 @@ public class KeyAssert extends AbstractAssert<KeyAssert, Key> {
     @SuppressWarnings("UnusedReturnValue")
     public KeyAssert consistsOf(AerospikeDataSettings aerospikeDataSettings, String namespace, String setName,
                                 Object expectedUserKey) {
-        Assertions.assertThat(actual.namespace).isEqualTo(namespace);
-        Assertions.assertThat(actual.setName).isEqualTo(setName);
+        if (!actual.namespace.equals(namespace)) {
+            throw new IllegalArgumentException("Inconsistent namespace name");
+        }
+        if (!actual.setName.equals(setName)) {
+            throw new IllegalArgumentException("Inconsistent setName");
+        }
 
         if (aerospikeDataSettings != null && aerospikeDataSettings.isKeepOriginalKeyTypes()) {
             Assertions.assertThat(verifyActualUserKeyType(expectedUserKey)).isTrue();
         } else {
             // String type is used for unsupported Aerospike key types and previously for all key types in older
             // versions of Spring Data Aerospike
-            Assertions.assertThat(checkIfActualUserKeyTypeIsString()).isTrue();
+            Assert.isTrue(checkIfActualUserKeyTypeIsString(), "Key type is not string");
         }
         return this;
     }
