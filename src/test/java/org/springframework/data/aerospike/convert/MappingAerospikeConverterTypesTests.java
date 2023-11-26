@@ -1,10 +1,12 @@
 package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.Bin;
+import com.aerospike.client.command.ParticleType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.aerospike.assertions.KeyAssert;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.*;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
@@ -165,6 +167,84 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object, "SetWithSimpleValue", 1L,
             new Bin("collectionWithSimpleValues", list(null, "a", "b", "c")),
             new Bin("@_class", SetWithSimpleValue.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void mapWithShortId(int converterOption) {
+        Map<Short, String> map = of((short) 1, "value1", (short) 2, "value2", (short) 3, null);
+        MapWithShortId object = new MapWithShortId(10L, map);
+
+        assertWriteAndRead(converterOption, object,
+            MapWithShortId.class.getSimpleName(), 10L,
+            new Bin("mapWithShortId", of((short) 1, "value1", (short) 2, "value2", (short) 3, null)),
+            new Bin("@_class", MapWithShortId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void mapWithIntegerId(int converterOption) {
+        Map<Integer, String> map = of(1, "value1", 2, "value2", 3, null);
+        MapWithIntegerId object = new MapWithIntegerId(10L, map);
+
+        assertWriteAndRead(converterOption, object,
+            MapWithIntegerId.class.getSimpleName(), 10L,
+            new Bin("mapWithIntegerId", of(1, "value1", 2, "value2", 3, null)),
+            new Bin("@_class", MapWithIntegerId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void mapWithLongId(int converterOption) {
+        Map<Long, String> map = of(1L, "value1", 2L, "value2", 3L, null);
+        MapWithLongId object = new MapWithLongId(10L, map);
+
+        assertWriteAndRead(converterOption, object,
+            MapWithLongId.class.getSimpleName(), 10L,
+            new Bin("mapWithLongId", of(1L, "value1", 2L, "value2", 3L, null)),
+            new Bin("@_class", MapWithLongId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void mapWithDoubleId(int converterOption) {
+        Map<Double, String> map = of(100.25, "value1", 200.25, "value2", 300.25, null);
+        MapWithDoubleId object = new MapWithDoubleId(10L, map);
+
+        assertWriteAndRead(converterOption, object,
+            MapWithDoubleId.class.getSimpleName(), 10L,
+            new Bin("mapWithDoubleId", of(100.25, "value1", 200.25, "value2", 300.25, null)),
+            new Bin("@_class", MapWithDoubleId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void mapWithByteId(int converterOption) {
+        Map<Byte, String> map = of((byte) 100, "value1", (byte) 200, "value2", (byte) 300, null);
+        MapWithByteId object = new MapWithByteId(10L, map);
+
+        assertWriteAndRead(converterOption, object,
+            MapWithByteId.class.getSimpleName(), 10L,
+            new Bin("mapWithByteId", of((byte) 100, "value1", (byte) 200, "value2", (byte) 300, null)),
+            new Bin("@_class", MapWithByteId.class.getName())
+        );
+    }
+
+    @ParameterizedTest()
+    @ValueSource(ints = {0, 1})
+    void mapWithCharacterId(int converterOption) {
+        Map<Character, String> map = of('a', "value1", 'b', "value2", 'c', null);
+        MapWithCharacterId object = new MapWithCharacterId(10L, map);
+
+        assertWriteAndRead(converterOption, object,
+            MapWithCharacterId.class.getSimpleName(), 10L,
+            new Bin("mapWithCharacterId", of('a', "value1", 'b', "value2", 'c', null)),
+            new Bin("@_class", MapWithCharacterId.class.getName())
         );
     }
 
@@ -681,13 +761,35 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeConverter.getAerospikeDataSettings(), NAMESPACE,
             expectedSet, expectedUserKey);
-        assertThat(forWrite.getBins()).containsOnly(expectedBins);
+
+        for (Bin expectedBin : expectedBins) {
+            if (expectedBin.value.getType() == ParticleType.MAP) {
+                // Compare Maps
+                assertThat(
+                    compareMaps(aerospikeConverter.getAerospikeDataSettings(), expectedBin,
+                        forWrite.getBins().stream().filter(bin -> bin.name.equals(expectedBin.name))
+                            .findFirst().orElse(null))).isTrue();
+            } else {
+                assertThat(forWrite.getBins()).contains(expectedBin);
+            }
+        }
 
         AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
 
         @SuppressWarnings("unchecked") T actual = (T) aerospikeConverter.read(object.getClass(), forRead);
 
         assertThat(actual).isEqualTo(object);
+    }
+
+    private boolean compareMaps(AerospikeDataSettings aerospikeDataSettings, Bin expected, Bin actual) {
+        if (aerospikeDataSettings != null && aerospikeDataSettings.isKeepOriginalKeyTypes()) {
+            return expected.equals(actual);
+        } else {
+            // String type is used for unsupported Aerospike key types and previously for all key types in older
+            // versions of Spring Data Aerospike
+            return Objects.requireNonNull(((Map<?, ?>) actual.value.getObject()).keySet().stream()
+                .findFirst().orElse(null)).getClass().equals(String.class);
+        }
     }
 
     @SuppressWarnings("SameParameterValue")

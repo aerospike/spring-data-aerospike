@@ -104,6 +104,61 @@ public class SampleClasses {
 
     @Document
     @Data
+    public static class MapWithShortId {
+
+        @Id
+        final long id;
+        final Map<Short, String> mapWithShortId;
+    }
+
+
+    @Document
+    @Data
+    public static class MapWithIntegerId {
+
+        @Id
+        final long id;
+        final Map<Integer, String> mapWithIntegerId;
+    }
+
+    @Document
+    @Data
+    public static class MapWithLongId {
+
+        @Id
+        final long id;
+        final Map<Long, String> mapWithLongId;
+    }
+
+    @Document
+    @Data
+    public static class MapWithDoubleId {
+
+        @Id
+        final long id;
+        final Map<Double, String> mapWithDoubleId;
+    }
+
+    @Document
+    @Data
+    public static class MapWithByteId {
+
+        @Id
+        final long id;
+        final Map<Byte, String> mapWithByteId;
+    }
+
+    @Document
+    @Data
+    public static class MapWithCharacterId {
+
+        @Id
+        final long id;
+        final Map<Character, String> mapWithCharacterId;
+    }
+
+    @Document
+    @Data
     public static class MapWithSimpleValue {
 
         @Id
