@@ -32,8 +32,8 @@ public class AerospikeDataSettings {
     int indexCacheRefreshFrequencySeconds = 3600;
     @Builder.Default
     long queryMaxRecords = 10_000L;
-    // When true, stores key types (record keys and map keys) as original type if supported. False means always store
-    // keys as String
+    // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
+    // true - preserve original type if supported
     @Builder.Default
     boolean keepOriginalKeyTypes = false;
 
