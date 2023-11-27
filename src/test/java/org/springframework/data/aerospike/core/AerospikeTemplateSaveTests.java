@@ -105,8 +105,8 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         VersionedClass first = new VersionedClass(id, "foo");
         template.save(first);
 
-        assertThat(first.version).isEqualTo(1);
-        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+        assertThat(first.getVersion()).isEqualTo(1);
+        assertThat(template.findById(id, VersionedClass.class).getVersion()).isEqualTo(1);
     }
 
     @Test
@@ -168,7 +168,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         assertThat(byId.getField())
             .isEqualTo("field");
 
-        template.save(new VersionedClass(id, null, byId.version));
+        template.save(new VersionedClass(id, null, byId.getVersion()));
 
         assertThat(template.findById(id, VersionedClass.class).getField())
             .isNull();
@@ -195,11 +195,11 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         VersionedClass one = new VersionedClass(id, "foo");
         template.save(one);
 
-        template.save(new VersionedClass(id, "foo1", one.version));
+        template.save(new VersionedClass(id, "foo1", one.getVersion()));
 
         VersionedClass value = template.findById(id, VersionedClass.class);
-        assertThat(value.version).isEqualTo(2);
-        assertThat(value.field).isEqualTo("foo1");
+        assertThat(value.getVersion()).isEqualTo(2);
+        assertThat(value.getField()).isEqualTo("foo1");
     }
 
     @Test
@@ -209,7 +209,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         template.save(one);
         template.save(one);
 
-        assertThat(one.version).isEqualTo(3);
+        assertThat(one.getVersion()).isEqualTo(3);
     }
 
     @Test
@@ -219,14 +219,14 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
         VersionedClass initial = new VersionedClass(id, "value-0");
         template.save(initial);
-        assertThat(initial.version).isEqualTo(1);
+        assertThat(initial.getVersion()).isEqualTo(1);
 
         AsyncUtils.executeConcurrently(numberOfConcurrentSaves, () -> {
             boolean saved = false;
             while (!saved) {
                 long counterValue = counter.incrementAndGet();
                 VersionedClass messageData = template.findById(id, VersionedClass.class);
-                messageData.field = "value-" + counterValue;
+                messageData.setField("value-" + counterValue);
                 try {
                     template.save(messageData);
                     saved = true;
@@ -237,9 +237,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
         VersionedClass actual = template.findById(id, VersionedClass.class);
 
-        assertThat(actual.field).isNotEqualTo(initial.field);
-        assertThat(actual.version).isNotEqualTo(initial.version)
-            .isEqualTo(initial.version + numberOfConcurrentSaves);
+        assertThat(actual.getField()).isNotEqualTo(initial.getField());
+        assertThat(actual.getVersion()).isNotEqualTo(initial.getVersion())
+            .isEqualTo(initial.getVersion() + numberOfConcurrentSaves);
     }
 
     @Test
@@ -330,7 +330,12 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveAllAndSetVersion() {
         VersionedClass first = new VersionedClass(id, "foo");
-        VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
+        VersionedClass second = new VersionedClass(nextId(), "bar");
+
+        template.save(second);
+        assertThat(second.getVersion()).isEqualTo(1);
+        second.setVersion(second.getVersion());
+
         // batch write operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
             template.saveAll(List.of(first, second));
@@ -338,9 +343,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
             List.of(first, second).forEach(person -> template.save(person));
         }
 
-        assertThat(first.version).isEqualTo(1);
-        assertThat(second.version).isEqualTo(2);
-        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+        assertThat(first.getVersion()).isEqualTo(1);
+        assertThat(second.getVersion()).isEqualTo(2);
+        assertThat(template.findById(id, VersionedClass.class).getVersion()).isEqualTo(1);
         template.delete(first); // cleanup
         template.delete(second); // cleanup
     }
@@ -356,9 +361,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
             List.of(first, second).forEach(person -> template.save(person, OVERRIDE_SET_NAME));
         }
 
-        assertThat(first.version).isEqualTo(1);
-        assertThat(second.version).isEqualTo(1);
-        assertThat(template.findById(id, VersionedClass.class, OVERRIDE_SET_NAME).version).isEqualTo(1);
+        assertThat(first.getVersion()).isEqualTo(1);
+        assertThat(second.getVersion()).isEqualTo(1);
+        assertThat(template.findById(id, VersionedClass.class, OVERRIDE_SET_NAME).getVersion()).isEqualTo(1);
         template.delete(first, OVERRIDE_SET_NAME); // cleanup
         template.delete(second, OVERRIDE_SET_NAME); // cleanup
     }

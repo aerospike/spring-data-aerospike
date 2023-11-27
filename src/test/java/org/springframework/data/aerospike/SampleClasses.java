@@ -422,8 +422,8 @@ public class SampleClasses {
     public static class VersionedClass {
 
         @Version
-        public Long version; // do not change to primitive type. See #72 issue
-        public String field;
+        private Long version;
+        private String field;
         @Id
         private String id;
 
@@ -447,7 +447,7 @@ public class SampleClasses {
         @Id
         private final String id;
         @Version
-        public long version;
+        private final long version;
 
         @PersistenceCreator
         public VersionedClassWithAllArgsConstructor(String id, String field, long version) {
@@ -766,7 +766,7 @@ public class SampleClasses {
     public static class ObjectWithIntegerArray {
 
         @Version
-        public Long version;
+        private Long version;
         Integer[] array;
 
         public ObjectWithIntegerArray(Integer[] array) {

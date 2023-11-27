@@ -34,7 +34,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         try {
             VersionedClass initialDocument = new VersionedClass(id, "a");
             reactiveTemplate.insert(initialDocument).block();
-            reactiveTemplate.update(new VersionedClass(id, "b", initialDocument.version)).block();
+            reactiveTemplate.update(new VersionedClass(id, "b", initialDocument.getVersion())).block();
 
             Mono<Boolean> deleted = reactiveTemplate.delete(initialDocument).subscribeOn(Schedulers.parallel());
             StepVerifier.create(deleted).expectNext(true).verifyComplete();
@@ -107,7 +107,8 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         StepVerifier.create(deleted).expectNext(true).verifyComplete();
 
         // then
-        Mono<Person> result = reactiveTemplate.findById(id, Person.class, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel());
+        Mono<Person> result = reactiveTemplate.findById(id, Person.class, OVERRIDE_SET_NAME)
+            .subscribeOn(Schedulers.parallel());
         StepVerifier.create(result).expectComplete().verify();
     }
 
@@ -172,7 +173,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
             reactiveTemplate.deleteByIds(ids, OVERRIDE_SET_NAME);
 
             List<SampleClasses.DocumentWithExpiration> list = reactiveTemplate.findByIds(ids,
-                SampleClasses.DocumentWithExpiration.class, OVERRIDE_SET_NAME)
+                    SampleClasses.DocumentWithExpiration.class, OVERRIDE_SET_NAME)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
             assertThat(list).isEmpty();
         }

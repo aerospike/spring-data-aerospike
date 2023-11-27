@@ -132,7 +132,8 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         List<String> fields = new ArrayList<>();
         fields.add("age");
         fields.add("emailAddress");
-        template.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com").build(), OVERRIDE_SET_NAME, fields);
+        template.update(Person.builder().id(id).age(41).emailAddress("andrew2@gmail.com")
+            .build(), OVERRIDE_SET_NAME, fields);
 
         assertThat(template.findById(id, Person.class, OVERRIDE_SET_NAME)).satisfies(doc -> {
             assertThat(doc.getFirstName()).isEqualTo("Andrew");
@@ -167,21 +168,21 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     public void updatesFieldValueAndDocumentVersion() {
         VersionedClass document = new VersionedClass(id, "foobar");
         template.insert(document);
-        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+        assertThat(template.findById(id, VersionedClass.class).getVersion()).isEqualTo(1);
 
-        document = new VersionedClass(id, "foobar1", document.version);
+        document = new VersionedClass(id, "foobar1", document.getVersion());
         template.update(document);
         assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
-            assertThat(doc.field).isEqualTo("foobar1");
-            assertThat(doc.version).isEqualTo(2);
+            assertThat(doc.getField()).isEqualTo("foobar1");
+            assertThat(doc.getVersion()).isEqualTo(2);
         });
 
-        document = new VersionedClass(id, "foobar2", document.version);
+        document = new VersionedClass(id, "foobar2", document.getVersion());
         template.update(document);
         VersionedClass result = template.findById(id, VersionedClass.class);
         assertThat(result).satisfies(doc -> {
-            assertThat(doc.field).isEqualTo("foobar2");
-            assertThat(doc.version).isEqualTo(3);
+            assertThat(doc.getField()).isEqualTo("foobar2");
+            assertThat(doc.getVersion()).isEqualTo(3);
         });
         template.delete(result); // cleanup
     }
@@ -190,23 +191,23 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     public void updateSpecificFieldsWithDocumentVersion() {
         VersionedClass document = new VersionedClass(id, "foobar");
         template.insert(document);
-        assertThat(template.findById(id, VersionedClass.class).version).isEqualTo(1);
+        assertThat(template.findById(id, VersionedClass.class).getVersion()).isEqualTo(1);
 
-        document = new VersionedClass(id, "foobar1", document.version);
+        document = new VersionedClass(id, "foobar1", document.getVersion());
         List<String> fields = new ArrayList<>();
         fields.add("field");
         template.update(document, fields);
         assertThat(template.findById(id, VersionedClass.class)).satisfies(doc -> {
-            assertThat(doc.field).isEqualTo("foobar1");
-            assertThat(doc.version).isEqualTo(2);
+            assertThat(doc.getField()).isEqualTo("foobar1");
+            assertThat(doc.getVersion()).isEqualTo(2);
         });
 
-        document = new VersionedClass(id, "foobar2", document.version);
+        document = new VersionedClass(id, "foobar2", document.getVersion());
         template.update(document, fields);
         VersionedClass result = template.findById(id, VersionedClass.class);
         assertThat(result).satisfies(doc -> {
-            assertThat(doc.field).isEqualTo("foobar2");
-            assertThat(doc.version).isEqualTo(3);
+            assertThat(doc.getField()).isEqualTo("foobar2");
+            assertThat(doc.getVersion()).isEqualTo(3);
         });
         template.delete(result); // cleanup
     }
@@ -216,12 +217,12 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         VersionedClass document = new VersionedClass(id, "foobar");
         template.insert(document);
 
-        document = new VersionedClass(id, null, document.version);
+        document = new VersionedClass(id, null, document.getVersion());
         template.update(document);
         VersionedClass result = template.findById(id, VersionedClass.class);
         assertThat(result).satisfies(doc -> {
-            assertThat(doc.field).isNull();
-            assertThat(doc.version).isEqualTo(2);
+            assertThat(doc.getField()).isNull();
+            assertThat(doc.getVersion()).isEqualTo(2);
         });
         template.delete(result); // cleanup
     }
@@ -236,7 +237,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
         Record raw = client.get(new Policy(), new Key(getNameSpace(), "versioned-set", id));
         assertThat(raw.generation).isEqualTo(3);
         VersionedClass actual = template.findById(id, VersionedClass.class);
-        assertThat(actual.version).isEqualTo(3);
+        assertThat(actual.getVersion()).isEqualTo(3);
         template.delete(actual); // cleanup
     }
 
@@ -252,7 +253,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             long counterValue = counter.incrementAndGet();
             String data = "value-" + counterValue;
             try {
-                template.update(new VersionedClass(id, data, document.version));
+                template.update(new VersionedClass(id, data, document.getVersion()));
             } catch (OptimisticLockingFailureException e) {
                 optimisticLock.incrementAndGet();
             }

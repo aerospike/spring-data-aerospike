@@ -74,7 +74,7 @@ Limit amount of results returned by server. Non-positive value means no limit.
 [[configure-data-settings.keep-original-key-types]]
 === keepOriginalKeyTypes
 
-Define how `@Id` fields (primary keys) and `Map` keys are persisted in the Aerospike database.
+Define how `@Id` fields (primary keys) and `Map` keys are stored in the Aerospike database: `false` - always as `String`, `true` - preserve original type if supported.
 
 [width="100%",cols="<20%,<30%,<30%",options="header",]
 |===
@@ -99,5 +99,5 @@ NOTE: If `@Id` field's type cannot be persisted as is, it must be convertible to
 |other types |`String` | `String`
 |===
 
-*Default*: `false` (only keep original `String` type).
+*Default*: `false` (store keys only as `String`).
 
