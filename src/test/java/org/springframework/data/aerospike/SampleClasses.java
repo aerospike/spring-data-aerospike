@@ -422,12 +422,12 @@ public class SampleClasses {
     public static class VersionedClass {
 
         @Version
-        private Long version;
+        private long version;
         private String field;
         @Id
         private String id;
 
-        public VersionedClass(String id, String field, Long version) {
+        public VersionedClass(String id, String field, long version) {
             this.id = id;
             this.field = field;
             this.version = version;
@@ -440,14 +440,15 @@ public class SampleClasses {
         }
     }
 
-    @Getter
+    @Data
+    @Document
     public static class VersionedClassWithAllArgsConstructor {
 
-        public final String field;
+        private String field;
         @Id
-        private final String id;
+        private String id;
         @Version
-        private final long version;
+        private long version;
 
         @PersistenceCreator
         public VersionedClassWithAllArgsConstructor(String id, String field, long version) {
