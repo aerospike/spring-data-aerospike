@@ -50,7 +50,7 @@ implementation group: 'com.aerospike', name: 'spring-data-aerospike', version: '
 
 == Connecting to Aerospike DB
 
-Connecting to the repository is easy with the help of the `AbstractAerospikeDataConfiguration` class.
+Configuring Spring Data Aerospike is easy with the help of the `AbstractAerospikeDataConfiguration` class.
 
 [source, java]
 ----
@@ -71,7 +71,9 @@ public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
 `@Configuration` tells Spring that this class contains configuration data, and `@EnableAerospikeRepositories` activates Aerospike repositories that can be used for data access. The parameter to this annotation tells Spring Data Aerospike where to look for the repositories. This can be a list of package names as strings using the `basePackages` value, or a list of classes through the `basePackageClass` value. If the latter is used (as in this example), the class is used to determine which package to scan, and all repositories in that package will be available for use. More details on repositories are below.
 
-The `AbstractAerospikeDataConfiguration` class exposes a number of beans that Spring Data Aerospike uses internally. Some of these, in particular the `AerospikeTemplate` bean, are useful in their own right if finer-grained control over data access is needed. The primary information required by this configuration is how to connect to the cluster, provided through the `getHosts` and `nameSpace` calls.
+The primary information required by this configuration is how to connect to the cluster, provided through the `getHosts` and `nameSpace` calls.
+
+NOTE: You can optionally override xref:#configure-data-settings[`configureDataSettings`] method of `AbstractAerospikeDataConfiguration` to customize your configuration.
 
 == Creating Functionality
 
@@ -114,7 +116,7 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 
 This defines a repository that can write `Person` entities and also query them by last name. The `AerospikeRepository` extends both `PagingAndSortingRepository` and `CrudRepository`, so methods like `count()`, `findById()`, `save()` and `delete()` are there by default. Those who need reactive flow can use `ReactiveAerospikeRepository` instead.
 
-NOTE: Repository is just an interface and not an actual class. In the background, when your context gets initialized, actual implementations for your repository descriptions get created and you can access them through regular beans. This means you will omit lots of boilerplate code while still exposing full CRUD semantics to your service layer and application.
+NOTE: Repository is just an interface and not an actual class. In the background, when your context gets initialized, actual implementations for your repository descriptions get created, and you can access them through regular beans. This means you will omit lots of boilerplate code while still exposing full CRUD semantics to your service layer and application.
 
 Example repository is ready for use. A sample Spring Controller which uses this repository could be the following:
 

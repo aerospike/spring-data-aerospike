@@ -271,12 +271,10 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             VersionedClass first = new VersionedClass(id, "foo");
             VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
             VersionedClass third = new VersionedClass(nextId(), "foo", 2L);
-            template.insertAll(List.of(first));
 
             // initially given versions are ignored
             // RecordExistsAction.CREATE_ONLY is used
-            assertThatNoException().isThrownBy(() -> template.insertAll(
-                List.of(second, third)));
+            assertThatNoException().isThrownBy(() -> template.insertAll(List.of(first, second, third)));
 
             assertThat(first.getVersion() == 1).isTrue();
             assertThat(second.getVersion() == 1).isTrue();

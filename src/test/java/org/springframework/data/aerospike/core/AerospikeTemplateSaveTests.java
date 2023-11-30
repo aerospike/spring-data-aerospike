@@ -340,7 +340,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
             template.saveAll(List.of(first, second));
         } else {
-            List.of(first, second).forEach(person -> template.save(person));
+            List.of(first, second).forEach(document -> template.save(document));
         }
 
         assertThat(first.getVersion()).isEqualTo(1);
@@ -375,6 +375,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
             VersionedClass first = new VersionedClass(id, "foo");
             VersionedClass second = new VersionedClass(nextId(), "foo");
 
+            assertThat(first.getVersion() == 0).isTrue();
+            assertThat(second.getVersion() == 0).isTrue();
+
             assertThatThrownBy(() -> template.saveAll(List.of(first, first, second, second)))
                 .isInstanceOf(AerospikeException.BatchRecordArray.class)
                 .hasMessageContaining("Errors during batch save");
@@ -391,13 +394,22 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     public void shouldSaveAllNotVersionedDocumentsIfAlreadyExist() {
         // batch write operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            Person john = new Person("id1", "John");
+            Person jack = new Person("id2", "Jack");
+            template.save(jack); // saving non-versioned document to create a new DB record
+            // If an object has no version property, RecordExistsAction.UPDATE is used
+            // If a corresponding record does not exist it will be created, otherwise updated (an "upsert")
+            template.saveAll(List.of(john, jack));
+            assertThat(template.findById("id1", Person.class)).isEqualTo(john); // DB record is created
+            assertThat(template.findById("id2", Person.class)).isEqualTo(jack);
+            template.delete(john); // cleanup
+            template.delete(jack); // cleanup
+
             Person person = new Person(id, "Amol");
             person.setAge(28);
             template.save(person);
-
             // If an object has no version property, RecordExistsAction.UPDATE is used
             assertThatNoException().isThrownBy(() -> template.saveAll(List.of(person, person)));
-
             template.delete(person); // cleanup
         }
     }
