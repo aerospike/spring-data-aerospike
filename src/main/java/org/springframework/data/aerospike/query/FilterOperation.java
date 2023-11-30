@@ -1266,7 +1266,7 @@ public enum FilterOperation {
     @SuppressWarnings("unchecked")
     private static Exp processMetadataFieldInOrNot(Map<String, Object> qualifierMap, boolean notIn) {
         FilterOperation filterOperation = notIn ? NOTEQ : EQ;
-        Object value1 = getValue1Object(qualifierMap);
+        Object value1 = getValue1AsObject(qualifierMap);
 
         Collection<Long> listOfLongs;
         try {
@@ -1325,7 +1325,7 @@ public enum FilterOperation {
                     return Optional.of(
                         operationFunction.apply(
                             mapMetadataExp(metadataField),
-                            Exp.val(getValue1AsLongOrFail(getValue1Object(qualifierMap)))
+                            Exp.val(getValue1AsLongOrFail(getValue1AsObject(qualifierMap)))
                         )
                     );
                 }
@@ -1464,16 +1464,38 @@ public enum FilterOperation {
 
     private static Exp getMapExp(Map<String, Object> qualifierMap, String[] dotPathArr, Exp.Type expType) {
         // VALUE2 contains key (field name)
-        // currently the only Map keys supported are Strings
+        Exp mapKeyExp = getMapKeyExp(getValue2AsObject(qualifierMap));
         if (dotPathArr.length > 2) {
-            // TODO: Support Integer, Bytes and Double (also support both modes)
-            // TODO: read flag (keepOriginalTypes)
-            return MapExp.getByKey(MapReturnType.VALUE, expType, Exp.val(getValue2(qualifierMap).toString()),
+            return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
         } else {
-            return MapExp.getByKey(MapReturnType.VALUE, expType, Exp.val(getValue2(qualifierMap).toString()),
+            return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getField(qualifierMap)));
         }
+    }
+
+    private static Exp getMapKeyExp(Object mapKey) {
+        // choosing whether to preserve map key type based on the configuration
+        if (keepOriginalKeyTypes()) {
+            Exp res;
+            if (mapKey instanceof Byte || mapKey instanceof Short || mapKey instanceof Integer || mapKey instanceof Long) {
+                res = Exp.val(((Number) mapKey).longValue()); // TODO: byte, short
+            } else if (mapKey instanceof Float || mapKey instanceof Double) {
+                res = Exp.val(((Number) mapKey).doubleValue()); // TODO: float
+            } else if (mapKey instanceof byte[]) {
+                res = Exp.val((byte[]) mapKey);
+            } else if (Value.get(mapKey) instanceof Value.NullValue) {
+                res = Exp.nil();
+            } else {
+                res = Exp.val(Value.get(mapKey).toString());
+            }
+            return res;
+        }
+        return Exp.val(Value.get(mapKey).toString());
+    }
+
+    private static boolean keepOriginalKeyTypes() {
+        return true; // TODO: read flag (keepOriginalKeysTypes)
     }
 
     private static Exp getFilterExpMapValEqOrFail(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator) {
@@ -1610,12 +1632,16 @@ public enum FilterOperation {
         return Value.get(qualifierMap.get(VALUE1));
     }
 
-    protected static Object getValue1Object(Map<String, Object> qualifierMap) {
+    protected static Object getValue1AsObject(Map<String, Object> qualifierMap) {
         return qualifierMap.get(VALUE1);
     }
 
     protected static Value getValue2(Map<String, Object> qualifierMap) {
         return Value.get(qualifierMap.get(VALUE2));
+    }
+
+    protected static Object getValue2AsObject(Map<String, Object> qualifierMap) {
+        return qualifierMap.get(VALUE2);
     }
 
     protected static Value getValue3(Map<String, Object> qualifierMap) {

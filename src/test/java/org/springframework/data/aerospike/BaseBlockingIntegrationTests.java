@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.aerospike.config.BlockingTestConfig;
 import org.springframework.data.aerospike.config.CommonTestConfig;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
@@ -32,6 +33,8 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     protected IndexesCache indexesCache;
     @Autowired
     protected IndexRefresher indexRefresher;
+    @Autowired
+    protected MappingAerospikeConverter converter;
 
     protected <T> void deleteOneByOne(Collection<T> collection) {
         collection.forEach(item -> template.delete(item));

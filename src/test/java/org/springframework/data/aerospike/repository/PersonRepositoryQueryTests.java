@@ -852,10 +852,29 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> persons = repository.findByIntMapLessThanEqual("key2", 1);
         assertThat(persons).containsExactly(carter);
 
-        carter.setLongIntMap(Map.of(10L, 10));
-        repository.save(carter);
-        persons = repository.findByLongIntMapLessThanEqual(10L, 10);
-        assertThat(persons).containsExactly(carter);
+        if (converter.getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+            carter.setLongIntMap(Map.of(10L, 10));
+            repository.save(carter);
+            List<Person> persons2 = repository.findByLongIntMapLessThanEqual(10L, 10);
+            assertThat(persons2).containsExactly(carter);
+            carter.setLongIntMap(null); // cleanup
+            repository.save(carter);
+
+            carter.setDoubleIntMap(Map.of(0.9D, 10));
+            repository.save(carter);
+            List<Person> persons3 = repository.findByDoubleIntMapLessThanEqual(0.9D, 10);
+            assertThat(persons3).containsExactly(carter);
+            carter.setDoubleIntMap(null); // cleanup
+            repository.save(carter);
+
+            byte[] byteArray = new byte[]{0, 1, 1, 0};
+            carter.setByteArrayIntMap(Map.of(byteArray, 10));
+            repository.save(carter);
+            List<Person> persons4 = repository.findByByteArrayIntMapLessThanEqual(byteArray, 10);
+            assertThat(persons4).containsExactly(carter);
+            carter.setByteArrayIntMap(null); // cleanup
+            repository.save(carter);
+        }
     }
 
     @Test

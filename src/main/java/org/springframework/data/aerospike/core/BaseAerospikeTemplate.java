@@ -278,16 +278,26 @@ abstract class BaseAerospikeTemplate {
     }
 
     Key getKey(Object id, AerospikePersistentEntity<?> entity) {
-        Assert.notNull(id, "Id must not be null!");
-        String userKey = convertIfNecessary(id, String.class);
-        return new Key(this.namespace, entity.getSetName(), userKey);
+        return getKey(id, entity.getSetName());
     }
 
     Key getKey(Object id, String setName) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        String userKey = convertIfNecessary(id, String.class);
-        return new Key(this.namespace, setName, userKey);
+        Key key;
+        // choosing whether tp preserve id type based on the configuration
+        if (converter.getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+            if (id instanceof Byte || id instanceof Short || id instanceof Integer || id instanceof Long) {
+                key = new Key(this.namespace, setName, convertIfNecessary(((Number) id).longValue(), Long.class));
+            } else if (id instanceof byte[]) {
+                key = new Key(this.namespace, setName, convertIfNecessary(id, byte[].class));
+            } else {
+                key = new Key(this.namespace, setName, convertIfNecessary(id, String.class));
+            }
+            return key;
+        } else {
+            return new Key(this.namespace, setName, convertIfNecessary(id, String.class));
+        }
     }
 
     GroupedEntities toGroupedEntities(EntitiesKeys entitiesKeys, Record[] records) {
