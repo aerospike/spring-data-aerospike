@@ -1466,6 +1466,8 @@ public enum FilterOperation {
         // VALUE2 contains key (field name)
         // currently the only Map keys supported are Strings
         if (dotPathArr.length > 2) {
+            // TODO: Support Integer, Bytes and Double (also support both modes)
+            // TODO: read flag (keepOriginalTypes)
             return MapExp.getByKey(MapReturnType.VALUE, expType, Exp.val(getValue2(qualifierMap).toString()),
                 Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
         } else {
@@ -1632,6 +1634,7 @@ public enum FilterOperation {
         Value val = getValue1(qualifierMap);
         int valType = val.getType();
         return switch (valType) {
+            // TODO: Add Bytes and Double Support (will fail on old mode - no results)
             case INTEGER -> Filter.contains(getField(qualifierMap), collectionType, val.toLong());
             case STRING -> Filter.contains(getField(qualifierMap), collectionType, val.toString());
             default -> null;

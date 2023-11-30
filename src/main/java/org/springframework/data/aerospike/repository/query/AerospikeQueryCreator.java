@@ -56,25 +56,16 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private static final Logger LOG = LoggerFactory.getLogger(AerospikeQueryCreator.class);
     private final AerospikeMappingContext context;
-    private final AerospikeCustomConversions conversions = new AerospikeCustomConversions(Collections.emptyList());
-    private final MappingAerospikeConverter converter = getMappingAerospikeConverter(conversions);
-
-    public AerospikeQueryCreator(PartTree tree, ParameterAccessor parameters) {
-        super(tree, parameters);
-        this.context = new AerospikeMappingContext();
-    }
+    private final AerospikeCustomConversions conversions;
+    private final MappingAerospikeConverter converter;
 
     public AerospikeQueryCreator(PartTree tree, ParameterAccessor parameters,
-                                 AerospikeMappingContext context) {
+                                 AerospikeMappingContext context, AerospikeCustomConversions conversions,
+                                 MappingAerospikeConverter converter) {
         super(tree, parameters);
         this.context = context;
-    }
-
-    private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
-        MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor(), AerospikeDataSettings.builder().build());
-        converter.afterPropertiesSet();
-        return converter;
+        this.conversions = conversions;
+        this.converter = converter;
     }
 
     @Override

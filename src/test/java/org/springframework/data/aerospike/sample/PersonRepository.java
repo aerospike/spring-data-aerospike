@@ -439,6 +439,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapNotContaining(String key, @NotNull String value);
 
     /**
+     *
+     * @param key
+     * @param lessThanOrEqualTo
+     * @return
+     */
+    List<P> findByLongIntMapLessThanEqual(long key, int lessThanOrEqualTo);
+
+    /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
      * @param value     map value

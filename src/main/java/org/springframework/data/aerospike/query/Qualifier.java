@@ -437,6 +437,7 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
      * @param id String value
      * @return Single id qualifier
      */
+    // TODO: Support other than string (based on flag)
     public static Qualifier idEquals(String id) {
         return new Qualifier(new IdQualifierBuilder()
             .setId(id)
@@ -449,6 +450,7 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
      * @param ids String values
      * @return Multiple ids qualifier with OR condition
      */
+    // TODO: Support other than string (based on flag)
     public static Qualifier idIn(String... ids) {
         return new Qualifier(new IdQualifierBuilder()
             .setIds(ids)
