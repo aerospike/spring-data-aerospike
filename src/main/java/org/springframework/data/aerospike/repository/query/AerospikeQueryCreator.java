@@ -118,7 +118,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     }
 
     public CriteriaDefinition getCriteria(Part part, AerospikePersistentProperty property, Object value1, Object value2,
-                                         Iterator<?> parameters, FilterOperation op) {
+                                          Iterator<?> parameters, FilterOperation op) {
         String fieldName = getFieldName(part.getProperty().getSegment(), property);
         Qualifier qualifier;
 
@@ -173,7 +173,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         parameters.forEachRemaining(params::add);
         Qualifier qualifier = null;
 
-        // the first parameter is value1, params have parameters starting from the second
+        // the first parameter is value1, params list contains parameters starting with the second onward
         if (params.size() == 1) {
             qualifier = processMap2Params(part, value1, value2, params, op, fieldName);
         } else if (params.isEmpty()) {
@@ -211,7 +211,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     private Qualifier processMapContaining(Object nextParam, Part part, Object value1, String fieldName,
                                            FilterOperation keysOp, FilterOperation valuesOp, FilterOperation byKeyOp) {
         FilterOperation op;
-        String dotPath = null;
+        List<String> dotPath = null;
         Qualifier.QualifierBuilder qb = Qualifier.builder();
 
         if (nextParam instanceof AerospikeMapCriteria onMap) {
@@ -222,7 +222,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             }
         } else {
             op = byKeyOp;
-            dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
+            dotPath = List.of(part.getProperty().toDotPath(), Value.get(value1).toString());
             setQbValuesForMapByKey(qb, value1, nextParam);
         }
 
@@ -232,7 +232,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     private Qualifier processMapBetween(Part part, Object value1, Object value2, FilterOperation op, String fieldName
         , Object nextParam) {
         Qualifier.QualifierBuilder qb = Qualifier.builder();
-        String dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
+        List<String> dotPath = List.of(part.getProperty().toDotPath(), Value.get(value1).toString());
 
         if (op == FilterOperation.BETWEEN) { // BETWEEN for values by a certain key
             op = getCorrespondingMapValueFilterOperationOrFail(op);
@@ -266,7 +266,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private Qualifier processMapMultipleParamsContaining(Part part, Object value1, Object value2, List<Object> params,
                                                          FilterOperation op, String fieldName) {
-        String dotPath = null;
+        List<String> dotPath = null;
         Qualifier.QualifierBuilder qb = Qualifier.builder();
 
         if (params.get(params.size() - 1) instanceof AerospikeMapCriteria mapCriteria) {
@@ -278,7 +278,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             params = params.stream().limit(params.size() - 1L).collect(Collectors.toList());
         } else {
             op = MAP_VAL_EQ_BY_KEY;
-            dotPath = part.getProperty().toDotPath() + "." + Value.get(value1);
+            dotPath = List.of(part.getProperty().toDotPath(), Value.get(value1).toString());
         }
 
         params.add(0, value1); // value1 stores the first parameter
@@ -291,7 +291,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private Qualifier processMapMultipleParamsContainingPerSize(List<Object> params, Qualifier.QualifierBuilder qb,
                                                                 Part part, Object value1, Object value2,
-                                                                String fieldName, FilterOperation op, String dotPath) {
+                                                                String fieldName, FilterOperation op,
+                                                                List<String> dotPath) {
         if (params.size() > 2) {
             if ((params.size() & 1) != 0) { // if params.size() is an odd number
                 throw new IllegalArgumentException("FindByMapContaining: expected either one, two " +
@@ -309,7 +310,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private Qualifier processOther(Part part, Object value1, Object value2, AerospikePersistentProperty property,
                                    FilterOperation op, String fieldName) {
-        String dotPath = null;
+        List<String> dotPath = null;
         Object value3 = null;
         Qualifier.QualifierBuilder qb = Qualifier.builder();
 
@@ -321,7 +322,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             }
             op = getCorrespondingMapValueFilterOperationOrFail(op);
             value2 = Value.get(property.getFieldName()); // VALUE2 contains key (field name)
-            dotPath = part.getProperty().toDotPath();
+            dotPath = List.of(part.getProperty().toDotPath());
         } else if (isPojo(part)) { // if it is a first level POJO
             if (op != FilterOperation.BETWEEN) {
                 // if it is a POJO compared for equality it already has op == FilterOperation.EQ
@@ -349,13 +350,13 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private Qualifier qualifierAndConcatenated(List<Object> params, Qualifier.QualifierBuilder qb,
                                                Part part, String fieldName, FilterOperation op,
-                                               String dotPath) {
+                                               List<String> dotPath) {
         return qualifierAndConcatenated(params, qb, part, fieldName, op, dotPath, false);
     }
 
     private Qualifier qualifierAndConcatenated(List<Object> params, Qualifier.QualifierBuilder qb,
                                                Part part, String fieldName, FilterOperation op,
-                                               String dotPath, boolean containingMapKeyValuePairs) {
+                                               List<String> dotPath, boolean containingMapKeyValuePairs) {
         Qualifier[] qualifiers;
         if (containingMapKeyValuePairs) {
             qualifiers = new Qualifier[params.size() / 2]; // keys/values qty must be even
@@ -379,7 +380,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     }
 
     private Qualifier setQualifier(Qualifier.QualifierBuilder qb, String fieldName, FilterOperation op, Part part,
-                                   Object value1, Object value2, Object value3, String dotPath) {
+                                   Object value1, Object value2, Object value3, List<String> dotPath) {
         qb.setField(fieldName)
             .setFilterOperation(op)
             .setIgnoreCase(ignoreCaseToBoolean(part))
@@ -406,7 +407,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         }
     }
 
-    private void setNotNullQbValues(Qualifier.QualifierBuilder qb, Object v1, Object v2, Object v3, String dotPath) {
+    private void setNotNullQbValues(Qualifier.QualifierBuilder qb, Object v1, Object v2, Object v3,
+                                    List<String> dotPath) {
         if (v1 != null && !qb.hasValue1()) qb.setValue1(Value.get(v1));
         if (v2 != null && !qb.hasValue2()) qb.setValue2(Value.get(v2));
         if (v3 != null && !qb.hasValue3()) qb.setValue3(Value.get(v3));

@@ -28,7 +28,6 @@ import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.util.Pair;
-import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -38,6 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.aerospike.client.command.ParticleType.BOOL;
 import static com.aerospike.client.command.ParticleType.INTEGER;
@@ -1464,7 +1464,7 @@ public enum FilterOperation {
 
     private static Exp getMapExp(Map<String, Object> qualifierMap, String[] dotPathArr, Exp.Type expType) {
         // VALUE2 contains key (field name)
-        Exp mapKeyExp = getMapKeyExp(getValue2AsObject(qualifierMap));
+        Exp mapKeyExp = getMapKeyExp(getValue2(qualifierMap).getObject());
         if (dotPathArr.length > 2) {
             return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
@@ -1479,9 +1479,9 @@ public enum FilterOperation {
         if (keepOriginalKeyTypes()) {
             Exp res;
             if (mapKey instanceof Byte || mapKey instanceof Short || mapKey instanceof Integer || mapKey instanceof Long) {
-                res = Exp.val(((Number) mapKey).longValue()); // TODO: byte, short
+                res = Exp.val(((Number) mapKey).longValue());
             } else if (mapKey instanceof Float || mapKey instanceof Double) {
-                res = Exp.val(((Number) mapKey).doubleValue()); // TODO: float
+                res = Exp.val(((Number) mapKey).doubleValue());
             } else if (mapKey instanceof byte[]) {
                 res = Exp.val((byte[]) mapKey);
             } else if (Value.get(mapKey) instanceof Value.NullValue) {
@@ -1565,9 +1565,13 @@ public enum FilterOperation {
         return operator.apply(binExp.apply(field), exp);
     }
 
-    private static String[] getDotPathArray(String dotPath, String errMsg) {
-        if (StringUtils.hasLength(dotPath)) {
-            return dotPath.split("\\.");
+    private static String[] getDotPathArray(List<String> dotPathList, String errMsg) {
+        if (dotPathList != null && !dotPathList.isEmpty()) {
+            // the first element of dotPath is part.getProperty().toDotPath()
+            // the second element of dotPath, if present, is a value
+            Stream<String> valueStream = dotPathList.size() == 1 || dotPathList.get(1) == null ? Stream.empty()
+                : Stream.of(dotPathList.get(1));
+            return Stream.concat(Arrays.stream(dotPathList.get(0).split("\\.")), valueStream).toArray(String[]::new);
         } else {
             throw new IllegalStateException(errMsg);
         }
@@ -1640,16 +1644,13 @@ public enum FilterOperation {
         return Value.get(qualifierMap.get(VALUE2));
     }
 
-    protected static Object getValue2AsObject(Map<String, Object> qualifierMap) {
-        return qualifierMap.get(VALUE2);
-    }
-
     protected static Value getValue3(Map<String, Object> qualifierMap) {
         return (Value) qualifierMap.get(VALUE3);
     }
 
-    protected static String getDotPath(Map<String, Object> qualifierMap) {
-        return (String) qualifierMap.get(DOT_PATH);
+    @SuppressWarnings("unchecked")
+    protected static List<String> getDotPath(Map<String, Object> qualifierMap) {
+        return (List<String>) qualifierMap.get(DOT_PATH);
     }
 
     public abstract Exp filterExp(Map<String, Object> qualifierMap);

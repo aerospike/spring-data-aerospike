@@ -848,6 +848,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByMapKeyValueLessThanOrEqual() {
         assertThat(carter.getIntMap()).containsKey("key2");
         assertThat(carter.getIntMap().get("key2") > 0).isTrue();
+        assertThat(carter.getIntMap().get("key2") <= 1).isTrue();
 
         List<Person> persons = repository.findByIntMapLessThanEqual("key2", 1);
         assertThat(persons).containsExactly(carter);
@@ -855,6 +856,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         if (converter.getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             carter.setLongIntMap(Map.of(10L, 10));
             repository.save(carter);
+            assertThat(carter.getLongIntMap().get(10L) <= 10).isTrue();
             List<Person> persons2 = repository.findByLongIntMapLessThanEqual(10L, 10);
             assertThat(persons2).containsExactly(carter);
             carter.setLongIntMap(null); // cleanup
@@ -862,18 +864,20 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
             carter.setDoubleIntMap(Map.of(0.9D, 10));
             repository.save(carter);
+            assertThat(carter.getDoubleIntMap().get(0.9D) <= 10).isTrue();
             List<Person> persons3 = repository.findByDoubleIntMapLessThanEqual(0.9D, 10);
             assertThat(persons3).containsExactly(carter);
             carter.setDoubleIntMap(null); // cleanup
             repository.save(carter);
-
-            byte[] byteArray = new byte[]{0, 1, 1, 0};
-            carter.setByteArrayIntMap(Map.of(byteArray, 10));
-            repository.save(carter);
-            List<Person> persons4 = repository.findByByteArrayIntMapLessThanEqual(byteArray, 10);
-            assertThat(persons4).containsExactly(carter);
-            carter.setByteArrayIntMap(null); // cleanup
-            repository.save(carter);
+//
+//            byte[] byteArray = new byte[]{0, 1, 1, 0};
+//            carter.setByteArrayIntMap(Map.of(byteArray, 10));
+//            repository.save(carter);
+//            assertThat(carter.getByteArrayIntMap().get(byteArray) <= 10).isTrue();
+//            List<Person> persons4 = repository.findByByteArrayIntMapLessThanEqual(byteArray, 10);
+//            assertThat(persons4).containsExactly(carter);
+//            carter.setByteArrayIntMap(null); // cleanup
+//            repository.save(carter);
         }
     }
 

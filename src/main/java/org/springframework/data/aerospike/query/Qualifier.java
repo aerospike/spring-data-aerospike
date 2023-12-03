@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -141,8 +142,9 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
         return (Value) internalMap.get(VALUE2);
     }
 
-    public String getDotPath() {
-        return (String) internalMap.get(DOT_PATH);
+    @SuppressWarnings("unchecked")
+    public List<String> getDotPath() {
+        return (List<String>) internalMap.get(DOT_PATH);
     }
 
     public Filter setQueryAsFilter() {
@@ -276,7 +278,7 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
             return this.map.get(VALUE3) != null;
         }
 
-        public void setDotPath(String dotPath) {
+        public void setDotPath(List<String> dotPath) {
             this.map.put(DOT_PATH, dotPath);
         }
 
