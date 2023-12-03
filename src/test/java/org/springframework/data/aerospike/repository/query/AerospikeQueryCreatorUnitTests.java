@@ -43,7 +43,7 @@ public class AerospikeQueryCreatorUnitTests {
         PartTree tree = new PartTree("findByFirstName", Person.class);
 
         AerospikeQueryCreator creator = new AerospikeQueryCreator(
-            tree, new StubParameterAccessor("Oliver"), context, conversions, converter);
+            tree, new StubParameterAccessor("Oliver"), context, converter);
         Query query = creator.createQuery();
     }
 
@@ -52,7 +52,7 @@ public class AerospikeQueryCreatorUnitTests {
         PartTree tree = new PartTree("findByFirstNameOrFriend", Person.class);
 
         AerospikeQueryCreator creator = new AerospikeQueryCreator(
-            tree, new StubParameterAccessor("Oliver", "Peter"), context, conversions, converter);
+            tree, new StubParameterAccessor("Oliver", "Peter"), context, converter);
         Query query = creator.createQuery();
     }
 

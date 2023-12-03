@@ -18,9 +18,6 @@ package org.springframework.data.aerospike.repository.query;
 import com.aerospike.client.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.aerospike.config.AerospikeDataSettings;
-import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
-import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -39,7 +36,6 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,15 +52,12 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private static final Logger LOG = LoggerFactory.getLogger(AerospikeQueryCreator.class);
     private final AerospikeMappingContext context;
-    private final AerospikeCustomConversions conversions;
     private final MappingAerospikeConverter converter;
 
     public AerospikeQueryCreator(PartTree tree, ParameterAccessor parameters,
-                                 AerospikeMappingContext context, AerospikeCustomConversions conversions,
-                                 MappingAerospikeConverter converter) {
+                                 AerospikeMappingContext context, MappingAerospikeConverter converter) {
         super(tree, parameters);
         this.context = context;
-        this.conversions = conversions;
         this.converter = converter;
     }
 
@@ -428,7 +421,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     private boolean isPojo(Part part) { // if it is a first level POJO
         TypeInformation<?> type = TypeInformation.of(part.getProperty().getType());
         // returns true if it is a POJO or a Map
-        return !conversions.isSimpleType(part.getProperty().getType()) && !type.isCollectionLike();
+        return !converter.getCustomConversions().isSimpleType(part.getProperty().getType()) && !type.isCollectionLike();
     }
 
     @Override

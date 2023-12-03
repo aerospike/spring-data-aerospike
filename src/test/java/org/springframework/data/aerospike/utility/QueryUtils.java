@@ -70,7 +70,7 @@ public class QueryUtils {
             new AerospikeQueryCreator(partTree,
                 new ParametersParameterAccessor(
                     new QueryMethod(method, new DefaultRepositoryMetadata(PersonRepository.class),
-                        new SpelAwareProxyProjectionFactory()).getParameters(), args), context, conversions, converter);
+                        new SpelAwareProxyProjectionFactory()).getParameters(), args), context, converter);
         return creator.createQuery();
     }
 

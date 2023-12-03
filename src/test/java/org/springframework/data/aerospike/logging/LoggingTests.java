@@ -69,7 +69,7 @@ public class LoggingTests {
 
         PartTree tree = new PartTree("findByFirstName", Person.class);
         AerospikeQueryCreator creator = new AerospikeQueryCreator(
-            tree, new StubParameterAccessor("TestName"), context, conversions, converter);
+            tree, new StubParameterAccessor("TestName"), context, converter);
         creator.createQuery();
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();

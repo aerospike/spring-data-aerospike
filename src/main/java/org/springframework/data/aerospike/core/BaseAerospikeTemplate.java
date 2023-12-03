@@ -135,6 +135,10 @@ abstract class BaseAerospikeTemplate {
         return this.mappingContext;
     }
 
+    public MappingAerospikeConverter getAerospikeConverter() {
+        return this.converter;
+    }
+
     public String getNamespace() {
         return namespace;
     }
