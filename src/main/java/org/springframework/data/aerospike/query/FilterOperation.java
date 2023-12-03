@@ -1471,7 +1471,8 @@ public enum FilterOperation {
         // choosing whether to preserve map key type based on the configuration
         if (keepOriginalKeyTypes) {
             Exp res;
-            if (mapKey instanceof Byte || mapKey instanceof Short || mapKey instanceof Integer || mapKey instanceof Long) {
+            if (mapKey instanceof Byte || mapKey instanceof Short || mapKey instanceof Integer
+                || mapKey instanceof Long) {
                 res = Exp.val(((Number) mapKey).longValue());
             } else if (mapKey instanceof Float || mapKey instanceof Double) {
                 res = Exp.val(((Number) mapKey).doubleValue());

@@ -26,6 +26,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -869,15 +870,17 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             assertThat(persons3).containsExactly(carter);
             carter.setDoubleIntMap(null); // cleanup
             repository.save(carter);
-//
-//            byte[] byteArray = new byte[]{0, 1, 1, 0};
-//            carter.setByteArrayIntMap(Map.of(byteArray, 10));
-//            repository.save(carter);
-//            assertThat(carter.getByteArrayIntMap().get(byteArray) <= 10).isTrue();
-//            List<Person> persons4 = repository.findByByteArrayIntMapLessThanEqual(byteArray, 10);
-//            assertThat(persons4).containsExactly(carter);
-//            carter.setByteArrayIntMap(null); // cleanup
-//            repository.save(carter);
+
+            byte[] byteArray = new byte[]{0, 1, 1, 0};
+            carter.setByteArrayIntMap(Map.of(byteArray, 10));
+            repository.save(carter);
+            assertThat(carter.getByteArrayIntMap().get(byteArray) <= 10).isTrue();
+            List<Person> persons4 = repository.findByByteArrayIntMapLessThanEqual(byteArray, 10);
+            assertThat(persons4).hasSize(1);
+            byte[] byteArrayIntMapFirstKey = persons4.get(0).getByteArrayIntMap().keySet().iterator().next();
+            assertThat(Arrays.equals(byteArrayIntMapFirstKey, byteArray)).isTrue();
+            carter.setByteArrayIntMap(null); // cleanup
+            repository.save(carter);
         }
     }
 

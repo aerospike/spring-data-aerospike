@@ -33,6 +33,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -258,6 +259,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             }
 
             Object convertedValue = getValueToWrite(value, type.getMapValueType());
+            if (simpleKey instanceof byte[]) simpleKey = ByteBuffer.wrap((byte[]) simpleKey);
             m.put(simpleKey, convertedValue);
         }, TreeMap::putAll);
     }

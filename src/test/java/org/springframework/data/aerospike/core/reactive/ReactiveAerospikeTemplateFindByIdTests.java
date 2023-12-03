@@ -2,10 +2,11 @@ package org.springframework.data.aerospike.core.reactive;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
-import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
@@ -101,5 +102,28 @@ public class ReactiveAerospikeTemplateFindByIdTests extends BaseReactiveIntegrat
         reactiveTemplate.delete(customer1).block(); // cleanup
         reactiveTemplate.delete(customer2).block(); // cleanup
         reactiveTemplate.delete(customer3).block(); // cleanup
+    }
+
+    @Test
+    public void findById_shouldReadClassWithNonStringId() {
+        if (reactiveTemplate.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+            long longId = 10L;
+            SampleClasses.DocumentWithLongId document = new SampleClasses.DocumentWithLongId(longId);
+            reactiveTemplate.save(document).block();
+            SampleClasses.DocumentWithLongId result = reactiveTemplate.findById(longId,
+                    SampleClasses.DocumentWithLongId.class)
+                .block();
+            assertThat(result.getId().equals(longId)).isTrue();
+            reactiveTemplate.delete(result); // cleanup
+
+            byte[] byteArrayId = new byte[]{1, 1, 1, 1};
+            SampleClasses.DocumentWithByteArrayId document2 = new SampleClasses.DocumentWithByteArrayId(byteArrayId);
+            reactiveTemplate.save(document2).block();
+            SampleClasses.DocumentWithByteArrayId result2 = reactiveTemplate.findById(byteArrayId,
+                    SampleClasses.DocumentWithByteArrayId.class)
+                .block();
+            assertThat(Arrays.equals(result2.getId(), byteArrayId)).isTrue();
+            reactiveTemplate.delete(result2); // cleanup
+        }
     }
 }

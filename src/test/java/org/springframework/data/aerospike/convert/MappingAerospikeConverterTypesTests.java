@@ -22,7 +22,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.AsCollections.*;
+import static org.springframework.data.aerospike.AsCollections.list;
+import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.AsCollections.set;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
 import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
@@ -549,13 +551,13 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void idFieldOfNonDocumentClass(int converterOption) {
-        MapWithGenericValue<ClassWithIdField> object = new MapWithGenericValue<>(788L,
-            of("key", new ClassWithIdField(45L, "v")));
+        MapWithGenericValue<ClassWithLongIdField> object = new MapWithGenericValue<>(788L,
+            of("key", new ClassWithLongIdField(45L, "v")));
 
         assertWriteAndRead(converterOption, object, MapWithGenericValue.class.getSimpleName(), 788L,
             new Bin("@_class", MapWithGenericValue.class.getName()),
             new Bin("mapWithNonSimpleValue",
-                of("key", of("id", 45L, "field", "v", "@_class", ClassWithIdField.class.getName())))
+                of("key", of("id", 45L, "field", "v", "@_class", ClassWithLongIdField.class.getName())))
         );
     }
 

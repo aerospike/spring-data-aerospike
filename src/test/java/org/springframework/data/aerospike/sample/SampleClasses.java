@@ -820,9 +820,17 @@ public class SampleClasses {
 
     @AllArgsConstructor
     @Data
-    public static class ClassWithIdField {
+    public static class ClassWithLongIdField {
 
         private long id;
+        private String field;
+    }
+
+    @AllArgsConstructor
+    @Data
+    public static class ClassWithByteArrayIdField {
+
+        private byte[] id;
         private String field;
     }
 
