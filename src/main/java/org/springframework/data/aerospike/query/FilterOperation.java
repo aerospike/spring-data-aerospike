@@ -26,6 +26,7 @@ import com.aerospike.client.exp.MapExp;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.util.Pair;
 
@@ -45,15 +46,7 @@ import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.NULL;
 import static com.aerospike.client.command.ParticleType.STRING;
-import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
-import static org.springframework.data.aerospike.query.Qualifier.FIELD;
-import static org.springframework.data.aerospike.query.Qualifier.IGNORE_CASE;
-import static org.springframework.data.aerospike.query.Qualifier.METADATA_FIELD;
-import static org.springframework.data.aerospike.query.Qualifier.OPERATION;
-import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE1;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE2;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE3;
+import static org.springframework.data.aerospike.query.Qualifier.*;
 import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getContaining;
 import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getEndsWith;
 import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getNotContaining;
@@ -1464,7 +1457,7 @@ public enum FilterOperation {
 
     private static Exp getMapExp(Map<String, Object> qualifierMap, String[] dotPathArr, Exp.Type expType) {
         // VALUE2 contains key (field name)
-        Exp mapKeyExp = getMapKeyExp(getValue2(qualifierMap).getObject());
+        Exp mapKeyExp = getMapKeyExp(getValue2(qualifierMap).getObject(), keepOriginalKeyTypes(qualifierMap));
         if (dotPathArr.length > 2) {
             return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
@@ -1474,9 +1467,9 @@ public enum FilterOperation {
         }
     }
 
-    private static Exp getMapKeyExp(Object mapKey) {
+    private static Exp getMapKeyExp(Object mapKey, boolean keepOriginalKeyTypes) {
         // choosing whether to preserve map key type based on the configuration
-        if (keepOriginalKeyTypes()) {
+        if (keepOriginalKeyTypes) {
             Exp res;
             if (mapKey instanceof Byte || mapKey instanceof Short || mapKey instanceof Integer || mapKey instanceof Long) {
                 res = Exp.val(((Number) mapKey).longValue());
@@ -1494,8 +1487,9 @@ public enum FilterOperation {
         return Exp.val(Value.get(mapKey).toString());
     }
 
-    private static boolean keepOriginalKeyTypes() {
-        return true; // TODO: read flag (keepOriginalKeysTypes)
+    private static boolean keepOriginalKeyTypes(Map<String, Object> qualifierMap) {
+        return ((MappingAerospikeConverter) qualifierMap.get(CONVERTER))
+            .getAerospikeDataSettings().isKeepOriginalKeyTypes();
     }
 
     private static Exp getFilterExpMapValEqOrFail(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator) {
@@ -1571,7 +1565,8 @@ public enum FilterOperation {
             // the second element of dotPath, if present, is a value
             Stream<String> valueStream = dotPathList.size() == 1 || dotPathList.get(1) == null ? Stream.empty()
                 : Stream.of(dotPathList.get(1));
-            return Stream.concat(Arrays.stream(dotPathList.get(0).split("\\.")), valueStream).toArray(String[]::new);
+            return Stream.concat(Arrays.stream(dotPathList.get(0).split("\\.")), valueStream)
+                .toArray(String[]::new);
         } else {
             throw new IllegalStateException(errMsg);
         }
