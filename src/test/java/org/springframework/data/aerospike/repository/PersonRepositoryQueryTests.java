@@ -854,7 +854,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> persons = repository.findByIntMapLessThanEqual("key2", 1);
         assertThat(persons).containsExactly(carter);
 
-        if (converter.getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             carter.setLongIntMap(Map.of(10L, 10));
             repository.save(carter);
             assertThat(carter.getLongIntMap().get(10L) <= 10).isTrue();

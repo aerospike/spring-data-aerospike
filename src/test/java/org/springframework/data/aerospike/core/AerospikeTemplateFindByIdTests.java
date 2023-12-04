@@ -191,7 +191,7 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
 
     @Test
     public void findById_shouldReadClassWithNonStringId() {
-        if (converter.getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             long longId = 10L;
             SampleClasses.DocumentWithLongId document = new SampleClasses.DocumentWithLongId(longId);
             template.save(document);
