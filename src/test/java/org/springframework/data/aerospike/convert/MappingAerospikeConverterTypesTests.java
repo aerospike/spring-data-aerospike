@@ -94,7 +94,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void shortId(int converterOption) {
-        DocumentWithShortId object = new DocumentWithShortId((short) 5);
+        DocumentWithShortId object = DocumentWithShortId.builder().id((short) 5).build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithShortId", (short) 5,
             new Bin("@_class", DocumentWithShortId.class.getName())
@@ -104,7 +104,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void integerId(int converterOption) {
-        DocumentWithIntegerId object = new DocumentWithIntegerId(5);
+        DocumentWithIntegerId object = DocumentWithIntegerId.builder().id(5).build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithIntegerId", 5,
             new Bin("@_class", DocumentWithIntegerId.class.getName())
@@ -114,7 +114,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void longId(int converterOption) {
-        DocumentWithLongId object = new DocumentWithLongId(5L);
+        DocumentWithLongId object = DocumentWithLongId.builder().id(5L).build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithLongId", 5L,
             new Bin("@_class", DocumentWithLongId.class.getName())
@@ -144,7 +144,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void stringId(int converterOption) {
-        DocumentWithStringId object = new DocumentWithStringId("my-amazing-string-id");
+        DocumentWithStringId object = DocumentWithStringId.builder().id("my-amazing-string-id").build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithStringId",
             "my-amazing-string-id", new Bin("@_class", DocumentWithStringId.class.getName())

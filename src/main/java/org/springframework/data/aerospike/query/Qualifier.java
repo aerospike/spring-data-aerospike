@@ -361,7 +361,37 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
             return this;
         }
 
+        private IdQualifierBuilder setId(Short id) {
+            this.map.put(SINGLE_ID_FIELD, id);
+            return this;
+        }
+
+        private IdQualifierBuilder setId(Integer id) {
+            this.map.put(SINGLE_ID_FIELD, id);
+            return this;
+        }
+
+        private IdQualifierBuilder setId(Long id) {
+            this.map.put(SINGLE_ID_FIELD, id);
+            return this;
+        }
+
         private IdQualifierBuilder setIds(String... ids) {
+            this.map.put(MULTIPLE_IDS_FIELD, ids);
+            return this;
+        }
+
+        private IdQualifierBuilder setIds(Short... ids) {
+            this.map.put(MULTIPLE_IDS_FIELD, ids);
+            return this;
+        }
+
+        private IdQualifierBuilder setIds(Integer... ids) {
+            this.map.put(MULTIPLE_IDS_FIELD, ids);
+            return this;
+        }
+
+        private IdQualifierBuilder setIds(Long... ids) {
             this.map.put(MULTIPLE_IDS_FIELD, ids);
             return this;
         }
@@ -439,8 +469,43 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
      * @param id String value
      * @return Single id qualifier
      */
-    // TODO: Support other than string (based on flag)
     public static Qualifier idEquals(String id) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setId(id)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals the given short
+     *
+     * @param id Short value
+     * @return Single id qualifier
+     */
+    public static Qualifier idEquals(Short id) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setId(id)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals the given integer
+     *
+     * @param id Integer value
+     * @return Single id qualifier
+     */
+    public static Qualifier idEquals(Integer id) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setId(id)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals the given long
+     *
+     * @param id Long value
+     * @return Single id qualifier
+     */
+    public static Qualifier idEquals(Long id) {
         return new Qualifier(new IdQualifierBuilder()
             .setId(id)
             .setFilterOperation(FilterOperation.EQ));
@@ -452,8 +517,43 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
      * @param ids String values
      * @return Multiple ids qualifier with OR condition
      */
-    // TODO: Support other than string (based on flag)
     public static Qualifier idIn(String... ids) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setIds(ids)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals one of the given shorts (logical OR)
+     *
+     * @param ids Short values
+     * @return Multiple ids qualifier with OR condition
+     */
+    public static Qualifier idIn(Short... ids) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setIds(ids)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals one of the given integers (logical OR)
+     *
+     * @param ids Integer values
+     * @return Multiple ids qualifier with OR condition
+     */
+    public static Qualifier idIn(Integer... ids) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setIds(ids)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals one of the given longs (logical OR)
+     *
+     * @param ids Long values
+     * @return Multiple ids qualifier with OR condition
+     */
+    public static Qualifier idIn(Long... ids) {
         return new Qualifier(new IdQualifierBuilder()
             .setIds(ids)
             .setFilterOperation(FilterOperation.EQ));

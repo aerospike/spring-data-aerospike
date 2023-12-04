@@ -17,15 +17,7 @@ package org.springframework.data.aerospike.sample;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.ToString;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
@@ -480,27 +472,33 @@ public class SampleClasses {
     }
 
     @Data
+    @Builder
     @AllArgsConstructor
     public static class DocumentWithShortId {
 
         @Id
         public Short id;
+        public String content;
     }
 
     @Data
+    @Builder
     @AllArgsConstructor
     public static class DocumentWithIntegerId {
 
         @Id
         public Integer id;
+        public String content;
     }
 
     @Data
+    @Builder
     @AllArgsConstructor
     public static class DocumentWithLongId {
 
         @Id
         public Long id;
+        public String content;
     }
 
     @Data
@@ -520,12 +518,14 @@ public class SampleClasses {
     }
 
     @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithStringId {
 
         @Id
         public String id;
+        public String content;
     }
 
     @Data
