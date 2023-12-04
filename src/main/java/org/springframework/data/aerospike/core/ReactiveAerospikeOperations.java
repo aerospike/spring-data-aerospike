@@ -43,17 +43,17 @@ import java.util.function.Supplier;
 public interface ReactiveAerospikeOperations {
 
     /**
-     * @return mapping context in use.
+     * @return Mapping context in use.
      */
     MappingContext<?, ?> getMappingContext();
 
     /**
-     * @return aerospike reactive client in use.
+     * @return Aerospike reactive client in use.
      */
     IAerospikeReactorClient getAerospikeReactorClient();
 
     /**
-     * @return value of configuration parameter {@link AerospikeDataSettings#getQueryMaxRecords()}.
+     * @return Value of configuration parameter {@link AerospikeDataSettings#getQueryMaxRecords()}.
      */
     long getQueryMaxRecords();
 
@@ -79,7 +79,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> save(T document);
 
     /**
-     * Reactively save a document with the given set name.
+     * Reactively save a document within the given set.
      * <p>
      * If the document has version property, CAS algorithm is used for updating record. Version property is used for
      * deciding whether to create new record or update existing. If the version is set to zero, a new record will be
@@ -115,7 +115,7 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> saveAll(Iterable<T> documents);
 
     /**
-     * Reactively save documents using one batch request with the given set name. The policies are analogous to
+     * Reactively save documents within the given set using one batch request. The policies are analogous to
      * {@link #save(Object)}.
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
@@ -141,7 +141,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> insert(T document);
 
     /**
-     * Reactively insert document with the given set name using
+     * Reactively insert a document within the given set using
      * {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
      * <p>
      * If the document has version property it will be updated with the server's version after successful operation.
@@ -167,7 +167,7 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> insertAll(Iterable<? extends T> documents);
 
     /**
-     * Reactively insert documents with the given set using one batch request. The policies are analogous to
+     * Reactively insert documents within the given set using one batch request. The policies are analogous to
      * {@link #insert(Object)}.
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
@@ -193,8 +193,8 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> persist(T document, WritePolicy writePolicy);
 
     /**
-     * Reactively persist a document using specified WritePolicy and the given set (overrides the set associated with the
-     * document).
+     * Reactively persist a document within the given set (overrides the default set associated with the document)
+     * using specified WritePolicy.
      *
      * @param document    The document to persist. Must not be {@literal null}.
      * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
@@ -218,7 +218,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> update(T document);
 
     /**
-     * Reactively update document with the given set using
+     * Reactively update document within the given set using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with removing bins at first
      * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the
      * version property of the document if it is present.
@@ -232,7 +232,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> update(T document, String setName);
 
     /**
-     * Reactively update document specific fields based on the given collection of fields using
+     * Reactively update document's specific fields based on the given collection of fields using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy. You can instantiate the document with
      * only relevant fields and specify the list of fields that you want to update, taking into consideration the
      * version property of the document if it is present.
@@ -245,7 +245,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> update(T document, Collection<String> fields);
 
     /**
-     * Reactively update document specific fields based on the given collection of fields with the given set name using
+     * Reactively update document's specific fields based on the given collection of fields within the given set using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy. You can instantiate the document with
      * only relevant fields and specify the list of fields that you want to update, taking into consideration the
      * version property of the document if it is present.
@@ -273,7 +273,7 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> updateAll(Iterable<? extends T> documents);
 
     /**
-     * Reactively update documents using one batch request with the given set name. The policies are analogous to
+     * Reactively update documents within the given set using one batch request. The policies are analogous to
      * {@link #update(Object)}.
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
@@ -566,7 +566,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> findById(Object id, Class<T> entityClass);
 
     /**
-     * Reactively find a record by id with the given set name.
+     * Reactively find a record by id within the given set.
      * <p>
      * The record will be mapped to the given entityClass.
      *
@@ -591,7 +591,7 @@ public interface ReactiveAerospikeOperations {
     <T, S> Mono<S> findById(Object id, Class<T> entityClass, Class<S> targetClass);
 
     /**
-     * Reactively find a record by id with the given set name.
+     * Reactively find a record by id within the given set.
      * <p>
      * The record will be mapped to the given targetClass.
      *
@@ -631,7 +631,7 @@ public interface ReactiveAerospikeOperations {
     <T, S> Flux<S> findByIds(Iterable<?> ids, Class<T> entityClass, Class<S> targetClass);
 
     /**
-     * Reactively find records by ids using a single batch read operation with the given set name.
+     * Reactively find records by ids within the given set using a single batch read operation.
      * <p>
      * The records will be mapped to the given entityClass.
      *
@@ -643,19 +643,18 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> findByIds(Iterable<?> ids, Class<T> targetClass, String setName);
 
     /**
-     * Reactively executes a single batch request to get results for several entities.
+     * Reactively execute a single batch request to find several records, possibly from different sets.
      * <p>
-     * Aerospike provides functionality to get documents from different sets in 1 batch request. The methods allow to
-     * put grouped keys by entity type as parameter and get result as spring data aerospike entities grouped by entity
-     * type.
+     * Aerospike provides functionality to get records from different sets in 1 batch request. This method receives
+     * keys grouped by document type as a parameter and returns Aerospike records mapped to documents grouped by type.
      *
      * @param groupedKeys Must not be {@literal null}.
-     * @return Mono of grouped entities.
+     * @return Mono of grouped documents.
      */
     Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys);
 
     /**
-     * Find record by id, set name will be determined based on the given entityClass.
+     * Find a record by id using a query, set name will be determined based on the given entityClass.
      * <p>
      * The records will be mapped to the given targetClass.
      *
@@ -663,13 +662,13 @@ public interface ReactiveAerospikeOperations {
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @param targetClass The class to map the record to.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return The document from Aerospike, returned document will be mapped to targetClass's type.
+     * @return The matching record mapped to targetClass's type.
      */
     <T, S> Mono<?> findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass,
                                       @Nullable Query query);
 
     /**
-     * Find record by id with the given set name.
+     * Find a record by id within the given set using a query.
      * <p>
      * The records will be mapped to the given targetClass.
      *
@@ -679,7 +678,7 @@ public interface ReactiveAerospikeOperations {
      * @param targetClass The class to map the record to.
      * @param setName     Set name to use.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
-     * @return The document from Aerospike, returned document will be mapped to targetClass's type.
+     * @return The matching record mapped to targetClass's type.
      */
     <T, S> Mono<?> findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
                                       @Nullable Query query);
@@ -901,7 +900,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass, String setName);
 
     /**
-     * Reactively return the amount of records in the given entityClass Aerospike set.
+     * Reactively return the amount of records in the set determined based on the given entityClass.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @return A Mono of the amount of records in the set (of the given entityClass).
@@ -936,7 +935,7 @@ public interface ReactiveAerospikeOperations {
     Mono<Long> count(Query query, String setName);
 
     /**
-     * Reactively create index by specified name in Aerospike.
+     * Reactively create an index with the specified name in Aerospike.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @param indexName   The index name. Must not be {@literal null}.
@@ -947,7 +946,7 @@ public interface ReactiveAerospikeOperations {
                                String binName, IndexType indexType);
 
     /**
-     * Reactively create index by specified name in Aerospike.
+     * Reactively create an index with the specified name in Aerospike.
      *
      * @param entityClass         The class to extract set name from. Must not be {@literal null}.
      * @param indexName           The index name. Must not be {@literal null}.
@@ -959,7 +958,7 @@ public interface ReactiveAerospikeOperations {
                                IndexType indexType, IndexCollectionType indexCollectionType);
 
     /**
-     * Reactively create index by specified name in Aerospike.
+     * Reactively create an index with the specified name in Aerospike.
      *
      * @param entityClass         The class to extract set name from. Must not be {@literal null}.
      * @param indexName           The index name. Must not be {@literal null}.
@@ -972,7 +971,7 @@ public interface ReactiveAerospikeOperations {
                                IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
 
     /**
-     * Reactively create index by specified name in Aerospike.
+     * Reactively create an index with the specified name in Aerospike.
      *
      * @param setName   Set name to use.
      * @param indexName The index name. Must not be {@literal null}.
@@ -983,7 +982,7 @@ public interface ReactiveAerospikeOperations {
                            String binName, IndexType indexType);
 
     /**
-     * Reactively create index by specified name in Aerospike.
+     * Reactively create an index with the specified name in Aerospike.
      *
      * @param setName             Set name to use.
      * @param indexName           The index name. Must not be {@literal null}.
@@ -995,7 +994,7 @@ public interface ReactiveAerospikeOperations {
                            IndexType indexType, IndexCollectionType indexCollectionType);
 
     /**
-     * Reactively create index by specified name in Aerospike.
+     * Reactively create an index with the specified name in Aerospike.
      *
      * @param setName             Set name to use.
      * @param indexName           The index name. Must not be {@literal null}.
@@ -1008,7 +1007,7 @@ public interface ReactiveAerospikeOperations {
                            IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx);
 
     /**
-     * Reactively delete index by specified name from Aerospike.
+     * Reactively delete an index with the specified name in Aerospike.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @param indexName   The index name. Must not be {@literal null}.
@@ -1016,7 +1015,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Void> deleteIndex(Class<T> entityClass, String indexName);
 
     /**
-     * Reactively delete index by specified name from Aerospike.
+     * Reactively delete an index with the specified name within the given set in Aerospike.
      *
      * @param setName   Set name to use.
      * @param indexName The index name. Must not be {@literal null}.
