@@ -35,7 +35,7 @@ public class AerospikeDataSettings {
     // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
     // true - preserve original type if supported
     @Builder.Default
-    boolean keepOriginalKeyTypes = true;
+    boolean keepOriginalKeyTypes = false;
 
     /*
      * (non-Javadoc)
