@@ -20,7 +20,6 @@ import lombok.Setter;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
-import org.springframework.data.keyvalue.core.query.KeyValueQuery;
 
 /**
  * @author Peter Milne
@@ -39,7 +38,7 @@ public class Query {
     private boolean isDistinct;
 
     /**
-     * Creates new instance of {@link KeyValueQuery} with given criteria.
+     * Creates new instance of {@link Query} with given criteria.
      *
      * @param criteria can be {@literal null}.
      */
