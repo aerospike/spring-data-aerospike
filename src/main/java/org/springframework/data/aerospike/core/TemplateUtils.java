@@ -29,7 +29,10 @@ public class TemplateUtils {
     private static List<Object> idObjectToList(Object ids) {
         List<Object> result;
         Assert.notNull(ids, "Ids must not be null");
-        if (ids.getClass().isArray()) {
+
+        if (ids instanceof byte[]) {
+            result = List.of(ids);
+        } else if (ids.getClass().isArray()) {
             result = Arrays.stream(((Object[]) ids)).toList();
         } else if (ids instanceof Collection<?>) {
             result = new ArrayList<>((Collection<?>) ids);
