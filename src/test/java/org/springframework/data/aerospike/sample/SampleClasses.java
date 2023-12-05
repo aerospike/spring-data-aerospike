@@ -110,7 +110,7 @@ public class SampleClasses {
 
         @Id
         final long id;
-        final Map<Integer, String> mapWithIntegerId;
+        final Map<Integer, String> mapWithIntId;
     }
 
     @Document
@@ -151,21 +151,11 @@ public class SampleClasses {
 
     @Document
     @Data
-    public static class MapWithSimpleValue {
+    public static class MapWithStringValue {
 
         @Id
         final long id;
-        final Map<String, String> mapWithSimpleValue;
-    }
-
-    @Document
-    @Data
-    public static class MapWithNonStringKeys {
-
-        @Id
-        final String id;
-        final Map<Integer, String> intKeyMap;
-        final Map<Double, String> doubleKeyMap;
+        final Map<String, String> mapWithStringValue;
     }
 
     @Document
@@ -816,14 +806,6 @@ public class SampleClasses {
         private DateTime expiration;
 
         private int intField;
-    }
-
-    @AllArgsConstructor
-    @Data
-    public static class ClassWithLongIdField {
-
-        private long id;
-        private String field;
     }
 
     @AllArgsConstructor

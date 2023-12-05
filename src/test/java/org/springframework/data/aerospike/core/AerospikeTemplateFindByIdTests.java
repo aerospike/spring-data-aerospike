@@ -25,7 +25,8 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
-import org.springframework.data.aerospike.sample.SampleClasses.MapWithNonStringKeys;
+import org.springframework.data.aerospike.sample.SampleClasses.MapWithDoubleId;
+import org.springframework.data.aerospike.sample.SampleClasses.MapWithIntegerId;
 import org.springframework.data.aerospike.sample.SampleClasses.VersionedClassWithAllArgsConstructor;
 
 import java.util.Arrays;
@@ -161,13 +162,18 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
         int intKey = 1;
         double doubleKey = 100.25;
         String value = "String value";
+        long id = 10L;
+        long id2 = 11L;
 
-        template.save(new MapWithNonStringKeys(id, Map.of(intKey, value), Map.of(doubleKey, value)));
+        template.save(new MapWithIntegerId(id, Map.of(intKey, value)));
+        template.save(new MapWithDoubleId(id2, Map.of(doubleKey, value)));
 
-        MapWithNonStringKeys result = template.findById(id, MapWithNonStringKeys.class);
-        assertThat(result.getIntKeyMap()).isEqualTo(Map.of(intKey, value));
-        assertThat(result.getDoubleKeyMap()).isEqualTo(Map.of(doubleKey, value));
-        template.delete(result); // cleanup
+        MapWithIntegerId resultInt = template.findById(id, MapWithIntegerId.class);
+        MapWithDoubleId resultDouble = template.findById(id2, MapWithDoubleId.class);
+        assertThat(resultInt.getMapWithIntId()).isEqualTo(Map.of(intKey, value));
+        assertThat(resultDouble.getMapWithDoubleId()).isEqualTo(Map.of(doubleKey, value));
+        template.delete(resultInt); // cleanup
+        template.delete(resultDouble); // cleanup
     }
 
     @Test
@@ -175,18 +181,22 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
         int intKey = 1;
         double doubleKey = 100.25;
         String value = "String value";
+        long id1 = 10L;
+        long id2 = 11L;
 
-        client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
-            MapOperation.put(MapPolicy.Default, "intKeyMap", Value.get(intKey), Value.get(value))
+        client.operate(null, new Key(getNameSpace(), "MapWithIntegerId", id1),
+            MapOperation.put(MapPolicy.Default, "mapWithIntId", Value.get(intKey), Value.get(value))
         );
-        client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
-            MapOperation.put(MapPolicy.Default, "doubleKeyMap", Value.get(doubleKey), Value.get(value))
+        client.operate(null, new Key(getNameSpace(), "MapWithDoubleId", id2),
+            MapOperation.put(MapPolicy.Default, "mapWithDoubleId", Value.get(doubleKey), Value.get(value))
         );
 
-        MapWithNonStringKeys result = template.findById(id, MapWithNonStringKeys.class);
-        assertThat(result.getIntKeyMap()).isEqualTo(Map.of(intKey, value));
-        assertThat(result.getDoubleKeyMap()).isEqualTo(Map.of(doubleKey, value));
-        template.delete(result); // cleanup
+        MapWithIntegerId resultInt = template.findById(id1, MapWithIntegerId.class);
+        assertThat(resultInt.getMapWithIntId()).isEqualTo(Map.of(intKey, value));
+        MapWithDoubleId resultDouble = template.findById(id2, MapWithDoubleId.class);
+        assertThat(resultDouble.getMapWithDoubleId()).isEqualTo(Map.of(doubleKey, value));
+        template.delete(resultInt); // cleanup
+        template.delete(resultDouble); // cleanup
     }
 
     @Test

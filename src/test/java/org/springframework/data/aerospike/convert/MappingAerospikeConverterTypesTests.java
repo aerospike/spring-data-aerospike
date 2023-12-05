@@ -254,12 +254,12 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ValueSource(ints = {0, 1})
     void mapWithSimpleValue(int converterOption) {
         Map<String, String> map = of("key1", "value1", "key2", "value2", "key3", null);
-        MapWithSimpleValue object = new MapWithSimpleValue(10L, map);
+        MapWithStringValue object = new MapWithStringValue(10L, map);
 
         assertWriteAndRead(converterOption, object,
-            MapWithSimpleValue.class.getSimpleName(), 10L,
+            MapWithStringValue.class.getSimpleName(), 10L,
             new Bin("mapWithSimpleValue", of("key1", "value1", "key2", "value2", "key3", null)),
-            new Bin("@_class", MapWithSimpleValue.class.getName())
+            new Bin("@_class", MapWithStringValue.class.getName())
         );
     }
 
@@ -551,13 +551,13 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void idFieldOfNonDocumentClass(int converterOption) {
-        MapWithGenericValue<ClassWithLongIdField> object = new MapWithGenericValue<>(788L,
-            of("key", new ClassWithLongIdField(45L, "v")));
+        MapWithGenericValue<DocumentWithLongId> object = new MapWithGenericValue<>(788L,
+            of("key", new DocumentWithLongId(45L, "v")));
 
         assertWriteAndRead(converterOption, object, MapWithGenericValue.class.getSimpleName(), 788L,
             new Bin("@_class", MapWithGenericValue.class.getName()),
             new Bin("mapWithNonSimpleValue",
-                of("key", of("id", 45L, "field", "v", "@_class", ClassWithLongIdField.class.getName())))
+                of("key", of("id", 45L, "content", "v", "@_class", DocumentWithLongId.class.getName())))
         );
     }
 
