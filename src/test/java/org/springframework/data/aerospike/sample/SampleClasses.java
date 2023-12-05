@@ -424,7 +424,7 @@ public class SampleClasses {
     public static class DocumentWithPrimitiveShortId {
 
         @Id
-        public short id;
+        private short id;
     }
 
     @Data
@@ -432,7 +432,7 @@ public class SampleClasses {
     public static class DocumentWithPrimitiveIntId {
 
         @Id
-        public int id;
+        private int id;
     }
 
     @Data
@@ -440,7 +440,7 @@ public class SampleClasses {
     public static class DocumentWithPrimitiveLongId {
 
         @Id
-        public long id;
+        private long id;
     }
 
     @Data
@@ -449,7 +449,7 @@ public class SampleClasses {
     public static class DocumentWithPrimitiveCharId {
 
         @Id
-        public char id;
+        private char id;
     }
 
     @Data
@@ -458,7 +458,7 @@ public class SampleClasses {
     public static class DocumentWithPrimitiveByteId {
 
         @Id
-        public byte id;
+        private byte id;
     }
 
     @Data
@@ -467,8 +467,8 @@ public class SampleClasses {
     public static class DocumentWithShortId {
 
         @Id
-        public Short id;
-        public String content;
+        private Short id;
+        private String content;
     }
 
     @Data
@@ -477,8 +477,8 @@ public class SampleClasses {
     public static class DocumentWithIntegerId {
 
         @Id
-        public Integer id;
-        public String content;
+        private Integer id;
+        private String content;
     }
 
     @Data
@@ -487,8 +487,8 @@ public class SampleClasses {
     public static class DocumentWithLongId {
 
         @Id
-        public Long id;
-        public String content;
+        private Long id;
+        private String content;
     }
 
     @Data
@@ -496,7 +496,7 @@ public class SampleClasses {
     public static class DocumentWithCharacterId {
 
         @Id
-        public Character id;
+        private Character id;
     }
 
     @Data
@@ -504,7 +504,7 @@ public class SampleClasses {
     public static class DocumentWithByteId {
 
         @Id
-        public Byte id;
+        private Byte id;
     }
 
     @Data
@@ -514,8 +514,8 @@ public class SampleClasses {
     public static class DocumentWithStringId {
 
         @Id
-        public String id;
-        public String content;
+        private String id;
+        private String content;
     }
 
     @Data
@@ -524,7 +524,7 @@ public class SampleClasses {
     public static class DocumentWithByteArrayId {
 
         @Id
-        public byte[] id;
+        private byte[] id;
     }
 
     @Document(expiration = EXPIRATION_ONE_SECOND)
@@ -537,10 +537,10 @@ public class SampleClasses {
         String id;
         Set<Address> addresses;
 
-        public Person() {
+        private Person() {
         }
 
-        public Person(Set<Address> addresses) {
+        private Person(Set<Address> addresses) {
             this.addresses = addresses;
         }
     }
@@ -806,14 +806,6 @@ public class SampleClasses {
         private DateTime expiration;
 
         private int intField;
-    }
-
-    @AllArgsConstructor
-    @Data
-    public static class ClassWithByteArrayIdField {
-
-        private byte[] id;
-        private String field;
     }
 
     @Data

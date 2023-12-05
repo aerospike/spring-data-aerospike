@@ -193,7 +193,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             MapWithIntegerId.class.getSimpleName(), 10L,
-            new Bin("mapWithIntegerId", of(1, "value1", 2, "value2", 3, null)),
+            new Bin("mapWithIntId", of(1, "value1", 2, "value2", 3, null)),
             new Bin("@_class", MapWithIntegerId.class.getName())
         );
     }
@@ -258,7 +258,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             MapWithStringValue.class.getSimpleName(), 10L,
-            new Bin("mapWithSimpleValue", of("key1", "value1", "key2", "value2", "key3", null)),
+            new Bin("mapWithStringValue", of("key1", "value1", "key2", "value2", "key3", null)),
             new Bin("@_class", MapWithStringValue.class.getName())
         );
     }
