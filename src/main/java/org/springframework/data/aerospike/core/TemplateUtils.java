@@ -30,10 +30,12 @@ public class TemplateUtils {
         List<Object> result;
         Assert.notNull(ids, "Ids must not be null");
 
-        if (ids instanceof byte[]) {
-            result = List.of(ids);
-        } else if (ids.getClass().isArray()) {
-            result = Arrays.stream(((Object[]) ids)).toList();
+        if (ids.getClass().isArray()) {
+            if (ids instanceof byte[]) {
+                result = List.of(ids);
+            } else {
+                result = Arrays.stream(((Object[]) ids)).toList();
+            }
         } else if (ids instanceof Collection<?>) {
             result = new ArrayList<>((Collection<?>) ids);
         } else if (ids instanceof Iterable<?>) {
