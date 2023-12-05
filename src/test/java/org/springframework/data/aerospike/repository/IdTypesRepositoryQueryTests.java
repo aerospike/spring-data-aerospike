@@ -8,14 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.aerospike.sample.DocumentIntegerIdRepository;
-import org.springframework.data.aerospike.sample.DocumentLongIdRepository;
-import org.springframework.data.aerospike.sample.DocumentShortIdRepository;
-import org.springframework.data.aerospike.sample.DocumentStringIdRepository;
-import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithIntegerId;
-import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithLongId;
-import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithShortId;
-import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithStringId;
+import org.springframework.data.aerospike.sample.*;
+import org.springframework.data.aerospike.sample.SampleClasses.*;
 
 import java.util.List;
 
@@ -32,6 +26,12 @@ public class IdTypesRepositoryQueryTests extends BaseBlockingIntegrationTests {
     DocumentIntegerIdRepository documentIntegerIdRepository;
     @Autowired
     DocumentLongIdRepository documentLongIdRepository;
+    @Autowired
+    DocumentCharacterIdRepository documentCharacterIdRepository;
+    @Autowired
+    DocumentByteIdRepository documentByteIdRepository;
+    @Autowired
+    DocumentByteArrayIdRepository documentByteArrayIdRepository;
 
     DocumentWithStringId docStringId1 = DocumentWithStringId.builder().id("id1").content("contentString1").build();
     DocumentWithStringId docStringId2 = DocumentWithStringId.builder().id("id2").content("contentString2").build();
@@ -45,6 +45,21 @@ public class IdTypesRepositoryQueryTests extends BaseBlockingIntegrationTests {
     DocumentWithLongId docLongId1 = DocumentWithLongId.builder().id(1L).content("contentLong1").build();
     DocumentWithLongId docLongId2 = DocumentWithLongId.builder().id(2L).content("contentLong2").build();
     DocumentWithLongId docLongId3 = DocumentWithLongId.builder().id(3L).content("contentLong3").build();
+    DocumentWithCharacterId docCharacterId1 = DocumentWithCharacterId.builder().id('a').content("contentCharacter1")
+        .build();
+    DocumentWithCharacterId docCharacterId2 = DocumentWithCharacterId.builder().id('b').content("contentCharacter2")
+        .build();
+    DocumentWithCharacterId docCharacterId3 = DocumentWithCharacterId.builder().id('c').content("contentCharacter3")
+        .build();
+    DocumentWithByteId docByteId1 = DocumentWithByteId.builder().id((byte) 100).content("contentByte1").build();
+    DocumentWithByteId docByteId2 = DocumentWithByteId.builder().id((byte) 200).content("contentByte2").build();
+    DocumentWithByteId docByteId3 = DocumentWithByteId.builder().id((byte) 300).content("contentByte3").build();
+    DocumentWithByteArrayId docByteArrayId1 = DocumentWithByteArrayId.builder().id(new byte[]{0, 0, 1})
+        .content("contentByteArray1").build();
+    DocumentWithByteArrayId docByteArrayId2 = DocumentWithByteArrayId.builder().id(new byte[]{0, 1, 1})
+        .content("contentByteArray2").build();
+    DocumentWithByteArrayId docByteArrayId3 = DocumentWithByteArrayId.builder().id(new byte[]{1, 1, 1})
+        .content("contentByteArray3").build();
 
     @BeforeAll
     void beforeAll() {
@@ -52,6 +67,9 @@ public class IdTypesRepositoryQueryTests extends BaseBlockingIntegrationTests {
         documentShortIdRepository.saveAll(List.of(docShortId1, docShortId2, docShortId3));
         documentIntegerIdRepository.saveAll(List.of(docIntegerId1, docIntegerId2, docIntegerId3));
         documentLongIdRepository.saveAll(List.of(docLongId1, docLongId2, docLongId3));
+        documentCharacterIdRepository.saveAll(List.of(docCharacterId1, docCharacterId2, docCharacterId3));
+        documentByteIdRepository.saveAll(List.of(docByteId1, docByteId2, docByteId3));
+        documentByteArrayIdRepository.saveAll(List.of(docByteArrayId1, docByteArrayId2, docByteArrayId3));
     }
 
     @AfterAll
@@ -60,6 +78,9 @@ public class IdTypesRepositoryQueryTests extends BaseBlockingIntegrationTests {
         documentShortIdRepository.deleteAll();
         documentIntegerIdRepository.deleteAll();
         documentLongIdRepository.deleteAll();
+        documentCharacterIdRepository.deleteAll();
+        documentByteIdRepository.deleteAll();
+        documentByteArrayIdRepository.deleteAll();
     }
 
     @Test
@@ -91,6 +112,27 @@ public class IdTypesRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    void findUsingQueryCharacterIdEquals() {
+        Qualifier idEquals = Qualifier.idEquals(docCharacterId1.getId());
+        Iterable<DocumentWithCharacterId> result = documentCharacterIdRepository.findUsingQuery(new Query(idEquals));
+        assertThat(result).containsOnly(docCharacterId1);
+    }
+
+    @Test
+    void findUsingQueryByteIdEquals() {
+        Qualifier idEquals = Qualifier.idEquals(docByteId1.getId());
+        Iterable<DocumentWithByteId> result = documentByteIdRepository.findUsingQuery(new Query(idEquals));
+        assertThat(result).containsOnly(docByteId1);
+    }
+
+    @Test
+    void findUsingQueryByteArrayIdEquals() {
+        Qualifier idEquals = Qualifier.idEquals(docByteArrayId2.getId());
+        Iterable<DocumentWithByteArrayId> result = documentByteArrayIdRepository.findUsingQuery(new Query(idEquals));
+        assertThat(result).containsOnly(docByteArrayId2);
+    }
+
+    @Test
     void findUsingQueryStringIdIn() {
         Qualifier idIn = Qualifier.idIn(docStringId1.getId(), docStringId3.getId());
         Iterable<DocumentWithStringId> result = documentStringIdRepository.findUsingQuery(new Query(idIn));
@@ -116,5 +158,26 @@ public class IdTypesRepositoryQueryTests extends BaseBlockingIntegrationTests {
         Qualifier idIn = Qualifier.idIn(docLongId1.getId(), docLongId2.getId());
         Iterable<DocumentWithLongId> result = documentLongIdRepository.findUsingQuery(new Query(idIn));
         assertThat(result).containsOnly(docLongId1, docLongId2);
+    }
+
+    @Test
+    void findUsingQueryCharacterIdIn() {
+        Qualifier idIn = Qualifier.idIn(docCharacterId2.getId(), docCharacterId3.getId());
+        Iterable<DocumentWithCharacterId> result = documentCharacterIdRepository.findUsingQuery(new Query(idIn));
+        assertThat(result).containsOnly(docCharacterId2, docCharacterId3);
+    }
+
+    @Test
+    void findUsingQueryByteIdIn() {
+        Qualifier idIn = Qualifier.idIn(docByteId1.getId(), docByteId3.getId());
+        Iterable<DocumentWithByteId> result = documentByteIdRepository.findUsingQuery(new Query(idIn));
+        assertThat(result).containsOnly(docByteId1, docByteId3);
+    }
+
+    @Test
+    void findUsingQueryByteArrayIdIn() {
+        Qualifier idIn = Qualifier.idIn(docByteArrayId1.getId(), docByteArrayId2.getId());
+        Iterable<DocumentWithByteArrayId> result = documentByteArrayIdRepository.findUsingQuery(new Query(idIn));
+        assertThat(result).containsOnly(docByteArrayId1, docByteArrayId2);
     }
 }

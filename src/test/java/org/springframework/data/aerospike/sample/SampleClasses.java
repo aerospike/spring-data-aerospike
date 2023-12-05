@@ -492,19 +492,23 @@ public class SampleClasses {
     }
 
     @Data
+    @Builder
     @AllArgsConstructor
     public static class DocumentWithCharacterId {
 
         @Id
         private Character id;
+        private String content;
     }
 
     @Data
+    @Builder
     @AllArgsConstructor
     public static class DocumentWithByteId {
 
         @Id
         private Byte id;
+        private String content;
     }
 
     @Data
@@ -519,12 +523,14 @@ public class SampleClasses {
     }
 
     @Data
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DocumentWithByteArrayId {
 
         @Id
         private byte[] id;
+        private String content;
     }
 
     @Document(expiration = EXPIRATION_ONE_SECOND)

@@ -124,7 +124,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void characterId(int converterOption) {
-        DocumentWithCharacterId object = new DocumentWithCharacterId('a');
+        DocumentWithCharacterId object = DocumentWithCharacterId.builder().id('a').build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithCharacterId", 'a',
             new Bin("@_class", DocumentWithCharacterId.class.getName())
@@ -134,7 +134,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void byteId(int converterOption) {
-        DocumentWithByteId object = new DocumentWithByteId((byte) 100);
+        DocumentWithByteId object = DocumentWithByteId.builder().id(((byte) 100)).build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithByteId", (byte) 100,
             new Bin("@_class", DocumentWithByteId.class.getName())
@@ -154,7 +154,9 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void byteArrayId(int converterOption) {
-        DocumentWithByteArrayId object = new DocumentWithByteArrayId(new byte[]{1, 0, 0, 1, 1, 1, 0, 0});
+        DocumentWithByteArrayId object = DocumentWithByteArrayId.builder()
+            .id((new byte[]{1, 0, 0, 1, 1, 1, 0, 0}))
+            .build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithByteArrayId",
             new byte[]{1, 0, 0, 1, 1, 1, 0, 0}, new Bin("@_class", DocumentWithByteArrayId.class.getName())

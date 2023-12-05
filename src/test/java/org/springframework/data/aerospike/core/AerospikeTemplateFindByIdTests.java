@@ -210,7 +210,9 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
             template.delete(result); // cleanup
 
             byte[] byteArrayId = new byte[]{1, 1, 1, 1};
-            SampleClasses.DocumentWithByteArrayId document2 = new SampleClasses.DocumentWithByteArrayId(byteArrayId);
+            SampleClasses.DocumentWithByteArrayId document2 = SampleClasses.DocumentWithByteArrayId.builder()
+                .id(byteArrayId)
+                .build();
             template.save(document2);
             SampleClasses.DocumentWithByteArrayId result2 = template.findById(byteArrayId,
                 SampleClasses.DocumentWithByteArrayId.class);

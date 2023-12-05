@@ -117,7 +117,9 @@ public class ReactiveAerospikeTemplateFindByIdTests extends BaseReactiveIntegrat
             reactiveTemplate.delete(result); // cleanup
 
             byte[] byteArrayId = new byte[]{1, 1, 1, 1};
-            SampleClasses.DocumentWithByteArrayId document2 = new SampleClasses.DocumentWithByteArrayId(byteArrayId);
+            SampleClasses.DocumentWithByteArrayId document2 = SampleClasses.DocumentWithByteArrayId.builder()
+                .id(byteArrayId)
+                .build();
             reactiveTemplate.save(document2).block();
             SampleClasses.DocumentWithByteArrayId result2 = reactiveTemplate.findById(byteArrayId,
                     SampleClasses.DocumentWithByteArrayId.class)

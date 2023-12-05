@@ -376,6 +376,21 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
             return this;
         }
 
+        private IdQualifierBuilder setId(Character id) {
+            this.map.put(SINGLE_ID_FIELD, id);
+            return this;
+        }
+
+        private IdQualifierBuilder setId(Byte id) {
+            this.map.put(SINGLE_ID_FIELD, id);
+            return this;
+        }
+
+        private IdQualifierBuilder setId(byte[] id) {
+            this.map.put(SINGLE_ID_FIELD, id);
+            return this;
+        }
+
         private IdQualifierBuilder setIds(String... ids) {
             this.map.put(MULTIPLE_IDS_FIELD, ids);
             return this;
@@ -392,6 +407,21 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
         }
 
         private IdQualifierBuilder setIds(Long... ids) {
+            this.map.put(MULTIPLE_IDS_FIELD, ids);
+            return this;
+        }
+
+        private IdQualifierBuilder setIds(Character... ids) {
+            this.map.put(MULTIPLE_IDS_FIELD, ids);
+            return this;
+        }
+
+        private IdQualifierBuilder setIds(Byte... ids) {
+            this.map.put(MULTIPLE_IDS_FIELD, ids);
+            return this;
+        }
+
+        private IdQualifierBuilder setIds(byte[]... ids) {
             this.map.put(MULTIPLE_IDS_FIELD, ids);
             return this;
         }
@@ -512,6 +542,42 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     }
 
     /**
+     * Create a qualifier for the condition when the primary key equals the given character
+     *
+     * @param id Character value
+     * @return Single id qualifier
+     */
+    public static Qualifier idEquals(Character id) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setId(id)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals the given byte
+     *
+     * @param id Byte value
+     * @return Single id qualifier
+     */
+    public static Qualifier idEquals(Byte id) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setId(id)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals the given byte array
+     *
+     * @param id Byte array value
+     * @return Single id qualifier
+     */
+    public static Qualifier idEquals(byte[] id) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setId(id)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
      * Create a qualifier for the condition when the primary key equals one of the given strings (logical OR)
      *
      * @param ids String values
@@ -554,6 +620,42 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
      * @return Multiple ids qualifier with OR condition
      */
     public static Qualifier idIn(Long... ids) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setIds(ids)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals one of the given characters (logical OR)
+     *
+     * @param ids Character values
+     * @return Multiple ids qualifier with OR condition
+     */
+    public static Qualifier idIn(Character... ids) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setIds(ids)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals one of the given bytes (logical OR)
+     *
+     * @param ids Byte values
+     * @return Multiple ids qualifier with OR condition
+     */
+    public static Qualifier idIn(Byte... ids) {
+        return new Qualifier(new IdQualifierBuilder()
+            .setIds(ids)
+            .setFilterOperation(FilterOperation.EQ));
+    }
+
+    /**
+     * Create a qualifier for the condition when the primary key equals one of the given byte arrays (logical OR)
+     *
+     * @param ids Byte array values
+     * @return Multiple ids qualifier with OR condition
+     */
+    public static Qualifier idIn(byte[]... ids) {
         return new Qualifier(new IdQualifierBuilder()
             .setIds(ids)
             .setFilterOperation(FilterOperation.EQ));
