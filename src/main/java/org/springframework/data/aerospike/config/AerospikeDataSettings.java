@@ -32,6 +32,10 @@ public class AerospikeDataSettings {
     int indexCacheRefreshFrequencySeconds = 3600;
     @Builder.Default
     long queryMaxRecords = 10_000L;
+    // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
+    // true - preserve original type if supported
+    @Builder.Default
+    boolean keepOriginalKeyTypes = false;
 
     /*
      * (non-Javadoc)
@@ -41,5 +45,6 @@ public class AerospikeDataSettings {
      * it will satisfy javadoc and won't interfere with the @Builder annotation's normal behaviour.
      */
     public static class AerospikeDataSettingsBuilder {
+
     }
 }

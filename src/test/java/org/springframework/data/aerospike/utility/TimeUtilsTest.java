@@ -5,7 +5,7 @@ import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_SECOND;
+import static org.springframework.data.aerospike.sample.SampleClasses.EXPIRATION_ONE_SECOND;
 
 public class TimeUtilsTest {
 

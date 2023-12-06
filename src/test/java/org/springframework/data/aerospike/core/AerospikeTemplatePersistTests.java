@@ -23,7 +23,7 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
+import static org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 
 public class AerospikeTemplatePersistTests extends BaseBlockingIntegrationTests {
 

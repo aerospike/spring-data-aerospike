@@ -22,8 +22,8 @@ import com.aerospike.client.query.KeyRecord;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.Nullable;
-import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -95,8 +95,9 @@ public class CoreUtils {
     static Predicate<KeyRecord> getDistinctPredicate(Query query) {
         Predicate<KeyRecord> distinctPredicate;
         if (query != null && query.isDistinct()) {
-            String dotPathString = query.getCriteriaObject().getDotPath();
-            if (StringUtils.hasLength(dotPathString)) {
+            List<String> dotPathList = query.getCriteriaObject().getDotPath();
+            if (dotPathList != null && dotPathList.size() > 0 && dotPathList.get(0) != null) {
+                String dotPathString = String.join(",", query.getCriteriaObject().getDotPath());
                 throw new UnsupportedOperationException("DISTINCT queries are currently supported only for the first " +
                     "level objects, got a query for " + dotPathString);
             }

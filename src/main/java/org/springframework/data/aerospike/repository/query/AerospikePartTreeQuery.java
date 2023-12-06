@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
+import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -46,8 +47,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                                   QueryMethodEvaluationContextProvider evalContextProvider,
                                   AerospikeTemplate operations,
                                   Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-        super(queryMethod, evalContextProvider, queryCreator);
-
+        super(queryMethod, evalContextProvider, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
+            operations.getAerospikeConverter());
         this.operations = operations;
     }
 

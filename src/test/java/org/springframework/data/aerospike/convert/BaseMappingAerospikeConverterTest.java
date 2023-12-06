@@ -5,7 +5,8 @@ import com.aerospike.client.Record;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.env.Environment;
-import org.springframework.data.aerospike.SampleClasses;
+import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.convert.CustomConversions;
 
@@ -21,8 +22,17 @@ import static org.mockito.Mockito.when;
 public abstract class BaseMappingAerospikeConverterTest {
 
     protected static final String NAMESPACE = "namespace";
+    public final AerospikeDataSettings aerospikeDataSettings = AerospikeDataSettings.builder().build();
+    public final AerospikeDataSettings aerospikeDataSettingsReversedKeyTypesOption = AerospikeDataSettings.builder()
+        .keepOriginalKeyTypes(!aerospikeDataSettings.isKeepOriginalKeyTypes()).build();
 
     protected final MappingAerospikeConverter converter = getMappingAerospikeConverter(
+        aerospikeDataSettings,
+        new SampleClasses.ComplexIdToStringConverter(),
+        new SampleClasses.StringToComplexIdConverter());
+
+    protected final MappingAerospikeConverter converterReversedKeyTypes = getMappingAerospikeConverter(
+        aerospikeDataSettingsReversedKeyTypesOption,
         new SampleClasses.ComplexIdToStringConverter(),
         new SampleClasses.StringToComplexIdConverter());
 
@@ -36,18 +46,27 @@ public abstract class BaseMappingAerospikeConverterTest {
         return new Record(bins, 0, 0);
     }
 
-    protected MappingAerospikeConverter getMappingAerospikeConverter(Converter<?, ?>... customConverters) {
-        return getMappingAerospikeConverter(new AerospikeTypeAliasAccessor(), customConverters);
+    protected MappingAerospikeConverter getAerospikeMappingConverterByOption(int converterOption) {
+        if (converterOption == 0) {
+            return converter;
+        }
+        return converterReversedKeyTypes;
     }
 
-    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeTypeAliasAccessor typeAliasAccessor,
+    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeDataSettings aerospikeDataSettings,
                                                                      Converter<?, ?>... customConverters) {
+        return getMappingAerospikeConverter(aerospikeDataSettings, new AerospikeTypeAliasAccessor(), customConverters);
+    }
+
+    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeDataSettings aerospikeDataSettings,
+                                                                   AerospikeTypeAliasAccessor typeAliasAccessor,
+                                                                   Converter<?, ?>... customConverters) {
         AerospikeMappingContext mappingContext = new AerospikeMappingContext();
         mappingContext.setApplicationContext(getApplicationContext());
         CustomConversions customConversions = new AerospikeCustomConversions(asList(customConverters));
 
         MappingAerospikeConverter converter = new MappingAerospikeConverter(mappingContext, customConversions,
-            typeAliasAccessor);
+            typeAliasAccessor, aerospikeDataSettings);
         converter.afterPropertiesSet();
         return converter;
     }
