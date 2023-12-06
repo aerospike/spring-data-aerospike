@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
+import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
 import org.springframework.data.aerospike.utility.ServerVersionUtils;
@@ -40,7 +40,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
 public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 

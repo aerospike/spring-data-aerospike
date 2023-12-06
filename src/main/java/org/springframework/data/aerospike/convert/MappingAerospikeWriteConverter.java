@@ -17,7 +17,9 @@ package org.springframework.data.aerospike.convert;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.support.GenericConversionService;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -31,6 +33,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,20 +46,24 @@ import java.util.stream.Collectors;
 import static com.aerospike.client.ResultCode.OP_NOT_APPLICABLE;
 import static org.springframework.data.aerospike.utility.TimeUtils.unixTimeToOffsetInSeconds;
 
+@Slf4j
 public class MappingAerospikeWriteConverter implements EntityWriter<Object, AerospikeWriteData> {
 
     private final TypeMapper<Map<String, Object>> typeMapper;
     private final AerospikeMappingContext mappingContext;
     private final CustomConversions conversions;
     private final GenericConversionService conversionService;
+    private final AerospikeDataSettings aerospikeDataSettings;
 
     public MappingAerospikeWriteConverter(TypeMapper<Map<String, Object>> typeMapper,
                                           AerospikeMappingContext mappingContext, CustomConversions conversions,
-                                          GenericConversionService conversionService) {
+                                          GenericConversionService conversionService,
+                                          AerospikeDataSettings aerospikeDataSettings) {
         this.typeMapper = typeMapper;
         this.mappingContext = mappingContext;
         this.conversions = conversions;
         this.conversionService = conversionService;
+        this.aerospikeDataSettings = aerospikeDataSettings;
     }
 
     private static Collection<?> asCollection(final Object source) {
@@ -114,15 +121,24 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             || key.setName == null || key.namespace == null) {
             AerospikePersistentProperty idProperty = entity.getIdProperty();
             if (idProperty != null) {
-                String id = accessor.getProperty(idProperty, String.class); // currently id can only be a String
-                Assert.notNull(id, "Id must not be null!");
-                String setName;
-                if (data.getSetName() != null) {
-                    setName = data.getSetName();
-                } else {
-                    setName = entity.getSetName();
+                String setName = Optional.ofNullable(data.getSetName()).orElse(entity.getSetName());
+
+                // Store record key as it is (if Aerospike supports it natively and configured)
+                if (aerospikeDataSettings.isKeepOriginalKeyTypes()
+                    && isValidAerospikeRecordKeyType(idProperty.getType())) {
+                    log.debug("Attempt to construct record key with original key type");
+                    Object nativeTypeId = accessor.getProperty(idProperty, idProperty.getType());
+                    Assert.notNull(nativeTypeId, "Id must not be null!");
+                    Key aerospikeRecordKey = constructAerospikeRecordKey(data.getNamespace(), setName, nativeTypeId);
+                    if (aerospikeRecordKey != null) {
+                        return Optional.of(aerospikeRecordKey);
+                    }
                 }
-                return Optional.of(new Key(data.getNamespace(), setName, id));
+                // Store record key as a String (Used for unsupported Aerospike key types and older versions)
+                String stringId = accessor.getProperty(idProperty, String.class);
+                Assert.notNull(stringId, "Id must not be null!");
+                log.debug("Attempt to construct record key as String");
+                return Optional.of(new Key(data.getNamespace(), setName, stringId));
             } else {
                 // id is mandatory
                 throw new AerospikeException(OP_NOT_APPLICABLE, "Id has not been provided");
@@ -214,7 +230,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         return source.stream().map(element -> getValueToWrite(element, componentType)).collect(Collectors.toList());
     }
 
-    protected Map<String, Object> convertMap(final Map<Object, Object> source, final TypeInformation<?> type) {
+    protected Map<Object, Object> convertMap(final Map<Object, Object> source, final TypeInformation<?> type) {
         Assert.notNull(source, "Given map must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
@@ -229,14 +245,21 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
                 throw new MappingException("Cannot use a complex object as a map key");
             }
 
-            String simpleKey;
-            if (conversionService.canConvert(key.getClass(), String.class)) {
-                simpleKey = conversionService.convert(key, String.class);
+            Object simpleKey;
+
+            if (aerospikeDataSettings.isKeepOriginalKeyTypes() &&
+                isValidAerospikeMapKeyType(key.getClass())) {
+                simpleKey = key;
             } else {
-                simpleKey = key.toString();
+                if (conversionService.canConvert(key.getClass(), String.class)) {
+                    simpleKey = conversionService.convert(key, String.class);
+                } else {
+                    simpleKey = key.toString();
+                }
             }
 
             Object convertedValue = getValueToWrite(value, type.getMapValueType());
+            if (simpleKey instanceof byte[]) simpleKey = ByteBuffer.wrap((byte[]) simpleKey);
             m.put(simpleKey, convertedValue);
         }, TreeMap::putAll);
     }
@@ -286,5 +309,38 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         Assert.notNull(expirationInSeconds, "Expiration must not be null!");
 
         return expirationInSeconds;
+    }
+
+    private boolean isValidAerospikeRecordKeyType(Class<?> type) {
+        return type == Short.TYPE || type == Integer.TYPE || type == Long.TYPE || type == Byte.TYPE ||
+            type == Character.TYPE ||
+            type == Short.class || type == Integer.class || type == Long.class || type == Byte.class ||
+            type == Character.class || type == String.class ||
+            type == byte[].class;
+    }
+
+    private Key constructAerospikeRecordKey(String namespace, String set, Object userKey) {
+        // At this point there are no primitives types for userKey, only wrappers
+        if (userKey.getClass() == String.class) {
+            return new Key(namespace, set, (String) userKey);
+        } else if (userKey.getClass() == Short.class) {
+            return new Key(namespace, set, (short) userKey);
+        } else if (userKey.getClass() == Integer.class) {
+            return new Key(namespace, set, (int) userKey);
+        } else if (userKey.getClass() == Long.class) {
+            return new Key(namespace, set, (long) userKey);
+        } else if (userKey.getClass() == Character.class) {
+            return new Key(namespace, set, (char) userKey);
+        } else if (userKey.getClass() == Byte.class) {
+            return new Key(namespace, set, (byte) userKey);
+        } else if (userKey.getClass() == byte[].class) {
+            return new Key(namespace, set, (byte[]) userKey);
+        }
+        // Could not construct a key of native supported Aerospike record key type
+        return null;
+    }
+
+    private boolean isValidAerospikeMapKeyType(Class<?> type) {
+        return isValidAerospikeRecordKeyType(type) || type == Double.TYPE || type == Double.class;
     }
 }

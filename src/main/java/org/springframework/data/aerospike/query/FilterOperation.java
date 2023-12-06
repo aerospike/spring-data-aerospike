@@ -26,9 +26,9 @@ import com.aerospike.client.exp.MapExp;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.util.Pair;
-import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.aerospike.client.command.ParticleType.BOOL;
 import static com.aerospike.client.command.ParticleType.INTEGER;
@@ -45,15 +46,7 @@ import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.NULL;
 import static com.aerospike.client.command.ParticleType.STRING;
-import static org.springframework.data.aerospike.query.Qualifier.DOT_PATH;
-import static org.springframework.data.aerospike.query.Qualifier.FIELD;
-import static org.springframework.data.aerospike.query.Qualifier.IGNORE_CASE;
-import static org.springframework.data.aerospike.query.Qualifier.METADATA_FIELD;
-import static org.springframework.data.aerospike.query.Qualifier.OPERATION;
-import static org.springframework.data.aerospike.query.Qualifier.QUALIFIERS;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE1;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE2;
-import static org.springframework.data.aerospike.query.Qualifier.VALUE3;
+import static org.springframework.data.aerospike.query.Qualifier.*;
 import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getContaining;
 import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getEndsWith;
 import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getNotContaining;
@@ -1266,7 +1259,7 @@ public enum FilterOperation {
     @SuppressWarnings("unchecked")
     private static Exp processMetadataFieldInOrNot(Map<String, Object> qualifierMap, boolean notIn) {
         FilterOperation filterOperation = notIn ? NOTEQ : EQ;
-        Object value1 = getValue1Object(qualifierMap);
+        Object value1 = getValue1AsObject(qualifierMap);
 
         Collection<Long> listOfLongs;
         try {
@@ -1325,7 +1318,7 @@ public enum FilterOperation {
                     return Optional.of(
                         operationFunction.apply(
                             mapMetadataExp(metadataField),
-                            Exp.val(getValue1AsLongOrFail(getValue1Object(qualifierMap)))
+                            Exp.val(getValue1AsLongOrFail(getValue1AsObject(qualifierMap)))
                         )
                     );
                 }
@@ -1464,14 +1457,40 @@ public enum FilterOperation {
 
     private static Exp getMapExp(Map<String, Object> qualifierMap, String[] dotPathArr, Exp.Type expType) {
         // VALUE2 contains key (field name)
-        // currently the only Map keys supported are Strings
+        Exp mapKeyExp = getMapKeyExp(getValue2(qualifierMap).getObject(), keepOriginalKeyTypes(qualifierMap));
         if (dotPathArr.length > 2) {
-            return MapExp.getByKey(MapReturnType.VALUE, expType, Exp.val(getValue2(qualifierMap).toString()),
+            return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
         } else {
-            return MapExp.getByKey(MapReturnType.VALUE, expType, Exp.val(getValue2(qualifierMap).toString()),
+            return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getField(qualifierMap)));
         }
+    }
+
+    private static Exp getMapKeyExp(Object mapKey, boolean keepOriginalKeyTypes) {
+        // choosing whether to preserve map key type based on the configuration
+        if (keepOriginalKeyTypes) {
+            Exp res;
+            if (mapKey instanceof Byte || mapKey instanceof Short || mapKey instanceof Integer
+                || mapKey instanceof Long) {
+                res = Exp.val(((Number) mapKey).longValue());
+            } else if (mapKey instanceof Float || mapKey instanceof Double) {
+                res = Exp.val(((Number) mapKey).doubleValue());
+            } else if (mapKey instanceof byte[]) {
+                res = Exp.val((byte[]) mapKey);
+            } else if (Value.get(mapKey) instanceof Value.NullValue) {
+                res = Exp.nil();
+            } else {
+                res = Exp.val(Value.get(mapKey).toString());
+            }
+            return res;
+        }
+        return Exp.val(Value.get(mapKey).toString());
+    }
+
+    private static boolean keepOriginalKeyTypes(Map<String, Object> qualifierMap) {
+        return ((MappingAerospikeConverter) qualifierMap.get(CONVERTER))
+            .getAerospikeDataSettings().isKeepOriginalKeyTypes();
     }
 
     private static Exp getFilterExpMapValEqOrFail(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator) {
@@ -1541,9 +1560,14 @@ public enum FilterOperation {
         return operator.apply(binExp.apply(field), exp);
     }
 
-    private static String[] getDotPathArray(String dotPath, String errMsg) {
-        if (StringUtils.hasLength(dotPath)) {
-            return dotPath.split("\\.");
+    private static String[] getDotPathArray(List<String> dotPathList, String errMsg) {
+        if (dotPathList != null && !dotPathList.isEmpty()) {
+            // the first element of dotPath is part.getProperty().toDotPath()
+            // the second element of dotPath, if present, is a value
+            Stream<String> valueStream = dotPathList.size() == 1 || dotPathList.get(1) == null ? Stream.empty()
+                : Stream.of(dotPathList.get(1));
+            return Stream.concat(Arrays.stream(dotPathList.get(0).split("\\.")), valueStream)
+                .toArray(String[]::new);
         } else {
             throw new IllegalStateException(errMsg);
         }
@@ -1608,7 +1632,7 @@ public enum FilterOperation {
         return Value.get(qualifierMap.get(VALUE1));
     }
 
-    protected static Object getValue1Object(Map<String, Object> qualifierMap) {
+    protected static Object getValue1AsObject(Map<String, Object> qualifierMap) {
         return qualifierMap.get(VALUE1);
     }
 
@@ -1620,8 +1644,9 @@ public enum FilterOperation {
         return (Value) qualifierMap.get(VALUE3);
     }
 
-    protected static String getDotPath(Map<String, Object> qualifierMap) {
-        return (String) qualifierMap.get(DOT_PATH);
+    @SuppressWarnings("unchecked")
+    protected static List<String> getDotPath(Map<String, Object> qualifierMap) {
+        return (List<String>) qualifierMap.get(DOT_PATH);
     }
 
     public abstract Exp filterExp(Map<String, Object> qualifierMap);
@@ -1632,6 +1657,7 @@ public enum FilterOperation {
         Value val = getValue1(qualifierMap);
         int valType = val.getType();
         return switch (valType) {
+            // TODO: Add Bytes and Double Support (will fail on old mode - no results)
             case INTEGER -> Filter.contains(getField(qualifierMap), collectionType, val.toLong());
             case STRING -> Filter.contains(getField(qualifierMap), collectionType, val.toString());
             default -> null;

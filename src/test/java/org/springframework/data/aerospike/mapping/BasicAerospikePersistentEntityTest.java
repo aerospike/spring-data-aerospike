@@ -18,8 +18,8 @@ package org.springframework.data.aerospike.mapping;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpressionInCollection;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithoutCollection;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpressionInCollection;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithoutCollection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

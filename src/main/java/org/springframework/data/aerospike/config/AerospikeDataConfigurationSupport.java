@@ -70,7 +70,8 @@ public abstract class AerospikeDataConfigurationSupport {
     public MappingAerospikeConverter mappingAerospikeConverter(AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
                                                                AerospikeCustomConversions customConversions) {
-        return new MappingAerospikeConverter(aerospikeMappingContext, customConversions, aerospikeTypeAliasAccessor);
+        return new MappingAerospikeConverter(aerospikeMappingContext, customConversions, aerospikeTypeAliasAccessor,
+            aerospikeDataSettings());
     }
 
     @Bean(name = "aerospikeTypeAliasAccessor")

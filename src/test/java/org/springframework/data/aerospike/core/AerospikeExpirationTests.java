@@ -24,11 +24,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithDefaultConstructor;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpiration;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotation;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationOneDay;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithUnixTimeExpiration;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithDefaultConstructor;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpiration;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpirationAnnotation;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpirationOneDay;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithUnixTimeExpiration;
 
 import java.time.Duration;
 
@@ -36,7 +36,7 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Offset.offset;
-import static org.springframework.data.aerospike.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
+import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
 import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
