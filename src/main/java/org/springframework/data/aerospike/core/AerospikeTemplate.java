@@ -164,6 +164,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
         try {
+            // requires server ver. >= 6.0.0
             client.operate(null, batchWriteRecords);
         } catch (AerospikeException e) {
             throw translateError(e);
@@ -234,6 +235,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
         try {
+            // requires server ver. >= 6.0.0
             client.operate(null, batchWriteRecords);
         } catch (AerospikeException e) {
             throw translateError(e);
@@ -330,6 +332,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
         try {
+            // requires server ver. >= 6.0.0
             client.operate(null, batchWriteRecords);
         } catch (AerospikeException e) {
             throw translateError(e);
@@ -435,6 +438,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             .map(id -> getKey(id, setName))
             .toArray(Key[]::new);
 
+        // requires server ver. >= 6.0.0
         deleteAndHandleErrors(client, keys);
     }
 

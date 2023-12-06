@@ -12,8 +12,6 @@ The goal of the Spring Data repository abstraction is to significantly reduce th
 
 [IMPORTANT]
 ====
-_Spring Data repository documentation and your module_
-
 This chapter explains the core concepts and interfaces of Spring Data repositories.
 The information in this chapter is pulled from the Spring Data Commons module.
 It uses the configuration and code samples for the Jakarta Persistence API (JPA) module.
@@ -32,6 +30,8 @@ It takes the domain class to manage as well as the identifier type of the domain
 This interface acts primarily as a marker interface to capture the types to work with and to help you to discover interfaces that extend this one.
 The https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/CrudRepository.html[`CrudRepository`] and https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/repository/ListCrudRepository.html[`ListCrudRepository`] interfaces provide sophisticated CRUD functionality for the entity class that is being managed.
 
+NOTE: "Entity" or "document" are the terms often used in Spring Data Aerospike interchangeably to describe a domain object - a Java object that identifies Aerospike DB record.
+
 [[repositories.repository]]
 .`CrudRepository` Interface
 ====
@@ -39,7 +39,7 @@ The https://docs.spring.io/spring-data/commons/docs/current/api/org/springframew
 ----
 public interface CrudRepository<T, ID> extends Repository<T, ID> {
 
-  <S extends T> S save(S entity);      <1>
+  <S extends T> S save(S document);      <1>
 
   Optional<T> findById(ID primaryKey); <2>
 
@@ -54,12 +54,12 @@ public interface CrudRepository<T, ID> extends Repository<T, ID> {
   // … more functionality omitted.
 }
 ----
-<1> Saves the given entity.
-<2> Returns the entity identified by the given ID.
-<3> Returns all entities.
-<4> Returns the number of entities.
-<5> Deletes the given entity.
-<6> Indicates whether an entity with the given ID exists.
+<1> Saves the given document of type `T`.
+<2> Returns the DB record identified by the given ID, the record is mapped to a document of type `T`.
+<3> Returns all DB records from the associated set mapped to documents of type `T`.
+<4> Returns the number of all DB records in the associated set.
+<5> Deletes a particular DB record using a document to identify it.
+<6> Indicates whether a DB record with the given ID exists.
 ====
 
 The methods declared in this interface are commonly referred to as CRUD methods.
@@ -1144,7 +1144,7 @@ The methods are called every time one of the following a Spring Data repository 
 * `delete(…)`, `deleteAll(…)`, `deleteAllInBatch(…)`, `deleteInBatch(…)`
 
 Note, that these methods take the aggregate root instances as arguments.
-This is why `deleteById(…)` is notably absent, as the implementations might choose to issue a query deleting the instance and thus we would never have access to the aggregate instance in the first place.
+This is why `deleteById(…)` is notably absent, as the implementations might choose to issue a query deleting the instance, and thus we would never have access to the aggregate instance in the first place.
 
 [[core.extensions]]
 == Spring Data Extensions

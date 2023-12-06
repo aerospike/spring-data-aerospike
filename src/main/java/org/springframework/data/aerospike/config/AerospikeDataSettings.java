@@ -23,14 +23,19 @@ import lombok.Value;
 public class AerospikeDataSettings {
 
     @Builder.Default
+    // Enable scan operation
     boolean scansEnabled = false;
     @Builder.Default
+    // Send user defined key in addition to hash digest on both reads and writes
     boolean sendKey = true;
     @Builder.Default
+    // Create secondary indexes specified using `@Indexed` annotation on startup
     boolean createIndexesOnStartup = true;
     @Builder.Default
+    // Automatically refresh indexes cache every <N> seconds
     int indexCacheRefreshFrequencySeconds = 3600;
     @Builder.Default
+    // Limit amount of results returned by server. Non-positive value means no limit
     long queryMaxRecords = 10_000L;
     // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
     // true - preserve original type if supported

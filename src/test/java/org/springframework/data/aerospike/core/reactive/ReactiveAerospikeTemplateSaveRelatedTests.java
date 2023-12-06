@@ -36,8 +36,8 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         VersionedClass first = new VersionedClass(id, "foo");
         reactiveTemplate.save(first).subscribeOn(Schedulers.parallel()).block();
 
-        assertThat(first.version).isEqualTo(1);
-        assertThat(findById(id, VersionedClass.class).version).isEqualTo(1);
+        assertThat(first.getVersion()).isEqualTo(1);
+        assertThat(findById(id, VersionedClass.class).getVersion()).isEqualTo(1);
     }
 
     @Test
@@ -45,8 +45,8 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         VersionedClass first = new VersionedClass(id, "foo");
         reactiveTemplate.save(first, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
 
-        assertThat(first.version).isEqualTo(1);
-        assertThat(findById(id, VersionedClass.class, OVERRIDE_SET_NAME).version).isEqualTo(1);
+        assertThat(first.getVersion()).isEqualTo(1);
+        assertThat(findById(id, VersionedClass.class, OVERRIDE_SET_NAME).getVersion()).isEqualTo(1);
     }
 
     @Test
@@ -86,7 +86,8 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveWithSetName_shouldUpdateNullField() {
         VersionedClass versionedClass = new VersionedClass(id, null);
-        VersionedClass saved = reactiveTemplate.save(versionedClass, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
+        VersionedClass saved = reactiveTemplate.save(versionedClass, OVERRIDE_SET_NAME)
+            .subscribeOn(Schedulers.parallel()).block();
         reactiveTemplate.save(saved, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
     }
 
@@ -138,12 +139,12 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         VersionedClass one = new VersionedClass(id, "foo");
         reactiveTemplate.save(one).subscribeOn(Schedulers.parallel()).block();
 
-        reactiveTemplate.save(new VersionedClass(id, "foo1", one.version))
+        reactiveTemplate.save(new VersionedClass(id, "foo1", one.getVersion()))
             .subscribeOn(Schedulers.parallel()).block();
 
         VersionedClass value = findById(id, VersionedClass.class);
-        assertThat(value.version).isEqualTo(2);
-        assertThat(value.field).isEqualTo("foo1");
+        assertThat(value.getVersion()).isEqualTo(2);
+        assertThat(value.getField()).isEqualTo("foo1");
     }
 
     @Test
@@ -153,7 +154,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         reactiveTemplate.save(one).subscribeOn(Schedulers.parallel()).block();
         reactiveTemplate.save(one).subscribeOn(Schedulers.parallel()).block();
 
-        assertThat(one.version).isEqualTo(3);
+        assertThat(one.getVersion()).isEqualTo(3);
     }
 
     @Test
@@ -163,14 +164,14 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
 
         VersionedClass initial = new VersionedClass(id, "value-0");
         reactiveTemplate.save(initial).subscribeOn(Schedulers.parallel()).block();
-        assertThat(initial.version).isEqualTo(1);
+        assertThat(initial.getVersion()).isEqualTo(1);
 
         AsyncUtils.executeConcurrently(numberOfConcurrentSaves, () -> {
             boolean saved = false;
             while (!saved) {
                 long counterValue = counter.incrementAndGet();
                 VersionedClass messageData = findById(id, VersionedClass.class);
-                messageData.field = "value-" + counterValue;
+                messageData.setField("value-" + counterValue);
                 try {
                     reactiveTemplate.save(messageData).subscribeOn(Schedulers.parallel()).block();
                     saved = true;
@@ -181,9 +182,9 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
 
         VersionedClass actual = findById(id, VersionedClass.class);
 
-        assertThat(actual.field).isNotEqualTo(initial.field);
-        assertThat(actual.version).isNotEqualTo(initial.version)
-            .isEqualTo(initial.version + numberOfConcurrentSaves);
+        assertThat(actual.getField()).isNotEqualTo(initial.getField());
+        assertThat(actual.getVersion()).isNotEqualTo(initial.getVersion())
+            .isEqualTo(initial.getVersion() + numberOfConcurrentSaves);
     }
 
     @Test
@@ -308,7 +309,8 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
             StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first), OVERRIDE_SET_NAME))
                 .expectError(AerospikeException.BatchRecordArray.class)
                 .verify();
-            reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
+            reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME)
+                .block(); // cleanup
         }
     }
 }

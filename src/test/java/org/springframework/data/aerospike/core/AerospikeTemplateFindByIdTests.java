@@ -45,10 +45,10 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
     public void findById_shouldReadVersionedClassWithAllArgsConstructor() {
         VersionedClassWithAllArgsConstructor inserted = new VersionedClassWithAllArgsConstructor(id, "foobar", 0L);
         template.insert(inserted);
-        assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class).version).isEqualTo(1L);
-        template.update(new VersionedClassWithAllArgsConstructor(id, "foobar1", inserted.version));
+        assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class).getVersion()).isEqualTo(1L);
+        template.update(new VersionedClassWithAllArgsConstructor(id, "foobar1", inserted.getVersion()));
         VersionedClassWithAllArgsConstructor result = template.findById(id, VersionedClassWithAllArgsConstructor.class);
-        assertThat(result.version).isEqualTo(2L);
+        assertThat(result.getVersion()).isEqualTo(2L);
         template.delete(result); // cleanup
     }
 
@@ -56,11 +56,13 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
     public void findById_shouldReadVersionedClassWithAllArgsConstructorAndSetName() {
         VersionedClassWithAllArgsConstructor inserted = new VersionedClassWithAllArgsConstructor(id, "foobar", 0L);
         template.insert(inserted, OVERRIDE_SET_NAME);
-        assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class, OVERRIDE_SET_NAME).version).isEqualTo(1L);
-        template.update(new VersionedClassWithAllArgsConstructor(id, "foobar1", inserted.version), OVERRIDE_SET_NAME);
+        assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class, OVERRIDE_SET_NAME)
+            .getVersion()).isEqualTo(1L);
+        template.update(new VersionedClassWithAllArgsConstructor(id, "foobar1", inserted.getVersion()),
+            OVERRIDE_SET_NAME);
         VersionedClassWithAllArgsConstructor result = template.findById(id,
             VersionedClassWithAllArgsConstructor.class, OVERRIDE_SET_NAME);
-        assertThat(result.version).isEqualTo(2L);
+        assertThat(result.getVersion()).isEqualTo(2L);
         template.delete(result, OVERRIDE_SET_NAME); // cleanup
     }
 

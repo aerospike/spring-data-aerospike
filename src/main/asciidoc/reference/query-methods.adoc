@@ -84,19 +84,21 @@ findByObjectFieldIsNull()
 |True |findByEnabledTrue() |...where x.enabled = true
 
 |False |findByOptOutFalse() |...where x.optOut = false
+
+|FindUsingQuery |findUsingQuery(query) |find matching entities (see xref:#find-using-query[find using query]])
 |===
 
-An example of an interface with several query methods is:
+Below is an example of an interface with several query methods:
 
-[source, java]
+[source,java]
 ----
 public interface PersonRepository extends AerospikeRepository<Person, Long> {
-    public List<Person> findByLastName(String lastName);
-    public List<Person> findByLastNameContaining(String lastName);
-    public List<Person> findByLastNameStartingWith(String lastName);
-    public List<Person> findByLastNameAndFirstNameContaining(String lastName, String firstName);
-    public List<Person> findByAgeBetween(long startAge, long endAge);
-    public Optional<Person> findById(Long id);
+    List<Person> findByLastName(String lastName);
+    List<Person> findByLastNameContaining(String lastName);
+    List<Person> findByLastNameStartingWith(String lastName);
+    List<Person> findByLastNameAndFirstNameContaining(String lastName, String firstName);
+    List<Person> findByAgeBetween(long startAge, long endAge);
+    Optional<Person> findById(Long id);
 }
 ----
 
@@ -114,3 +116,40 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 
 |Distinct | findDistinctByFirstNameContaining | select distinct ... where x.firstName like 'abc%'
 |===
+
+[[find-using-query]]
+== Find Using Query
+
+User can perform a custom `Query` for finding matching entities in the Aerospike database. A `Query` can be created using a `Qualifier` which represents an expression. It may contain other qualifiers and combine them using either `AND` or `OR`.
+
+`Qualifier` can be created for regular bins, metadata and ids (primary keys). Below is an example of different variations:
+
+[source,java]
+----
+    // creating an expression "firsName is equal to John"
+    Qualifier firstNameEqJohn = Qualifier.builder()
+        .setField("firstName")
+        .setFilterOperation(FilterOperation.EQ)
+        .setValue1(Value.get("John"))
+        .build();
+    result = repository.findUsingQuery(new Query(firstNameEqJohn));
+    assertThat(result).containsOnly(john);
+
+    // creating an expression "primary key is equal to person's id"
+    Qualifier keyEqJohnsId = Qualifier.idEquals(john.getId());
+    result = repository.findUsingQuery(new Query(keyEqJohnsId));
+    assertThat(result).containsOnly(john);
+
+    // creating an expression "since_update_time metadata value is less than 50 seconds"
+    Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
+        .setMetadataField(SINCE_UPDATE_TIME)
+        .setFilterOperation(FilterOperation.LT)
+        .setValue1AsObj(50000L)
+        .build();
+    result = repository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds));
+    assertThat(result).contains(john);
+
+    // expressions are combined using AND
+    result = repository.findUsingQuery(new Query(Qualifier.and(firstNameEqJohn, keyEqJohnsId, sinceUpdateTimeLt50Seconds)));
+    assertThat(result).containsOnly(john);
+----

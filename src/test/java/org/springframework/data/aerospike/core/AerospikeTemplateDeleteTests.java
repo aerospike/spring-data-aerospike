@@ -47,7 +47,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         try {
             VersionedClass initialDocument = new VersionedClass(id, "a");
             template.insert(initialDocument);
-            template.update(new VersionedClass(id, "b", initialDocument.version));
+            template.update(new VersionedClass(id, "b", initialDocument.getVersion()));
 
             boolean deleted = template.delete(initialDocument);
             assertThat(deleted).isTrue();

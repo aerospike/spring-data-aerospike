@@ -338,7 +338,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findPersonsByMetadata() {
-        // creating a condition "since_update_time metadata value is less than 50 seconds"
+        // creating an expression "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt10Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
@@ -347,7 +347,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt10Seconds)).collectList().block())
             .containsAll(allIndexedPersons);
 
-        // creating a condition "since_update_time metadata value is between 1 millisecond and 50 seconds"
+        // creating an expression "since_update_time metadata value is between 1 millisecond and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
@@ -360,17 +360,17 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findPersonsByQualifiers() {
+    public void findPersonsByQuery() {
         Iterable<IndexedPerson> result;
 
-        // creating a condition "since_update_time metadata value is greater than 1 millisecond"
+        // creating an expression "since_update_time metadata value is greater than 1 millisecond"
         Qualifier sinceUpdateTimeGt1 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
             .setValue1AsObj(1L)
             .build();
 
-        // creating a condition "since_update_time metadata value is less than 50 seconds"
+        // creating an expression "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
@@ -379,7 +379,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds)).collectList().block())
             .containsAll(allIndexedPersons);
 
-        // creating a condition "since_update_time metadata value is between 1 and 50 seconds"
+        // creating an expression "since_update_time metadata value is between 1 and 50 seconds"
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
@@ -387,14 +387,14 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
             .setValue2AsObj(50000L)
             .build();
 
-        // creating a condition "firsName is equal to Petra"
+        // creating an expression "firsName is equal to Petra"
         Qualifier firstNameEqPetra = Qualifier.builder()
             .setField("firstName")
             .setFilterOperation(FilterOperation.EQ)
             .setValue1(Value.get("Petra"))
             .build();
 
-        // creating a condition "age is equal to 34"
+        // creating an expression "age is equal to 34"
         Qualifier ageEq34 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.EQ)
@@ -403,7 +403,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         result = reactiveRepository.findUsingQuery(new Query(ageEq34)).collectList().block();
         assertThat(result).containsOnly(petra);
 
-        // creating a condition "age is greater than 34"
+        // creating an expression "age is greater than 34"
         Qualifier ageGt34 = Qualifier.builder()
             .setFilterOperation(FilterOperation.GT)
             .setField("age")
