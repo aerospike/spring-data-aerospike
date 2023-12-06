@@ -22,10 +22,12 @@ import com.aerospike.client.cdt.MapOperation;
 import com.aerospike.client.cdt.MapPolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
-import org.springframework.data.aerospike.SampleClasses.MapWithNonStringKeys;
-import org.springframework.data.aerospike.SampleClasses.VersionedClassWithAllArgsConstructor;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
+import org.springframework.data.aerospike.sample.SampleClasses.MapWithDoubleId;
+import org.springframework.data.aerospike.sample.SampleClasses.MapWithIntegerId;
+import org.springframework.data.aerospike.sample.SampleClasses.VersionedClassWithAllArgsConstructor;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,8 +36,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
-import static org.springframework.data.aerospike.SampleClasses.EXPIRATION_ONE_MINUTE;
+import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnReadAndExpirationProperty;
+import static org.springframework.data.aerospike.sample.SampleClasses.EXPIRATION_ONE_MINUTE;
 
 public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests {
 
@@ -56,7 +58,8 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
         template.insert(inserted, OVERRIDE_SET_NAME);
         assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class, OVERRIDE_SET_NAME).version).isEqualTo(1L);
         template.update(new VersionedClassWithAllArgsConstructor(id, "foobar1", inserted.version), OVERRIDE_SET_NAME);
-        VersionedClassWithAllArgsConstructor result = template.findById(id, VersionedClassWithAllArgsConstructor.class, OVERRIDE_SET_NAME);
+        VersionedClassWithAllArgsConstructor result = template.findById(id,
+            VersionedClassWithAllArgsConstructor.class, OVERRIDE_SET_NAME);
         assertThat(result.version).isEqualTo(2L);
         template.delete(result, OVERRIDE_SET_NAME); // cleanup
     }
@@ -154,21 +157,70 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
     }
 
     @Test
+    public void findById_shouldReadClassWithNumericKeyMapWrittenByTemplate() {
+        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+            int intKey = 1;
+            double doubleKey = 100.25;
+            String value = "String value";
+            long id = 10L;
+            long id2 = 11L;
+
+            template.save(new MapWithIntegerId(id, Map.of(intKey, value)));
+            template.save(new MapWithDoubleId(id2, Map.of(doubleKey, value)));
+
+            MapWithIntegerId resultInt = template.findById(id, MapWithIntegerId.class);
+            MapWithDoubleId resultDouble = template.findById(id2, MapWithDoubleId.class);
+            assertThat(resultInt.getMapWithIntId()).isEqualTo(Map.of(intKey, value));
+            assertThat(resultDouble.getMapWithDoubleId()).isEqualTo(Map.of(doubleKey, value));
+            template.delete(resultInt); // cleanup
+            template.delete(resultDouble); // cleanup
+        }
+    }
+
+    @Test
     public void findById_shouldReadClassWithNumericKeyMap() {
-        int intKey = 1;
-        double doubleKey = 100.25;
-        String value = "String value";
+        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+            int intKey = 1;
+            double doubleKey = 100.25;
+            String value = "String value";
+            long id1 = 10L;
+            long id2 = 11L;
 
-        client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
-            MapOperation.put(MapPolicy.Default, "intKeyMap", Value.get(intKey), Value.get(value))
-        );
-        client.operate(null, new Key(getNameSpace(), "MapWithNonStringKeys", id),
-            MapOperation.put(MapPolicy.Default, "doubleKeyMap", Value.get(doubleKey), Value.get(value))
-        );
+            client.operate(null, new Key(getNameSpace(), "MapWithIntegerId", id1),
+                MapOperation.put(MapPolicy.Default, "mapWithIntId", Value.get(intKey), Value.get(value))
+            );
+            client.operate(null, new Key(getNameSpace(), "MapWithDoubleId", id2),
+                MapOperation.put(MapPolicy.Default, "mapWithDoubleId", Value.get(doubleKey), Value.get(value))
+            );
 
-        MapWithNonStringKeys result = template.findById(id, MapWithNonStringKeys.class);
-        assertThat(result.getIntKeyMap()).isEqualTo(Map.of(intKey, value));
-        assertThat(result.getDoubleKeyMap()).isEqualTo(Map.of(doubleKey, value));
-        template.delete(result); // cleanup
+            MapWithIntegerId resultInt = template.findById(id1, MapWithIntegerId.class);
+            assertThat(resultInt.getMapWithIntId()).isEqualTo(Map.of(intKey, value));
+            MapWithDoubleId resultDouble = template.findById(id2, MapWithDoubleId.class);
+            assertThat(resultDouble.getMapWithDoubleId()).isEqualTo(Map.of(doubleKey, value));
+            template.delete(resultInt); // cleanup
+            template.delete(resultDouble); // cleanup
+        }
+    }
+
+    @Test
+    public void findById_shouldReadClassWithByteArrayId() {
+        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+            long longId = 10L;
+            SampleClasses.DocumentWithLongId document = SampleClasses.DocumentWithLongId.builder().id(longId).build();
+            template.save(document);
+            SampleClasses.DocumentWithLongId result = template.findById(longId, SampleClasses.DocumentWithLongId.class);
+            assertThat(result.getId().equals(longId)).isTrue();
+            template.delete(result); // cleanup
+
+            byte[] byteArrayId = new byte[]{1, 1, 1, 1};
+            SampleClasses.DocumentWithByteArrayId document2 = SampleClasses.DocumentWithByteArrayId.builder()
+                .id(byteArrayId)
+                .build();
+            template.save(document2);
+            SampleClasses.DocumentWithByteArrayId result2 = template.findById(byteArrayId,
+                SampleClasses.DocumentWithByteArrayId.class);
+            assertThat(Arrays.equals(result2.getId(), byteArrayId)).isTrue();
+            template.delete(result2); // cleanup
+        }
     }
 }

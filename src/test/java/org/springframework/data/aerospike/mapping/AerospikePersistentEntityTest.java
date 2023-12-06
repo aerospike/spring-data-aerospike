@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.SampleClasses.*;
+import static org.springframework.data.aerospike.sample.SampleClasses.*;
 import static org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity.DEFAULT_EXPIRATION;
 
 public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests {

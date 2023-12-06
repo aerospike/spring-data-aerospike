@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
 public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
 
