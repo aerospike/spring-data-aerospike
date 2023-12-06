@@ -8,6 +8,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
+import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
@@ -19,6 +23,8 @@ import org.springframework.data.aerospike.repository.query.StubParameterAccessor
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.MemoryAppender;
 import org.springframework.data.repository.query.parser.PartTree;
+
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -58,13 +64,24 @@ public class LoggingTests {
     @Test
     void queryIsCreated() {
         AerospikeMappingContext context = new AerospikeMappingContext();
+        AerospikeCustomConversions conversions = new AerospikeCustomConversions(Collections.emptyList());
+        MappingAerospikeConverter converter = getMappingAerospikeConverter(conversions);
+
         PartTree tree = new PartTree("findByFirstName", Person.class);
-        AerospikeQueryCreator creator = new AerospikeQueryCreator(tree, new StubParameterAccessor("TestName"), context);
+        AerospikeQueryCreator creator = new AerospikeQueryCreator(
+            tree, new StubParameterAccessor("TestName"), context, converter);
         creator.createQuery();
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
         String msg = "Created query: firstName EQ TestName";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
+    }
+
+    private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
+        MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
+            conversions, new AerospikeTypeAliasAccessor(), AerospikeDataSettings.builder().build());
+        converter.afterPropertiesSet();
+        return converter;
     }
 }

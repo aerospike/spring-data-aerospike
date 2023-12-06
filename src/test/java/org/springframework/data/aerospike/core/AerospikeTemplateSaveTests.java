@@ -26,7 +26,7 @@ import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
 import org.springframework.data.aerospike.utility.ServerVersionUtils;
@@ -38,10 +38,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.SampleClasses.CustomCollectionClass;
-import static org.springframework.data.aerospike.SampleClasses.DocumentWithByteArray;
-import static org.springframework.data.aerospike.SampleClasses.DocumentWithTouchOnRead;
-import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import static org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
+import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
+import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
+import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {

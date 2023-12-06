@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike;
+package org.springframework.data.aerospike.sample;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import lombok.ToString;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.DateTime;
@@ -52,9 +44,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static org.springframework.data.aerospike.SampleClasses.SimpleClass.SIMPLESET;
-import static org.springframework.data.aerospike.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
-import static org.springframework.data.aerospike.SampleClasses.User.SIMPLESET3;
+import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
+import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
+import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
 
 public class SampleClasses {
 
@@ -104,21 +96,66 @@ public class SampleClasses {
 
     @Document
     @Data
-    public static class MapWithSimpleValue {
+    public static class MapWithShortId {
 
         @Id
         final long id;
-        final Map<String, String> mapWithSimpleValue;
+        final Map<Short, String> mapWithShortId;
+    }
+
+
+    @Document
+    @Data
+    public static class MapWithIntegerId {
+
+        @Id
+        final long id;
+        final Map<Integer, String> mapWithIntId;
     }
 
     @Document
     @Data
-    public static class MapWithNonStringKeys {
+    public static class MapWithLongId {
 
         @Id
-        final String id;
-        final Map<Integer, String> intKeyMap;
-        final Map<Double, String> doubleKeyMap;
+        final long id;
+        final Map<Long, String> mapWithLongId;
+    }
+
+    @Document
+    @Data
+    public static class MapWithDoubleId {
+
+        @Id
+        final long id;
+        final Map<Double, String> mapWithDoubleId;
+    }
+
+    @Document
+    @Data
+    public static class MapWithByteId {
+
+        @Id
+        final long id;
+        final Map<Byte, String> mapWithByteId;
+    }
+
+    @Document
+    @Data
+    public static class MapWithCharacterId {
+
+        @Id
+        final long id;
+        final Map<Character, String> mapWithCharacterId;
+    }
+
+    @Document
+    @Data
+    public static class MapWithStringValue {
+
+        @Id
+        final long id;
+        final Map<String, String> mapWithStringValue;
     }
 
     @Document
@@ -384,19 +421,116 @@ public class SampleClasses {
 
     @Data
     @AllArgsConstructor
-    public static class DocumentWithIntId {
+    public static class DocumentWithPrimitiveShortId {
 
         @Id
-        public int id;
+        private short id;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class DocumentWithPrimitiveIntId {
+
+        @Id
+        private int id;
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class DocumentWithPrimitiveLongId {
+
+        @Id
+        private long id;
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class DocumentWithPrimitiveCharId {
+
+        @Id
+        private char id;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DocumentWithPrimitiveByteId {
+
+        @Id
+        private byte id;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    public static class DocumentWithShortId {
+
+        @Id
+        private Short id;
+        private String content;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    public static class DocumentWithIntegerId {
+
+        @Id
+        private Integer id;
+        private String content;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    public static class DocumentWithLongId {
+
+        @Id
+        private Long id;
+        private String content;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    public static class DocumentWithCharacterId {
+
+        @Id
+        private Character id;
+        private String content;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    public static class DocumentWithByteId {
+
+        @Id
+        private Byte id;
+        private String content;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class DocumentWithStringId {
 
         @Id
-        public String id;
+        private String id;
+        private String content;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DocumentWithByteArrayId {
+
+        @Id
+        private byte[] id;
+        private String content;
     }
 
     @Document(expiration = EXPIRATION_ONE_SECOND)
@@ -409,10 +543,10 @@ public class SampleClasses {
         String id;
         Set<Address> addresses;
 
-        public Person() {
+        private Person() {
         }
 
-        public Person(Set<Address> addresses) {
+        private Person(Set<Address> addresses) {
             this.addresses = addresses;
         }
     }
@@ -679,14 +813,6 @@ public class SampleClasses {
         private DateTime expiration;
 
         private int intField;
-    }
-
-    @AllArgsConstructor
-    @Data
-    public static class ClassWithIdField {
-
-        private long id;
-        private String field;
     }
 
     @Data

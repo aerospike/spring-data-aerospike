@@ -8,7 +8,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
 import org.springframework.data.aerospike.utility.ServerVersionUtils;

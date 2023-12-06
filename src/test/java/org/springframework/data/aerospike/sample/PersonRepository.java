@@ -643,6 +643,12 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
 
+    List<P> findByLongIntMapLessThanEqual(long key, int lessThanOrEqualTo);
+
+    List<P> findByDoubleIntMapLessThanEqual(double key, int lessThanOrEqualTo);
+
+    List<P> findByByteArrayIntMapLessThanEqual(byte[] key, int lessThanOrEqualTo);
+
     /**
      * Find all entities that satisfy the condition "have the given map key and the value in the range between the given
      * integers"

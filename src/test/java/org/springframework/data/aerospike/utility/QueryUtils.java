@@ -1,5 +1,10 @@
 package org.springframework.data.aerospike.utility;
 
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
+import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
@@ -15,6 +20,7 @@ import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -55,11 +61,23 @@ public class QueryUtils {
         }
 
         PartTree partTree = new PartTree(method.getName(), Person.class);
+
+        AerospikeMappingContext context = new AerospikeMappingContext();
+        AerospikeCustomConversions conversions = new AerospikeCustomConversions(Collections.emptyList());
+        MappingAerospikeConverter converter = getMappingAerospikeConverter(conversions);
+
         AerospikeQueryCreator creator =
             new AerospikeQueryCreator(partTree,
                 new ParametersParameterAccessor(
                     new QueryMethod(method, new DefaultRepositoryMetadata(PersonRepository.class),
-                        new SpelAwareProxyProjectionFactory()).getParameters(), args));
+                        new SpelAwareProxyProjectionFactory()).getParameters(), args), context, converter);
         return creator.createQuery();
+    }
+
+    private static MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
+        MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
+            conversions, new AerospikeTypeAliasAccessor(), AerospikeDataSettings.builder().build());
+        converter.afterPropertiesSet();
+        return converter;
     }
 }

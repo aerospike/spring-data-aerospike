@@ -5,7 +5,7 @@ import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.WritePolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.SampleClasses;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.sample.Person;
@@ -17,7 +17,7 @@ import reactor.test.StepVerifier;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.SampleClasses.VersionedClass;
+import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
 /**
  * Tests for delete related methods in {@link ReactiveAerospikeTemplate}.
