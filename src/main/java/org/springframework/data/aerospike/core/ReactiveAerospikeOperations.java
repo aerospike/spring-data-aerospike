@@ -79,7 +79,7 @@ public interface ReactiveAerospikeOperations {
      * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
      * does not exist it will be created, otherwise updated (an "upsert").
      *
-     * @param document The document to save. Must not be {@literal null}.
+     * @param document The document to be saved. Must not be {@literal null}.
      * @return A Mono of the new saved document.
      */
     <T> Mono<T> save(T document);
@@ -100,7 +100,7 @@ public interface ReactiveAerospikeOperations {
      * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
      * does not exist it will be created, otherwise updated (an "upsert").
      *
-     * @param document The document to save. Must not be {@literal null}.
+     * @param document The document to be saved. Must not be {@literal null}.
      * @param setName  The set name to save the document.
      * @return A Mono of the new saved document.
      */
@@ -113,7 +113,7 @@ public interface ReactiveAerospikeOperations {
      * <p>
      * Requires Server version 6.0+.
      *
-     * @param documents documents to save. Must not be {@literal null}.
+     * @param documents The documents to be saved. Must not be {@literal null}.
      * @return A Flux of the saved documents, otherwise onError is signalled with
      * {@link AerospikeException.BatchRecordArray} if batch save results contain errors, or with
      * {@link org.springframework.dao.DataAccessException} if batch operation failed.
@@ -128,7 +128,7 @@ public interface ReactiveAerospikeOperations {
      * <p>
      * Requires Server version 6.0+.
      *
-     * @param documents documents to save. Must not be {@literal null}.
+     * @param documents The documents to be saved. Must not be {@literal null}.
      * @param setName   The set name to save to documents.
      * @return A Flux of the saved documents, otherwise onError is signalled with
      * {@link AerospikeException.BatchRecordArray} if batch save results contain errors, or with
@@ -137,11 +137,11 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> saveAll(Iterable<T> documents, String setName);
 
     /**
-     * Reactively insert document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
+     * Reactively insert a document using {@link com.aerospike.client.policy.RecordExistsAction#CREATE_ONLY} policy.
      * <p>
      * If the document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to insert. Must not be {@literal null}.
+     * @param document The document to be inserted. Must not be {@literal null}.
      * @return A Mono of the new inserted document.
      */
     <T> Mono<T> insert(T document);
@@ -152,7 +152,7 @@ public interface ReactiveAerospikeOperations {
      * <p>
      * If the document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to insert. Must not be {@literal null}.
+     * @param document The document to be inserted. Must not be {@literal null}.
      * @param setName  The set name to insert the document.
      * @return A Mono of the new inserted document.
      */
@@ -191,7 +191,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Reactively persist a document using specified WritePolicy.
      *
-     * @param document    The document to persist. Must not be {@literal null}.
+     * @param document    The document to be persisted. Must not be {@literal null}.
      * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
      *                    {@literal null}.
      * @return A Mono of the new persisted document.
@@ -202,7 +202,7 @@ public interface ReactiveAerospikeOperations {
      * Reactively persist a document within the given set (overrides the default set associated with the document)
      * using specified WritePolicy.
      *
-     * @param document    The document to persist. Must not be {@literal null}.
+     * @param document    The document to be persisted. Must not be {@literal null}.
      * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
      *                    {@literal null}.
      * @param setName     Set name to override the set associated with the document.
@@ -211,67 +211,67 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> persist(T document, WritePolicy writePolicy, String setName);
 
     /**
-     * Reactively update a document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
+     * Reactively update a record using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy
      * combined with removing bins at first (analogous to
      * {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the version
      * property of the document if it is present.
      * <p>
      * If the document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to update. Must not be {@literal null}.
+     * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @return A Mono of the new updated document.
      */
     <T> Mono<T> update(T document);
 
     /**
-     * Reactively update document within the given set using
+     * Reactively update a record within the given set using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with removing bins at first
      * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the
      * version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to update. Must not be {@literal null}.
+     * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param setName  The set name to update the document.
      * @return A Mono of the new updated document.
      */
     <T> Mono<T> update(T document, String setName);
 
     /**
-     * Reactively update document's specific fields based on the given collection of fields using
+     * Reactively update specific bins of a record based on the given collection of fields using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy. You can instantiate the document with
      * only relevant fields and specify the list of fields that you want to update, taking into consideration the
      * version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to update. Must not be {@literal null}.
+     * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @return A Mono of the new updated document.
      */
     <T> Mono<T> update(T document, Collection<String> fields);
 
     /**
-     * Reactively update document's specific fields based on the given collection of fields within the given set using
+     * Reactively update specific fields of a record based on the given collection of fields within the given set using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy. You can instantiate the document with
      * only relevant fields and specify the list of fields that you want to update, taking into consideration the
      * version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to update. Must not be {@literal null}.
+     * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param setName  The set name to update the document.
      * @return A Mono of the new updated document.
      */
     <T> Mono<T> update(T document, String setName, Collection<String> fields);
 
     /**
-     * Reactively update documents using one batch request. The policies are analogous to {@link #update(Object)}.
+     * Reactively update records using one batch request. The policies are analogous to {@link #update(Object)}.
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
      *
-     * @param documents Documents to update. Must not be {@literal null}.
+     * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
      * @return A Flux of the updated documents, otherwise onError is signalled with
      * {@link AerospikeException.BatchRecordArray} if batch update results contain errors, or with
      * {@link org.springframework.dao.DataAccessException} if batch operation failed.
@@ -279,14 +279,14 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> updateAll(Iterable<? extends T> documents);
 
     /**
-     * Reactively update documents within the given set using one batch request. The policies are analogous to
+     * Reactively update records within the given set using one batch request. The policies are analogous to
      * {@link #update(Object)}.
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * Requires Server version 6.0+.
      *
-     * @param documents Documents to update. Must not be {@literal null}.
+     * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
      * @param setName   The set name to update the documents.
      * @return A Flux of the updated documents, otherwise onError is signalled with
      * {@link AerospikeException.BatchRecordArray} if batch update results contain errors, or with
@@ -295,7 +295,7 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> updateAll(Iterable<? extends T> documents, String setName);
 
     /**
-     * Reactively truncate/delete all records from the set determined based on the given entityClass.
+     * Reactively truncate/delete all records from the set determined by the given entityClass.
      *
      * @param entityClass The class to extract the Aerospike set name from. Must not be {@literal null}.
      * @deprecated since 4.6.0, use deleteAll(Class<T> entityClass) instead.
@@ -303,7 +303,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Void> delete(Class<T> entityClass);
 
     /**
-     * Reactively delete a record by id, set name will be determined based on the given entity class.
+     * Reactively delete a record by id, set name will be determined by the given entity class.
      *
      * @param id          The id of a record to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set name from. Must not be {@literal null}.
@@ -313,7 +313,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> delete(Object id, Class<T> entityClass);
 
     /**
-     * Reactively delete a record using document's id.
+     * Reactively delete a record using the document's id.
      *
      * @param document The document to get set name and id from. Must not be {@literal null}.
      * @return A Mono of whether the document existed on server before deletion.
@@ -321,7 +321,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> delete(T document);
 
     /**
-     * Reactively delete a record within the given set using document's id.
+     * Reactively delete a record within the given set using the document's id.
      *
      * @param document The document to get id from. Must not be {@literal null}.
      * @param setName  Set name to use.
@@ -330,7 +330,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> delete(T document, String setName);
 
     /**
-     * Reactively delete a record by id, set name will be determined based on the given entity class.
+     * Reactively delete a record by id, set name will be determined by the given entity class.
      *
      * @param id          The id of the record to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set name from. Must not be {@literal null}.
@@ -348,7 +348,7 @@ public interface ReactiveAerospikeOperations {
     Mono<Boolean> deleteById(Object id, String setName);
 
     /**
-     * Reactively delete records using a single batch delete operation, set name will be determined based on the given entity class.
+     * Reactively delete records using a single batch delete operation, set name will be determined by the given entity class.
      * <p>
      * This operation requires Server version 6.0+.
      *
@@ -374,7 +374,7 @@ public interface ReactiveAerospikeOperations {
 
     /**
      * Reactively delete records using a single batch delete operation, set name will be
-     * determined based on the given entityClass.
+     * determined by the given entityClass.
      * <p>
      * This operation requires Server version 6.0+.
      *
@@ -410,7 +410,7 @@ public interface ReactiveAerospikeOperations {
     Mono<Void> deleteByIds(GroupedKeys groupedKeys);
 
     /**
-     * Reactively truncate/delete all records in the set determined based on the given entity class.
+     * Reactively truncate/delete all records in the set determined by the given entity class.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      */
@@ -560,7 +560,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> execute(Supplier<T> supplier);
 
     /**
-     * Reactively find a record by id, set name will be determined based on the given entityClass.
+     * Reactively find a record by id, set name will be determined by the given entityClass.
      * <p>
      * The record will be mapped to the given entityClass.
      *
@@ -585,7 +585,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<T> findById(Object id, Class<T> entityClass, String setName);
 
     /**
-     * Reactively find a record by id, set name will be determined based on the given entityClass.
+     * Reactively find a record by id, set name will be determined by the given entityClass.
      * <p>
      * The record will be mapped to the given targetClass.
      *
@@ -612,7 +612,7 @@ public interface ReactiveAerospikeOperations {
 
     /**
      * Reactively find records by ids using a single batch read operation, set name will be
-     * determined based on the given entityClass.
+     * determined by the given entityClass.
      * <p>
      * The records will be mapped to the given entityClass.
      *
@@ -625,7 +625,7 @@ public interface ReactiveAerospikeOperations {
 
     /**
      * Reactively find records by ids using a single batch read operation, set name will be
-     * determined based on the given entityClass.
+     * determined by the given entityClass.
      * <p>
      * The records will be mapped to the given targetClass.
      *
@@ -660,7 +660,7 @@ public interface ReactiveAerospikeOperations {
     Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys);
 
     /**
-     * Find a record by id using a query, set name will be determined based on the given entityClass.
+     * Find a record by id using a query, set name will be determined by the given entityClass.
      * <p>
      * The records will be mapped to the given targetClass.
      *
@@ -690,7 +690,7 @@ public interface ReactiveAerospikeOperations {
                                       @Nullable Query query);
 
     /**
-     * Find records by ids, set name will be determined based on the given entityClass.
+     * Find records by ids, set name will be determined by the given entityClass.
      * <p>
      * The records will be mapped to the given targetClass.
      *
@@ -869,7 +869,7 @@ public interface ReactiveAerospikeOperations {
     <T, S> Flux<S> findUsingQueryWithoutPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query);
 
     /**
-     * Reactively check if a record exists by id and entityClass (set name will be determined based on it).
+     * Reactively check by id if a record exists within the set associated with the given entityClass.
      *
      * @param id          The id to check for record existence. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -878,7 +878,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> exists(Object id, Class<T> entityClass);
 
     /**
-     * Reactively check if a record exists by id within the given set name.
+     * Reactively check by id if a record exists within the given set name.
      *
      * @param id      The id to check for record existence. Must not be {@literal null}.
      * @param setName Set name to use.
@@ -887,7 +887,7 @@ public interface ReactiveAerospikeOperations {
     Mono<Boolean> exists(Object id, String setName);
 
     /**
-     * Reactively check if any matching records exist by a query and entityClass (set name will be determined based it).
+     * Reactively check using a query if any matching records exist within the set determined by the given entityClass.
      *
      * @param query       The query to check if any returned document exists. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -896,7 +896,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass);
 
     /**
-     * Reactively check if any matching records exist by a query, entityClass and set name.
+     * Reactively check using a query if any matching records exist within the given set.
      *
      * @param query       The query to check if any matching records exist. Must not be {@literal null}.
      * @param entityClass The class to translate to returned records into. Must not be {@literal null}.
@@ -906,7 +906,7 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass, String setName);
 
     /**
-     * Reactively return the amount of records in the set determined based on the given entityClass.
+     * Reactively return the amount of records in the set determined by the given entityClass.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @return A Mono of the amount of records in the set (of the given entityClass).
@@ -922,7 +922,7 @@ public interface ReactiveAerospikeOperations {
     Mono<Long> count(String setName);
 
     /**
-     * Reactively return the amount of records in query results. Set name will be determined based on the given
+     * Reactively return the amount of records in query results. Set name will be determined by the given
      * entityClass.
      *
      * @param query       The query that provides the result set for count.

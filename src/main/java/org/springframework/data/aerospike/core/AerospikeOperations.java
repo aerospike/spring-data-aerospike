@@ -102,7 +102,7 @@ public interface AerospikeOperations {
      * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
      * does not exist it will be created, otherwise updated (an "upsert").
      *
-     * @param document The document to save. Must not be {@literal null}.
+     * @param document The document to be saved. Must not be {@literal null}.
      */
     <T> void save(T document);
 
@@ -122,7 +122,7 @@ public interface AerospikeOperations {
      * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE}). This means that when such record
      * does not exist it will be created, otherwise updated (an "upsert").
      *
-     * @param document The document to save. Must not be {@literal null}.
+     * @param document The document to be saved. Must not be {@literal null}.
      * @param setName  Set name to override the set associated with the document.
      */
     <T> void save(T document, String setName);
@@ -134,7 +134,7 @@ public interface AerospikeOperations {
      * <p>
      * This operation requires Server version 6.0+.
      *
-     * @param documents Documents to save. Must not be {@literal null}.
+     * @param documents The documents to be saved. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
      *                                                     records
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
@@ -150,7 +150,7 @@ public interface AerospikeOperations {
      * <p>
      * This operation requires Server version 6.0+.
      *
-     * @param documents Documents to save. Must not be {@literal null}.
+     * @param documents The documents to be saved. Must not be {@literal null}.
      * @param setName   Set name to override the default set associated with the documents.
      * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
      *                                                     records
@@ -164,7 +164,7 @@ public interface AerospikeOperations {
      * <p>
      * If the document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to insert. Must not be {@literal null}.
+     * @param document The document to be inserted. Must not be {@literal null}.
      */
     <T> void insert(T document);
 
@@ -174,7 +174,7 @@ public interface AerospikeOperations {
      * <p>
      * If document has version property, it will be updated with the server's version after successful operation.
      *
-     * @param document The document to insert. Must not be {@literal null}.
+     * @param document The document to be inserted. Must not be {@literal null}.
      * @param setName  Set name to override the set associated with the document.
      */
     <T> void insert(T document, String setName);
@@ -186,7 +186,7 @@ public interface AerospikeOperations {
      * <p>
      * This operation requires Server version 6.0+.
      *
-     * @param documents Documents to insert. Must not be {@literal null}.
+     * @param documents Documents to be inserted. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
      *                                                     records
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
@@ -202,7 +202,7 @@ public interface AerospikeOperations {
      * <p>
      * This operation requires Server version 6.0+.
      *
-     * @param documents Documents to insert. Must not be {@literal null}.
+     * @param documents Documents to be inserted. Must not be {@literal null}.
      * @param setName   Set name to override the set associated with the document.
      * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
      *                                                     records
@@ -214,7 +214,7 @@ public interface AerospikeOperations {
     /**
      * Persist a document using specified WritePolicy.
      *
-     * @param document    The document to persist. Must not be {@literal null}.
+     * @param document    The document to be persisted. Must not be {@literal null}.
      * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
      *                    {@literal null}.
      */
@@ -223,7 +223,7 @@ public interface AerospikeOperations {
     /**
      * Persist a document within the given set (overrides the default set associated with the document) using specified WritePolicy.
      *
-     * @param document    The document to persist. Must not be {@literal null}.
+     * @param document    The document to be persisted. Must not be {@literal null}.
      * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
      *                    {@literal null}.
      * @param setName     Set name to override the set associated with the document.
@@ -231,64 +231,64 @@ public interface AerospikeOperations {
     <T> void persist(T document, WritePolicy writePolicy, String setName);
 
     /**
-     * Update a document using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with
+     * Update a record using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with
      * removing bins at first (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking
      * into consideration the version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to update. Must not be {@literal null}.
+     * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      */
     <T> void update(T document);
 
     /**
-     * Update a document with the given set (overrides the set associated with the document) using
+     * Update a record with the given set (overrides the set associated with the document) using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy combined with removing bins at first
      * (analogous to {@link com.aerospike.client.policy.RecordExistsAction#REPLACE_ONLY}) taking into consideration the
      * version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to update. Must not be {@literal null}.
+     * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param setName  Set name to override the set associated with the document.
      */
     <T> void update(T document, String setName);
 
     /**
-     * Update document's specific fields based on the given collection of fields using
+     * Update specific fields of a record based on the given collection of fields using
      * {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy. You can instantiate the document with
      * only the relevant fields and specify the list of fields that you want to update. Taking into consideration the
      * version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to update. Must not be {@literal null}.
+     * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param fields   Specific fields to update.
      */
     <T> void update(T document, Collection<String> fields);
 
     /**
-     * Update document's specific fields based on the given collection of fields with the given set (overrides the set
+     * Update specific fields of a record based on the given collection of fields with the given set (overrides the set
      * associated with the document) using {@link com.aerospike.client.policy.RecordExistsAction#UPDATE_ONLY} policy.
      * You can instantiate the document with only the relevant fields and specify the list of fields that you want to
      * update. Taking into consideration the version property of the document if it is present.
      * <p>
      * If document has version property it will be updated with the server's version after successful operation.
      *
-     * @param document The document to update. Must not be {@literal null}.
+     * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param setName  Set name to override the set associated with the document.
      * @param fields   Specific fields to update.
      */
     <T> void update(T document, String setName, Collection<String> fields);
 
     /**
-     * Update multiple documents in one batch request. The policies are analogous to {@link #update(Object)}.
+     * Update multiple records in one batch request. The policies are analogous to {@link #update(Object)}.
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * This operation requires Server version 6.0+.
      *
-     * @param documents Documents to update. Must not be {@literal null}.
+     * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray         if batch update succeeds, but results contain errors or null
      *                                                     records
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
@@ -297,14 +297,14 @@ public interface AerospikeOperations {
     <T> void updateAll(Iterable<T> documents);
 
     /**
-     * Update multiple documents within the given set (overrides the default set associated with the
+     * Update multiple records within the given set (overrides the default set associated with the
      * documents) in one batch request. The policies are analogous to {@link #update(Object)}.
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
      * This operation requires Server version 6.0+.
      *
-     * @param documents Documents to update. Must not be {@literal null}.
+     * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
      * @param setName   Set name to override the set associated with the document.
      * @throws AerospikeException.BatchRecordArray         if batch update succeeds, but results contain errors or null
      *                                                     records
@@ -314,7 +314,7 @@ public interface AerospikeOperations {
     <T> void updateAll(Iterable<T> documents, String setName);
 
     /**
-     * Truncate/Delete all documents in the set determined based on the given entityClass.
+     * Truncate/Delete all records in the set determined by the given entityClass.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @deprecated since 4.6.0, use deleteAll(Class<T> entityClass) instead.
@@ -322,7 +322,7 @@ public interface AerospikeOperations {
     <T> void delete(Class<T> entityClass);
 
     /**
-     * Delete a record by id, set name will be determined based on the given entityClass.
+     * Delete a record by id, set name will be determined by the given entityClass.
      *
      * @param id          The id of the record to delete. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -332,24 +332,24 @@ public interface AerospikeOperations {
     <T> boolean delete(Object id, Class<T> entityClass);
 
     /**
-     * Delete a record.
+     * Delete a record using the document's id.
      *
-     * @param document The document to delete. Must not be {@literal null}.
+     * @param document The document to get set name and id from. Must not be {@literal null}.
      * @return Whether the document existed on server before deletion.
      */
     <T> boolean delete(T document);
 
     /**
-     * Delete a record within the given set.
+     * Delete a record within the given set using the document's id.
      *
-     * @param document The document to delete. Must not be {@literal null}.
+     * @param document The document to get id from. Must not be {@literal null}.
      * @param setName  Set name to use.
      * @return Whether the document existed on server before deletion.
      */
     <T> boolean delete(T document, String setName);
 
     /**
-     * Delete a record by id, set name will be determined based on a given entityClass.
+     * Delete a record by id, set name will be determined by the given entityClass.
      *
      * @param id          The id of the record to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -367,7 +367,7 @@ public interface AerospikeOperations {
     boolean deleteById(Object id, String setName);
 
     /**
-     * Delete records by ids using a single batch delete operation, set name will be determined based on
+     * Delete records by ids using a single batch delete operation, set name will be determined by
      * the given entityClass.
      * <p>
      * This operation requires Server version 6.0+.
@@ -395,7 +395,7 @@ public interface AerospikeOperations {
     void deleteByIds(Iterable<?> ids, String setName);
 
     /**
-     * Batch delete records by ids. Set name will be determined based on the given entityClass.
+     * Batch delete records by ids. Set name will be determined by the given entityClass.
      * <p>
      * This operation requires Server version 6.0+.
      *
@@ -429,7 +429,7 @@ public interface AerospikeOperations {
     void deleteByIds(GroupedKeys groupedKeys);
 
     /**
-     * Truncate/Delete all records in the set determined based on the given entity class.
+     * Truncate/Delete all records in the set determined by the given entity class.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      */
@@ -579,7 +579,7 @@ public interface AerospikeOperations {
     <T> T execute(Supplier<T> supplier);
 
     /**
-     * Find a record by id, set name will be determined based on the given entityClass.
+     * Find a record by id, set name will be determined by the given entityClass.
      * <p>
      * The resulting The record will be mapped to the given entityClass.
      *
@@ -604,7 +604,7 @@ public interface AerospikeOperations {
     <T> T findById(Object id, Class<T> entityClass, String setName);
 
     /**
-     * Find a record by id, set name will be determined based on the given entityClass.
+     * Find a record by id, set name will be determined by the given entityClass.
      * <p>
      * The record will be mapped to the given entityClass.
      *
@@ -631,7 +631,7 @@ public interface AerospikeOperations {
     <T, S> S findById(Object id, Class<T> entityClass, Class<S> targetClass, String setName);
 
     /**
-     * Find records by ids using a single batch read operation, set name will be determined based on the
+     * Find records by ids using a single batch read operation, set name will be determined by the
      * given entityClass.
      * <p>
      * The records will be mapped to the given entityClass.
@@ -657,7 +657,7 @@ public interface AerospikeOperations {
     <T> List<T> findByIds(Iterable<?> ids, Class<T> entityClass, String setName);
 
     /**
-     * Find records by ids using a single batch read operation, set name will be determined based on the
+     * Find records by ids using a single batch read operation, set name will be determined by the
      * given entityClass.
      * <p>
      * The records will be mapped to the given targetClass.
@@ -694,7 +694,7 @@ public interface AerospikeOperations {
     GroupedEntities findByIds(GroupedKeys groupedKeys);
 
     /**
-     * Find a record by id using a query, set name will be determined based on the given entityClass.
+     * Find a record by id using a query, set name will be determined by the given entityClass.
      * <p>
      * The record will be mapped to the given targetClass.
      *
@@ -723,7 +723,7 @@ public interface AerospikeOperations {
                                      @Nullable Query query);
 
     /**
-     * Find records by ids and a query, set name will be determined based on the given entityClass.
+     * Find records by ids and a query, set name will be determined by the given entityClass.
      * <p>
      * The records will be mapped to the given targetClass.
      *
@@ -898,7 +898,7 @@ public interface AerospikeOperations {
     <T, S> Stream<S> findUsingQueryWithoutPostProcessing(Class<T> entityClass, Class<S> targetClass, Query query);
 
     /**
-     * Check if a record exists by id and entityClass (set name will be determined based it).
+     * Check by id if a record exists within the set associated with the given entityClass.
      *
      * @param id          The id to check for record existence. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -907,7 +907,7 @@ public interface AerospikeOperations {
     <T> boolean exists(Object id, Class<T> entityClass);
 
     /**
-     * Check if a record exists by id and a set name.
+     * Check by id if a record exists within the given set name.
      *
      * @param id      The id to check for record existence. Must not be {@literal null}.
      * @param setName Set name to use.
@@ -916,7 +916,7 @@ public interface AerospikeOperations {
     boolean exists(Object id, String setName);
 
     /**
-     * Check if any documents exist by a query and entityClass (set name will be determined based on it).
+     * Check using a query if any matching records exist within the set associated with the given entityClass.
      *
      * @param query       The query to check if any matching records exist. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -925,7 +925,7 @@ public interface AerospikeOperations {
     <T> boolean existsByQuery(Query query, Class<T> entityClass);
 
     /**
-     * Check if any matching records exist by a query, entityClass and a set name.
+     * Check using a query if any matching records exist within the given set.
      *
      * @param query       The query to check if any matching records exist. Must not be {@literal null}.
      * @param entityClass The class to translate to returned records into. Must not be {@literal null}.
@@ -935,7 +935,7 @@ public interface AerospikeOperations {
     <T> boolean existsByQuery(Query query, Class<T> entityClass, String setName);
 
     /**
-     * Return the amount of records in the set determined based on the given entityClass.
+     * Return the amount of records in the set determined by the given entityClass.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @return amount of records in the set of the given entityClass.
@@ -951,7 +951,7 @@ public interface AerospikeOperations {
     long count(String setName);
 
     /**
-     * Return the amount of records in query results. Set name will be determined based on the given entityClass.
+     * Return the amount of records in query results. Set name will be determined by the given entityClass.
      *
      * @param query       The query that provides the result set for count.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -1081,7 +1081,7 @@ public interface AerospikeOperations {
     void deleteIndex(String setName, String indexName);
 
     /**
-     * Checks whether an index with the specified name exists in Aerospike.
+     * Check whether an index with the specified name exists in Aerospike.
      *
      * @param indexName The Aerospike index name. Must not be {@literal null}.
      * @return true if exists
