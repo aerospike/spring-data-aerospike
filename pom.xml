@@ -37,7 +37,7 @@
         <jodatime>2.12.5</jodatime>
         <lombok>1.18.28</lombok>
         <awaitility>4.2.0</awaitility>
-        <logback.test>1.4.11</logback.test>
+        <logback.test>1.4.14</logback.test>
         <hibernate.validator>8.0.1.Final</hibernate.validator>
         <netty.version>4.1.100.Final</netty.version>
     </properties>
