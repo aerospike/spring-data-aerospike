@@ -22,11 +22,13 @@ public class AerospikeReadDataIntegrationTest extends BaseBlockingIntegrationTes
     int age = 74;
     Map<Integer, String> map = Map.of(10, "100");
     Address address = new Address("Street", 20, "ZipCode", "City");
-    Map<String, Object> addressMap = Map.of("street", address.getStreet(), "apartment", 20, "zipCode", "ZipCode", "city", "City");
+    Map<String, Object> addressMap = Map.of("street", address.getStreet(), "apartment", address.getApartment(),
+        "zipCode", address.getZipCode(), "city", address.getCity());
 
     @AllArgsConstructor
     @Getter
     static class User {
+
         @Id
         long id;
         String name;
