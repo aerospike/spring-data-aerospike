@@ -35,7 +35,7 @@
         <reactor-test>3.5.7</reactor-test>
         <embedded-aerospike>3.0.0</embedded-aerospike>
         <jodatime>2.12.5</jodatime>
-        <lombok>1.18.28</lombok>
+        <lombok>1.18.30</lombok>
         <awaitility>4.2.0</awaitility>
         <logback.test>1.4.11</logback.test>
         <hibernate.validator>8.0.1.Final</hibernate.validator>
@@ -350,7 +350,7 @@
                     <doctitle>Spring Data Aerospike</doctitle>
                     <show>public</show>
                     <splitindex>true</splitindex>
-                    <bottom>Copyright &#169; 2020&#x2013;{currentYear} Aerospike, Inc. All rights reserved.</bottom>
+                    <bottom>Copyright © 2020–{currentYear} Aerospike, Inc. All rights reserved.</bottom>
                     <sourcepath>${basedir}/src/main/java</sourcepath>
                     <source>17</source>
                 </configuration>
