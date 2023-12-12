@@ -50,7 +50,8 @@ public class AerospikeReadDataIntegrationTest extends BaseBlockingIntegrationTes
         List<User> users = template.findAll(User.class).toList();
         User user;
         if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
-            // the matching key is calculated if isKeepOriginalKeyTypes == true, otherwise returns null
+            // we need isKeepOriginalKeyTypes == true because id is of type long, otherwise findById() returns null
+            // isKeepOriginalKeyTypes parameter would be unimportant if id were of type String
             user = template.findById(longId, User.class);
             assertThat(users.get(0).getId() == (user.getId())).isTrue();
             assertThat(users.get(0).getName().equals(user.getName())).isTrue();
