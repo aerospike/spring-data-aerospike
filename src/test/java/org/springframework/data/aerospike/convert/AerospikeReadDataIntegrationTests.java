@@ -14,7 +14,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AerospikeReadDataIntegrationTest extends BaseBlockingIntegrationTests {
+public class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTests {
 
     long longId = 10L;
     String setName = "testSetName";
@@ -63,5 +63,35 @@ public class AerospikeReadDataIntegrationTest extends BaseBlockingIntegrationTes
         assertThat(user.getAge() == (age)).isTrue();
         assertThat(user.getMap().equals(map)).isTrue();
         assertThat(user.getAddress().equals(address)).isTrue();
+    }
+
+    @AllArgsConstructor
+    @Getter
+    static class Document {
+
+        @Id
+        String id;
+        int number;
+    }
+
+    @Test
+    public void readLongIdAsString() {
+        template.getAerospikeClient().put(null,
+            new Key(namespace, template.getSetName(Document.class), longId),
+            new Bin("number", age)
+        );
+        // we can read the record into a Document because its class is given
+        List<Document> users = template.findAll(Document.class).toList();
+        Document document;
+        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+            // original id has type long
+            document = template.findById(longId, Document.class);
+            assertThat(users.get(0).getId().equals(document.getId())).isTrue();
+            assertThat(users.get(0).getNumber() == (document.getNumber())).isTrue();
+        } else {
+            document = users.get(0);
+        }
+        assertThat(document.getId().equals(String.valueOf(longId))).isTrue();
+        assertThat(document.getNumber() == age).isTrue();
     }
 }
