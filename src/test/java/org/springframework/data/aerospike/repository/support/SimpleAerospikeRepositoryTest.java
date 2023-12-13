@@ -34,7 +34,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.test.context.TestPropertySource;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,14 +46,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 /**
  * @author Peter Milne
  * @author Jean Mercier
  */
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 public class SimpleAerospikeRepositoryTest {
@@ -103,7 +108,7 @@ public class SimpleAerospikeRepositoryTest {
         List<Person> result = aerospikeRepository.saveAll(testPersons);
 
         assertThat(result).isEqualTo(testPersons);
-        verify(operations, times(testPersons.size())).save(any());
+        verify(operations).saveAll(testPersons);
     }
 
     @Test
@@ -183,10 +188,18 @@ public class SimpleAerospikeRepositoryTest {
     }
 
     @Test
-    public void deleteIterableOfQExtendsT() {
-        // batch write operations are supported starting with Server version 6.0+
-        additionalAerospikeTestOperations.deleteAll(aerospikeRepository, testPersons);
-        verify(operations, times(testPersons.size())).delete(any(Person.class));
+    public void deleteAllIterable() throws NoSuchFieldException, IllegalAccessException {
+        Field field = aerospikeRepository.getClass().getDeclaredField("entityInformation");
+        field.setAccessible(true);
+        EntityInformation<Person, String> entityInformation = mock(EntityInformation.class);
+        field.set(aerospikeRepository, entityInformation);
+        when(entityInformation.getId(any(Person.class))).thenReturn(testPerson.getId());
+        when(entityInformation.getJavaType()).thenReturn(Person.class);
+
+        aerospikeRepository.deleteAll(List.of(testPerson));
+        List<Object> ids = List.of(testPerson.getId());
+
+        verify(operations).deleteByIds(ids, Person.class);
     }
 
     @Test

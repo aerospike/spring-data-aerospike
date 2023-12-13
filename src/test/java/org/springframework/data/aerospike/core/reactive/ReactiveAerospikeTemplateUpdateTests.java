@@ -8,10 +8,11 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.utility.AsyncUtils;
 import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -23,8 +24,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static reactor.test.StepVerifier.create;
 
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegrationTests {
 
     @Test
@@ -392,6 +396,8 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(reactiveTemplate.findById(person1.getId(), Person.class).block()).isNull();
             assertThat(reactiveTemplate.findById(person2.getId(), Person.class).block()).isNull();
             assertThat(reactiveTemplate.findById(person3.getId(), Person.class).block()).isEqualTo(person3);
+
+            reactiveTemplate.delete(person3).block(); // cleanup
         }
     }
 

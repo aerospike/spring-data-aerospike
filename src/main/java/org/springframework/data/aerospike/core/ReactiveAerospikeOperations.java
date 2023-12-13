@@ -373,32 +373,6 @@ public interface ReactiveAerospikeOperations {
     Mono<Void> deleteByIds(Iterable<?> ids, String setName);
 
     /**
-     * Reactively delete records using a single batch delete operation, set name will be
-     * determined by the given entityClass.
-     * <p>
-     * This operation requires Server version 6.0+.
-     *
-     * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set name from and to map the results to. Must not be
-     *                    {@literal null}.
-     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
-     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
-     */
-    <T> Mono<Void> deleteByIds(Collection<?> ids, Class<T> entityClass);
-
-    /**
-     * Reactively delete records within the given set using a single batch delete operation.
-     * <p>
-     * This operation requires Server version 6.0+.
-     *
-     * @param ids     The ids of the documents to find. Must not be {@literal null}.
-     * @param setName Set name to use.
-     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
-     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
-     */
-    Mono<Void> deleteByIds(Collection<?> ids, String setName);
-
-    /**
      Reactively delete records from different sets in a single request.
      * <p>
      * This operation requires Server version 6.0+.

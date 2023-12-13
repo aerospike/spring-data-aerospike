@@ -16,7 +16,7 @@ import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDE
 
 @Slf4j
 @ContextConfiguration
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0"})
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
 public class IndexNotScheduledCacheRefreshTest extends BaseBlockingIntegrationTests {
 
     String setName = "scheduled";

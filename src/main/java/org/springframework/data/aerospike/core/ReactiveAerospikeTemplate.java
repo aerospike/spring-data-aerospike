@@ -42,7 +42,6 @@ import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
@@ -402,18 +401,24 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return deleteByIds(IterableConverter.toList(ids), setName);
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
+        List<Object> idsList = new ArrayList<>();
+        for (Object id : ids) {
+            if (idsList.size() == batchSize) {
+                deleteByIds(idsList, setName);
+                idsList.clear();
+                idsList.add(id);
+            } else {
+                idsList.add(id);
+            }
+        }
+        if (!idsList.isEmpty()) {
+            deleteByIds(idsList, setName);
+        }
+
+        return Mono.empty();
     }
 
-    @Override
-    public <T> Mono<Void> deleteByIds(Collection<?> ids, Class<T> entityClass) {
-        Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        return deleteByIds(ids, getSetName(entityClass));
-    }
-
-    @Override
     public Mono<Void> deleteByIds(Collection<?> ids, String setName) {
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
@@ -427,14 +432,24 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private Mono<Void> batchDeleteAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys) {
         Function<BatchResults, Mono<Void>> checkForErrors = results -> {
+            log.debug("checkForErrors");
+            if (results.records == null) {
+                return Mono.error(new AerospikeException.BatchRecordArray(results.records,
+                    new AerospikeException("Errors during batch delete")));
+            }
             for (BatchRecord record : results.records) {
+                log.debug("reading record: ");
                 if (batchRecordFailed(record)) {
                     return Mono.error(new AerospikeException.BatchRecordArray(results.records,
                         new AerospikeException("Errors during batch delete")));
+                } else {
+                    log.debug("successful");
                 }
             }
             return Mono.empty();
         };
+
+        log.debug("before delete");
 
         // requires server ver. >= 6.0.0
         return reactorClient.delete(null, null, keys)

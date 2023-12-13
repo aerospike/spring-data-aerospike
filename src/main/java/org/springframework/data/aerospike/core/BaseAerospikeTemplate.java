@@ -79,6 +79,7 @@ abstract class BaseAerospikeTemplate {
     protected final AerospikeExceptionTranslator exceptionTranslator;
     protected final WritePolicy writePolicyDefault;
     protected final BatchWritePolicy batchWritePolicyDefault;
+    protected final int SERVER_VERSION_6 = 6;
 
     BaseAerospikeTemplate(String namespace,
                           MappingAerospikeConverter converter,
@@ -457,5 +458,9 @@ abstract class BaseAerospikeTemplate {
 
     protected boolean batchRecordFailed(BatchRecord batchRecord) {
         return batchRecord.resultCode != ResultCode.OK || batchRecord.record == null;
+    }
+
+    protected boolean batchWriteSupported() {
+        return converter.getAerospikeDataSettings().getServerMajorVersion() >= SERVER_VERSION_6;
     }
 }

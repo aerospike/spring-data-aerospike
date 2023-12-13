@@ -27,9 +27,11 @@ import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperation
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.repository.core.EntityInformation;
+import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
@@ -39,13 +41,17 @@ import static java.util.stream.Collectors.toMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 /**
  * @author Igor Ermolenko
  */
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 @ExtendWith(MockitoExtension.class)
 public class SimpleReactiveAerospikeRepositoryTest {
 
@@ -81,12 +87,12 @@ public class SimpleReactiveAerospikeRepositoryTest {
 
     @Test
     public void saveAllIterable() {
-        when(operations.save(any(Customer.class))).then(invocation -> Mono.just(invocation.getArgument(0)));
+        when(operations.saveAll(any())).then(invocation -> Flux.fromIterable(invocation.getArgument(0)));
 
         List<Customer> result = repository.saveAll(testCustomers).collectList().block();
 
         assertThat(result).hasSameElementsAs(testCustomers);
-        verify(operations, times(testCustomers.size())).save(any(Customer.class));
+        verify(operations).saveAll(testCustomers);
     }
 
     @Test
@@ -202,11 +208,34 @@ public class SimpleReactiveAerospikeRepositoryTest {
     }
 
     @Test
-    public void testDeleteAllIterable() {
-        when(operations.delete(any(Customer.class))).thenReturn(Mono.just(true));
+    public void testDeleteAllById() throws NoSuchFieldException, IllegalAccessException {
+        Field field = repository.getClass().getDeclaredField("entityInformation");
+        field.setAccessible(true);
+        EntityInformation<Customer, String> entityInformation = mock(EntityInformation.class);
+        field.set(repository, entityInformation);
+        when(entityInformation.getJavaType()).thenReturn(Customer.class);
 
-        reactiveBlockingAerospikeTestOperations.deleteAll(repository, testCustomers);
-        verify(operations, times(testCustomers.size())).delete(any(Customer.class));
+        List<String> customersIds = testCustomers.stream()
+            .map(Customer::getId)
+            .collect(toList());
+        repository.deleteAllById(customersIds);
+
+        verify(operations).deleteByIds(customersIds, Customer.class);
+    }
+
+    @Test
+    public void testDeleteAllIterable() throws NoSuchFieldException, IllegalAccessException {
+        Field field = repository.getClass().getDeclaredField("entityInformation");
+        field.setAccessible(true);
+        EntityInformation<Customer, String> entityInformation = mock(EntityInformation.class);
+        field.set(repository, entityInformation);
+        when(entityInformation.getJavaType()).thenReturn(Customer.class);
+        when(entityInformation.getId(any(Customer.class))).thenReturn(testCustomer.getId());
+
+        repository.deleteAll(List.of(testCustomer));
+
+        List<?> ids = List.of(testCustomer.getId());
+        verify(operations).deleteByIds(ids, Customer.class);
     }
 
     @Test

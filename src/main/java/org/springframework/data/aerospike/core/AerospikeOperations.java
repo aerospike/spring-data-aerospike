@@ -132,7 +132,7 @@ public interface AerospikeOperations {
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
-     * This operation requires Server version 6.0+.
+     * This operation requires Server version 6.0+ ({@link AerospikeDataSettings#getServerMajorVersion()}).
      *
      * @param documents The documents to be saved. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
@@ -148,7 +148,7 @@ public interface AerospikeOperations {
      * <p>
      * The order of returned results is preserved. The execution order is NOT preserved.
      * <p>
-     * This operation requires Server version 6.0+.
+     * This operation requires Server version 6.0+ ({@link AerospikeDataSettings#getServerMajorVersion()}).
      *
      * @param documents The documents to be saved. Must not be {@literal null}.
      * @param setName   Set name to override the default set associated with the documents.
@@ -370,7 +370,7 @@ public interface AerospikeOperations {
      * Delete records by ids using a single batch delete operation, set name will be determined by
      * the given entityClass.
      * <p>
-     * This operation requires Server version 6.0+.
+     * This operation requires Server version 6.0+ ({@link AerospikeDataSettings#getServerMajorVersion()}).
      *
      * @param ids         The ids of the records to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be
@@ -384,7 +384,7 @@ public interface AerospikeOperations {
     /**
      * Delete records by ids within the given set using a single batch delete operation.
      * <p>
-     * This operation requires Server version 6.0+.
+     * This operation requires Server version 6.0+ ({@link AerospikeDataSettings#getServerMajorVersion()}).
      *
      * @param ids     The ids of the records to be deleted. Must not be {@literal null}.
      * @param setName Set name to use.
@@ -395,31 +395,9 @@ public interface AerospikeOperations {
     void deleteByIds(Iterable<?> ids, String setName);
 
     /**
-     * Batch delete records by ids. Set name will be determined by the given entityClass.
-     * <p>
-     * This operation requires Server version 6.0+.
-     *
-     * @param ids         The ids of the records to be deleted. Must not be {@literal null}.
-     * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
-     */
-    <T> void deleteByIds(Collection<?> ids, Class<T> entityClass);
-
-    /**
-     * Batch delete records by ids within the given set.
-     * <p>
-     * This operation requires Server version 6.0+.
-     *
-     * @param ids     The ids of the records to be deleted. Must not be {@literal null}.
-     * @param setName Set name to use.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors or null records
-     */
-    void deleteByIds(Collection<?> ids, String setName);
-
-    /**
      * Perform a single batch delete for records from different sets.
      * <p>
-     * This operation requires Server version 6.0+.
+     * This operation requires Server version 6.0+ ({@link AerospikeDataSettings#getServerMajorVersion()}).
      *
      * @param groupedKeys Keys grouped by document type. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors
