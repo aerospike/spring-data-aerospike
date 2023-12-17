@@ -4,12 +4,17 @@
 [[aerospike-repo-intro]]
 == Introduction
 
-This chapter will point out the specialties for repository support for Aerospike. This builds on the <<repositories, Core SpringData Repository Support>>, so make sure you've got a sound understanding of the basic concepts explained there.
+One of the main goals of the Spring Data is to significantly reduce the amount of boilerplate code required to implement data access layers for various persistence stores.
+
+One of the core interfaces of Spring Data is `Repository`.
+This interface acts primarily to capture the types to work with and to help user to discover interfaces that extend Repository.
+
+In other words, it allows user to have basic and complicated queries without writing the implementation. This builds on the <<repositories, Core SpringData Repository Support>>, so make sure you've got a sound understanding of this concept.
 
 [[aerospike-repo-usage]]
 == Usage
 
-To access domain entities stored in a Aerospike you can leverage our sophisticated repository support that eases implementing those quite significantly. To do so, simply create an interface for your repository:
+To access entities stored in Aerospike you can leverage repository support that eases implementing those quite significantly. To do so, simply create an interface for your repository:
 
 .Sample Person entity
 ====
@@ -30,7 +35,7 @@ public class Person {
 }
 ----
 ====
-We have a quite simple domain object here. The default serialization mechanism used in `AerospikeTemplate` (which is backing the repository support) regards properties named id as document id. Currently, we support`String` and `long` as id-types.
+We have a quite simple domain object here. The default serialization mechanism used in `AerospikeTemplate` (which is backing the repository support) regards properties named "id" as document id. Currently we support `String` and `long` as id-types.
 
 .Basic repository interface to persist Person entities
 ====
@@ -46,7 +51,7 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 ----
 ====
 
-Right now this interface simply serves typing purposes but we will add additional methods to it later. In your Spring configuration simply add
+Right now this interface simply serves typing purposes, but we will add additional methods to it later. In your Spring configuration simply add
 
 .General Aerospike repository Spring configuration
 ====
@@ -142,8 +147,8 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
  }
 ----
 <1> The method shows a query for all people with the given name. The query will be derived by parsing the method name for constraints that can be concatenated with `And` and `Or`.
-<2> Applies pagination to a query. Just equip your method signature with a `Pageable` parameter and let the method return a `Page` instance and we will automatically page the query accordingly.
-<3> Shows that you can query-based partial name searches.
+<2> Applies pagination to a query. Just equip your method signature with a `Pageable` parameter and let the method return a `Page` instance, and it will automatically page the query accordingly (i.e. return the required part of results).
+<3> Uses query-based partial name search.
 ====
 [[aerospike.repositories.example]]
 
@@ -160,9 +165,6 @@ public class RepositoryExample {
 	@Autowired
 	AerospikeClient client;
 
-	/**
-	 * @param ctx
-	 */
 	public RepositoryExample(ApplicationContext ctx) {
 		aerospikeOperations = ctx.getBean(AerospikeTemplate.class);
 		repository = (PersonRepository) ctx.getBean("personRepository");
@@ -196,7 +198,7 @@ public class RepositoryExample {
 		for (Person person : result) {
 			System.out.println(person.toString());
 		}
-		System.out.println("Results for name startting with letter 'M'");
+		System.out.println("Results for name starting with letter 'M'");
 		List<Person> resultPartial = repository.findByNameStartsWith("M");
 		for (Person person : resultPartial) {
 			System.out.println(person.toString());

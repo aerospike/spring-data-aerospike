@@ -1,0 +1,14 @@
+[[aerospike.functionality]]
+= Functionality
+
+https://github.com/aerospike/spring-data-aerospike[Spring Data Aerospike project] aims to provide a familiar and consistent Spring-based programming model providing integration with the Aerospike database.
+
+Spring Data Aerospike supports a wide range of features summarized below:
+
+* Supporting Repository interfaces (out-of-the-box CRUD operations and query implementations, for more information see xref:#aerospike.repositories[Aerospike Repositories])
+* AerospikeTemplate for lower-level access to common Aerospike operations and fine-tuning (for more information see xref:#aerospike.template[AerospikeTemplate])
+* xref:#aerospike.object-mapping[Feature Rich Object Mapping] integrated with Spring's Conversion Service
+* Translating exceptions into Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions[Data Access Exception hierarchy]
+* Annotation-based metadata mapping
+* Ability to directly utilize Aerospike Java client functionality
+

@@ -7,7 +7,7 @@ Due to the cost of performing this operation, scans from Spring Data Aerospike a
 
 == Enabling Scan
 
-If the cost of the scans is acceptable to an organization, they can be enabled by setting `scansEnabled` to `true` in `AerospikeDataSettings`.
+If the cost of the scans is acceptable to an organization, they can be enabled by setting xref:#configure-data-settings.scans-enabled[`scansEnabled`] to `true` in `AerospikeDataSettings`.
 
 One way to do this is to create a custom bean which overrides the default settings:
 

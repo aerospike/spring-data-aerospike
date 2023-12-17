@@ -1,0 +1,161 @@
+[[aerospike.installation_and_usage]]
+= Installation & Usage
+
+== Getting Started
+
+First, you need a running https://docs.aerospike.com/server/operations/install/verify[Aerospike server] to connect to.
+
+To use Spring Data Aerospike you can either set up Spring Boot or Spring application. Basic setup of Spring Boot application is described here: https://projects.spring.io/spring-boot.
+
+In case you do not want to use Spring Boot, the best way to manage Spring dependencies is to declare `spring-framework-bom` of the needed version in the `dependencyManagement` section of your `pom.xml`:
+
+[source,xml]
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-framework-bom</artifactId>
+            <version>${spring-data-aerospike.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+----
+
+NOTE: To create a Spring project in STS (Spring Tool Suite) go to File -> New -> Spring Template Project -> Simple Spring Utility Project -> press "Yes" when prompted. Then enter a project and a package name such as `org.spring.aerospike.example`.
+
+== Adding Dependency
+
+The first step is to add Spring Data Aerospike to your build process. It is recommended to use the latest version which can be found on the https://github.com/aerospike/spring-data-aerospike/releases[GitHub Releases] page.
+
+Adding Spring Data Aerospike dependency in Maven:
+
+[source, xml]
+----
+<dependency>
+    <groupId>com.aerospike</groupId>
+    <artifactId>spring-data-aerospike</artifactId>
+    <version>${spring-data-aerospike.version}</version>
+</dependency>
+----
+
+Adding Spring Data Aerospike dependency in Gradle:
+
+[source, text]
+----
+implementation group: 'com.aerospike', name: 'spring-data-aerospike', version: '${spring-data-aerospike.version}'
+----
+
+== Connecting to Aerospike DB
+
+Configuring Spring Data Aerospike is easy with the help of the `AbstractAerospikeDataConfiguration` class.
+
+[source, java]
+----
+@Configuration
+@EnableAerospikeRepositories(basePackageClasses = { PersonRepository.class})
+public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
+    @Override
+    protected Collection<Host> getHosts() {
+        return Collections.singleton(new Host("localhost", 3000));
+    }
+
+    @Override
+    protected String nameSpace() {
+        return "test";
+    }
+}
+----
+
+`@Configuration` tells Spring that this class contains configuration data, and `@EnableAerospikeRepositories` activates Aerospike repositories that can be used for data access. The parameter to this annotation tells Spring Data Aerospike where to look for the repositories. This can be a list of package names as strings using the `basePackages` value, or a list of classes through the `basePackageClass` value. If the latter is used (as in this example), the class is used to determine which package to scan, and all repositories in that package will be available for use. More details on repositories are below.
+
+The primary information required by this configuration is how to connect to the cluster, provided through the `getHosts` and `nameSpace` calls.
+
+NOTE: You can optionally override xref:#configure-data-settings[`configureDataSettings`] method of `AbstractAerospikeDataConfiguration` to customize your configuration.
+
+== Creating Functionality
+
+The base functionality is provided by `AerospikeRepository` interface.
+
+It typically takes 2 parameters:
+
+[arabic]
+. The type managed by a class (it is typically entity class) to be stored in the database.
+. The type of ID.
+
+Application code typically extends this interface for each of the types to be managed, and methods can be added to the interface to determine how the application can access the data. For example, consider a class `Person` with a simple structure:
+
+[source, java]
+----
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Document
+public class Person {
+    @Id
+    private long id;
+    private String firstName;
+    private String lastName;
+    @Field("dob")
+    private Date dateOfBirth;
+}
+----
+
+Note that this example uses the https://projectlombok.org/[Project Lombok] annotations to remove the need for explicit constructors and getters and setters. Normal POJOs which define these on their own can ignore the `@AllArgsConstructor`, `@NoArgsConstructor` and `@Data` annotations. The `@Document` annotation tells Spring Data Aerospike that this is a domain object to be persisted in the database, and `@Id` identifies the primary key of this class. The `@Field` annotation is used to create a shorter name for the bin in the Aerospike database (`dateOfBirth` will be stored in a bin called `dob` in this example).
+
+For the `Person` object to be persisted to Aerospike, you must create an interface with the desired methods for retrieving data. For example:
+
+[source, java]
+----
+public interface PersonRepository extends AerospikeRepository<Person, Long> {
+    List<Person> findByLastName(String lastName);
+}
+----
+
+This defines a repository that can write `Person` entities and also query them by last name. The `AerospikeRepository` extends both `PagingAndSortingRepository` and `CrudRepository`, so methods like `count()`, `findById()`, `save()` and `delete()` are there by default. Those who need reactive flow can use `ReactiveAerospikeRepository` instead.
+
+NOTE: Repository is just an interface and not an actual class. In the background, when your context gets initialized, actual implementations for your repository descriptions get created, and you can access them through regular beans. This means you will omit lots of boilerplate code while still exposing full CRUD semantics to your service layer and application.
+
+Example repository is ready for use. A sample Spring Controller which uses this repository could be the following:
+
+[source, java]
+----
+@RestController
+public class ApplicationController {
+    @Autowired
+    private PersonRepository personRepsitory;
+
+    @GetMapping("/seed")
+    public int seedData() {
+        Person person = new Person(1, "Bob", "Jones", new GregorianCalendar(1971, 12, 19).getTime());
+        personRepsitory.save(person);
+        return 1;
+    }
+
+    @GetMapping("/findByLastName/{lastName}")
+    public List<Person> findByLastName(@PathVariable(name = "lastName", required=true) String lastName) {
+        return personRepsitory.findByLastName(lastName);
+    }
+}
+----
+
+Invoking the `seed` method above gives you a record in the Aerospike database which looks like:
+
+[source, text]
+----
+aql> select * from test.Person where pk = "1"
++-----+-----------+----------+-------------+-------------------------------------+
+| PK  | firstName | lastName | dob         | @_class                             |
++-----+-----------+----------+-------------+-------------------------------------+
+| "1" | "Bob"     | "Jones"  | 64652400000 | "com.aerospike.sample.model.Person" |
++-----+-----------+----------+-------------+-------------------------------------+
+1 row in set (0.001 secs)
+----
+
+NOTE: The fully qualified path of the class is listed in each record. This is needed to instantiate the class correctly, especially in cases when the compile-time type and runtime type of the object differ. For example, where a field is declared as a super class but the instantiated class is a subclass.
+
+NOTE: By default, the type of the field annotated with `@id` is turned into a `String` to be stored in Aerospike database. If the original type cannot be persisted (see xref:#configure-data-settings.keep-original-key-types[keepOriginalKeyTypes] for details), it must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
+
+

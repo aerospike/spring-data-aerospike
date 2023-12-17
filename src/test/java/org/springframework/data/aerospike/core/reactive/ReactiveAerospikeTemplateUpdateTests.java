@@ -142,26 +142,26 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     public void updatesFieldValueAndDocumentVersion() {
         VersionedClass document = new VersionedClass(id, "foobar");
         create(reactiveTemplate.insert(document))
-            .assertNext(updated -> assertThat(updated.version).isEqualTo(1))
+            .assertNext(updated -> assertThat(updated.getVersion()).isEqualTo(1))
             .verifyComplete();
-        assertThat(findById(id, VersionedClass.class).version).isEqualTo(1);
+        assertThat(findById(id, VersionedClass.class).getVersion()).isEqualTo(1);
 
-        document = new VersionedClass(id, "foobar1", document.version);
+        document = new VersionedClass(id, "foobar1", document.getVersion());
         create(reactiveTemplate.update(document))
-            .assertNext(updated -> assertThat(updated.version).isEqualTo(2))
+            .assertNext(updated -> assertThat(updated.getVersion()).isEqualTo(2))
             .verifyComplete();
         assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
-            assertThat(doc.field).isEqualTo("foobar1");
-            assertThat(doc.version).isEqualTo(2);
+            assertThat(doc.getField()).isEqualTo("foobar1");
+            assertThat(doc.getVersion()).isEqualTo(2);
         });
 
-        document = new VersionedClass(id, "foobar2", document.version);
+        document = new VersionedClass(id, "foobar2", document.getVersion());
         create(reactiveTemplate.update(document))
-            .assertNext(updated -> assertThat(updated.version).isEqualTo(3))
+            .assertNext(updated -> assertThat(updated.getVersion()).isEqualTo(3))
             .verifyComplete();
         assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
-            assertThat(doc.field).isEqualTo("foobar2");
-            assertThat(doc.version).isEqualTo(3);
+            assertThat(doc.getField()).isEqualTo("foobar2");
+            assertThat(doc.getVersion()).isEqualTo(3);
         });
         reactiveTemplate.delete(document).block(); // cleanup
     }
@@ -170,22 +170,22 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     public void updateSpecificFieldsWithDocumentVersion() {
         VersionedClass document = new VersionedClass(id, "foobar");
         reactiveTemplate.insert(document).block();
-        assertThat(findById(id, VersionedClass.class).version).isEqualTo(1);
+        assertThat(findById(id, VersionedClass.class).getVersion()).isEqualTo(1);
 
-        document = new VersionedClass(id, "foobar1", document.version);
+        document = new VersionedClass(id, "foobar1", document.getVersion());
         List<String> fields = new ArrayList<>();
         fields.add("field");
         reactiveTemplate.update(document, fields).block();
         assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
-            assertThat(doc.field).isEqualTo("foobar1");
-            assertThat(doc.version).isEqualTo(2);
+            assertThat(doc.getField()).isEqualTo("foobar1");
+            assertThat(doc.getVersion()).isEqualTo(2);
         });
 
-        document = new VersionedClass(id, "foobar2", document.version);
+        document = new VersionedClass(id, "foobar2", document.getVersion());
         reactiveTemplate.update(document, fields).block();
         assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
-            assertThat(doc.field).isEqualTo("foobar2");
-            assertThat(doc.version).isEqualTo(3);
+            assertThat(doc.getField()).isEqualTo("foobar2");
+            assertThat(doc.getVersion()).isEqualTo(3);
         });
         reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
@@ -195,11 +195,11 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         VersionedClass document = new VersionedClass(id, "foobar");
         reactiveTemplate.insert(document).block();
 
-        document = new VersionedClass(id, null, document.version);
+        document = new VersionedClass(id, null, document.getVersion());
         reactiveTemplate.update(document).block();
         assertThat(findById(id, VersionedClass.class)).satisfies(doc -> {
-            assertThat(doc.field).isNull();
-            assertThat(doc.version).isEqualTo(2);
+            assertThat(doc.getField()).isNull();
+            assertThat(doc.getVersion()).isEqualTo(2);
         });
 
         reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
@@ -216,7 +216,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             .assertNext(keyRecord -> assertThat(keyRecord.record.generation).isEqualTo(3))
             .verifyComplete();
         VersionedClass actual = findById(id, VersionedClass.class);
-        assertThat(actual.version).isEqualTo(3);
+        assertThat(actual.getVersion()).isEqualTo(3);
         reactiveTemplate.delete(actual).block(); // cleanup
     }
 
@@ -231,7 +231,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             .assertNext(keyRecord -> assertThat(keyRecord.record.generation).isEqualTo(3))
             .verifyComplete();
         VersionedClass actual = findById(id, VersionedClass.class, OVERRIDE_SET_NAME);
-        assertThat(actual.version).isEqualTo(3);
+        assertThat(actual.getVersion()).isEqualTo(3);
         reactiveTemplate.delete(actual, OVERRIDE_SET_NAME).block(); // cleanup
     }
 
@@ -247,7 +247,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         AsyncUtils.executeConcurrently(numberOfConcurrentSaves, () -> {
             long counterValue = counter.incrementAndGet();
             String data = "value-" + counterValue;
-            reactiveTemplate.update(new VersionedClass(id, data, document.version))
+            reactiveTemplate.update(new VersionedClass(id, data, document.getVersion()))
                 .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
                     optimisticLock.incrementAndGet();
                     return Mono.empty();

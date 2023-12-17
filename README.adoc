@@ -143,7 +143,7 @@ In order to configure Spring Data Aerospike you will need to create a configurat
 `AbstractAerospikeDataConfiguration`, defines the relevant Spring Data Repositories via `@EnableAerospikeRepositories`
 annotation and overrides `getHosts()` and `nameSpace()` methods with the required connection details.
 
-You can optionally override other methods of `AbstractAerospikeDataConfiguration` to customize your configuration.
+NOTE: You can optionally override xref:#configure-data-settings[`configureDataSettings`] method of `AbstractAerospikeDataConfiguration` to further customize your configuration.
 
 Here is a simple example of a configuration class that sets up a connection to a local Aerospike instance:
 
@@ -215,7 +215,7 @@ Features supported by `AerospikeOperations`:
 
 * Basic support for mapping POJOs to and from Aerospike bins
 * Convenience CRUD (Create, Read, Update and Delete) methods for interacting with Aerospike
-* Rich Query API
+* Rich query API
 * Access to the native Aerospike Java Client (reactive and non-reactive)
 * Translating exceptions into Spring's
 https://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions[technology-agnostic

@@ -7,9 +7,9 @@ It allows lower-level access than a Repository and also serves as the foundation
 Template is the central support class for Aerospike database operations.
 It provides the following functionality:
 
-- Mapping between Java objects and Aerospike Bins (see Mapping)
 - Methods to interact with the database
-- Connection callback
+- Mapping between Java objects and Aerospike Bins (see <<aerospike.object-mapping, Object Mapping>>)
+- Providing connection callback
 - Translating exceptions into Spring's technology-agnostic https://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions[DAO exceptions hierarchy]
 
 [[aerospike-template.instantiating]]
@@ -33,8 +33,7 @@ For CAS updates `save` operation must be used.
 
 `AerospikeOperations` interface provides operations for interacting with the database (`exists`, `find`, `insert`, `update` etc.) as well as basic operations with indexes: `createIndex`, `deleteIndex`, `indexExists`.
 
-The names of operations are typically self-descriptive.
-To read from Aerospike you can use `findById`, `findByIds` and `find` methods, to delete - `delete` methods, and so on.
+The names of operations are typically self-descriptive. To read from Aerospike you can use `findById`, `findByIds` and `find` methods, to delete - `delete` methods, and so on.
 
 [source,java]
 ----
@@ -73,13 +72,13 @@ template.insert(new Person(id, "John", 50));
 
 long count = template.count
             (new Query
-                    (new QualifierBuilder()
-                        .setFilterOperation(FilterOperation.EQ)
-                        .setField("firstName")
-                        .setValue1(Value.get("John"))
-                            .build()
-                    ),
-                Person.class
+                (new QualifierBuilder()
+                    .setFilterOperation(FilterOperation.EQ)
+                    .setField("firstName")
+                    .setValue1(Value.get("John"))
+                    .build()
+                ),
+            Person.class
             );
 
         assertThat(count).isEqualTo(3);
