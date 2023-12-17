@@ -80,6 +80,9 @@ abstract class BaseAerospikeTemplate {
     protected final WritePolicy writePolicyDefault;
     protected final BatchWritePolicy batchWritePolicyDefault;
     protected final int SERVER_VERSION_6 = 6;
+    protected final String SAVE_OPERATION = "save";
+    protected final String INSERT_OPERATION = "insert";
+    protected final String UPDATE_OPERATION = "update";
 
     BaseAerospikeTemplate(String namespace,
                           MappingAerospikeConverter converter,

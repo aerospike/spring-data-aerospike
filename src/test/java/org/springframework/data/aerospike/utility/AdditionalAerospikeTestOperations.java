@@ -259,7 +259,7 @@ public abstract class AdditionalAerospikeTestOperations {
     }
 
 
-    public abstract List<Customer> generateCustomers(int count);
+    public abstract List<Customer> saveGeneratedCustomers(int count);
 
-    public abstract List<Person> generatePersons(int count);
+    public abstract List<Person> saveGeneratedPersons(int count);
 }

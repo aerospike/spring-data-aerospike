@@ -474,6 +474,14 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             assertThat(result2.getFirstName()).isEqualTo("Johann B");
             template.delete(result1); // cleanup
             template.delete(result2); // cleanup
+
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+            Iterable<Person> personsWithUpdate = persons.stream()
+                .peek(person -> person.setFirstName(person.getFirstName() + "_")).toList();
+            template.updateAll(personsWithUpdate);
+            personsWithUpdate.forEach(person ->
+                assertThat(template.findById(person.getId(), Person.class).getFirstName()
+                    .equals(person.getFirstName())).isTrue());
         }
     }
 

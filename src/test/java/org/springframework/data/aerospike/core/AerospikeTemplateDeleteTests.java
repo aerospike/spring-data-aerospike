@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.policy.GenerationPolicy;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
@@ -43,6 +44,12 @@ import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDE
 @TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
 // this test class does not require secondary indexes created on startup
 public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
+
+    @AfterEach
+    public void afterEach() {
+        template.deleteAll(Person.class);
+        template.deleteAll(Customer.class);
+    }
 
     @Test
     public void deleteByObject_ignoresDocumentVersionEvenIfDefaultGenerationPolicyIsSet() {
@@ -132,9 +139,9 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteByGroupedKeys() {
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
-            List<Person> persons = additionalAerospikeTestOperations.generatePersons(5);
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(5);
             List<String> personsIds = persons.stream().map(Person::getId).toList();
-            List<Customer> customers = additionalAerospikeTestOperations.generateCustomers(3);
+            List<Customer> customers = additionalAerospikeTestOperations.saveGeneratedCustomers(3);
             List<String> customersIds = customers.stream().map(Customer::getId).toList();
 
             GroupedKeys groupedKeys = getGroupedKeys(persons, customers);
@@ -238,10 +245,13 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             template.deleteByIds(ids, DocumentWithExpiration.class);
             assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
 
-//            List<Person> persons = additionalAerospikeTestOperations.generatePersons(101);
-            List<Person> persons = additionalAerospikeTestOperations.generatePersons(100);
-            template.saveAll(persons);
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
             ids = persons.stream().map(Person::getId).toList();
+            template.deleteByIds(ids, Person.class);
+            assertThat(template.findByIds(ids, Person.class)).isEmpty();
+
+            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+            ids = persons2.stream().map(Person::getId).toList();
             template.deleteByIds(ids, Person.class);
             assertThat(template.findByIds(ids, Person.class)).isEmpty();
         }

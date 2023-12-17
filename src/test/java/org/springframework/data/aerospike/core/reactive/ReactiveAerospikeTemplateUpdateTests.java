@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.core.reactive;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -30,6 +31,11 @@ import static reactor.test.StepVerifier.create;
 @TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
 // this test class does not require secondary indexes created on startup
 public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegrationTests {
+
+    @AfterEach
+    public void afterEach() {
+        reactiveTemplate.deleteAll(Person.class).block();
+    }
 
     @Test
     public void shouldThrowExceptionOnUpdateForNonExistingKey() {
@@ -379,6 +385,40 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         assertThat(personWithList2.getStringMap()).hasSize(4);
         assertThat(personWithList2.getStringMap().get("key4")).isEqualTo("Added something new");
         reactiveTemplate.delete(findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
+    }
+
+    @Test
+    public void updateAllIfDocumentsChanged() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+            int age1 = 140335200;
+            int age2 = 177652800;
+            Person person1 = new Person(id, "Wolfgang", age1);
+            Person person2 = new Person(nextId(), "Johann", age2);
+            reactiveTemplate.insertAll(List.of(person1, person2)).blockLast();
+
+            person1.setFirstName("Wolfgang M");
+            person2.setFirstName("Johann B");
+            reactiveTemplate.updateAll(List.of(person1, person2)).blockLast();
+
+            Person result1 = reactiveTemplate.findById(person1.getId(), Person.class).block();
+            Person result2 = reactiveTemplate.findById(person2.getId(), Person.class).block();
+            assertThat(result1.getAge()).isEqualTo(age1);
+            assertThat(result1.getFirstName()).isEqualTo("Wolfgang M");
+            assertThat(result2.getAge()).isEqualTo(age2);
+            assertThat(result2.getFirstName()).isEqualTo("Johann B");
+            reactiveTemplate.delete(result1).block(); // cleanup
+            reactiveTemplate.delete(result2).block(); // cleanup
+
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+            Iterable<Person> personsWithUpdate = persons.stream()
+                .peek(person -> person.setFirstName(person.getFirstName() + "_")).toList();
+
+            reactiveTemplate.updateAll(personsWithUpdate).blockLast();
+            personsWithUpdate.forEach(person ->
+                assertThat(reactiveTemplate.findById(person.getId(), Person.class).block().getFirstName()
+                    .equals(person.getFirstName())).isTrue());
+        }
     }
 
     @Test

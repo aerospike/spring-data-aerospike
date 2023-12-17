@@ -152,15 +152,25 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             String id1 = nextId();
             String id2 = nextId();
-            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1));
-            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id2));
+            reactiveTemplate.save(new SampleClasses.VersionedClass(id1, "test1")).block();
+            reactiveTemplate.save(new SampleClasses.VersionedClass(id2, "test2")).block();
 
             List<String> ids = List.of(id1, id2);
-            reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class);
+            reactiveTemplate.deleteByIds(ids, SampleClasses.VersionedClass.class).block();
 
-            List<SampleClasses.DocumentWithExpiration> list = reactiveTemplate.findByIds(ids,
-                SampleClasses.DocumentWithExpiration.class).subscribeOn(Schedulers.parallel()).collectList().block();
+            List<SampleClasses.VersionedClass> list = reactiveTemplate.findByIds(ids,
+                SampleClasses.VersionedClass.class).subscribeOn(Schedulers.parallel()).collectList().block();
             assertThat(list).isEmpty();
+
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+            ids = persons.stream().map(Person::getId).toList();
+            reactiveTemplate.deleteByIds(ids, Person.class).block();
+            assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
+
+            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+            ids = persons2.stream().map(Person::getId).toList();
+            reactiveTemplate.deleteByIds(ids, Person.class).block();
+            assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
         }
     }
 
@@ -170,11 +180,11 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
             String id1 = nextId();
             String id2 = nextId();
-            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1), OVERRIDE_SET_NAME);
-            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id2), OVERRIDE_SET_NAME);
+            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1), OVERRIDE_SET_NAME).block();
+            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id2), OVERRIDE_SET_NAME).block();
 
             List<String> ids = List.of(id1, id2);
-            reactiveTemplate.deleteByIds(ids, OVERRIDE_SET_NAME);
+            reactiveTemplate.deleteByIds(ids, OVERRIDE_SET_NAME).block();
 
             List<SampleClasses.DocumentWithExpiration> list = reactiveTemplate.findByIds(ids,
                     SampleClasses.DocumentWithExpiration.class, OVERRIDE_SET_NAME)
@@ -187,22 +197,49 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     public void deleteAllFromDifferentSets_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
-            SampleClasses.DocumentWithExpiration entity1 = new SampleClasses.DocumentWithExpiration(id);
-            SampleClasses.VersionedClass entity2 = new SampleClasses.VersionedClass(nextId(), "test");
-            reactiveTemplate.save(entity1);
-            reactiveTemplate.save(entity2);
+            SampleClasses.DocumentWithExpiration entity1_1 = new SampleClasses.DocumentWithExpiration(id);
+            SampleClasses.DocumentWithExpiration entity1_2 = new SampleClasses.DocumentWithExpiration(nextId());
+            SampleClasses.VersionedClass entity2_1 = new SampleClasses.VersionedClass(nextId(), "test1");
+            SampleClasses.VersionedClass entity2_2 = new SampleClasses.VersionedClass(nextId(), "test2");
+            Person entity3_1 = Person.builder().id(nextId()).firstName("Name1").build();
+            Person entity3_2 = Person.builder().id(nextId()).firstName("Name2").build();
+            reactiveTemplate.save(entity1_1).block();
+            reactiveTemplate.save(entity1_2).block();
+            reactiveTemplate.save(entity2_1).block();
+            reactiveTemplate.save(entity2_2).block();
+            reactiveTemplate.save(entity3_1).block();
+            reactiveTemplate.save(entity3_2).block();
 
-            reactiveTemplate.deleteByIds(GroupedKeys.builder()
-                .entityKeys(SampleClasses.DocumentWithExpiration.class, List.of(entity1.getId())).build());
-            reactiveTemplate.deleteByIds(GroupedKeys.builder()
-                .entityKeys(SampleClasses.VersionedClass.class, List.of(entity2.getId())).build());
+            GroupedKeys groupedKeys = GroupedKeys.builder()
+                .entityKeys(SampleClasses.DocumentWithExpiration.class, List.of(entity1_1.getId(), entity1_2.getId()))
+                .entityKeys(SampleClasses.VersionedClass.class, List.of(entity2_1.getId(), entity2_2.getId()))
+                .entityKeys(Person.class, List.of(entity3_1.getId(), entity3_2.getId()))
+                .build();
+//            reactiveTemplate.deleteByIds(GroupedKeys.builder()
+//                .entityKeys(SampleClasses.DocumentWithExpiration.class, List.of(entity1_1.getId())).build()).block();
+//                .entityKeys(SampleClasses.DocumentWithExpiration.class, List.of(entity1_1.getId(), entity1_2.getId
+//                ())).build()).block();
+//            reactiveTemplate.deleteByIds(GroupedKeys.builder()
+//                .entityKeys(SampleClasses.VersionedClass.class, List.of(entity2.getId())).build()).block();
+//                .entityKeys(SampleClasses.VersionedClass.class, List.of(entity2_1.getId(), entity2_2.getId()))
+//                .build()).block();
+            reactiveTemplate.deleteByIds(groupedKeys).block();
 
-            List<SampleClasses.DocumentWithExpiration> list1 = reactiveTemplate.findByIds(List.of(entity1.getId()),
-                SampleClasses.DocumentWithExpiration.class).subscribeOn(Schedulers.parallel()).collectList().block();
+            List<SampleClasses.DocumentWithExpiration> list1 = reactiveTemplate.findByIds(
+                List.of(entity1_1.getId(), entity1_2.getId()),
+                SampleClasses.DocumentWithExpiration.class
+            ).subscribeOn(Schedulers.parallel()).collectList().block();
             assertThat(list1).isEmpty();
-            List<SampleClasses.VersionedClass> list2 = reactiveTemplate.findByIds(List.of(entity2.getId()),
-                SampleClasses.VersionedClass.class).subscribeOn(Schedulers.parallel()).collectList().block();
+            List<SampleClasses.VersionedClass> list2 = reactiveTemplate.findByIds(
+                List.of(entity2_1.getId(), entity2_2.getId()),
+                SampleClasses.VersionedClass.class
+            ).subscribeOn(Schedulers.parallel()).collectList().block();
             assertThat(list2).isEmpty();
+            List<Person> list3 = reactiveTemplate.findByIds(
+                List.of(entity3_1.getId(), entity3_2.getId()),
+                Person.class
+            ).subscribeOn(Schedulers.parallel()).collectList().block();
+            assertThat(list3).isEmpty();
         }
     }
 
@@ -213,8 +250,8 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
             String id1 = nextId();
             SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
             SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);
-            reactiveTemplate.save(document1);
-            reactiveTemplate.save(document2);
+            reactiveTemplate.save(document1).block();
+            reactiveTemplate.save(document2).block();
 
             List<String> ids = List.of(id1, id1);
             StepVerifier.create(reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class))
@@ -222,6 +259,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
                 .verify();
 //            reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class).subscribe();
 //            reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class).block();
+//            reactiveTemplate.deleteByIds(null, SampleClasses.DocumentWithExpiration.class).block();
         }
     }
 }

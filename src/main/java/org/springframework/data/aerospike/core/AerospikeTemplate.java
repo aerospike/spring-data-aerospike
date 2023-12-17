@@ -46,7 +46,6 @@ import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
@@ -164,39 +163,46 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
             "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
 
+        applyBufferedBatchWrite(documents, setName, SAVE_OPERATION);
+    }
+
+    private <T> void applyBufferedBatchWrite(Iterable<T> documents, String setName, String operationName) {
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<T> docsList = new ArrayList<>();
-        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        List<BatchRecord> batchWriteRecords = new ArrayList<>();
 
         for (T doc : documents) {
             if (docsList.size() == batchSize) {
-                saveAllDocuments(docsList, setName, batchWriteDataList, batchWriteRecords);
-                checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "save");
+                batchWriteAllDocuments(docsList, setName, operationName);
                 docsList.clear();
-                docsList.add(doc);
-            } else {
-                docsList.add(doc);
             }
+            docsList.add(doc);
         }
         if (!docsList.isEmpty()) {
-            saveAllDocuments(docsList, setName, batchWriteDataList, batchWriteRecords);
-            checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "save");
+            batchWriteAllDocuments(docsList, setName, operationName);
         }
     }
 
-    private <T> void saveAllDocuments(Collection<T> documents, String setName,
-                                      Collection<BatchWriteData<T>> batchWriteDataList,
-                                      List<BatchRecord> batchWriteRecords) {
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document, setName)));
+    private <T> void batchWriteAllDocuments(List<T> documents, String setName, String operationName) {
+        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
+        switch (operationName) {
+            case SAVE_OPERATION ->
+                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document, setName)));
+            case INSERT_OPERATION ->
+                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document, setName)));
+            case UPDATE_OPERATION ->
+                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document, setName)));
+            default -> throw new IllegalStateException("Unexpected operation name: " + operationName);
+        }
 
-        batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
         try {
             // requires server ver. >= 6.0.0
             client.operate(null, batchWriteRecords);
         } catch (AerospikeException e) {
             throw translateError(e);
         }
+
+        checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, operationName);
     }
 
     private <T> void checkForErrorsAndUpdateVersion(List<BatchWriteData<T>> batchWriteDataList,
@@ -248,6 +254,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void insertAll(Iterable<? extends T> documents) {
         Assert.notNull(documents, "Documents must not be null!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
+            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
         insertAll(documents, getSetName(documents.iterator().next()));
     }
 
@@ -255,19 +263,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T> void insertAll(Iterable<? extends T> documents, String setName) {
         Assert.notNull(documents, "Documents for inserting must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
+            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
 
-        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document, setName)));
-
-        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
-        try {
-            // requires server ver. >= 6.0.0
-            client.operate(null, batchWriteRecords);
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
-
-        checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "insert");
+        applyBufferedBatchWrite(documents, setName, INSERT_OPERATION);
     }
 
     @Override
@@ -345,6 +344,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void updateAll(Iterable<T> documents) {
         Assert.notNull(documents, "Documents must not be null!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
+            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
         updateAll(documents, getSetName(documents.iterator().next()));
     }
 
@@ -352,19 +353,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T> void updateAll(Iterable<T> documents, String setName) {
         Assert.notNull(documents, "Documents must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
+            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
 
-        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document, setName)));
-
-        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
-        try {
-            // requires server ver. >= 6.0.0
-            client.operate(null, batchWriteRecords);
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
-
-        checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, "update");
+        applyBufferedBatchWrite(documents, setName, UPDATE_OPERATION);
     }
 
     @Deprecated
@@ -453,17 +445,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             if (idsList.size() == batchSize) {
                 deleteByIds(idsList, setName);
                 idsList.clear();
-                idsList.add(id);
-            } else {
-                idsList.add(id);
             }
+            idsList.add(id);
         }
         if (!idsList.isEmpty()) {
             deleteByIds(idsList, setName);
         }
     }
 
-    public void deleteByIds(Collection<?> ids, String setName) {
+    private void deleteByIds(Collection<?> ids, String setName) {
         Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
         Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
@@ -488,6 +478,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
         Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
             "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+
+        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
+            return;
+        }
 
         deleteGroupedEntitiesByGroupedKeys(groupedKeys);
     }
@@ -523,6 +517,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             throw translateError(e);
         }
 
+        if (results.records == null) {
+            throw new AerospikeException.BatchRecordArray(results.records,
+                new AerospikeException("Errors during batch delete"));
+        }
         for (int i = 0; i < results.records.length; i++) {
             BatchRecord record = results.records[i];
             if (batchRecordFailed(record)) {
@@ -828,7 +826,28 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return (List<S>) findByIdsUsingQuery(IterableConverter.toList(ids), entityClass, targetClass, setName, null);
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
+        List<Object> idsList = new ArrayList<>();
+        List<S> result = new ArrayList<>();
+
+        for (Object id : ids) {
+            if (idsList.size() == batchSize) {
+                result = Stream.concat(
+                    result.stream(),
+                    ((List<S>) findByIdsUsingQuery(idsList, entityClass, targetClass, setName, null)).stream()
+                ).toList();
+                idsList.clear();
+            }
+            idsList.add(id);
+        }
+        if (!idsList.isEmpty()) {
+            result = Stream.concat(
+                result.stream(),
+                ((List<S>) findByIdsUsingQuery(idsList, entityClass, targetClass, setName, null)).stream()
+            ).toList();
+        }
+
+        return result;
     }
 
     @Override

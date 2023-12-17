@@ -19,6 +19,7 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
@@ -47,6 +48,11 @@ import static org.springframework.data.aerospike.sample.SampleClasses.VersionedC
 @TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
 // this test class does not require secondary indexes created on startup
 public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
+
+    @AfterEach
+    public void afterEach() {
+        template.deleteAll(Person.class);
+    }
 
     @Test
     public void insertsAndFindsWithCustomCollectionSet() {
@@ -208,25 +214,33 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void insertAll_insertsAllDocuments() {
-        List<Person> persons = IntStream.range(1, 10)
-            .mapToObj(age -> Person.builder().id(nextId())
-                .firstName("Gregor")
-                .age(age).build())
-            .collect(Collectors.toList());
-
         // batch write operations are supported starting with Server version 6.0+
         if (ServerVersionUtils.isBatchWriteSupported(client)) {
+            List<Person> persons = IntStream.range(1, 10)
+                .mapToObj(age -> Person.builder().id(nextId())
+                    .firstName("Gregor")
+                    .age(age).build())
+                .collect(Collectors.toList());
             template.insertAll(persons);
-        } else {
-            persons.forEach(person -> template.insert(person));
-        }
 
-        List<Person> result = template.findByIds(persons.stream().map(Person::getId)
-            .collect(Collectors.toList()), Person.class);
+            List<Person> result = template.findByIds(persons.stream().map(Person::getId)
+                .collect(Collectors.toList()), Person.class);
+            assertThat(result).hasSameElementsAs(persons);
+            template.deleteAll(Person.class); // cleanup
 
-        assertThat(result).hasSameElementsAs(persons);
-        for (Person person : result) {
-            template.delete(person); // cleanup
+            Iterable<Person> personsToInsert = IntStream.range(0, 101)
+                .mapToObj(age -> Person.builder().id(nextId())
+                    .firstName("Gregor")
+                    .age(age).build())
+                .collect(Collectors.toList());
+            template.insertAll(personsToInsert);
+
+            @SuppressWarnings("CastCanBeRemovedNarrowingVariableType")
+            List<String> ids = ((List<Person>) personsToInsert).stream().map(Person::getId)
+                .collect(Collectors.toList());
+            result = template.findByIds(ids, Person.class);
+            assertThat(result).hasSameElementsAs(personsToInsert);
+            template.deleteAll(Person.class); // cleanup
         }
     }
 
@@ -249,9 +263,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .collect(Collectors.toList()), Person.class, OVERRIDE_SET_NAME);
 
         assertThat(result).hasSameElementsAs(persons);
-        for (Person person : result) {
-            template.delete(person, OVERRIDE_SET_NAME); // cleanup
-        }
+        template.deleteAll(Person.class); // cleanup
     }
 
     @Test

@@ -59,23 +59,23 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
         return template.getSetName(clazz);
     }
 
-    public List<Customer> generateCustomers(int count) {
+    public List<Customer> saveGeneratedCustomers(int count) {
         return IntStream.range(0, count)
             .mapToObj(i -> Customer.builder().id(nextId())
                 .firstName("firstName" + i)
                 .lastName("lastName")
                 .build())
-            .peek(template::save)
+            .peek(document -> template.save(document).block())
             .collect(Collectors.toList());
     }
 
-    public List<Person> generatePersons(int count) {
+    public List<Person> saveGeneratedPersons(int count) {
         return IntStream.range(0, count)
             .mapToObj(i -> Person.builder().id(nextId())
                 .firstName("firstName" + i)
                 .emailAddress("mail.com")
                 .build())
-            .peek(template::save)
+            .peek(document -> template.save(document).block())
             .collect(Collectors.toList());
     }
 

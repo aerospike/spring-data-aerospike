@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.core.reactive;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
@@ -22,6 +23,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
@@ -29,6 +32,11 @@ import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDE
 @TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
 // this test class does not require secondary indexes created on startup
 public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegrationTests {
+
+    @AfterEach
+    public void afterEach() {
+        reactiveTemplate.deleteAll(Person.class).block();
+    }
 
     @Test
     public void insertsAndFindsWithCustomCollectionSet() {
@@ -139,7 +147,8 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         reactiveTemplate.insert(document, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
 
         assertThat(document.getVersion()).isEqualTo(1);
-        reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
+        reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME)
+            .block(); // cleanup
     }
 
 
@@ -233,6 +242,19 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             assertThat(result2).isEqualTo(customer2);
             reactiveTemplate.delete(result1).block(); // cleanup
             reactiveTemplate.delete(result2).block(); // cleanup
+
+            Iterable<Person> personsToInsert = IntStream.range(0, 101)
+                .mapToObj(age -> Person.builder().id(nextId())
+                    .firstName("Gregor")
+                    .age(age).build())
+                .collect(Collectors.toList());
+            reactiveTemplate.insertAll(personsToInsert).blockLast();
+
+            @SuppressWarnings("CastCanBeRemovedNarrowingVariableType")
+            List<String> ids = ((List<Person>) personsToInsert).stream().map(Person::getId).toList();
+            List<Person> result = reactiveTemplate.findByIds(ids, Person.class).collectList().block();
+            assertThat(result).hasSameElementsAs(personsToInsert);
+            reactiveTemplate.deleteAll(Person.class); // cleanup
         }
     }
 
@@ -274,7 +296,8 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             StepVerifier.create(reactiveTemplate.insertAll(List.of(person, person), OVERRIDE_SET_NAME))
                 .expectError(AerospikeException.BatchRecordArray.class)
                 .verify();
-            reactiveTemplate.delete(findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
+            reactiveTemplate.delete(findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME)
+                .block(); // cleanup
         }
     }
 }
