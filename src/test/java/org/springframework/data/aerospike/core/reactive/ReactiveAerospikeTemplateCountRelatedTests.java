@@ -81,11 +81,6 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
 
         assertThat(reactiveTemplate.count(null, Person.class).subscribeOn(Schedulers.parallel())
             .block()).isEqualTo(4);
-
-        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()).block(); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()).block(); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()).block(); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id4, Person.class).block()).block(); // cleanup
     }
 
     @Test
@@ -116,10 +111,6 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         assertThat(reactiveTemplate.count(query2, Person.class)
             .subscribeOn(Schedulers.parallel())
             .block()).isEqualTo(1);
-
-        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()).block(); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()).block(); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()).block(); // cleanup
     }
 
     @Test
@@ -156,11 +147,6 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         Awaitility.await()
             .atMost(Duration.ofSeconds(15))
             .until(() -> isCountExactlyNum(4L));
-
-        reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()).block(); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id2, Person.class).block()).block(); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id3, Person.class).block()).block(); // cleanup
-        reactiveTemplate.delete(reactiveTemplate.findById(id4, Person.class).block()).block(); // cleanup
     }
 
     @SuppressWarnings("SameParameterValue")
