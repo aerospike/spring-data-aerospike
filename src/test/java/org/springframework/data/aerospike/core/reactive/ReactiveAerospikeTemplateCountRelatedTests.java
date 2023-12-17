@@ -29,6 +29,10 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
     @BeforeEach
     public void setUp() {
         super.setUp();
+        reactiveTemplate.deleteAll(Person.class).block();
+        Awaitility.await()
+            .atMost(Duration.ofSeconds(15))
+            .until(() -> isCountExactlyNum(0L));
     }
 
     @Test
@@ -150,7 +154,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         reactiveTemplate.insert(new Person(id4, "petya", 52)).subscribeOn(Schedulers.parallel()).block();
 
         Awaitility.await()
-            .atMost(Duration.ofSeconds(20))
+            .atMost(Duration.ofSeconds(15))
             .until(() -> isCountExactlyNum(4L));
 
         reactiveTemplate.delete(reactiveTemplate.findById(id1, Person.class).block()).block(); // cleanup
