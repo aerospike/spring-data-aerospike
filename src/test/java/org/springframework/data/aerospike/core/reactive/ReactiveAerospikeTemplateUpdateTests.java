@@ -373,7 +373,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     @Test
     public void updateAllIfDocumentsChanged() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang", age1);
@@ -407,7 +407,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     @Test
     public void updateAllShouldThrowExceptionOnUpdateForNonExistingKey() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             Person person1 = new Person(id, "svenfirstName", 11);
             Person person2 = new Person(nextId(), "svenfirstName", 11);
             Person person3 = new Person(nextId(), "svenfirstName", 11);
@@ -425,7 +425,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
     @Test
     public void updateAllIfDocumentsNotChanged() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang", age1);

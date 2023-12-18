@@ -405,7 +405,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllShouldThrowExceptionOnUpdateForNonExistingKey() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             VersionedClass first = new VersionedClass("newId1", "foo");  // This class has a version field (class
             // field annotated with @Version). The constructor does not receive the version, so it stays equal to zero
             VersionedClass second = new VersionedClass("newId2", "bar"); //
@@ -434,7 +434,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllIfDocumentsNotChanged() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang M", age1);
@@ -454,7 +454,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllIfDocumentsChanged() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang", age1);
@@ -487,7 +487,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllIfDocumentsNotChangedWithSetName() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang", age1);

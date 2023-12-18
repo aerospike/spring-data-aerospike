@@ -21,8 +21,8 @@ import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;
@@ -104,8 +104,8 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     public AdditionalAerospikeTestOperations aerospikeOperations(ReactiveAerospikeTemplate template,
                                                                  IAerospikeClient client,
                                                                  GenericContainer<?> aerospike,
-                                                                 ServerVersionUtils serverVersionUtils) {
+                                                                 ServerVersionSupport serverVersionSupport) {
         return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, aerospike, template,
-            serverVersionUtils);
+            serverVersionSupport);
     }
 }

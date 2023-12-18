@@ -137,7 +137,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByGroupedKeys() {
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(5);
             List<String> personsIds = persons.stream().map(Person::getId).toList();
             List<Customer> customers = additionalAerospikeTestOperations.saveGeneratedCustomers(3);
@@ -217,7 +217,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
             DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
             DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
@@ -234,7 +234,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
             String id2 = nextId();
             template.save(new DocumentWithExpiration(id1));
@@ -259,7 +259,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_ShouldDeleteAllDocumentsWithSetName() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
             String id2 = nextId();
             template.save(new DocumentWithExpiration(id1), OVERRIDE_SET_NAME);

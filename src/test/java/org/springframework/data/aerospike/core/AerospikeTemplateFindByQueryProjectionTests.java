@@ -57,7 +57,7 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         deleteOneByOne(allPersons, OVERRIDE_SET_NAME);
 
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             template.insertAll(allPersons);
             template.insertAll(allPersons, OVERRIDE_SET_NAME);
         } else {

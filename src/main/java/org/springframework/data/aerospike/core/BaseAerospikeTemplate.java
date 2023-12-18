@@ -46,7 +46,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -80,7 +80,7 @@ abstract class BaseAerospikeTemplate {
     protected final AerospikeExceptionTranslator exceptionTranslator;
     protected final WritePolicy writePolicyDefault;
     protected final BatchWritePolicy batchWritePolicyDefault;
-    protected final ServerVersionUtils serverVersionUtils;
+    protected final ServerVersionSupport serverVersionSupport;
     protected final int SERVER_VERSION_6 = 6;
     protected final String SAVE_OPERATION = "save";
     protected final String INSERT_OPERATION = "insert";
@@ -91,7 +91,7 @@ abstract class BaseAerospikeTemplate {
                           AerospikeMappingContext mappingContext,
                           AerospikeExceptionTranslator exceptionTranslator,
                           WritePolicy writePolicyDefault,
-                          ServerVersionUtils serverVersionUtils) {
+                          ServerVersionSupport serverVersionSupport) {
         Assert.notNull(writePolicyDefault, "Write policy must not be null!");
         Assert.notNull(namespace, "Namespace cannot be null");
         Assert.hasLength(namespace, "Namespace cannot be empty");
@@ -102,7 +102,7 @@ abstract class BaseAerospikeTemplate {
         this.mappingContext = mappingContext;
         this.writePolicyDefault = writePolicyDefault;
         this.batchWritePolicyDefault = getFromWritePolicy(writePolicyDefault);
-        this.serverVersionUtils = serverVersionUtils;
+        this.serverVersionSupport = serverVersionSupport;
 
         loggerSetup();
     }
@@ -474,6 +474,6 @@ abstract class BaseAerospikeTemplate {
     }
 
     protected boolean batchWriteSupported() {
-        return serverVersionUtils.isBatchWriteSupported();
+        return serverVersionSupport.batchWrite();
     }
 }

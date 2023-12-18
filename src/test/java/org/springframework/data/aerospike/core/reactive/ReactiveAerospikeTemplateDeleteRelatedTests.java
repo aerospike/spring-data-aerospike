@@ -148,7 +148,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
             String id2 = nextId();
             reactiveTemplate.save(new SampleClasses.VersionedClass(id1, "test1")).block();
@@ -176,7 +176,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAllWithSetName_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
             String id2 = nextId();
             reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1), OVERRIDE_SET_NAME).block();
@@ -195,7 +195,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAllFromDifferentSets_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             SampleClasses.DocumentWithExpiration entity1_1 = new SampleClasses.DocumentWithExpiration(id);
             SampleClasses.DocumentWithExpiration entity1_2 = new SampleClasses.DocumentWithExpiration(nextId());
             SampleClasses.VersionedClass entity2_1 = new SampleClasses.VersionedClass(nextId(), "test1");
@@ -245,7 +245,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
             SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
             SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);

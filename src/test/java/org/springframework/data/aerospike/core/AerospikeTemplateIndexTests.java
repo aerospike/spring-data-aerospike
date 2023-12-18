@@ -104,7 +104,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_shouldNotThrowExceptionIfIndexAlreadyExists() {
-        if (serverVersionUtils.isDropCreateBehaviorUpdated()) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
 
             awaitTenSecondsUntil(() -> assertThat(template.indexExists(INDEX_TEST_1)).isTrue());
@@ -179,7 +179,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
-        if (serverVersionUtils.isDropCreateBehaviorUpdated()) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
                 .doesNotThrowAnyException();
         }
@@ -188,7 +188,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void deleteIndexWithSetName_doesNotThrowExceptionIfIndexDoesNotExist() {
-        if (serverVersionUtils.isDropCreateBehaviorUpdated()) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             assertThatCode(() -> template.deleteIndex(OVERRIDE_SET_NAME, "not-existing-index"))
                 .doesNotThrowAnyException();
         }
@@ -197,7 +197,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedList() {
-        if (serverVersionUtils.isDropCreateBehaviorUpdated()) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             String setName = template.getSetName(IndexedDocument.class);
             template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING,
                 IndexCollectionType.LIST, CTX.listIndex(1));
@@ -217,7 +217,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedListContextRank() {
-        if (serverVersionUtils.isDropCreateBehaviorUpdated()) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             String setName = template.getSetName(IndexedDocument.class);
             template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING,
                 IndexCollectionType.LIST, CTX.listRank(-1));
@@ -237,7 +237,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnMapOfMapsContext() {
-        if (serverVersionUtils.isDropCreateBehaviorUpdated()) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             String setName = template.getSetName(IndexedDocument.class);
 
             CTX[] ctx = new CTX[]{

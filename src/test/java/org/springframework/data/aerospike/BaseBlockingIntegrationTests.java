@@ -9,7 +9,7 @@ import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 import java.util.Collection;
 
@@ -30,7 +30,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     @Autowired
     protected QueryEngine queryEngine;
     @Autowired
-    protected ServerVersionUtils serverVersionUtils;
+    protected ServerVersionSupport serverVersionSupport;
     @Autowired
     protected IndexesCache indexesCache;
     @Autowired

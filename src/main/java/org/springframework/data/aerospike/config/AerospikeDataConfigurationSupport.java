@@ -38,7 +38,7 @@ import org.springframework.data.aerospike.query.FilterExpressionsBuilder;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.model.FieldNamingStrategy;
 import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
@@ -121,11 +121,11 @@ public abstract class AerospikeDataConfigurationSupport {
         return new AerospikeIndexResolver();
     }
 
-    @Bean(name = "aerospikeServerVersionUtils")
-    public ServerVersionUtils serverVersionUtils(IAerospikeClient aerospikeClient) {
-        ServerVersionUtils serverUtils = new ServerVersionUtils(aerospikeClient);
-        log.debug("Found server version {}", serverUtils.getServerVersion());
-        return serverUtils;
+    @Bean(name = "aerospikeServerVersionSupport")
+    public ServerVersionSupport serverVersionSupport(IAerospikeClient aerospikeClient) {
+        ServerVersionSupport serverSupport = new ServerVersionSupport(aerospikeClient);
+        log.debug("Found server version {}", serverSupport.getServerVersion());
+        return serverSupport;
     }
 
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {

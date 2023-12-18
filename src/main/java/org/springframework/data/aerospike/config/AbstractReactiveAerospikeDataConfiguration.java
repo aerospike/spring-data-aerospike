@@ -37,7 +37,7 @@ import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 /**
  * Configuration with beans needed for reactive stuff
@@ -55,10 +55,10 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                IAerospikeReactorClient aerospikeReactorClient,
                                                                ReactorQueryEngine reactorQueryEngine,
                                                                ReactorIndexRefresher reactorIndexRefresher,
-                                                               ServerVersionUtils serverVersionUtils) {
+                                                               ServerVersionSupport serverVersionSupport) {
         return new ReactiveAerospikeTemplate(aerospikeReactorClient, nameSpace(), mappingAerospikeConverter,
             aerospikeMappingContext, aerospikeExceptionTranslator, reactorQueryEngine, reactorIndexRefresher,
-            serverVersionUtils);
+            serverVersionSupport);
     }
 
     @Bean(name = "reactiveAerospikeQueryEngine")
@@ -79,10 +79,10 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     @Bean(name = "reactiveAerospikeIndexRefresher")
     public ReactorIndexRefresher reactorIndexRefresher(IAerospikeReactorClient aerospikeReactorClient,
                                                        IndexesCacheUpdater indexesCacheUpdater,
-                                                       ServerVersionUtils serverVersionUtils) {
+                                                       ServerVersionSupport serverVersionSupport) {
         ReactorIndexRefresher refresher = new ReactorIndexRefresher(aerospikeReactorClient,
             aerospikeReactorClient.getInfoPolicyDefault(),
-            new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater, serverVersionUtils);
+            new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater, serverVersionSupport);
         refresher.refreshIndexes().block();
         return refresher;
     }

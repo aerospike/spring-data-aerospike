@@ -197,7 +197,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
 
     @Test
     void selectWithGeoWithin() {
-        if (serverVersionUtils.isDropCreateBehaviorUpdated()) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             withIndex(namespace, INDEXED_GEO_SET, "geo_index", GEO_BIN_NAME, IndexType.GEO2DSPHERE, () -> {
                 double lon = -122.0;
                 double lat = 37.5;

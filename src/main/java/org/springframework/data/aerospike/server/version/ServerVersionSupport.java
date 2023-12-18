@@ -1,11 +1,11 @@
-package org.springframework.data.aerospike.utility;
+package org.springframework.data.aerospike.server.version;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Info;
 
 import java.lang.module.ModuleDescriptor;
 
-public class ServerVersionUtils {
+public class ServerVersionSupport {
 
     private static final ModuleDescriptor.Version SERVER_VERSION_6_0_0_0 = ModuleDescriptor.Version.parse("6.0.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_0 = ModuleDescriptor.Version.parse("6.1.0.0");
@@ -14,7 +14,7 @@ public class ServerVersionUtils {
     private final IAerospikeClient client;
     private final String serverVersion;
 
-    public ServerVersionUtils(IAerospikeClient client) {
+    public ServerVersionSupport(IAerospikeClient client) {
         this.client = client;
         this.serverVersion = findServerVersion();
     }
@@ -40,17 +40,17 @@ public class ServerVersionUtils {
     /**
      * Since Aerospike Server ver. 6.3.0.0 find by POJO is supported.
      */
-    public boolean isFindByPojoSupported() {
+    public boolean findByPojo() {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_6_3_0_0) >= 0;
     }
 
-    public boolean isBatchWriteSupported() {
+    public boolean batchWrite() {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_6_0_0_0) >= 0;
     }
 
-    public boolean isSIndexCardinalitySupported() {
+    public boolean sIndexCardinality() {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_6_1_0_0) >= 0;
     }

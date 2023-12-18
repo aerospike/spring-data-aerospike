@@ -5,8 +5,8 @@ import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.List;
@@ -23,8 +23,8 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
                                            AerospikeTemplate template,
                                            IAerospikeClient client,
                                            GenericContainer<?> aerospikeContainer,
-                                           ServerVersionUtils serverVersionUtils) {
-        super(indexInfoParser, client, serverVersionUtils, template, aerospikeContainer);
+                                           ServerVersionSupport serverVersionSupport) {
+        super(indexInfoParser, client, serverVersionSupport, template, aerospikeContainer);
         this.template = template;
     }
 

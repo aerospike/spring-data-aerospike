@@ -7,8 +7,8 @@ import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Collection;
@@ -21,15 +21,15 @@ import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextI
 public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospikeTestOperations {
 
     private final ReactiveAerospikeTemplate template;
-    private final ServerVersionUtils serverVersionUtils;
+    private final ServerVersionSupport serverVersionSupport;
 
     public ReactiveBlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
                                                    IAerospikeClient client, GenericContainer<?> aerospike,
                                                    ReactiveAerospikeTemplate reactiveAerospikeTemplate,
-                                                   ServerVersionUtils serverVersionUtils) {
-        super(indexInfoParser, client, serverVersionUtils, reactiveAerospikeTemplate, aerospike);
+                                                   ServerVersionSupport serverVersionSupport) {
+        super(indexInfoParser, client, serverVersionSupport, reactiveAerospikeTemplate, aerospike);
         this.template = reactiveAerospikeTemplate;
-        this.serverVersionUtils = serverVersionUtils;
+        this.serverVersionSupport = serverVersionSupport;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
 
     public <T> void deleteAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             try {
                 repository.deleteAll(entities).block();
             } catch (AerospikeException.BatchRecordArray ignored) {
@@ -97,7 +97,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
 
     public <T> void saveAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionUtils.isBatchWriteSupported()) {
+        if (serverVersionSupport.batchWrite()) {
             repository.saveAll(entities).blockLast();
         } else {
             entities.forEach(entity -> repository.save(entity).block());

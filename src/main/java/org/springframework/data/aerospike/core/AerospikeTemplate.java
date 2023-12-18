@@ -44,7 +44,7 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PropertyHandler;
@@ -99,9 +99,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                              AerospikeExceptionTranslator exceptionTranslator,
                              QueryEngine queryEngine,
                              IndexRefresher indexRefresher,
-                             ServerVersionUtils serverVersionUtils) {
+                             ServerVersionSupport serverVersionSupport) {
         super(namespace, converter, mappingContext, exceptionTranslator, client.getWritePolicyDefault(),
-            serverVersionUtils);
+            serverVersionSupport);
         this.client = client;
         this.queryEngine = queryEngine;
         this.indexRefresher = indexRefresher;

@@ -40,7 +40,7 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
@@ -94,9 +94,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                                      AerospikeMappingContext mappingContext,
                                      AerospikeExceptionTranslator exceptionTranslator,
                                      ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher,
-                                     ServerVersionUtils serverVersionUtils) {
+                                     ServerVersionSupport serverVersionSupport) {
         super(namespace, converter, mappingContext, exceptionTranslator, reactorClient.getWritePolicyDefault(),
-            serverVersionUtils);
+            serverVersionSupport);
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
         this.reactorClient = reactorClient;
         this.reactorQueryEngine = queryEngine;
