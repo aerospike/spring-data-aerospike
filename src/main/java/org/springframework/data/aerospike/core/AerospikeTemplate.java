@@ -253,6 +253,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void insertAll(Iterable<? extends T> documents) {
         validateForBatchWrite(documents, "Documents for insert");
+
+        insertAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
