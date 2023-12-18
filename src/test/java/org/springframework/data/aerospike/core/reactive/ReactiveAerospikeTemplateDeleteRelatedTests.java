@@ -248,9 +248,6 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
             StepVerifier.create(reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class))
                 .expectError(AerospikeException.BatchRecordArray.class)
                 .verify();
-//            reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class).subscribe();
-//            reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class).block();
-//            reactiveTemplate.deleteByIds(null, SampleClasses.DocumentWithExpiration.class).block();
         }
     }
 }

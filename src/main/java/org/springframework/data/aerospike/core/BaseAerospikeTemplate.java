@@ -465,19 +465,17 @@ abstract class BaseAerospikeTemplate {
 
     protected void validateGroupedKeys(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        Assert.notNull(groupedKeys.getEntitiesKeys(), "Entities keys must not be null!");
+        validateForBatchWrite(groupedKeys.getEntitiesKeys(), "Entities keys");
+    }
+
+    protected void validateForBatchWrite(Object object, String objectName) {
+        Assert.notNull(object, objectName + " must not be null!");
         Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
             "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
     }
 
     protected boolean batchWriteSizeMatch(int batchSize, int currentSize) {
         return batchSize > 0 && currentSize == batchSize;
-    }
-
-    protected void validateForBatchWrite(Iterable<?> iterable, String nameOfIterable) {
-        Assert.notNull(iterable, nameOfIterable + " must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
     }
 
     protected boolean batchRecordFailed(BatchRecord batchRecord) {

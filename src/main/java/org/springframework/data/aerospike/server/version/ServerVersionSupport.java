@@ -3,18 +3,16 @@ package org.springframework.data.aerospike.server.version;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Info;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.aerospike.query.cache.IndexRefresher;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.module.ModuleDescriptor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class ServerVersionSupport {
 
-    private final Logger log = LoggerFactory.getLogger(IndexRefresher.class);
     private static final ModuleDescriptor.Version SERVER_VERSION_6_0_0_0 = ModuleDescriptor.Version.parse("6.0.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_0 = ModuleDescriptor.Version.parse("6.1.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_1 = ModuleDescriptor.Version.parse("6.1.0.1");
@@ -23,7 +21,6 @@ public class ServerVersionSupport {
     @Getter
     private final String serverVersion;
     private final ScheduledExecutorService executorService;
-    private final long intervalSeconds = 1800;
 
     public ServerVersionSupport(IAerospikeClient client) {
         this.client = client;
@@ -32,6 +29,7 @@ public class ServerVersionSupport {
     }
 
     public void scheduleServerVersionRefresh() {
+        long intervalSeconds = 1800;
         executorService.scheduleWithFixedDelay(this::findServerVersion, intervalSeconds, intervalSeconds,
             TimeUnit.SECONDS);
     }
