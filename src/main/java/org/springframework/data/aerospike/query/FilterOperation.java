@@ -863,7 +863,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> qualifierMap) {
-            return collectionContains(IndexCollectionType.MAPKEYS, qualifierMap);
+            return null; // currently not supported
         }
     },
     MAP_VALUES_CONTAIN {
@@ -885,7 +885,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<String, Object> qualifierMap) {
-            return collectionContains(IndexCollectionType.MAPVALUES, qualifierMap);
+            return null; // currently not supported
         }
     },
     MAP_KEYS_BETWEEN {

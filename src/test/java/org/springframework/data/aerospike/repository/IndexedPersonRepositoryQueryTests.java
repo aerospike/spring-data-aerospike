@@ -357,10 +357,28 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
+    void findByMapKeysNotContaining() {
+        assertThat(billy.getStringMap()).containsKey("key1");
+
+        List<IndexedPerson> persons = repository.findByStringMapNotContaining("key3",
+            CriteriaDefinition.AerospikeMapCriteria.KEY);
+        assertThat(persons).contains(billy);
+    }
+
+    @Test
     void findByMapValuesContaining() {
         assertThat(billy.getStringMap()).containsValue("val1");
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("val1",
+            VALUE);
+        assertThat(persons).contains(billy);
+    }
+
+    @Test
+    void findByMapValuesNotContaining() {
+        assertThat(billy.getStringMap()).containsValue("val1");
+
+        List<IndexedPerson> persons = repository.findByStringMapNotContaining("val3",
             VALUE);
         assertThat(persons).contains(billy);
     }
