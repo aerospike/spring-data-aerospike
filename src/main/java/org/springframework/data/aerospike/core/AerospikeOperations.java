@@ -581,7 +581,7 @@ public interface AerospikeOperations {
     /**
      * Find a record by id, set name will be determined by the given entityClass.
      * <p>
-     * The resulting The record will be mapped to the given entityClass.
+     * The matching record will be mapped to the given entityClass.
      *
      * @param id          The id of the record to find. Must not be {@literal null}.
      * @param entityClass The class to extract set name from and to map the record to. Must not be
@@ -593,7 +593,7 @@ public interface AerospikeOperations {
     /**
      * Find a record by id within the given set.
      * <p>
-     * The record will be mapped to the given entityClass.
+     * The matching record will be mapped to the given entityClass.
      *
      * @param id          The id of the record to find. Must not be {@literal null}.
      * @param entityClass The class to map the record to and to get entity properties from (such as expiration). Must not
@@ -606,7 +606,7 @@ public interface AerospikeOperations {
     /**
      * Find a record by id, set name will be determined by the given entityClass.
      * <p>
-     * The record will be mapped to the given entityClass.
+     * The matching record will be mapped to the given entityClass.
      *
      * @param id          The id of the record to find. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -619,7 +619,7 @@ public interface AerospikeOperations {
     /**
      * Find a record by id within the given set.
      * <p>
-     * The record will be mapped to the given entityClass.
+     * The matching record will be mapped to the given entityClass.
      *
      * @param id          The id of the record to find. Must not be {@literal null}.
      * @param entityClass The class to get entity properties from (such as expiration). Must not be {@literal null}.
