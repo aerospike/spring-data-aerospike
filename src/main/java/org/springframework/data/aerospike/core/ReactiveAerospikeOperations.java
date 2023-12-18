@@ -536,7 +536,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Reactively find a record by id, set name will be determined by the given entityClass.
      * <p>
-     * The record will be mapped to the given entityClass.
+     * The matching record will be mapped to the given entityClass.
      *
      * @param id          The id of the record to find. Must not be {@literal null}.
      * @param entityClass The class to extract set name from and to map the document to. Must not be
@@ -548,7 +548,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Reactively find a record by id within the given set.
      * <p>
-     * The record will be mapped to the given entityClass.
+     * The matching record will be mapped to the given entityClass.
      *
      * @param id          The id of the record to find. Must not be {@literal null}.
      * @param entityClass The class to map the record to and to get entity properties from (such expiration). Must not
@@ -561,7 +561,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Reactively find a record by id, set name will be determined by the given entityClass.
      * <p>
-     * The record will be mapped to the given targetClass.
+     * The matching record will be mapped to the given targetClass.
      *
      * @param id          The id of the record to find. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -573,7 +573,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Reactively find a record by id within the given set.
      * <p>
-     * The record will be mapped to the given targetClass.
+     * The matching record will be mapped to the given targetClass.
      *
      * @param id          The id of the record to find. Must not be {@literal null}.
      * @param entityClass The class to map the record to and to get entity properties from (such expiration). Must not
