@@ -45,6 +45,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     private final IndexInfoParser indexInfoParser;
     private final IAerospikeClient client;
+    private final ServerVersionUtils serverVersionUtils;
     private final IndexesCacheRefresher indexesRefresher;
     private final GenericContainer<?> aerospike;
 
@@ -140,7 +141,8 @@ public abstract class AdditionalAerospikeTestOperations {
     public void createIndex(String namespace, String setName, String indexName, String binName,
                             IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
         IndexCollectionType collType = indexCollectionType == null ? DEFAULT : indexCollectionType;
-        IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType, collType, ctx);
+        IndexUtils.createIndex(client, serverVersionUtils, namespace, setName, indexName, binName, indexType, collType,
+            ctx);
         indexesRefresher.refreshIndexesCache();
     }
 
@@ -149,15 +151,15 @@ public abstract class AdditionalAerospikeTestOperations {
                 IndexCollectionType collType = index.getIndexCollectionType() == null
                     ? DEFAULT : index.getIndexCollectionType();
 
-                IndexUtils.createIndex(client, getNamespace(), index.getSet(), index.getName(), index.getBin(),
-                    index.getIndexType(), collType, index.getCtx());
+                IndexUtils.createIndex(client, serverVersionUtils, getNamespace(), index.getSet(), index.getName(),
+                    index.getBin(), index.getIndexType(), collType, index.getCtx());
             }
         );
         indexesRefresher.refreshIndexesCache();
     }
 
     public <T> void dropIndex(String setName, String indexName) {
-        IndexUtils.dropIndex(client, getNamespace(), setName, indexName);
+        IndexUtils.dropIndex(client, serverVersionUtils, getNamespace(), setName, indexName);
         indexesRefresher.refreshIndexesCache();
     }
 
@@ -167,7 +169,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public void dropIndexes(Collection<Index> indexesToBeDropped) {
         indexesToBeDropped.forEach(index -> {
-                IndexUtils.dropIndex(client, getNamespace(), index.getSet(), index.getName());
+                IndexUtils.dropIndex(client, serverVersionUtils, getNamespace(), index.getSet(), index.getName());
             }
         );
         indexesRefresher.refreshIndexesCache();
@@ -175,7 +177,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public <T> void deleteAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             try {
                 repository.deleteAll(entities);
             } catch (AerospikeException.BatchRecordArray ignored) {
@@ -188,7 +190,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public <T> void saveAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             repository.saveAll(entities);
         } else {
             entities.forEach(repository::save);

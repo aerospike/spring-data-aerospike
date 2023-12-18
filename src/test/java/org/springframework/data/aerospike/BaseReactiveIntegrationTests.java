@@ -8,6 +8,7 @@ import org.springframework.data.aerospike.config.ReactiveTestConfig;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
@@ -27,6 +28,8 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     protected ReactiveAerospikeTemplate reactiveTemplate;
     @Autowired
     protected IAerospikeReactorClient reactorClient;
+    @Autowired
+    protected ServerVersionUtils serverVersionUtils;
     @Autowired
     protected ReactorIndexRefresher reactorIndexRefresher;
 

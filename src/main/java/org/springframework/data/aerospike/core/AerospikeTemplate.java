@@ -44,6 +44,7 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PropertyHandler;
@@ -97,8 +98,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                              AerospikeMappingContext mappingContext,
                              AerospikeExceptionTranslator exceptionTranslator,
                              QueryEngine queryEngine,
-                             IndexRefresher indexRefresher) {
-        super(namespace, converter, mappingContext, exceptionTranslator, client.getWritePolicyDefault());
+                             IndexRefresher indexRefresher,
+                             ServerVersionUtils serverVersionUtils) {
+        super(namespace, converter, mappingContext, exceptionTranslator, client.getWritePolicyDefault(),
+            serverVersionUtils);
         this.client = client;
         this.queryEngine = queryEngine;
         this.indexRefresher = indexRefresher;
@@ -149,19 +152,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void saveAll(Iterable<T> documents) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "IDsDocuments for saving");
 
         saveAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> void saveAll(Iterable<T> documents, String setName) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for saving");
 
         applyBufferedBatchWrite(documents, setName, SAVE_OPERATION);
     }
@@ -253,18 +252,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void insertAll(Iterable<? extends T> documents) {
-        Assert.notNull(documents, "Documents must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
-        insertAll(documents, getSetName(documents.iterator().next()));
+        validateForBatchWrite(documents, "Documents for insert");
     }
 
     @Override
     public <T> void insertAll(Iterable<? extends T> documents, String setName) {
-        Assert.notNull(documents, "Documents for inserting must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for insert");
 
         applyBufferedBatchWrite(documents, setName, INSERT_OPERATION);
     }
@@ -343,18 +337,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void updateAll(Iterable<T> documents) {
-        Assert.notNull(documents, "Documents must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for update");
+
         updateAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> void updateAll(Iterable<T> documents, String setName) {
-        Assert.notNull(documents, "Documents must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for update");
 
         applyBufferedBatchWrite(documents, setName, UPDATE_OPERATION);
     }
@@ -423,10 +414,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) {
-        Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(ids, "IDs");
 
         deleteByIds(ids, getSetName(entityClass));
     }
@@ -434,10 +423,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public void
     deleteByIds(Iterable<?> ids, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(ids, "IDs");
 
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
@@ -454,10 +441,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private void deleteByIds(Collection<?> ids, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(ids, "IDs");
 
         if (ids.isEmpty()) {
             return;
@@ -853,6 +838,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public GroupedEntities findByIds(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
+            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
 
         if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return GroupedEntities.builder().build();

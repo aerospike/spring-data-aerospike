@@ -11,7 +11,6 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.aerospike.utility.QueryUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.TestPropertySource;
 
@@ -58,7 +57,7 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         deleteOneByOne(allPersons, OVERRIDE_SET_NAME);
 
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             template.insertAll(allPersons);
             template.insertAll(allPersons, OVERRIDE_SET_NAME);
         } else {

@@ -14,7 +14,6 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.aerospike.utility.TestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -548,7 +547,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByAddressesMapKeyValueEquals() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
             Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
             Address address3 = new Address("Foo Street 2", 1, "C0124", "Bar");
@@ -761,7 +760,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByAddressesMapKeyValueNotEqual() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
             Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
             Address address3 = new Address("Foo Street 2", 1, "C0124", "Bar");
@@ -890,7 +889,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByMapKeyValueGreaterThanList() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200), "2", List.of(300),
                 "3", List.of(400));
             Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(101), "1", List.of(201), "2", List.of(301),
@@ -925,7 +924,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByMapKeyValueLessThanAddress() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Map<String, Address> mapOfAddresses1 = Map.of("a", new Address("Foo Street 1", 1, "C0123", "Bar"));
             Map<String, Address> mapOfAddresses2 = Map.of("b", new Address("Foo Street 2", 1, "C0123", "Bar"));
             Map<String, Address> mapOfAddresses3 = Map.of("c", new Address("Foo Street 2", 1, "C0124", "Bar"));
@@ -983,7 +982,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByIntMapBetween() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             assertThat(carter.getIntMap()).isEqualTo(Map.of("key1", 0, "key2", 1));
 
             Map<String, Integer> map1 = Map.of("key1", -1, "key2", 0);
@@ -997,7 +996,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByMapOfListsBetween() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200));
             Map<String, List<Integer>> mapOfLists2 = Map.of("2", List.of(301), "3", List.of(401));
             Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(102), "2", List.of(202));
@@ -1212,7 +1211,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void deletePersonsByIds() {
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             // batch delete requires server ver. >= 6.0.0
             repository.deleteAllById(List.of(dave.getId(), carter.getId()));
 
@@ -1225,7 +1224,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void deleteAllPersonsFromList() {
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             // batch delete requires server ver. >= 6.0.0
             repository.deleteAll(List.of(dave, carter));
 
@@ -2004,7 +2003,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         it = repository.findByFirstNameBetween("Dave", "David");
         assertThat(it).hasSize(1).contains(dave);
 
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             assertThat(dave.getAddress()).isEqualTo(new Address("Foo Street 1", 1, "C0123", "Bar"));
             Address address1 = new Address("Foo Street 1", 0, "C0123", "Bar");
             Address address2 = new Address("Foo Street 2", 2, "C0124", "Bar");
@@ -2052,7 +2051,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByStringsList() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             List<String> listToCompareWith = List.of("str0", "str1", "str2");
             assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
 
@@ -2067,7 +2066,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByStringsListNotEqual() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             List<String> listToCompareWith = List.of("str0", "str1", "str2");
             assertThat(dave.getStrings()).isEqualTo(listToCompareWith);
             assertThat(donny.getStrings()).isNotEmpty();
@@ -2080,7 +2079,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByStringsListLessThan() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             List<String> davesStrings = dave.getStrings();
             List<String> listToCompareWith = List.of("str1", "str2", "str3");
             List<String> listWithFewerElements = List.of("str1", "str2");
@@ -2100,7 +2099,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByStringsListGreaterThanOrEqual() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Set<Integer> setToCompareWith = Set.of(0, 1, 2, 3, 4);
             dave.setIntSet(setToCompareWith);
             repository.save(dave);
@@ -2113,7 +2112,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByStringMap() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Map<String, String> mapToCompareWith = Map.of("key1", "val1", "key2", "val2");
             assertThat(boyd.getStringMap()).isEqualTo(mapToCompareWith);
 
@@ -2128,7 +2127,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByAddress() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             dave.setAddress(address);
             repository.save(dave);
@@ -2140,7 +2139,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByAddressNotEqual() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             assertThat(dave.getAddress()).isEqualTo(address);
             assertThat(carter.getAddress()).isNotNull();
@@ -2155,7 +2154,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByIntMapNotEqual() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);
             assertThat(carter.getIntMap()).isEqualTo(mapToCompareWith);
             assertThat(boyd.getIntMap()).isNullOrEmpty();
@@ -2173,7 +2172,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByAddressLessThan() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Address address = new Address("Foo Street 2", 2, "C0124", "C0123");
             assertThat(dave.getAddress()).isNotEqualTo(address);
             assertThat(carter.getAddress()).isEqualTo(address);
@@ -2185,7 +2184,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByStringMapGreaterThan() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             assertThat(boyd.getStringMap()).isNotEmpty();
             assertThat(donny.getStringMap()).isNotEmpty();
 
@@ -2197,7 +2196,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByFriend() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             alicia.setAddress(new Address("Foo Street 1", 1, "C0123", "Bar"));
             repository.save(alicia);
             oliver.setFriend(alicia);
@@ -2213,7 +2212,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByFriendAddress() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             dave.setAddress(address);
             repository.save(dave);
@@ -2352,7 +2351,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     @Test
     // find by deeply nested POJO
     void findPersonsByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendBestFriendAddress() {
-        if (ServerVersionUtils.isFindByPojoSupported(client)) {
+        if (serverVersionUtils.isFindByPojoSupported()) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
             dave.setAddress(address);
             repository.save(dave);

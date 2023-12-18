@@ -19,8 +19,9 @@ import java.util.stream.Collectors;
 
 public class IndexUtils {
 
-    static void dropIndex(IAerospikeClient client, String namespace, String setName, String indexName) {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
+    static void dropIndex(IAerospikeClient client, ServerVersionUtils serverVersionUtils, String namespace,
+                          String setName, String indexName) {
+        if (serverVersionUtils.isDropCreateBehaviorUpdated()) {
             waitTillComplete(() -> client.dropIndex(null, namespace, setName, indexName));
         } else {
             // ignoring ResultCode.INDEX_NOTFOUND for Aerospike Server prior to ver. 6.1.0.1
@@ -28,10 +29,10 @@ public class IndexUtils {
         }
     }
 
-    static void createIndex(IAerospikeClient client, String namespace, String setName, String indexName,
-                            String binName, IndexType indexType, IndexCollectionType collectionType,
-                            CTX[] ctx) {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
+    static void createIndex(IAerospikeClient client, ServerVersionUtils serverVersionUtils, String namespace,
+                            String setName, String indexName, String binName, IndexType indexType,
+                            IndexCollectionType collectionType, CTX[] ctx) {
+        if (serverVersionUtils.isDropCreateBehaviorUpdated()) {
             waitTillComplete(() -> client.createIndex(null, namespace, setName, indexName, binName, indexType,
                 collectionType, ctx));
         } else {

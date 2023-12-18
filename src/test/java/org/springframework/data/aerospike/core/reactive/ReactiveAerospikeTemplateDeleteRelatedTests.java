@@ -9,7 +9,6 @@ import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -149,7 +148,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             reactiveTemplate.save(new SampleClasses.VersionedClass(id1, "test1")).block();
@@ -177,7 +176,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAllWithSetName_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1), OVERRIDE_SET_NAME).block();
@@ -196,7 +195,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAllFromDifferentSets_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             SampleClasses.DocumentWithExpiration entity1_1 = new SampleClasses.DocumentWithExpiration(id);
             SampleClasses.DocumentWithExpiration entity1_2 = new SampleClasses.DocumentWithExpiration(nextId());
             SampleClasses.VersionedClass entity2_1 = new SampleClasses.VersionedClass(nextId(), "test1");
@@ -246,7 +245,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             String id1 = nextId();
             SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
             SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);

@@ -26,7 +26,6 @@ import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayList;
@@ -406,7 +405,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllShouldThrowExceptionOnUpdateForNonExistingKey() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             VersionedClass first = new VersionedClass("newId1", "foo");  // This class has a version field (class
             // field annotated with @Version). The constructor does not receive the version, so it stays equal to zero
             VersionedClass second = new VersionedClass("newId2", "bar"); //
@@ -435,7 +434,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllIfDocumentsNotChanged() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang M", age1);
@@ -455,7 +454,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllIfDocumentsChanged() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang", age1);
@@ -488,7 +487,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllIfDocumentsNotChangedWithSetName() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang", age1);

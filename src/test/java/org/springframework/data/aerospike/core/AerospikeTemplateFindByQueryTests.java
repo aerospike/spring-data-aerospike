@@ -35,7 +35,6 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.utility.CollectionUtils;
 import org.springframework.data.aerospike.utility.QueryUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.TestPropertySource;
 
@@ -89,7 +88,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         deleteOneByOne(allPersons);
 
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             template.insertAll(allPersons);
             template.insertAll(allPersons, OVERRIDE_SET_NAME);
         } else {
@@ -300,7 +299,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         assertThat(result).isEmpty();
 
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             template.insertAll(allPersons);
         } else {
             allPersons.forEach(person -> template.insert(person));

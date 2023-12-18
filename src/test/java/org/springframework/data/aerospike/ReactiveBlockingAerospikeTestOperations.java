@@ -21,12 +21,15 @@ import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextI
 public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospikeTestOperations {
 
     private final ReactiveAerospikeTemplate template;
+    private final ServerVersionUtils serverVersionUtils;
 
     public ReactiveBlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
                                                    IAerospikeClient client, GenericContainer<?> aerospike,
-                                                   ReactiveAerospikeTemplate reactiveAerospikeTemplate) {
-        super(indexInfoParser, client, reactiveAerospikeTemplate, aerospike);
+                                                   ReactiveAerospikeTemplate reactiveAerospikeTemplate,
+                                                   ServerVersionUtils serverVersionUtils) {
+        super(indexInfoParser, client, serverVersionUtils, reactiveAerospikeTemplate, aerospike);
         this.template = reactiveAerospikeTemplate;
+        this.serverVersionUtils = serverVersionUtils;
     }
 
     @Override
@@ -81,7 +84,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
 
     public <T> void deleteAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(template.getAerospikeReactorClient().getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             try {
                 repository.deleteAll(entities).block();
             } catch (AerospikeException.BatchRecordArray ignored) {
@@ -94,7 +97,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
 
     public <T> void saveAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(template.getAerospikeReactorClient().getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             repository.saveAll(entities).blockLast();
         } else {
             entities.forEach(entity -> repository.save(entity).block());

@@ -44,9 +44,6 @@ public class AerospikeDataSettings {
     // true - preserve original type if supported
     @Builder.Default
     boolean keepOriginalKeyTypes = false;
-    @Builder.Default
-    // Server version major number
-    int serverMajorVersion = 6;
 
     /*
      * (non-Javadoc)

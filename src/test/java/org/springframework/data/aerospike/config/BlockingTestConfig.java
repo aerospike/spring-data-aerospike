@@ -8,13 +8,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
-import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 import org.springframework.data.aerospike.sample.ContactRepository;
 import org.springframework.data.aerospike.sample.CustomerRepository;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;
@@ -82,7 +83,9 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
 
     @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template, IAerospikeClient client,
-                                                                 GenericContainer<?> aerospike) {
-        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike);
+                                                                 GenericContainer<?> aerospike,
+                                                                 ServerVersionUtils serverVersionUtils) {
+        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike,
+            serverVersionUtils);
     }
 }

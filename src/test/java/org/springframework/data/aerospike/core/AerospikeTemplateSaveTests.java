@@ -29,7 +29,6 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.test.context.TestPropertySource;
 
 import java.math.BigInteger;
@@ -341,7 +340,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         second.setVersion(second.getVersion());
 
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             template.saveAll(List.of(first, second));
         } else {
             List.of(first, second).forEach(document -> template.save(document));
@@ -359,7 +358,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         VersionedClass first = new VersionedClass(id, "foo");
         VersionedClass second = new VersionedClass(nextId(), "foo");
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             template.saveAll(List.of(first, second), OVERRIDE_SET_NAME);
         } else {
             List.of(first, second).forEach(person -> template.save(person, OVERRIDE_SET_NAME));
@@ -375,7 +374,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfAlreadyExist() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             VersionedClass first = new VersionedClass(id, "foo");
             VersionedClass second = new VersionedClass(nextId(), "foo");
 
@@ -397,7 +396,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveAllNotVersionedDocumentsIfAlreadyExist() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             Person john = new Person("id1", "John");
             Person jack = new Person("id2", "Jack");
             template.save(jack); // saving non-versioned document to create a new DB record

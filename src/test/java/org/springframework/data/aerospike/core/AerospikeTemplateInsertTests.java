@@ -28,7 +28,6 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.Arrays;
@@ -215,7 +214,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void insertAll_insertsAllDocuments() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             List<Person> persons = IntStream.range(1, 10)
                 .mapToObj(age -> Person.builder().id(nextId())
                     .firstName("Gregor")
@@ -253,7 +252,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .collect(Collectors.toList());
 
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             template.insertAll(persons, OVERRIDE_SET_NAME);
         } else {
             persons.forEach(person -> template.insert(person, OVERRIDE_SET_NAME));
@@ -269,7 +268,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void insertAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             VersionedClass first = new VersionedClass(id, "foo");
 
             assertThatThrownBy(() -> template.insertAll(List.of(first, first)))
@@ -283,7 +282,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldInsertAllVersionedDocuments() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             VersionedClass first = new VersionedClass(id, "foo");
             VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
             VersionedClass third = new VersionedClass(nextId(), "foo", 2L);

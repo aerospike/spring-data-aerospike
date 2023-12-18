@@ -40,6 +40,7 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
@@ -92,8 +93,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                                      MappingAerospikeConverter converter,
                                      AerospikeMappingContext mappingContext,
                                      AerospikeExceptionTranslator exceptionTranslator,
-                                     ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher) {
-        super(namespace, converter, mappingContext, exceptionTranslator, reactorClient.getWritePolicyDefault());
+                                     ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher,
+                                     ServerVersionUtils serverVersionUtils) {
+        super(namespace, converter, mappingContext, exceptionTranslator, reactorClient.getWritePolicyDefault(),
+            serverVersionUtils);
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
         this.reactorClient = reactorClient;
         this.reactorQueryEngine = queryEngine;
@@ -135,19 +138,15 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> saveAll(Iterable<T> documents) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for saving");
 
         return saveAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> Flux<T> saveAll(Iterable<T> documents, String setName) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for saving");
 
         return applyBufferedBatchWrite(documents, setName, SAVE_OPERATION);
     }
@@ -252,19 +251,15 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> insertAll(Iterable<? extends T> documents) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for insert");
 
         return insertAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> Flux<T> insertAll(Iterable<? extends T> documents, String setName) {
-        Assert.notNull(documents, "Documents for insert must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for insert");
 
         return applyBufferedBatchWrite(documents, setName, INSERT_OPERATION);
     }
@@ -346,19 +341,15 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> updateAll(Iterable<? extends T> documents) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for update");
 
         return updateAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> Flux<T> updateAll(Iterable<? extends T> documents, String setName) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(documents, "Documents for update");
 
         return applyBufferedBatchWrite(documents, setName, UPDATE_OPERATION);
     }
@@ -430,20 +421,16 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
-        Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(ids, "IDs");
 
         return deleteByIds(ids, getSetName(entityClass));
     }
 
     @Override
     public Mono<Void> deleteByIds(Iterable<?> ids, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(ids, "IDs");
 
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
@@ -463,10 +450,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private Mono<Void> deleteByIds(Collection<?> ids, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateForBatchWrite(ids, "IDs");
 
         Key[] keys = ids.stream()
             .map(id -> getKey(id, setName))
@@ -501,6 +486,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
         Assert.notNull(groupedKeys.getEntitiesKeys(), "Entities keys must not be null!");
         Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
+            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
 
         if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.empty();
@@ -780,6 +767,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
+            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
 
         if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.just(GroupedEntities.builder().build());

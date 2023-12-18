@@ -68,16 +68,18 @@ public class InternalIndexOperations {
         return SINDEX_WITH_BASE64;
     }
 
-    public void enrichIndexesWithCardinality(IAerospikeClient client, Map<IndexKey, Index> indexes) {
+    public void enrichIndexesWithCardinality(IAerospikeClient client, Map<IndexKey, Index> indexes,
+                                             ServerVersionUtils serverVersionUtils) {
         log.debug("Enriching secondary indexes with cardinality");
         indexes.values().forEach(
-            index -> index.setBinValuesRatio(getIndexBinValuesRatio(client, index.getNamespace(), index.getName()))
+            index -> index.setBinValuesRatio(getIndexBinValuesRatio(client, serverVersionUtils, index.getNamespace(),
+                index.getName()))
         );
     }
 
-    public int getIndexBinValuesRatio(IAerospikeClient client, String namespace, String indexName) {
-        if (ServerVersionUtils.isSIndexCardinalitySupported(client)) {
-
+    public int getIndexBinValuesRatio(IAerospikeClient client, ServerVersionUtils serverVersionUtils,
+                                      String namespace, String indexName) {
+        if (serverVersionUtils.isSIndexCardinalitySupported()) {
             try {
                 String indexStatData = Info.request(null, client.getCluster().getRandomNode(),
                     String.format("sindex-stat:ns=%s;indexname=%s", namespace, indexName));

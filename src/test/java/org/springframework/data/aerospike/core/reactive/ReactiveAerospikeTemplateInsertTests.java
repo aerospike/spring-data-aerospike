@@ -12,7 +12,6 @@ import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionC
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -231,7 +230,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAll_shouldInsertAllDocuments() {
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.insertAll(List.of(customer1, customer2)).blockLast();
@@ -260,7 +259,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAllWithSetName_shouldInsertAllDocuments() {
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.insertAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
@@ -276,7 +275,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAll_rejectsDuplicateId() {
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             Person person = new Person(id, "Amol");
             person.setAge(28);
 
@@ -289,7 +288,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAllWithSetName_rejectsDuplicateId() {
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionUtils.isBatchWriteSupported()) {
             Person person = new Person(id, "Amol");
             person.setAge(28);
 

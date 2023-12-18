@@ -16,12 +16,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
-import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;
@@ -102,7 +103,9 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(ReactiveAerospikeTemplate template,
                                                                  IAerospikeClient client,
-                                                                 GenericContainer<?> aerospike) {
-        return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, aerospike, template);
+                                                                 GenericContainer<?> aerospike,
+                                                                 ServerVersionUtils serverVersionUtils) {
+        return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, aerospike, template,
+            serverVersionUtils);
     }
 }

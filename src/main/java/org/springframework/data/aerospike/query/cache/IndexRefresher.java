@@ -22,6 +22,7 @@ import com.aerospike.client.policy.InfoPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
 import java.util.Arrays;
 import java.util.concurrent.Executors;
@@ -38,21 +39,24 @@ public class IndexRefresher {
 
     private final IAerospikeClient client;
     private final InfoPolicy infoPolicy;
+    private final ServerVersionUtils serverVersionUtils;
     private final InternalIndexOperations indexOperations;
     private final IndexesCacheUpdater indexesCacheUpdater;
     private final ScheduledExecutorService executorService;
 
-    public IndexRefresher(IAerospikeClient client, InfoPolicy infoPolicy,
-                          InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
+    public IndexRefresher(IAerospikeClient client, InfoPolicy infoPolicy, InternalIndexOperations indexOperations,
+                          IndexesCacheUpdater indexesCacheUpdater, ServerVersionUtils serverVersionUtils) {
         this.client = client;
         this.infoPolicy = infoPolicy;
         this.indexOperations = indexOperations;
         this.indexesCacheUpdater = indexesCacheUpdater;
         this.executorService = Executors.newSingleThreadScheduledExecutor();
+        this.serverVersionUtils = serverVersionUtils;
     }
 
     public void scheduleRefreshIndexes(long intervalSeconds) {
-        executorService.scheduleWithFixedDelay(this::refreshIndexes, intervalSeconds, intervalSeconds, TimeUnit.SECONDS);
+        executorService.scheduleWithFixedDelay(this::refreshIndexes, intervalSeconds, intervalSeconds,
+            TimeUnit.SECONDS);
     }
 
     public void refreshIndexes() {
@@ -64,7 +68,7 @@ public class IndexRefresher {
             .map(node -> Info.request(infoPolicy, node, indexOperations.buildGetIndexesCommand()))
             .map(response -> {
                 IndexesInfo indexesInfo = indexOperations.parseIndexesInfo(response);
-                indexOperations.enrichIndexesWithCardinality(client, indexesInfo.indexes);
+                indexOperations.enrichIndexesWithCardinality(client, indexesInfo.indexes, serverVersionUtils);
                 return indexesInfo;
             })
             .orElse(IndexesInfo.empty());

@@ -46,6 +46,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -79,6 +80,7 @@ abstract class BaseAerospikeTemplate {
     protected final AerospikeExceptionTranslator exceptionTranslator;
     protected final WritePolicy writePolicyDefault;
     protected final BatchWritePolicy batchWritePolicyDefault;
+    protected final ServerVersionUtils serverVersionUtils;
     protected final int SERVER_VERSION_6 = 6;
     protected final String SAVE_OPERATION = "save";
     protected final String INSERT_OPERATION = "insert";
@@ -88,7 +90,8 @@ abstract class BaseAerospikeTemplate {
                           MappingAerospikeConverter converter,
                           AerospikeMappingContext mappingContext,
                           AerospikeExceptionTranslator exceptionTranslator,
-                          WritePolicy writePolicyDefault) {
+                          WritePolicy writePolicyDefault,
+                          ServerVersionUtils serverVersionUtils) {
         Assert.notNull(writePolicyDefault, "Write policy must not be null!");
         Assert.notNull(namespace, "Namespace cannot be null");
         Assert.hasLength(namespace, "Namespace cannot be empty");
@@ -99,6 +102,7 @@ abstract class BaseAerospikeTemplate {
         this.mappingContext = mappingContext;
         this.writePolicyDefault = writePolicyDefault;
         this.batchWritePolicyDefault = getFromWritePolicy(writePolicyDefault);
+        this.serverVersionUtils = serverVersionUtils;
 
         loggerSetup();
     }
@@ -459,11 +463,17 @@ abstract class BaseAerospikeTemplate {
             entity.hasVersionProperty());
     }
 
+    protected void validateForBatchWrite(Iterable<?> iterable, String nameOfIterable) {
+        Assert.notNull(iterable, nameOfIterable + " must not be null!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
+            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+    }
+
     protected boolean batchRecordFailed(BatchRecord batchRecord) {
         return batchRecord.resultCode != ResultCode.OK || batchRecord.record == null;
     }
 
     protected boolean batchWriteSupported() {
-        return converter.getAerospikeDataSettings().getServerMajorVersion() >= SERVER_VERSION_6;
+        return serverVersionUtils.isBatchWriteSupported();
     }
 }

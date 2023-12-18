@@ -37,6 +37,7 @@ import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 
 /**
  * Configuration with beans needed for reactive stuff
@@ -53,10 +54,11 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                                IAerospikeReactorClient aerospikeReactorClient,
                                                                ReactorQueryEngine reactorQueryEngine,
-                                                               ReactorIndexRefresher reactorIndexRefresher) {
+                                                               ReactorIndexRefresher reactorIndexRefresher,
+                                                               ServerVersionUtils serverVersionUtils) {
         return new ReactiveAerospikeTemplate(aerospikeReactorClient, nameSpace(), mappingAerospikeConverter,
-            aerospikeMappingContext,
-            aerospikeExceptionTranslator, reactorQueryEngine, reactorIndexRefresher);
+            aerospikeMappingContext, aerospikeExceptionTranslator, reactorQueryEngine, reactorIndexRefresher,
+            serverVersionUtils);
     }
 
     @Bean(name = "reactiveAerospikeQueryEngine")
@@ -76,10 +78,11 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
 
     @Bean(name = "reactiveAerospikeIndexRefresher")
     public ReactorIndexRefresher reactorIndexRefresher(IAerospikeReactorClient aerospikeReactorClient,
-                                                       IndexesCacheUpdater indexesCacheUpdater) {
+                                                       IndexesCacheUpdater indexesCacheUpdater,
+                                                       ServerVersionUtils serverVersionUtils) {
         ReactorIndexRefresher refresher = new ReactorIndexRefresher(aerospikeReactorClient,
             aerospikeReactorClient.getInfoPolicyDefault(),
-            new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater);
+            new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater, serverVersionUtils);
         refresher.refreshIndexes().block();
         return refresher;
     }
@@ -103,8 +106,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     public ReactiveAerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
-        ObjectProvider<ReactiveAerospikeTemplate> template)
-    {
+        ObjectProvider<ReactiveAerospikeTemplate> template) {
         boolean indexesOnStartup = aerospikeDataSettings().isCreateIndexesOnStartup();
         log.debug("AerospikeDataSettings.indexesOnStartup: {}", indexesOnStartup);
         return new ReactiveAerospikePersistenceEntityIndexCreator(aerospikeMappingContext,

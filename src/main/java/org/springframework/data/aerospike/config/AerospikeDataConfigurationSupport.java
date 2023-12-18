@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.config;
 
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Host;
+import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -37,6 +38,7 @@ import org.springframework.data.aerospike.query.FilterExpressionsBuilder;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
+import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.data.mapping.model.FieldNamingStrategy;
 import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
@@ -117,6 +119,13 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean(name = "aerospikeIndexResolver")
     public AerospikeIndexResolver aerospikeIndexResolver() {
         return new AerospikeIndexResolver();
+    }
+
+    @Bean(name = "aerospikeServerVersionUtils")
+    public ServerVersionUtils serverVersionUtils(IAerospikeClient aerospikeClient) {
+        ServerVersionUtils serverUtils = new ServerVersionUtils(aerospikeClient);
+        log.debug("Found server version {}", serverUtils.getServerVersion());
+        return serverUtils;
     }
 
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {
