@@ -463,6 +463,13 @@ abstract class BaseAerospikeTemplate {
             entity.hasVersionProperty());
     }
 
+    protected void validateGroupedKeys(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+        Assert.notNull(groupedKeys.getEntitiesKeys(), "Entities keys must not be null!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
+            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+    }
+
     protected boolean batchWriteSizeMatch(int batchSize, int currentSize) {
         return batchSize > 0 && currentSize == batchSize;
     }

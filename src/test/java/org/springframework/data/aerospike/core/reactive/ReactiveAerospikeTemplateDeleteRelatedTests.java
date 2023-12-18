@@ -214,14 +214,6 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
                 .entityKeys(SampleClasses.VersionedClass.class, List.of(entity2_1.getId(), entity2_2.getId()))
                 .entityKeys(Person.class, List.of(entity3_1.getId(), entity3_2.getId()))
                 .build();
-//            reactiveTemplate.deleteByIds(GroupedKeys.builder()
-//                .entityKeys(SampleClasses.DocumentWithExpiration.class, List.of(entity1_1.getId())).build()).block();
-//                .entityKeys(SampleClasses.DocumentWithExpiration.class, List.of(entity1_1.getId(), entity1_2.getId
-//                ())).build()).block();
-//            reactiveTemplate.deleteByIds(GroupedKeys.builder()
-//                .entityKeys(SampleClasses.VersionedClass.class, List.of(entity2.getId())).build()).block();
-//                .entityKeys(SampleClasses.VersionedClass.class, List.of(entity2_1.getId(), entity2_2.getId()))
-//                .build()).block();
             reactiveTemplate.deleteByIds(groupedKeys).block();
 
             List<SampleClasses.DocumentWithExpiration> list1 = reactiveTemplate.findByIds(

@@ -3,7 +3,7 @@ package org.springframework.data.aerospike.core.reactive;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -31,8 +31,8 @@ import static reactor.test.StepVerifier.create;
 // this test class does not require secondary indexes created on startup
 public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegrationTests {
 
-    @AfterEach
-    public void afterEach() {
+    @BeforeEach
+    public void beforeEach() {
         reactiveTemplate.deleteAll(Person.class).block();
         reactiveTemplate.deleteAll(VersionedClass.class).block();
     }
@@ -390,8 +390,6 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
             assertThat(result1.getFirstName()).isEqualTo("Wolfgang M");
             assertThat(result2.getAge()).isEqualTo(age2);
             assertThat(result2.getFirstName()).isEqualTo("Johann B");
-            reactiveTemplate.delete(result1).block(); // cleanup
-            reactiveTemplate.delete(result2).block(); // cleanup
 
             List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
             Iterable<Person> personsWithUpdate = persons.stream()

@@ -152,7 +152,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void saveAll(Iterable<T> documents) {
-        validateForBatchWrite(documents, "IDsDocuments for saving");
+        validateForBatchWrite(documents, "Documents for saving");
 
         saveAll(documents, getSetName(documents.iterator().next()));
     }
@@ -460,11 +460,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public void deleteByIds(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        Assert.notNull(groupedKeys.getEntitiesKeys(), "Entities keys must not be null!");
+        validateGroupedKeys(groupedKeys);
         Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
 
         if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return;
@@ -839,9 +836,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public GroupedEntities findByIds(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateGroupedKeys(groupedKeys);
 
         if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return GroupedEntities.builder().build();

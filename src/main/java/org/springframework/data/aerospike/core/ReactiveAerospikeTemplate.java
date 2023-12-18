@@ -483,11 +483,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public Mono<Void> deleteByIds(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        Assert.notNull(groupedKeys.getEntitiesKeys(), "Entities keys must not be null!");
+        validateGroupedKeys(groupedKeys);
         Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
 
         if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.empty();
@@ -766,9 +763,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        validateGroupedKeys(groupedKeys);
 
         if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.just(GroupedEntities.builder().build());
