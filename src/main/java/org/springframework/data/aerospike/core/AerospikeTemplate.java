@@ -170,7 +170,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         List<T> docsList = new ArrayList<>();
 
         for (T doc : documents) {
-            if (docsList.size() == batchSize) {
+            if (batchWriteSizeMatch(batchSize, docsList.size())) {
                 batchWriteAllDocuments(docsList, setName, operationName);
                 docsList.clear();
             }
@@ -431,7 +431,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
         for (Object id : ids) {
-            if (idsList.size() == batchSize) {
+            if (batchWriteSizeMatch(batchSize, idsList.size())) {
                 deleteByIds(idsList, setName);
                 idsList.clear();
             }
@@ -818,7 +818,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         List<S> result = new ArrayList<>();
 
         for (Object id : ids) {
-            if (idsList.size() == batchSize) {
+            if (batchWriteSizeMatch(batchSize, idsList.size())) {
                 result = Stream.concat(
                     result.stream(),
                     ((List<S>) findByIdsUsingQuery(idsList, entityClass, targetClass, setName, null)).stream()

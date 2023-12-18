@@ -157,7 +157,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Flux<T> result = Flux.empty();
 
         for (T doc : documents) {
-            if (docsList.size() == batchSize) {
+            if (batchWriteSizeMatch(batchSize, docsList.size())) {
                 result = Flux.concat(result, batchWriteAllDocuments(docsList, setName, operationName));
                 docsList.clear();
             }
@@ -436,7 +436,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         List<Object> idsList = new ArrayList<>();
         Flux<Void> result = Flux.empty();
         for (Object id : ids) {
-            if (idsList.size() == batchSize) {
+            if (batchWriteSizeMatch(batchSize, idsList.size())) {
                 result = deleteByIds(idsList, setName).concatWith(result);
                 idsList.clear();
             }
@@ -735,7 +735,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Flux<T> result = Flux.empty();
 
         for (Object id : ids) {
-            if (idsList.size() == batchSize) {
+            if (batchWriteSizeMatch(batchSize, idsList.size())) {
                 result = Flux.concat(result, findByIds(idsList, targetClass, setName));
                 idsList.clear();
             }

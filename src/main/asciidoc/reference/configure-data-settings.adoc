@@ -71,6 +71,13 @@ Limit amount of results returned by server. Non-positive value means no limit.
 
 *Default*: `10 000`.
 
+[[configure-data-settings.batch-write-size]]
+=== batchWriteSize
+
+Maximum batch size for batch write operations. Non-positive value means no limit.
+
+*Default*: `100`.
+
 [[configure-data-settings.keep-original-key-types]]
 === keepOriginalKeyTypes
 

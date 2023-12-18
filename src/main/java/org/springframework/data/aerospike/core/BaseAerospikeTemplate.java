@@ -463,6 +463,10 @@ abstract class BaseAerospikeTemplate {
             entity.hasVersionProperty());
     }
 
+    protected boolean batchWriteSizeMatch(int batchSize, int currentSize) {
+        return batchSize > 0 && currentSize == batchSize;
+    }
+
     protected void validateForBatchWrite(Iterable<?> iterable, String nameOfIterable) {
         Assert.notNull(iterable, nameOfIterable + " must not be null!");
         Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
