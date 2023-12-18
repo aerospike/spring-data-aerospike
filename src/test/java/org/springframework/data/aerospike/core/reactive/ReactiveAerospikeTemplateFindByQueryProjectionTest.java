@@ -31,8 +31,8 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
 
     @BeforeAll
     public void beforeAllSetUp() {
-        reactiveTemplate.deleteAll(Person.class);
-        reactiveTemplate.deleteAll(OVERRIDE_SET_NAME);
+        reactiveTemplate.deleteAll(Person.class).block();
+        reactiveTemplate.deleteAll(OVERRIDE_SET_NAME).block();
         additionalAerospikeTestOperations.createIndex(
             Person.class, "person_age_index", "age", IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndex(
@@ -52,6 +52,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
     public void setUp() {
         super.setUp();
         reactiveTemplate.deleteAll(Person.class).block();
+        reactiveTemplate.deleteAll(OVERRIDE_SET_NAME).block();
     }
 
     @AfterAll
@@ -62,6 +63,8 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
         additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_age_index" + OVERRIDE_SET_NAME);
         additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_last_name_index" + OVERRIDE_SET_NAME);
         additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_first_name_index" + OVERRIDE_SET_NAME);
+        reactiveTemplate.deleteAll(Person.class).block();
+        reactiveTemplate.deleteAll(OVERRIDE_SET_NAME).block();
     }
 
     @Test

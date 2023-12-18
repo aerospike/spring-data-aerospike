@@ -3,8 +3,11 @@ package org.springframework.data.aerospike.core.reactive;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
@@ -30,11 +33,25 @@ import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDE
 
 @TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
 // this test class does not require secondary indexes created on startup
+@TestInstance(Lifecycle.PER_CLASS)
 public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegrationTests {
 
-    @AfterEach
-    public void afterEach() {
+    @BeforeEach
+    public void beforeEach() {
         reactiveTemplate.deleteAll(Person.class).block();
+        reactiveTemplate.deleteAll(OVERRIDE_SET_NAME);
+        reactiveTemplate.deleteAll(VersionedClass.class).block();
+        reactiveTemplate.deleteAll(DocumentWithByteArray.class).block();
+        reactiveTemplate.deleteAll(CustomCollectionClass.class);
+    }
+
+    @AfterAll
+    public void afterAll() {
+        reactiveTemplate.deleteAll(Person.class).block();
+        reactiveTemplate.deleteAll(OVERRIDE_SET_NAME);
+        reactiveTemplate.deleteAll(VersionedClass.class).block();
+        reactiveTemplate.deleteAll(DocumentWithByteArray.class).block();
+        reactiveTemplate.deleteAll(CustomCollectionClass.class);
     }
 
     @Test
@@ -47,7 +64,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             .verifyComplete();
         CustomCollectionClass result = findById(id, CustomCollectionClass.class);
         assertThat(findById(id, CustomCollectionClass.class)).isEqualTo(initial);
-        reactiveTemplate.delete(result).block();
     }
 
     @Test
@@ -73,7 +89,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
         Person actual = findById(id, Person.class);
         assertThat(actual).isEqualTo(customer);
-        reactiveTemplate.delete(actual).block(); // cleanup
     }
 
     @Test
@@ -99,7 +114,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
         Person actual = findById(id, Person.class, OVERRIDE_SET_NAME);
         assertThat(actual).isEqualTo(customer);
-        reactiveTemplate.delete(actual, OVERRIDE_SET_NAME).block(); // cleanup
     }
 
     @Test
@@ -110,7 +124,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
         DocumentWithByteArray result = findById(id, DocumentWithByteArray.class);
         assertThat(result).isEqualTo(document);
-        reactiveTemplate.delete(result).block(); // cleanup
     }
 
     @Test
@@ -119,7 +132,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
 
         assertThat(document.getField()).isNull();
-        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -128,7 +140,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
 
         assertThat(document.getVersion()).isEqualTo(1);
-        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -137,7 +148,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
 
         assertThat(document.getVersion()).isEqualTo(1);
-        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -146,8 +156,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         reactiveTemplate.insert(document, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
 
         assertThat(document.getVersion()).isEqualTo(1);
-        reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME)
-            .block(); // cleanup
     }
 
 
@@ -159,7 +167,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         StepVerifier.create(reactiveTemplate.insert(person).subscribeOn(Schedulers.parallel()))
             .expectError(DuplicateKeyException.class)
             .verify();
-        reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
     }
 
     @Test
@@ -170,7 +177,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         StepVerifier.create(reactiveTemplate.insert(person, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()))
             .expectError(DuplicateKeyException.class)
             .verify();
-        reactiveTemplate.delete(findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME).block(); // cleanup
     }
 
     @Test
@@ -181,7 +187,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         StepVerifier.create(reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()))
             .expectError(DuplicateKeyException.class)
             .verify();
-        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -203,7 +208,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         });
 
         assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
-        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
@@ -225,7 +229,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         });
 
         assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
-        reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
     }
 
     @Test
@@ -253,7 +256,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             List<String> ids = ((List<Person>) personsToInsert).stream().map(Person::getId).toList();
             List<Person> result = reactiveTemplate.findByIds(ids, Person.class).collectList().block();
             assertThat(result).hasSameElementsAs(personsToInsert);
-            reactiveTemplate.deleteAll(Person.class); // cleanup
         }
     }
 
@@ -268,8 +270,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             Person result2 = findById(customer2.getId(), Person.class, OVERRIDE_SET_NAME);
             assertThat(result1).isEqualTo(customer1);
             assertThat(result2).isEqualTo(customer2);
-            reactiveTemplate.delete(result1, OVERRIDE_SET_NAME).block(); // cleanup
-            reactiveTemplate.delete(result2, OVERRIDE_SET_NAME).block(); // cleanup
         }
     }
 
@@ -282,7 +282,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             StepVerifier.create(reactiveTemplate.insertAll(List.of(person, person)))
                 .expectError(AerospikeException.BatchRecordArray.class)
                 .verify();
-            reactiveTemplate.delete(findById(id, Person.class)).block(); // cleanup
         }
     }
 
@@ -295,8 +294,6 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             StepVerifier.create(reactiveTemplate.insertAll(List.of(person, person), OVERRIDE_SET_NAME))
                 .expectError(AerospikeException.BatchRecordArray.class)
                 .verify();
-            reactiveTemplate.delete(findById(id, Person.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME)
-                .block(); // cleanup
         }
     }
 }
