@@ -14,16 +14,18 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTests {
+class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTests {
 
     long longId = 10L;
-    String setName = "testSetName";
     String name = "John";
     int age = 74;
     Map<Integer, String> map = Map.of(10, "100");
     Address address = new Address("Street", 20, "ZipCode", "City");
-    Map<String, Object> addressMap = Map.of("street", address.getStreet(), "apartment", address.getApartment(),
-        "zipCode", address.getZipCode(), "city", address.getCity());
+    Map<String, Object> addressMap = Map.of(
+        "street", address.getStreet(),
+        "apartment", address.getApartment(),
+        "zipCode", address.getZipCode(),
+        "city", address.getCity());
 
     @AllArgsConstructor
     @Getter
@@ -53,16 +55,16 @@ public class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTe
             // we need isKeepOriginalKeyTypes == true because id is of type long, otherwise findById() returns null
             // isKeepOriginalKeyTypes parameter would be unimportant if id were of type String
             user = template.findById(longId, User.class);
-            assertThat(users.get(0).getId() == (user.getId())).isTrue();
-            assertThat(users.get(0).getName().equals(user.getName())).isTrue();
+            assertThat(users.get(0).getId()).isEqualTo(user.getId());
+            assertThat(users.get(0).getName()).isEqualTo(user.getName());
         } else {
             user = users.get(0);
         }
-        assertThat(user.getId() == longId).isTrue();
-        assertThat(user.getName().equals(name)).isTrue();
-        assertThat(user.getAge() == (age)).isTrue();
-        assertThat(user.getMap().equals(map)).isTrue();
-        assertThat(user.getAddress().equals(address)).isTrue();
+        assertThat(user.getId()).isEqualTo(longId);
+        assertThat(user.getName()).isEqualTo(name);
+        assertThat(user.getAge()).isEqualTo(age);
+        assertThat(user.getMap()).isEqualTo(map);
+        assertThat(user.getAddress()).isEqualTo(address);
     }
 
     @AllArgsConstructor
@@ -86,12 +88,12 @@ public class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTe
         if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             // original id has type long
             document = template.findById(longId, Document.class);
-            assertThat(users.get(0).getId().equals(document.getId())).isTrue();
-            assertThat(users.get(0).getNumber() == (document.getNumber())).isTrue();
+            assertThat(users.get(0).getId()).isEqualTo(document.getId());
+            assertThat(users.get(0).getNumber()).isEqualTo(document.getNumber());
         } else {
             document = users.get(0);
         }
-        assertThat(document.getId().equals(String.valueOf(longId))).isTrue();
-        assertThat(document.getNumber() == age).isTrue();
+        assertThat(document.getId()).isEqualTo(String.valueOf(longId));
+        assertThat(document.getNumber()).isEqualTo(age);
     }
 }
