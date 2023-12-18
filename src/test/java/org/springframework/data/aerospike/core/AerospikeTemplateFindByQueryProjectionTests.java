@@ -85,6 +85,8 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     @BeforeEach
     public void setUp() {
         super.setUp();
+        template.deleteAll(Person.class);
+        template.deleteAll(OVERRIDE_SET_NAME);
     }
 
     @AfterAll
