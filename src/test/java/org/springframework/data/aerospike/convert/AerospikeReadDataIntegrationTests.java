@@ -38,7 +38,7 @@ public class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void readDocumentWithLongId() {
+    void readDocumentWithLongId() {
         template.getAerospikeClient().put(null,
             new Key(namespace, template.getSetName(User.class), longId),
             new Bin("name", name),
@@ -75,7 +75,7 @@ public class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void readLongIdAsString() {
+    void readLongIdAsString() {
         template.getAerospikeClient().put(null,
             new Key(namespace, template.getSetName(Document.class), longId),
             new Bin("number", age)
