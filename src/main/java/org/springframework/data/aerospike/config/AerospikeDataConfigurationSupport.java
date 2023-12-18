@@ -124,7 +124,7 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean(name = "aerospikeServerVersionSupport")
     public ServerVersionSupport serverVersionSupport(IAerospikeClient aerospikeClient) {
         ServerVersionSupport serverSupport = new ServerVersionSupport(aerospikeClient);
-        log.debug("Found server version {}", serverSupport.getServerVersion());
+        serverSupport.scheduleServerVersionRefresh();
         return serverSupport;
     }
 
