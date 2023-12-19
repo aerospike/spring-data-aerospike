@@ -33,6 +33,7 @@ import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 @Slf4j
 @Configuration
@@ -43,9 +44,10 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
                                                MappingAerospikeConverter mappingAerospikeConverter,
                                                AerospikeMappingContext aerospikeMappingContext,
                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
-                                               QueryEngine queryEngine, IndexRefresher indexRefresher) {
+                                               QueryEngine queryEngine, IndexRefresher indexRefresher,
+                                               ServerVersionSupport serverVersionSupport) {
         return new AerospikeTemplate(aerospikeClient, nameSpace(), mappingAerospikeConverter,
-            aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine, indexRefresher);
+            aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine, indexRefresher, serverVersionSupport);
     }
 
     @Bean(name = "aerospikeQueryEngine")
@@ -75,22 +77,23 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     }
 
     @Bean(name = "aerospikeIndexRefresher")
-    public IndexRefresher indexRefresher(IAerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater) {
+    public IndexRefresher indexRefresher(IAerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater,
+                                         ServerVersionSupport serverVersionSupport) {
         IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(),
-            new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater);
+            new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater, serverVersionSupport);
         refresher.refreshIndexes();
-        int refreshFrequency = aerospikeDataSettings().getIndexCacheRefreshFrequencySeconds();
+        int refreshFrequency = aerospikeDataSettings().getIndexCacheRefreshSeconds();
         processCacheRefreshFrequency(refreshFrequency, refresher);
-        log.debug("AerospikeDataSettings.indexCacheRefreshFrequencySeconds: {}", refreshFrequency);
+        log.debug("AerospikeDataSettings.indexCacheRefreshSeconds: {}", refreshFrequency);
         return refresher;
     }
 
-    private void processCacheRefreshFrequency(int indexCacheRefreshFrequencySeconds, IndexRefresher indexRefresher) {
-        if (indexCacheRefreshFrequencySeconds <= 0) {
+    private void processCacheRefreshFrequency(int indexCacheRefreshSeconds, IndexRefresher indexRefresher) {
+        if (indexCacheRefreshSeconds <= 0) {
             log.info("Periodic index cache refreshing is not scheduled, interval ({}) is <= 0",
-                indexCacheRefreshFrequencySeconds);
+                indexCacheRefreshSeconds);
         } else {
-            indexRefresher.scheduleRefreshIndexes(indexCacheRefreshFrequencySeconds);
+            indexRefresher.scheduleRefreshIndexes(indexCacheRefreshSeconds);
         }
     }
 }

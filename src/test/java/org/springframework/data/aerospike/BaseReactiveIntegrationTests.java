@@ -7,11 +7,10 @@ import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.config.ReactiveTestConfig;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
-import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
-import java.util.Collection;
 
 @SpringBootTest(
     classes = {ReactiveTestConfig.class, CommonTestConfig.class},
@@ -28,6 +27,8 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     @Autowired
     protected IAerospikeReactorClient reactorClient;
     @Autowired
+    protected ServerVersionSupport serverVersionSupport;
+    @Autowired
     protected ReactorIndexRefresher reactorIndexRefresher;
 
     protected <T> T findById(Serializable id, Class<T> type) {
@@ -38,11 +39,11 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
         return reactiveTemplate.findById(id, type, setName).block();
     }
 
-    protected void deleteAll(Collection<Person> persons) {
-        Flux.fromIterable(persons).flatMap(person -> reactiveTemplate.delete(person)).blockLast();
+    protected <T> void deleteAll(Iterable<T> iterable) {
+        Flux.fromIterable(iterable).flatMap(item -> reactiveTemplate.delete(item)).blockLast();
     }
 
-    protected void deleteAll(Collection<Person> persons, String setName) {
-        Flux.fromIterable(persons).flatMap(person -> reactiveTemplate.delete(person, setName)).blockLast();
+    protected <T> void deleteAll(Iterable<T> iterable, String setName) {
+        Flux.fromIterable(iterable).flatMap(item -> reactiveTemplate.delete(item, setName)).blockLast();
     }
 }

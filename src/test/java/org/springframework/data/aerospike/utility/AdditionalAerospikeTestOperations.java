@@ -24,6 +24,7 @@ import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 
@@ -45,6 +46,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     private final IndexInfoParser indexInfoParser;
     private final IAerospikeClient client;
+    private final ServerVersionSupport serverVersionSupport;
     private final IndexesCacheRefresher indexesRefresher;
     private final GenericContainer<?> aerospike;
 
@@ -140,7 +142,8 @@ public abstract class AdditionalAerospikeTestOperations {
     public void createIndex(String namespace, String setName, String indexName, String binName,
                             IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
         IndexCollectionType collType = indexCollectionType == null ? DEFAULT : indexCollectionType;
-        IndexUtils.createIndex(client, namespace, setName, indexName, binName, indexType, collType, ctx);
+        IndexUtils.createIndex(client, serverVersionSupport, namespace, setName, indexName, binName, indexType, collType,
+            ctx);
         indexesRefresher.refreshIndexesCache();
     }
 
@@ -149,15 +152,15 @@ public abstract class AdditionalAerospikeTestOperations {
                 IndexCollectionType collType = index.getIndexCollectionType() == null
                     ? DEFAULT : index.getIndexCollectionType();
 
-                IndexUtils.createIndex(client, getNamespace(), index.getSet(), index.getName(), index.getBin(),
-                    index.getIndexType(), collType, index.getCtx());
+                IndexUtils.createIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName(),
+                    index.getBin(), index.getIndexType(), collType, index.getCtx());
             }
         );
         indexesRefresher.refreshIndexesCache();
     }
 
     public <T> void dropIndex(String setName, String indexName) {
-        IndexUtils.dropIndex(client, getNamespace(), setName, indexName);
+        IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), setName, indexName);
         indexesRefresher.refreshIndexesCache();
     }
 
@@ -167,7 +170,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public void dropIndexes(Collection<Index> indexesToBeDropped) {
         indexesToBeDropped.forEach(index -> {
-                IndexUtils.dropIndex(client, getNamespace(), index.getSet(), index.getName());
+                IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName());
             }
         );
         indexesRefresher.refreshIndexesCache();
@@ -175,7 +178,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public <T> void deleteAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             try {
                 repository.deleteAll(entities);
             } catch (AerospikeException.BatchRecordArray ignored) {
@@ -188,7 +191,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public <T> void saveAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             repository.saveAll(entities);
         } else {
             entities.forEach(repository::save);
@@ -259,7 +262,7 @@ public abstract class AdditionalAerospikeTestOperations {
     }
 
 
-    public abstract List<Customer> generateCustomers(int count);
+    public abstract List<Customer> saveGeneratedCustomers(int count);
 
-    public abstract List<Person> generatePersons(int count);
+    public abstract List<Person> saveGeneratedPersons(int count);
 }

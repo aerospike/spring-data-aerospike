@@ -8,14 +8,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.aerospike.sample.*;
-import org.springframework.data.aerospike.sample.SampleClasses.*;
+import org.springframework.data.aerospike.sample.DocumentByteArrayIdRepository;
+import org.springframework.data.aerospike.sample.DocumentByteIdRepository;
+import org.springframework.data.aerospike.sample.DocumentCharacterIdRepository;
+import org.springframework.data.aerospike.sample.DocumentIntegerIdRepository;
+import org.springframework.data.aerospike.sample.DocumentLongIdRepository;
+import org.springframework.data.aerospike.sample.DocumentShortIdRepository;
+import org.springframework.data.aerospike.sample.DocumentStringIdRepository;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArrayId;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteId;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithCharacterId;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithIntegerId;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithLongId;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithShortId;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithStringId;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class IdTypesRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Autowired

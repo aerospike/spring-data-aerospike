@@ -5,9 +5,9 @@ import com.aerospike.client.Record;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.env.Environment;
-import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.convert.CustomConversions;
 
 import java.util.Collection;

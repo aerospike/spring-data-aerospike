@@ -18,13 +18,17 @@ package org.springframework.data.aerospike.query;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 
 /*
- * Tests to ensure that Qualifiers are built successfully for non indexed bins.
+ * Tests to ensure that Qualifiers are built successfully for non-indexed bins.
  */
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class FilterOperationRegexpBuilderTest {
 
     @Test

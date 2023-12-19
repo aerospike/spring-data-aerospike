@@ -16,11 +16,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
-import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.config.EnableReactiveAerospikeRepositories;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
+import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 import org.testcontainers.containers.GenericContainer;
 
@@ -95,14 +96,16 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
         boolean indexesOnStartup = Boolean.parseBoolean(env.getProperty("createIndexesOnStartup"));
         builder.createIndexesOnStartup(indexesOnStartup);
         Optional<Integer> indexRefreshFrequency = getIntegerProperty(env.getProperty(INDEX_CACHE_REFRESH_SECONDS));
-        indexRefreshFrequency.ifPresent(builder::indexCacheRefreshFrequencySeconds);
+        indexRefreshFrequency.ifPresent(builder::indexCacheRefreshSeconds);
         builder.queryMaxRecords(5000L);
     }
 
     @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(ReactiveAerospikeTemplate template,
                                                                  IAerospikeClient client,
-                                                                 GenericContainer<?> aerospike) {
-        return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, aerospike, template);
+                                                                 GenericContainer<?> aerospike,
+                                                                 ServerVersionSupport serverVersionSupport) {
+        return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, aerospike, template,
+            serverVersionSupport);
     }
 }

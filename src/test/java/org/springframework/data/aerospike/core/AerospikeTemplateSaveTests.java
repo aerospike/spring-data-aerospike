@@ -26,10 +26,10 @@ import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.test.context.TestPropertySource;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -38,12 +38,15 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
 import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
 import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @AfterAll
@@ -337,7 +340,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         second.setVersion(second.getVersion());
 
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             template.saveAll(List.of(first, second));
         } else {
             List.of(first, second).forEach(document -> template.save(document));
@@ -355,7 +358,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         VersionedClass first = new VersionedClass(id, "foo");
         VersionedClass second = new VersionedClass(nextId(), "foo");
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             template.saveAll(List.of(first, second), OVERRIDE_SET_NAME);
         } else {
             List.of(first, second).forEach(person -> template.save(person, OVERRIDE_SET_NAME));
@@ -371,7 +374,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfAlreadyExist() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             VersionedClass first = new VersionedClass(id, "foo");
             VersionedClass second = new VersionedClass(nextId(), "foo");
 
@@ -393,7 +396,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveAllNotVersionedDocumentsIfAlreadyExist() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             Person john = new Person("id1", "John");
             Person jack = new Person("id2", "Jack");
             template.save(jack); // saving non-versioned document to create a new DB record

@@ -32,13 +32,12 @@ public class GroupedKeys {
 
         private Map<Class<?>, Collection<?>> entitiesKeys = new HashMap<>();
 
-        public <T, V> GroupedKeys.GroupedKeysBuilder entityKeys(Class<T> key, Collection<V> value) {
+        public GroupedKeys.GroupedKeysBuilder entityKeys(Class<?> key, Collection<?> value) {
             entitiesKeys.put(key, value);
-
             return this;
         }
 
-        private GroupedKeys.GroupedKeysBuilder entitiesKeys(Map<Class<?>, Collection<?>> keys) {
+        public GroupedKeys.GroupedKeysBuilder entitiesKeys(Map<Class<?>, Collection<?>> keys) {
             this.entitiesKeys = keys;
             return this;
         }

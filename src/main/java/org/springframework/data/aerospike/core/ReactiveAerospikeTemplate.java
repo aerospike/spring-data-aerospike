@@ -40,6 +40,7 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
@@ -60,9 +61,13 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.INSERT_OPERATION;
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.SAVE_OPERATION;
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.UPDATE_OPERATION;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
@@ -82,6 +87,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     IndexesCacheRefresher {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
+
     private final IAerospikeReactorClient reactorClient;
     private final ReactorQueryEngine reactorQueryEngine;
     private final ReactorIndexRefresher reactorIndexRefresher;
@@ -91,8 +97,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                                      MappingAerospikeConverter converter,
                                      AerospikeMappingContext mappingContext,
                                      AerospikeExceptionTranslator exceptionTranslator,
-                                     ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher) {
-        super(namespace, converter, mappingContext, exceptionTranslator, reactorClient.getWritePolicyDefault());
+                                     ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher,
+                                     ServerVersionSupport serverVersionSupport) {
+        super(namespace, converter, mappingContext, exceptionTranslator, reactorClient.getWritePolicyDefault(),
+            serverVersionSupport);
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
         this.reactorClient = reactorClient;
         this.reactorQueryEngine = queryEngine;
@@ -134,38 +142,72 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> saveAll(Iterable<T> documents) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
+        validateForBatchWrite(documents, "Documents for saving");
+
         return saveAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> Flux<T> saveAll(Iterable<T> documents, String setName) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(documents, "Documents for saving");
 
+        return applyBufferedBatchWrite(documents, setName, SAVE_OPERATION);
+    }
+
+    private <T> Flux<T> applyBufferedBatchWrite(Iterable<? extends T> documents, String setName,
+                                                OperationType operationType) {
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
+        List<T> docsList = new ArrayList<>();
+        Flux<T> result = Flux.empty();
+
+        for (T doc : documents) {
+            if (batchWriteSizeMatch(batchSize, docsList.size())) {
+                result = Flux.concat(result, batchWriteAllDocuments(docsList, setName, operationType));
+                docsList.clear();
+            }
+            docsList.add(doc);
+        }
+        if (!docsList.isEmpty()) {
+            result = Flux.concat(result, batchWriteAllDocuments(docsList, setName, operationType));
+        }
+
+        return result;
+    }
+
+    private <T> Flux<T> batchWriteAllDocuments(List<T> documents, String setName, OperationType operationType) {
         List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document, setName)));
+        switch (operationType) {
+            case SAVE_OPERATION ->
+                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document, setName)));
+            case INSERT_OPERATION ->
+                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document, setName)));
+            case UPDATE_OPERATION ->
+                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document, setName)));
+            default -> throw new IllegalArgumentException("Unexpected operation name: " + operationType);
+        }
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
 
-        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, "save");
+        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, operationType);
     }
 
     private <T> Flux<T> batchWriteAndCheckForErrors(List<BatchRecord> batchWriteRecords,
-                                                    List<BatchWriteData<T>> batchWriteDataList, String commandName) {
+                                                    List<BatchWriteData<T>> batchWriteDataList,
+                                                    OperationType operationType) {
         // requires server ver. >= 6.0.0
         return reactorClient.operate(null, batchWriteRecords)
             .onErrorMap(this::translateError)
-            .flatMap(ignore -> checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, commandName))
+            .flatMap(ignore -> checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, operationType))
             .flux()
             .flatMapIterable(list -> list.stream().map(BatchWriteData::document).toList());
     }
 
     private <T> Mono<List<BatchWriteData<T>>> checkForErrorsAndUpdateVersion(List<BatchWriteData<T>> batchWriteDataList,
                                                                              List<BatchRecord> batchWriteRecords,
-                                                                             String commandName) {
+                                                                             OperationType operationType) {
         boolean errorsFound = false;
-        for (AerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
+        for (BaseAerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
             if (!errorsFound && batchRecordFailed(data.batchRecord())) {
                 errorsFound = true;
             }
@@ -175,7 +217,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
 
         if (errorsFound) {
-            AerospikeException e = new AerospikeException("Errors during batch " + commandName);
+            AerospikeException e = new AerospikeException("Errors during batch " + operationType);
             return Mono.error(
                 new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), e));
         }
@@ -215,20 +257,17 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> insertAll(Iterable<? extends T> documents) {
+        validateForBatchWrite(documents, "Documents for insert");
+
         return insertAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> Flux<T> insertAll(Iterable<? extends T> documents, String setName) {
-        Assert.notNull(documents, "Documents for insert must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(documents, "Documents for insert");
 
-        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document, setName)));
-
-        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
-
-        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, "insert");
+        return applyBufferedBatchWrite(documents, setName, INSERT_OPERATION);
     }
 
     @Override
@@ -308,23 +347,20 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Flux<T> updateAll(Iterable<? extends T> documents) {
+        validateForBatchWrite(documents, "Documents for update");
+
         return updateAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> Flux<T> updateAll(Iterable<? extends T> documents, String setName) {
-        Assert.notNull(documents, "Documents for saving must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(documents, "Documents for update");
 
-        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document, setName)));
-
-        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
-
-        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, "update");
+        return applyBufferedBatchWrite(documents, setName, UPDATE_OPERATION);
     }
 
-    @Deprecated
+    @Deprecated(since = "4.6.0", forRemoval = true)
     @Override
     public <T> Mono<Void> delete(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
@@ -338,7 +374,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
     }
 
-    @Deprecated
+    @Deprecated(since = "4.6.0", forRemoval = true)
     @Override
     public <T> Mono<Boolean> delete(Object id, Class<T> entityClass) {
         Assert.notNull(id, "Id must not be null!");
@@ -391,32 +427,37 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
-        Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(entityClass, "Class must not be null!");
+        validateForBatchWrite(ids, "IDs");
 
         return deleteByIds(ids, getSetName(entityClass));
     }
 
     @Override
     public Mono<Void> deleteByIds(Iterable<?> ids, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(ids, "IDs");
 
-        return deleteByIds(IterableConverter.toList(ids), setName);
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
+        List<Object> idsList = new ArrayList<>();
+        Flux<Void> result = Flux.empty();
+        for (Object id : ids) {
+            if (batchWriteSizeMatch(batchSize, idsList.size())) {
+                result = deleteByIds(idsList, setName).concatWith(result);
+                idsList.clear();
+            }
+            idsList.add(id);
+        }
+        if (!idsList.isEmpty()) {
+            result = deleteByIds(idsList, setName).concatWith(result);
+        }
+
+        return result.then();
     }
 
-    @Override
-    public <T> Mono<Void> deleteByIds(Collection<?> ids, Class<T> entityClass) {
-        Assert.notNull(ids, "List of ids must not be null!");
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        return deleteByIds(ids, getSetName(entityClass));
-    }
-
-    @Override
-    public Mono<Void> deleteByIds(Collection<?> ids, String setName) {
-        Assert.notNull(ids, "List of ids must not be null!");
+    private Mono<Void> deleteByIds(Collection<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(ids, "IDs");
 
         Key[] keys = ids.stream()
             .map(id -> getKey(id, setName))
@@ -427,6 +468,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private Mono<Void> batchDeleteAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys) {
         Function<BatchResults, Mono<Void>> checkForErrors = results -> {
+            if (results.records == null) {
+                return Mono.error(new AerospikeException.BatchRecordArray(results.records,
+                    new AerospikeException("Errors during batch delete")));
+            }
             for (BatchRecord record : results.records) {
                 if (batchRecordFailed(record)) {
                     return Mono.error(new AerospikeException.BatchRecordArray(results.records,
@@ -444,9 +489,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public Mono<Void> deleteByIds(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        Assert.notNull(groupedKeys.getEntitiesKeys(), "Entities keys must not be null!");
-        Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
+        validateGroupedKeys(groupedKeys);
+
+        if (groupedKeys.getEntitiesKeys().isEmpty()) {
+            return Mono.empty();
+        }
 
         return deleteEntitiesByGroupedKeys(groupedKeys);
     }
@@ -685,18 +732,45 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return Flux.fromIterable(ids)
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
+        List<Object> idsList = new ArrayList<>();
+        Flux<T> result = Flux.empty();
+
+        for (Object id : ids) {
+            if (batchWriteSizeMatch(batchSize, idsList.size())) {
+                result = Flux.concat(result, findByIds(idsList, targetClass, setName));
+                idsList.clear();
+            }
+            idsList.add(id);
+        }
+        if (!idsList.isEmpty()) {
+            result = Flux.concat(result, findByIds(idsList, targetClass, setName));
+        }
+
+        return result;
+    }
+
+    private <T> Flux<T> findByIds(Collection<?> ids, Class<T> targetClass, String setName) {
+        Key[] keys = IterableConverter.toList(ids).stream()
             .map(id -> getKey(id, setName))
-            .flatMap(reactorClient::get)
-            .filter(keyRecord -> nonNull(keyRecord.record))
-            .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record));
+            .toArray(Key[]::new);
+
+        return reactorClient.get(null, keys)
+            .flatMap(kr -> Mono.just(kr.asMap()))
+            .flatMapMany(keyRecordMap -> {
+                List<T> entities = keyRecordMap.entrySet().stream()
+                    .filter(entry -> entry.getValue() != null)
+                    .map(entry -> mapToEntity(entry.getKey(), targetClass, entry.getValue()))
+                    .collect(Collectors.toList());
+                return Flux.fromIterable(entities);
+            });
     }
 
     @Override
     public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+        validateGroupedKeys(groupedKeys);
 
-        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
+        if (groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.just(GroupedEntities.builder().build());
         }
 

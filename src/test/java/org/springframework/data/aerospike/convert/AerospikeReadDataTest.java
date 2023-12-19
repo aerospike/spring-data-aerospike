@@ -6,11 +6,15 @@ package org.springframework.data.aerospike.convert;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class AerospikeReadDataTest {
 
     @Test

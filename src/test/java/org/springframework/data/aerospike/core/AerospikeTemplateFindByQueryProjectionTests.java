@@ -11,8 +11,8 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.aerospike.utility.QueryUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.Arrays;
 import java.util.List;
@@ -20,8 +20,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingIntegrationTests {
 
     final Person jean = Person.builder()
@@ -54,7 +57,7 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         deleteOneByOne(allPersons, OVERRIDE_SET_NAME);
 
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             template.insertAll(allPersons);
             template.insertAll(allPersons, OVERRIDE_SET_NAME);
         } else {
@@ -82,6 +85,17 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     @BeforeEach
     public void setUp() {
         super.setUp();
+        template.deleteAll(Person.class);
+        template.deleteAll(OVERRIDE_SET_NAME);
+        if (serverVersionSupport.batchWrite()) {
+            template.insertAll(allPersons);
+            template.insertAll(allPersons, OVERRIDE_SET_NAME);
+        } else {
+            allPersons.forEach(person -> {
+                template.insert(person);
+                template.insert(person, OVERRIDE_SET_NAME);
+            });
+        }
     }
 
     @AfterAll
