@@ -18,6 +18,8 @@ import static org.springframework.data.aerospike.query.Qualifier.or;
 @UtilityClass
 public class TemplateUtils {
 
+    final String SERVER_VERSION_6 = "6.0.0";
+
     public static List<Object> getIdValue(Qualifier qualifier) {
         if (qualifier.hasId()) {
             return idObjectToList(qualifier.getId());

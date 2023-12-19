@@ -17,7 +17,6 @@ package org.springframework.data.aerospike.core.model;
 
 import lombok.Builder;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +46,7 @@ public class GroupedEntities {
         public <T> GroupedEntities.GroupedEntitiesBuilder entity(Class<T> key, T entity) {
             entitiesResults.compute(key, (k, v) -> {
                 if (v == null) {
-                    return new ArrayList<>(singletonList(entity));
+                    return singletonList(entity);
                 }
 
                 ((List<T>) v).add(entity);

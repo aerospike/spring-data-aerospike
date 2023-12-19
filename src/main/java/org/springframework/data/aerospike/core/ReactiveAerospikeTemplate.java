@@ -484,9 +484,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public Mono<Void> deleteByIds(GroupedKeys groupedKeys) {
         validateGroupedKeys(groupedKeys);
-        Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
 
-        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
+        if (groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.empty();
         }
 
@@ -765,7 +764,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public Mono<GroupedEntities> findByIds(GroupedKeys groupedKeys) {
         validateGroupedKeys(groupedKeys);
 
-        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
+        if (groupedKeys.getEntitiesKeys().isEmpty()) {
             return Mono.just(GroupedEntities.builder().build());
         }
 

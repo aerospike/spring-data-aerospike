@@ -81,7 +81,6 @@ abstract class BaseAerospikeTemplate {
     protected final WritePolicy writePolicyDefault;
     protected final BatchWritePolicy batchWritePolicyDefault;
     protected final ServerVersionSupport serverVersionSupport;
-    protected final int SERVER_VERSION_6 = 6;
     protected final String SAVE_OPERATION = "save";
     protected final String INSERT_OPERATION = "insert";
     protected final String UPDATE_OPERATION = "update";
@@ -470,8 +469,8 @@ abstract class BaseAerospikeTemplate {
 
     protected void validateForBatchWrite(Object object, String objectName) {
         Assert.notNull(object, objectName + " must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with " +
+            "server version " + TemplateUtils.SERVER_VERSION_6);
     }
 
     protected boolean batchWriteSizeMatch(int batchSize, int currentSize) {
