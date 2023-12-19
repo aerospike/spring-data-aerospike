@@ -17,10 +17,12 @@ public class ServerVersionSupport {
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_0 = ModuleDescriptor.Version.parse("6.1.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_1 = ModuleDescriptor.Version.parse("6.1.0.1");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_3_0_0 = ModuleDescriptor.Version.parse("6.3.0.0");
+    private static final int VERSION_REFRESH_INTERVAL_SECONDS = 1800;
+
     private final IAerospikeClient client;
-    @Getter
-    private final String serverVersion;
     private final ScheduledExecutorService executorService;
+    @Getter
+    private volatile String serverVersion;
 
     public ServerVersionSupport(IAerospikeClient client) {
         this.client = client;
@@ -29,13 +31,16 @@ public class ServerVersionSupport {
     }
 
     public void scheduleServerVersionRefresh() {
-        long intervalSeconds = 1800;
-        executorService.scheduleWithFixedDelay(this::findServerVersion, intervalSeconds, intervalSeconds,
+        executorService.scheduleWithFixedDelay(
+            () -> serverVersion = findServerVersion(),
+            VERSION_REFRESH_INTERVAL_SECONDS,
+            VERSION_REFRESH_INTERVAL_SECONDS,
             TimeUnit.SECONDS);
     }
 
     private String findServerVersion() {
-        String versionString = Info.request(client.getCluster().getRandomNode(), "version");
+        String versionString = Info.request(client.getInfoPolicyDefault(),
+            client.getCluster().getRandomNode(), "version");
         versionString = versionString.substring(versionString.lastIndexOf(' ') + 1);
         log.debug("Found server version {}", versionString);
         return versionString;
