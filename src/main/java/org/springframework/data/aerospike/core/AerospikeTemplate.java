@@ -465,9 +465,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public void deleteByIds(GroupedKeys groupedKeys) {
         validateGroupedKeys(groupedKeys);
-        Assert.notEmpty(groupedKeys.getEntitiesKeys(), "Entities keys must not be empty!");
 
-        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
+        if (groupedKeys.getEntitiesKeys().isEmpty()) {
             return;
         }
 
@@ -842,7 +841,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public GroupedEntities findByIds(GroupedKeys groupedKeys) {
         validateGroupedKeys(groupedKeys);
 
-        if (groupedKeys.getEntitiesKeys() == null || groupedKeys.getEntitiesKeys().isEmpty()) {
+        if (groupedKeys.getEntitiesKeys().isEmpty()) {
             return GroupedEntities.builder().build();
         }
 

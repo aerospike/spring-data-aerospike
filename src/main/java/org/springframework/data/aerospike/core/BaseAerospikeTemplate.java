@@ -74,8 +74,6 @@ import static org.springframework.data.aerospike.core.CoreUtils.operations;
 @Slf4j
 abstract class BaseAerospikeTemplate {
 
-    protected static final int SERVER_VERSION_6 = 6;
-
     protected final MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext;
     protected final MappingAerospikeConverter converter;
     protected final String namespace;
@@ -464,8 +462,8 @@ abstract class BaseAerospikeTemplate {
 
     protected void validateForBatchWrite(Object object, String objectName) {
         Assert.notNull(object, objectName + " must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with the major " +
-            "server version " + SERVER_VERSION_6 + ", see serverMajorVersion configuration parameter");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with " +
+            "server version " + TemplateUtils.SERVER_VERSION_6);
     }
 
     protected boolean batchWriteSizeMatch(int batchSize, int currentSize) {
