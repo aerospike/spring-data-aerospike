@@ -123,9 +123,20 @@ public abstract class AerospikeDataConfigurationSupport {
 
     @Bean(name = "aerospikeServerVersionSupport")
     public ServerVersionSupport serverVersionSupport(IAerospikeClient aerospikeClient) {
-        ServerVersionSupport serverSupport = new ServerVersionSupport(aerospikeClient);
-        serverSupport.scheduleServerVersionRefresh();
-        return serverSupport;
+        ServerVersionSupport serverVersionSupport = new ServerVersionSupport(aerospikeClient);
+        int serverVersionRefreshFrequency = aerospikeDataSettings().getServerVersionRefreshSeconds();
+        processServerVersionRefreshFrequency(serverVersionRefreshFrequency, serverVersionSupport);
+        return serverVersionSupport;
+    }
+
+    private void processServerVersionRefreshFrequency(int serverVersionRefreshSeconds,
+                                                      ServerVersionSupport serverVersionSupport) {
+        if (serverVersionRefreshSeconds <= 0) {
+            log.info("Periodic server version refreshing is not scheduled, interval ({}) is <= 0",
+                serverVersionRefreshSeconds);
+        } else {
+            serverVersionSupport.scheduleServerVersionRefresh(serverVersionRefreshSeconds);
+        }
     }
 
     protected Set<Class<?>> getInitialEntitySet() throws ClassNotFoundException {

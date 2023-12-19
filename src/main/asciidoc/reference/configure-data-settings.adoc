@@ -23,7 +23,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
     @Override
     protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
         builder.createIndexesOnStartup(true);
-        builder.indexCacheRefreshFrequencySeconds(3600);
+        builder.indexCacheRefreshSeconds(3600);
         builder.queryMaxRecords(10000L);
     }
 }
@@ -58,9 +58,16 @@ Create secondary indexes specified using `@Indexed` annotation on startup.
 *Default*: `true`.
 
 [[configure-data-settings.index-cache-refresh-frequency-seconds]]
-=== indexCacheRefreshFrequencySeconds
+=== indexCacheRefreshSeconds
 
 Automatically refresh indexes cache every <N> seconds.
+
+*Default*: `3600`.
+
+[[configure-data-settings.server-version-refresh-frequency-seconds]]
+=== serverVersionRefreshSeconds
+
+Automatically refresh cached server version every <N> seconds.
 
 *Default*: `3600`.
 

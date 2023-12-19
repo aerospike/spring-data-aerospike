@@ -14,7 +14,9 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
@@ -209,11 +211,12 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
             reactiveTemplate.save(entity3_1).block();
             reactiveTemplate.save(entity3_2).block();
 
-            GroupedKeys groupedKeys = GroupedKeys.builder()
-                .entityKeys(SampleClasses.DocumentWithExpiration.class, List.of(entity1_1.getId(), entity1_2.getId()))
-                .entityKeys(SampleClasses.VersionedClass.class, List.of(entity2_1.getId(), entity2_2.getId()))
-                .entityKeys(Person.class, List.of(entity3_1.getId(), entity3_2.getId()))
-                .build();
+            Map<Class<?>, Collection<?>> entitiesKeys = Map.of(
+                SampleClasses.DocumentWithExpiration.class, List.of(entity1_1.getId(), entity1_2.getId()),
+                SampleClasses.VersionedClass.class, List.of(entity2_1.getId(), entity2_2.getId()),
+                Person.class, List.of(entity3_1.getId(), entity3_2.getId())
+            );
+            GroupedKeys groupedKeys = GroupedKeys.builder().entitiesKeys(entitiesKeys).build();
             reactiveTemplate.deleteByIds(groupedKeys).block();
 
             List<SampleClasses.DocumentWithExpiration> list1 = reactiveTemplate.findByIds(

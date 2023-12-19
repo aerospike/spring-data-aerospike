@@ -33,7 +33,10 @@ public class AerospikeDataSettings {
     boolean createIndexesOnStartup = true;
     @Builder.Default
     // Automatically refresh indexes cache every <N> seconds
-    int indexCacheRefreshFrequencySeconds = 3600;
+    int indexCacheRefreshSeconds = 3600;
+    @Builder.Default
+    // Automatically refresh cached server version every <N> seconds
+    int serverVersionRefreshSeconds = 3600;
     @Builder.Default
     // Limit amount of results returned by server. Non-positive value means no limit
     long queryMaxRecords = 10_000L;

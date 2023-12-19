@@ -17,7 +17,6 @@ public class ServerVersionSupport {
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_0 = ModuleDescriptor.Version.parse("6.1.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_1 = ModuleDescriptor.Version.parse("6.1.0.1");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_3_0_0 = ModuleDescriptor.Version.parse("6.3.0.0");
-    private static final int VERSION_REFRESH_INTERVAL_SECONDS = 1800;
 
     private final IAerospikeClient client;
     private final ScheduledExecutorService executorService;
@@ -30,11 +29,11 @@ public class ServerVersionSupport {
         this.executorService = Executors.newSingleThreadScheduledExecutor();
     }
 
-    public void scheduleServerVersionRefresh() {
+    public void scheduleServerVersionRefresh(long intervalSeconds) {
         executorService.scheduleWithFixedDelay(
             () -> serverVersion = findServerVersion(),
-            VERSION_REFRESH_INTERVAL_SECONDS,
-            VERSION_REFRESH_INTERVAL_SECONDS,
+            intervalSeconds,
+            intervalSeconds,
             TimeUnit.SECONDS);
     }
 

@@ -82,18 +82,18 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(),
             new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater, serverVersionSupport);
         refresher.refreshIndexes();
-        int refreshFrequency = aerospikeDataSettings().getIndexCacheRefreshFrequencySeconds();
+        int refreshFrequency = aerospikeDataSettings().getIndexCacheRefreshSeconds();
         processCacheRefreshFrequency(refreshFrequency, refresher);
-        log.debug("AerospikeDataSettings.indexCacheRefreshFrequencySeconds: {}", refreshFrequency);
+        log.debug("AerospikeDataSettings.indexCacheRefreshSeconds: {}", refreshFrequency);
         return refresher;
     }
 
-    private void processCacheRefreshFrequency(int indexCacheRefreshFrequencySeconds, IndexRefresher indexRefresher) {
-        if (indexCacheRefreshFrequencySeconds <= 0) {
+    private void processCacheRefreshFrequency(int indexCacheRefreshSeconds, IndexRefresher indexRefresher) {
+        if (indexCacheRefreshSeconds <= 0) {
             log.info("Periodic index cache refreshing is not scheduled, interval ({}) is <= 0",
-                indexCacheRefreshFrequencySeconds);
+                indexCacheRefreshSeconds);
         } else {
-            indexRefresher.scheduleRefreshIndexes(indexCacheRefreshFrequencySeconds);
+            indexRefresher.scheduleRefreshIndexes(indexCacheRefreshSeconds);
         }
     }
 }
