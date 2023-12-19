@@ -298,7 +298,7 @@ public interface ReactiveAerospikeOperations {
      * Reactively truncate/delete all records from the set determined by the given entityClass.
      *
      * @param entityClass The class to extract the Aerospike set name from. Must not be {@literal null}.
-     * @deprecated since 4.6.0, use deleteAll(Class<T> entityClass) instead.
+     * @deprecated since 4.6.0, use {@link AerospikeOperations#deleteAll(Class)} instead.
      */
     <T> Mono<Void> delete(Class<T> entityClass);
 
@@ -308,7 +308,7 @@ public interface ReactiveAerospikeOperations {
      * @param id          The id of a record to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set name from. Must not be {@literal null}.
      * @return A Mono of whether the document existed on server before deletion.
-     * @deprecated since 4.6.0, use deleteById(Object id, Class<T> entityClass) instead.
+     * @deprecated since 4.6.0, use {@link AerospikeOperations#deleteById(Object, Class)} instead.
      */
     <T> Mono<Boolean> delete(Object id, Class<T> entityClass);
 

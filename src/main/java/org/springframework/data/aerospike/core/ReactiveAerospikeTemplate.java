@@ -360,7 +360,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return applyBufferedBatchWrite(documents, setName, UPDATE_OPERATION);
     }
 
-    @Deprecated
+    @Deprecated(since = "4.6.0", forRemoval = true)
     @Override
     public <T> Mono<Void> delete(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
@@ -374,7 +374,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
     }
 
-    @Deprecated
+    @Deprecated(since = "4.6.0", forRemoval = true)
     @Override
     public <T> Mono<Boolean> delete(Object id, Class<T> entityClass) {
         Assert.notNull(id, "Id must not be null!");
