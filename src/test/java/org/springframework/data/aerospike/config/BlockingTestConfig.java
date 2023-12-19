@@ -8,12 +8,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
-import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.config.EnableAerospikeRepositories;
 import org.springframework.data.aerospike.sample.ContactRepository;
 import org.springframework.data.aerospike.sample.CustomerRepository;
+import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 import org.testcontainers.containers.GenericContainer;
 
@@ -67,7 +68,7 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         boolean indexesOnStartup = Boolean.parseBoolean(env.getProperty("createIndexesOnStartup"));
         builder.createIndexesOnStartup(indexesOnStartup);
         Optional<Integer> indexRefreshFrequency = getIntegerProperty(env.getProperty(INDEX_CACHE_REFRESH_SECONDS));
-        indexRefreshFrequency.ifPresent(builder::indexCacheRefreshFrequencySeconds);
+        indexRefreshFrequency.ifPresent(builder::indexCacheRefreshSeconds);
         builder.queryMaxRecords(5000L);
     }
 
@@ -82,7 +83,9 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
 
     @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template, IAerospikeClient client,
-                                                                 GenericContainer<?> aerospike) {
-        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike);
+                                                                 GenericContainer<?> aerospike,
+                                                                 ServerVersionSupport serverVersionSupport) {
+        return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike,
+            serverVersionSupport);
     }
 }

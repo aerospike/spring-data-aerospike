@@ -12,7 +12,7 @@ import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException
 import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
@@ -22,8 +22,11 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
 
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegrationTests {
 
     private static final String INDEX_TEST_1 = "index-test-77777";
@@ -39,7 +42,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_shouldNotThrowExceptionIfIndexAlreadyExists() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING).block();
 
             assertThatCode(() -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField",
@@ -52,7 +55,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. < 6.1.0.1
     @Test
     public void createIndex_throwsExceptionIfIndexAlreadyExists() {
-        if (!ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (!serverVersionSupport.isDropCreateBehaviorUpdated()) {
             reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING).block();
 
             assertThatThrownBy(() -> reactiveTemplate.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField",
@@ -139,7 +142,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedList() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             String setName = reactiveTemplate.getSetName(AerospikeTemplateIndexTests.IndexedDocument.class);
             reactiveTemplate.createIndex(
                 AerospikeTemplateIndexTests.IndexedDocument.class, INDEX_TEST_1, "nestedList",
@@ -160,7 +163,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnMapOfMapsContext() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             String setName = reactiveTemplate.getSetName(AerospikeTemplateIndexTests.IndexedDocument.class);
 
             CTX[] ctx = new CTX[]{
@@ -191,7 +194,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             assertThatCode(() -> reactiveTemplate.deleteIndex(IndexedDocument.class, "not-existing-index")
                 .block())
                 .doesNotThrowAnyException();
@@ -201,7 +204,7 @@ public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegration
     // for Aerospike Server ver. < 6.1.0.1
     @Test
     public void deleteIndex_throwsExceptionIfIndexDoesNotExist() {
-        if (!ServerVersionUtils.isDropCreateBehaviorUpdated(reactorClient.getAerospikeClient())) {
+        if (!serverVersionSupport.isDropCreateBehaviorUpdated()) {
             assertThatThrownBy(() -> reactiveTemplate.deleteIndex(IndexedDocument.class, "not-existing-index").block())
                 .isInstanceOf(IndexNotFoundException.class);
         }

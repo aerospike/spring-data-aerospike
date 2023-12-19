@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -68,18 +68,20 @@ public class InternalIndexOperations {
         return SINDEX_WITH_BASE64;
     }
 
-    public void enrichIndexesWithCardinality(IAerospikeClient client, Map<IndexKey, Index> indexes) {
+    public void enrichIndexesWithCardinality(IAerospikeClient client, Map<IndexKey, Index> indexes,
+                                             ServerVersionSupport serverVersionSupport) {
         log.debug("Enriching secondary indexes with cardinality");
         indexes.values().forEach(
-            index -> index.setBinValuesRatio(getIndexBinValuesRatio(client, index.getNamespace(), index.getName()))
+            index -> index.setBinValuesRatio(getIndexBinValuesRatio(client, serverVersionSupport, index.getNamespace(),
+                index.getName()))
         );
     }
 
-    public int getIndexBinValuesRatio(IAerospikeClient client, String namespace, String indexName) {
-        if (ServerVersionUtils.isSIndexCardinalitySupported(client)) {
-
+    public int getIndexBinValuesRatio(IAerospikeClient client, ServerVersionSupport serverVersionSupport,
+                                      String namespace, String indexName) {
+        if (serverVersionSupport.sIndexCardinality()) {
             try {
-                String indexStatData = Info.request(null, client.getCluster().getRandomNode(),
+                String indexStatData = Info.request(client.getInfoPolicyDefault(), client.getCluster().getRandomNode(),
                     String.format("sindex-stat:ns=%s;indexname=%s", namespace, indexName));
 
                 return Integer.parseInt(

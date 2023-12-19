@@ -3,9 +3,10 @@ package org.springframework.data.aerospike;
 import com.aerospike.client.IAerospikeClient;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
-import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.List;
@@ -21,8 +22,9 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
     public BlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
                                            AerospikeTemplate template,
                                            IAerospikeClient client,
-                                           GenericContainer<?> aerospikeContainer) {
-        super(indexInfoParser, client, template, aerospikeContainer);
+                                           GenericContainer<?> aerospikeContainer,
+                                           ServerVersionSupport serverVersionSupport) {
+        super(indexInfoParser, client, serverVersionSupport, template, aerospikeContainer);
         this.template = template;
     }
 
@@ -56,7 +58,7 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
         return template.getSetName(clazz);
     }
 
-    public List<Customer> generateCustomers(int count) {
+    public List<Customer> saveGeneratedCustomers(int count) {
         return IntStream.range(0, count)
             .mapToObj(i -> Customer.builder().id(nextId())
                 .firstName("firstName" + i)
@@ -66,7 +68,7 @@ public class BlockingAerospikeTestOperations extends AdditionalAerospikeTestOper
             .collect(Collectors.toList());
     }
 
-    public List<Person> generatePersons(int count) {
+    public List<Person> saveGeneratedPersons(int count) {
         return IntStream.range(0, count)
             .mapToObj(i -> Person.builder().id(nextId())
                 .firstName("firstName" + i)

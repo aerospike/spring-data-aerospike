@@ -25,8 +25,8 @@ public interface AbstractFindByEntitiesTest {
 
     @Test
     default void shouldFindAllRequestedEntities() {
-        List<Person> persons = generatePersons(5);
-        List<Customer> customers = generateCustomers(3);
+        List<Person> persons = saveGeneratedPersons(5);
+        List<Customer> customers = saveGeneratedCustomers(3);
 
         GroupedKeys groupedKeys = getGroupedKeys(persons, customers);
         GroupedEntities byIds = findByIds(groupedKeys);
@@ -38,8 +38,8 @@ public interface AbstractFindByEntitiesTest {
 
     @Test
     default void shouldReturnAnEmptyResultIfKeysWhereSetToWrongEntities() {
-        List<Person> persons = generatePersons(5);
-        List<Customer> customers = generateCustomers(3);
+        List<Person> persons = saveGeneratedPersons(5);
+        List<Customer> customers = saveGeneratedCustomers(3);
 
         Set<String> requestedPersonsIds = persons.stream()
             .map(Person::getId)
@@ -59,8 +59,8 @@ public interface AbstractFindByEntitiesTest {
 
     @Test
     default void shouldFindSomeOfIdsOfRequestedEntities() {
-        List<Person> persons = generatePersons(2);
-        List<Customer> customers = generateCustomers(3);
+        List<Person> persons = saveGeneratedPersons(2);
+        List<Customer> customers = saveGeneratedCustomers(3);
 
         GroupedKeys requestMapWithRandomExtraIds = getGroupedEntitiesKeysWithRandomExtraIds(persons, customers);
         GroupedEntities results = findByIds(requestMapWithRandomExtraIds);
@@ -72,7 +72,7 @@ public interface AbstractFindByEntitiesTest {
 
     @Test
     default void shouldFindResultsOfOneOfRequestedEntity() {
-        List<Person> persons = generatePersons(3);
+        List<Person> persons = saveGeneratedPersons(3);
 
         GroupedKeys groupedKeysWithRandomExtraIds = getGroupedEntitiesKeysWithRandomExtraIds(persons, emptyList());
         GroupedEntities results = findByIds(groupedKeysWithRandomExtraIds);
@@ -84,7 +84,7 @@ public interface AbstractFindByEntitiesTest {
 
     @Test
     default void shouldFindForOneEntityIfAnotherContainsEmptyRequestList() {
-        List<Person> persons = generatePersons(3);
+        List<Person> persons = saveGeneratedPersons(3);
 
         GroupedKeys groupedKeys = getGroupedKeys(persons, emptyList());
         GroupedEntities batchGroupedEntities = findByIds(groupedKeys);
@@ -126,7 +126,7 @@ public interface AbstractFindByEntitiesTest {
 
     @Test
     default void shouldThrowMappingExceptionOnNonAerospikeEntityClass() {
-        List<Person> persons = generatePersons(2);
+        List<Person> persons = saveGeneratedPersons(2);
         Set<String> personIds = persons.stream()
             .map(Person::getId)
             .collect(Collectors.toSet());
@@ -188,7 +188,7 @@ public interface AbstractFindByEntitiesTest {
             .build();
     }
 
-    default List<Customer> generateCustomers(int count) {
+    default List<Customer> saveGeneratedCustomers(int count) {
         return IntStream.range(0, count)
             .mapToObj(i -> Customer.builder().id(nextId())
                 .firstName("firstName" + i)
@@ -198,7 +198,7 @@ public interface AbstractFindByEntitiesTest {
             .collect(Collectors.toList());
     }
 
-    default List<Person> generatePersons(int count) {
+    default List<Person> saveGeneratedPersons(int count) {
         return IntStream.range(0, count)
             .mapToObj(i -> Person.builder().id(nextId())
                 .firstName("firstName" + i)

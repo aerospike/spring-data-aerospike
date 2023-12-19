@@ -26,7 +26,7 @@ import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,8 +36,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
 
     @Test
@@ -402,7 +405,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllShouldThrowExceptionOnUpdateForNonExistingKey() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             VersionedClass first = new VersionedClass("newId1", "foo");  // This class has a version field (class
             // field annotated with @Version). The constructor does not receive the version, so it stays equal to zero
             VersionedClass second = new VersionedClass("newId2", "bar"); //
@@ -431,7 +434,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllIfDocumentsNotChanged() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang M", age1);
@@ -451,7 +454,7 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
     @Test
     public void updateAllIfDocumentsChanged() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang", age1);
@@ -470,13 +473,21 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             assertThat(result2.getFirstName()).isEqualTo("Johann B");
             template.delete(result1); // cleanup
             template.delete(result2); // cleanup
+
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+            Iterable<Person> personsWithUpdate = persons.stream()
+                .peek(person -> person.setFirstName(person.getFirstName() + "_")).toList();
+            template.updateAll(personsWithUpdate);
+            personsWithUpdate.forEach(person ->
+                assertThat(template.findById(person.getId(), Person.class).getFirstName()
+                    .equals(person.getFirstName())).isTrue());
         }
     }
 
     @Test
     public void updateAllIfDocumentsNotChangedWithSetName() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             int age1 = 140335200;
             int age2 = 177652800;
             Person person1 = new Person(id, "Wolfgang", age1);

@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.core.model;
 import lombok.Builder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ import static java.util.Collections.singletonList;
 @Builder
 public class GroupedEntities {
 
-    private final Map<Class<?>, List<?>> entitiesResults;
+    private final Map<Class<?>, Collection<?>> entitiesResults;
 
     @SuppressWarnings("unchecked")
     public <T> List<T> getEntitiesByClass(Class<T> entityClass) {
@@ -41,7 +42,7 @@ public class GroupedEntities {
 
     public static class GroupedEntitiesBuilder {
 
-        private Map<Class<?>, List<?>> entitiesResults = new HashMap<>();
+        private Map<Class<?>, Collection<?>> entitiesResults = new HashMap<>();
 
         @SuppressWarnings("unchecked")
         public <T> GroupedEntities.GroupedEntitiesBuilder entity(Class<T> key, T entity) {
@@ -50,14 +51,13 @@ public class GroupedEntities {
                     return new ArrayList<>(singletonList(entity));
                 }
 
-                ((List<T>) v).add(entity);
+                ((Collection<T>) v).add(entity);
                 return v;
             });
-
             return this;
         }
 
-        private GroupedEntities.GroupedEntitiesBuilder entitiesResults(Map<Class<?>, List<?>> keysMap) {
+        public GroupedEntities.GroupedEntitiesBuilder entities(Map<Class<?>, Collection<?>> keysMap) {
             this.entitiesResults = keysMap;
             return this;
         }

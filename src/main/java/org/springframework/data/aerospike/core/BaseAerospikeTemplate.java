@@ -46,6 +46,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
@@ -79,12 +80,14 @@ abstract class BaseAerospikeTemplate {
     protected final AerospikeExceptionTranslator exceptionTranslator;
     protected final WritePolicy writePolicyDefault;
     protected final BatchWritePolicy batchWritePolicyDefault;
+    protected final ServerVersionSupport serverVersionSupport;
 
     BaseAerospikeTemplate(String namespace,
                           MappingAerospikeConverter converter,
                           AerospikeMappingContext mappingContext,
                           AerospikeExceptionTranslator exceptionTranslator,
-                          WritePolicy writePolicyDefault) {
+                          WritePolicy writePolicyDefault,
+                          ServerVersionSupport serverVersionSupport) {
         Assert.notNull(writePolicyDefault, "Write policy must not be null!");
         Assert.notNull(namespace, "Namespace cannot be null");
         Assert.hasLength(namespace, "Namespace cannot be empty");
@@ -95,6 +98,7 @@ abstract class BaseAerospikeTemplate {
         this.mappingContext = mappingContext;
         this.writePolicyDefault = writePolicyDefault;
         this.batchWritePolicyDefault = getFromWritePolicy(writePolicyDefault);
+        this.serverVersionSupport = serverVersionSupport;
 
         loggerSetup();
     }
@@ -370,10 +374,6 @@ abstract class BaseAerospikeTemplate {
             : converter.getConversionService().convert(source, type);
     }
 
-    protected record BatchWriteData<T>(T document, BatchRecord batchRecord, boolean hasVersionProperty) {
-
-    }
-
     protected Operation[] getPutAndGetHeaderOperations(AerospikeWriteData data, boolean firstlyDeleteBins) {
         Bin[] bins = data.getBinsAsArray();
 
@@ -455,7 +455,47 @@ abstract class BaseAerospikeTemplate {
             entity.hasVersionProperty());
     }
 
+    protected void validateGroupedKeys(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+        validateForBatchWrite(groupedKeys.getEntitiesKeys(), "Entities keys");
+    }
+
+    protected void validateForBatchWrite(Object object, String objectName) {
+        Assert.notNull(object, objectName + " must not be null!");
+        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with " +
+            "server version " + TemplateUtils.SERVER_VERSION_6);
+    }
+
+    protected boolean batchWriteSizeMatch(int batchSize, int currentSize) {
+        return batchSize > 0 && currentSize == batchSize;
+    }
+
     protected boolean batchRecordFailed(BatchRecord batchRecord) {
         return batchRecord.resultCode != ResultCode.OK || batchRecord.record == null;
+    }
+
+    protected boolean batchWriteSupported() {
+        return serverVersionSupport.batchWrite();
+    }
+
+    protected enum OperationType {
+        SAVE_OPERATION("save"),
+        INSERT_OPERATION("insert"),
+        UPDATE_OPERATION("update");
+
+        private final String name;
+
+        OperationType(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
+
+    protected record BatchWriteData<T>(T document, BatchRecord batchRecord, boolean hasVersionProperty) {
+
     }
 }

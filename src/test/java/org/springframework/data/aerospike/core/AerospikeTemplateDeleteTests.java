@@ -17,15 +17,16 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.policy.GenerationPolicy;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClassToDelete;
-import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpiration;
-import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClassToDelete;
+import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpiration;
+import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -37,8 +38,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.TEN_SECONDS;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
+
+    @BeforeEach
+    public void beforeEach() {
+        template.deleteAll(Person.class);
+        template.deleteAll(Customer.class);
+    }
 
     @Test
     public void deleteByObject_ignoresDocumentVersionEvenIfDefaultGenerationPolicyIsSet() {
@@ -127,10 +137,10 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByGroupedKeys() {
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
-            List<Person> persons = additionalAerospikeTestOperations.generatePersons(5);
+        if (serverVersionSupport.batchWrite()) {
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(5);
             List<String> personsIds = persons.stream().map(Person::getId).toList();
-            List<Customer> customers = additionalAerospikeTestOperations.generateCustomers(3);
+            List<Customer> customers = additionalAerospikeTestOperations.saveGeneratedCustomers(3);
             List<String> customersIds = customers.stream().map(Customer::getId).toList();
 
             GroupedKeys groupedKeys = getGroupedKeys(persons, customers);
@@ -207,7 +217,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
             DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
             DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
@@ -224,7 +234,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
             String id2 = nextId();
             template.save(new DocumentWithExpiration(id1));
@@ -232,15 +242,24 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
             List<String> ids = List.of(id1, id2);
             template.deleteByIds(ids, DocumentWithExpiration.class);
-
             assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
+
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+            ids = persons.stream().map(Person::getId).toList();
+            template.deleteByIds(ids, Person.class);
+            assertThat(template.findByIds(ids, Person.class)).isEmpty();
+
+            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+            ids = persons2.stream().map(Person::getId).toList();
+            template.deleteByIds(ids, Person.class);
+            assertThat(template.findByIds(ids, Person.class)).isEmpty();
         }
     }
 
     @Test
     public void deleteAll_ShouldDeleteAllDocumentsWithSetName() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
             String id2 = nextId();
             template.save(new DocumentWithExpiration(id1), OVERRIDE_SET_NAME);

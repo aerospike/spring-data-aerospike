@@ -20,6 +20,7 @@ import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import reactor.core.publisher.Mono;
 
 /**
@@ -31,15 +32,18 @@ public class ReactorIndexRefresher {
 
     private final IAerospikeReactorClient client;
     private final InfoPolicy infoPolicy;
+    private final ServerVersionSupport serverVersionSupport;
     private final InternalIndexOperations indexOperations;
     private final IndexesCacheUpdater indexesCacheUpdater;
 
     public ReactorIndexRefresher(IAerospikeReactorClient client, InfoPolicy infoPolicy,
-                                 InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater) {
+                                 InternalIndexOperations indexOperations, IndexesCacheUpdater indexesCacheUpdater,
+                                 ServerVersionSupport serverVersionSupport) {
         this.client = client;
         this.infoPolicy = infoPolicy;
         this.indexOperations = indexOperations;
         this.indexesCacheUpdater = indexesCacheUpdater;
+        this.serverVersionSupport = serverVersionSupport;
     }
 
     public Mono<Void> refreshIndexes() {
@@ -47,7 +51,8 @@ public class ReactorIndexRefresher {
             .doOnSubscribe(subscription -> log.trace("Loading indexes"))
             .doOnNext(indexInfo -> {
                 IndexesInfo cache = indexOperations.parseIndexesInfo(indexInfo);
-                indexOperations.enrichIndexesWithCardinality(client.getAerospikeClient(), cache.indexes);
+                indexOperations.enrichIndexesWithCardinality(client.getAerospikeClient(), cache.indexes,
+                    serverVersionSupport);
                 this.indexesCacheUpdater.update(cache);
                 log.debug("Loaded indexes: {}", cache.indexes);
             }).then();

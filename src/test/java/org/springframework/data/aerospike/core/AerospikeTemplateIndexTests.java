@@ -11,7 +11,6 @@ import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
@@ -21,9 +20,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
 
-@TestPropertySource(properties = {"createIndexesOnStartup = true"})
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = true"})
 // this test class requires secondary indexes created on startup
 public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
@@ -104,7 +104,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_shouldNotThrowExceptionIfIndexAlreadyExists() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             template.createIndex(IndexedDocument.class, INDEX_TEST_1, "stringField", IndexType.STRING);
 
             awaitTenSecondsUntil(() -> assertThat(template.indexExists(INDEX_TEST_1)).isTrue());
@@ -179,7 +179,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void deleteIndex_doesNotThrowExceptionIfIndexDoesNotExist() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             assertThatCode(() -> template.deleteIndex(IndexedDocument.class, "not-existing-index"))
                 .doesNotThrowAnyException();
         }
@@ -188,7 +188,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void deleteIndexWithSetName_doesNotThrowExceptionIfIndexDoesNotExist() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             assertThatCode(() -> template.deleteIndex(OVERRIDE_SET_NAME, "not-existing-index"))
                 .doesNotThrowAnyException();
         }
@@ -197,7 +197,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedList() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             String setName = template.getSetName(IndexedDocument.class);
             template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING,
                 IndexCollectionType.LIST, CTX.listIndex(1));
@@ -217,7 +217,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnNestedListContextRank() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             String setName = template.getSetName(IndexedDocument.class);
             template.createIndex(IndexedDocument.class, INDEX_TEST_1, "nestedList", IndexType.STRING,
                 IndexCollectionType.LIST, CTX.listRank(-1));
@@ -237,7 +237,7 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
     // for Aerospike Server ver. >= 6.1.0.1
     @Test
     public void createIndex_createsIndexOnMapOfMapsContext() {
-        if (ServerVersionUtils.isDropCreateBehaviorUpdated(client)) {
+        if (serverVersionSupport.isDropCreateBehaviorUpdated()) {
             String setName = template.getSetName(IndexedDocument.class);
 
             CTX[] ctx = new CTX[]{

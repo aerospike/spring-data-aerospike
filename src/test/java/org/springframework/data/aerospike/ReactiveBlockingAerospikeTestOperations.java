@@ -7,8 +7,8 @@ import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Collection;
@@ -21,12 +21,15 @@ import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextI
 public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospikeTestOperations {
 
     private final ReactiveAerospikeTemplate template;
+    private final ServerVersionSupport serverVersionSupport;
 
     public ReactiveBlockingAerospikeTestOperations(IndexInfoParser indexInfoParser,
                                                    IAerospikeClient client, GenericContainer<?> aerospike,
-                                                   ReactiveAerospikeTemplate reactiveAerospikeTemplate) {
-        super(indexInfoParser, client, reactiveAerospikeTemplate, aerospike);
+                                                   ReactiveAerospikeTemplate reactiveAerospikeTemplate,
+                                                   ServerVersionSupport serverVersionSupport) {
+        super(indexInfoParser, client, serverVersionSupport, reactiveAerospikeTemplate, aerospike);
         this.template = reactiveAerospikeTemplate;
+        this.serverVersionSupport = serverVersionSupport;
     }
 
     @Override
@@ -59,29 +62,29 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
         return template.getSetName(clazz);
     }
 
-    public List<Customer> generateCustomers(int count) {
+    public List<Customer> saveGeneratedCustomers(int count) {
         return IntStream.range(0, count)
             .mapToObj(i -> Customer.builder().id(nextId())
                 .firstName("firstName" + i)
                 .lastName("lastName")
                 .build())
-            .peek(template::save)
+            .peek(document -> template.save(document).block())
             .collect(Collectors.toList());
     }
 
-    public List<Person> generatePersons(int count) {
+    public List<Person> saveGeneratedPersons(int count) {
         return IntStream.range(0, count)
             .mapToObj(i -> Person.builder().id(nextId())
                 .firstName("firstName" + i)
                 .emailAddress("mail.com")
                 .build())
-            .peek(template::save)
+            .peek(document -> template.save(document).block())
             .collect(Collectors.toList());
     }
 
     public <T> void deleteAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(template.getAerospikeReactorClient().getAerospikeClient())) {
+        if (serverVersionSupport.batchWrite()) {
             try {
                 repository.deleteAll(entities).block();
             } catch (AerospikeException.BatchRecordArray ignored) {
@@ -94,7 +97,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
 
     public <T> void saveAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(template.getAerospikeReactorClient().getAerospikeClient())) {
+        if (serverVersionSupport.batchWrite()) {
             repository.saveAll(entities).blockLast();
         } else {
             entities.forEach(entity -> repository.save(entity).block());

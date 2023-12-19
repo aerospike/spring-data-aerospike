@@ -7,12 +7,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
-import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
+import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -23,12 +23,15 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 /**
  * Tests for save related methods in {@link ReactiveAerospikeTemplate}.
  *
  * @author Igor Ermolenko
  */
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveIntegrationTests {
 
     @Test
@@ -256,7 +259,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAll_shouldSaveAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionSupport.batchWrite()) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.saveAll(List.of(customer1, customer2)).blockLast();
@@ -273,7 +276,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAllWithSetName_shouldSaveAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionSupport.batchWrite()) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.saveAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
@@ -290,7 +293,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAll_rejectsDuplicateId() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionSupport.batchWrite()) {
             VersionedClass first = new VersionedClass(id, "foo");
 
             StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first)))
@@ -303,7 +306,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAllWithSetName_rejectsDuplicateId() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(reactorClient.getAerospikeClient())) {
+        if (serverVersionSupport.batchWrite()) {
             VersionedClass first = new VersionedClass(id, "foo");
 
             StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first), OVERRIDE_SET_NAME))

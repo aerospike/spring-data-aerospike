@@ -20,14 +20,15 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
-import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.data.aerospike.utility.ServerVersionUtils;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,9 +41,20 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
+@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
+// this test class does not require secondary indexes created on startup
 public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
+
+    @BeforeEach
+    public void beforeEach() {
+        template.deleteAll(Person.class);
+        template.deleteAll(CustomCollectionClass.class);
+        template.deleteAll(DocumentWithByteArray.class);
+        template.deleteAll(VersionedClass.class);
+    }
 
     @Test
     public void insertsAndFindsWithCustomCollectionSet() {
@@ -54,7 +66,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         assertThat(record.getString("data")).isEqualTo("data0");
         CustomCollectionClass result = template.findById(id, CustomCollectionClass.class);
         assertThat(result).isEqualTo(initial);
-        template.delete(result); // cleanup
     }
 
     @Test
@@ -77,7 +88,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
         Person actual = template.findById(id, Person.class);
         assertThat(actual).isEqualTo(customer);
-        template.delete(actual); // cleanup
     }
 
     @Test
@@ -100,7 +110,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
         Person actual = template.findById(id, Person.class, OVERRIDE_SET_NAME);
         assertThat(actual).isEqualTo(customer);
-        template.delete(actual, OVERRIDE_SET_NAME); // cleanup
     }
 
     @Test
@@ -110,7 +119,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
         DocumentWithByteArray result = template.findById(id, DocumentWithByteArray.class);
         assertThat(result).isEqualTo(document);
-        template.delete(result); // cleanup
     }
 
     @Test
@@ -119,7 +127,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         template.insert(document);
 
         assertThat(document.getField()).isNull();
-        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
@@ -128,7 +135,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         template.insert(document);
 
         assertThat(document.getVersion()).isEqualTo(1);
-        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
@@ -139,7 +145,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         template.insert(document);
 
         assertThat(document.getVersion()).isEqualTo(1);
-        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
@@ -149,7 +154,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
         assertThatThrownBy(() -> template.insert(person))
             .isInstanceOf(DuplicateKeyException.class);
-        template.delete(template.findById(id, Person.class)); // cleanup
     }
 
     @Test
@@ -159,7 +163,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         template.insert(document);
         assertThatThrownBy(() -> template.insert(document))
             .isInstanceOf(DuplicateKeyException.class);
-        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
@@ -179,7 +182,6 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         });
 
         assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
-        template.delete(template.findById(id, VersionedClass.class)); // cleanup
     }
 
     @Test
@@ -199,30 +201,36 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         });
 
         assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
-        template.delete(template.findById(id, Person.class)); // cleanup
     }
 
     @Test
     public void insertAll_insertsAllDocuments() {
-        List<Person> persons = IntStream.range(1, 10)
-            .mapToObj(age -> Person.builder().id(nextId())
-                .firstName("Gregor")
-                .age(age).build())
-            .collect(Collectors.toList());
-
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
+            List<Person> persons = IntStream.range(1, 10)
+                .mapToObj(age -> Person.builder().id(nextId())
+                    .firstName("Gregor")
+                    .age(age).build())
+                .collect(Collectors.toList());
             template.insertAll(persons);
-        } else {
-            persons.forEach(person -> template.insert(person));
-        }
 
-        List<Person> result = template.findByIds(persons.stream().map(Person::getId)
-            .collect(Collectors.toList()), Person.class);
+            List<Person> result = template.findByIds(persons.stream().map(Person::getId)
+                .collect(Collectors.toList()), Person.class);
+            assertThat(result).hasSameElementsAs(persons);
+            template.deleteAll(Person.class); // cleanup
 
-        assertThat(result).hasSameElementsAs(persons);
-        for (Person person : result) {
-            template.delete(person); // cleanup
+            Iterable<Person> personsToInsert = IntStream.range(0, 101)
+                .mapToObj(age -> Person.builder().id(nextId())
+                    .firstName("Gregor")
+                    .age(age).build())
+                .collect(Collectors.toList());
+            template.insertAll(personsToInsert);
+
+            @SuppressWarnings("CastCanBeRemovedNarrowingVariableType")
+            List<String> ids = ((List<Person>) personsToInsert).stream().map(Person::getId)
+                .collect(Collectors.toList());
+            result = template.findByIds(ids, Person.class);
+            assertThat(result).hasSameElementsAs(personsToInsert);
         }
     }
 
@@ -235,7 +243,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .collect(Collectors.toList());
 
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             template.insertAll(persons, OVERRIDE_SET_NAME);
         } else {
             persons.forEach(person -> template.insert(person, OVERRIDE_SET_NAME));
@@ -245,29 +253,25 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .collect(Collectors.toList()), Person.class, OVERRIDE_SET_NAME);
 
         assertThat(result).hasSameElementsAs(persons);
-        for (Person person : result) {
-            template.delete(person, OVERRIDE_SET_NAME); // cleanup
-        }
     }
 
     @Test
     public void insertAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             VersionedClass first = new VersionedClass(id, "foo");
 
             assertThatThrownBy(() -> template.insertAll(List.of(first, first)))
                 .isInstanceOf(AerospikeException.BatchRecordArray.class)
                 .hasMessageContaining("Errors during batch insert");
             Assertions.assertEquals(1, (long) first.getVersion());
-            template.delete(first); // cleanup
         }
     }
 
     @Test
     public void shouldInsertAllVersionedDocuments() {
         // batch write operations are supported starting with Server version 6.0+
-        if (ServerVersionUtils.isBatchWriteSupported(client)) {
+        if (serverVersionSupport.batchWrite()) {
             VersionedClass first = new VersionedClass(id, "foo");
             VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
             VersionedClass third = new VersionedClass(nextId(), "foo", 2L);
