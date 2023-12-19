@@ -479,9 +479,20 @@ abstract class BaseAerospikeTemplate {
     }
 
     protected enum OperationType {
-        SAVE_OPERATION,
-        INSERT_OPERATION,
-        UPDATE_OPERATION
+        SAVE_OPERATION("save"),
+        INSERT_OPERATION("insert"),
+        UPDATE_OPERATION("update");
+
+        private final String name;
+
+        OperationType(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     protected record BatchWriteData<T>(T document, BatchRecord batchRecord, boolean hasVersionProperty) {
