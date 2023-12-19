@@ -81,7 +81,7 @@ public class InternalIndexOperations {
                                       String namespace, String indexName) {
         if (serverVersionSupport.sIndexCardinality()) {
             try {
-                String indexStatData = Info.request(null, client.getCluster().getRandomNode(),
+                String indexStatData = Info.request(client.getInfoPolicyDefault(), client.getCluster().getRandomNode(),
                     String.format("sindex-stat:ns=%s;indexname=%s", namespace, indexName));
 
                 return Integer.parseInt(

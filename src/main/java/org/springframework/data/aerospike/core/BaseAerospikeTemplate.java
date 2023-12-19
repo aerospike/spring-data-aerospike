@@ -74,6 +74,8 @@ import static org.springframework.data.aerospike.core.CoreUtils.operations;
 @Slf4j
 abstract class BaseAerospikeTemplate {
 
+    protected static final int SERVER_VERSION_6 = 6;
+
     protected final MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext;
     protected final MappingAerospikeConverter converter;
     protected final String namespace;
@@ -81,10 +83,6 @@ abstract class BaseAerospikeTemplate {
     protected final WritePolicy writePolicyDefault;
     protected final BatchWritePolicy batchWritePolicyDefault;
     protected final ServerVersionSupport serverVersionSupport;
-    protected final int SERVER_VERSION_6 = 6;
-    protected final String SAVE_OPERATION = "save";
-    protected final String INSERT_OPERATION = "insert";
-    protected final String UPDATE_OPERATION = "update";
 
     BaseAerospikeTemplate(String namespace,
                           MappingAerospikeConverter converter,
@@ -378,10 +376,6 @@ abstract class BaseAerospikeTemplate {
             : converter.getConversionService().convert(source, type);
     }
 
-    protected record BatchWriteData<T>(T document, BatchRecord batchRecord, boolean hasVersionProperty) {
-
-    }
-
     protected Operation[] getPutAndGetHeaderOperations(AerospikeWriteData data, boolean firstlyDeleteBins) {
         Bin[] bins = data.getBinsAsArray();
 
@@ -484,5 +478,15 @@ abstract class BaseAerospikeTemplate {
 
     protected boolean batchWriteSupported() {
         return serverVersionSupport.batchWrite();
+    }
+
+    protected enum OperationType {
+        SAVE_OPERATION,
+        INSERT_OPERATION,
+        UPDATE_OPERATION
+    }
+
+    protected record BatchWriteData<T>(T document, BatchRecord batchRecord, boolean hasVersionProperty) {
+
     }
 }

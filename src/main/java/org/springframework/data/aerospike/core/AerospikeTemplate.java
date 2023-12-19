@@ -66,6 +66,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.INSERT_OPERATION;
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.SAVE_OPERATION;
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.UPDATE_OPERATION;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
@@ -88,6 +91,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     IndexesCacheRefresher {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
+
     private final IAerospikeClient client;
     private final QueryEngine queryEngine;
     private final IndexRefresher indexRefresher;
@@ -165,32 +169,32 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         applyBufferedBatchWrite(documents, setName, SAVE_OPERATION);
     }
 
-    private <T> void applyBufferedBatchWrite(Iterable<T> documents, String setName, String operationName) {
+    private <T> void applyBufferedBatchWrite(Iterable<T> documents, String setName, OperationType operationType) {
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<T> docsList = new ArrayList<>();
 
         for (T doc : documents) {
             if (batchWriteSizeMatch(batchSize, docsList.size())) {
-                batchWriteAllDocuments(docsList, setName, operationName);
+                batchWriteAllDocuments(docsList, setName, operationType);
                 docsList.clear();
             }
             docsList.add(doc);
         }
         if (!docsList.isEmpty()) {
-            batchWriteAllDocuments(docsList, setName, operationName);
+            batchWriteAllDocuments(docsList, setName, operationType);
         }
     }
 
-    private <T> void batchWriteAllDocuments(List<T> documents, String setName, String operationName) {
+    private <T> void batchWriteAllDocuments(List<T> documents, String setName, OperationType operationType) {
         List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        switch (operationName) {
+        switch (operationType) {
             case SAVE_OPERATION ->
                 documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document, setName)));
             case INSERT_OPERATION ->
                 documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document, setName)));
             case UPDATE_OPERATION ->
                 documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document, setName)));
-            default -> throw new IllegalStateException("Unexpected operation name: " + operationName);
+            default -> throw new IllegalArgumentException("Unexpected operation name: " + operationType);
         }
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
@@ -201,13 +205,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             throw translateError(e);
         }
 
-        checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, operationName);
+        checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, operationType);
     }
 
     private <T> void checkForErrorsAndUpdateVersion(List<BatchWriteData<T>> batchWriteDataList,
-                                                    List<BatchRecord> batchWriteRecords, String commandName) {
+                                                    List<BatchRecord> batchWriteRecords, OperationType operationType) {
         boolean errorsFound = false;
-        for (AerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
+        for (BaseAerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
             if (!errorsFound && batchRecordFailed(data.batchRecord())) {
                 errorsFound = true;
             }
@@ -217,7 +221,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
 
         if (errorsFound) {
-            AerospikeException e = new AerospikeException("Errors during batch " + commandName);
+            AerospikeException e = new AerospikeException("Errors during batch " + operationType);
             throw new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), e);
         }
     }

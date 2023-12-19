@@ -65,6 +65,9 @@ import java.util.stream.Collectors;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.INSERT_OPERATION;
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.SAVE_OPERATION;
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.UPDATE_OPERATION;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
@@ -84,6 +87,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     IndexesCacheRefresher {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
+
     private final IAerospikeReactorClient reactorClient;
     private final ReactorQueryEngine reactorQueryEngine;
     private final ReactorIndexRefresher reactorIndexRefresher;
@@ -151,57 +155,59 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return applyBufferedBatchWrite(documents, setName, SAVE_OPERATION);
     }
 
-    private <T> Flux<T> applyBufferedBatchWrite(Iterable<? extends T> documents, String setName, String operationName) {
+    private <T> Flux<T> applyBufferedBatchWrite(Iterable<? extends T> documents, String setName,
+                                                OperationType operationType) {
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<T> docsList = new ArrayList<>();
         Flux<T> result = Flux.empty();
 
         for (T doc : documents) {
             if (batchWriteSizeMatch(batchSize, docsList.size())) {
-                result = Flux.concat(result, batchWriteAllDocuments(docsList, setName, operationName));
+                result = Flux.concat(result, batchWriteAllDocuments(docsList, setName, operationType));
                 docsList.clear();
             }
             docsList.add(doc);
         }
         if (!docsList.isEmpty()) {
-            result = Flux.concat(result, batchWriteAllDocuments(docsList, setName, operationName));
+            result = Flux.concat(result, batchWriteAllDocuments(docsList, setName, operationType));
         }
 
         return result;
     }
 
-    private <T> Flux<T> batchWriteAllDocuments(List<T> documents, String setName, String operationName) {
+    private <T> Flux<T> batchWriteAllDocuments(List<T> documents, String setName, OperationType operationType) {
         List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        switch (operationName) {
+        switch (operationType) {
             case SAVE_OPERATION ->
                 documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document, setName)));
             case INSERT_OPERATION ->
                 documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document, setName)));
             case UPDATE_OPERATION ->
                 documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document, setName)));
-            default -> throw new IllegalStateException("Unexpected operation name: " + operationName);
+            default -> throw new IllegalArgumentException("Unexpected operation name: " + operationType);
         }
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
 
-        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, operationName);
+        return batchWriteAndCheckForErrors(batchWriteRecords, batchWriteDataList, operationType);
     }
 
     private <T> Flux<T> batchWriteAndCheckForErrors(List<BatchRecord> batchWriteRecords,
-                                                    List<BatchWriteData<T>> batchWriteDataList, String commandName) {
+                                                    List<BatchWriteData<T>> batchWriteDataList,
+                                                    OperationType operationType) {
         // requires server ver. >= 6.0.0
         return reactorClient.operate(null, batchWriteRecords)
             .onErrorMap(this::translateError)
-            .flatMap(ignore -> checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, commandName))
+            .flatMap(ignore -> checkForErrorsAndUpdateVersion(batchWriteDataList, batchWriteRecords, operationType))
             .flux()
             .flatMapIterable(list -> list.stream().map(BatchWriteData::document).toList());
     }
 
     private <T> Mono<List<BatchWriteData<T>>> checkForErrorsAndUpdateVersion(List<BatchWriteData<T>> batchWriteDataList,
                                                                              List<BatchRecord> batchWriteRecords,
-                                                                             String commandName) {
+                                                                             OperationType operationType) {
         boolean errorsFound = false;
-        for (AerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
+        for (BaseAerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
             if (!errorsFound && batchRecordFailed(data.batchRecord())) {
                 errorsFound = true;
             }
@@ -211,7 +217,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         }
 
         if (errorsFound) {
-            AerospikeException e = new AerospikeException("Errors during batch " + commandName);
+            AerospikeException e = new AerospikeException("Errors during batch " + operationType);
             return Mono.error(
                 new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), e));
         }
