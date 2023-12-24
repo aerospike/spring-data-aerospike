@@ -24,6 +24,7 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.ResultSet;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
@@ -102,6 +103,8 @@ public interface AerospikeOperations {
      * does not exist it will be created, otherwise updated (an "upsert").
      *
      * @param document The document to be saved. Must not be {@literal null}.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> void save(T document);
 
@@ -123,6 +126,8 @@ public interface AerospikeOperations {
      *
      * @param document The document to be saved. Must not be {@literal null}.
      * @param setName  Set name to override the set associated with the document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> void save(T document, String setName);
 
@@ -135,9 +140,11 @@ public interface AerospikeOperations {
      *
      * @param documents The documents to be saved. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
-     *                                                     records
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void saveAll(Iterable<T> documents);
 
@@ -152,9 +159,11 @@ public interface AerospikeOperations {
      * @param documents The documents to be saved. Must not be {@literal null}.
      * @param setName   Set name to override the default set associated with the documents.
      * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
-     *                                                     records
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void saveAll(Iterable<T> documents, String setName);
 
@@ -164,6 +173,8 @@ public interface AerospikeOperations {
      * If the document has version property it will be updated with the server's version after successful operation.
      *
      * @param document The document to be inserted. Must not be {@literal null}.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> void insert(T document);
 
@@ -175,6 +186,8 @@ public interface AerospikeOperations {
      *
      * @param document The document to be inserted. Must not be {@literal null}.
      * @param setName  Set name to override the set associated with the document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> void insert(T document, String setName);
 
@@ -187,9 +200,11 @@ public interface AerospikeOperations {
      *
      * @param documents Documents to be inserted. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
-     *                                                     records
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void insertAll(Iterable<? extends T> documents);
 
@@ -204,9 +219,11 @@ public interface AerospikeOperations {
      * @param documents Documents to be inserted. Must not be {@literal null}.
      * @param setName   Set name to override the set associated with the document.
      * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
-     *                                                     records
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void insertAll(Iterable<? extends T> documents, String setName);
 
@@ -238,6 +255,8 @@ public interface AerospikeOperations {
      * If document has version property it will be updated with the server's version after successful operation.
      *
      * @param document The document that identifies the record to be updated. Must not be {@literal null}.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> void update(T document);
 
@@ -251,6 +270,8 @@ public interface AerospikeOperations {
      *
      * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param setName  Set name to override the set associated with the document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> void update(T document, String setName);
 
@@ -264,6 +285,8 @@ public interface AerospikeOperations {
      *
      * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param fields   Specific fields to update.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> void update(T document, Collection<String> fields);
 
@@ -278,6 +301,8 @@ public interface AerospikeOperations {
      * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param setName  Set name to override the set associated with the document.
      * @param fields   Specific fields to update.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> void update(T document, String setName, Collection<String> fields);
 
@@ -290,9 +315,11 @@ public interface AerospikeOperations {
      *
      * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
      * @throws AerospikeException.BatchRecordArray         if batch update succeeds, but results contain errors or null
-     *                                                     records
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void updateAll(Iterable<T> documents);
 
@@ -307,9 +334,11 @@ public interface AerospikeOperations {
      * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
      * @param setName   Set name to override the set associated with the document.
      * @throws AerospikeException.BatchRecordArray         if batch update succeeds, but results contain errors or null
-     *                                                     records
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void updateAll(Iterable<T> documents, String setName);
 
@@ -326,83 +355,134 @@ public interface AerospikeOperations {
      *
      * @param id          The id of the record to delete. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @return whether the document existed on server before deletion.
+     * @return whether the record existed on server before deletion.
      * @deprecated since 4.6.0, use {@link AerospikeOperations#deleteById(Object, Class)} instead.
      */
     <T> boolean delete(Object id, Class<T> entityClass);
 
     /**
      * Delete a record using the document's id.
+     * <p>
+     * If the document has version property it will be compared with the corresponding record's version on server.
      *
      * @param document The document to get set name and id from. Must not be {@literal null}.
-     * @return Whether the document existed on server before deletion.
+     * @return Whether the record existed on server before deletion.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> boolean delete(T document);
 
     /**
      * Delete a record within the given set using the document's id.
+     * <p>
+     * If the document has version property it will be compared with the corresponding record's version on server.
      *
      * @param document The document to get id from. Must not be {@literal null}.
      * @param setName  Set name to use.
-     * @return Whether the document existed on server before deletion.
+     * @return Whether the record existed on server before deletion.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> boolean delete(T document, String setName);
 
+
+    /**
+     * Delete multiple records in one batch request. The policies are analogous to {@link #delete(Object)}.
+     * <p>
+     * The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param documents The documents to be deleted. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    <T> void deleteAll(Iterable<T> documents);
+
+    /**
+     * Delete multiple records within the given set (overrides the default set associated with the documents) in one
+     * batch request. The policies are analogous to {@link #delete(Object)}.
+     * <p>
+     * The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param documents The documents to be deleted. Must not be {@literal null}.
+     * @param setName   Set name to override the default set associated with the documents.
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    <T> void deleteAll(Iterable<T> documents, String setName);
+
     /**
      * Delete a record by id, set name will be determined by the given entityClass.
+     * <p>
+     * If the document has version property it is not compared with the corresponding record's version on server.
      *
      * @param id          The id of the record to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @return Whether the document existed on server before deletion.
+     * @return Whether the record existed on server before deletion.
      */
     <T> boolean deleteById(Object id, Class<T> entityClass);
 
     /**
      * Delete a record by id within the given set.
+     * <p>
+     * If the document has version property it is not compared with the corresponding record's version on server.
      *
      * @param id      The id of the record to be deleted. Must not be {@literal null}.
      * @param setName Set name to use.
-     * @return Whether the document existed on server before deletion.
+     * @return Whether the record existed on server before deletion.
      */
     boolean deleteById(Object id, String setName);
 
     /**
      * Delete records by ids using a single batch delete operation, set name will be determined by the given
-     * entityClass.
+     * entityClass. The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
      * This operation requires Server version 6.0+.
      *
      * @param ids         The ids of the records to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors.
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
-     * Delete records by ids within the given set using a single batch delete operation.
+     * Delete records by ids within the given set using a single batch delete operation. The policies are analogous to
+     * {@link #deleteById(Object, String)}.
      * <p>
      * This operation requires Server version 6.0+.
      *
      * @param ids     The ids of the records to be deleted. Must not be {@literal null}.
      * @param setName Set name to use.
-     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors.
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     void deleteByIds(Iterable<?> ids, String setName);
 
     /**
-     * Perform a single batch delete for records from different sets.
+     * Perform a single batch delete operation for records from different sets.
      * <p>
-     * This operation requires Server version 6.0+.
+     * Records' versions on server are not checked.
+     * <p>
+     * This operation requires Server 6.0+.
      *
      * @param groupedKeys Keys grouped by document type. Must not be {@literal null}, groupedKeys.getEntitiesKeys() must
      *                    not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors.
      * @throws org.springframework.dao.DataAccessException if batch operation failed (see
-     *                                                     {@link DefaultAerospikeExceptionTranslator} for details)
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     void deleteByIds(GroupedKeys groupedKeys);
 

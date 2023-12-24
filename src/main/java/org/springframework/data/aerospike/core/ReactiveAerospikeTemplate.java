@@ -65,6 +65,7 @@ import java.util.stream.Collectors;
 
 import static com.aerospike.client.ResultCode.KEY_NOT_FOUND_ERROR;
 import static java.util.Objects.nonNull;
+import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.DELETE_OPERATION;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.INSERT_OPERATION;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.SAVE_OPERATION;
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.UPDATE_OPERATION;
@@ -124,14 +125,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikeWriteData data = writeData(document, setName);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
-            WritePolicy policy = expectGenerationCasAwareSavePolicy(data);
+            WritePolicy policy = expectGenerationCasAwarePolicy(data);
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
                 Operation.array(Operation.delete()));
 
-            return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
+            return doPersistWithVersionAndHandleCasError(document, data, policy, operations, SAVE_OPERATION);
         } else {
-            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE);
+            WritePolicy policy = ignoreGenerationPolicy(data, RecordExistsAction.UPDATE);
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
                 Operation.array(Operation.delete()));
@@ -184,6 +185,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document, setName)));
             case UPDATE_OPERATION ->
                 documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document, setName)));
+            case DELETE_OPERATION ->
+                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForDelete(document, setName)));
             default -> throw new IllegalArgumentException("Unexpected operation name: " + operationType);
         }
 
@@ -207,16 +210,29 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                                                                              List<BatchRecord> batchWriteRecords,
                                                                              OperationType operationType) {
         boolean errorsFound = false;
+        String casErrorDocumentId = null;
         for (BaseAerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
             if (!errorsFound && batchRecordFailed(data.batchRecord())) {
                 errorsFound = true;
             }
-            if (data.hasVersionProperty() && !batchRecordFailed(data.batchRecord())) {
-                updateVersion(data.document(), data.batchRecord().record);
+            if (data.hasVersionProperty()) {
+                if (!batchRecordFailed(data.batchRecord())) {
+                    if (operationType != DELETE_OPERATION) updateVersion(data.document(), data.batchRecord().record);
+                } else {
+                    if (hasGenerationError(data.batchRecord())) {
+                        casErrorDocumentId = data.batchRecord().key.userKey.toString(); // ID can be a String or a
+                        // primitive
+                    }
+                }
             }
         }
 
         if (errorsFound) {
+            if (casErrorDocumentId != null) {
+                return Mono.error(getOptimisticLockingFailureException("Failed to " + operationType.toString() + " " +
+                    "the " +
+                    "record with ID '" + casErrorDocumentId + "' due to versions mismatch", null));
+            }
             AerospikeException e = new AerospikeException("Errors during batch " + operationType);
             return Mono.error(
                 new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), e));
@@ -236,7 +252,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set name must not be null!");
 
         AerospikeWriteData data = writeData(document, setName);
-        WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.CREATE_ONLY);
+        WritePolicy policy = ignoreGenerationPolicy(data, RecordExistsAction.CREATE_ONLY);
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
@@ -302,14 +318,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikeWriteData data = writeData(document, setName);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
-            WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+            WritePolicy policy = expectGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY);
 
             // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
                 Operation.array(Operation.delete()), Operation.array(Operation.getHeader()));
-            return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
+            return doPersistWithVersionAndHandleCasError(document, data, policy, operations, UPDATE_OPERATION);
         } else {
-            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+            WritePolicy policy = ignoreGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY);
 
             // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put,
@@ -332,13 +348,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikeWriteData data = writeDataWithSpecificFields(document, setName, fields);
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
-            WritePolicy policy = expectGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+            WritePolicy policy = expectGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY);
 
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put, null,
                 Operation.array(Operation.getHeader()));
-            return doPersistWithVersionAndHandleCasError(document, data, policy, operations);
+            return doPersistWithVersionAndHandleCasError(document, data, policy, operations, UPDATE_OPERATION);
         } else {
-            WritePolicy policy = ignoreGenerationSavePolicy(data, RecordExistsAction.UPDATE_ONLY);
+            WritePolicy policy = ignoreGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY);
 
             Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
             return doPersistAndHandleError(document, data, policy, operations);
@@ -383,7 +399,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
 
         return reactorClient
-            .delete(ignoreGenerationDeletePolicy(), getKey(id, entity))
+            .delete(ignoreGenerationPolicy(), getKey(id, entity))
             .map(k -> true)
             .onErrorMap(this::translateError);
     }
@@ -399,11 +415,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(document, "Set name must not be null!");
 
         AerospikeWriteData data = writeData(document, setName);
-
-        return reactorClient
-            .delete(ignoreGenerationDeletePolicy(), data.getKey())
-            .map(key -> true)
-            .onErrorMap(this::translateError);
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+        if (entity.hasVersionProperty()) {
+            return reactorClient
+                .delete(expectGenerationPolicy(data), data.getKey())
+                .map(Objects::nonNull)
+                .onErrorMap(e -> translateCasThrowable(e, DELETE_OPERATION.toString()));
+        } else {
+            return reactorClient
+                .delete(ignoreGenerationPolicy(), data.getKey())
+                .map(Objects::nonNull)
+                .onErrorMap(this::translateError);
+        }
     }
 
     @Override
@@ -420,9 +443,24 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set name must not be null!");
 
         return reactorClient
-            .delete(ignoreGenerationDeletePolicy(), getKey(id, setName))
+            .delete(ignoreGenerationPolicy(), getKey(id, setName))
             .map(k -> true)
             .onErrorMap(this::translateError);
+    }
+
+    @Override
+    public <T> Mono<Void> deleteAll(Iterable<T> documents) {
+        validateForBatchWrite(documents, "Documents for deleting");
+
+        return deleteAll(documents, getSetName(documents.iterator().next()));
+    }
+
+    @Override
+    public <T> Mono<Void> deleteAll(Iterable<T> documents, String setName) {
+        Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(documents, "Documents for deleting");
+
+        return applyBufferedBatchWrite(documents, setName, DELETE_OPERATION).then();
     }
 
     @Override
@@ -1188,10 +1226,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private <T> Mono<T> doPersistWithVersionAndHandleCasError(T document, AerospikeWriteData data, WritePolicy policy,
-                                                              Operation[] operations) {
+                                                              Operation[] operations, OperationType operationType) {
         return putAndGetHeader(data, policy, operations)
             .map(newRecord -> updateVersion(document, newRecord))
-            .onErrorMap(AerospikeException.class, this::translateCasError);
+            .onErrorMap(AerospikeException.class, i -> translateCasError(i,
+                "Failed to " + operationType.toString() + " record due to versions mismatch"));
     }
 
     private <T> Mono<T> doPersistWithVersionAndHandleError(T document, AerospikeWriteData data, WritePolicy policy,
@@ -1243,6 +1282,15 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return translateError(ae);
         }
         return e;
+    }
+
+    private Throwable translateCasThrowable(Throwable e, String operationName) {
+        if (e instanceof AerospikeException) {
+            return translateCasError((AerospikeException) e, "Failed to " + operationName + " record due to versions " +
+                "mismatch");
+        } else {
+            return e;
+        }
     }
 
     private <T> Flux<T> findWithPostProcessing(String setName, Class<T> targetClass, Query query) {

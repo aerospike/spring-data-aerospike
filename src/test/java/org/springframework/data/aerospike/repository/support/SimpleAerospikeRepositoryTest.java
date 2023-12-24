@@ -36,17 +36,14 @@ import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.test.context.TestPropertySource;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
@@ -188,24 +185,14 @@ public class SimpleAerospikeRepositoryTest {
     }
 
     @Test
-    public void deleteAllIterable() throws NoSuchFieldException, IllegalAccessException {
-        Field field = aerospikeRepository.getClass().getDeclaredField("entityInformation");
-        field.setAccessible(true);
-        EntityInformation<Person, String> entityInformation = mock(EntityInformation.class);
-        field.set(aerospikeRepository, entityInformation);
-        when(entityInformation.getId(any(Person.class))).thenReturn(testPerson.getId());
-        when(entityInformation.getJavaType()).thenReturn(Person.class);
-
+    public void deleteAllIterable() {
         aerospikeRepository.deleteAll(List.of(testPerson));
-        List<Object> ids = List.of(testPerson.getId());
-
-        verify(operations).deleteByIds(ids, Person.class);
+        verify(operations).deleteAll(List.of(testPerson));
     }
 
     @Test
     public void deleteAll() {
         aerospikeRepository.deleteAll();
-
         verify(operations).deleteAll(Person.class);
     }
 

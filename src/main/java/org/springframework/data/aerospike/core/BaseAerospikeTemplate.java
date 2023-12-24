@@ -197,12 +197,21 @@ abstract class BaseAerospikeTemplate {
         return document;
     }
 
-    RuntimeException translateCasError(AerospikeException e) {
+    RuntimeException translateCasError(AerospikeException e, String errMsg) {
         int code = e.getResultCode();
         if (code == ResultCode.KEY_EXISTS_ERROR || code == ResultCode.GENERATION_ERROR) {
-            return new OptimisticLockingFailureException("Save document with version value failed", e);
+            return getOptimisticLockingFailureException(errMsg, e);
         }
         return translateError(e);
+    }
+
+    protected boolean hasGenerationError(BatchRecord record) {
+        return record.resultCode == ResultCode.GENERATION_ERROR;
+    }
+
+    protected OptimisticLockingFailureException getOptimisticLockingFailureException(String errMsg,
+                                                                                     AerospikeException e) {
+        return new OptimisticLockingFailureException(errMsg, e);
     }
 
     RuntimeException translateError(AerospikeException e) {
@@ -225,27 +234,27 @@ abstract class BaseAerospikeTemplate {
         return data;
     }
 
-    WritePolicy expectGenerationCasAwareSavePolicy(AerospikeWriteData data) {
+    WritePolicy expectGenerationCasAwarePolicy(AerospikeWriteData data) {
         RecordExistsAction recordExistsAction = data.getVersion()
             .filter(v -> v > 0L)
             .map(v -> RecordExistsAction.UPDATE_ONLY) // updating existing document with generation,
             // cannot use REPLACE_ONLY due to bin convergence feature restrictions
             .orElse(RecordExistsAction.CREATE_ONLY); // create new document,
         // if exists we should fail with optimistic locking
-        return expectGenerationSavePolicy(data, recordExistsAction);
+        return expectGenerationPolicy(data, recordExistsAction);
     }
 
-    BatchWritePolicy expectGenerationCasAwareSaveBatchPolicy(AerospikeWriteData data) {
+    BatchWritePolicy expectGenerationCasAwareBatchPolicy(AerospikeWriteData data) {
         RecordExistsAction recordExistsAction = data.getVersion()
             .filter(v -> v > 0L)
             .map(v -> RecordExistsAction.UPDATE_ONLY) // updating existing document with generation,
             // cannot use REPLACE_ONLY due to bin convergence feature restrictions
             .orElse(RecordExistsAction.CREATE_ONLY); // create new document,
         // if exists we should fail with optimistic locking
-        return expectGenerationSaveBatchPolicy(data, recordExistsAction);
+        return expectGenerationBatchPolicy(data, recordExistsAction);
     }
 
-    WritePolicy expectGenerationSavePolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
+    WritePolicy expectGenerationPolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
         return WritePolicyBuilder.builder(this.writePolicyDefault)
             .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
             .generation(data.getVersion().orElse(0))
@@ -254,7 +263,7 @@ abstract class BaseAerospikeTemplate {
             .build();
     }
 
-    BatchWritePolicy expectGenerationSaveBatchPolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
+    BatchWritePolicy expectGenerationBatchPolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
         BatchWritePolicy batchWritePolicy = new BatchWritePolicy(this.batchWritePolicyDefault);
         batchWritePolicy.generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
         batchWritePolicy.generation = data.getVersion().orElse(0);
@@ -263,7 +272,7 @@ abstract class BaseAerospikeTemplate {
         return batchWritePolicy;
     }
 
-    WritePolicy ignoreGenerationSavePolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
+    WritePolicy ignoreGenerationPolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
         return WritePolicyBuilder.builder(this.writePolicyDefault)
             .generationPolicy(GenerationPolicy.NONE)
             .expiration(data.getExpiration())
@@ -271,7 +280,7 @@ abstract class BaseAerospikeTemplate {
             .build();
     }
 
-    BatchWritePolicy ignoreGenerationSaveBatchPolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
+    BatchWritePolicy ignoreGenerationBatchPolicy(AerospikeWriteData data, RecordExistsAction recordExistsAction) {
         BatchWritePolicy batchWritePolicy = new BatchWritePolicy(this.batchWritePolicyDefault);
         batchWritePolicy.generationPolicy = GenerationPolicy.NONE;
         batchWritePolicy.expiration = data.getExpiration();
@@ -279,9 +288,17 @@ abstract class BaseAerospikeTemplate {
         return batchWritePolicy;
     }
 
-    WritePolicy ignoreGenerationDeletePolicy() {
+    WritePolicy ignoreGenerationPolicy() {
         return WritePolicyBuilder.builder(this.writePolicyDefault)
             .generationPolicy(GenerationPolicy.NONE)
+            .build();
+    }
+
+    WritePolicy expectGenerationPolicy(AerospikeWriteData data) {
+        return WritePolicyBuilder.builder(this.writePolicyDefault)
+            .generationPolicy(GenerationPolicy.EXPECT_GEN_EQUAL)
+            .generation(data.getVersion().orElse(0))
+            .expiration(data.getExpiration())
             .build();
     }
 
@@ -382,9 +399,8 @@ abstract class BaseAerospikeTemplate {
                 "Cannot put and get header on a document with no bins and \"@_class\" bin disabled.");
         }
 
-        return firstlyDeleteBins ? operations(bins, Operation::put,
-            Operation.array(Operation.delete()), Operation.array(Operation.getHeader()))
-            : operations(bins, Operation::put, null, Operation.array(Operation.getHeader()));
+        return operations(bins, Operation::put, firstlyDeleteBins ? Operation.array(Operation.delete()) : null,
+            Operation.array(Operation.getHeader()));
     }
 
     public <T> BatchWriteData<T> getBatchWriteForSave(T document, String setName) {
@@ -396,12 +412,12 @@ abstract class BaseAerospikeTemplate {
         Operation[] operations;
         BatchWritePolicy policy;
         if (entity.hasVersionProperty()) {
-            policy = expectGenerationCasAwareSaveBatchPolicy(data);
+            policy = expectGenerationCasAwareBatchPolicy(data);
 
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             operations = getPutAndGetHeaderOperations(data, true);
         } else {
-            policy = ignoreGenerationSaveBatchPolicy(data, RecordExistsAction.UPDATE);
+            policy = ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE);
 
             // mimicking REPLACE behavior by firstly deleting bins due to bin convergence feature restrictions
             operations = operations(data.getBinsAsArray(), Operation::put,
@@ -419,7 +435,7 @@ abstract class BaseAerospikeTemplate {
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         Operation[] operations;
-        BatchWritePolicy policy = ignoreGenerationSaveBatchPolicy(data, RecordExistsAction.CREATE_ONLY);
+        BatchWritePolicy policy = ignoreGenerationBatchPolicy(data, RecordExistsAction.CREATE_ONLY);
         if (entity.hasVersionProperty()) {
             operations = getPutAndGetHeaderOperations(data, false);
         } else {
@@ -439,17 +455,38 @@ abstract class BaseAerospikeTemplate {
         Operation[] operations;
         BatchWritePolicy policy;
         if (entity.hasVersionProperty()) {
-            policy = expectGenerationSaveBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
+            policy = expectGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
 
             // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
             operations = getPutAndGetHeaderOperations(data, true);
         } else {
-            policy = ignoreGenerationSaveBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
+            policy = ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
 
             // mimicking REPLACE_ONLY behavior by firstly deleting bins due to bin convergence feature restrictions
             operations = Stream.concat(Stream.of(Operation.delete()), data.getBins().stream()
                 .map(Operation::put)).toArray(Operation[]::new);
         }
+
+        return new BatchWriteData<>(document, new BatchWrite(policy, data.getKey(), operations),
+            entity.hasVersionProperty());
+    }
+
+    public <T> BatchWriteData<T> getBatchWriteForDelete(T document, String setName) {
+        Assert.notNull(document, "Document must not be null!");
+
+        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
+        Operation[] operations;
+        BatchWritePolicy policy;
+        AerospikeWriteData data = writeData(document, setName);
+
+        if (entity.hasVersionProperty()) {
+            policy = expectGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+        } else {
+            policy = ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
+
+        }
+        operations = Operation.array(Operation.delete());
 
         return new BatchWriteData<>(document, new BatchWrite(policy, data.getKey(), operations),
             entity.hasVersionProperty());
@@ -481,7 +518,8 @@ abstract class BaseAerospikeTemplate {
     protected enum OperationType {
         SAVE_OPERATION("save"),
         INSERT_OPERATION("insert"),
-        UPDATE_OPERATION("update");
+        UPDATE_OPERATION("update"),
+        DELETE_OPERATION("delete");
 
         private final String name;
 

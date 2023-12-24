@@ -21,6 +21,7 @@ import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
@@ -81,6 +82,8 @@ public interface ReactiveAerospikeOperations {
      *
      * @param document The document to be saved. Must not be {@literal null}.
      * @return A Mono of the new saved document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<T> save(T document);
 
@@ -103,6 +106,8 @@ public interface ReactiveAerospikeOperations {
      * @param document The document to be saved. Must not be {@literal null}.
      * @param setName  The set name to save the document.
      * @return A Mono of the new saved document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<T> save(T document, String setName);
 
@@ -114,9 +119,13 @@ public interface ReactiveAerospikeOperations {
      * Requires Server version 6.0+.
      *
      * @param documents The documents to be saved. Must not be {@literal null}.
-     * @return A Flux of the saved documents, otherwise onError is signalled with
-     * {@link AerospikeException.BatchRecordArray} if batch save results contain errors, or with
-     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     * @return A Flux of the saved documents
+     * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Flux<T> saveAll(Iterable<T> documents);
 
@@ -130,9 +139,13 @@ public interface ReactiveAerospikeOperations {
      *
      * @param documents The documents to be saved. Must not be {@literal null}.
      * @param setName   The set name to save to documents.
-     * @return A Flux of the saved documents, otherwise onError is signalled with
-     * {@link AerospikeException.BatchRecordArray} if batch save results contain errors, or with
-     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     * @return A Flux of the saved documents
+     * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Flux<T> saveAll(Iterable<T> documents, String setName);
 
@@ -143,6 +156,8 @@ public interface ReactiveAerospikeOperations {
      *
      * @param document The document to be inserted. Must not be {@literal null}.
      * @return A Mono of the new inserted document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<T> insert(T document);
 
@@ -155,6 +170,8 @@ public interface ReactiveAerospikeOperations {
      * @param document The document to be inserted. Must not be {@literal null}.
      * @param setName  The set name to insert the document.
      * @return A Mono of the new inserted document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<T> insert(T document, String setName);
 
@@ -166,9 +183,13 @@ public interface ReactiveAerospikeOperations {
      * Requires Server version 6.0+.
      *
      * @param documents Documents to insert. Must not be {@literal null}.
-     * @return A Flux of the inserted documents, otherwise onError is signalled with
-     * {@link AerospikeException.BatchRecordArray} if batch insert results contain errors, or with
-     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     * @return A Flux of the inserted documents
+     * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Flux<T> insertAll(Iterable<? extends T> documents);
 
@@ -182,9 +203,13 @@ public interface ReactiveAerospikeOperations {
      *
      * @param documents Documents to insert. Must not be {@literal null}.
      * @param setName   The set name to insert the documents.
-     * @return A Flux of the inserted documents, otherwise onError is signalled with
-     * {@link AerospikeException.BatchRecordArray} if batch insert results contain errors, or with
-     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     * @return A Flux of the inserted documents
+     * @throws AerospikeException.BatchRecordArray         if batch insert succeeds, but results contain errors or null
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Flux<T> insertAll(Iterable<? extends T> documents, String setName);
 
@@ -220,6 +245,8 @@ public interface ReactiveAerospikeOperations {
      *
      * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @return A Mono of the new updated document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<T> update(T document);
 
@@ -234,6 +261,8 @@ public interface ReactiveAerospikeOperations {
      * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param setName  The set name to update the document.
      * @return A Mono of the new updated document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<T> update(T document, String setName);
 
@@ -247,6 +276,8 @@ public interface ReactiveAerospikeOperations {
      *
      * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @return A Mono of the new updated document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<T> update(T document, Collection<String> fields);
 
@@ -261,6 +292,8 @@ public interface ReactiveAerospikeOperations {
      * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @param setName  The set name to update the document.
      * @return A Mono of the new updated document.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<T> update(T document, String setName, Collection<String> fields);
 
@@ -272,9 +305,13 @@ public interface ReactiveAerospikeOperations {
      * Requires Server version 6.0+.
      *
      * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
-     * @return A Flux of the updated documents, otherwise onError is signalled with
-     * {@link AerospikeException.BatchRecordArray} if batch update results contain errors, or with
-     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     * @return A Flux of the updated documents
+     * @throws AerospikeException.BatchRecordArray         if batch update succeeds, but results contain errors or null
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Flux<T> updateAll(Iterable<? extends T> documents);
 
@@ -288,9 +325,13 @@ public interface ReactiveAerospikeOperations {
      *
      * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
      * @param setName   The set name to update the documents.
-     * @return A Flux of the updated documents, otherwise onError is signalled with
-     * {@link AerospikeException.BatchRecordArray} if batch update results contain errors, or with
-     * {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     * @return A Flux of the updated documents
+     * @throws AerospikeException.BatchRecordArray         if batch update succeeds, but results contain errors or null
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Flux<T> updateAll(Iterable<? extends T> documents, String setName);
 
@@ -314,9 +355,13 @@ public interface ReactiveAerospikeOperations {
 
     /**
      * Reactively delete a record using the document's id.
+     * <p>
+     * If the document has version property it will be compared with the corresponding record's version on server.
      *
      * @param document The document to get set name and id from. Must not be {@literal null}.
-     * @return A Mono of whether the document existed on server before deletion.
+     * @return A Mono of whether the record existed on server before deletion.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<Boolean> delete(T document);
 
@@ -325,56 +370,102 @@ public interface ReactiveAerospikeOperations {
      *
      * @param document The document to get id from. Must not be {@literal null}.
      * @param setName  Set name to use.
-     * @return A Mono of whether the document existed on server before deletion.
+     * @return A Mono of whether the record existed on server before deletion.
+     * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
+     *                                           that found on server.
      */
     <T> Mono<Boolean> delete(T document, String setName);
 
     /**
+     * Reactively delete multiple records in one batch request. The policies are analogous to {@link #delete(Object)}.
+     * <p>
+     * The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param documents The documents to be deleted. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray         if batch save succeeds, but results contain errors or null
+     *                                                     records.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    <T> Mono<Void> deleteAll(Iterable<T> documents);
+
+    /**
+     * Reactively delete multiple records within the given set (overrides the default set associated with the documents)
+     * in one batch request. The policies are analogous to {@link #delete(Object)}.
+     * <p>
+     * The execution order is NOT preserved.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param documents The documents to be deleted. Must not be {@literal null}.
+     * @param setName   Set name to override the default set associated with the documents.
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors.
+     * @throws OptimisticLockingFailureException           if at least one document has a version attribute with a
+     *                                                     different value from that found on server.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    <T> Mono<Void> deleteAll(Iterable<T> documents, String setName);
+
+    /**
      * Reactively delete a record by id, set name will be determined by the given entity class.
+     * <p>
+     * If the document has version property it is not compared with the corresponding record's version on server.
      *
      * @param id          The id of the record to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set name from. Must not be {@literal null}.
-     * @return A Mono of whether the document existed on server before deletion.
+     * @return A Mono of whether the record existed on server before deletion.
      */
     <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass);
 
     /**
-     * Reactively delete a record within the given set by id.
+     * Reactively delete a record by id within the given set.
+     * <p>
+     * If the document has version property it is not compared with the corresponding record's version on server.
      *
      * @param id      The id of the record to be deleted. Must not be {@literal null}.
      * @param setName Set name to use.
-     * @return A Mono of whether the document existed on server before deletion.
+     * @return A Mono of whether the record existed on server before deletion.
      */
     Mono<Boolean> deleteById(Object id, String setName);
 
     /**
      * Reactively delete records using a single batch delete operation, set name will be determined by the given entity
-     * class.
+     * class. The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
      * This operation requires Server version 6.0+.
      *
      * @param ids         The ids of the records to find. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set name from and to map the results to. Must not be
      *                    {@literal null}.
-     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
-     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
-     * Reactively delete records within the given set using a single batch delete operation.
+     * Reactively delete records within the given set using a single batch delete operation. The policies are analogous
+     * to {@link #deleteById(Object, String)}.
      * <p>
      * This operation requires Server version 6.0+.
      *
      * @param ids     The ids of the documents to find. Must not be {@literal null}.
      * @param setName Set name to use.
-     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
-     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     Mono<Void> deleteByIds(Iterable<?> ids, String setName);
 
     /**
      * Reactively delete records from different sets in a single request.
+     * <p>
+     * Records' versions on server are not checked.
      * <p>
      * This operation requires Server version 6.0+.
      *

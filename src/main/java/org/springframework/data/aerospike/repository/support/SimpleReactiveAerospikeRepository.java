@@ -26,9 +26,6 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Stub implementation of {@link ReactiveAerospikeRepository}.
  *
@@ -132,12 +129,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     @Override
     public Mono<Void> deleteAll(Iterable<? extends T> entities) {
         Assert.notNull(entities, "The given Iterable of entities must not be null!");
-        List<Object> ids = new ArrayList<>();
-        entities.forEach(entity -> {
-            Assert.notNull(entity, "The given Iterable of entities must not contain null!");
-            ids.add(entityInformation.getId(entity));
-        });
-        return operations.deleteByIds(ids, entityInformation.getJavaType());
+        return operations.deleteAll(entities);
     }
 
     @Override
