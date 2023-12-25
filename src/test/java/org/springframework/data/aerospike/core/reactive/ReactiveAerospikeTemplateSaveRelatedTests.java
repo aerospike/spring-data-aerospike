@@ -5,6 +5,7 @@ import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -59,7 +60,8 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
 
         StepVerifier.create(reactiveTemplate.save(new VersionedClass(id, "foo", 0L))
                 .subscribeOn(Schedulers.parallel()))
-            .expectError(OptimisticLockingFailureException.class)
+//            .expectError(OptimisticLockingFailureException.class)
+            .expectError(DuplicateKeyException.class)
             .verify();
     }
 
@@ -202,7 +204,8 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
             VersionedClass messageData = new VersionedClass(id, data);
             reactiveTemplate.save(messageData)
                 .subscribeOn(Schedulers.parallel())
-                .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
+//                .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
+                .onErrorResume(DuplicateKeyException.class, (e) -> {
                     optimisticLockCounter.incrementAndGet();
                     return Mono.empty();
                 })

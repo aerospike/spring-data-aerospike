@@ -224,7 +224,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 if (!batchRecordFailed(data.batchRecord())) {
                     if (operationType != DELETE_OPERATION) updateVersion(data.document(), data.batchRecord().record);
                 } else {
-                    if (hasGenerationError(data.batchRecord())) {
+                    if (hasGenerationError(data.batchRecord().resultCode)) {
                         casErrorDocumentId = data.batchRecord().key.userKey.toString(); // ID can be a String or a
                         // primitive
                     }

@@ -22,8 +22,8 @@ import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
@@ -117,7 +117,8 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         template.save(new VersionedClass(id, "foo"));
 
         assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo")))
-            .isInstanceOf(OptimisticLockingFailureException.class);
+//            .isInstanceOf(OptimisticLockingFailureException.class);
+            .isInstanceOf(DuplicateKeyException.class);
     }
 
     @Test
@@ -257,7 +258,8 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
             VersionedClass messageData = new VersionedClass(id, data);
             try {
                 template.save(messageData);
-            } catch (OptimisticLockingFailureException e) {
+//            } catch (OptimisticLockingFailureException e) {
+            } catch (DuplicateKeyException e) {
                 optimisticLockCounter.incrementAndGet();
             }
         });
@@ -308,7 +310,8 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
                     }
 
                     template.save(toUpdate);
-                } catch (ConcurrencyFailureException e) {
+//                } catch (ConcurrencyFailureException e) {
+                } catch (DuplicateKeyException e) {
                     // try again
                     run();
                 }

@@ -198,14 +198,14 @@ abstract class BaseAerospikeTemplate {
     }
 
     RuntimeException translateCasError(AerospikeException e, String errMsg) {
-        if (e.getResultCode() == ResultCode.GENERATION_ERROR) {
+        if (hasGenerationError(e.getResultCode())) {
             return getOptimisticLockingFailureException(errMsg, e);
         }
         return translateError(e);
     }
 
-    protected boolean hasGenerationError(BatchRecord record) {
-        return record.resultCode == ResultCode.GENERATION_ERROR;
+    protected boolean hasGenerationError(int resultCode) {
+        return resultCode == ResultCode.GENERATION_ERROR;
     }
 
     protected OptimisticLockingFailureException getOptimisticLockingFailureException(String errMsg,
