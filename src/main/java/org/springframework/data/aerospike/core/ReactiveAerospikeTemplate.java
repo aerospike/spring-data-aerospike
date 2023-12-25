@@ -220,8 +220,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                     if (operationType != DELETE_OPERATION) updateVersion(data.document(), data.batchRecord().record);
                 } else {
                     if (hasGenerationError(data.batchRecord().resultCode)) {
-                        casErrorDocumentId = data.batchRecord().key.userKey.toString(); // ID can be a String or a
-                        // primitive
+                        // ID can be a String or a primitive
+                        casErrorDocumentId = data.batchRecord().key.userKey.toString();
                     }
                 }
             }
@@ -229,9 +229,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         if (errorsFound) {
             if (casErrorDocumentId != null) {
-                return Mono.error(getOptimisticLockingFailureException("Failed to " + operationType.toString() + " " +
-                    "the " +
-                    "record with ID '" + casErrorDocumentId + "' due to versions mismatch", null));
+                return Mono.error(getOptimisticLockingFailureException(
+                    "Failed to %s the record with ID '%s' due to versions mismatch"
+                        .formatted(operationType, casErrorDocumentId), null));
             }
             AerospikeException e = new AerospikeException("Errors during batch " + operationType);
             return Mono.error(
@@ -1271,8 +1271,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         List<String> binNamesList = new ArrayList<>();
 
-        targetEntity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property
-            -> binNamesList.add(property.getFieldName()));
+        targetEntity.doWithProperties(
+            (PropertyHandler<AerospikePersistentProperty>) property -> binNamesList.add(property.getFieldName()));
 
         return binNamesList.toArray(new String[0]);
     }
@@ -1285,12 +1285,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private Throwable translateCasThrowable(Throwable e, String operationName) {
-        if (e instanceof AerospikeException) {
-            return translateCasError((AerospikeException) e, "Failed to " + operationName + " record due to versions " +
-                "mismatch");
-        } else {
-            return e;
+        if (e instanceof AerospikeException ae) {
+            return translateCasError(ae, "Failed to %s record due to versions mismatch".formatted(operationName));
         }
+        return e;
     }
 
     private <T> Flux<T> findWithPostProcessing(String setName, Class<T> targetClass, Query query) {

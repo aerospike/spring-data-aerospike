@@ -480,10 +480,8 @@ abstract class BaseAerospikeTemplate {
 
         if (entity.hasVersionProperty()) {
             policy = expectGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
-
         } else {
             policy = ignoreGenerationBatchPolicy(data, RecordExistsAction.UPDATE_ONLY);
-
         }
         operations = Operation.array(Operation.delete());
 
