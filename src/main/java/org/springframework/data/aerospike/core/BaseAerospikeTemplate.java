@@ -198,8 +198,7 @@ abstract class BaseAerospikeTemplate {
     }
 
     RuntimeException translateCasError(AerospikeException e, String errMsg) {
-        int code = e.getResultCode();
-        if (code == ResultCode.KEY_EXISTS_ERROR || code == ResultCode.GENERATION_ERROR) {
+        if (e.getResultCode() == ResultCode.GENERATION_ERROR) {
             return getOptimisticLockingFailureException(errMsg, e);
         }
         return translateError(e);

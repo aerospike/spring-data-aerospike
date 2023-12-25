@@ -122,11 +122,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByObject_VersionsMismatch() {
-        Person person = new Person(id, "QLastName", 21);
         VersionedClass versionedDocument = new VersionedClass(nextId(), "test");
-
-        assertThat(template.delete(person)).isFalse();
-        assertThat(template.delete(versionedDocument)).isFalse();
 
         template.insert(versionedDocument);
         versionedDocument.setVersion(2);
@@ -176,6 +172,9 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteById_returnsFalseIfValueIsAbsent() {
         assertThat(template.deleteById(id, Person.class)).isFalse();
+
+        assertThat(template.delete(new Person(id, "QLastName", 21))).isFalse();
+        assertThat(template.delete(new VersionedClass(nextId(), "test"))).isFalse();
     }
 
     @Test

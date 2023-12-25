@@ -21,6 +21,7 @@ import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -84,6 +85,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new saved document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<T> save(T document);
 
@@ -108,6 +111,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new saved document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<T> save(T document, String setName);
 
@@ -158,6 +163,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new inserted document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<T> insert(T document);
 
@@ -172,6 +179,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new inserted document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<T> insert(T document, String setName);
 
@@ -220,6 +229,7 @@ public interface ReactiveAerospikeOperations {
      * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
      *                    {@literal null}.
      * @return A Mono of the new persisted document.
+     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Mono<T> persist(T document, WritePolicy writePolicy);
 
@@ -232,6 +242,7 @@ public interface ReactiveAerospikeOperations {
      *                    {@literal null}.
      * @param setName     Set name to override the set associated with the document.
      * @return A Mono of the new persisted document.
+     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Mono<T> persist(T document, WritePolicy writePolicy, String setName);
 
@@ -247,6 +258,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new updated document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<T> update(T document);
 
@@ -263,6 +276,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new updated document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<T> update(T document, String setName);
 
@@ -278,6 +293,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new updated document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<T> update(T document, Collection<String> fields);
 
@@ -294,6 +311,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the new updated document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<T> update(T document, String setName, Collection<String> fields);
 
@@ -362,6 +381,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of whether the record existed on server before deletion.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<Boolean> delete(T document);
 
@@ -373,6 +394,8 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of whether the record existed on server before deletion.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
+     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     *                                           for details).
      */
     <T> Mono<Boolean> delete(T document, String setName);
 
@@ -419,6 +442,7 @@ public interface ReactiveAerospikeOperations {
      * @param id          The id of the record to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract the Aerospike set name from. Must not be {@literal null}.
      * @return A Mono of whether the record existed on server before deletion.
+     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass);
 
@@ -430,6 +454,7 @@ public interface ReactiveAerospikeOperations {
      * @param id      The id of the record to be deleted. Must not be {@literal null}.
      * @param setName Set name to use.
      * @return A Mono of whether the record existed on server before deletion.
+     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     Mono<Boolean> deleteById(Object id, String setName);
 
@@ -471,8 +496,9 @@ public interface ReactiveAerospikeOperations {
      *
      * @param groupedKeys Keys grouped by document type. Must not be {@literal null}, groupedKeys.getEntitiesKeys() must
      *                    not be {@literal null}.
-     * @return onError is signalled with {@link AerospikeException.BatchRecordArray} if batch delete results contain
-     * errors, or with {@link org.springframework.dao.DataAccessException} if batch operation failed.
+     * @throws AerospikeException.BatchRecordArray         if batch delete results contain errors.
+     * @throws org.springframework.dao.DataAccessException if batch operation failed (see
+     *                                                     {@link DefaultAerospikeExceptionTranslator} for details).
      */
     Mono<Void> deleteByIds(GroupedKeys groupedKeys);
 
@@ -480,6 +506,7 @@ public interface ReactiveAerospikeOperations {
      * Reactively truncate/delete all records in the set determined by the given entity class.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Mono<Void> deleteAll(Class<T> entityClass);
 
@@ -487,6 +514,7 @@ public interface ReactiveAerospikeOperations {
      * Reactively truncate/delete all the documents in the given set.
      *
      * @param setName Set name to use.
+     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     Mono<Void> deleteAll(String setName);
 
