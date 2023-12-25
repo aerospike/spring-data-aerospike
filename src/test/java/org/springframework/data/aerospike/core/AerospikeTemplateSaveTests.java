@@ -22,6 +22,7 @@ import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
@@ -296,8 +297,8 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldConcurrentlyUpdateDocumentIfTouchOnReadIsTrue() {
-        int numberOfConcurrentUpdate = 10;
-        AsyncUtils.executeConcurrently(numberOfConcurrentUpdate, new Runnable() {
+        int numberOfConcurrentUpdates = 10;
+        AsyncUtils.executeConcurrently(numberOfConcurrentUpdates, new Runnable() {
             @Override
             public void run() {
                 try {
@@ -310,8 +311,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
                     }
 
                     template.save(toUpdate);
-//                } catch (ConcurrencyFailureException e) {
-                } catch (DuplicateKeyException e) {
+                } catch (ConcurrencyFailureException | DuplicateKeyException e) {
                     // try again
                     run();
                 }
@@ -319,7 +319,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         });
 
         DocumentWithTouchOnRead actual = template.findById(id, DocumentWithTouchOnRead.class);
-        assertThat(actual.getField()).isEqualTo(numberOfConcurrentUpdate);
+        assertThat(actual.getField()).isEqualTo(numberOfConcurrentUpdates);
     }
 
     @Test
