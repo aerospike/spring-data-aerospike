@@ -1173,7 +1173,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         try {
             Node[] nodes = reactorClient.getAerospikeClient().getNodes();
             for (Node node : nodes) {
-                String response = Info.request(node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
+                String response = Info.request(reactorClient.getAerospikeClient().getInfoPolicyDefault(),
+                    node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
                 if (response == null) throw new AerospikeException("Null node response");
 
                 if (response.equalsIgnoreCase("true")) {
