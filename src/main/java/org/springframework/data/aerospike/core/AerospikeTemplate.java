@@ -224,7 +224,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 if (!batchRecordFailed(data.batchRecord())) {
                     if (operationType != DELETE_OPERATION) updateVersion(data.document(), data.batchRecord().record);
                 } else {
-                    if (hasGenerationError(data.batchRecord().resultCode)) {
+                    if (hasVersionError(data.batchRecord().resultCode)) {
                         // ID can be a String or a primitive
                         casErrorDocumentId = data.batchRecord().key.userKey.toString();
                     }
@@ -410,9 +410,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
             return doDeleteWithVersionAndHandleCasError(data);
-        } else {
-            return doDeleteIgnoreVersionAndTranslateError(data);
         }
+        return doDeleteIgnoreVersionAndTranslateError(data);
     }
 
     private boolean doDeleteWithVersionAndHandleCasError(AerospikeWriteData data) {
