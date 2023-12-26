@@ -50,7 +50,7 @@ public class Utils {
         String[] messages = new String[client.getNodes().length];
         int index = 0;
         for (Node node : client.getNodes()) {
-            messages[index] = Info.request(node, infoString);
+            messages[index] = Info.request(client.getInfoPolicyDefault(), node, infoString);
         }
         return messages;
     }

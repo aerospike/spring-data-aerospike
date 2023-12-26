@@ -225,8 +225,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                     if (operationType != DELETE_OPERATION) updateVersion(data.document(), data.batchRecord().record);
                 } else {
                     if (hasGenerationError(data.batchRecord().resultCode)) {
-                        casErrorDocumentId = data.batchRecord().key.userKey.toString(); // ID can be a String or a
-                        // primitive
+                        // ID can be a String or a primitive
+                        casErrorDocumentId = data.batchRecord().key.userKey.toString();
                     }
                 }
             }
@@ -234,8 +234,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         if (errorsFound) {
             if (casErrorDocumentId != null) {
-                throw getOptimisticLockingFailureException(("Failed to %s the record with ID '%s' due to " +
-                    "versions mismatch").formatted(operationType.toString(), casErrorDocumentId), null);
+                throw getOptimisticLockingFailureException(
+                    "Failed to %s the record with ID '%s' due to versions mismatch"
+                        .formatted(operationType, casErrorDocumentId), null);
             }
             AerospikeException e = new AerospikeException("Errors during batch " + operationType);
             throw new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), e);

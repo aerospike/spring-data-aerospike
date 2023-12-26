@@ -220,8 +220,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                     if (operationType != DELETE_OPERATION) updateVersion(data.document(), data.batchRecord().record);
                 } else {
                     if (hasGenerationError(data.batchRecord().resultCode)) {
-                        casErrorDocumentId = data.batchRecord().key.userKey.toString(); // ID can be a String or a
-                        // primitive
+                        // ID can be a String or a primitive
+                        casErrorDocumentId = data.batchRecord().key.userKey.toString();
                     }
                 }
             }
@@ -229,8 +229,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         if (errorsFound) {
             if (casErrorDocumentId != null) {
-                return Mono.error(getOptimisticLockingFailureException(("Failed to %s the record with ID '%s' due to " +
-                    "versions mismatch").formatted(operationType.toString(), casErrorDocumentId), null));
+                return Mono.error(getOptimisticLockingFailureException(
+                    "Failed to %s the record with ID '%s' due to versions mismatch"
+                        .formatted(operationType, casErrorDocumentId), null));
             }
             AerospikeException e = new AerospikeException("Errors during batch " + operationType);
             return Mono.error(
@@ -417,13 +418,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
             return reactorClient
-                .delete(expectGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY), data.getKey())
-                .hasElement()
+                .delete(expectGenerationPolicy(data), data.getKey())
+                .map(Objects::nonNull)
                 .onErrorMap(e -> translateCasThrowable(e, DELETE_OPERATION.toString()));
         } else {
             return reactorClient
-                .delete(ignoreGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY), data.getKey())
-                .hasElement()
+                .delete(ignoreGenerationPolicy(), data.getKey())
+                .map(Objects::nonNull)
                 .onErrorMap(this::translateError);
         }
     }
@@ -1172,7 +1173,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         try {
             Node[] nodes = reactorClient.getAerospikeClient().getNodes();
             for (Node node : nodes) {
-                String response = Info.request(node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
+                String response = Info.request(reactorClient.getAerospikeClient().getInfoPolicyDefault(),
+                    node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
                 if (response == null) throw new AerospikeException("Null node response");
 
                 if (response.equalsIgnoreCase("true")) {
@@ -1270,8 +1272,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         List<String> binNamesList = new ArrayList<>();
 
-        targetEntity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property
-            -> binNamesList.add(property.getFieldName()));
+        targetEntity.doWithProperties(
+            (PropertyHandler<AerospikePersistentProperty>) property -> binNamesList.add(property.getFieldName()));
 
         return binNamesList.toArray(new String[0]);
     }
@@ -1284,12 +1286,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private Throwable translateCasThrowable(Throwable e, String operationName) {
-        if (e instanceof AerospikeException) {
-            return translateCasError((AerospikeException) e, "Failed to " + operationName + " record due to versions " +
-                "mismatch");
-        } else {
-            return e;
+        if (e instanceof AerospikeException ae) {
+            return translateCasError(ae, "Failed to %s record due to versions mismatch".formatted(operationName));
         }
+        return e;
     }
 
     private <T> Flux<T> findWithPostProcessing(String setName, Class<T> targetClass, Query query) {
