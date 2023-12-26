@@ -419,12 +419,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (entity.hasVersionProperty()) {
             return reactorClient
                 .delete(expectGenerationPolicy(data), data.getKey())
-                .map(Objects::nonNull)
+                .hasElement()
                 .onErrorMap(e -> translateCasThrowable(e, DELETE_OPERATION.toString()));
         } else {
             return reactorClient
                 .delete(ignoreGenerationPolicy(), data.getKey())
-                .map(Objects::nonNull)
+                .hasElement()
                 .onErrorMap(this::translateError);
         }
     }
