@@ -198,13 +198,13 @@ abstract class BaseAerospikeTemplate {
     }
 
     RuntimeException translateCasError(AerospikeException e, String errMsg) {
-        if (hasVersionError(e.getResultCode())) {
+        if (hasOptimisticLockingError(e.getResultCode())) {
             return getOptimisticLockingFailureException(errMsg, e);
         }
         return translateError(e);
     }
 
-    protected boolean hasVersionError(int resultCode) {
+    protected boolean hasOptimisticLockingError(int resultCode) {
         return List.of(ResultCode.GENERATION_ERROR, ResultCode.KEY_EXISTS_ERROR, ResultCode.KEY_NOT_FOUND_ERROR)
             .contains(resultCode);
     }

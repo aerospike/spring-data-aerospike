@@ -219,7 +219,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 if (!batchRecordFailed(data.batchRecord())) {
                     if (operationType != DELETE_OPERATION) updateVersion(data.document(), data.batchRecord().record);
                 } else {
-                    if (hasVersionError(data.batchRecord().resultCode)) {
+                    if (hasOptimisticLockingError(data.batchRecord().resultCode)) {
                         // ID can be a String or a primitive
                         casErrorDocumentId = data.batchRecord().key.userKey.toString();
                     }
