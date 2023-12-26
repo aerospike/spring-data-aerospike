@@ -224,18 +224,9 @@ public class SimpleReactiveAerospikeRepositoryTest {
     }
 
     @Test
-    public void testDeleteAllIterable() throws NoSuchFieldException, IllegalAccessException {
-        Field field = repository.getClass().getDeclaredField("entityInformation");
-        field.setAccessible(true);
-        EntityInformation<Customer, String> entityInformation = mock(EntityInformation.class);
-        field.set(repository, entityInformation);
-        when(entityInformation.getJavaType()).thenReturn(Customer.class);
-        when(entityInformation.getId(any(Customer.class))).thenReturn(testCustomer.getId());
-
+    public void testDeleteAllIterable() {
         repository.deleteAll(List.of(testCustomer));
-
-        List<?> ids = List.of(testCustomer.getId());
-        verify(operations).deleteByIds(ids, Customer.class);
+        verify(operations).deleteAll(List.of(testCustomer));
     }
 
     @Test

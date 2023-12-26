@@ -19,6 +19,7 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.policy.GenerationPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.sample.Customer;
@@ -51,22 +52,6 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void deleteByObject_ignoresDocumentVersionEvenIfDefaultGenerationPolicyIsSet() {
-        GenerationPolicy initialGenerationPolicy = client.getWritePolicyDefault().generationPolicy;
-        client.getWritePolicyDefault().generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
-        try {
-            VersionedClass initialDocument = new VersionedClass(id, "a");
-            template.insert(initialDocument);
-            template.update(new VersionedClass(id, "b", initialDocument.getVersion()));
-
-            boolean deleted = template.delete(initialDocument);
-            assertThat(deleted).isTrue();
-        } finally {
-            client.getWritePolicyDefault().generationPolicy = initialGenerationPolicy;
-        }
-    }
-
-    @Test
     public void deleteByObject_ignoresVersionEvenIfDefaultGenerationPolicyIsSet() {
         GenerationPolicy initialGenerationPolicy = client.getWritePolicyDefault().generationPolicy;
         client.getWritePolicyDefault().generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
@@ -86,53 +71,94 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     public void deleteByObject_deletesDocument() {
         Person document = new Person(id, "QLastName", 21);
         template.insert(document);
+        VersionedClass versionedDocument = new VersionedClass(nextId(), "test");
+        template.insert(versionedDocument);
 
         boolean deleted = template.delete(document);
         assertThat(deleted).isTrue();
-
         Person result = template.findById(id, Person.class);
         assertThat(result).isNull();
+
+        boolean deleted2 = template.delete(versionedDocument);
+        assertThat(deleted2).isTrue();
+        VersionedClass result2 = template.findById(versionedDocument.getId(), VersionedClass.class);
+        assertThat(result2).isNull();
     }
 
     @Test
     public void deleteByObject_deletesDocumentWithSetName() {
-        Person document = new Person(id, "QLastName", 21);
-        template.insert(document, OVERRIDE_SET_NAME);
+        Person person = new Person(id, "QLastName", 21);
+        template.insert(person, OVERRIDE_SET_NAME);
+        String id2 = nextId();
+        VersionedClass versionedDocument = new VersionedClass(id2, "test");
+        template.insert(versionedDocument, OVERRIDE_SET_NAME);
 
-        boolean deleted = template.delete(document, OVERRIDE_SET_NAME);
+        boolean deleted = template.delete(person, OVERRIDE_SET_NAME);
         assertThat(deleted).isTrue();
-
         Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
         assertThat(result).isNull();
+
+        boolean deleted2 = template.delete(versionedDocument, OVERRIDE_SET_NAME);
+        assertThat(deleted2).isTrue();
+        VersionedClass result2 = template.findById(id2, VersionedClass.class);
+        assertThat(result2).isNull();
+    }
+
+    @Test
+    public void deleteByObject_VersionsMismatch() {
+        VersionedClass versionedDocument = new VersionedClass(nextId(), "test");
+
+        template.insert(versionedDocument);
+        versionedDocument.setVersion(2);
+        assertThatThrownBy(() -> template.delete(versionedDocument))
+            .isInstanceOf(OptimisticLockingFailureException.class)
+            .hasMessage("Failed to delete record due to versions mismatch");
     }
 
     @Test
     public void deleteById_deletesDocument() {
         Person document = new Person(id, "QLastName", 21);
         template.insert(document);
+        String id2 = nextId();
+        VersionedClass versionedDocument = new VersionedClass(id2, "test");
+        template.insert(versionedDocument);
 
         boolean deleted = template.deleteById(id, Person.class);
         assertThat(deleted).isTrue();
-
         Person result = template.findById(id, Person.class);
         assertThat(result).isNull();
+
+        boolean deleted2 = template.deleteById(id2, VersionedClass.class);
+        assertThat(deleted2).isTrue();
+        VersionedClass result2 = template.findById(id2, VersionedClass.class);
+        assertThat(result2).isNull();
     }
 
     @Test
     public void deleteById_deletesDocumentWithSetName() {
         Person document = new Person(id, "QLastName", 21);
         template.insert(document, OVERRIDE_SET_NAME);
+        String id2 = nextId();
+        VersionedClass versionedDocument = new VersionedClass(id2, "test");
+        template.insert(versionedDocument, OVERRIDE_SET_NAME);
 
         boolean deleted = template.deleteById(id, OVERRIDE_SET_NAME);
         assertThat(deleted).isTrue();
-
         Person result = template.findById(id, Person.class, OVERRIDE_SET_NAME);
         assertThat(result).isNull();
+
+        boolean deleted2 = template.deleteById(id2, OVERRIDE_SET_NAME);
+        assertThat(deleted2).isTrue();
+        VersionedClass result2 = template.findById(id2, VersionedClass.class, OVERRIDE_SET_NAME);
+        assertThat(result2).isNull();
     }
 
     @Test
     public void deleteById_returnsFalseIfValueIsAbsent() {
         assertThat(template.deleteById(id, Person.class)).isFalse();
+
+        assertThat(template.delete(new Person(id, "QLastName", 21))).isFalse();
+        assertThat(template.delete(new VersionedClass(nextId(), "test"))).isFalse();
     }
 
     @Test
@@ -215,7 +241,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void deleteAll_rejectsDuplicateIds() {
+    public void deleteByIds_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
@@ -232,7 +258,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void deleteAll_ShouldDeleteAllDocuments() {
+    public void deleteByIds_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
@@ -257,7 +283,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void deleteAll_ShouldDeleteAllDocumentsWithSetName() {
+    public void deleteByIds_ShouldDeleteAllDocumentsWithSetName() {
         // batch delete operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
@@ -269,6 +295,82 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             template.deleteByIds(ids, OVERRIDE_SET_NAME);
 
             assertThat(template.findByIds(ids, DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
+        }
+    }
+
+    @Test
+    public void deleteAll_rejectsDuplicateIds() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (serverVersionSupport.batchWrite()) {
+            String id1 = nextId();
+            DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
+            DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
+            template.save(document1);
+            template.save(document2);
+
+            assertThatThrownBy(() -> template.deleteAll(List.of(document1, document2)))
+                .isInstanceOf(AerospikeException.BatchRecordArray.class)
+                .hasMessageContaining("Errors during batch delete");
+        }
+    }
+
+    @Test
+    public void deleteAll_ShouldDeleteAllDocuments() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (serverVersionSupport.batchWrite()) {
+            String id1 = nextId();
+            String id2 = nextId();
+            DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
+            DocumentWithExpiration document2 = new DocumentWithExpiration(id2);
+            template.save(document1);
+            template.save(document2);
+
+            template.deleteAll(List.of(document1, document2));
+            assertThat(template.findByIds(List.of(id1, id2), DocumentWithExpiration.class)).isEmpty();
+
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+            template.deleteAll(persons);
+            List<String> personsIds = persons.stream().map(Person::getId).toList();
+            assertThat(template.findByIds(personsIds, Person.class)).isEmpty();
+
+            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+            template.deleteAll(persons2);
+            personsIds = persons2.stream().map(Person::getId).toList();
+            assertThat(template.findByIds(personsIds, Person.class)).isEmpty();
+        }
+    }
+
+    @Test
+    public void deleteAll_ShouldDeleteAllDocumentsWithSetName() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (serverVersionSupport.batchWrite()) {
+            String id1 = nextId();
+            String id2 = nextId();
+            DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
+            DocumentWithExpiration document2 = new DocumentWithExpiration(id2);
+            template.saveAll(List.of(document1, document2), OVERRIDE_SET_NAME);
+
+            template.deleteAll(List.of(document1, document2), OVERRIDE_SET_NAME);
+
+            assertThat(template.findByIds(List.of(id1, id2), DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
+        }
+    }
+
+    @Test
+    public void deleteAll_VersionsMismatch() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (serverVersionSupport.batchWrite()) {
+            String id1 = "id1";
+            VersionedClass document1 = new VersionedClass(id1, "test1");
+            String id2 = "id2";
+            VersionedClass document2 = new VersionedClass(id2, "test2");
+            template.save(document1);
+            template.save(document2);
+
+            document2.setVersion(232);
+            assertThatThrownBy(() -> template.deleteAll(List.of(document1, document2)))
+                .isInstanceOf(OptimisticLockingFailureException.class)
+                .hasMessageContaining("Failed to delete the record with ID 'id2' due to versions mismatch");
         }
     }
 }

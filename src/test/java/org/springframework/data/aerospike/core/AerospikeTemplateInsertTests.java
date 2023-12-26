@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
@@ -23,6 +22,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
@@ -259,12 +259,11 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     public void insertAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
-            VersionedClass first = new VersionedClass(id, "foo");
-
-            assertThatThrownBy(() -> template.insertAll(List.of(first, first)))
-                .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Errors during batch insert");
-            Assertions.assertEquals(1, (long) first.getVersion());
+            VersionedClass second = new VersionedClass("as-5440", "foo");
+            assertThatThrownBy(() -> template.insertAll(List.of(second, second)))
+                .isInstanceOf(OptimisticLockingFailureException.class)
+                .hasMessageContaining("Failed to insert the record with ID 'as-5440' due to versions mismatch");
+            Assertions.assertEquals(1, second.getVersion());
         }
     }
 
