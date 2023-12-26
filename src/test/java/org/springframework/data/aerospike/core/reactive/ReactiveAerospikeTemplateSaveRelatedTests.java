@@ -1,11 +1,8 @@
 package org.springframework.data.aerospike.core.reactive;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.Test;
-import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -60,8 +57,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
 
         StepVerifier.create(reactiveTemplate.save(new VersionedClass(id, "foo", 0L))
                 .subscribeOn(Schedulers.parallel()))
-//            .expectError(OptimisticLockingFailureException.class)
-            .expectError(DuplicateKeyException.class)
+            .expectError(OptimisticLockingFailureException.class)
             .verify();
     }
 
@@ -77,7 +73,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     public void save_shouldFailSaveNewDocumentWithVersionGreaterThanZero() {
         StepVerifier.create(reactiveTemplate.save(new VersionedClass(id, "foo", 5L))
                 .subscribeOn(Schedulers.parallel()))
-            .expectError(DataRetrievalFailureException.class)
+            .expectError(OptimisticLockingFailureException.class)
             .verify();
     }
 
@@ -204,8 +200,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
             VersionedClass messageData = new VersionedClass(id, data);
             reactiveTemplate.save(messageData)
                 .subscribeOn(Schedulers.parallel())
-//                .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
-                .onErrorResume(DuplicateKeyException.class, (e) -> {
+                .onErrorResume(OptimisticLockingFailureException.class, (e) -> {
                     optimisticLockCounter.incrementAndGet();
                     return Mono.empty();
                 })
@@ -298,9 +293,8 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         // batch delete operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
             VersionedClass first = new VersionedClass(id, "foo");
-
             StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first)))
-                .expectError(AerospikeException.BatchRecordArray.class)
+                .expectError(OptimisticLockingFailureException.class)
                 .verify();
             reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
         }
@@ -310,10 +304,10 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     public void saveAllWithSetName_rejectsDuplicateId() {
         // batch delete operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
-            VersionedClass first = new VersionedClass(id, "foo");
+            VersionedClass second = new VersionedClass(id, "foo");
 
-            StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first), OVERRIDE_SET_NAME))
-                .expectError(AerospikeException.BatchRecordArray.class)
+            StepVerifier.create(reactiveTemplate.saveAll(List.of(second, second), OVERRIDE_SET_NAME))
+                .expectError(OptimisticLockingFailureException.class)
                 .verify();
             reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME)
                 .block(); // cleanup

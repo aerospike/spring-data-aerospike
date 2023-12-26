@@ -34,23 +34,6 @@ import static org.springframework.data.aerospike.sample.SampleClasses.VersionedC
 public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveIntegrationTests {
 
     @Test
-    public void deleteByObject_ignoresDocumentVersionEvenIfDefaultGenerationPolicyIsSet() {
-//        WritePolicy writePolicyDefault = reactorClient.getWritePolicyDefault();
-//        GenerationPolicy initialGenerationPolicy = writePolicyDefault.generationPolicy;
-//        writePolicyDefault.generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
-//        try {
-//            VersionedClass initialDocument = new VersionedClass(id, "a");
-//            reactiveTemplate.insert(initialDocument).block();
-//            reactiveTemplate.update(new VersionedClass(id, "b", initialDocument.getVersion())).block();
-//
-//            Mono<Boolean> deleted = reactiveTemplate.delete(initialDocument).subscribeOn(Schedulers.parallel());
-//            StepVerifier.create(deleted).expectNext(true).verifyComplete();
-//        } finally {
-//            writePolicyDefault.generationPolicy = initialGenerationPolicy;
-//        }
-    }
-
-    @Test
     public void deleteByObject_ignoresVersionEvenIfDefaultGenerationPolicyIsSet() {
         WritePolicy writePolicyDefault = reactorClient.getWritePolicyDefault();
         GenerationPolicy initialGenerationPolicy = writePolicyDefault.generationPolicy;
@@ -137,9 +120,8 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         // then
         StepVerifier.create(deleted).expectComplete().verify();
 
-//        assertThat(reactiveTemplate.delete(new Person(id, "QLastName", 21)).block()).isFalse();
-//        assertThat(reactiveTemplate.delete(new VersionedClass(nextId(), "test")).block()).isFalse();
-
+        assertThat(reactiveTemplate.delete(new Person(id, "QLastName", 21)).block()).isFalse();
+        assertThat(reactiveTemplate.delete(new VersionedClass(nextId(), "test")).block()).isFalse();
     }
 
     @Test
@@ -160,7 +142,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
         Mono<Boolean> deleted = reactiveTemplate.delete(person).subscribeOn(Schedulers.parallel());
 
         // then
-        StepVerifier.create(deleted).expectComplete().verify();
+        StepVerifier.create(deleted).expectNext(false);
     }
 
     @Test

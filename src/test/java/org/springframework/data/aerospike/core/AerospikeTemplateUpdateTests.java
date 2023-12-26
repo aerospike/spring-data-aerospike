@@ -418,8 +418,8 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             // RecordExistsAction.UPDATE_ONLY
             assertThatThrownBy(() -> template.updateAll(List.of(first, second))) // An attempt to update versioned
                 // documents without already existing DB records results in getting BatchRecordArray exception
-                .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Errors during batch update");
+                .isInstanceOf(OptimisticLockingFailureException.class)
+                .hasMessageContaining("Failed to update the record with ID 'newId2' due to versions mismatch");
             assertThat(first.getVersion() == 2).isTrue(); // This document's version gets updated after it is read
             // from the corresponding DB record
             assertThat(second.getVersion() == 0).isTrue(); // This document's version stays equal to zero as there is
@@ -428,6 +428,16 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             assertThat(template.findById(first.getId(), VersionedClass.class)).isEqualTo(first);
             assertThat(template.findById(second.getId(), VersionedClass.class)).isNull();
 
+            Person firstPerson = new Person("newId1", "foo");
+            Person secondPerson = new Person("newId2", "bar"); //
+            template.insert(firstPerson);
+            // RecordExistsAction.UPDATE_ONLY
+            assertThatThrownBy(() -> template.updateAll(List.of(firstPerson, secondPerson)))
+                .isInstanceOf(AerospikeException.BatchRecordArray.class)
+                .hasMessageContaining("Errors during batch update");
+
+            assertThat(template.findById(firstPerson.getId(), Person.class)).isEqualTo(firstPerson);
+            assertThat(template.findById(secondPerson.getId(), Person.class)).isNull();
         }
     }
 

@@ -205,7 +205,8 @@ abstract class BaseAerospikeTemplate {
     }
 
     protected boolean hasGenerationError(int resultCode) {
-        return resultCode == ResultCode.GENERATION_ERROR;
+        return List.of(ResultCode.GENERATION_ERROR, ResultCode.KEY_EXISTS_ERROR, ResultCode.KEY_NOT_FOUND_ERROR)
+            .contains(resultCode);
     }
 
     protected OptimisticLockingFailureException getOptimisticLockingFailureException(String errMsg,

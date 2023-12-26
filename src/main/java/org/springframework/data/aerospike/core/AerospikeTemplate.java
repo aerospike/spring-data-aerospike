@@ -234,8 +234,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         if (errorsFound) {
             if (casErrorDocumentId != null) {
-                throw getOptimisticLockingFailureException("Failed to " + operationType.toString() + " the " +
-                    "record with ID '" + casErrorDocumentId + "' due to versions mismatch", null);
+                throw getOptimisticLockingFailureException(("Failed to %s the record with ID '%s' due to " +
+                    "versions mismatch").formatted(operationType.toString(), casErrorDocumentId), null);
             }
             AerospikeException e = new AerospikeException("Errors during batch " + operationType);
             throw new AerospikeException.BatchRecordArray(batchWriteRecords.toArray(BatchRecord[]::new), e);
@@ -416,7 +416,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private boolean doDeleteWithVersionAndHandleCasError(AerospikeWriteData data) {
         try {
-            return client.delete(expectGenerationPolicy(data), data.getKey());
+            return client.delete(expectGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY), data.getKey());
         } catch (AerospikeException e) {
             throw translateCasError(e, "Failed to delete record due to versions mismatch");
         }
@@ -424,7 +424,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private boolean doDeleteIgnoreVersionAndTranslateError(AerospikeWriteData data) {
         try {
-            return client.delete(ignoreGenerationPolicy(), data.getKey());
+            return client.delete(ignoreGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY), data.getKey());
         } catch (AerospikeException e) {
             throw translateError(e);
         }

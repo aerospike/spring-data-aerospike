@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.core;
 
-import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
@@ -23,8 +22,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.dao.ConcurrencyFailureException;
-import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
@@ -118,8 +115,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         template.save(new VersionedClass(id, "foo"));
 
         assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo")))
-//            .isInstanceOf(OptimisticLockingFailureException.class);
-            .isInstanceOf(DuplicateKeyException.class);
+            .isInstanceOf(OptimisticLockingFailureException.class);
     }
 
     @Test
@@ -149,8 +145,8 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldFailSaveNewDocumentWithVersionGreaterThanZero() {
-        assertThatThrownBy(() -> template.save(new VersionedClass(id, "foo", 5L)))
-            .isInstanceOf(DataRetrievalFailureException.class);
+        assertThatThrownBy(() -> template.save(new VersionedClass(nextId(), "foo", 5L)))
+            .isInstanceOf(OptimisticLockingFailureException.class);
     }
 
     @Test
@@ -259,8 +255,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
             VersionedClass messageData = new VersionedClass(id, data);
             try {
                 template.save(messageData);
-//            } catch (OptimisticLockingFailureException e) {
-            } catch (DuplicateKeyException e) {
+            } catch (OptimisticLockingFailureException e) {
                 optimisticLockCounter.incrementAndGet();
             }
         });
@@ -311,7 +306,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
                     }
 
                     template.save(toUpdate);
-                } catch (ConcurrencyFailureException | DuplicateKeyException e) {
+                } catch (ConcurrencyFailureException e) {
                     // try again
                     run();
                 }
@@ -378,15 +373,15 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfAlreadyExist() {
         // batch write operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
-            VersionedClass first = new VersionedClass(id, "foo");
-            VersionedClass second = new VersionedClass(nextId(), "foo");
+            VersionedClass first = new VersionedClass("as-5279", "foo");
+            VersionedClass second = new VersionedClass("as-5277", "foo");
 
             assertThat(first.getVersion() == 0).isTrue();
             assertThat(second.getVersion() == 0).isTrue();
 
             assertThatThrownBy(() -> template.saveAll(List.of(first, first, second, second)))
-                .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Errors during batch save");
+                .isInstanceOf(OptimisticLockingFailureException.class)
+                .hasMessageFindingMatch("Failed to save the record with ID .* due to versions mismatch");
 
             assertThat(first.getVersion() == 1).isTrue();
             assertThat(second.getVersion() == 1).isTrue();

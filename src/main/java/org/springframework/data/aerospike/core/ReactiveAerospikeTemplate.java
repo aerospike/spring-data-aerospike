@@ -229,9 +229,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         if (errorsFound) {
             if (casErrorDocumentId != null) {
-                return Mono.error(getOptimisticLockingFailureException("Failed to " + operationType.toString() + " " +
-                    "the " +
-                    "record with ID '" + casErrorDocumentId + "' due to versions mismatch", null));
+                return Mono.error(getOptimisticLockingFailureException(("Failed to %s the record with ID '%s' due to " +
+                    "versions mismatch").formatted(operationType.toString(), casErrorDocumentId), null));
             }
             AerospikeException e = new AerospikeException("Errors during batch " + operationType);
             return Mono.error(
@@ -418,13 +417,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(document.getClass());
         if (entity.hasVersionProperty()) {
             return reactorClient
-                .delete(expectGenerationPolicy(data), data.getKey())
-                .map(Objects::nonNull)
+                .delete(expectGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY), data.getKey())
+                .hasElement()
                 .onErrorMap(e -> translateCasThrowable(e, DELETE_OPERATION.toString()));
         } else {
             return reactorClient
-                .delete(ignoreGenerationPolicy(), data.getKey())
-                .map(Objects::nonNull)
+                .delete(ignoreGenerationPolicy(data, RecordExistsAction.UPDATE_ONLY), data.getKey())
+                .hasElement()
                 .onErrorMap(this::translateError);
         }
     }
