@@ -335,7 +335,8 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
 
             // make sure document1 has lastUpdateTime less than specified millis
             List<SampleClasses.CollectionOfObjects> resultsWithLutLtMillis =
-                runLastUpdateTimeQuery(lastUpdateTime.getTimeInMillis(), FilterOperation.LT, SampleClasses.CollectionOfObjects.class);
+                runLastUpdateTimeQuery(lastUpdateTime.getTimeInMillis(), FilterOperation.LT,
+                    SampleClasses.CollectionOfObjects.class);
             assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
             assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
                 .isEqualTo(document1.getCollection().iterator().next());

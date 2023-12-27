@@ -512,8 +512,8 @@ public interface ReactiveAerospikeOperations {
      * Reactively truncate/delete all records in the set determined by the given entity class.
      *
      * @param entityClass            The class to extract set name from. Must not be {@literal null}.
-     * @param beforeLastUpdateMillis Delete records before the specified time (must be earlier than the
-     *                               current time). In UTC milliseconds from the epoch.
+     * @param beforeLastUpdateMillis Delete records before the specified time (must be earlier than the current time).
+     *                               In UTC milliseconds from the epoch.
      * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Mono<Void> deleteAll(Class<T> entityClass, Long beforeLastUpdateMillis);
@@ -521,9 +521,8 @@ public interface ReactiveAerospikeOperations {
     /**
      * Reactively truncate/delete all records in the set determined by the given entity class.
      *
-     * @param entityClass            The class to extract set name from. Must not be {@literal null}.
-     * @param beforeLastUpdate Delete records before the specified time (must be earlier than the
-     *                               current time).
+     * @param entityClass      The class to extract set name from. Must not be {@literal null}.
+     * @param beforeLastUpdate Delete records before the specified time (must be earlier than the current time).
      * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> Mono<Void> deleteAll(Class<T> entityClass, Calendar beforeLastUpdate);
@@ -540,8 +539,8 @@ public interface ReactiveAerospikeOperations {
      * Reactively truncate/delete all documents in the given set.
      *
      * @param setName                Set name to truncate/delete all records in.
-     * @param beforeLastUpdateMillis Delete records before the specified time (must be earlier than the
-     *                               current time). In UTC milliseconds from the epoch.
+     * @param beforeLastUpdateMillis Delete records before the specified time (must be earlier than the current time).
+     *                               In UTC milliseconds from the epoch.
      * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     Mono<Void> deleteAll(String setName, Long beforeLastUpdateMillis);
@@ -549,9 +548,8 @@ public interface ReactiveAerospikeOperations {
     /**
      * Reactively truncate/delete all documents in the given set.
      *
-     * @param setName                Set name to truncate/delete all records in.
-     * @param beforeLastUpdate Delete records before the specified time (must be earlier than the
-     *                               current time).
+     * @param setName          Set name to truncate/delete all records in.
+     * @param beforeLastUpdate Delete records before the specified time (must be earlier than the current time).
      * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     Mono<Void> deleteAll(String setName, Calendar beforeLastUpdate);

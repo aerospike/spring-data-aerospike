@@ -521,8 +521,8 @@ public interface AerospikeOperations {
      * Truncate/Delete all records in the set determined by the given entity class.
      *
      * @param entityClass            The class to extract set name from. Must not be {@literal null}.
-     * @param beforeLastUpdateMillis Optional. Delete records before the specified time (must not be greater than the
-     *                               current time). In UTC milliseconds from the epoch.
+     * @param beforeLastUpdateMillis Delete records before the specified time (must be earlier than the current time).
+     *                               In UTC milliseconds from the epoch.
      * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void deleteAll(Class<T> entityClass, Long beforeLastUpdateMillis);
@@ -530,9 +530,8 @@ public interface AerospikeOperations {
     /**
      * Truncate/Delete all documents in the given set.
      *
-     * @param entityClass            The class to extract set name from. Must not be {@literal null}.
-     * @param beforeLastUpdate Optional. Delete records before the specified time (must not be greater than the
-     *                               current time). In UTC milliseconds from the epoch.
+     * @param entityClass      The class to extract set name from. Must not be {@literal null}.
+     * @param beforeLastUpdate Delete records before the specified time (must be earlier than the current time).
      * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void deleteAll(Class<T> entityClass, Calendar beforeLastUpdate);
@@ -549,8 +548,8 @@ public interface AerospikeOperations {
      * Truncate/Delete all documents in the given set.
      *
      * @param setName                Set name to truncate/delete all records in.
-     * @param beforeLastUpdateMillis Optional. Delete records before the specified time (must not be greater than the
-     *                               current time). In UTC milliseconds from the epoch.
+     * @param beforeLastUpdateMillis Delete records before the specified time (must be earlier than the current time).
+     *                               In UTC milliseconds from the epoch.
      * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     void deleteAll(String setName, Long beforeLastUpdateMillis);
@@ -558,9 +557,8 @@ public interface AerospikeOperations {
     /**
      * Truncate/Delete all documents in the given set.
      *
-     * @param setName                Set name to truncate/delete all records in.
-     * @param beforeLastUpdate Optional. Delete records before the specified time (must not be greater than the
-     *                               current time). In UTC milliseconds from the epoch.
+     * @param setName          Set name to truncate/delete all records in.
+     * @param beforeLastUpdate Delete records before the specified time (must be earlier than the current time).
      * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     void deleteAll(String setName, Calendar beforeLastUpdate);
