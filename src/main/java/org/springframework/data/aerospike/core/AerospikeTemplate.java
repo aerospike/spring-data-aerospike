@@ -49,10 +49,12 @@ import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.util.StreamUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -538,15 +540,41 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
-        deleteAll(getSetName(entityClass));
+        deleteAll(entityClass, (Long) null);
+    }
+
+    @Override
+    public <T> void deleteAll(Class<T> entityClass, @Nullable Long beforeLastUpdateMillis) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        deleteAll(getSetName(entityClass), beforeLastUpdateMillis);
+    }
+
+    @Override
+    public <T> void deleteAll(Class<T> entityClass, @Nullable Calendar beforeLastUpdate) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        deleteAll(getSetName(entityClass), beforeLastUpdate);
     }
 
     @Override
     public void deleteAll(String setName) {
         Assert.notNull(setName, "Set name must not be null!");
+        deleteAll(setName, (Long) null);
+    }
+
+    @Override
+    public void deleteAll(String setName, @Nullable Long beforeLastUpdateMillis) {
+        Assert.notNull(setName, "Set name must not be null!");
+        Calendar beforeLastUpdateCalendar = convertToCalendar(beforeLastUpdateMillis);
+
+        deleteAll(setName, beforeLastUpdateCalendar);
+    }
+
+    @Override
+    public void deleteAll(String setName, @Nullable Calendar beforeLastUpdate) {
+        Assert.notNull(setName, "Set name must not be null!");
 
         try {
-            client.truncate(null, getNamespace(), setName, null);
+            client.truncate(null, getNamespace(), setName, beforeLastUpdate);
         } catch (AerospikeException e) {
             throw translateError(e);
         }

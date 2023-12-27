@@ -51,6 +51,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -548,16 +549,45 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Mono<Void> deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
 
-        return deleteAll(getSetName(entityClass));
+        return deleteAll(getSetName(entityClass), (Long) null);
+    }
+
+    @Override
+    public <T> Mono<Void> deleteAll(Class<T> entityClass, Long beforeLastUpdateMillis) {
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        return deleteAll(getSetName(entityClass), beforeLastUpdateMillis);
+    }
+
+    @Override
+    public <T> Mono<Void> deleteAll(Class<T> entityClass, Calendar beforeLastUpdate) {
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        return deleteAll(getSetName(entityClass), beforeLastUpdate);
     }
 
     @Override
     public Mono<Void> deleteAll(String setName) {
         Assert.notNull(setName, "Set name must not be null!");
 
+        return deleteAll(setName, (Long) null);
+    }
+
+    @Override
+    public Mono<Void> deleteAll(String setName, Long beforeLastUpdateMillis) {
+        Assert.notNull(setName, "Set name must not be null!");
+        Calendar beforeLastUpdateCalendar = convertToCalendar(beforeLastUpdateMillis);
+
+        return deleteAll(setName, beforeLastUpdateCalendar);
+    }
+
+    @Override
+    public Mono<Void> deleteAll(String setName, Calendar beforeLastUpdate) {
+        Assert.notNull(setName, "Set name must not be null!");
+
         try {
             return Mono.fromRunnable(
-                () -> reactorClient.getAerospikeClient().truncate(null, namespace, setName, null));
+                () -> reactorClient.getAerospikeClient().truncate(null, namespace, setName, beforeLastUpdate));
         } catch (AerospikeException e) {
             throw translateError(e);
         }

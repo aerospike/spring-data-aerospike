@@ -6,12 +6,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.aerospike.config.BlockingTestConfig;
 import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
+import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 import java.util.Collection;
+import java.util.List;
+
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.LAST_UPDATE_TIME;
 
 @SpringBootTest(
     classes = {BlockingTestConfig.class, CommonTestConfig.class},
@@ -42,5 +49,15 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
 
     protected <T> void deleteOneByOne(Collection<T> collection, String setName) {
         collection.forEach(item -> template.delete(item, setName));
+    }
+
+    protected List<SampleClasses.CollectionOfObjects> runLastUpdateTimeQuery(long lastUpdateTimeMillis, FilterOperation operation,
+                                                                           Class<SampleClasses.CollectionOfObjects> entityClass) {
+        Qualifier lastUpdateTimeLtMillis = Qualifier.metadataBuilder()
+            .setMetadataField(LAST_UPDATE_TIME)
+            .setFilterOperation(operation)
+            .setValue1AsObj(lastUpdateTimeMillis * 1000000)
+            .build();
+        return template.find(new Query(lastUpdateTimeLtMillis), entityClass).toList();
     }
 }

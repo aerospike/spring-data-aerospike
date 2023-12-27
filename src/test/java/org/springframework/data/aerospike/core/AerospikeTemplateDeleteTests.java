@@ -22,19 +22,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.SampleClasses.CollectionOfObjects;
 import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClassToDelete;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
+import org.springframework.data.aerospike.utility.AwaitilityUtils;
 import org.springframework.test.context.TestPropertySource;
 
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
@@ -49,6 +56,8 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     public void beforeEach() {
         template.deleteAll(Person.class);
         template.deleteAll(Customer.class);
+        template.deleteAll(VersionedClass.class);
+        template.deleteAll(CollectionOfObjects.class);
     }
 
     @Test
@@ -353,6 +362,96 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             template.deleteAll(List.of(document1, document2), OVERRIDE_SET_NAME);
 
             assertThat(template.findByIds(List.of(id1, id2), DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
+        }
+    }
+
+    @Test
+    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTimeAsCalendar() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (serverVersionSupport.batchWrite()) {
+            String id1 = nextId();
+            String id2 = nextId();
+            CollectionOfObjects document1 = new CollectionOfObjects(id1, List.of("test1"));
+            CollectionOfObjects document2 = new CollectionOfObjects(id2, List.of("test2"));
+
+            template.save(document1);
+            System.out.println("Saved document1 with id " + document1.getId());
+            AwaitilityUtils.wait(5, SECONDS);
+
+            Calendar lastUpdateTime = Calendar.getInstance();
+            lastUpdateTime.setTimeZone(TimeZone.getTimeZone("UTC"));
+            long millisInFuture = lastUpdateTime.getTimeInMillis() + 10000;
+            template.save(document2);
+            System.out.println("Saved document2 with id " + document2.getId());
+
+            // make sure document1 has lastUpdateTime less than specified millis
+            List<CollectionOfObjects> resultsWithLutLtMillis =
+                runLastUpdateTimeQuery(lastUpdateTime.getTimeInMillis(), FilterOperation.LT, CollectionOfObjects.class);
+            System.out.println("Result: id " + resultsWithLutLtMillis.get(0).getId());
+            assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
+            assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
+                .isEqualTo(document1.getCollection().iterator().next());
+
+            assertThatThrownBy(() -> template.deleteAll(CollectionOfObjects.class, millisInFuture))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageMatching("Last update time (.*) must be less than the current time");
+
+            template.deleteAll(CollectionOfObjects.class, lastUpdateTime);
+            assertThat(template.findByIds(List.of(id1, id2), CollectionOfObjects.class)).hasSize(1);
+            CollectionOfObjects result = template.findByIds(List.of(id1, id2), CollectionOfObjects.class).get(0);
+            assertThat(result.getId()).isEqualTo(document2.getId());
+            assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
+        }
+    }
+
+    @Test
+    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTimeAsLong() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (serverVersionSupport.batchWrite()) {
+            String id1 = nextId();
+            String id2 = nextId();
+            CollectionOfObjects document1 = new CollectionOfObjects(id1, List.of("test1"));
+            CollectionOfObjects document2 = new CollectionOfObjects(id2, List.of("test2"));
+
+            template.save(document1);
+            AwaitilityUtils.wait(5, SECONDS);
+
+            long millis = Instant.now().toEpochMilli();
+            long millisInFuture = millis + 10000;
+            template.save(document2);
+
+            // make sure document1 has lastUpdateTime less than specified millis
+            List<CollectionOfObjects> resultsWithLutLtMillis =
+                runLastUpdateTimeQuery(millis, FilterOperation.LT, CollectionOfObjects.class);
+            assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
+            assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
+                .isEqualTo(document1.getCollection().iterator().next());
+
+            assertThatThrownBy(() -> template.deleteAll(CollectionOfObjects.class, millisInFuture))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageMatching("Last update time (.*) must be less than the current time");
+
+            template.deleteAll(CollectionOfObjects.class, millis);
+            assertThat(template.findByIds(List.of(id1, id2), CollectionOfObjects.class)).hasSize(1);
+            CollectionOfObjects result = template.findByIds(List.of(id1, id2), CollectionOfObjects.class).get(0);
+            assertThat(result.getId()).isEqualTo(document2.getId());
+            assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
+
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+            AwaitilityUtils.wait(5, SECONDS);
+            millis = Instant.now().toEpochMilli();
+            Person newPerson = new Person(nextId(), "testFirstName");
+            template.save(newPerson);
+            persons.add(newPerson);
+
+            template.deleteAll(template.getSetName(Person.class), millis);
+            List<String> personsIds = persons.stream().map(Person::getId).toList();
+            assertThat(template.findByIds(personsIds, Person.class)).contains(newPerson);
+
+            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+            template.deleteAll(Person.class, millis); // persons2 were saved after the given time
+            personsIds = persons2.stream().map(Person::getId).toList();
+            assertThat(template.findByIds(personsIds, Person.class)).containsExactlyElementsOf(persons2);
         }
     }
 

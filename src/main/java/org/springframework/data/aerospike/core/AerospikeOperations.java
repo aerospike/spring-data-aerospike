@@ -35,6 +35,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.lang.Nullable;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +107,7 @@ public interface AerospikeOperations {
      * @param document The document to be saved. Must not be {@literal null}.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     * @throws DataAccessException               If operation failed (see {@link DefaultAerospikeExceptionTranslator}
      *                                           for details).
      */
     <T> void save(T document);
@@ -131,7 +132,7 @@ public interface AerospikeOperations {
      * @param setName  Set name to override the set associated with the document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     * @throws DataAccessException               If operation failed (see {@link DefaultAerospikeExceptionTranslator}
      *                                           for details).
      */
     <T> void save(T document, String setName);
@@ -144,10 +145,10 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param documents The documents to be saved. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch save succeeds, but results contain errors or null records.
-     * @throws OptimisticLockingFailureException   if at least one document has a version attribute with a different
+     * @throws AerospikeException.BatchRecordArray If batch save succeeds, but results contain errors or null records.
+     * @throws OptimisticLockingFailureException   If at least one document has a version attribute with a different
      *                                             value from that found on server.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void saveAll(Iterable<T> documents);
@@ -162,10 +163,10 @@ public interface AerospikeOperations {
      *
      * @param documents The documents to be saved. Must not be {@literal null}.
      * @param setName   Set name to override the default set associated with the documents.
-     * @throws AerospikeException.BatchRecordArray if batch save succeeds, but results contain errors or null records.
-     * @throws OptimisticLockingFailureException   if at least one document has a version attribute with a different
+     * @throws AerospikeException.BatchRecordArray If batch save succeeds, but results contain errors or null records.
+     * @throws OptimisticLockingFailureException   If at least one document has a version attribute with a different
      *                                             value from that found on server.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void saveAll(Iterable<T> documents, String setName);
@@ -178,7 +179,7 @@ public interface AerospikeOperations {
      * @param document The document to be inserted. Must not be {@literal null}.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if batch operation failed (see
+     * @throws DataAccessException               If batch operation failed (see
      *                                           {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void insert(T document);
@@ -193,7 +194,7 @@ public interface AerospikeOperations {
      * @param setName  Set name to override the set associated with the document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if batch operation failed (see
+     * @throws DataAccessException               If batch operation failed (see
      *                                           {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void insert(T document, String setName);
@@ -206,11 +207,11 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param documents Documents to be inserted. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch insert succeeds, but results contain errors or null
+     * @throws AerospikeException.BatchRecordArray If batch insert succeeds, but results contain errors or null
      *                                             records.
-     * @throws OptimisticLockingFailureException   if at least one document has a version attribute with a different
+     * @throws OptimisticLockingFailureException   If at least one document has a version attribute with a different
      *                                             value from that found on server.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void insertAll(Iterable<? extends T> documents);
@@ -225,11 +226,11 @@ public interface AerospikeOperations {
      *
      * @param documents Documents to be inserted. Must not be {@literal null}.
      * @param setName   Set name to override the set associated with the document.
-     * @throws AerospikeException.BatchRecordArray if batch insert succeeds, but results contain errors or null
+     * @throws AerospikeException.BatchRecordArray If batch insert succeeds, but results contain errors or null
      *                                             records.
-     * @throws OptimisticLockingFailureException   if at least one document has a version attribute with a different
+     * @throws OptimisticLockingFailureException   If at least one document has a version attribute with a different
      *                                             value from that found on server.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void insertAll(Iterable<? extends T> documents, String setName);
@@ -240,7 +241,7 @@ public interface AerospikeOperations {
      * @param document    The document to be persisted. Must not be {@literal null}.
      * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
      *                    {@literal null}.
-     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void persist(T document, WritePolicy writePolicy);
 
@@ -252,7 +253,7 @@ public interface AerospikeOperations {
      * @param writePolicy The Aerospike write policy for the inner Aerospike put operation. Must not be
      *                    {@literal null}.
      * @param setName     Set name to override the set associated with the document.
-     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void persist(T document, WritePolicy writePolicy, String setName);
 
@@ -266,7 +267,7 @@ public interface AerospikeOperations {
      * @param document The document that identifies the record to be updated. Must not be {@literal null}.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     * @throws DataAccessException               If operation failed (see {@link DefaultAerospikeExceptionTranslator}
      *                                           for details).
      */
     <T> void update(T document);
@@ -283,7 +284,7 @@ public interface AerospikeOperations {
      * @param setName  Set name to override the set associated with the document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     * @throws DataAccessException               If operation failed (see {@link DefaultAerospikeExceptionTranslator}
      *                                           for details).
      */
     <T> void update(T document, String setName);
@@ -300,7 +301,7 @@ public interface AerospikeOperations {
      * @param fields   Specific fields to update.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     * @throws DataAccessException               If operation failed (see {@link DefaultAerospikeExceptionTranslator}
      *                                           for details).
      */
     <T> void update(T document, Collection<String> fields);
@@ -318,7 +319,7 @@ public interface AerospikeOperations {
      * @param fields   Specific fields to update.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     * @throws DataAccessException               If operation failed (see {@link DefaultAerospikeExceptionTranslator}
      *                                           for details).
      */
     <T> void update(T document, String setName, Collection<String> fields);
@@ -331,11 +332,11 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch update succeeds, but results contain errors or null
+     * @throws AerospikeException.BatchRecordArray If batch update succeeds, but results contain errors or null
      *                                             records.
-     * @throws OptimisticLockingFailureException   if at least one document has a version attribute with a different
+     * @throws OptimisticLockingFailureException   If at least one document has a version attribute with a different
      *                                             value from that found on server.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void updateAll(Iterable<T> documents);
@@ -350,11 +351,11 @@ public interface AerospikeOperations {
      *
      * @param documents The documents that identify the records to be updated. Must not be {@literal null}.
      * @param setName   Set name to override the set associated with the document.
-     * @throws AerospikeException.BatchRecordArray if batch update succeeds, but results contain errors or null
+     * @throws AerospikeException.BatchRecordArray If batch update succeeds, but results contain errors or null
      *                                             records.
-     * @throws OptimisticLockingFailureException   if at least one document has a version attribute with a different
+     * @throws OptimisticLockingFailureException   If at least one document has a version attribute with a different
      *                                             value from that found on server.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void updateAll(Iterable<T> documents, String setName);
@@ -386,7 +387,7 @@ public interface AerospikeOperations {
      * @return Whether the record existed on server before deletion.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     * @throws DataAccessException               If operation failed (see {@link DefaultAerospikeExceptionTranslator}
      *                                           for details).
      */
     <T> boolean delete(T document);
@@ -401,7 +402,7 @@ public interface AerospikeOperations {
      * @return Whether the record existed on server before deletion.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               if operation failed (see {@link DefaultAerospikeExceptionTranslator}
+     * @throws DataAccessException               If operation failed (see {@link DefaultAerospikeExceptionTranslator}
      *                                           for details).
      */
     <T> boolean delete(T document, String setName);
@@ -415,10 +416,10 @@ public interface AerospikeOperations {
      * This operation requires Server version 6.0+.
      *
      * @param documents The documents to be deleted. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch save succeeds, but results contain errors or null records.
-     * @throws OptimisticLockingFailureException   if at least one document has a version attribute with a different
+     * @throws AerospikeException.BatchRecordArray If batch save succeeds, but results contain errors or null records.
+     * @throws OptimisticLockingFailureException   If at least one document has a version attribute with a different
      *                                             value from that found on server.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void deleteAll(Iterable<T> documents);
@@ -433,10 +434,10 @@ public interface AerospikeOperations {
      *
      * @param documents The documents to be deleted. Must not be {@literal null}.
      * @param setName   Set name to override the default set associated with the documents.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors.
-     * @throws OptimisticLockingFailureException   if at least one document has a version attribute with a different
+     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors.
+     * @throws OptimisticLockingFailureException   If at least one document has a version attribute with a different
      *                                             value from that found on server.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void deleteAll(Iterable<T> documents, String setName);
@@ -449,7 +450,7 @@ public interface AerospikeOperations {
      * @param id          The id of the record to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @return Whether the record existed on server before deletion.
-     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> boolean deleteById(Object id, Class<T> entityClass);
 
@@ -461,7 +462,7 @@ public interface AerospikeOperations {
      * @param id      The id of the record to be deleted. Must not be {@literal null}.
      * @param setName Set name to use.
      * @return Whether the record existed on server before deletion.
-     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     boolean deleteById(Object id, String setName);
 
@@ -473,8 +474,8 @@ public interface AerospikeOperations {
      *
      * @param ids         The ids of the records to be deleted. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors.
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
@@ -487,8 +488,8 @@ public interface AerospikeOperations {
      *
      * @param ids     The ids of the records to be deleted. Must not be {@literal null}.
      * @param setName Set name to use.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors.
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     void deleteByIds(Iterable<?> ids, String setName);
@@ -502,8 +503,8 @@ public interface AerospikeOperations {
      *
      * @param groupedKeys Keys grouped by document type. Must not be {@literal null}, groupedKeys.getEntitiesKeys() must
      *                    not be {@literal null}.
-     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors.
-     * @throws DataAccessException                 if batch operation failed (see
+     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors.
+     * @throws DataAccessException                 If batch operation failed (see
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     void deleteByIds(GroupedKeys groupedKeys);
@@ -512,17 +513,57 @@ public interface AerospikeOperations {
      * Truncate/Delete all records in the set determined by the given entity class.
      *
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void deleteAll(Class<T> entityClass);
+
+    /**
+     * Truncate/Delete all records in the set determined by the given entity class.
+     *
+     * @param entityClass            The class to extract set name from. Must not be {@literal null}.
+     * @param beforeLastUpdateMillis Optional. Delete records before the specified time (must not be greater than the
+     *                               current time). In UTC milliseconds from the epoch.
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    <T> void deleteAll(Class<T> entityClass, Long beforeLastUpdateMillis);
+
+    /**
+     * Truncate/Delete all documents in the given set.
+     *
+     * @param entityClass            The class to extract set name from. Must not be {@literal null}.
+     * @param beforeLastUpdate Optional. Delete records before the specified time (must not be greater than the
+     *                               current time). In UTC milliseconds from the epoch.
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    <T> void deleteAll(Class<T> entityClass, Calendar beforeLastUpdate);
 
     /**
      * Truncate/Delete all documents in the given set.
      *
      * @param setName Set name to truncate/delete all records in.
-     * @throws DataAccessException if operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     void deleteAll(String setName);
+
+    /**
+     * Truncate/Delete all documents in the given set.
+     *
+     * @param setName                Set name to truncate/delete all records in.
+     * @param beforeLastUpdateMillis Optional. Delete records before the specified time (must not be greater than the
+     *                               current time). In UTC milliseconds from the epoch.
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    void deleteAll(String setName, Long beforeLastUpdateMillis);
+
+    /**
+     * Truncate/Delete all documents in the given set.
+     *
+     * @param setName                Set name to truncate/delete all records in.
+     * @param beforeLastUpdate Optional. Delete records before the specified time (must not be greater than the
+     *                               current time). In UTC milliseconds from the epoch.
+     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    void deleteAll(String setName, Calendar beforeLastUpdate);
 
     /**
      * Find an existing record matching the document's class and id, add map values to the corresponding bins of the

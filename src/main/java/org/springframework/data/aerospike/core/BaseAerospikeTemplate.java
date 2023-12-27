@@ -54,6 +54,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.util.Assert;
 
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
@@ -389,6 +390,16 @@ abstract class BaseAerospikeTemplate {
     private <S> S convertIfNecessary(Object source, Class<S> type) {
         return type.isAssignableFrom(source.getClass()) ? (S) source
             : converter.getConversionService().convert(source, type);
+    }
+
+    protected Calendar convertToCalendar(Long millis) {
+        if (millis == null) return null;
+
+        Calendar calendar = Calendar.getInstance();
+        if (millis > calendar.getTimeInMillis()) throw new IllegalArgumentException("Last update time (%d) " +
+            "must be less than the current time".formatted(millis));
+        calendar.setTimeInMillis(millis);
+        return calendar;
     }
 
     protected Operation[] getPutAndGetHeaderOperations(AerospikeWriteData data, boolean firstlyDeleteBins) {
