@@ -217,8 +217,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
         template.deleteAll(CustomCollectionClassToDelete.class);
 
-        // truncate is async operation that is why we need to wait until
-        // it completes
+        // truncate is async operation that is why we need to wait until it completes
         await().atMost(TEN_SECONDS)
             .untilAsserted(() -> assertThat(template.findByIds(Arrays.asList(id1, id2),
                 CustomCollectionClassToDelete.class)).isEmpty());
@@ -375,19 +374,16 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             CollectionOfObjects document2 = new CollectionOfObjects(id2, List.of("test2"));
 
             template.save(document1);
-            System.out.println("Saved document1 with id " + document1.getId());
-            AwaitilityUtils.wait(5, SECONDS);
+            AwaitilityUtils.wait(1, SECONDS);
 
             Calendar lastUpdateTime = Calendar.getInstance();
             lastUpdateTime.setTimeZone(TimeZone.getTimeZone("UTC"));
             long millisInFuture = lastUpdateTime.getTimeInMillis() + 10000;
             template.save(document2);
-            System.out.println("Saved document2 with id " + document2.getId());
 
             // make sure document1 has lastUpdateTime less than specified millis
             List<CollectionOfObjects> resultsWithLutLtMillis =
                 runLastUpdateTimeQuery(lastUpdateTime.getTimeInMillis(), FilterOperation.LT, CollectionOfObjects.class);
-            System.out.println("Result: id " + resultsWithLutLtMillis.get(0).getId());
             assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
             assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
                 .isEqualTo(document1.getCollection().iterator().next());
@@ -414,7 +410,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             CollectionOfObjects document2 = new CollectionOfObjects(id2, List.of("test2"));
 
             template.save(document1);
-            AwaitilityUtils.wait(5, SECONDS);
+            AwaitilityUtils.wait(1, SECONDS);
 
             long millis = Instant.now().toEpochMilli();
             long millisInFuture = millis + 10000;
@@ -438,7 +434,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
 
             List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            AwaitilityUtils.wait(5, SECONDS);
+            AwaitilityUtils.wait(1, SECONDS);
             millis = Instant.now().toEpochMilli();
             Person newPerson = new Person(nextId(), "testFirstName");
             template.save(newPerson);
