@@ -49,9 +49,9 @@ import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.util.StreamUtils;
-import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -544,13 +544,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> void deleteAll(Class<T> entityClass, @Nullable Long beforeLastUpdateMillis) {
+    public <T> void deleteAll(Class<T> entityClass, Long beforeLastUpdateMillis) {
         Assert.notNull(entityClass, "Class must not be null!");
         deleteAll(getSetName(entityClass), beforeLastUpdateMillis);
     }
 
     @Override
-    public <T> void deleteAll(Class<T> entityClass, @Nullable Calendar beforeLastUpdate) {
+    public <T> void deleteAll(Class<T> entityClass, Instant beforeLastUpdate) {
         Assert.notNull(entityClass, "Class must not be null!");
         deleteAll(getSetName(entityClass), beforeLastUpdate);
     }
@@ -562,19 +562,20 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public void deleteAll(String setName, @Nullable Long beforeLastUpdateMillis) {
+    public void deleteAll(String setName, Long beforeLastUpdateMillis) {
         Assert.notNull(setName, "Set name must not be null!");
-        Calendar beforeLastUpdateCalendar = convertToCalendar(beforeLastUpdateMillis);
+        Instant beforeLastUpdateInstant = convertToInstant(beforeLastUpdateMillis);
 
-        deleteAll(setName, beforeLastUpdateCalendar);
+        deleteAll(setName, beforeLastUpdateInstant);
     }
 
     @Override
-    public void deleteAll(String setName, @Nullable Calendar beforeLastUpdate) {
+    public void deleteAll(String setName, Instant beforeLastUpdate) {
         Assert.notNull(setName, "Set name must not be null!");
+        Calendar beforeLastUpdateCalendar = convertToCalendar(beforeLastUpdate);
 
         try {
-            client.truncate(null, getNamespace(), setName, beforeLastUpdate);
+            client.truncate(null, getNamespace(), setName, beforeLastUpdateCalendar);
         } catch (AerospikeException e) {
             throw translateError(e);
         }

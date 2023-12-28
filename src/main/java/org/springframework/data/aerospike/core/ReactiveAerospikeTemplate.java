@@ -49,6 +49,7 @@ import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -560,7 +561,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Void> deleteAll(Class<T> entityClass, Calendar beforeLastUpdate) {
+    public <T> Mono<Void> deleteAll(Class<T> entityClass, Instant beforeLastUpdate) {
         Assert.notNull(entityClass, "Class must not be null!");
 
         return deleteAll(getSetName(entityClass), beforeLastUpdate);
@@ -576,18 +577,19 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public Mono<Void> deleteAll(String setName, Long beforeLastUpdateMillis) {
         Assert.notNull(setName, "Set name must not be null!");
-        Calendar beforeLastUpdateCalendar = convertToCalendar(beforeLastUpdateMillis);
+        Instant beforeLastUpdateInstant = convertToInstant(beforeLastUpdateMillis);
 
-        return deleteAll(setName, beforeLastUpdateCalendar);
+        return deleteAll(setName, beforeLastUpdateInstant);
     }
 
     @Override
-    public Mono<Void> deleteAll(String setName, Calendar beforeLastUpdate) {
+    public Mono<Void> deleteAll(String setName, Instant beforeLastUpdate) {
         Assert.notNull(setName, "Set name must not be null!");
+        Calendar beforeLastUpdateCalendar = convertToCalendar(beforeLastUpdate);
 
         try {
             return Mono.fromRunnable(
-                () -> reactorClient.getAerospikeClient().truncate(null, namespace, setName, beforeLastUpdate));
+                () -> reactorClient.getAerospikeClient().truncate(null, namespace, setName, beforeLastUpdateCalendar));
         } catch (AerospikeException e) {
             throw translateError(e);
         }

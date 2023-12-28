@@ -34,14 +34,12 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
@@ -365,7 +363,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTimeAsCalendar() {
+    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTimeAsInstant() {
         // batch delete operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
@@ -374,21 +372,20 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             CollectionOfObjects document2 = new CollectionOfObjects(id2, List.of("test2"));
 
             template.save(document1);
-            AwaitilityUtils.wait(1, SECONDS);
+            AwaitilityUtils.wait(1, MILLISECONDS);
 
-            Calendar lastUpdateTime = Calendar.getInstance();
-            lastUpdateTime.setTimeZone(TimeZone.getTimeZone("UTC"));
-            long millisInFuture = lastUpdateTime.getTimeInMillis() + 10000;
+            Instant lastUpdateTime = Instant.now();
+            Instant inFuture = Instant.ofEpochMilli(lastUpdateTime.toEpochMilli() + 10000);
             template.save(document2);
 
             // make sure document1 has lastUpdateTime less than specified millis
             List<CollectionOfObjects> resultsWithLutLtMillis =
-                runLastUpdateTimeQuery(lastUpdateTime.getTimeInMillis(), FilterOperation.LT, CollectionOfObjects.class);
+                runLastUpdateTimeQuery(lastUpdateTime.toEpochMilli(), FilterOperation.LT, CollectionOfObjects.class);
             assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
             assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
                 .isEqualTo(document1.getCollection().iterator().next());
 
-            assertThatThrownBy(() -> template.deleteAll(CollectionOfObjects.class, millisInFuture))
+            assertThatThrownBy(() -> template.deleteAll(CollectionOfObjects.class, inFuture))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageMatching("Last update time (.*) must be less than the current time");
 
@@ -410,7 +407,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             CollectionOfObjects document2 = new CollectionOfObjects(id2, List.of("test2"));
 
             template.save(document1);
-            AwaitilityUtils.wait(1, SECONDS);
+            AwaitilityUtils.wait(1, MILLISECONDS);
 
             long millis = Instant.now().toEpochMilli();
             long millisInFuture = millis + 10000;
@@ -434,7 +431,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
 
             List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            AwaitilityUtils.wait(1, SECONDS);
+            AwaitilityUtils.wait(1, MILLISECONDS);
             millis = Instant.now().toEpochMilli();
             Person newPerson = new Person(nextId(), "testFirstName");
             template.save(newPerson);

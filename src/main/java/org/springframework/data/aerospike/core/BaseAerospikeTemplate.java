@@ -54,9 +54,11 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.util.Assert;
 
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -392,13 +394,23 @@ abstract class BaseAerospikeTemplate {
             : converter.getConversionService().convert(source, type);
     }
 
-    protected Calendar convertToCalendar(Long millis) {
+    protected Instant convertToInstant(Long millis) {
         if (millis == null) return null;
 
-        Calendar calendar = Calendar.getInstance();
-        if (millis > calendar.getTimeInMillis()) throw new IllegalArgumentException("Last update time (%d) " +
+        if (millis >= Instant.now().toEpochMilli()) throw new IllegalArgumentException("Last update time (%d) " +
             "must be less than the current time".formatted(millis));
-        calendar.setTimeInMillis(millis);
+        return Instant.ofEpochMilli(millis);
+    }
+
+    protected Calendar convertToCalendar(Instant instant) {
+        if (instant == null) return null;
+
+        Calendar calendar = Calendar.getInstance();
+        Date date = Date.from(instant);
+        if (instant.toEpochMilli() > calendar.getTimeInMillis())
+            throw new IllegalArgumentException("Last update time (%d) must be less than the current time"
+                .formatted(instant.toEpochMilli()));
+        calendar.setTime(date);
         return calendar;
     }
 

@@ -20,13 +20,11 @@ import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
@@ -317,7 +315,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     }
 
     @Test
-    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTimeAsCalendar() {
+    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTimeAsInstant() {
         // batch delete operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
@@ -326,23 +324,22 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
             SampleClasses.CollectionOfObjects document2 = new SampleClasses.CollectionOfObjects(id2, List.of("test2"));
 
             reactiveTemplate.save(document1).block();
-            AwaitilityUtils.wait(5, SECONDS);
+            AwaitilityUtils.wait(1, MILLISECONDS);
 
-            Calendar lastUpdateTime = Calendar.getInstance();
-            lastUpdateTime.setTimeZone(TimeZone.getTimeZone("UTC"));
-            long millisInFuture = lastUpdateTime.getTimeInMillis() + 10000;
+            Instant lastUpdateTime = Instant.now();
+            Instant inFuture = Instant.ofEpochMilli(lastUpdateTime.toEpochMilli() + 10000);
             reactiveTemplate.save(document2).block();
 
             // make sure document1 has lastUpdateTime less than specified millis
             List<SampleClasses.CollectionOfObjects> resultsWithLutLtMillis =
-                runLastUpdateTimeQuery(lastUpdateTime.getTimeInMillis(), FilterOperation.LT,
+                runLastUpdateTimeQuery(lastUpdateTime.toEpochMilli(), FilterOperation.LT,
                     SampleClasses.CollectionOfObjects.class);
             assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
             assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
                 .isEqualTo(document1.getCollection().iterator().next());
 
             assertThatThrownBy(() ->
-                reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class, millisInFuture).block())
+                reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class, inFuture).block())
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageMatching("Last update time (.*) must be less than the current time");
 
@@ -366,7 +363,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
             SampleClasses.CollectionOfObjects document2 = new SampleClasses.CollectionOfObjects(id2, List.of("test2"));
 
             reactiveTemplate.save(document1).block();
-            AwaitilityUtils.wait(5, SECONDS);
+            AwaitilityUtils.wait(1, MILLISECONDS);
 
             long millis = Instant.now().toEpochMilli();
             long millisInFuture = millis + 10000;
@@ -393,7 +390,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
             assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
 
             List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            AwaitilityUtils.wait(5, SECONDS);
+            AwaitilityUtils.wait(1, MILLISECONDS);
             millis = Instant.now().toEpochMilli();
             Person newPerson = new Person(nextId(), "testFirstName");
             reactiveTemplate.save(newPerson).block();
