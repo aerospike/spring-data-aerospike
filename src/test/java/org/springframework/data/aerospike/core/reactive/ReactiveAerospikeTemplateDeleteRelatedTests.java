@@ -3,22 +3,28 @@ package org.springframework.data.aerospike.core.reactive;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.policy.GenerationPolicy;
 import com.aerospike.client.policy.WritePolicy;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.utility.AwaitilityUtils;
 import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
@@ -32,6 +38,14 @@ import static org.springframework.data.aerospike.sample.SampleClasses.VersionedC
 @TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
 // this test class does not require secondary indexes created on startup
 public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveIntegrationTests {
+
+    @BeforeEach
+    public void beforeEach() {
+        reactiveTemplate.deleteAll(Person.class).block();
+        reactiveTemplate.deleteAll(Customer.class).block();
+        reactiveTemplate.deleteAll(VersionedClass.class).block();
+        reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class).block();
+    }
 
     @Test
     public void deleteByObject_ignoresVersionEvenIfDefaultGenerationPolicyIsSet() {
@@ -297,6 +311,63 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
                     SampleClasses.DocumentWithExpiration.class, OVERRIDE_SET_NAME)
                 .subscribeOn(Schedulers.parallel()).collectList().block();
             assertThat(list).isEmpty();
+        }
+    }
+
+    @Test
+    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTime() {
+        // batch delete operations are supported starting with Server version 6.0+
+        if (serverVersionSupport.batchWrite()) {
+            String id1 = nextId();
+            String id2 = nextId();
+            SampleClasses.CollectionOfObjects document1 = new SampleClasses.CollectionOfObjects(id1, List.of("test1"));
+            SampleClasses.CollectionOfObjects document2 = new SampleClasses.CollectionOfObjects(id2, List.of("test2"));
+
+            reactiveTemplate.save(document1).block();
+            AwaitilityUtils.wait(1, MILLISECONDS);
+
+            Instant lastUpdateTime = Instant.now();
+            Instant inFuture = Instant.ofEpochMilli(lastUpdateTime.toEpochMilli() + 10000);
+            reactiveTemplate.save(document2).block();
+
+            // make sure document1 has lastUpdateTime less than specified millis
+            List<SampleClasses.CollectionOfObjects> resultsWithLutLtMillis =
+                runLastUpdateTimeQuery(lastUpdateTime.toEpochMilli(), FilterOperation.LT,
+                    SampleClasses.CollectionOfObjects.class);
+            assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
+            assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
+                .isEqualTo(document1.getCollection().iterator().next());
+
+            assertThatThrownBy(() ->
+                reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class, inFuture).block())
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageMatching("Last update time (.*) must be less than the current time");
+
+            reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class, lastUpdateTime).block();
+            assertThat(reactiveTemplate.findByIds(List.of(id1, id2), SampleClasses.CollectionOfObjects.class)
+                .collectList().block()).hasSize(1);
+            SampleClasses.CollectionOfObjects result = reactiveTemplate.findByIds(List.of(id1, id2),
+                SampleClasses.CollectionOfObjects.class).collectList().block().get(0);
+            assertThat(result.getId()).isEqualTo(document2.getId());
+            assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
+
+            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+            AwaitilityUtils.wait(1, MILLISECONDS);
+            lastUpdateTime = Instant.now();
+            Person newPerson = new Person(nextId(), "testFirstName");
+            reactiveTemplate.save(newPerson).block();
+            persons.add(newPerson);
+
+            reactiveTemplate.deleteAll(reactiveTemplate.getSetName(Person.class), lastUpdateTime).block();
+            List<String> personsIds = persons.stream().map(Person::getId).toList();
+            assertThat(reactiveTemplate.findByIds(personsIds, Person.class).collectList().block()).contains(newPerson);
+
+            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+            reactiveTemplate.deleteAll(Person.class, lastUpdateTime)
+                .block(); // persons2 were saved after the given time
+            personsIds = persons2.stream().map(Person::getId).toList();
+            assertThat(reactiveTemplate.findByIds(personsIds, Person.class).collectList().block())
+                .containsExactlyInAnyOrderElementsOf(persons2);
         }
     }
 

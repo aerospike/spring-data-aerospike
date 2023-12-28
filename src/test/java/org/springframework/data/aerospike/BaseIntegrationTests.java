@@ -11,6 +11,7 @@ public abstract class BaseIntegrationTests {
 
     public static final String DEFAULT_SET_NAME = "aerospike";
     public static final String OVERRIDE_SET_NAME = "testSet1";
+    protected static final int MILLIS_TO_NANO = 1_000_000;
 
     @Value("${embedded.aerospike.namespace}")
     protected String namespace;

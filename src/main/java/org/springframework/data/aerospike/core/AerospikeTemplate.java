@@ -51,8 +51,10 @@ import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -538,15 +540,28 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
-        deleteAll(getSetName(entityClass));
+        deleteAll(entityClass, null);
+    }
+
+    @Override
+    public <T> void deleteAll(Class<T> entityClass, Instant beforeLastUpdate) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        deleteAll(getSetName(entityClass), beforeLastUpdate);
     }
 
     @Override
     public void deleteAll(String setName) {
         Assert.notNull(setName, "Set name must not be null!");
+        deleteAll(setName, null);
+    }
+
+    @Override
+    public void deleteAll(String setName, Instant beforeLastUpdate) {
+        Assert.notNull(setName, "Set name must not be null!");
+        Calendar beforeLastUpdateCalendar = convertToCalendar(beforeLastUpdate);
 
         try {
-            client.truncate(null, getNamespace(), setName, null);
+            client.truncate(null, getNamespace(), setName, beforeLastUpdateCalendar);
         } catch (AerospikeException e) {
             throw translateError(e);
         }
