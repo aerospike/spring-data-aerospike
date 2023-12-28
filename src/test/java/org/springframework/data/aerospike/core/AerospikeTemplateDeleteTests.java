@@ -433,6 +433,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
             AwaitilityUtils.wait(1, MILLISECONDS);
             millis = Instant.now().toEpochMilli();
+            AwaitilityUtils.wait(1, MILLISECONDS);
             Person newPerson = new Person(nextId(), "testFirstName");
             template.save(newPerson);
             persons.add(newPerson);

@@ -397,8 +397,9 @@ abstract class BaseAerospikeTemplate {
     protected Instant convertToInstant(Long millis) {
         if (millis == null) return null;
 
-        if (millis >= Instant.now().toEpochMilli()) throw new IllegalArgumentException("Last update time (%d) " +
-            "must be less than the current time".formatted(millis));
+        if (millis >= Instant.now().toEpochMilli())
+            throw new IllegalArgumentException("Last update time (%d) must be less than the current time"
+                .formatted(millis));
         return Instant.ofEpochMilli(millis);
     }
 
@@ -406,11 +407,10 @@ abstract class BaseAerospikeTemplate {
         if (instant == null) return null;
 
         Calendar calendar = Calendar.getInstance();
-        Date date = Date.from(instant);
         if (instant.toEpochMilli() > calendar.getTimeInMillis())
             throw new IllegalArgumentException("Last update time (%d) must be less than the current time"
                 .formatted(instant.toEpochMilli()));
-        calendar.setTime(date);
+        calendar.setTime(Date.from(instant));
         return calendar;
     }
 
