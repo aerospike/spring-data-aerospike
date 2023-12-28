@@ -12,7 +12,6 @@ import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 import java.util.Collection;
@@ -51,8 +50,8 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
         collection.forEach(item -> template.delete(item, setName));
     }
 
-    protected List<SampleClasses.CollectionOfObjects> runLastUpdateTimeQuery(long lastUpdateTimeMillis, FilterOperation operation,
-                                                                           Class<SampleClasses.CollectionOfObjects> entityClass) {
+    protected <T> List<T> runLastUpdateTimeQuery(long lastUpdateTimeMillis, FilterOperation operation,
+                                                 Class<T> entityClass) {
         Qualifier lastUpdateTimeLtMillis = Qualifier.metadataBuilder()
             .setMetadataField(LAST_UPDATE_TIME)
             .setFilterOperation(operation)

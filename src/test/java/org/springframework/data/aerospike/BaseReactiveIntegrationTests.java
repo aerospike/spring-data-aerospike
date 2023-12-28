@@ -10,7 +10,6 @@ import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import reactor.core.publisher.Flux;
 
@@ -54,9 +53,8 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
         Flux.fromIterable(iterable).flatMap(item -> reactiveTemplate.delete(item, setName)).blockLast();
     }
 
-    protected List<SampleClasses.CollectionOfObjects> runLastUpdateTimeQuery(long lastUpdateTimeMillis,
-                                                                             FilterOperation operation,
-                                                                             Class<SampleClasses.CollectionOfObjects> entityClass) {
+    protected <T> List<T> runLastUpdateTimeQuery(long lastUpdateTimeMillis, FilterOperation operation,
+                                                 Class<T> entityClass) {
         Qualifier lastUpdateTimeLtMillis = Qualifier.metadataBuilder()
             .setMetadataField(LAST_UPDATE_TIME)
             .setFilterOperation(operation)
