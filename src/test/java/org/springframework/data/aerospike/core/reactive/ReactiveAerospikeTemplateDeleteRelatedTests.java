@@ -41,10 +41,10 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
 
     @BeforeEach
     public void beforeEach() {
-        reactiveTemplate.deleteAll(Person.class);
-        reactiveTemplate.deleteAll(Customer.class);
-        reactiveTemplate.deleteAll(VersionedClass.class);
-        reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class);
+        reactiveTemplate.deleteAll(Person.class).block();
+        reactiveTemplate.deleteAll(Customer.class).block();
+        reactiveTemplate.deleteAll(VersionedClass.class).block();
+        reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class).block();
     }
 
     @Test
