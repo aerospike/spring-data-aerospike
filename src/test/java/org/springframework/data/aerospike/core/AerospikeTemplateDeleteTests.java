@@ -363,7 +363,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTimeAsInstant() {
+    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTime() {
         // batch delete operations are supported starting with Server version 6.0+
         if (serverVersionSupport.batchWrite()) {
             String id1 = nextId();
@@ -394,56 +394,21 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             CollectionOfObjects result = template.findByIds(List.of(id1, id2), CollectionOfObjects.class).get(0);
             assertThat(result.getId()).isEqualTo(document2.getId());
             assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
-        }
-    }
-
-    @Test
-    public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTimeAsLong() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            CollectionOfObjects document1 = new CollectionOfObjects(id1, List.of("test1"));
-            CollectionOfObjects document2 = new CollectionOfObjects(id2, List.of("test2"));
-
-            template.save(document1);
-            AwaitilityUtils.wait(1, MILLISECONDS);
-
-            long millis = Instant.now().toEpochMilli();
-            long millisInFuture = millis + 10000;
-            template.save(document2);
-
-            // make sure document1 has lastUpdateTime less than specified millis
-            List<CollectionOfObjects> resultsWithLutLtMillis =
-                runLastUpdateTimeQuery(millis, FilterOperation.LT, CollectionOfObjects.class);
-            assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
-            assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
-                .isEqualTo(document1.getCollection().iterator().next());
-
-            assertThatThrownBy(() -> template.deleteAll(CollectionOfObjects.class, millisInFuture))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageMatching("Last update time (.*) must be less than the current time");
-
-            template.deleteAll(CollectionOfObjects.class, millis);
-            assertThat(template.findByIds(List.of(id1, id2), CollectionOfObjects.class)).hasSize(1);
-            CollectionOfObjects result = template.findByIds(List.of(id1, id2), CollectionOfObjects.class).get(0);
-            assertThat(result.getId()).isEqualTo(document2.getId());
-            assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
 
             List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
             AwaitilityUtils.wait(1, MILLISECONDS);
-            millis = Instant.now().toEpochMilli();
+            lastUpdateTime = Instant.now();
             AwaitilityUtils.wait(1, MILLISECONDS);
             Person newPerson = new Person(nextId(), "testFirstName");
             template.save(newPerson);
             persons.add(newPerson);
 
-            template.deleteAll(template.getSetName(Person.class), millis);
+            template.deleteAll(template.getSetName(Person.class), lastUpdateTime);
             List<String> personsIds = persons.stream().map(Person::getId).toList();
             assertThat(template.findByIds(personsIds, Person.class)).contains(newPerson);
 
             List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
-            template.deleteAll(Person.class, millis); // persons2 were saved after the given time
+            template.deleteAll(Person.class, lastUpdateTime); // persons2 were saved after the given time
             personsIds = persons2.stream().map(Person::getId).toList();
             assertThat(template.findByIds(personsIds, Person.class)).containsExactlyElementsOf(persons2);
         }

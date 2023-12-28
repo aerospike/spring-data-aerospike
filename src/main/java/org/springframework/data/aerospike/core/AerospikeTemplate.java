@@ -540,13 +540,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
-        deleteAll(entityClass, (Long) null);
-    }
-
-    @Override
-    public <T> void deleteAll(Class<T> entityClass, Long beforeLastUpdateMillis) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        deleteAll(getSetName(entityClass), beforeLastUpdateMillis);
+        deleteAll(entityClass, null);
     }
 
     @Override
@@ -558,15 +552,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public void deleteAll(String setName) {
         Assert.notNull(setName, "Set name must not be null!");
-        deleteAll(setName, (Long) null);
-    }
-
-    @Override
-    public void deleteAll(String setName, Long beforeLastUpdateMillis) {
-        Assert.notNull(setName, "Set name must not be null!");
-        Instant beforeLastUpdateInstant = convertToInstant(beforeLastUpdateMillis);
-
-        deleteAll(setName, beforeLastUpdateInstant);
+        deleteAll(setName, null);
     }
 
     @Override

@@ -518,16 +518,6 @@ public interface AerospikeOperations {
     <T> void deleteAll(Class<T> entityClass);
 
     /**
-     * Truncate/Delete all records in the set determined by the given entity class.
-     *
-     * @param entityClass            The class to extract set name from. Must not be {@literal null}.
-     * @param beforeLastUpdateMillis Delete records before the specified time (must be earlier than the current time at
-     *                               millisecond resolution). In UTC milliseconds from the epoch.
-     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
-     */
-    <T> void deleteAll(Class<T> entityClass, Long beforeLastUpdateMillis);
-
-    /**
      * Truncate/Delete all documents in the given set.
      *
      * @param entityClass      The class to extract set name from. Must not be {@literal null}.
@@ -544,16 +534,6 @@ public interface AerospikeOperations {
      * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
      */
     void deleteAll(String setName);
-
-    /**
-     * Truncate/Delete all documents in the given set.
-     *
-     * @param setName                Set name to truncate/delete all records in.
-     * @param beforeLastUpdateMillis Delete records before the specified time (must be earlier than the current time at
-     *                               millisecond resolution). In UTC milliseconds from the epoch.
-     * @throws DataAccessException If operation failed (see {@link DefaultAerospikeExceptionTranslator} for details).
-     */
-    void deleteAll(String setName, Long beforeLastUpdateMillis);
 
     /**
      * Truncate/Delete all documents in the given set.

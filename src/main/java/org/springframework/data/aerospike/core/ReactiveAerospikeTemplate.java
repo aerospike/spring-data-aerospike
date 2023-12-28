@@ -550,14 +550,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Mono<Void> deleteAll(Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
 
-        return deleteAll(getSetName(entityClass), (Long) null);
-    }
-
-    @Override
-    public <T> Mono<Void> deleteAll(Class<T> entityClass, Long beforeLastUpdateMillis) {
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        return deleteAll(getSetName(entityClass), beforeLastUpdateMillis);
+        return deleteAll(getSetName(entityClass), null);
     }
 
     @Override
@@ -571,15 +564,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public Mono<Void> deleteAll(String setName) {
         Assert.notNull(setName, "Set name must not be null!");
 
-        return deleteAll(setName, (Long) null);
-    }
-
-    @Override
-    public Mono<Void> deleteAll(String setName, Long beforeLastUpdateMillis) {
-        Assert.notNull(setName, "Set name must not be null!");
-        Instant beforeLastUpdateInstant = convertToInstant(beforeLastUpdateMillis);
-
-        return deleteAll(setName, beforeLastUpdateInstant);
+        return deleteAll(setName, null);
     }
 
     @Override
