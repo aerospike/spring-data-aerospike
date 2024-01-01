@@ -39,7 +39,7 @@ include::reference/template.adoc[]
 include::reference/secondary-indexes.adoc[]
 include::reference/indexed-annotation.adoc[]
 include::reference/caching.adoc[]
-include::reference/configure-data-settings.adoc[]
+include::reference/configuration.adoc[]
 include::spring-data-commons-docs/dependencies.adoc[]
 include::spring-data-commons-docs/auditing.adoc[]
 

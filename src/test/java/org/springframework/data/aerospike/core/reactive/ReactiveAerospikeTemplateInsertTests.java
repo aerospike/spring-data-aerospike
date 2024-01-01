@@ -15,7 +15,6 @@ import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionC
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -29,10 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 @TestInstance(Lifecycle.PER_CLASS)
 public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegrationTests {
 

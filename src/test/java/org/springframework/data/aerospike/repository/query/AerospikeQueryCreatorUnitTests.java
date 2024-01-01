@@ -4,7 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.config.AerospikeSettings;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -58,7 +58,7 @@ public class AerospikeQueryCreatorUnitTests {
 
     private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
         MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor(), AerospikeDataSettings.builder().build());
+            conversions, new AerospikeTypeAliasAccessor(), new AerospikeSettings());
         converter.afterPropertiesSet();
         return converter;
     }

@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike.utility;
 
-import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.config.AerospikeSettings;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -76,7 +76,7 @@ public class QueryUtils {
 
     private static MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
         MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor(), AerospikeDataSettings.builder().build());
+            conversions, new AerospikeTypeAliasAccessor(), new AerospikeSettings());
         converter.afterPropertiesSet();
         return converter;
     }

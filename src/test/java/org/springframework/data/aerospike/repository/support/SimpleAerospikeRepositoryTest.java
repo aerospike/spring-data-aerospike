@@ -34,7 +34,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,14 +45,11 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 /**
  * @author Peter Milne
  * @author Jean Mercier
  */
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 public class SimpleAerospikeRepositoryTest {

@@ -5,17 +5,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.SampleClasses.CompositeKey;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithCompositeKey;
-import org.springframework.test.context.TestPropertySource;
 import reactor.test.StepVerifier;
 
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 public class ReactiveAerospikeTemplateCompositeKeyTests extends BaseReactiveIntegrationTests {
 
     private DocumentWithCompositeKey document;

@@ -1,38 +1,19 @@
-[[configure-data-settings]]
-= Configure Data Settings
+[[configuration]]
+= Configuration
 
-The `AbstractAerospikeDataConfiguration` class exposes a number of beans that Spring Data Aerospike uses internally. User can optionally override `configureDataSettings` method to customize configuration.
-
+Configuration can be accessed via standard `application.properties`.
 Here is an example:
 
-[source,java]
+[source,properties]
 ----
-@EnableAerospikeRepositories(basePackageClasses = PersonRepository.class)
-class ApplicationConfig extends AbstractAerospikeDataConfiguration {
-
-    @Override
-    protected Collection<Host> getHosts() {
-        return Collections.singleton(new Host("localhost", 3000));
-    }
-
-    @Override
-    protected String nameSpace() {
-        return "test";
-    }
-
-    @Override
-    protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
-        builder.createIndexesOnStartup(true);
-        builder.indexCacheRefreshSeconds(3600);
-        builder.queryMaxRecords(10000L);
-    }
-}
+spring-data-aerospike.hosts=localhost:3000
+spring-data-aerospike.namespace=TEST
 ----
 
-[[configure-data-settings.parameters]]
+[[configuration.parameters]]
 == Configuration Parameters
 
-[[configure-data-settings.scans-enabled]]
+[[configuration.scans-enabled]]
 === scansEnabled
 
 A scan can be an expensive operation as all records in the set must be read by the Aerospike server, and then the condition is applied to see if they match.
@@ -43,49 +24,49 @@ NOTE: Once this flag is enabled, scans run whenever needed with no warnings. Thi
 
 *Default:* `false`.
 
-[[configure-data-settings.send-key]]
+[[configuration.send-key]]
 === sendKey
 
 Send user defined key in addition to hash digest on both reads and writes. If the key is sent on write, it will be stored with the record on the server.
 
 Default: `false` (do not send the user defined key).
 
-[[configure-data-settings.create-indexes-on-startup]]
+[[configuration.create-indexes-on-startup]]
 === createIndexesOnStartup
 
 Create secondary indexes specified using `@Indexed` annotation on startup.
 
 *Default*: `true`.
 
-[[configure-data-settings.index-cache-refresh-frequency-seconds]]
+[[configuration.index-cache-refresh-frequency-seconds]]
 === indexCacheRefreshSeconds
 
 Automatically refresh indexes cache every <N> seconds.
 
 *Default*: `3600`.
 
-[[configure-data-settings.server-version-refresh-frequency-seconds]]
+[[configuration.server-version-refresh-frequency-seconds]]
 === serverVersionRefreshSeconds
 
 Automatically refresh cached server version every <N> seconds.
 
 *Default*: `3600`.
 
-[[configure-data-settings.query-max-records]]
+[[configuration.query-max-records]]
 === queryMaxRecords
 
 Limit amount of results returned by server. Non-positive value means no limit.
 
 *Default*: `10 000`.
 
-[[configure-data-settings.batch-write-size]]
+[[configuration.batch-write-size]]
 === batchWriteSize
 
 Maximum batch size for batch write operations. Non-positive value means no limit.
 
 *Default*: `100`.
 
-[[configure-data-settings.keep-original-key-types]]
+[[configuration.keep-original-key-types]]
 === keepOriginalKeyTypes
 
 Define how `@Id` fields (primary keys) and `Map` keys are stored in the Aerospike database: `false` - always as `String`, `true` - preserve original type if supported.

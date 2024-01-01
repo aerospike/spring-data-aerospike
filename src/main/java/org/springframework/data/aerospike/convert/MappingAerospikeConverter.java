@@ -19,7 +19,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.config.AerospikeSettings;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.convert.CustomConversions;
 import org.springframework.data.convert.DefaultTypeMapper;
@@ -43,7 +43,7 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
     @Getter
     private final GenericConversionService conversionService;
     @Getter
-    private final AerospikeDataSettings aerospikeDataSettings;
+    private final AerospikeSettings aerospikeSettings;
     private final MappingAerospikeReadConverter readConverter;
     private final MappingAerospikeWriteConverter writeConverter;
 
@@ -52,10 +52,10 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
      */
     public MappingAerospikeConverter(AerospikeMappingContext mappingContext, CustomConversions conversions,
                                      AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
-                                     AerospikeDataSettings aerospikeDataSettings) {
+                                     AerospikeSettings settings) {
         this.conversions = conversions;
         this.conversionService = new DefaultConversionService();
-        this.aerospikeDataSettings = aerospikeDataSettings;
+        this.aerospikeSettings = settings;
 
         EntityInstantiators entityInstantiators = new EntityInstantiators();
         TypeMapper<Map<String, Object>> typeMapper = new DefaultTypeMapper<>(aerospikeTypeAliasAccessor,
@@ -63,7 +63,7 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
 
         this.writeConverter =
             new MappingAerospikeWriteConverter(typeMapper, mappingContext, conversions, conversionService,
-                aerospikeDataSettings);
+                settings);
         this.readConverter = new MappingAerospikeReadConverter(entityInstantiators, aerospikeTypeAliasAccessor,
             typeMapper, mappingContext, conversions, conversionService);
     }

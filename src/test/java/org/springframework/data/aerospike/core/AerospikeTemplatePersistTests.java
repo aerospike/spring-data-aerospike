@@ -20,15 +20,11 @@ import com.aerospike.client.policy.WritePolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 public class AerospikeTemplatePersistTests extends BaseBlockingIntegrationTests {
 
     @Test

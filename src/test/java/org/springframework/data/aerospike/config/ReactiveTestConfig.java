@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.config;
 
-import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.async.EventPolicy;
@@ -13,7 +12,9 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -26,14 +27,8 @@ import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperati
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
-import static org.springframework.data.aerospike.utility.Utils.getIntegerProperty;
 
 /**
  * @author Peter Milne
@@ -61,16 +56,6 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     }
 
     @Override
-    protected Collection<Host> getHosts() {
-        return Collections.singleton(new Host(host, port));
-    }
-
-    @Override
-    protected String nameSpace() {
-        return namespace;
-    }
-
-    @Override
     protected EventLoops eventLoops() {
         int nThreads = Math.max(2, Runtime.getRuntime().availableProcessors() * 2);
         String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
@@ -91,13 +76,13 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     }
 
     @Override
-    protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
-        builder.scansEnabled(true);
-        boolean indexesOnStartup = Boolean.parseBoolean(env.getProperty("createIndexesOnStartup"));
-        builder.createIndexesOnStartup(indexesOnStartup);
-        Optional<Integer> indexRefreshFrequency = getIntegerProperty(env.getProperty(INDEX_CACHE_REFRESH_SECONDS));
-        indexRefreshFrequency.ifPresent(builder::indexCacheRefreshSeconds);
-        builder.queryMaxRecords(5000L);
+    @Bean
+    @Profile("test")
+    @ConfigurationProperties("spring-data-aerospike")
+    public AerospikeSettings aerospikeConfiguration() {
+        AerospikeSettings settings = new AerospikeSettings();
+        settings.setTestHosts(host + ":" + port);
+        return settings;
     }
 
     @Bean

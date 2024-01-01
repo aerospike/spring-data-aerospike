@@ -18,18 +18,14 @@ package org.springframework.data.aerospike.mapping;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity.DEFAULT_EXPIRATION;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.sample.SampleClasses.*;
 
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 public class AerospikePersistentEntityTest extends BaseBlockingIntegrationTests {
 
     @Autowired

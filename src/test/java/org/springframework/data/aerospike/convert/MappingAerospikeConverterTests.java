@@ -119,7 +119,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     @Test
     public void shouldWriteAndReadUsingCustomConverter() {
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(aerospikeDataSettings, new UserToAerospikeWriteDataConverter(),
+            getMappingAerospikeConverter(settings, new UserToAerospikeWriteDataConverter(),
                 new AerospikeReadDataToUserConverter());
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
@@ -146,7 +146,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
         }
 
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(aerospikeDataSettings, new UserToAerospikeWriteDataConverter(),
+            getMappingAerospikeConverter(settings, new UserToAerospikeWriteDataConverter(),
                 new AerospikeReadDataToUserConverter());
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
@@ -159,7 +159,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     @Test
     public void shouldWriteAndReadUsingCustomConverterOnNestedMapKeyObject() {
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(aerospikeDataSettings, new SampleClasses.SomeIdToStringConverter(),
+            getMappingAerospikeConverter(settings, new SampleClasses.SomeIdToStringConverter(),
                 new SampleClasses.StringToSomeIdConverter());
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
@@ -187,7 +187,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
             entityMapExpectedAfterConversion.put(newSomeIdAsStringKey, newEntityMap);
         }
 
-        assertThat(forWrite.getKey()).consistsOf(aerospikeDataSettings, "namespace",
+        assertThat(forWrite.getKey()).consistsOf(settings, "namespace",
             "DocumentExample", "someKey1");
         assertThat(forWrite.getBins().stream()
             .filter(x -> !x.name.equals("@_class"))).containsOnly(new Bin("entityMap",
@@ -203,13 +203,13 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     @Test
     public void shouldWriteAndReadIfTypeKeyIsNull() {
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(aerospikeDataSettings, new AerospikeTypeAliasAccessor(null));
+            getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor(null));
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
         User user = new User(678L, null, null);
         converter.write(user, forWrite);
 
-        assertThat(forWrite.getKey()).consistsOf(aerospikeDataSettings, NAMESPACE, SIMPLESET3, user.getId());
+        assertThat(forWrite.getKey()).consistsOf(settings, NAMESPACE, SIMPLESET3, user.getId());
     }
 
     @ParameterizedTest()
@@ -409,7 +409,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     @Test
     public void getConversionService() {
         MappingAerospikeConverter mappingAerospikeConverter =
-            getMappingAerospikeConverter(aerospikeDataSettings, new AerospikeTypeAliasAccessor());
+            getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor());
         assertThat(mappingAerospikeConverter.getConversionService()).isNotNull()
             .isInstanceOf(DefaultConversionService.class);
     }

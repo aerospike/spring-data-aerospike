@@ -21,6 +21,7 @@ import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
@@ -71,9 +72,10 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean(name = "mappingAerospikeConverter")
     public MappingAerospikeConverter mappingAerospikeConverter(AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
-                                                               AerospikeCustomConversions customConversions) {
+                                                               AerospikeCustomConversions customConversions,
+                                                               AerospikeSettings settings) {
         return new MappingAerospikeConverter(aerospikeMappingContext, customConversions, aerospikeTypeAliasAccessor,
-            aerospikeDataSettings());
+            settings);
     }
 
     @Bean(name = "aerospikeTypeAliasAccessor")
@@ -105,9 +107,10 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
-    public AerospikeClient aerospikeClient() {
-        Collection<Host> hosts = getHosts();
-        return new AerospikeClient(getClientPolicy(), hosts.toArray(new Host[0]));
+//    @Profile("!test")
+    public AerospikeClient aerospikeClient(AerospikeSettings settings, ClientPolicy clientPolicy) {
+        Collection<Host> hosts = settings.getTestHosts() == null ? settings.getHosts() : settings.getTestHosts();
+        return new AerospikeClient(clientPolicy, hosts.toArray(new Host[0]));
     }
 
     @Bean(name = "filterExpressionsBuilder")
@@ -122,9 +125,9 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeServerVersionSupport")
-    public ServerVersionSupport serverVersionSupport(IAerospikeClient aerospikeClient) {
+    public ServerVersionSupport serverVersionSupport(IAerospikeClient aerospikeClient, AerospikeSettings settings) {
         ServerVersionSupport serverVersionSupport = new ServerVersionSupport(aerospikeClient);
-        int serverVersionRefreshFrequency = aerospikeDataSettings().getServerVersionRefreshSeconds();
+        int serverVersionRefreshFrequency = settings.getServerVersionRefreshSeconds();
         processServerVersionRefreshFrequency(serverVersionRefreshFrequency, serverVersionSupport);
         return serverVersionSupport;
     }
@@ -168,37 +171,31 @@ public abstract class AerospikeDataConfigurationSupport {
         return PropertyNameFieldNamingStrategy.INSTANCE;
     }
 
-    protected abstract Collection<Host> getHosts();
-
-    protected abstract String nameSpace();
-
-    protected AerospikeDataSettings aerospikeDataSettings() {
-        AerospikeDataSettings.AerospikeDataSettingsBuilder builder = AerospikeDataSettings.builder();
-        configureDataSettings(builder);
-        return builder.build();
-    }
-
-    protected void configureDataSettings(AerospikeDataSettings.AerospikeDataSettingsBuilder builder) {
-        builder.scansEnabled(false);
-        builder.sendKey(true);
-        builder.createIndexesOnStartup(true);
-    }
-
     /**
      * Return {@link ClientPolicy} object that contains all client policies.
      *
-     * <p>Override this method to set the necessary parameters, </p>
-     * <p>call super.getClientPolicy() to apply default values first.</p>
+     * <p>Override this bean to set the necessary parameters </p>
      *
      * @return new ClientPolicy instance
      */
-    protected ClientPolicy getClientPolicy() {
+    @Bean
+    public ClientPolicy clientPolicy(AerospikeSettings settings) {
         ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.failIfNotConnected = true;
         clientPolicy.timeout = 10_000;
-        clientPolicy.writePolicyDefault.sendKey = aerospikeDataSettings().isSendKey();
-        clientPolicy.readPolicyDefault.sendKey = aerospikeDataSettings().isSendKey();
-        log.debug("AerospikeDataSettings.sendKey: {}", clientPolicy.writePolicyDefault.sendKey);
+        clientPolicy.writePolicyDefault.sendKey = settings.isSendKey();
+        clientPolicy.readPolicyDefault.sendKey = settings.isSendKey();
+        log.debug("AerospikeSettings.sendKey: {}", clientPolicy.writePolicyDefault.sendKey);
         return clientPolicy;
+    }
+
+    @Bean
+    @ConfigurationProperties("spring-data-aerospike")
+    public AerospikeSettings aerospikeConfiguration() {
+        return new AerospikeSettings();
+    }
+
+    protected String getNamespace(AerospikeSettings settings) {
+        return settings.getTestNamespace() != null ? settings.getTestNamespace() : settings.getNamespace();
     }
 }

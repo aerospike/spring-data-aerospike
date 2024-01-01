@@ -314,7 +314,7 @@ abstract class BaseAerospikeTemplate {
         Assert.notNull(setName, "Set name must not be null!");
         Key key;
         // choosing whether tp preserve id type based on the configuration
-        if (converter.getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+        if (converter.getAerospikeSettings().isKeepOriginalKeyTypes()) {
             if (id instanceof Byte || id instanceof Short || id instanceof Integer || id instanceof Long) {
                 key = new Key(this.namespace, setName, convertIfNecessary(((Number) id).longValue(), Long.class));
             } else if (id instanceof Character) {

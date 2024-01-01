@@ -3,6 +3,7 @@ package org.springframework.data.aerospike;
 import com.aerospike.client.IAerospikeClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.config.BlockingTestConfig;
 import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -13,6 +14,7 @@ import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Collection;
 import java.util.List;
@@ -27,6 +29,7 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
         "indexSuffix: index1"
     }
 )
+@ActiveProfiles("test")
 public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests {
 
     @Autowired
@@ -41,6 +44,8 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     protected IndexesCache indexesCache;
     @Autowired
     protected IndexRefresher indexRefresher;
+    @Autowired
+    protected Environment env;
 
     protected <T> void deleteOneByOne(Collection<T> collection) {
         collection.forEach(item -> template.delete(item));

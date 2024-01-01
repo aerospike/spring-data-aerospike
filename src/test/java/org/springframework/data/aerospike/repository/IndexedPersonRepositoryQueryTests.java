@@ -19,7 +19,6 @@ import org.springframework.data.aerospike.utility.TestUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,12 +34,9 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Autowired

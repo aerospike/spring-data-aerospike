@@ -16,7 +16,7 @@
 package org.springframework.data.aerospike.convert;
 
 import org.springframework.core.convert.ConversionService;
-import org.springframework.data.aerospike.config.AerospikeDataSettings;
+import org.springframework.data.aerospike.config.AerospikeSettings;
 import org.springframework.data.convert.EntityConverter;
 
 /**
@@ -36,7 +36,7 @@ public interface AerospikeConverter extends AerospikeReader<Object>, AerospikeWr
     /**
      * Access Aerospike-specific data settings.
      *
-     * @return the underlying {@link AerospikeDataSettings} used by the converter
+     * @return the underlying {@link AerospikeSettings} used by the converter
      */
-    AerospikeDataSettings getAerospikeDataSettings();
+    AerospikeSettings getAerospikeSettings();
 }

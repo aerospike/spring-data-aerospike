@@ -51,7 +51,7 @@ class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTests {
         // we can read the record into a User document because its class is given
         List<User> users = template.findAll(User.class).toList();
         User user;
-        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+        if (template.getAerospikeConverter().getAerospikeSettings().isKeepOriginalKeyTypes()) {
             // we need isKeepOriginalKeyTypes == true because id is of type long, otherwise findById() returns null
             // isKeepOriginalKeyTypes parameter would be unimportant if id were of type String
             user = template.findById(longId, User.class);
@@ -85,7 +85,7 @@ class AerospikeReadDataIntegrationTests extends BaseBlockingIntegrationTests {
         // we can read the record into a Document because its class is given
         List<Document> users = template.findAll(Document.class).toList();
         Document document;
-        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+        if (template.getAerospikeConverter().getAerospikeSettings().isKeepOriginalKeyTypes()) {
             // original id has type long
             document = template.findById(longId, Document.class);
             assertThat(users.get(0).getId()).isEqualTo(document.getId());

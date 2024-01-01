@@ -50,30 +50,13 @@ implementation group: 'com.aerospike', name: 'spring-data-aerospike', version: '
 
 == Connecting to Aerospike DB
 
-Configuring Spring Data Aerospike is easy with the help of the `AbstractAerospikeDataConfiguration` class.
+Configuring Spring Data Aerospike is easy, necessary configuration should be specified in `application.properties`.
 
-[source, java]
+[source, properties]
 ----
-@Configuration
-@EnableAerospikeRepositories(basePackageClasses = { PersonRepository.class})
-public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
-    @Override
-    protected Collection<Host> getHosts() {
-        return Collections.singleton(new Host("localhost", 3000));
-    }
-
-    @Override
-    protected String nameSpace() {
-        return "test";
-    }
-}
+spring-data-aerospike.hosts=localhost:3000
+spring-data-aerospike.namespace=TEST
 ----
-
-`@Configuration` tells Spring that this class contains configuration data, and `@EnableAerospikeRepositories` activates Aerospike repositories that can be used for data access. The parameter to this annotation tells Spring Data Aerospike where to look for the repositories. This can be a list of package names as strings using the `basePackages` value, or a list of classes through the `basePackageClass` value. If the latter is used (as in this example), the class is used to determine which package to scan, and all repositories in that package will be available for use. More details on repositories are below.
-
-The primary information required by this configuration is how to connect to the cluster, provided through the `getHosts` and `nameSpace` calls.
-
-NOTE: You can optionally override xref:#configure-data-settings[`configureDataSettings`] method of `AbstractAerospikeDataConfiguration` to customize your configuration.
 
 == Creating Functionality
 
@@ -156,6 +139,6 @@ aql> select * from test.Person where pk = "1"
 
 NOTE: The fully qualified path of the class is listed in each record. This is needed to instantiate the class correctly, especially in cases when the compile-time type and runtime type of the object differ. For example, where a field is declared as a super class but the instantiated class is a subclass.
 
-NOTE: By default, the type of the field annotated with `@id` is turned into a `String` to be stored in Aerospike database. If the original type cannot be persisted (see xref:#configure-data-settings.keep-original-key-types[keepOriginalKeyTypes] for details), it must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
+NOTE: By default, the type of the field annotated with `@id` is turned into a `String` to be stored in Aerospike database. If the original type cannot be persisted (see xref:#configuration.keep-original-key-types[keepOriginalKeyTypes] for details), it must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
 
 

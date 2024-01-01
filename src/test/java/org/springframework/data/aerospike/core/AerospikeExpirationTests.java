@@ -29,7 +29,6 @@ import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpir
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpirationAnnotation;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpirationOneDay;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithUnixTimeExpiration;
-import org.springframework.test.context.TestPropertySource;
 
 import java.time.Duration;
 
@@ -37,15 +36,12 @@ import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Offset.offset;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
 import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
 import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTwoSecondsUntil;
 
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
     @AfterEach
