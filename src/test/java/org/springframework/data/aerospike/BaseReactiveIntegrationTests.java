@@ -11,7 +11,6 @@ import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
@@ -27,7 +26,6 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
         "indexSuffix: index1"
     }
 )
-@ActiveProfiles("test")
 public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests {
 
     @Autowired

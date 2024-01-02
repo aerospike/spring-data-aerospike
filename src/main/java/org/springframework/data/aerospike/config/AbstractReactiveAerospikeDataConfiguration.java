@@ -39,8 +39,10 @@ import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
+import static org.springframework.data.aerospike.utility.Utils.getNamespace;
+
 /**
- * Configuration with beans needed for reactive stuff
+ * Configuration with beans needed for reactive flow
  *
  * @author Igor Ermolenko
  */
@@ -57,8 +59,9 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                ReactorIndexRefresher reactorIndexRefresher,
                                                                ServerVersionSupport serverVersionSupport,
                                                                AerospikeSettings settings) {
-        return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getNamespace(), mappingAerospikeConverter,
-            aerospikeMappingContext, aerospikeExceptionTranslator, reactorQueryEngine, reactorIndexRefresher,
+        return new ReactiveAerospikeTemplate(aerospikeReactorClient, getNamespace(settings.getNamespace(),
+            nameSpace()), mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
+            reactorQueryEngine, reactorIndexRefresher,
             serverVersionSupport);
     }
 

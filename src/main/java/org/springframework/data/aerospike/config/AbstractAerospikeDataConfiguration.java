@@ -35,6 +35,8 @@ import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
+import static org.springframework.data.aerospike.utility.Utils.getNamespace;
+
 @Slf4j
 @Configuration
 public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataConfigurationSupport {
@@ -46,8 +48,9 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                QueryEngine queryEngine, IndexRefresher indexRefresher,
                                                ServerVersionSupport serverVersionSupport, AerospikeSettings settings) {
-        return new AerospikeTemplate(aerospikeClient, settings.getNamespace(), mappingAerospikeConverter,
-            aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine, indexRefresher, serverVersionSupport);
+        return new AerospikeTemplate(aerospikeClient, getNamespace(settings.getNamespace(), nameSpace()),
+            mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine,
+            indexRefresher, serverVersionSupport);
     }
 
     @Bean(name = "aerospikeQueryEngine")

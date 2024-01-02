@@ -14,7 +14,6 @@ import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,7 +28,6 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
         "indexSuffix: index1"
     }
 )
-@ActiveProfiles("test")
 public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests {
 
     @Autowired

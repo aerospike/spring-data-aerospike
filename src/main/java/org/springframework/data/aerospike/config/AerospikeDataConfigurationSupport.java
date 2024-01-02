@@ -52,6 +52,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.springframework.data.aerospike.utility.Utils.parseHosts;
+
 /**
  * @author Taras Danylchuk
  */
@@ -108,7 +110,8 @@ public abstract class AerospikeDataConfigurationSupport {
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
     public AerospikeClient aerospikeClient(AerospikeSettings settings) {
-        Collection<Host> hosts = settings.getHosts();
+        Collection<Host> hosts;
+        if ((hosts = parseHosts(settings.getHosts())) == null) hosts = getHosts();
         return new AerospikeClient(getClientPolicy(), hosts.toArray(new Host[0]));
     }
 
@@ -168,6 +171,28 @@ public abstract class AerospikeDataConfigurationSupport {
     @SuppressWarnings("SameReturnValue")
     protected FieldNamingStrategy fieldNamingStrategy() {
         return PropertyNameFieldNamingStrategy.INSTANCE;
+    }
+
+    /**
+     * Override this method to define the hosts to be used.
+     * <p>The value of 'spring-data-aerospike.hosts' parameter in application.properties has precedence over this
+     * method's return value.
+     *
+     * @return Collection of Host objects for Aerospike client to connect
+     */
+    protected Collection<Host> getHosts() {
+        return null;
+    }
+
+    /**
+     * Override this method to define the namespace to be used.
+     * <p>The value of 'spring-data-aerospike.namespace' parameter in application.properties has precedence over this
+     * method's return value.
+     *
+     * @return Collection of Host objects for Aerospike client to connect
+     */
+    protected String nameSpace() {
+        return null;
     }
 
     /**
