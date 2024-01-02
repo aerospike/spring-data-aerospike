@@ -3,10 +3,7 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
@@ -29,13 +26,6 @@ import java.util.List;
 @EnableAerospikeRepositories(basePackageClasses = {ContactRepository.class, CustomerRepository.class})
 public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
 
-    @Value("${embedded.aerospike.namespace}")
-    protected String testNamespace;
-    @Value("${embedded.aerospike.host}")
-    protected String testHost;
-    @Value("${embedded.aerospike.port}")
-    protected int testPort;
-
     @Autowired
     Environment env;
 
@@ -48,23 +38,8 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
     }
 
     @Override
-    @Bean
-    @Profile("test")
-    @ConfigurationProperties("spring-data-aerospike")
-    public AerospikeSettings aerospikeConfiguration() {
-        AerospikeSettings settings = new AerospikeSettings();
-        settings.setTestHosts(testHost + ":" + testPort);
-        return settings;
-    }
-
-    @Override
-    @Bean
-    public ClientPolicy clientPolicy(AerospikeSettings settings) {
-        ClientPolicy clientPolicy = new ClientPolicy();
-        clientPolicy.failIfNotConnected = true;
-        clientPolicy.writePolicyDefault.sendKey = settings.isSendKey();
-        clientPolicy.readPolicyDefault.sendKey = settings.isSendKey();
-
+    protected ClientPolicy getClientPolicy() {
+        ClientPolicy clientPolicy = super.getClientPolicy(); // applying default values first
         clientPolicy.readPolicyDefault.maxRetries = 3;
         clientPolicy.writePolicyDefault.totalTimeout = 1000;
         clientPolicy.infoPolicyDefault.timeout = 1000;

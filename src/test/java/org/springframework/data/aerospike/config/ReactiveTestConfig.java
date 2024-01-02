@@ -11,10 +11,7 @@ import io.netty.channel.kqueue.KQueue;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -36,13 +33,6 @@ import java.util.Locale;
  */
 @EnableReactiveAerospikeRepositories(basePackageClasses = {ReactiveCustomerRepository.class})
 public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfiguration {
-
-    @Value("${embedded.aerospike.namespace}")
-    protected String namespace;
-    @Value("${embedded.aerospike.host}")
-    protected String host;
-    @Value("${embedded.aerospike.port}")
-    protected int port;
 
     @Autowired
     Environment env;
@@ -73,16 +63,6 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
         eventPolicy.maxCommandsInProcess = 40;
         eventPolicy.maxCommandsInQueue = 1024;
         return new NettyEventLoops(eventPolicy, eventLoopGroup);
-    }
-
-    @Override
-    @Bean
-    @Profile("test")
-    @ConfigurationProperties("spring-data-aerospike")
-    public AerospikeSettings aerospikeConfiguration() {
-        AerospikeSettings settings = new AerospikeSettings();
-        settings.setTestHosts(host + ":" + port);
-        return settings;
     }
 
     @Bean

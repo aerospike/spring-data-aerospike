@@ -107,10 +107,9 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
-//    @Profile("!test")
-    public AerospikeClient aerospikeClient(AerospikeSettings settings, ClientPolicy clientPolicy) {
-        Collection<Host> hosts = settings.getTestHosts() == null ? settings.getHosts() : settings.getTestHosts();
-        return new AerospikeClient(clientPolicy, hosts.toArray(new Host[0]));
+    public AerospikeClient aerospikeClient(AerospikeSettings settings) {
+        Collection<Host> hosts = settings.getHosts();
+        return new AerospikeClient(getClientPolicy(), hosts.toArray(new Host[0]));
     }
 
     @Bean(name = "filterExpressionsBuilder")
@@ -174,28 +173,24 @@ public abstract class AerospikeDataConfigurationSupport {
     /**
      * Return {@link ClientPolicy} object that contains all client policies.
      *
-     * <p>Override this bean to set the necessary parameters </p>
+     * <p>Override this method to set the necessary parameters, </p>
+     * <p>call super.getClientPolicy() to apply default values first.</p>
      *
      * @return new ClientPolicy instance
      */
-    @Bean
-    public ClientPolicy clientPolicy(AerospikeSettings settings) {
+    protected ClientPolicy getClientPolicy() {
         ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.failIfNotConnected = true;
         clientPolicy.timeout = 10_000;
-        clientPolicy.writePolicyDefault.sendKey = settings.isSendKey();
-        clientPolicy.readPolicyDefault.sendKey = settings.isSendKey();
+        clientPolicy.writePolicyDefault.sendKey = true;
+        clientPolicy.readPolicyDefault.sendKey = true;
         log.debug("AerospikeSettings.sendKey: {}", clientPolicy.writePolicyDefault.sendKey);
         return clientPolicy;
     }
 
     @Bean
-    @ConfigurationProperties("spring-data-aerospike")
-    public AerospikeSettings aerospikeConfiguration() {
+    @ConfigurationProperties(prefix = "spring-data-aerospike")
+    public AerospikeSettings aerospikeSettings() {
         return new AerospikeSettings();
-    }
-
-    protected String getNamespace(AerospikeSettings settings) {
-        return settings.getTestNamespace() != null ? settings.getTestNamespace() : settings.getNamespace();
     }
 }

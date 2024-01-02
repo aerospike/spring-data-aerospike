@@ -18,7 +18,6 @@ package org.springframework.data.aerospike.cache;
 import com.aerospike.client.IAerospikeClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.transaction.TransactionAwareCacheDecorator;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -33,9 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Venil Noronha
  */
 public class AerospikeCacheManagerTests extends BaseBlockingIntegrationTests {
-
-    @Value("${embedded.aerospike.namespace}")
-    public String namespace;
 
     @Autowired
     IAerospikeClient client;

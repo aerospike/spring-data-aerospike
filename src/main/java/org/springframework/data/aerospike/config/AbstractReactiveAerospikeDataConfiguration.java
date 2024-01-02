@@ -57,7 +57,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                ReactorIndexRefresher reactorIndexRefresher,
                                                                ServerVersionSupport serverVersionSupport,
                                                                AerospikeSettings settings) {
-        return new ReactiveAerospikeTemplate(aerospikeReactorClient, getNamespace(settings), mappingAerospikeConverter,
+        return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getNamespace(), mappingAerospikeConverter,
             aerospikeMappingContext, aerospikeExceptionTranslator, reactorQueryEngine, reactorIndexRefresher,
             serverVersionSupport);
     }
@@ -98,13 +98,8 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     protected abstract EventLoops eventLoops();
 
     @Override
-    @Bean
-    public ClientPolicy clientPolicy(AerospikeSettings settings) {
-        ClientPolicy clientPolicy = new ClientPolicy();
-        clientPolicy.failIfNotConnected = true;
-        clientPolicy.writePolicyDefault.sendKey = settings.isSendKey();
-        clientPolicy.readPolicyDefault.sendKey = settings.isSendKey();
-
+    protected ClientPolicy getClientPolicy() {
+        ClientPolicy clientPolicy = super.getClientPolicy(); // applying default values first
         clientPolicy.eventLoops = eventLoops();
         return clientPolicy;
     }
