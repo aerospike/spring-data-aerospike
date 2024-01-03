@@ -16,7 +16,6 @@
 package org.springframework.data.aerospike.utility;
 
 import com.aerospike.client.AerospikeException;
-import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Info;
 import com.aerospike.client.ResultCode;
@@ -26,11 +25,9 @@ import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 /**
  * Utility class containing useful methods for interacting with Aerospike across the entire implementation
@@ -106,14 +103,6 @@ public class Utils {
 
     public static boolean allArrayElementsAreNull(Object[] array) {
         return Arrays.stream(array).allMatch(Objects::isNull);
-    }
-
-    public static Collection<Host> parseHosts(String hostsString) {
-        if (StringUtils.hasText(hostsString)) return Arrays.stream(hostsString.split(","))
-            .map(host -> host.split(":"))
-            .map(hostArr -> new Host(hostArr[0], Integer.parseInt(hostArr[1])))
-            .collect(Collectors.toList());
-        return null;
     }
 
     public static String getNamespace(String prioritizedNamespace, String fallbackNamespace) {

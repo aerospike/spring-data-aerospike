@@ -59,10 +59,11 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                ReactorIndexRefresher reactorIndexRefresher,
                                                                ServerVersionSupport serverVersionSupport,
                                                                AerospikeSettings settings) {
-        return new ReactiveAerospikeTemplate(aerospikeReactorClient, getNamespace(settings.getNamespace(),
-            nameSpace()), mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
-            reactorQueryEngine, reactorIndexRefresher,
-            serverVersionSupport);
+        // namespace parameter from application.properties has precedence over nameSpace() return value
+        settings.setNamespace(getNamespace(settings.getNamespace(), nameSpace()));
+        return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getNamespace(),
+            mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
+            reactorQueryEngine, reactorIndexRefresher, serverVersionSupport);
     }
 
     @Bean(name = "reactiveAerospikeQueryEngine")

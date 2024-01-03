@@ -50,13 +50,50 @@ implementation group: 'com.aerospike', name: 'spring-data-aerospike', version: '
 
 == Connecting to Aerospike DB
 
-Configuring Spring Data Aerospike is easy, necessary configuration should be specified in `application.properties`.
+There are two ways of configuring basic connection to Aerospike DB.
+
+* Overriding `getHosts()` and `nameSpace()` methods of the `AbstractAerospikeDataConfiguration` class:
+
+[source, java]
+----
+@Configuration
+@EnableAerospikeRepositories(basePackageClasses = { PersonRepository.class})
+public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
+    @Override
+    protected Collection<Host> getHosts() {
+        return Collections.singleton(new Host("localhost", 3000));
+    }
+    @Override
+    protected String nameSpace() {
+        return "test";
+    }
+}
+----
+
+* Using `application.properties`:
+
+Basic configuration in this case requires enabling repositories and then setting `hosts` and `namespace` in the `application.properties` file.
+
+[source, java]
+----
+@Configuration
+@EnableAerospikeRepositories(basePackageClasses = { PersonRepository.class})
+public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
+
+}
+----
+
+In `application.properties`:
 
 [source, properties]
 ----
 spring-data-aerospike.hosts=localhost:3000
-spring-data-aerospike.namespace=TEST
+spring-data-aerospike.namespace=test
 ----
+
+NOTE: `hosts` and `namespace` parameters set via application.properties have precedence over `getHosts()` and `nameSpace()` methods of the `AbstractAerospikeDataConfiguration` class.
+
+For more detailed settings see xref:#configuration[Configuration].
 
 == Creating Functionality
 

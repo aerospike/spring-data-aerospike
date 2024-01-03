@@ -48,7 +48,9 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                QueryEngine queryEngine, IndexRefresher indexRefresher,
                                                ServerVersionSupport serverVersionSupport, AerospikeSettings settings) {
-        return new AerospikeTemplate(aerospikeClient, getNamespace(settings.getNamespace(), nameSpace()),
+        // namespace parameter from application.properties has precedence over nameSpace() return value
+        settings.setNamespace(getNamespace(settings.getNamespace(), nameSpace()));
+        return new AerospikeTemplate(aerospikeClient, settings.getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine,
             indexRefresher, serverVersionSupport);
     }

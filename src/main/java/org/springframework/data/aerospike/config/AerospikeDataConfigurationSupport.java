@@ -52,8 +52,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.springframework.data.aerospike.utility.Utils.parseHosts;
-
 /**
  * @author Taras Danylchuk
  */
@@ -110,9 +108,17 @@ public abstract class AerospikeDataConfigurationSupport {
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
     public AerospikeClient aerospikeClient(AerospikeSettings settings) {
-        Collection<Host> hosts;
-        if ((hosts = parseHosts(settings.getHosts())) == null) hosts = getHosts();
-        return new AerospikeClient(getClientPolicy(), hosts.toArray(new Host[0]));
+        // hosts parameter from application.properties has precedence over getHosts() return value
+        if (StringUtils.hasText(settings.getHosts())) {
+            settings.setHostsArray(Host.parseHosts(settings.getHosts(), getDefaultPort()));
+        } else {
+            settings.setHostsArray(getHosts().toArray(new Host[0]));
+        }
+        return new AerospikeClient(getClientPolicy(), settings.getHostsArray());
+    }
+
+    protected int getDefaultPort() {
+        return 3000;
     }
 
     @Bean(name = "filterExpressionsBuilder")
