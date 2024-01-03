@@ -2267,7 +2267,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-        // find by deeply nested String POJO field
+    // find by deeply nested String POJO field
     void findPersonsByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendFriendAddressZipCode() {
         String zipCode = "C0123";
         Address address = new Address("Foo Street 1", 1, zipCode, "Bar");
@@ -2306,7 +2306,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-        // find by deeply nested Integer POJO field
+    // find by deeply nested Integer POJO field
     void findPersonsByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddressApartmentNumber() {
         int apartment = 10;
         Address address = new Address("Foo Street 1", apartment, "C0123", "Bar");
@@ -2345,7 +2345,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-        // find by deeply nested POJO
+    // find by deeply nested POJO
     void findPersonsByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendBestFriendAddress() {
         if (serverVersionSupport.findByPojo()) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");

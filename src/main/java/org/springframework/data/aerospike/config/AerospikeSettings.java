@@ -12,20 +12,20 @@ public class AerospikeSettings {
     // Namespace
     String namespace;
     // Enable scan operation
-    boolean scansEnabled;
+    boolean scansEnabled = false;
     // Send user defined key in addition to hash digest on both reads and writes
-    boolean sendKey;
+    boolean sendKey = true;
     // Create secondary indexes specified using `@Indexed` annotation on startup
-    boolean createIndexesOnStartup;
+    boolean createIndexesOnStartup = true;
     // Automatically refresh indexes cache every <N> seconds
-    int indexCacheRefreshSeconds;
+    int indexCacheRefreshSeconds = 3600;
     // Automatically refresh cached server version every <N> seconds
-    int serverVersionRefreshSeconds;
+    int serverVersionRefreshSeconds = 3600;
     // Limit amount of results returned by server. Non-positive value means no limit
-    long queryMaxRecords;
+    long queryMaxRecords = 10_000L;
     // Maximum batch size for batch write operations
-    int batchWriteSize;
+    int batchWriteSize = 100;
     // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
     // true - preserve original type if supported
-    boolean keepOriginalKeyTypes;
+    boolean keepOriginalKeyTypes = false;
 }
