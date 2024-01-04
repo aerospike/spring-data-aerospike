@@ -1,7 +1,7 @@
 [[configuration]]
 = Configuration
 
-Configuration parameters can be set in the standard `application.properties` file using `spring-data-aerospike` prefix.
+Configuration parameters can be set in a standard `application.properties` file using `spring-data-aerospike` prefix.
 
 Here is an example:
 

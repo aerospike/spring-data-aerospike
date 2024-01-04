@@ -140,10 +140,14 @@ For non-blocking reactive API use `ReactiveAerospikeRepository`.
 === 3. Configuration
 
 In order to configure Spring Data Aerospike you will need to create a configuration class that extends
-`AbstractAerospikeDataConfiguration`, defines the relevant Spring Data Repositories via `@EnableAerospikeRepositories`
-annotation and overrides `getHosts()` and `nameSpace()` methods with the required connection details.
+`AbstractAerospikeDataConfiguration` and defines the relevant Spring Data Repositories via `@EnableAerospikeRepositories`
+annotation.
 
-NOTE: You can optionally override xref:#configure-data-settings[`configureDataSettings`] method of `AbstractAerospikeDataConfiguration` to further customize your configuration.
+To set the connection details you can either override `getHosts()` and `nameSpace()` methods
+of the `AbstractAerospikeDataConfiguration` class or define `spring-data-aerospike.hosts` and
+`spring-data-aerospike.namespace` in `application.properties` file.
+
+NOTE: You can further customize your configuration by changing xref:#configuration[`settings`] in application.properties.
 
 Here is a simple example of a configuration class that sets up a connection to a local Aerospike instance:
 
