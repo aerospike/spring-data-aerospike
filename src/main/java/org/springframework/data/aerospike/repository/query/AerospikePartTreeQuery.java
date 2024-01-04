@@ -118,7 +118,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         List<?> resultsPage;
         if (operations.getQueryMaxRecords() > 0) {
             // Assuming there is enough memory
-            // and configuration parameter AerospikeSettings.queryMaxRecords is less than Integer.MAX_VALUE
+            // and configuration parameter AerospikeDataSettings.queryMaxRecords is less than Integer.MAX_VALUE
             List<?> unprocessedResults = unprocessedResultsStream.toList();
             numberOfAllResults = unprocessedResults.size();
             resultsPage = pageable.isUnpaged() ? unprocessedResults : applyPostProcessing(unprocessedResults.stream(),

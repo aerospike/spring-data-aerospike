@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class AerospikeSettings {
+public class AerospikeDataSettings {
 
     // String of hosts separated by ',' in form of hostname1[:tlsName1][:port1],...
     // An IP address must be given in one of the following formats:

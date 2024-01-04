@@ -19,7 +19,7 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.support.GenericConversionService;
-import org.springframework.data.aerospike.config.AerospikeSettings;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -53,12 +53,12 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     private final AerospikeMappingContext mappingContext;
     private final CustomConversions conversions;
     private final GenericConversionService conversionService;
-    private final AerospikeSettings settings;
+    private final AerospikeDataSettings settings;
 
     public MappingAerospikeWriteConverter(TypeMapper<Map<String, Object>> typeMapper,
                                           AerospikeMappingContext mappingContext, CustomConversions conversions,
                                           GenericConversionService conversionService,
-                                          AerospikeSettings settings) {
+                                          AerospikeDataSettings settings) {
         this.typeMapper = typeMapper;
         this.mappingContext = mappingContext;
         this.conversions = conversions;

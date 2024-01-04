@@ -50,7 +50,7 @@ implementation group: 'com.aerospike', name: 'spring-data-aerospike', version: '
 
 == Connecting to Aerospike DB
 
-There are two ways of configuring basic connection to Aerospike DB.
+There are two ways of configuring a basic connection to Aerospike DB.
 
 * Overriding `getHosts()` and `nameSpace()` methods of the `AbstractAerospikeDataConfiguration` class:
 
@@ -93,7 +93,7 @@ spring-data-aerospike.namespace=test
 
 NOTE: `hosts` and `namespace` parameters set via application.properties have precedence over `getHosts()` and `nameSpace()` methods of the `AbstractAerospikeDataConfiguration` class.
 
-For more detailed settings see xref:#configuration[Configuration].
+For more detailed information see xref:#configuration[Configuration].
 
 == Creating Functionality
 

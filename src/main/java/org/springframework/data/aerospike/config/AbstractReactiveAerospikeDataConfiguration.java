@@ -58,7 +58,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                ReactorQueryEngine reactorQueryEngine,
                                                                ReactorIndexRefresher reactorIndexRefresher,
                                                                ServerVersionSupport serverVersionSupport,
-                                                               AerospikeSettings settings) {
+                                                               AerospikeDataSettings settings) {
         // namespace parameter from application.properties has precedence over nameSpace() return value
         settings.setNamespace(getNamespace(settings.getNamespace(), nameSpace()));
         return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getNamespace(),
@@ -70,14 +70,14 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     public ReactorQueryEngine reactorQueryEngine(IAerospikeReactorClient aerospikeReactorClient,
                                                  StatementBuilder statementBuilder,
                                                  FilterExpressionsBuilder filterExpressionsBuilder,
-                                                 AerospikeSettings settings) {
+                                                 AerospikeDataSettings settings) {
         ReactorQueryEngine queryEngine = new ReactorQueryEngine(aerospikeReactorClient, statementBuilder,
             filterExpressionsBuilder);
         boolean scansEnabled = settings.isScansEnabled();
         queryEngine.setScansEnabled(scansEnabled);
-        log.debug("AerospikeSettings.scansEnabled: {}", scansEnabled);
+        log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
         long queryMaxRecords = settings.getQueryMaxRecords();
-        log.debug("AerospikeSettings.queryMaxRecords: {}", queryMaxRecords);
+        log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
         queryEngine.setQueryMaxRecords(queryMaxRecords);
         return queryEngine;
     }
@@ -112,9 +112,9 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     public ReactiveAerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
-        ObjectProvider<ReactiveAerospikeTemplate> template, AerospikeSettings settings) {
+        ObjectProvider<ReactiveAerospikeTemplate> template, AerospikeDataSettings settings) {
         boolean indexesOnStartup = settings.isCreateIndexesOnStartup();
-        log.debug("AerospikeSettings.indexesOnStartup: {}", indexesOnStartup);
+        log.debug("AerospikeDataSettings.indexesOnStartup: {}", indexesOnStartup);
         return new ReactiveAerospikePersistenceEntityIndexCreator(aerospikeMappingContext,
             indexesOnStartup, aerospikeIndexResolver, template);
     }

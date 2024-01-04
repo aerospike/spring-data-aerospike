@@ -23,7 +23,7 @@ import com.aerospike.client.query.IndexType;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.aerospike.config.AerospikeSettings;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
@@ -62,7 +62,7 @@ public interface ReactiveAerospikeOperations {
     IAerospikeReactorClient getAerospikeReactorClient();
 
     /**
-     * @return Value of configuration parameter {@link AerospikeSettings#getQueryMaxRecords()}.
+     * @return Value of configuration parameter {@link AerospikeDataSettings#getQueryMaxRecords()}.
      */
     long getQueryMaxRecords();
 

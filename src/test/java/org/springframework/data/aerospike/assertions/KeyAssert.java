@@ -3,7 +3,7 @@ package org.springframework.data.aerospike.assertions;
 import com.aerospike.client.Key;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
-import org.springframework.data.aerospike.config.AerospikeSettings;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.util.Assert;
 
 public class KeyAssert extends AbstractAssert<KeyAssert, Key> {
@@ -17,7 +17,7 @@ public class KeyAssert extends AbstractAssert<KeyAssert, Key> {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public KeyAssert consistsOf(AerospikeSettings settings, String namespace, String setName,
+    public KeyAssert consistsOf(AerospikeDataSettings settings, String namespace, String setName,
                                 Object expectedUserKey) {
         if (!actual.namespace.equals(namespace)) {
             throw new IllegalArgumentException("Inconsistent namespace name");

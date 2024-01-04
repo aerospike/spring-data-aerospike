@@ -1,7 +1,11 @@
 [[configuration]]
 = Configuration
 
-Configuration parameters can be set in a standard `application.properties` file using `spring-data-aerospike` prefix.
+Configuration parameters can be set in a standard `application.properties` file using `spring-data-aerospike` prefix
+or by overriding configuration from `AbstractAerospikeDataConfiguration` class.
+
+[[configuration.application-properties]]
+== Application.properties
 
 Here is an example:
 
@@ -33,7 +37,10 @@ public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
 In this case extending `AbstractAerospikeDataConfiguration` class is required to enable repositories.
 
-`hosts` and `namespace` parameters can also be set by overriding `getHosts()` and `nameSpace()` methods of the `AbstractAerospikeDataConfiguration` class.
+[[configuration.overriding-configuration]]
+== Overriding configuration
+
+Configuration can also be set by overriding `getHosts()` and `nameSpace()` methods as well as `AerospikeDataSettings` bean of the `AbstractAerospikeDataConfiguration` class.
 
 Here is an example:
 
@@ -51,6 +58,16 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
     protected String nameSpace() {
         return "test";
     }
+
+    @Override
+    @Bean
+    public AerospikeDataSettings aerospikeDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setCreateIndexesOnStartup(true);
+        settings.setIndexCacheRefreshSeconds(3600);
+        settings.setQueryMaxRecords(10000L);
+        return settings;
+    }
 }
 ----
 
@@ -64,6 +81,7 @@ NOTE: `hosts` and `namespace` parameters set via application.properties have pre
 
 [source,properties]
 ----
+# application.properties
 spring-data-aerospike.hosts=hostname1:3001, hostname2:tlsName2:3002
 ----
 
@@ -87,10 +105,19 @@ IPv6 addresses must be enclosed by brackets. tlsName is optional.
 
 [source,properties]
 ----
+# application.properties
 spring-data-aerospike.namespace=test
 ----
 
 Aerospike DB namespace.
+
+NOTE: `namespace` parameter set via application.properties has precedence over `nameSpace()` method of the `AbstractAerospikeDataConfiguration` class.
+
+NOTE: To use multiple namespaces it is required to override `nameSpace()` and `AerospikeTemplate` for each
+configuration class per namespace. In that case `spring-data-aerospike.namespace` parameter must be removed
+from `application.properties`.
+See https://github.com/aerospike-examples/spring-data-multiple-namespaces-example[multiple namespaces example]
+for implementation details.
 
 *Default:* `null`.
 

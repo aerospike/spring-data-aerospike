@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.aerospike.config.AerospikeSettings;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -80,7 +80,7 @@ public class LoggingTests {
 
     private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
         MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor(), new AerospikeSettings());
+            conversions, new AerospikeTypeAliasAccessor(), new AerospikeDataSettings());
         converter.afterPropertiesSet();
         return converter;
     }

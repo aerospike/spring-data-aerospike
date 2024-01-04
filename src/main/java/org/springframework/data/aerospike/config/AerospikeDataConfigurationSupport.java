@@ -73,7 +73,7 @@ public abstract class AerospikeDataConfigurationSupport {
     public MappingAerospikeConverter mappingAerospikeConverter(AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
                                                                AerospikeCustomConversions customConversions,
-                                                               AerospikeSettings settings) {
+                                                               AerospikeDataSettings settings) {
         return new MappingAerospikeConverter(aerospikeMappingContext, customConversions, aerospikeTypeAliasAccessor,
             settings);
     }
@@ -107,7 +107,7 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
-    public AerospikeClient aerospikeClient(AerospikeSettings settings) {
+    public AerospikeClient aerospikeClient(AerospikeDataSettings settings) {
         // hosts parameter from application.properties has precedence over getHosts() return value
         if (StringUtils.hasText(settings.getHosts())) {
             settings.setHostsArray(Host.parseHosts(settings.getHosts(), getDefaultPort()));
@@ -133,7 +133,7 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeServerVersionSupport")
-    public ServerVersionSupport serverVersionSupport(IAerospikeClient aerospikeClient, AerospikeSettings settings) {
+    public ServerVersionSupport serverVersionSupport(IAerospikeClient aerospikeClient, AerospikeDataSettings settings) {
         ServerVersionSupport serverVersionSupport = new ServerVersionSupport(aerospikeClient);
         int serverVersionRefreshFrequency = settings.getServerVersionRefreshSeconds();
         processServerVersionRefreshFrequency(serverVersionRefreshFrequency, serverVersionSupport);
@@ -215,13 +215,13 @@ public abstract class AerospikeDataConfigurationSupport {
         clientPolicy.timeout = 10_000;
         clientPolicy.writePolicyDefault.sendKey = true;
         clientPolicy.readPolicyDefault.sendKey = true;
-        log.debug("AerospikeSettings.sendKey: {}", clientPolicy.writePolicyDefault.sendKey);
+        log.debug("AerospikeDataSettings.sendKey: {}", clientPolicy.writePolicyDefault.sendKey);
         return clientPolicy;
     }
 
     @Bean
     @ConfigurationProperties(prefix = "spring-data-aerospike")
-    public AerospikeSettings aerospikeSettings() {
-        return new AerospikeSettings();
+    public AerospikeDataSettings aerospikeDataSettings() {
+        return new AerospikeDataSettings();
     }
 }

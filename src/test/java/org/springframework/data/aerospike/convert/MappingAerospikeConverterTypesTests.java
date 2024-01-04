@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.data.aerospike.assertions.KeyAssert;
-import org.springframework.data.aerospike.config.AerospikeSettings;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.*;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
@@ -785,7 +785,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertThat(actual).isEqualTo(object);
     }
 
-    private boolean compareMaps(AerospikeSettings settings, Bin expected, Bin actual) {
+    private boolean compareMaps(AerospikeDataSettings settings, Bin expected, Bin actual) {
         if (settings != null && settings.isKeepOriginalKeyTypes()) {
             return expected.equals(actual);
         } else {

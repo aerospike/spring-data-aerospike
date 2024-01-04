@@ -5,7 +5,7 @@ import com.aerospike.client.Record;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.env.Environment;
-import org.springframework.data.aerospike.config.AerospikeSettings;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.convert.CustomConversions;
@@ -22,12 +22,12 @@ import static org.mockito.Mockito.when;
 public abstract class BaseMappingAerospikeConverterTest {
 
     protected static final String NAMESPACE = "namespace";
-    public final AerospikeSettings settings = new AerospikeSettings();
-    public final AerospikeSettings settingsReversedKeyTypesOption =
+    public final AerospikeDataSettings settings = new AerospikeDataSettings();
+    public final AerospikeDataSettings settingsReversedKeyTypesOption =
         getAerospikeSettings(!settings.isKeepOriginalKeyTypes());
 
-    private AerospikeSettings getAerospikeSettings(boolean keepOriginalKeyTypes) {
-        AerospikeSettings settings = new AerospikeSettings();
+    private AerospikeDataSettings getAerospikeSettings(boolean keepOriginalKeyTypes) {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
         settings.setKeepOriginalKeyTypes(keepOriginalKeyTypes);
         return settings;
     }
@@ -59,12 +59,12 @@ public abstract class BaseMappingAerospikeConverterTest {
         return converterReversedKeyTypes;
     }
 
-    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeSettings settings,
+    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeDataSettings settings,
                                                                      Converter<?, ?>... customConverters) {
         return getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor(), customConverters);
     }
 
-    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeSettings settings,
+    protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeDataSettings settings,
                                                                      AerospikeTypeAliasAccessor typeAliasAccessor,
                                                                      Converter<?, ?>... customConverters) {
         AerospikeMappingContext mappingContext = new AerospikeMappingContext();
