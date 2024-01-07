@@ -1,7 +1,7 @@
 [[configuration]]
 = Configuration
 
-Configuration parameters can be set in a standard `application.properties` file using `spring-data-aerospike` prefix
+Configuration parameters can be set in a standard `application.properties` file using `spring-data-aerospike.*` prefix
 or by overriding configuration from `AbstractAerospikeDataConfiguration` class.
 
 [[configuration.application-properties]]
@@ -12,16 +12,16 @@ Here is an example:
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.hosts=localhost:3000
-spring-data-aerospike.namespace=test
-spring-data-aerospike.scans-enabled=false
-spring-data-aerospike.send-key=true
-spring-data-aerospike.create-indexes-on-startup=true
-spring-data-aerospike.index-cache-refresh-seconds=3600
-spring-data-aerospike.server-version-refresh-seconds=3600
-spring-data-aerospike.query-max-records=10000
-spring-data-aerospike.batch-write-size=100
-spring-data-aerospike.keep-original-key-types=false
+spring-data-aerospike.connection.hosts=localhost:3000
+spring-data-aerospike.connection.namespace=test
+spring-data-aerospike.data.scans-enabled=false
+spring-data-aerospike.data.send-key=false
+spring-data-aerospike.data.create-indexes-on-startup=true
+spring-data-aerospike.data.index-cache-refresh-seconds=3600
+spring-data-aerospike.data.server-version-refresh-seconds=3600
+spring-data-aerospike.data.query-max-records=10000
+spring-data-aerospike.data.batch-write-size=100
+spring-data-aerospike.data.keep-original-key-types=false
 ----
 
 Configuration class:
@@ -29,7 +29,7 @@ Configuration class:
 [source, java]
 ----
 @Configuration
-@EnableAerospikeRepositories(basePackageClasses = { PersonRepository.class})
+@EnableAerospikeRepositories(basePackageClasses = {TestRepository.class})
 public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 
 }
@@ -40,13 +40,14 @@ In this case extending `AbstractAerospikeDataConfiguration` class is required to
 [[configuration.overriding-configuration]]
 == Overriding configuration
 
-Configuration can also be set by overriding `getHosts()` and `nameSpace()` methods as well as `AerospikeDataSettings` bean of the `AbstractAerospikeDataConfiguration` class.
+Configuration can also be set by overriding `getHosts()` and `nameSpace()` methods
+as well as `configureDataSettings()` method of the `AbstractAerospikeDataConfiguration` class.
 
 Here is an example:
 
 [source,java]
 ----
-@EnableAerospikeRepositories(basePackageClasses = PersonRepository.class)
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
@@ -60,18 +61,23 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
     }
 
     @Override
-    @Bean
-    public AerospikeDataSettings aerospikeDataSettings() {
+    public AerospikeDataSettings configureDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setScansEnabled(false);
         settings.setCreateIndexesOnStartup(true);
         settings.setIndexCacheRefreshSeconds(3600);
+        settings.setServerVersionRefreshSeconds(3600);
         settings.setQueryMaxRecords(10000L);
+        settings.setBatchWriteSize(100);
+        settings.setKeepOriginalKeyTypes(false);
         return settings;
     }
 }
 ----
 
-NOTE: `hosts` and `namespace` parameters set via application.properties have precedence over `getHosts()` and `nameSpace()` methods of the `AbstractAerospikeDataConfiguration` class.
+NOTE: Return values of `getHosts()`, `nameSpace()` and `configureDataSettings()` methods
+of the `AbstractAerospikeDataConfiguration` class have precedence over `hosts` and `namespace` parameters
+set via application.properties.
 
 [[configuration.parameters]]
 == Configuration Parameters
@@ -82,7 +88,7 @@ NOTE: `hosts` and `namespace` parameters set via application.properties have pre
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.hosts=hostname1:3001, hostname2:tlsName2:3002
+spring-data-aerospike.connection.hosts=hostname1:3001, hostname2:tlsName2:3002
 ----
 
 A String of hosts separated by `,` in form of `hostname1[:tlsName1][:port1],...`
@@ -98,6 +104,22 @@ IPv6: [xxxx::xxxx]
 
 IPv6 addresses must be enclosed by brackets. tlsName is optional.
 
+NOTE: Another way of defining hosts is overriding the `getHosts()` method.
+It has precedence over `hosts` parameter from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+    @Override
+    protected Collection<Host> getHosts() {
+        return Collections.singleton(new Host("hostname1", 3001));
+    }
+}
+----
+
 *Default:* `null`.
 
 [[configuration.namespace]]
@@ -106,16 +128,30 @@ IPv6 addresses must be enclosed by brackets. tlsName is optional.
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.namespace=test
+spring-data-aerospike.connection.namespace=test
 ----
 
 Aerospike DB namespace.
 
-NOTE: `namespace` parameter set via application.properties has precedence over `nameSpace()` method of the `AbstractAerospikeDataConfiguration` class.
+NOTE: Another way of defining hosts is overriding the `nameSpace()` method.
+It has precedence over `namespace` parameter from application.properties.
+Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+    @Override
+    protected String nameSpace() {
+        return "test";
+    }
+}
+----
 
 NOTE: To use multiple namespaces it is required to override `nameSpace()` and `AerospikeTemplate` for each
-configuration class per namespace. In that case `spring-data-aerospike.namespace` parameter must be removed
-from `application.properties`.
+configuration class per namespace.
 See https://github.com/aerospike-examples/spring-data-multiple-namespaces-example[multiple namespaces example]
 for implementation details.
 
@@ -126,26 +162,69 @@ for implementation details.
 
 [source,properties]
 ----
-spring-data-aerospike.scans-enabled=false
+# application.properties
+spring-data-aerospike.data.scans-enabled=false
 ----
 
-A scan can be an expensive operation as all records in the set must be read by the Aerospike server, and then the condition is applied to see if they match.
+A scan can be an expensive operation as all records in the set must be read by the Aerospike server,
+and then the condition is applied to see if they match.
 
 Due to the cost of performing this operation, scans from Spring Data Aerospike are disabled by default.
 
-NOTE: Once this flag is enabled, scans run whenever needed with no warnings. This may or may not be optimal in a particular use case.
+NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+It has precedence over reading from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+
+    @Override
+    public AerospikeDataSettings configureDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setScansEnabled(false);
+        return settings;
+    }
+}
+----
+
+NOTE: Once this flag is enabled, scans run whenever needed with no warnings. This may or may not be optimal
+in a particular use case.
 
 *Default:* `false`.
 
-[[configuration.send-key]]
+[[configuration.data.send-key]]
 === sendKey
 
 [source,properties]
 ----
-spring-data-aerospike.send-key=true
+# application.properties
+spring-data-aerospike.data.send-key=false
 ----
 
-Send user defined key in addition to hash digest on both reads and writes. If the key is sent on write, it will be stored with the record on the server.
+Send user defined key in addition to hash digest on both reads and writes. If the key is sent on write,
+it will be stored with the record on the server.
+
+NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+It has precedence over reading from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+
+    @Override
+    public AerospikeDataSettings configureDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setSendKey(false);
+        return settings;
+    }
+}
+----
 
 Default: `false` (do not send the user defined key).
 
@@ -154,10 +233,30 @@ Default: `false` (do not send the user defined key).
 
 [source,properties]
 ----
-spring-data-aerospike.create-indexes-on-startup=true
+# application.properties
+spring-data-aerospike.data.create-indexes-on-startup=true
 ----
 
 Create secondary indexes specified using `@Indexed` annotation on startup.
+
+NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+It has precedence over reading from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+
+    @Override
+    public AerospikeDataSettings configureDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setCreateIndexesOnStartup(true);
+        return settings;
+    }
+}
+----
 
 *Default*: `true`.
 
@@ -166,10 +265,30 @@ Create secondary indexes specified using `@Indexed` annotation on startup.
 
 [source,properties]
 ----
-spring-data-aerospike.index-cache-refresh-seconds=3600
+# application.properties
+spring-data-aerospike.data.index-cache-refresh-seconds=3600
 ----
 
 Automatically refresh indexes cache every <N> seconds.
+
+NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+It has precedence over reading from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+
+    @Override
+    public AerospikeDataSettings configureDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setIndexCacheRefreshSeconds(3600);
+        return settings;
+    }
+}
+----
 
 *Default*: `3600`.
 
@@ -178,10 +297,30 @@ Automatically refresh indexes cache every <N> seconds.
 
 [source,properties]
 ----
-spring-data-aerospike.server-version-refresh-seconds=3600
+# application.properties
+spring-data-aerospike.data.server-version-refresh-seconds=3600
 ----
 
 Automatically refresh cached server version every <N> seconds.
+
+NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+It has precedence over reading from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+
+    @Override
+    public AerospikeDataSettings configureDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setServerVersionRefreshSeconds(3600);
+        return settings;
+    }
+}
+----
 
 *Default*: `3600`.
 
@@ -190,10 +329,30 @@ Automatically refresh cached server version every <N> seconds.
 
 [source,properties]
 ----
-spring-data-aerospike.query-max-records=10000
+# application.properties
+spring-data-aerospike.data.query-max-records=10000
 ----
 
 Limit amount of results returned by server. Non-positive value means no limit.
+
+NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+It has precedence over reading from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+
+    @Override
+    public AerospikeDataSettings configureDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setQueryMaxRecords(10000L);
+        return settings;
+    }
+}
+----
 
 *Default*: `10 000`.
 
@@ -202,10 +361,30 @@ Limit amount of results returned by server. Non-positive value means no limit.
 
 [source,properties]
 ----
-spring-data-aerospike.batch-write-size=100
+# application.properties
+spring-data-aerospike.data.batch-write-size=100
 ----
 
 Maximum batch size for batch write operations. Non-positive value means no limit.
+
+NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+It has precedence over reading from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+
+    @Override
+    public AerospikeDataSettings configureDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setBatchWriteSize(100);
+        return settings;
+    }
+}
+----
 
 *Default*: `100`.
 
@@ -214,10 +393,12 @@ Maximum batch size for batch write operations. Non-positive value means no limit
 
 [source,properties]
 ----
-spring-data-aerospike.keep-original-key-types=false
+# application.properties
+spring-data-aerospike.data.keep-original-key-types=false
 ----
 
-Define how `@Id` fields (primary keys) and `Map` keys are stored in the Aerospike database: `false` - always as `String`, `true` - preserve original type if supported.
+Define how `@Id` fields (primary keys) and `Map` keys are stored in the Aerospike database:
+`false` - always as `String`, `true` - preserve original type if supported.
 
 [width="100%",cols="<20%,<30%,<30%",options="header",]
 |===
@@ -229,7 +410,9 @@ Define how `@Id` fields (primary keys) and `Map` keys are stored in the Aerospik
 |other types |`String` | `String`
 |===
 
-NOTE: If `@Id` field's type cannot be persisted as is, it must be convertible to `String` and will be stored in the database as such, then converted back to the original type when the object is read. This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
+NOTE: If `@Id` field's type cannot be persisted as is, it must be convertible to `String` and will be stored
+in the database as such, then converted back to the original type when the object is read.
+This is transparent to the application but needs to be considered if using external tools like `AQL` to view the data.
 
 [width="100%",cols="<20%,<30%,<30%",options="header",]
 |===
@@ -241,6 +424,25 @@ NOTE: If `@Id` field's type cannot be persisted as is, it must be convertible to
 |`byte[]` |`String` | `byte[]`
 |other types |`String` | `String`
 |===
+
+NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+It has precedence over reading from application.properties. Here is an example:
+
+[source,java]
+----
+// overriding method
+@EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
+class ApplicationConfig extends AbstractAerospikeDataConfiguration {
+
+
+    @Override
+    public AerospikeDataSettings configureDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setKeepOriginalKeyTypes(false);
+        return settings;
+    }
+}
+----
 
 *Default*: `false` (store keys only as `String`).
 

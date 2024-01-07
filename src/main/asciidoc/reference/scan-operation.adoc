@@ -9,7 +9,7 @@ Due to the cost of performing this operation, scans from Spring Data Aerospike a
 == Enabling Scan
 
 If the cost of the scans is acceptable to an organization, they can be enabled by setting
-xref:#configuration.scans-enabled[`scansEnabled`] to `true` in `application.properties`.
+xref:#configuration.scans-enabled[`scansEnabled`] parameter to `true`.
 
 [source,properties]
 ----

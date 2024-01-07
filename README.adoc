@@ -144,12 +144,12 @@ In order to configure Spring Data Aerospike you will need to create a configurat
 annotation.
 
 To set the connection details you can either override `getHosts()` and `nameSpace()` methods
-of the `AbstractAerospikeDataConfiguration` class or define `spring-data-aerospike.hosts` and
-`spring-data-aerospike.namespace` in `application.properties` file.
+of the `AbstractAerospikeDataConfiguration` class or define `spring-data-aerospike.connection.hosts` and
+`spring-data-aerospike.connection.namespace` in `application.properties` file.
 
-NOTE: You can further customize your configuration by changing xref:#configuration[`settings`] in application.properties.
+NOTE: You can further customize your configuration by changing other xref:#configuration[`settings`].
 
-Here is a simple example of a configuration class that sets up a connection to a local Aerospike instance:
+Here is a simple example of a configuration class that sets up a connection to a local Aerospike DB instance:
 
 [source,java]
 ----

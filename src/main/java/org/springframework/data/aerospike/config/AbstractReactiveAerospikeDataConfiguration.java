@@ -22,7 +22,6 @@ import com.aerospike.client.reactor.AerospikeReactorClient;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -57,9 +56,8 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                ReactorQueryEngine reactorQueryEngine,
                                                                ReactorIndexRefresher reactorIndexRefresher,
                                                                ServerVersionSupport serverVersionSupport,
-                                                               @Qualifier("aerospikeSettings")
-                                                                   AerospikeSettings settings) {
-        return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getNamespace(),
+                                                               AerospikeSettings settings) {
+        return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getConnectionSettings().getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
             reactorQueryEngine, reactorIndexRefresher, serverVersionSupport);
     }
@@ -68,14 +66,13 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     public ReactorQueryEngine reactorQueryEngine(IAerospikeReactorClient aerospikeReactorClient,
                                                  StatementBuilder statementBuilder,
                                                  FilterExpressionsBuilder filterExpressionsBuilder,
-                                                 @Qualifier("aerospikeDataSettings") AerospikeDataSettings settings)
-    {
+                                                 AerospikeSettings settings) {
         ReactorQueryEngine queryEngine = new ReactorQueryEngine(aerospikeReactorClient, statementBuilder,
             filterExpressionsBuilder);
-        boolean scansEnabled = settings.isScansEnabled();
+        boolean scansEnabled = settings.getDataSettings().isScansEnabled();
         queryEngine.setScansEnabled(scansEnabled);
         log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
-        long queryMaxRecords = settings.getQueryMaxRecords();
+        long queryMaxRecords = settings.getDataSettings().getQueryMaxRecords();
         log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
         queryEngine.setQueryMaxRecords(queryMaxRecords);
         return queryEngine;
@@ -111,10 +108,8 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     public ReactiveAerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
-        ObjectProvider<ReactiveAerospikeTemplate> template,
-        @Qualifier("aerospikeDataSettings") AerospikeDataSettings settings)
-    {
-        boolean indexesOnStartup = settings.isCreateIndexesOnStartup();
+        ObjectProvider<ReactiveAerospikeTemplate> template, AerospikeSettings settings) {
+        boolean indexesOnStartup = settings.getDataSettings().isCreateIndexesOnStartup();
         log.debug("AerospikeDataSettings.indexesOnStartup: {}", indexesOnStartup);
         return new ReactiveAerospikePersistenceEntityIndexCreator(aerospikeMappingContext,
             indexesOnStartup, aerospikeIndexResolver, template);
