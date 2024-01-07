@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike.config;
 
-import com.aerospike.client.Host;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,15 +8,6 @@ import lombok.Setter;
 @Getter
 public class AerospikeDataSettings {
 
-    // String of hosts separated by ',' in form of hostname1[:tlsName1][:port1],...
-    // An IP address must be given in one of the following formats:
-    // IPv4: xxx.xxx.xxx.xxx
-    // IPv6: [xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
-    // IPv6: [xxxx::xxxx]
-    // IPv6 addresses must be enclosed by brackets. tlsName is optional.
-    String hosts;
-    // Namespace
-    String namespace;
     // Enable scan operation
     boolean scansEnabled = false;
     // Send user defined key in addition to hash digest on both reads and writes
@@ -34,6 +25,4 @@ public class AerospikeDataSettings {
     // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
     // true - preserve original type if supported
     boolean keepOriginalKeyTypes = false;
-    // Storing hosts
-    Host[] hostsArray;
 }

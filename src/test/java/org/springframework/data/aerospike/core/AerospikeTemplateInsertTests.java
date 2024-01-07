@@ -165,9 +165,9 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     public void insertsOnlyFirstDocumentAndNextAttemptsShouldFailWithDuplicateKeyExceptionForVersionedDocument() {
         AtomicLong counter = new AtomicLong();
         AtomicLong duplicateKeyCounter = new AtomicLong();
-        int numberOfConcurrentSaves = 5;
+        int numberOfConcurrentInserts = 5;
 
-        AsyncUtils.executeConcurrently(numberOfConcurrentSaves, () -> {
+        AsyncUtils.executeConcurrently(numberOfConcurrentInserts, () -> {
             long counterValue = counter.incrementAndGet();
             String data = "value-" + counterValue;
             try {
@@ -177,16 +177,16 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             }
         });
 
-        assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
+        assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentInserts - 1);
     }
 
     @Test
     public void insertsOnlyFirstDocumentAndNextAttemptsShouldFailWithDuplicateKeyExceptionForNonVersionedDocument() {
         AtomicLong counter = new AtomicLong();
         AtomicLong duplicateKeyCounter = new AtomicLong();
-        int numberOfConcurrentSaves = 5;
+        int numberOfConcurrentInserts = 5;
 
-        AsyncUtils.executeConcurrently(numberOfConcurrentSaves, () -> {
+        AsyncUtils.executeConcurrently(numberOfConcurrentInserts, () -> {
             long counterValue = counter.incrementAndGet();
             String data = "value-" + counterValue;
             try {
@@ -196,7 +196,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             }
         });
 
-        assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentSaves - 1);
+        assertThat(duplicateKeyCounter.intValue()).isEqualTo(numberOfConcurrentInserts - 1);
     }
 
     @Test

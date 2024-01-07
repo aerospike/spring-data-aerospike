@@ -53,4 +53,11 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike,
             serverVersionSupport);
     }
+
+    @Override
+    protected AerospikeDataSettings configureDataSettings() {
+        AerospikeDataSettings settings = new AerospikeDataSettings();
+        settings.setQueryMaxRecords(5);
+        return settings;
+    }
 }

@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.IAerospikeClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -35,8 +36,6 @@ import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
-import static org.springframework.data.aerospike.utility.Utils.getNamespace;
-
 @Slf4j
 @Configuration
 public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataConfigurationSupport {
@@ -47,9 +46,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
                                                AerospikeMappingContext aerospikeMappingContext,
                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                QueryEngine queryEngine, IndexRefresher indexRefresher,
-                                               ServerVersionSupport serverVersionSupport, AerospikeDataSettings settings) {
-        // namespace parameter from application.properties has precedence over nameSpace() return value
-        settings.setNamespace(getNamespace(settings.getNamespace(), nameSpace()));
+                                               ServerVersionSupport serverVersionSupport,
+                                               @Qualifier("aerospikeSettings") AerospikeSettings settings) {
         return new AerospikeTemplate(aerospikeClient, settings.getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine,
             indexRefresher, serverVersionSupport);
@@ -58,7 +56,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     @Bean(name = "aerospikeQueryEngine")
     public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
                                    StatementBuilder statementBuilder,
-                                   FilterExpressionsBuilder filterExpressionsBuilder, AerospikeDataSettings settings) {
+                                   FilterExpressionsBuilder filterExpressionsBuilder,
+                                   @Qualifier("readAerospikeDataSettings") AerospikeDataSettings settings) {
         QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder);
         boolean scansEnabled = settings.isScansEnabled();
         log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
@@ -73,7 +72,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     public AerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
-        ObjectProvider<AerospikeTemplate> template, AerospikeDataSettings settings) {
+        ObjectProvider<AerospikeTemplate> template,
+        @Qualifier("aerospikeDataSettings") AerospikeDataSettings settings) {
         boolean indexesOnStartup = settings.isCreateIndexesOnStartup();
         log.debug("AerospikeDataSettings.indexesOnStartup: {}", indexesOnStartup);
         return new AerospikePersistenceEntityIndexCreator(aerospikeMappingContext, indexesOnStartup,
@@ -82,7 +82,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
 
     @Bean(name = "aerospikeIndexRefresher")
     public IndexRefresher indexRefresher(IAerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater,
-                                         ServerVersionSupport serverVersionSupport, AerospikeDataSettings settings) {
+                                         ServerVersionSupport serverVersionSupport, @Qualifier("aerospikeDataSettings")
+                                         AerospikeDataSettings settings) {
         IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(),
             new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater, serverVersionSupport);
         refresher.refreshIndexes();

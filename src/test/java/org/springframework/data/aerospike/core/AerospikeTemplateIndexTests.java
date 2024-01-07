@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
 
-@TestPropertySource(properties = {"spring-data-aerospike.create-indexes-on-startup=true"})
+@TestPropertySource(properties = {"spring-data-aerospike.data.create-indexes-on-startup=true"})
 // this test class requires secondary indexes created on startup
 public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 

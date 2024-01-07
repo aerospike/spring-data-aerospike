@@ -104,10 +104,4 @@ public class Utils {
     public static boolean allArrayElementsAreNull(Object[] array) {
         return Arrays.stream(array).allMatch(Objects::isNull);
     }
-
-    public static String getNamespace(String prioritizedNamespace, String fallbackNamespace) {
-        String namespace;
-        if ((namespace = prioritizedNamespace) == null) namespace = fallbackNamespace;
-        return namespace;
-    }
 }

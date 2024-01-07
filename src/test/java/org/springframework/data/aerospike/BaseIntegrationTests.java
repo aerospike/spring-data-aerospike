@@ -13,7 +13,7 @@ public abstract class BaseIntegrationTests {
     public static final String OVERRIDE_SET_NAME = "testSet1";
     protected static final int MILLIS_TO_NANO = 1_000_000;
 
-    @Value("${spring-data-aerospike.namespace}")
+    @Value("${spring-data-aerospike.connection.namespace}")
     protected String namespace;
 
     protected String id;

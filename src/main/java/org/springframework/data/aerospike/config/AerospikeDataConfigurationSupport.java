@@ -20,6 +20,7 @@ import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -73,6 +74,7 @@ public abstract class AerospikeDataConfigurationSupport {
     public MappingAerospikeConverter mappingAerospikeConverter(AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
                                                                AerospikeCustomConversions customConversions,
+                                                               @Qualifier("aerospikeDataSettings")
                                                                AerospikeDataSettings settings) {
         return new MappingAerospikeConverter(aerospikeMappingContext, customConversions, aerospikeTypeAliasAccessor,
             settings);
@@ -107,13 +109,7 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
-    public AerospikeClient aerospikeClient(AerospikeDataSettings settings) {
-        // hosts parameter from application.properties has precedence over getHosts() return value
-        if (StringUtils.hasText(settings.getHosts())) {
-            settings.setHostsArray(Host.parseHosts(settings.getHosts(), getDefaultPort()));
-        } else {
-            settings.setHostsArray(getHosts().toArray(new Host[0]));
-        }
+    public AerospikeClient aerospikeClient(@Qualifier("aerospikeSettings") AerospikeSettings settings) {
         return new AerospikeClient(getClientPolicy(), settings.getHostsArray());
     }
 
@@ -133,7 +129,9 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeServerVersionSupport")
-    public ServerVersionSupport serverVersionSupport(IAerospikeClient aerospikeClient, AerospikeDataSettings settings) {
+    public ServerVersionSupport serverVersionSupport(IAerospikeClient aerospikeClient, @Qualifier(
+        "aerospikeDataSettings")
+    AerospikeDataSettings settings) {
         ServerVersionSupport serverVersionSupport = new ServerVersionSupport(aerospikeClient);
         int serverVersionRefreshFrequency = settings.getServerVersionRefreshSeconds();
         processServerVersionRefreshFrequency(serverVersionRefreshFrequency, serverVersionSupport);
@@ -201,6 +199,10 @@ public abstract class AerospikeDataConfigurationSupport {
         return null;
     }
 
+    protected AerospikeDataSettings configureDataSettings() {
+        return null;
+    }
+
     /**
      * Return {@link ClientPolicy} object that contains all client policies.
      *
@@ -220,8 +222,38 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean
-    @ConfigurationProperties(prefix = "spring-data-aerospike")
-    public AerospikeDataSettings aerospikeDataSettings() {
+    @ConfigurationProperties(prefix = "spring-data-aerospike.data")
+    public AerospikeDataSettings readAerospikeDataSettings() {
         return new AerospikeDataSettings();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spring-data-aerospike.connection")
+    public AerospikeSettings readAerospikeSettings() {
+        return new AerospikeSettings();
+    }
+
+    @Bean
+    protected AerospikeDataSettings aerospikeDataSettings(@Qualifier("readAerospikeDataSettings")
+                                                              AerospikeDataSettings appProperties) {
+        AerospikeDataSettings settings = configureDataSettings();
+        // configureDataSettings() return value has precedence over the parameters from application.properties
+        if (settings != null) return settings;
+        return appProperties;
+    }
+
+    @Bean
+    protected AerospikeSettings aerospikeSettings(@Qualifier("readAerospikeSettings") AerospikeSettings settings) {
+        // getHosts() return value has precedence over hosts parameter from application.properties
+        if (getHosts() != null) {
+            settings.setHostsArray(getHosts().toArray(new Host[0]));
+        } else {
+            settings.setHostsArray(Host.parseHosts(settings.getHosts(), getDefaultPort()));
+        }
+
+        // nameSpace() return value has precedence over namespace parameter from application.properties
+        if (nameSpace() != null) settings.setNamespace(nameSpace());
+
+        return settings;
     }
 }

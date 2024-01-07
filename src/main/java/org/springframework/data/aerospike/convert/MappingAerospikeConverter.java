@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.convert;
 
 import lombok.Getter;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.convert.support.GenericConversionService;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
@@ -52,7 +53,7 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
      */
     public MappingAerospikeConverter(AerospikeMappingContext mappingContext, CustomConversions conversions,
                                      AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
-                                     AerospikeDataSettings settings) {
+                                     @Qualifier("aerospikeDataSettings") AerospikeDataSettings settings) {
         this.conversions = conversions;
         this.conversionService = new DefaultConversionService();
         this.aerospikeSettings = settings;
