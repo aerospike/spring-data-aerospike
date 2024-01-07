@@ -200,7 +200,7 @@ public abstract class AerospikeDataConfigurationSupport {
      *
      * @return Collection of Host objects for Aerospike client to connect
      */
-    protected AerospikeDataSettings configureDataSettings() {
+    protected AerospikeDataSettings aerospikeDataSettings() {
         return null;
     }
 
@@ -218,7 +218,7 @@ public abstract class AerospikeDataConfigurationSupport {
         clientPolicy.timeout = 10_000;
         clientPolicy.writePolicyDefault.sendKey = true;
         clientPolicy.readPolicyDefault.sendKey = true;
-        log.debug("AerospikeDataSettings.sendKey: {}", clientPolicy.writePolicyDefault.sendKey);
+        clientPolicy.batchPolicyDefault.sendKey = true;
         return clientPolicy;
     }
 
@@ -237,21 +237,23 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean
     protected AerospikeSettings aerospikeDataSettings(AerospikeDataSettings dataSettings,
                                                       AerospikeConnectionSettings connectionSettings) {
-        AerospikeDataSettings manualDataSettings = configureDataSettings();
-        // configureDataSettings() return value has precedence over the parameters from application.properties
+        AerospikeDataSettings manualDataSettings = aerospikeDataSettings();
+        // aerospikeDataSettings() return value has precedence over the parameters from application.properties
         if (manualDataSettings != null) {
             dataSettings = manualDataSettings;
         }
 
+        Collection<Host> hosts;
         // getHosts() return value has precedence over hosts parameter from application.properties
-        if (getHosts() != null) {
-            connectionSettings.setHostsArray(getHosts().toArray(new Host[0]));
+        if ((hosts = getHosts()) != null) {
+            connectionSettings.setHostsArray(hosts.toArray(new Host[0]));
         } else {
             connectionSettings.setHostsArray(Host.parseHosts(connectionSettings.getHosts(), getDefaultPort()));
         }
 
+        String namespace;
         // nameSpace() return value has precedence over namespace parameter from application.properties
-        if (nameSpace() != null) connectionSettings.setNamespace(nameSpace());
+        if ((namespace = nameSpace()) != null) connectionSettings.setNamespace(namespace);
 
         return new AerospikeSettings(connectionSettings, dataSettings);
     }

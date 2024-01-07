@@ -15,7 +15,7 @@ Here is an example:
 spring-data-aerospike.connection.hosts=localhost:3000
 spring-data-aerospike.connection.namespace=test
 spring-data-aerospike.data.scans-enabled=false
-spring-data-aerospike.data.send-key=false
+spring-data-aerospike.data.send-key=true
 spring-data-aerospike.data.create-indexes-on-startup=true
 spring-data-aerospike.data.index-cache-refresh-seconds=3600
 spring-data-aerospike.data.server-version-refresh-seconds=3600
@@ -41,7 +41,7 @@ In this case extending `AbstractAerospikeDataConfiguration` class is required to
 == Overriding configuration
 
 Configuration can also be set by overriding `getHosts()` and `nameSpace()` methods
-as well as `configureDataSettings()` method of the `AbstractAerospikeDataConfiguration` class.
+as well as `aerospikeDataSettings()` method of the `AbstractAerospikeDataConfiguration` class.
 
 Here is an example:
 
@@ -61,7 +61,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
     }
 
     @Override
-    public AerospikeDataSettings configureDataSettings() {
+    public AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
         settings.setScansEnabled(false);
         settings.setCreateIndexesOnStartup(true);
@@ -75,7 +75,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 }
 ----
 
-NOTE: Return values of `getHosts()`, `nameSpace()` and `configureDataSettings()` methods
+NOTE: Return values of `getHosts()`, `nameSpace()` and `aerospikeDataSettings()` methods
 of the `AbstractAerospikeDataConfiguration` class have precedence over `hosts` and `namespace` parameters
 set via application.properties.
 
@@ -171,7 +171,7 @@ and then the condition is applied to see if they match.
 
 Due to the cost of performing this operation, scans from Spring Data Aerospike are disabled by default.
 
-NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+NOTE: Another way of defining the parameter is overriding the `aerospikeDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
 
 [source,java]
@@ -182,7 +182,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 
     @Override
-    public AerospikeDataSettings configureDataSettings() {
+    public AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
         settings.setScansEnabled(false);
         return settings;
@@ -201,13 +201,13 @@ in a particular use case.
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.data.send-key=false
+spring-data-aerospike.data.send-key=true
 ----
 
 Send user defined key in addition to hash digest on both reads and writes. If the key is sent on write,
 it will be stored with the record on the server.
 
-NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+NOTE: Another way of defining the parameter is overriding the `aerospikeDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
 
 [source,java]
@@ -218,15 +218,15 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 
     @Override
-    public AerospikeDataSettings configureDataSettings() {
+    public AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
-        settings.setSendKey(false);
+        settings.setSendKey(true);
         return settings;
     }
 }
 ----
 
-Default: `false` (do not send the user defined key).
+Default: `true` (to send the user defined key).
 
 [[configuration.create-indexes-on-startup]]
 === createIndexesOnStartup
@@ -239,7 +239,7 @@ spring-data-aerospike.data.create-indexes-on-startup=true
 
 Create secondary indexes specified using `@Indexed` annotation on startup.
 
-NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+NOTE: Another way of defining the parameter is overriding the `aerospikeDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
 
 [source,java]
@@ -250,7 +250,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 
     @Override
-    public AerospikeDataSettings configureDataSettings() {
+    public AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
         settings.setCreateIndexesOnStartup(true);
         return settings;
@@ -271,7 +271,7 @@ spring-data-aerospike.data.index-cache-refresh-seconds=3600
 
 Automatically refresh indexes cache every <N> seconds.
 
-NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+NOTE: Another way of defining the parameter is overriding the `aerospikeDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
 
 [source,java]
@@ -282,7 +282,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 
     @Override
-    public AerospikeDataSettings configureDataSettings() {
+    public AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
         settings.setIndexCacheRefreshSeconds(3600);
         return settings;
@@ -303,7 +303,7 @@ spring-data-aerospike.data.server-version-refresh-seconds=3600
 
 Automatically refresh cached server version every <N> seconds.
 
-NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+NOTE: Another way of defining the parameter is overriding the `aerospikeDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
 
 [source,java]
@@ -314,7 +314,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 
     @Override
-    public AerospikeDataSettings configureDataSettings() {
+    public AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
         settings.setServerVersionRefreshSeconds(3600);
         return settings;
@@ -335,7 +335,7 @@ spring-data-aerospike.data.query-max-records=10000
 
 Limit amount of results returned by server. Non-positive value means no limit.
 
-NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+NOTE: Another way of defining the parameter is overriding the `aerospikeDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
 
 [source,java]
@@ -346,7 +346,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 
     @Override
-    public AerospikeDataSettings configureDataSettings() {
+    public AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
         settings.setQueryMaxRecords(10000L);
         return settings;
@@ -367,7 +367,7 @@ spring-data-aerospike.data.batch-write-size=100
 
 Maximum batch size for batch write operations. Non-positive value means no limit.
 
-NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+NOTE: Another way of defining the parameter is overriding the `aerospikeDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
 
 [source,java]
@@ -378,7 +378,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 
     @Override
-    public AerospikeDataSettings configureDataSettings() {
+    public AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
         settings.setBatchWriteSize(100);
         return settings;
@@ -425,7 +425,7 @@ This is transparent to the application but needs to be considered if using exter
 |other types |`String` | `String`
 |===
 
-NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
+NOTE: Another way of defining the parameter is overriding the `aerospikeDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
 
 [source,java]
@@ -436,7 +436,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
 
     @Override
-    public AerospikeDataSettings configureDataSettings() {
+    public AerospikeDataSettings aerospikeDataSettings() {
         AerospikeDataSettings settings = new AerospikeDataSettings();
         settings.setKeepOriginalKeyTypes(false);
         return settings;

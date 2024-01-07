@@ -11,7 +11,7 @@ public class AerospikeDataSettings {
     // Enable scan operation
     boolean scansEnabled = false;
     // Send user defined key in addition to hash digest on both reads and writes
-    boolean sendKey = false;
+    boolean sendKey = true;
     // Create secondary indexes specified using `@Indexed` annotation on startup
     boolean createIndexesOnStartup = true;
     // Automatically refresh indexes cache every <N> seconds
