@@ -216,8 +216,8 @@ public abstract class AerospikeDataConfigurationSupport {
         ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.failIfNotConnected = true;
         clientPolicy.timeout = 10_000;
-        clientPolicy.writePolicyDefault.sendKey = true;
         clientPolicy.readPolicyDefault.sendKey = true;
+        clientPolicy.writePolicyDefault.sendKey = true;
         clientPolicy.batchPolicyDefault.sendKey = true;
         return clientPolicy;
     }
@@ -235,12 +235,12 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean
-    protected AerospikeSettings aerospikeDataSettings(AerospikeDataSettings dataSettings,
-                                                      AerospikeConnectionSettings connectionSettings) {
+    protected AerospikeSettings aerospikeSettings(AerospikeDataSettings dataSettings,
+                                                  AerospikeConnectionSettings connectionSettings) {
         AerospikeDataSettings manualDataSettings = aerospikeDataSettings();
-        // aerospikeDataSettings() return value has precedence over the parameters from application.properties
+        // values set via aerospikeDataSettings() have precedence over the parameters from application.properties
         if (manualDataSettings != null) {
-            dataSettings = manualDataSettings;
+            overrideDataSettings(dataSettings, manualDataSettings);
         }
 
         Collection<Host> hosts;
@@ -256,5 +256,35 @@ public abstract class AerospikeDataConfigurationSupport {
         if ((namespace = nameSpace()) != null) connectionSettings.setNamespace(namespace);
 
         return new AerospikeSettings(connectionSettings, dataSettings);
+    }
+
+    private void overrideDataSettings(AerospikeDataSettings dataSettings, AerospikeDataSettings manualDataSettings) {
+        if (dataSettings != null && manualDataSettings != null) {
+            AerospikeDataSettings defaultDataSettings = new AerospikeDataSettings();
+            if (defaultDataSettings.isScansEnabled() != manualDataSettings.isScansEnabled()) {
+                dataSettings.setScansEnabled(manualDataSettings.isScansEnabled());
+            }
+            if (defaultDataSettings.isSendKey() != manualDataSettings.isSendKey()) {
+                dataSettings.setSendKey(manualDataSettings.isSendKey());
+            }
+            if (defaultDataSettings.isCreateIndexesOnStartup() != manualDataSettings.isCreateIndexesOnStartup()) {
+                dataSettings.setCreateIndexesOnStartup(manualDataSettings.isCreateIndexesOnStartup());
+            }
+            if (defaultDataSettings.getIndexCacheRefreshSeconds() != manualDataSettings.getIndexCacheRefreshSeconds()) {
+                dataSettings.setIndexCacheRefreshSeconds(manualDataSettings.getIndexCacheRefreshSeconds());
+            }
+            if (defaultDataSettings.getServerVersionRefreshSeconds() != manualDataSettings.getServerVersionRefreshSeconds()) {
+                dataSettings.setServerVersionRefreshSeconds(manualDataSettings.getServerVersionRefreshSeconds());
+            }
+            if (defaultDataSettings.getQueryMaxRecords() != manualDataSettings.getQueryMaxRecords()) {
+                dataSettings.setQueryMaxRecords(manualDataSettings.getQueryMaxRecords());
+            }
+            if (defaultDataSettings.getBatchWriteSize() != manualDataSettings.getBatchWriteSize()) {
+                dataSettings.setBatchWriteSize(manualDataSettings.getBatchWriteSize());
+            }
+            if (defaultDataSettings.isKeepOriginalKeyTypes() != manualDataSettings.isKeepOriginalKeyTypes()) {
+                dataSettings.setKeepOriginalKeyTypes(manualDataSettings.isKeepOriginalKeyTypes());
+            }
+        }
     }
 }
