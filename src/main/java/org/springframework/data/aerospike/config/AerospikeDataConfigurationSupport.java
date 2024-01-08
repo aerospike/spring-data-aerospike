@@ -195,13 +195,11 @@ public abstract class AerospikeDataConfigurationSupport {
 
     /**
      * Override this method to define data settings to be used.
+     *
      * <p>The return value of this method overrides the values of 'spring-data-aerospike.data.*' parameters
      * from application.properties.
-     *
-     * @return Collection of Host objects for Aerospike client to connect
      */
-    protected AerospikeDataSettings aerospikeDataSettings() {
-        return null;
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
     }
 
     /**
@@ -237,54 +235,24 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean
     protected AerospikeSettings aerospikeSettings(AerospikeDataSettings dataSettings,
                                                   AerospikeConnectionSettings connectionSettings) {
-        AerospikeDataSettings manualDataSettings = aerospikeDataSettings();
-        // values set via aerospikeDataSettings() have precedence over the parameters from application.properties
-        if (manualDataSettings != null) {
-            overrideDataSettings(dataSettings, manualDataSettings);
-        }
+        // values set via configureDataSettings() have precedence over the parameters from application.properties
+        configureDataSettings(dataSettings);
 
-        Collection<Host> hosts;
         // getHosts() return value has precedence over hosts parameter from application.properties
+        Collection<Host> hosts;
+        String hostsString;
         if ((hosts = getHosts()) != null) {
             connectionSettings.setHostsArray(hosts.toArray(new Host[0]));
-        } else {
-            connectionSettings.setHostsArray(Host.parseHosts(connectionSettings.getHosts(), getDefaultPort()));
+        } else if (!StringUtils.hasText(connectionSettings.getHosts())) {
+            throw new IllegalStateException("No hosts found, please set hosts parameter in application.properties or " +
+                "override getHosts() method");
         }
+        connectionSettings.setHostsArray(Host.parseHosts(connectionSettings.getHosts(), getDefaultPort()));
 
-        String namespace;
         // nameSpace() return value has precedence over namespace parameter from application.properties
+        String namespace;
         if ((namespace = nameSpace()) != null) connectionSettings.setNamespace(namespace);
 
         return new AerospikeSettings(connectionSettings, dataSettings);
-    }
-
-    private void overrideDataSettings(AerospikeDataSettings dataSettings, AerospikeDataSettings manualDataSettings) {
-        if (dataSettings != null && manualDataSettings != null) {
-            AerospikeDataSettings defaultDataSettings = new AerospikeDataSettings();
-            if (defaultDataSettings.isScansEnabled() != manualDataSettings.isScansEnabled()) {
-                dataSettings.setScansEnabled(manualDataSettings.isScansEnabled());
-            }
-            if (defaultDataSettings.isSendKey() != manualDataSettings.isSendKey()) {
-                dataSettings.setSendKey(manualDataSettings.isSendKey());
-            }
-            if (defaultDataSettings.isCreateIndexesOnStartup() != manualDataSettings.isCreateIndexesOnStartup()) {
-                dataSettings.setCreateIndexesOnStartup(manualDataSettings.isCreateIndexesOnStartup());
-            }
-            if (defaultDataSettings.getIndexCacheRefreshSeconds() != manualDataSettings.getIndexCacheRefreshSeconds()) {
-                dataSettings.setIndexCacheRefreshSeconds(manualDataSettings.getIndexCacheRefreshSeconds());
-            }
-            if (defaultDataSettings.getServerVersionRefreshSeconds() != manualDataSettings.getServerVersionRefreshSeconds()) {
-                dataSettings.setServerVersionRefreshSeconds(manualDataSettings.getServerVersionRefreshSeconds());
-            }
-            if (defaultDataSettings.getQueryMaxRecords() != manualDataSettings.getQueryMaxRecords()) {
-                dataSettings.setQueryMaxRecords(manualDataSettings.getQueryMaxRecords());
-            }
-            if (defaultDataSettings.getBatchWriteSize() != manualDataSettings.getBatchWriteSize()) {
-                dataSettings.setBatchWriteSize(manualDataSettings.getBatchWriteSize());
-            }
-            if (defaultDataSettings.isKeepOriginalKeyTypes() != manualDataSettings.isKeepOriginalKeyTypes()) {
-                dataSettings.setKeepOriginalKeyTypes(manualDataSettings.isKeepOriginalKeyTypes());
-            }
-        }
     }
 }

@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 public class AerospikeConnectionSettings {
 
-    // String of hosts separated by ',' in form of hostname1[:tlsName1][:port1],...
+    // String of hosts separated by ',' in form of hostname1[:tlsName1]:port1,...
     // An IP address must be given in one of the following formats:
     // IPv4: xxx.xxx.xxx.xxx
     // IPv6: [xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
