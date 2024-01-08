@@ -148,5 +148,6 @@ So the following will be true:
 |a.dd.[1].{#0}     |[mapKey("a"), mapKey("dd"),listIndex(1), mapRank(0)]   |y
 |===
 
-NOTE: There are relevant configuration parameters in AerospikeDataSettings:
-xref:#configure-data-settings.create-indexes-on-startup[create indexes on startup] and xref:#configure-data-settings.index-cache-refresh-frequency-seconds[indexes cache refresh frequency].
+NOTE: There are relevant configuration parameters:
+xref:#configuration.create-indexes-on-startup[create indexes on startup] and
+xref:#configuration.index-cache-refresh-frequency-seconds[indexes cache refresh frequency].

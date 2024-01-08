@@ -206,7 +206,7 @@ public class UserController {
 
 === Add @EnableCaching
 
-==== SimpleSpringbootAerospikeCacheApplication
+==== SimpleSpringBootAerospikeCacheApplication
 
 Add `@EnableCaching` to the class that contains the main method.
 
@@ -214,9 +214,9 @@ Add `@EnableCaching` to the class that contains the main method.
 ----
 @EnableCaching
 @SpringBootApplication
-public class SimpleSpringbootAerospikeCacheApplication {
+public class SimpleSpringBootAerospikeCacheApplication {
     public static void main(String[] args) {
-        SpringApplication.run(SimpleSpringbootAerospikeCacheApplication.class, args);
+        SpringApplication.run(SimpleSpringBootAerospikeCacheApplication.class, args);
     }
 }
 ----
@@ -252,7 +252,7 @@ aql> select * from test
 +-----+-----------+----------+-------------+-------------------------------------+
 | @user_key  | name | @_class | email         | age                             |
 +-----+-----------+----------+-------------+-------------------------------------+
-| "1" | "guthrie" | "com.aerospike.cache.simplespringbootaerospikecache.objects.User"  | "guthriegovan@gmail.com" | 35 |
+| "1" | "guthrie" | "com.aerospike.cache.simpleSpringBootAerospikeCache.objects.User"  | "guthriegovan@gmail.com" | 35 |
 +-----+-----------+----------+-------------+-------------------------------------+
 ----
 
@@ -315,6 +315,6 @@ aql> select * from test
 +-----+-----------+----------+-------------+-------------------------------------+
 | @user_key  | name | @_class | email         | age                             |
 +-----+-----------+----------+-------------+-------------------------------------+
-| "1" | "jimmy page" | "com.aerospike.cache.simplespringbootaerospikecache.objects.User"  | "jimmy@gmail.com" | 77 |
+| "1" | "jimmy page" | "com.aerospike.cache.simpleSpringBootAerospikeCache.objects.User"  | "jimmy@gmail.com" | 77 |
 +-----+-----------+----------+-------------+-------------------------------------+
 ----

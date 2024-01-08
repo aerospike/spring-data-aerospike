@@ -716,7 +716,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @Test
     void shouldWriteAsArrayListAndReadAsByteArray() {
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(aerospikeDataSettings, new AerospikeTypeAliasAccessor(null));
+            getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor(null));
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
         DocumentWithByteArrayList docToWrite = new DocumentWithByteArrayList("user-id", Arrays.asList((byte) 1,
@@ -736,7 +736,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @Test
     void shouldWriteAsByteArrayAndReadAsArrayList() {
         MappingAerospikeConverter converter =
-            getMappingAerospikeConverter(aerospikeDataSettings, new AerospikeTypeAliasAccessor(null));
+            getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor(null));
 
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
         DocumentWithByteArray docToWrite = new DocumentWithByteArray("user-id", new byte[]{1, 2, 3});
@@ -763,14 +763,14 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         aerospikeConverter.write(object, forWrite);
 
-        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeConverter.getAerospikeDataSettings(), NAMESPACE,
+        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeConverter.getAerospikeSettings(), NAMESPACE,
             expectedSet, expectedUserKey);
 
         for (Bin expectedBin : expectedBins) {
             if (expectedBin.value.getType() == ParticleType.MAP) {
                 // Compare Maps
                 assertThat(
-                    compareMaps(aerospikeConverter.getAerospikeDataSettings(), expectedBin,
+                    compareMaps(aerospikeConverter.getAerospikeSettings(), expectedBin,
                         forWrite.getBins().stream().filter(bin -> bin.name.equals(expectedBin.name))
                             .findFirst().orElse(null))).isTrue();
             } else {
@@ -785,8 +785,8 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertThat(actual).isEqualTo(object);
     }
 
-    private boolean compareMaps(AerospikeDataSettings aerospikeDataSettings, Bin expected, Bin actual) {
-        if (aerospikeDataSettings != null && aerospikeDataSettings.isKeepOriginalKeyTypes()) {
+    private boolean compareMaps(AerospikeDataSettings settings, Bin expected, Bin actual) {
+        if (settings != null && settings.isKeepOriginalKeyTypes()) {
             return expected.equals(actual);
         } else {
             // String type is used for unsupported Aerospike key types and previously for all key types in older
@@ -807,7 +807,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         aerospikeConverter.write(object, forWrite);
 
-        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeConverter.getAerospikeDataSettings(), NAMESPACE,
+        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeConverter.getAerospikeSettings(), NAMESPACE,
             expectedSet, expectedUserKey);
         assertThat(forWrite.getBins()).containsOnly(expectedBins);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,47 +15,26 @@
  */
 package org.springframework.data.aerospike.config;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.Getter;
+import lombok.Setter;
 
-@Builder
-@Value
+@Setter
+@Getter
 public class AerospikeDataSettings {
 
-    @Builder.Default
     // Enable scan operation
     boolean scansEnabled = false;
-    @Builder.Default
-    // Send user defined key in addition to hash digest on both reads and writes
-    boolean sendKey = true;
-    @Builder.Default
     // Create secondary indexes specified using `@Indexed` annotation on startup
     boolean createIndexesOnStartup = true;
-    @Builder.Default
     // Automatically refresh indexes cache every <N> seconds
     int indexCacheRefreshSeconds = 3600;
-    @Builder.Default
     // Automatically refresh cached server version every <N> seconds
     int serverVersionRefreshSeconds = 3600;
-    @Builder.Default
     // Limit amount of results returned by server. Non-positive value means no limit
     long queryMaxRecords = 10_000L;
-    @Builder.Default
     // Maximum batch size for batch write operations
     int batchWriteSize = 100;
     // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
     // true - preserve original type if supported
-    @Builder.Default
     boolean keepOriginalKeyTypes = false;
-
-    /*
-     * (non-Javadoc)
-     * Javadoc is not aware of the code modifications made by Lombok.
-     * You can fix it with either delombok or by adding a static inner class inside the class that uses the @Builder
-     * annotation,
-     * it will satisfy javadoc and won't interfere with the @Builder annotation's normal behaviour.
-     */
-    public static class AerospikeDataSettingsBuilder {
-
-    }
 }

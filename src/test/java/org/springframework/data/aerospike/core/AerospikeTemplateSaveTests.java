@@ -27,7 +27,6 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.utility.AsyncUtils;
-import org.springframework.test.context.TestPropertySource;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -36,15 +35,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
 import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
 import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @AfterAll

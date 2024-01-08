@@ -12,11 +12,10 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 @Slf4j
 @ContextConfiguration
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 4", "createIndexesOnStartup = false"})
+@TestPropertySource(properties = {"spring-data-aerospike.data.index-cache-refresh-seconds=4"})
 public class IndexScheduledCacheRefreshTest extends BaseBlockingIntegrationTests {
 
     String setName = "scheduled";

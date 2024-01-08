@@ -76,7 +76,7 @@ public class QueryUtils {
 
     private static MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
         MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor(), AerospikeDataSettings.builder().build());
+            conversions, new AerospikeTypeAliasAccessor(), new AerospikeDataSettings());
         converter.afterPropertiesSet();
         return converter;
     }

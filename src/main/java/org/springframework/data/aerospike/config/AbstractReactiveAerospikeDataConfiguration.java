@@ -40,7 +40,7 @@ import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 /**
- * Configuration with beans needed for reactive stuff
+ * Configuration with beans needed for reactive flow
  *
  * @author Igor Ermolenko
  */
@@ -55,22 +55,24 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                IAerospikeReactorClient aerospikeReactorClient,
                                                                ReactorQueryEngine reactorQueryEngine,
                                                                ReactorIndexRefresher reactorIndexRefresher,
-                                                               ServerVersionSupport serverVersionSupport) {
-        return new ReactiveAerospikeTemplate(aerospikeReactorClient, nameSpace(), mappingAerospikeConverter,
-            aerospikeMappingContext, aerospikeExceptionTranslator, reactorQueryEngine, reactorIndexRefresher,
-            serverVersionSupport);
+                                                               ServerVersionSupport serverVersionSupport,
+                                                               AerospikeSettings settings) {
+        return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getConnectionSettings().getNamespace(),
+            mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
+            reactorQueryEngine, reactorIndexRefresher, serverVersionSupport);
     }
 
     @Bean(name = "reactiveAerospikeQueryEngine")
     public ReactorQueryEngine reactorQueryEngine(IAerospikeReactorClient aerospikeReactorClient,
                                                  StatementBuilder statementBuilder,
-                                                 FilterExpressionsBuilder filterExpressionsBuilder) {
+                                                 FilterExpressionsBuilder filterExpressionsBuilder,
+                                                 AerospikeSettings settings) {
         ReactorQueryEngine queryEngine = new ReactorQueryEngine(aerospikeReactorClient, statementBuilder,
             filterExpressionsBuilder);
-        boolean scansEnabled = aerospikeDataSettings().isScansEnabled();
+        boolean scansEnabled = settings.getDataSettings().isScansEnabled();
         queryEngine.setScansEnabled(scansEnabled);
         log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
-        long queryMaxRecords = aerospikeDataSettings().getQueryMaxRecords();
+        long queryMaxRecords = settings.getDataSettings().getQueryMaxRecords();
         log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
         queryEngine.setQueryMaxRecords(queryMaxRecords);
         return queryEngine;
@@ -106,8 +108,8 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     public ReactiveAerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
-        ObjectProvider<ReactiveAerospikeTemplate> template) {
-        boolean indexesOnStartup = aerospikeDataSettings().isCreateIndexesOnStartup();
+        ObjectProvider<ReactiveAerospikeTemplate> template, AerospikeSettings settings) {
+        boolean indexesOnStartup = settings.getDataSettings().isCreateIndexesOnStartup();
         log.debug("AerospikeDataSettings.indexesOnStartup: {}", indexesOnStartup);
         return new ReactiveAerospikePersistenceEntityIndexCreator(aerospikeMappingContext,
             indexesOnStartup, aerospikeIndexResolver, template);

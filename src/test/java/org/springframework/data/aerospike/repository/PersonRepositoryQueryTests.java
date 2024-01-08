@@ -20,7 +20,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.test.context.TestPropertySource;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -41,15 +40,12 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE_CONTAINING;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     static final Person dave = Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(42)
@@ -857,7 +853,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         List<Person> persons = repository.findByIntMapLessThanEqual("key2", 1);
         assertThat(persons).containsExactly(carter);
 
-        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
+        if (template.getAerospikeConverter().getAerospikeSettings().isKeepOriginalKeyTypes()) {
             carter.setLongIntMap(Map.of(10L, 10));
             repository.save(carter);
             assertThat(carter.getLongIntMap().get(10L) <= 10).isTrue();

@@ -28,14 +28,10 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.utility.AwaitilityUtils;
 import org.springframework.data.annotation.Id;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
 
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
 
     private static final String KEY = "foo";

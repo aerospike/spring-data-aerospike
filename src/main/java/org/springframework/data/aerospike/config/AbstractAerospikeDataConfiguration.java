@@ -45,20 +45,22 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
                                                AerospikeMappingContext aerospikeMappingContext,
                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                QueryEngine queryEngine, IndexRefresher indexRefresher,
-                                               ServerVersionSupport serverVersionSupport) {
-        return new AerospikeTemplate(aerospikeClient, nameSpace(), mappingAerospikeConverter,
-            aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine, indexRefresher, serverVersionSupport);
+                                               ServerVersionSupport serverVersionSupport,
+                                               AerospikeSettings settings) {
+        return new AerospikeTemplate(aerospikeClient, settings.getConnectionSettings().getNamespace(),
+            mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine,
+            indexRefresher, serverVersionSupport);
     }
 
     @Bean(name = "aerospikeQueryEngine")
     public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
                                    StatementBuilder statementBuilder,
-                                   FilterExpressionsBuilder filterExpressionsBuilder) {
+                                   FilterExpressionsBuilder filterExpressionsBuilder, AerospikeSettings settings) {
         QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder);
-        boolean scansEnabled = aerospikeDataSettings().isScansEnabled();
+        boolean scansEnabled = settings.getDataSettings().isScansEnabled();
         log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
         queryEngine.setScansEnabled(scansEnabled);
-        long queryMaxRecords = aerospikeDataSettings().getQueryMaxRecords();
+        long queryMaxRecords = settings.getDataSettings().getQueryMaxRecords();
         log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
         queryEngine.setQueryMaxRecords(queryMaxRecords);
         return queryEngine;
@@ -68,9 +70,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     public AerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
-        ObjectProvider<AerospikeTemplate> template)
-    {
-        boolean indexesOnStartup = aerospikeDataSettings().isCreateIndexesOnStartup();
+        ObjectProvider<AerospikeTemplate> template, AerospikeSettings settings) {
+        boolean indexesOnStartup = settings.getDataSettings().isCreateIndexesOnStartup();
         log.debug("AerospikeDataSettings.indexesOnStartup: {}", indexesOnStartup);
         return new AerospikePersistenceEntityIndexCreator(aerospikeMappingContext, indexesOnStartup,
             aerospikeIndexResolver, template);
@@ -78,11 +79,11 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
 
     @Bean(name = "aerospikeIndexRefresher")
     public IndexRefresher indexRefresher(IAerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater,
-                                         ServerVersionSupport serverVersionSupport) {
+                                         ServerVersionSupport serverVersionSupport, AerospikeSettings settings) {
         IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(),
             new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater, serverVersionSupport);
         refresher.refreshIndexes();
-        int refreshFrequency = aerospikeDataSettings().getIndexCacheRefreshSeconds();
+        int refreshFrequency = settings.getDataSettings().getIndexCacheRefreshSeconds();
         processCacheRefreshFrequency(refreshFrequency, refresher);
         log.debug("AerospikeDataSettings.indexCacheRefreshSeconds: {}", refreshFrequency);
         return refresher;

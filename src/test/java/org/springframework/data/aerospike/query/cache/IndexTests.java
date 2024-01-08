@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,11 +18,8 @@ import static com.aerospike.client.query.IndexType.GEO2DSPHERE;
 import static com.aerospike.client.query.IndexType.NUMERIC;
 import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.query.model.Index.builder;
 
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 public class IndexTests extends BaseBlockingIntegrationTests {
 
     private static final String SET = "index-test";

@@ -1490,7 +1490,7 @@ public enum FilterOperation {
 
     private static boolean keepOriginalKeyTypes(Map<String, Object> qualifierMap) {
         return ((MappingAerospikeConverter) qualifierMap.get(CONVERTER))
-            .getAerospikeDataSettings().isKeepOriginalKeyTypes();
+            .getAerospikeSettings().isKeepOriginalKeyTypes();
     }
 
     private static Exp getFilterExpMapValEqOrFail(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator) {

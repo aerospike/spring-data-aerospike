@@ -27,7 +27,6 @@ import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperation
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.repository.core.EntityInformation;
-import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -45,13 +44,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 
 /**
  * @author Igor Ermolenko
  */
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = false"})
-// this test class does not require secondary indexes created on startup
 @ExtendWith(MockitoExtension.class)
 public class SimpleReactiveAerospikeRepositoryTest {
 

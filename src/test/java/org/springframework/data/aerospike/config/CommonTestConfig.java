@@ -42,7 +42,7 @@ import java.util.Map;
 @EnableAutoConfiguration
 public class CommonTestConfig {
 
-    @Value("${embedded.aerospike.namespace}")
+    @Value("${spring-data-aerospike.connection.namespace}")
     protected String namespace;
 
     @Bean

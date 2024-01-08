@@ -38,5 +38,5 @@ public interface AerospikeConverter extends AerospikeReader<Object>, AerospikeWr
      *
      * @return the underlying {@link AerospikeDataSettings} used by the converter
      */
-    AerospikeDataSettings getAerospikeDataSettings();
+    AerospikeDataSettings getAerospikeSettings();
 }

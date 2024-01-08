@@ -53,17 +53,17 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     private final AerospikeMappingContext mappingContext;
     private final CustomConversions conversions;
     private final GenericConversionService conversionService;
-    private final AerospikeDataSettings aerospikeDataSettings;
+    private final AerospikeDataSettings settings;
 
     public MappingAerospikeWriteConverter(TypeMapper<Map<String, Object>> typeMapper,
                                           AerospikeMappingContext mappingContext, CustomConversions conversions,
                                           GenericConversionService conversionService,
-                                          AerospikeDataSettings aerospikeDataSettings) {
+                                          AerospikeDataSettings settings) {
         this.typeMapper = typeMapper;
         this.mappingContext = mappingContext;
         this.conversions = conversions;
         this.conversionService = conversionService;
-        this.aerospikeDataSettings = aerospikeDataSettings;
+        this.settings = settings;
     }
 
     private static Collection<?> asCollection(final Object source) {
@@ -124,7 +124,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
                 String setName = Optional.ofNullable(data.getSetName()).orElse(entity.getSetName());
 
                 // Store record key as it is (if Aerospike supports it natively and configured)
-                if (aerospikeDataSettings.isKeepOriginalKeyTypes()
+                if (settings.isKeepOriginalKeyTypes()
                     && isValidAerospikeRecordKeyType(idProperty.getType())) {
                     log.debug("Attempt to construct record key with original key type");
                     Object nativeTypeId = accessor.getProperty(idProperty, idProperty.getType());
@@ -247,7 +247,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
             Object simpleKey;
 
-            if (aerospikeDataSettings.isKeepOriginalKeyTypes() &&
+            if (settings.isKeepOriginalKeyTypes() &&
                 isValidAerospikeMapKeyType(key.getClass())) {
                 simpleKey = key;
             } else {

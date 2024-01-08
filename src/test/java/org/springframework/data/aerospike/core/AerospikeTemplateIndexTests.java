@@ -20,10 +20,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.springframework.data.aerospike.query.cache.IndexRefresher.INDEX_CACHE_REFRESH_SECONDS;
 import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
 
-@TestPropertySource(properties = {INDEX_CACHE_REFRESH_SECONDS + " = 0", "createIndexesOnStartup = true"})
+@TestPropertySource(properties = {"spring-data-aerospike.data.create-indexes-on-startup=true"})
 // this test class requires secondary indexes created on startup
 public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
@@ -96,7 +95,8 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
         awaitTenSecondsUntil(() ->
             assertThat(additionalAerospikeTestOperations.getIndexes(OVERRIDE_SET_NAME))
-                .contains(Index.builder().name(INDEX_TEST_1_WITH_SET).namespace(namespace).set(OVERRIDE_SET_NAME).bin("stringField")
+                .contains(Index.builder().name(INDEX_TEST_1_WITH_SET).namespace(namespace).set(OVERRIDE_SET_NAME)
+                    .bin("stringField")
                     .indexType(IndexType.STRING).build())
         );
     }
@@ -134,7 +134,8 @@ public class AerospikeTemplateIndexTests extends BaseBlockingIntegrationTests {
 
         awaitTenSecondsUntil(() ->
             assertThat(additionalAerospikeTestOperations.getIndexes(OVERRIDE_SET_NAME))
-                .contains(Index.builder().name(INDEX_TEST_1_WITH_SET).namespace(namespace).set(OVERRIDE_SET_NAME).bin("listField")
+                .contains(Index.builder().name(INDEX_TEST_1_WITH_SET).namespace(namespace).set(OVERRIDE_SET_NAME)
+                    .bin("listField")
                     .indexType(IndexType.STRING).indexCollectionType(IndexCollectionType.LIST).build())
         );
     }

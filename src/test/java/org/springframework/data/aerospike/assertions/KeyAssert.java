@@ -17,7 +17,7 @@ public class KeyAssert extends AbstractAssert<KeyAssert, Key> {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public KeyAssert consistsOf(AerospikeDataSettings aerospikeDataSettings, String namespace, String setName,
+    public KeyAssert consistsOf(AerospikeDataSettings settings, String namespace, String setName,
                                 Object expectedUserKey) {
         if (!actual.namespace.equals(namespace)) {
             throw new IllegalArgumentException("Inconsistent namespace name");
@@ -26,7 +26,7 @@ public class KeyAssert extends AbstractAssert<KeyAssert, Key> {
             throw new IllegalArgumentException("Inconsistent setName");
         }
 
-        if (aerospikeDataSettings != null && aerospikeDataSettings.isKeepOriginalKeyTypes()) {
+        if (settings != null && settings.isKeepOriginalKeyTypes()) {
             Assertions.assertThat(verifyActualUserKeyType(expectedUserKey)).isTrue();
         } else {
             // String type is used for unsupported Aerospike key types and previously for all key types in older

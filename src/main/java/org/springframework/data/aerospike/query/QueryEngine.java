@@ -42,8 +42,7 @@ public class QueryEngine {
     public static final String SCANS_DISABLED_MESSAGE =
         "Query without a filter will initiate a scan. Since scans are potentially dangerous operations, they are " +
             "disabled by default in spring-data-aerospike. " +
-            "If you still need to use them, enable them via `scansEnabled` property in `org.springframework.data" +
-            ".aerospike.config.AerospikeDataSettings`.";
+            "If you still need to use them, enable them via `scans-enabled` property.";
     private final IAerospikeClient client;
     private final StatementBuilder statementBuilder;
     @Getter

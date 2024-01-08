@@ -26,6 +26,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springdata.commons>3.2.1</springdata.commons>
         <springdata.keyvalue>3.2.1</springdata.keyvalue>
+        <springdata.spring-boot>3.2.1</springdata.spring-boot>
         <spring-boot-starter-test>3.2.0</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.1.0</spring-cloud-starter-bootstrap>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
@@ -182,6 +183,12 @@
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-keyvalue</artifactId>
                 <version>${springdata.keyvalue}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot</artifactId>
+                <version>${springdata.spring-boot}</version>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>com.aerospike</groupId>

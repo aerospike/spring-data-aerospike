@@ -160,7 +160,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private <T> Flux<T> applyBufferedBatchWrite(Iterable<? extends T> documents, String setName,
                                                 OperationType operationType) {
-        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
+        int batchSize = converter.getAerospikeSettings().getBatchWriteSize();
         List<T> docsList = new ArrayList<>();
         Flux<T> result = Flux.empty();
 
@@ -477,7 +477,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 
-        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
+        int batchSize = converter.getAerospikeSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
         Flux<Void> result = Flux.empty();
         for (Object id : ids) {
@@ -786,7 +786,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
+        int batchSize = converter.getAerospikeSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
         Flux<T> result = Flux.empty();
 

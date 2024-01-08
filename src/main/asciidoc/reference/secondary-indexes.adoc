@@ -125,6 +125,7 @@ public List<Person> findByFirstName(String firstName);
 In this case `firstName` is not marked as `@Indexed`, so SpringData Aerospike is not instructed to create an index on it.
 Hence, it will scan the repository (a costly operation that could be avoided by using an index).
 
-NOTE: There are relevant configuration parameters in AerospikeDataSettings:
-xref:#configure-data-settings.create-indexes-on-startup[create indexes on startup] and xref:#configure-data-settings.index-cache-refresh-frequency-seconds[indexes cache refresh frequency].
+NOTE: There are relevant configuration parameters:
+xref:#configuration.create-indexes-on-startup[create indexes on startup] and
+xref:#configuration.index-cache-refresh-frequency-seconds[indexes cache refresh frequency].
 
