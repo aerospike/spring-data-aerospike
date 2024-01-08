@@ -240,7 +240,6 @@ public abstract class AerospikeDataConfigurationSupport {
 
         // getHosts() return value has precedence over hosts parameter from application.properties
         Collection<Host> hosts;
-        String hostsString;
         if ((hosts = getHosts()) != null) {
             connectionSettings.setHostsArray(hosts.toArray(new Host[0]));
         } else if (!StringUtils.hasText(connectionSettings.getHosts())) {
