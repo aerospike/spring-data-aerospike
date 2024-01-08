@@ -35,6 +35,9 @@ public class AerospikeTypeAliasAccessor implements TypeAliasAccessor<Map<String,
 
     @Override
     public Alias readAliasFrom(Map<String, Object> source) {
+        if (typeKey == null) {
+            return Alias.NONE;
+        }
         return Alias.ofNullable(source.get(typeKey));
     }
 
