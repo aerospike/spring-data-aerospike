@@ -524,7 +524,6 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
                 assertThat(doc.getField()).isEqualTo("foobar3");
                 assertThat(doc.getVersion()).isEqualTo(2);
             });
-
         }
     }
 
