@@ -202,7 +202,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void insertAll_insertsAllDocuments() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             List<Person> persons = IntStream.range(1, 10)
                 .mapToObj(age -> Person.builder().id(nextId())
                     .firstName("Gregor")
@@ -239,7 +239,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .collect(Collectors.toList());
 
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             template.insertAll(persons, OVERRIDE_SET_NAME);
         } else {
             persons.forEach(person -> template.insert(person, OVERRIDE_SET_NAME));
@@ -254,7 +254,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void insertAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             VersionedClass second = new VersionedClass("as-5440", "foo");
             assertThatThrownBy(() -> template.insertAll(List.of(second, second)))
                 .isInstanceOf(OptimisticLockingFailureException.class)
@@ -266,7 +266,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldInsertAllVersionedDocuments() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             VersionedClass first = new VersionedClass(id, "foo");
             VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
             VersionedClass third = new VersionedClass(nextId(), "foo", 2L);

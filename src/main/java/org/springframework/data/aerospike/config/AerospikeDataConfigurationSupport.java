@@ -214,9 +214,13 @@ public abstract class AerospikeDataConfigurationSupport {
         ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.failIfNotConnected = true;
         clientPolicy.timeout = 10_000;
-        clientPolicy.readPolicyDefault.sendKey = true;
-        clientPolicy.writePolicyDefault.sendKey = true;
-        clientPolicy.batchPolicyDefault.sendKey = true;
+        boolean sendKey = true;
+        clientPolicy.readPolicyDefault.sendKey = sendKey;
+        clientPolicy.writePolicyDefault.sendKey = sendKey;
+        clientPolicy.batchPolicyDefault.sendKey = sendKey;
+        clientPolicy.batchWritePolicyDefault.sendKey = sendKey;
+        clientPolicy.queryPolicyDefault.sendKey = sendKey;
+        clientPolicy.scanPolicyDefault.sendKey = sendKey;
         return clientPolicy;
     }
 

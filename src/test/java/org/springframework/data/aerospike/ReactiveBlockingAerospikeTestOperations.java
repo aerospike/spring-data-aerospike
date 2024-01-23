@@ -84,7 +84,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
 
     public <T> void deleteAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             try {
                 repository.deleteAll(entities).block();
             } catch (AerospikeException.BatchRecordArray ignored) {
@@ -97,7 +97,7 @@ public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospike
 
     public <T> void saveAll(ReactiveAerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             repository.saveAll(entities).blockLast();
         } else {
             entities.forEach(entity -> repository.save(entity).block());

@@ -533,7 +533,7 @@ abstract class BaseAerospikeTemplate {
     }
 
     protected boolean batchWriteSupported() {
-        return serverVersionSupport.batchWrite();
+        return serverVersionSupport.isBatchWriteSupported();
     }
 
     protected enum OperationType {

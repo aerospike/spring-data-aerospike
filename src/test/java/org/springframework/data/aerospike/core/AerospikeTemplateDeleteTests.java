@@ -166,7 +166,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByGroupedKeys() {
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(5);
             List<String> personsIds = persons.stream().map(Person::getId).toList();
             List<Customer> customers = additionalAerospikeTestOperations.saveGeneratedCustomers(3);
@@ -245,7 +245,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteByIds_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
             DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
@@ -262,7 +262,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteByIds_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             template.save(new DocumentWithExpiration(id1));
@@ -287,7 +287,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteByIds_ShouldDeleteAllDocumentsWithSetName() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             template.save(new DocumentWithExpiration(id1), OVERRIDE_SET_NAME);
@@ -303,7 +303,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
             DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
@@ -319,7 +319,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
@@ -345,7 +345,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_ShouldDeleteAllDocumentsWithSetName() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
@@ -361,7 +361,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTime() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             CollectionOfObjects document1 = new CollectionOfObjects(id1, List.of("test1"));
@@ -413,7 +413,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     @Test
     public void deleteAll_VersionsMismatch() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = "id1";
             VersionedClass document1 = new VersionedClass(id1, "test1");
             String id2 = "id2";

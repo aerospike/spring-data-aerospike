@@ -253,7 +253,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAll_shouldSaveAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.saveAll(List.of(customer1, customer2)).blockLast();
@@ -270,7 +270,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAllWithSetName_shouldSaveAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.saveAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
@@ -287,7 +287,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAll_rejectsDuplicateId() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             VersionedClass first = new VersionedClass(id, "foo");
             StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first)))
                 .expectError(OptimisticLockingFailureException.class)
@@ -299,7 +299,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     @Test
     public void saveAllWithSetName_rejectsDuplicateId() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             VersionedClass second = new VersionedClass(id, "foo");
 
             StepVerifier.create(reactiveTemplate.saveAll(List.of(second, second), OVERRIDE_SET_NAME))

@@ -158,7 +158,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteByIds_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             reactiveTemplate.save(new SampleClasses.VersionedClass(id1, "test1")).block();
@@ -186,7 +186,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteByIdsWithSetName_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1), OVERRIDE_SET_NAME).block();
@@ -205,7 +205,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteByIdsFromDifferentSets_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             SampleClasses.DocumentWithExpiration entity1_1 = new SampleClasses.DocumentWithExpiration(id);
             SampleClasses.DocumentWithExpiration entity1_2 = new SampleClasses.DocumentWithExpiration(nextId());
             SampleClasses.VersionedClass entity2_1 = new SampleClasses.VersionedClass(nextId(), "test1");
@@ -248,7 +248,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteByIds_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
             SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);
@@ -265,7 +265,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
@@ -294,7 +294,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAllWithSetName_ShouldDeleteAllDocuments() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
@@ -313,7 +313,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTime() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             String id2 = nextId();
             SampleClasses.CollectionOfObjects document1 = new SampleClasses.CollectionOfObjects(id1, List.of("test1"));
@@ -370,7 +370,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_rejectsDuplicateIds() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = nextId();
             SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
             SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);
@@ -385,7 +385,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     @Test
     public void deleteAll_VersionsMismatch() {
         // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             String id1 = "id1";
             VersionedClass document1 = new VersionedClass(id1, "test1");
             String id2 = "id2";

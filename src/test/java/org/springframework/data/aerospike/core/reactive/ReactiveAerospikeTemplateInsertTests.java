@@ -229,7 +229,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAll_shouldInsertAllDocuments() {
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.insertAll(List.of(customer1, customer2)).blockLast();
@@ -257,7 +257,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAllWithSetName_shouldInsertAllDocuments() {
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             Person customer1 = new Person(nextId(), "Dave");
             Person customer2 = new Person(nextId(), "James");
             reactiveTemplate.insertAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
@@ -271,7 +271,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAll_rejectsDuplicateId() {
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             Person person = new Person(id, "Amol");
             person.setAge(28);
 
@@ -283,7 +283,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAllWithSetName_rejectsDuplicateId() {
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             Person person = new Person(id, "Amol");
             person.setAge(28);
 

@@ -334,7 +334,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         second.setVersion(second.getVersion());
 
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             template.saveAll(List.of(first, second));
         } else {
             List.of(first, second).forEach(document -> template.save(document));
@@ -352,7 +352,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         VersionedClass first = new VersionedClass(id, "foo");
         VersionedClass second = new VersionedClass(nextId(), "foo");
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             template.saveAll(List.of(first, second), OVERRIDE_SET_NAME);
         } else {
             List.of(first, second).forEach(person -> template.save(person, OVERRIDE_SET_NAME));
@@ -366,31 +366,51 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfAlreadyExist() {
+    public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfDuplicatesWithinOneBatch() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
-            VersionedClass first = new VersionedClass("as-5279", "foo");
-            VersionedClass second = new VersionedClass("as-5277", "foo");
+        if (serverVersionSupport.isBatchWriteSupported()) {
+            VersionedClass first = new VersionedClass("newId1", "foo");
+            VersionedClass second = new VersionedClass("newId2", "foo");
 
+            // The documents’ versions are equal to zero, meaning the documents have not been saved to the database yet
             assertThat(first.getVersion() == 0).isTrue();
             assertThat(second.getVersion() == 0).isTrue();
 
+            // An attempt to save the same versioned documents in one batch results in getting an exception
             assertThatThrownBy(() -> template.saveAll(List.of(first, first, second, second)))
                 .isInstanceOf(OptimisticLockingFailureException.class)
                 .hasMessageFindingMatch("Failed to save the record with ID .* due to versions mismatch");
 
+            // The documents' versions get updated after they are read from the corresponding database records
             assertThat(first.getVersion() == 1).isTrue();
             assertThat(second.getVersion() == 1).isTrue();
 
             template.delete(first); // cleanup
             template.delete(second); // cleanup
+
+            // The same versioned documents can be saved if they are not in the same batch.
+            // This way, the generation counts of the corresponding database records can be used
+            // to update the documents’ versions each time.
+            VersionedClass newFirst = new VersionedClass("newId1", "foo");
+            VersionedClass newSecond = new VersionedClass("newId2", "bar");
+
+            assertThat(newFirst.getVersion() == 0).isTrue();
+            assertThat(newSecond.getVersion() == 0).isTrue();
+
+            template.saveAll(List.of(newFirst, newSecond));
+            assertThat(newFirst.getVersion() == 1).isTrue();
+            assertThat(newSecond.getVersion() == 1).isTrue();
+
+            template.saveAll(List.of(newFirst, newSecond));
+            assertThat(newFirst.getVersion() == 2).isTrue();
+            assertThat(newSecond.getVersion() == 2).isTrue();
         }
     }
 
     @Test
     public void shouldSaveAllNotVersionedDocumentsIfAlreadyExist() {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             Person john = new Person("id1", "John");
             Person jack = new Person("id2", "Jack");
             template.save(jack); // saving non-versioned document to create a new DB record
