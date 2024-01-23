@@ -178,7 +178,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public <T> void deleteAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             try {
                 repository.deleteAll(entities);
             } catch (AerospikeException.BatchRecordArray ignored) {
@@ -191,7 +191,7 @@ public abstract class AdditionalAerospikeTestOperations {
 
     public <T> void saveAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             repository.saveAll(entities);
         } else {
             entities.forEach(repository::save);

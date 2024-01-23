@@ -57,17 +57,17 @@ public class ServerVersionSupport {
     /**
      * Since Aerospike Server ver. 6.3.0.0 find by POJO is supported.
      */
-    public boolean findByPojo() {
+    public boolean isFindByPojoSupported() {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_6_3_0_0) >= 0;
     }
 
-    public boolean batchWrite() {
+    public boolean isBatchWriteSupported() {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_6_0_0_0) >= 0;
     }
 
-    public boolean sIndexCardinality() {
+    public boolean isSIndexCardinalitySupported() {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_6_1_0_0) >= 0;
     }

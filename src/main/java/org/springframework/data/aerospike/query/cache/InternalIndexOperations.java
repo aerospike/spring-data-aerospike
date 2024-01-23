@@ -79,7 +79,7 @@ public class InternalIndexOperations {
 
     public int getIndexBinValuesRatio(IAerospikeClient client, ServerVersionSupport serverVersionSupport,
                                       String namespace, String indexName) {
-        if (serverVersionSupport.sIndexCardinality()) {
+        if (serverVersionSupport.isSIndexCardinalitySupported()) {
             try {
                 String indexStatData = Info.request(client.getInfoPolicyDefault(), client.getCluster().getRandomNode(),
                     String.format("sindex-stat:ns=%s;indexname=%s", namespace, indexName));

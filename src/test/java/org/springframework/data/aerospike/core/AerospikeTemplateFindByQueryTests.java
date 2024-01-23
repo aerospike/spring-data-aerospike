@@ -84,7 +84,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         deleteOneByOne(allPersons);
 
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             template.insertAll(allPersons);
             template.insertAll(allPersons, OVERRIDE_SET_NAME);
         } else {
@@ -295,7 +295,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         assertThat(result).isEmpty();
 
         // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.batchWrite()) {
+        if (serverVersionSupport.isBatchWriteSupported()) {
             template.insertAll(allPersons);
         } else {
             allPersons.forEach(person -> template.insert(person));
