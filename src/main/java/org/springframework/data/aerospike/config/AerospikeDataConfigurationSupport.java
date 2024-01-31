@@ -19,13 +19,17 @@ import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
+import com.aerospike.client.proxy.AerospikeClientProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.aerospike.config.ConfigurationUtils.ClientProxyPropertyFalse;
+import org.springframework.data.aerospike.config.ConfigurationUtils.ClientProxyPropertyTrue;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -58,6 +62,10 @@ import java.util.Set;
 @Slf4j
 @Configuration
 public abstract class AerospikeDataConfigurationSupport {
+
+    protected static final String CONFIG_PREFIX = "spring-data-aerospike";
+    protected static final String CONFIG_PREFIX_DATA = CONFIG_PREFIX + ".data";
+    protected static final String CONFIG_PREFIX_CONNECTION = CONFIG_PREFIX + ".connection";
 
     @Bean(name = "aerospikeStatementBuilder")
     public StatementBuilder statementBuilder(IndexesCache indexesCache) {
@@ -107,8 +115,16 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
+    @Conditional(ClientProxyPropertyFalse.class)
     public AerospikeClient aerospikeClient(AerospikeSettings settings) {
         return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
+    }
+
+    @Bean(name = "aerospikeClientProxy", destroyMethod = "close")
+    @Conditional(ClientProxyPropertyTrue.class)
+    public AerospikeClientProxy aerospikeClientProxy(AerospikeSettings settings) {
+        log.info("Using Aerospike proxy client");
+        return new AerospikeClientProxy(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
     }
 
     protected int getDefaultPort() {
@@ -196,8 +212,8 @@ public abstract class AerospikeDataConfigurationSupport {
     /**
      * Override this method to define data settings to be used.
      *
-     * <p>The return value of this method overrides the values of 'spring-data-aerospike.data.*' parameters
-     * from application.properties.
+     * <p>The return value of this method overrides the values of
+     * {@link AerospikeDataConfigurationSupport#CONFIG_PREFIX_DATA} parameters from application.properties.
      */
     protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
     }
@@ -225,13 +241,13 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean
-    @ConfigurationProperties(prefix = "spring-data-aerospike.data")
+    @ConfigurationProperties(prefix = CONFIG_PREFIX_DATA)
     public AerospikeDataSettings readAerospikeDataSettings() {
         return new AerospikeDataSettings();
     }
 
     @Bean
-    @ConfigurationProperties(prefix = "spring-data-aerospike.connection")
+    @ConfigurationProperties(prefix = CONFIG_PREFIX_CONNECTION)
     public AerospikeConnectionSettings readAerospikeSettings() {
         return new AerospikeConnectionSettings();
     }

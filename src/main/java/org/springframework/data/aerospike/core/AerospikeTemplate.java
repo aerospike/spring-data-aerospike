@@ -486,8 +486,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public void
-    deleteByIds(Iterable<?> ids, String setName) {
+    public void deleteByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 
