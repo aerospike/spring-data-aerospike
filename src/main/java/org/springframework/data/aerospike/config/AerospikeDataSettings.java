@@ -38,5 +38,5 @@ public class AerospikeDataSettings {
     // true - preserve original type if supported
     boolean keepOriginalKeyTypes = false;
     // whether to use AerospikeClientProxy instead of regular AerospikeClient
-    boolean useClientProxy = false;
+    boolean useProxyClient = false;
 }

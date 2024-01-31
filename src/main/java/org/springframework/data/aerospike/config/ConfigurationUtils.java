@@ -11,7 +11,7 @@ public class ConfigurationUtils {
     static class ClientProxyPropertyFalse implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            String useClientProxy = context.getEnvironment().getProperty(CONFIG_PREFIX_DATA + ".use-client-proxy");
+            String useClientProxy = context.getEnvironment().getProperty(CONFIG_PREFIX_DATA + ".use-proxy-client");
             return useClientProxy == null || useClientProxy.equalsIgnoreCase("false");
         }
     }
@@ -19,7 +19,7 @@ public class ConfigurationUtils {
     static class ClientProxyPropertyTrue implements Condition {
         @Override
         public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-            String useClientProxy = context.getEnvironment().getProperty(CONFIG_PREFIX_DATA + ".use-client-proxy");
+            String useClientProxy = context.getEnvironment().getProperty(CONFIG_PREFIX_DATA + ".use-proxy-client");
             return useClientProxy != null && useClientProxy.equalsIgnoreCase("true");
         }
     }
