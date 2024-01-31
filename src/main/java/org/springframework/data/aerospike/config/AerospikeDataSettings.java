@@ -37,6 +37,4 @@ public class AerospikeDataSettings {
     // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
     // true - preserve original type if supported
     boolean keepOriginalKeyTypes = false;
-    // whether to use AerospikeClientProxy instead of regular AerospikeClient
-    boolean useProxyClient = false;
 }

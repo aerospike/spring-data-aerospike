@@ -19,17 +19,13 @@ import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
-import com.aerospike.client.proxy.AerospikeClientProxy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.data.aerospike.config.ConfigurationUtils.ClientProxyPropertyFalse;
-import org.springframework.data.aerospike.config.ConfigurationUtils.ClientProxyPropertyTrue;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -115,16 +111,9 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
-    @Conditional(ClientProxyPropertyFalse.class)
-    public AerospikeClient aerospikeClient(AerospikeSettings settings) {
+    public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
+        // another implementation of IAerospikeClient can be instantiated here
         return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
-    }
-
-    @Bean(name = "aerospikeClientProxy", destroyMethod = "close")
-    @Conditional(ClientProxyPropertyTrue.class)
-    public AerospikeClientProxy aerospikeClientProxy(AerospikeSettings settings) {
-        log.info("Using Aerospike proxy client");
-        return new AerospikeClientProxy(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
     }
 
     protected int getDefaultPort() {
