@@ -33,7 +33,6 @@
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike-client>7.2.0</aerospike-client>
         <aerospike-reactor-client>7.1.0</aerospike-reactor-client>
-        <aerospike-proxy-client>7.2.0</aerospike-proxy-client>
         <reactor-test>3.6.1</reactor-test>
         <embedded-aerospike>3.1.4</embedded-aerospike>
         <jodatime>2.12.5</jodatime>
@@ -202,11 +201,6 @@
                 <version>${aerospike-reactor-client}</version>
             </dependency>
             <dependency>
-                <groupId>com.aerospike</groupId>
-                <artifactId>aerospike-proxy-client</artifactId>
-                <version>${aerospike-proxy-client}</version>
-            </dependency>
-            <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${jodatime}</version>
@@ -248,10 +242,6 @@
             <groupId>com.aerospike</groupId>
             <artifactId>aerospike-reactor-client</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.aerospike</groupId>
-            <artifactId>aerospike-proxy-client</artifactId>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
