@@ -112,7 +112,7 @@ public abstract class AerospikeDataConfigurationSupport {
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
     public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
-        // another implementation of IAerospikeClient can be instantiated here
+        // another implementation of IAerospikeClient can be instantiated here by overriding the bean
         return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
     }
 
