@@ -58,8 +58,6 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
     @Override
     @Bean(name = "aerospikeClient", destroyMethod = "close")
     public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
-        // another implementation of IAerospikeClient can be instantiated here if needed
         return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
     }
-
 }
