@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.config;
 
+import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,5 +53,11 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
                                                                  ServerVersionSupport serverVersionSupport) {
         return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike,
             serverVersionSupport);
+    }
+
+    @Override
+    @Bean(name = "aerospikeClient", destroyMethod = "close")
+    public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
+        return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
     }
 }
