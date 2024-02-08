@@ -34,7 +34,7 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapQueryCriteria.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
@@ -352,7 +352,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(billy.getStringMap()).containsKey("key1");
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("key1",
-            CriteriaDefinition.AerospikeMapCriteria.KEY);
+            CriteriaDefinition.AerospikeMapQueryCriteria.KEY);
         assertThat(persons).contains(billy);
     }
 
@@ -361,7 +361,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(billy.getStringMap()).containsKey("key1");
 
         List<IndexedPerson> persons = repository.findByStringMapNotContaining("key3",
-            CriteriaDefinition.AerospikeMapCriteria.KEY);
+            CriteriaDefinition.AerospikeMapQueryCriteria.KEY);
         assertThat(persons).contains(billy);
     }
 

@@ -365,7 +365,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findByMapKeysContaining() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1",
-            CriteriaDefinition.AerospikeMapCriteria.KEY);
+            CriteriaDefinition.AerospikeMapQueryCriteria.KEY);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -376,7 +376,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findByMapValuesContaining() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "val2",
-            CriteriaDefinition.AerospikeMapCriteria.VALUE);
+            CriteriaDefinition.AerospikeMapQueryCriteria.VALUE);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -436,7 +436,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findByMapKeyValueContains() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key4", "al",
-            CriteriaDefinition.AerospikeMapCriteria.VALUE_CONTAINING);
+            CriteriaDefinition.AerospikeMapQueryCriteria.VALUE_CONTAINING);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)

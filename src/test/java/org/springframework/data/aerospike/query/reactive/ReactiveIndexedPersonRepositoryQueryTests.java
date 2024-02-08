@@ -31,7 +31,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapQueryCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -247,7 +247,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @Test
     public void findByMapKeysContaining() {
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("key1",
-            CriteriaDefinition.AerospikeMapCriteria.KEY).subscribeOn(Schedulers.parallel()).collectList().block();
+            CriteriaDefinition.AerospikeMapQueryCriteria.KEY).subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(luc, petra);
     }

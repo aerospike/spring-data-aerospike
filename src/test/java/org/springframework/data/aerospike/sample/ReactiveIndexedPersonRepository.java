@@ -34,7 +34,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
 
     Mono<Page<IndexedPerson>> findByAgeLessThan(int value, Pageable pageable);
 
-    Flux<IndexedPerson> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
+    Flux<IndexedPerson> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapQueryCriteria criteria);
 
     /**
      * Find all entities that satisfy the condition "have exactly the given map key and the given value"
