@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.sample;
 
+import org.springframework.data.aerospike.query.CombinedQueryParam;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
@@ -178,7 +179,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      */
     Flux<IndexedPerson> findDistinctByFriendLastNameStartingWith(String string);
 
-    Flux<IndexedPerson> findByFirstNameAndAge(String string, int i);
+    Flux<IndexedPerson> findByFirstNameAndAge(CombinedQueryParam string, CombinedQueryParam i);
 
-    Flux<IndexedPerson> findByAgeBetweenAndLastName(int from, int to, String lastName);
+    Flux<IndexedPerson> findByAgeBetweenAndLastName(CombinedQueryParam ageBetween, CombinedQueryParam lastName);
 }

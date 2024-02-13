@@ -6,7 +6,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.aerospike.AsCollections;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.query.CombinedQueryParam;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -40,7 +42,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.query.CombinedQueryParam.of;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapQueryCriteria.KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapQueryCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapQueryCriteria.VALUE_CONTAINING;
@@ -54,16 +56,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         .strings(List.of("str0", "str1", "str2")).address(new Address("Foo Street 1", 1, "C0123", "Bar"))
         .build();
     static final Person donny = Person.builder().id(nextId()).firstName("Donny").lastName("Macintire").age(39)
-        .strings(List.of("str1", "str2", "str3")).stringMap(of("key1", "val1")).build();
+        .strings(List.of("str1", "str2", "str3")).stringMap(AsCollections.of("key1", "val1")).build();
     static final Person oliver = Person.builder().id(nextId()).firstName("Oliver August").lastName("Matthews").age(14)
         .ints(List.of(425, 550, 990)).build();
     static final Person alicia = Person.builder().id(nextId()).firstName("Alicia").lastName("Keys").age(30)
         .ints(List.of(550, 600, 990)).build();
     static final Person carter = Person.builder().id(nextId()).firstName("Carter").lastName("Beauford").age(49)
-        .intMap(of("key1", 0, "key2", 1))
+        .intMap(AsCollections.of("key1", 0, "key2", 1))
         .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
     static final Person boyd = Person.builder().id(nextId()).firstName("Boyd").lastName("Tinsley").age(45)
-        .stringMap(of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
+        .stringMap(AsCollections.of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
         .build();
     static final Person stefan = Person.builder().id(nextId()).firstName("Stefan").lastName("Lessard").age(34).build();
     static final Person leroi = Person.builder().id(nextId()).firstName("Leroi").lastName("Moore").age(44)
@@ -198,11 +200,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findPersonsByIntsListContainingNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsContaining())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting at least one");
+            .hasMessage("Person.ints CONTAINING: invalid number of arguments, expecting at least one");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsNotContaining())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting at least one");
+            .hasMessage("Person.ints NOT_CONTAINING: invalid number of arguments, expecting at least one");
     }
 
     @Test
@@ -248,6 +250,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         Value.UseBoolBin = initialValue; // set back to the default value
         repository.delete(intBoolBinPerson);
+    }
+
+    @Test
+    void findByBooleanNegativeTest() {
+        assertThatThrownBy(() -> negativeTestsRepository.findByIsActive())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.isActive EQ: invalid number of arguments, expecting at least one");
     }
 
     @Test
@@ -438,11 +447,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByIntListBetweenNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsBetween())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting two");
+            .hasMessage("Person.ints BETWEEN: invalid number of arguments, expecting two");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsBetween(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting two");
+            .hasMessage("Person.ints BETWEEN: invalid number of arguments, expecting two");
     }
 
     @Test
@@ -546,48 +555,58 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByStringMapContainingNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapContaining())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: at least two arguments are required");
+            .hasMessage("Person.stringMap CONTAINING: invalid number of arguments, at least two arguments are " +
+                "required");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapContaining("key1"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: at least two arguments are required");
+            .hasMessage("Person.stringMap CONTAINING: invalid number of arguments, at least two arguments are " +
+                "required");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapContaining(1100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: at least two arguments are required");
+            .hasMessage("Person.stringMap CONTAINING: invalid number of arguments, at least two arguments are " +
+                "required");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapContaining(KEY, VALUE))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: cannot have multiple MapCriteria arguments");
+            .hasMessage("Person.stringMap CONTAINING: invalid combination of arguments, cannot have multiple " +
+                "MapCriteria arguments");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapContaining("key", "value", new Person("id",
             "firstName"), "value"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid argument type: expected String, Number or byte[] at position 3");
+            .hasMessage("Person.stringMap CONTAINING: invalid argument type, expected String, Number or byte[] at " +
+                "position 3");
     }
 
     @Test
     void findByStringMapNotContainingNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: at least two arguments are required");
+            .hasMessage("Person.stringMap NOT_CONTAINING: invalid number of arguments, at least two arguments are " +
+                "required");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining("key1"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: at least two arguments are required");
+            .hasMessage("Person.stringMap NOT_CONTAINING: invalid number of arguments, at least two arguments are " +
+                "required");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining(1100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: at least two arguments are required");
+            .hasMessage("Person.stringMap NOT_CONTAINING: invalid number of arguments, at least two arguments are " +
+                "required");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining(KEY, VALUE))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: cannot have multiple MapCriteria arguments");
+            .hasMessage("Person.stringMap NOT_CONTAINING: invalid combination of arguments, cannot have multiple " +
+                "MapCriteria arguments");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining("key", "value", new Person("id"
             , "firstName"), "value"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid argument type: expected String, Number or byte[] at position 3");
+            .hasMessage("Person.stringMap NOT_CONTAINING: invalid argument type, expected String, Number or byte[] at" +
+                " position 3");
     }
 
     @Test
@@ -696,6 +715,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         repository.save(stefan);
     }
 
+//    @Test
+//    void findByExistsNegativeTest() {
+//        assertThatThrownBy(() -> negativeTestsRepository.findByAddressExists(new Address(null, null, null, null)))
+//            .isInstanceOf(IllegalArgumentException.class)
+//            .hasMessage("Expected CombinedQueryParam, instead got String");
+//    }
+
     @Test
     void findByIsNull() {
         assertThat(stefan.getAddress()).isNull();
@@ -745,20 +771,20 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByIsNotNull() {
-//        assertThat(stefan.getAddress()).isNull();
-//        assertThat(carter.getAddress()).isNotNull();
-//        assertThat(dave.getAddress()).isNotNull();
-//        assertThat(repository.findByAddressIsNotNull()).contains(carter, dave).doesNotContain(stefan);
-//
-//        stefan.setAddress(new Address(null, null, "zipCode", null));
-//        repository.save(stefan);
-//        assertThat(repository.findByAddressIsNotNull()).contains(stefan); // Address is not null
-//        assertThat(repository.findByAddressZipCodeIsNotNull()).contains(stefan); // zipCode is not null
-//
-//        stefan.setAddress(new Address(null, null, null, null));
-//        repository.save(stefan);
-//        assertThat(repository.findByAddressIsNotNull()).contains(stefan); // Address is not null
-//        assertThat(repository.findByAddressZipCodeIsNotNull()).doesNotContain(stefan); // zipCode is null
+        assertThat(stefan.getAddress()).isNull();
+        assertThat(carter.getAddress()).isNotNull();
+        assertThat(dave.getAddress()).isNotNull();
+        assertThat(repository.findByAddressIsNotNull()).contains(carter, dave).doesNotContain(stefan);
+
+        stefan.setAddress(new Address(null, null, "zipCode", null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressIsNotNull()).contains(stefan); // Address is not null
+        assertThat(repository.findByAddressZipCodeIsNotNull()).contains(stefan); // zipCode is not null
+
+        stefan.setAddress(new Address(null, null, null, null));
+        repository.save(stefan);
+        assertThat(repository.findByAddressIsNotNull()).contains(stefan); // Address is not null
+        assertThat(repository.findByAddressZipCodeIsNotNull()).doesNotContain(stefan); // zipCode is null
 
         stefan.setAddress(null); // cleanup
         repository.save(stefan);
@@ -962,15 +988,17 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByMapComparisonNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapLessThan(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: expecting one (Map) or two (Map key and value)");
+            .hasMessage("Person.intMap LT: invalid combination of arguments, expecting one (Map) or two (Map key and " +
+                "value)");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapLessThanEqual(100, 200, 300))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one (Map) or two (Map key and value)");
+            .hasMessage("Person.intMap LTEQ: invalid number of arguments, expecting one (Map) or two (Map key and " +
+                "value)");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapGreaterThan(new Person("id1", "name1"), 400))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid first argument type: expected String, Number or byte[]");
+            .hasMessage("Person.intMap GT: invalid first argument type, expected String, Number or byte[]");
     }
 
     @Test
@@ -1084,23 +1112,26 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByIntMapBetweenNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting two (Maps) or three (Map key and two values)");
+            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two (Maps) or three (Map key " +
+                "and two values)");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting two (Maps) or three (Map key and two values)");
+            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two (Maps) or three (Map key " +
+                "and two values)");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100, Map.of(200, 300)))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: both must be of type Map");
+            .hasMessage("Person.intMap BETWEEN: invalid combination of arguments, both must be of type Map");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100, 200))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: both must be of type Map");
+            .hasMessage("Person.intMap BETWEEN: invalid combination of arguments, both must be of type Map");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100, 200, 300, 400))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting two (Maps) or three (Map key and two values)");
+            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two (Maps) or three (Map key " +
+                "and two values)");
     }
 
     @Test
@@ -1347,32 +1378,40 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonByIdsAndFields() {
-//        List<Person> persons = repository.findByIdAndFirstName(List.of(boyd.getId(), dave.getId(), carter.getId()),
-//            dave.getFirstName());
-//        assertThat(persons).containsOnly(dave);
+        CombinedQueryParam ids = of(List.of(boyd.getId(), dave.getId(), carter.getId()));
+        CombinedQueryParam names = of(dave.getFirstName());
+        List<Person> persons = repository.findByIdAndFirstName(ids, names);
+        assertThat(persons).containsOnly(dave);
 
-        List<Person> persons2 = repository.findByIdAndFirstNameAndAge(List.of(leroi.getId(), leroi2.getId(),
-            carter.getId()), leroi.getFirstName(), leroi2.getAge());
+        ids = of(List.of(leroi.getId(), leroi2.getId(), carter.getId()));
+        CombinedQueryParam firstNames = of(leroi.getFirstName());
+        CombinedQueryParam ages = of(leroi2.getAge());
+        List<Person> persons2 = repository.findByIdAndFirstNameAndAge(ids, firstNames, ages);
         assertThat(persons2).containsOnly(leroi2);
 
         // "findByIdOr..." will return empty list because primary keys are used to firstly narrow down the results.parts
         // In a combined id query "OR" can be put only between the non-id fields like shown below,
         // and the results are limited by the given ids
-        List<Person> persons3 = repository.findByIdAndFirstNameOrAge(List.of(leroi.getId(), leroi2.getId(),
-                carter.getId()),
-            leroi.getFirstName(), leroi2.getAge());
+        ids = of(List.of(leroi.getId(), leroi2.getId(),
+            carter.getId()));
+        firstNames = of(leroi.getFirstName());
+        ages = of(leroi2.getAge());
+        List<Person> persons3 = repository.findByIdAndFirstNameOrAge(ids, firstNames, ages);
         assertThat(persons3).containsOnly(leroi, leroi2);
 
-        List<Person> persons4 = repository.findByIdAndFirstNameOrAge(List.of(leroi.getId(), leroi2.getId(),
-                carter.getId()),
-            leroi.getFirstName(), stefan.getAge());
+        ids = of(List.of(leroi.getId(), leroi2.getId(),
+            carter.getId()));
+        firstNames = of(leroi.getFirstName());
+        ages = of(stefan.getAge());
+        List<Person> persons4 = repository.findByIdAndFirstNameOrAge(ids, firstNames, ages);
         assertThat(persons4).containsOnly(leroi, leroi2);
     }
 
     @Test
     void findPersonByIdsAndFirstNameEmptyResult() {
-        List<Person> persons = repository.findByIdAndFirstName(List.of(dave.getId(), boyd.getId()),
-            carter.getFirstName());
+        CombinedQueryParam ids = of(List.of(dave.getId(), boyd.getId()));
+        CombinedQueryParam names = of(carter.getFirstName());
+        List<Person> persons = repository.findByIdAndFirstName(ids, names);
         assertThat(persons).isEmpty();
     }
 
@@ -1656,31 +1695,34 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findByIdAndLastNameDynamicProjection() {
-        List<PersonSomeFields> result = repository.findByIdAndLastName(List.of(carter.getId(), leroi.getId(),
-                leroi2.getId()), carter.getLastName(),
-            PersonSomeFields.class);
+        CombinedQueryParam ids = of(List.of(boyd.getId(), dave.getId(), carter.getId()));
+        CombinedQueryParam lastNames = of(carter.getLastName());
+        List<PersonSomeFields> result = repository.findByIdAndLastName(ids, lastNames, PersonSomeFields.class);
         assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
     void findByIdAndLastNameDynamicProjectionNullResult() {
-        List<PersonSomeFields> result = repository.findByIdAndLastName(List.of(carter.getId(), boyd.getId()),
-            dave.getLastName(),
-            PersonSomeFields.class);
+        CombinedQueryParam ids = of(List.of(carter.getId(), boyd.getId()));
+        CombinedQueryParam lastNames = of(dave.getLastName());
+        List<PersonSomeFields> result = repository.findByIdAndLastName(ids, lastNames, PersonSomeFields.class);
         assertThat(result).isEmpty();
     }
 
     @Test
     void findByLastNameAndIdDynamicProjection() {
-        List<PersonSomeFields> result = repository.findByLastNameAndId(dave.getLastName(),
-            dave.getId(), PersonSomeFields.class);
+        CombinedQueryParam ids = of(dave.getId());
+        CombinedQueryParam lastNames = of(dave.getLastName());
+        List<PersonSomeFields> result = repository.findByLastNameAndId(lastNames, ids, PersonSomeFields.class);
         assertThat(result).containsOnly(dave.toPersonSomeFields());
     }
 
     @Test
     void findByFirstNameAndLastNameDynamicProjection() {
-        List<PersonSomeFields> result = repository.findByFirstNameAndLastName(carter.getFirstName(),
-            carter.getLastName(), PersonSomeFields.class);
+        CombinedQueryParam firstNames = of(carter.getFirstName());
+        CombinedQueryParam lastNames = of(carter.getLastName());
+        List<PersonSomeFields> result = repository.findByFirstNameAndLastName(firstNames, lastNames,
+            PersonSomeFields.class);
         assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
@@ -2049,11 +2091,27 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByFirstNameAndByAge() {
-        List<Person> result = repository.findByFirstNameAndAge("Leroi", 25);
+        CombinedQueryParam firstName = of("Leroi");
+        CombinedQueryParam age = of(25);
+        List<Person> result = repository.findByFirstNameAndAge(firstName, age);
         assertThat(result).containsOnly(leroi2);
 
-        result = repository.findByFirstNameAndAge("Leroi", 44);
+        firstName = of("Leroi");
+        age = of(44);
+        result = repository.findByFirstNameAndAge(firstName, age);
         assertThat(result).containsOnly(leroi);
+    }
+
+    @Test
+    void findPersonsByFirstNameAndByAgeNegativeTest() {
+        assertThatThrownBy(() -> negativeTestsRepository.findByFirstNameAndAge("John", 100))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.firstName: expected CombinedQueryParam, instead got String");
+
+        CombinedQueryParam firstName = of("John");
+        assertThatThrownBy(() -> negativeTestsRepository.findByFirstNameOrAge(firstName))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.age EQ: invalid number of arguments, expecting at least one");
     }
 
     @Test
@@ -2129,20 +2187,22 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByPojoBetweenNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressBetween())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting two POJOs");
+            .hasMessage("Person.address BETWEEN: invalid number of arguments, expecting two POJOs");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressBetween(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting two POJOs");
+            .hasMessage("Person.address BETWEEN: invalid number of arguments, expecting two POJOs");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressBetween(100, 200, 300))
             .isInstanceOf(IllegalArgumentException.class)
 //            .hasMessage("Invalid number of arguments: expecting two POJOs");
-            .hasMessage("Invalid arguments type: expecting two POJOs, instead got Integer and Integer");
+            .hasMessage("Person.address BETWEEN: invalid arguments type, expecting two POJOs, instead got Integer and" +
+                " Integer");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressBetween(100, 200))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid arguments type: expecting two POJOs, instead got Integer and Integer");
+            .hasMessage("Person.address BETWEEN: invalid arguments type, expecting two POJOs, instead got Integer and" +
+                " Integer");
     }
 
     @Test
@@ -2153,10 +2213,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonInAgeRangeAndNameCorrectly() {
-        Iterable<Person> it = repository.findByAgeBetweenAndLastName(40, 45, "Matthews");
+        CombinedQueryParam ageBetween = of(40, 45);
+        CombinedQueryParam lastNames = of("Matthews");
+        Iterable<Person> it = repository.findByAgeBetweenAndLastName(ageBetween, lastNames);
         assertThat(it).hasSize(1);
 
-        Iterable<Person> result = repository.findByAgeBetweenAndLastName(20, 26, "Moore");
+        ageBetween = of(20, 26);
+        lastNames = of("Moore");
+        Iterable<Person> result = repository.findByAgeBetweenAndLastName(ageBetween, lastNames);
         assertThat(result).hasSize(1);
     }
 
@@ -2194,17 +2258,13 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPersonsByStringsListEqualsNegativeTest() {
-//        assertThatThrownBy(() -> negativeTestsRepository.findByStringsEquals(1000))
-//            .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Invalid argument: type mismatch");
-//
         assertThatThrownBy(() -> negativeTestsRepository.findByStrings())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one");
+            .hasMessage("Person.strings EQ: invalid number of arguments, expecting one");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsEquals("string1", "string2"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one");
+            .hasMessage("Person.strings EQ: invalid number of arguments, expecting one");
     }
 
     @Test
@@ -2224,15 +2284,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findPersonsByStringsListNotEqualNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsIsNot())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one");
+            .hasMessage("Person.strings NOTEQ: invalid number of arguments, expecting one");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsIsNot("string1", "string2"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one");
+            .hasMessage("Person.strings NOTEQ: invalid number of arguments, expecting one");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsIsNot(List.of("string1"), List.of("string2")))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one");
+            .hasMessage("Person.strings NOTEQ: invalid number of arguments, expecting one");
     }
 
     @Test
@@ -2272,16 +2332,16 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findPersonsByStringsListComparisonNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsLessThan())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one");
+            .hasMessage("Person.strings LT: invalid number of arguments, expecting one");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsLessThanEqual(List.of("string1"), List.of(
             "String2")))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one");
+            .hasMessage("Person.strings LTEQ: invalid number of arguments, expecting one");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsGreaterThan("string1", "string2"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one");
+            .hasMessage("Person.strings GT: invalid number of arguments, expecting one");
     }
 
     @Test
@@ -2303,28 +2363,33 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findPersonsByStringMapEqualsNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapEquals("map1"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: expecting either a Map or a key-value pair");
+            .hasMessage("Person.stringMap EQ: invalid combination of arguments, expecting either a Map or a key-value" +
+                " pair");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMap(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: expecting either a Map or a key-value pair");
+            .hasMessage("Person.stringMap EQ: invalid combination of arguments, expecting either a Map or a key-value" +
+                " pair");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapEquals(Map.of("key", "value"), Map.of("key",
             "value")))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: expecting either a Map or a key-value pair");
+            .hasMessage("Person.stringMap EQ: invalid combination of arguments, expecting either a Map or a key-value" +
+                " pair");
     }
 
     @Test
     void findPersonsByStringMapNotEqualNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot("map1"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: expecting either a Map or a key-value pair");
+            .hasMessage("Person.stringMap NOTEQ: invalid combination of arguments, expecting either a Map or a " +
+                "key-value pair");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot(Map.of("key", "value"), Map.of("key",
             "value")))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid combination of arguments: expecting either a Map or a key-value pair");
+            .hasMessage("Person.stringMap NOTEQ: invalid combination of arguments, expecting either a Map or a " +
+                "key-value pair");
     }
 
     @Test
@@ -2343,26 +2408,26 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByPojoEqualsNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByAddress())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one POJO");
+            .hasMessage("Person.address EQ: invalid number of arguments, expecting one POJO");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressEquals())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one POJO");
+            .hasMessage("Person.address EQ: invalid number of arguments, expecting one POJO");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByAddress(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid arguments type: expecting a POJO, instead got Integer");
+            .hasMessage("Person.address EQ: invalid arguments type, expecting a POJO, instead got Integer");
     }
 
     @Test
     void findByPojoNotEqualNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressIsNot())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one POJO");
+            .hasMessage("Person.address NOTEQ: invalid number of arguments, expecting one POJO");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressIsNot(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid arguments type: expecting a POJO, instead got Integer");
+            .hasMessage("Person.address NOTEQ: invalid arguments type, expecting a POJO, instead got Integer");
     }
 
     @Test
@@ -2462,26 +2527,26 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByNestedPojoEqualsNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddress())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one POJO");
+            .hasMessage("Person.address EQ: invalid number of arguments, expecting one POJO");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressEquals())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one POJO");
+            .hasMessage("Person.address EQ: invalid number of arguments, expecting one POJO");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddress(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid arguments type: expecting a POJO, instead got Integer");
+            .hasMessage("Person.address EQ: invalid arguments type, expecting a POJO, instead got Integer");
     }
 
     @Test
     void findByNestedPojoNotEqualNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressIsNot())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting one POJO");
+            .hasMessage("Person.address NOTEQ: invalid number of arguments, expecting one POJO");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressIsNot(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid arguments type: expecting a POJO, instead got Integer");
+            .hasMessage("Person.address NOTEQ: invalid arguments type, expecting a POJO, instead got Integer");
     }
 
     @Test
@@ -2507,26 +2572,18 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByNestedSimplePropertyEqualsNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressZipCode())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting at least one");
+            .hasMessage("Person.friend.address.zipCode EQ: invalid number of arguments, expecting at least one");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressZipCodeEquals())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting at least one");
-//
-//        assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressZipCode(100))
-//            .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Invalid argument type: expecting String");
+            .hasMessage("Person.friend.address.zipCode EQ: invalid number of arguments, expecting at least one");
     }
 
     @Test
     void findByNestedSimplePropertyNotEqualNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressZipCodeIsNot())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid number of arguments: expecting at least one");
-//
-//        assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressZipCodeIsNot(100))
-//            .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Invalid argument type: expecting String");
+            .hasMessage("Person.friend.address.zipCode NOTEQ: invalid number of arguments, expecting at least one");
     }
 
     @Test

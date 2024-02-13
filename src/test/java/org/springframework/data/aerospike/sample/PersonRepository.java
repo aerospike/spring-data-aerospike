@@ -16,6 +16,7 @@
 package org.springframework.data.aerospike.sample;
 
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.aerospike.query.CombinedQueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapQueryCriteria;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria;
@@ -57,13 +58,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     <T> List<T> findById(String id, Class<T> type);
 
     // Dynamic Projection
-    <T> List<T> findByIdAndLastName(List<String> ids, String lastName, Class<T> type);
+    <T> List<T> findByIdAndLastName(CombinedQueryParam ids, CombinedQueryParam lastName, Class<T> type);
 
     // Dynamic Projection
-    <T> List<T> findByLastNameAndId(String lastName, String id, Class<T> type);
+    <T> List<T> findByLastNameAndId(CombinedQueryParam lastName, CombinedQueryParam id, Class<T> type);
 
     // Dynamic Projection
-    <T> List<T> findByFirstNameAndLastName(String firstName, String lastName, Class<T> type);
+    <T> List<T> findByFirstNameAndLastName(CombinedQueryParam firstName, CombinedQueryParam lastName, Class<T> type);
 
     /**
      * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
@@ -72,7 +73,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param ids       List of primary keys
      * @param firstName String to compare with
      */
-    List<P> findByIdAndFirstName(List<String> ids, String firstName);
+    List<P> findByIdAndFirstName(CombinedQueryParam ids, CombinedQueryParam firstName);
 
     /**
      * Find all entities that satisfy the condition "have primary key in the given list and either first name equal to
@@ -82,9 +83,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param firstName String to compare firstName with
      * @param age       integer to compare age with
      */
-    List<P> findByIdAndFirstNameAndAge(List<String> ids, String firstName, int age);
+    List<P> findByIdAndFirstNameAndAge(CombinedQueryParam ids, CombinedQueryParam firstName, CombinedQueryParam age);
 
-    List<P> findByIdAndFirstNameOrAge(List<String> ids, String firstName, int age);
+    List<P> findByIdAndFirstNameOrAge(CombinedQueryParam ids, CombinedQueryParam firstName, CombinedQueryParam age);
 
     Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 
@@ -139,8 +140,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Stream<P> findByFirstNameIn(List<String> firstNames);
 
     Stream<P> findByFirstNameNotIn(Collection<String> firstNames);
-
-    List<P> findByFirstNameAndLastName(String firstName, String lastName);
 
     List<P> findByAgeBigInteger(BigInteger age);
 
@@ -237,9 +236,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameNotContaining(String str);
 
-    List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
+    List<P> findByLastNameLikeAndAgeBetween(CombinedQueryParam lastName, CombinedQueryParam ageBetween);
 
-    List<P> findByAgeOrLastNameLikeAndFirstNameLike(int age, String lastName, String firstName);
+    List<P> findByAgeOrLastNameLikeAndFirstNameLike(CombinedQueryParam age, CombinedQueryParam lastName,
+                                                    CombinedQueryParam firstName);
 
 //	List<P> findByNamedQuery(String firstName);
 
@@ -275,7 +275,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByIsActiveFalse();
 
-    List<P> findByIsActiveAndFirstName(boolean isActive, String firstName);
+    List<P> findByIsActiveAndFirstName(CombinedQueryParam isActive, CombinedQueryParam firstName);
 
     @SuppressWarnings("UnusedReturnValue")
     long countByLastName(String lastName);
@@ -1131,11 +1131,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByFirstNameGreaterThan(String string);
 
-    List<P> findByFirstNameAndAge(String string, int i);
+    List<P> findByFirstNameAndAge(CombinedQueryParam string, CombinedQueryParam age);
 
-    Iterable<P> findByAgeBetweenAndLastName(int from, int to, String lastName);
+    Iterable<P> findByAgeBetweenAndLastName(CombinedQueryParam ageBetween, CombinedQueryParam lastName);
 
-    Iterable<P> findByAgeBetweenOrLastName(int from, int to, String lastName);
+    Iterable<P> findByAgeBetweenOrLastName(CombinedQueryParam ageBetween, CombinedQueryParam lastName);
 
     List<P> findByFirstNameStartsWith(String string);
 

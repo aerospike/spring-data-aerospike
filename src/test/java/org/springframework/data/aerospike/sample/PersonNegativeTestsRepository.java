@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import org.springframework.data.aerospike.query.CombinedQueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 
@@ -271,10 +272,6 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
      */
     List<P> findByFriendAddressZipCodeIsNot();
 
-    List<P> findByFriendAddressZipCode(int number1);
-
-    List<P> findByFriendAddressZipCodeIsNot(int number1);
-
     /**
      * Invalid number of arguments: expecting two POJOs
      */
@@ -294,4 +291,24 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
      * Invalid arguments type: expecting two POJOs, instead got Integer and Integer
      */
     List<P> findByAddressBetween(int number1, int number2, int number3);
+
+    /**
+     * Expected CombinedQueryParam, instead got String
+     */
+    List<P> findByFirstNameAndAge(String firstName, int age);
+
+    /**
+     * Invalid number of arguments, expecting at least one
+     */
+    List<P> findByFirstNameOrAge(CombinedQueryParam firstName);
+
+    /**
+     *
+     */
+    List<P> findByAddressExists(Address address);
+
+    /**
+     * Invalid number of arguments: expecting at least one
+     */
+    List<P> findByIsActive();
 }
