@@ -86,7 +86,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
                 throw new IllegalArgumentException(part.getProperty() + ": expected CombinedQueryParam, instead got " + nextParam.getClass()
                     .getSimpleName());
             }
-            paramIterator = Arrays.stream(((CombinedQueryParam) nextParam).getArguments()).iterator();
+            paramIterator = Arrays.stream(((CombinedQueryParam) nextParam).arguments()).iterator();
         }
         return create(part, property, paramIterator);
     }
