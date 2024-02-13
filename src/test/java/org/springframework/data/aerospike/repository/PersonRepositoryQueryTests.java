@@ -715,12 +715,12 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         repository.save(stefan);
     }
 
-//    @Test
-//    void findByExistsNegativeTest() {
-//        assertThatThrownBy(() -> negativeTestsRepository.findByAddressExists(new Address(null, null, null, null)))
-//            .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Expected CombinedQueryParam, instead got String");
-//    }
+    @Test
+    void findByExistsNegativeTest() {
+        assertThatThrownBy(() -> negativeTestsRepository.findByAddressExists(new Address(null, null, null, null)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.address IS_NOT_NULL: expecting no arguments");
+    }
 
     @Test
     void findByIsNull() {
@@ -2153,9 +2153,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
     @Test
     void findPagedPersons() {
-        Page<Person> result = repository.findAll(PageRequest.of(
-            1, 2, Sort.Direction.ASC, "lastname", "firstname")
-        );
+        Page<Person> result = repository.findAll(PageRequest.of(1, 2, Sort.Direction.ASC, "lastname", "firstname"));
         assertThat(result.isFirst()).isFalse();
         assertThat(result.isLast()).isFalse();
     }

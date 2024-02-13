@@ -303,7 +303,7 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByFirstNameOrAge(CombinedQueryParam firstName);
 
     /**
-     *
+     * Expecting no arguments
      */
     List<P> findByAddressExists(Address address);
 

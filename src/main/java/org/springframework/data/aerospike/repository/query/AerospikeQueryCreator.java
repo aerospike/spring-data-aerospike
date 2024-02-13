@@ -120,7 +120,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             case NOT_IN -> getCriteria(part, property, value1, parameters, FilterOperation.NOT_IN);
             case TRUE -> getCriteria(part, property, true, parameters, FilterOperation.EQ);
             case FALSE -> getCriteria(part, property, false, parameters, FilterOperation.EQ);
-            case EXISTS, IS_NOT_NULL -> getCriteria(part, property, null, parameters, IS_NOT_NULL);
+            case EXISTS, IS_NOT_NULL -> getCriteria(part, property, value1, parameters, IS_NOT_NULL);
             case IS_NULL -> getCriteria(part, property, null, parameters, IS_NULL);
             default -> throw new IllegalArgumentException("Unsupported keyword '" + part.getType() + "'");
         };
@@ -596,8 +596,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         }
     }
 
-    private Qualifier processOther(Part part, Object value1, Object value2,
-                                   AerospikePersistentProperty property, FilterOperation op, String fieldName) {
+    private Qualifier processOther(Part part, Object value1, Object value2, AerospikePersistentProperty property,
+                                   FilterOperation op, String fieldName) {
         List<String> dotPath = null;
         Object value3 = null;
         Qualifier.QualifierBuilder qb = Qualifier.builder();
