@@ -36,8 +36,6 @@ import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.StringUtils;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,9 +43,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.springframework.data.aerospike.convert.AerospikeConverter.TYPE_KEY;
 import static org.springframework.data.aerospike.query.FilterOperation.*;
 import static org.springframework.data.aerospike.query.Qualifier.idEquals;
 import static org.springframework.data.aerospike.query.Qualifier.idIn;
@@ -57,6 +57,7 @@ import static org.springframework.data.aerospike.utility.Utils.isBoolean;
 import static org.springframework.data.aerospike.utility.Utils.isSimpleValueType;
 import static org.springframework.data.repository.query.parser.Part.Type.BETWEEN;
 import static org.springframework.data.repository.query.parser.Part.Type.WITHIN;
+import static org.springframework.util.ClassUtils.isAssignable;
 import static org.springframework.util.ClassUtils.isAssignableValue;
 
 /**
@@ -138,9 +139,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         }
 
         // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
-        final Object value = obj;
-        TypeInformation<?> valueType = TypeInformation.of(value.getClass());
-        return converter.toWritableValue(value, valueType);
+        TypeInformation<?> valueType = TypeInformation.of(obj.getClass());
+        return converter.toWritableValue(obj, valueType);
     }
 
     public CriteriaDefinition getCriteria(Part part, AerospikePersistentProperty property, Object value1,
@@ -274,34 +274,18 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
                 throw new IllegalArgumentException(String.format("%s: invalid number of null arguments, expecting " +
                     "one", queryPartDescription));
             }
-        }
-
-        // Determining class of Collection's elements if possible
-        Class<?> elementsClass = getCollectionElementsClass(property);
-        if (elementsClass != null) {
-            validateTypes(elementsClass, value1, value2, params, queryPartDescription);
+        } else {
+            // Determining class of Collection's elements
+            Class<?> elementsClass = getCollectionElementsClass(property);
+            if (elementsClass != null) {
+                validateTypes(elementsClass, value1, value2, params, queryPartDescription, "Collection");
+            }
         }
     }
 
     private Class<?> getCollectionElementsClass(PropertyPath property) {
-        Type genericType = property.getTypeInformation().getType().getGenericSuperclass();
-        Class<?> elementClass;
-        if (genericType instanceof ParameterizedType) {
-            // If it's a parameterized type, get the actual type arguments
-            Type[] typeArguments = ((ParameterizedType) genericType).getActualTypeArguments();
-
-            if (typeArguments.length > 0) {
-                // The first type argument is the class of the elements in the Collection
-                elementClass = (Class<?>) typeArguments[0];
-            } else {
-                // Collection has no generic type information
-                elementClass = null;
-            }
-        } else {
-            // Collection is not a parameterized type
-            elementClass = null;
-        }
-        return elementClass;
+        // Get the class of Collection's elements or null
+        return property.getTypeInformation().getComponentType().getType();
     }
 
     private void validateCollectionQueryComparison(Object value1, List<Object> params, String queryPartDescription) {
@@ -335,7 +319,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         Qualifier qualifier = null;
 
         validateMapQuery(part.getProperty(), op, value1, value2, params);
-//        validateType(part.getProperty(), op, value1, value2, params);
 
         // the first parameter is value1, params list contains parameters except value1 and value2
         if (params.size() == 1 || value2 != null) { // two parameters
@@ -365,6 +348,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             default -> throw new UnsupportedOperationException(
                 String.format("Unsupported operation: %s applied to %s", op, property));
         }
+
+//        validateTypes(part.getProperty(), op, value1, value2, params);
     }
 
     private void validateMapQueryContaining(Object value1, List<Object> params, String queryPartDescription) {
@@ -688,38 +673,25 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private void validateTypes(PropertyPath property, FilterOperation op, Object value1, Object value2) {
         String queryPartDescription = String.join(" ", property.toString(), op.toString());
-        Class<?> propertyType = property.getTypeInformation().getType();
-        if (!(isAssignableValueOrConverted(propertyType, value1)) || !(isAssignableValueOrConverted(propertyType,
-            value2))) {
-            throw new IllegalArgumentException(String.format("%s: Type mismatch, expecting %s", queryPartDescription,
-                propertyType.getSimpleName()));
-        }
+        validateTypes(property, queryPartDescription, value1, value2);
     }
 
     private void validateTypes(PropertyPath property, String queryPartDescription, Object value1, Object value2) {
-        Class<?> propertyType = property.getTypeInformation().getType();
-        if (!(isAssignableValueOrConverted(propertyType, value1)) || !(isAssignableValueOrConverted(propertyType,
-            value2))) {
-            throw new IllegalArgumentException(String.format("%s: Type mismatch, expecting %s", queryPartDescription,
-                propertyType.getSimpleName()));
-        }
+        validateTypes(property.getTypeInformation().getType(), value1, value2, queryPartDescription);
     }
 
     private boolean isAssignableValueOrConverted(Class<?> propertyType, Object obj) {
-        return obj == null || isAssignableValue(propertyType, obj)
-            || converter.getCustomConversions().hasCustomReadTarget(obj.getClass(), propertyType);
+        return isAssignableValue(propertyType, obj)
+            || converter.getCustomConversions().hasCustomReadTarget(obj.getClass(), propertyType)
+            || isPojoMap(obj, propertyType);
     }
 
-    private void validateTypes(PropertyPath property, FilterOperation op, Object value1, Object value2,
-                               List<Object> params) {
-        String queryPartDescription = String.join(" ", property.toString(), op.toString());
-        Class<?> propertyType = property.getTypeInformation().getType();
-        params.add(0, value1);
-        params.add(1, value2);
-        if (!params.stream().allMatch(param -> isAssignableValueOrConverted(propertyType, param))) {
-            throw new IllegalArgumentException(String.format("%s: Type mismatch, expecting %s", queryPartDescription,
-                propertyType.getSimpleName()));
+    private boolean isPojoMap(Object obj, Class<?> propertyType) {
+        if (obj instanceof TreeMap) {
+            Object typeKey = ((TreeMap<?, ?>) obj).get(TYPE_KEY);
+            return typeKey != null && typeKey.equals(propertyType.getName());
         }
+        return false;
     }
 
     private void validateTypes(Class<?> propertyType, Object value1, Object value2, String queryPartDescription) {
@@ -728,12 +700,23 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     }
 
     private void validateTypes(Class<?> propertyType, Object value1, Object value2, List<Object> params,
-                               String queryPartDescription) {
-        params.add(0, value1);
-        params.add(1, value2);
-        if (!params.stream().allMatch(param -> isAssignableValueOrConverted(propertyType, param))) {
+                               String queryPartDescription, String... alternativeTypes) {
+        List<Object> parameters = Stream.of(value1, value2).filter(Objects::nonNull).collect(Collectors.toList());
+        if (params != null && params.size() > 0) parameters.addAll(params.stream().filter(Objects::nonNull).toList());
+
+        // Checking versus Number rather than strict type to be able to compare, e.g., integers to a long
+        if (isAssignable(Number.class, propertyType) && isAssignableValue(Number.class, value1))
+            propertyType = Number.class;
+
+        Class<?> clazz = propertyType;
+        if (!parameters.stream().allMatch(param -> isAssignableValueOrConverted(clazz, param))) {
+            String validTypes = propertyType.getSimpleName();
+            if (alternativeTypes.length > 0) {
+                validTypes = String.format("one of the following types: %s", propertyType.getSimpleName() + ", "
+                    + String.join(", ", alternativeTypes));
+            }
             throw new IllegalArgumentException(String.format("%s: Type mismatch, expecting %s", queryPartDescription,
-                propertyType.getSimpleName()));
+                validTypes));
         }
     }
 

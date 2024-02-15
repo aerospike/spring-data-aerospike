@@ -456,6 +456,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsBetween(100))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.ints BETWEEN: invalid number of arguments, expecting two");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntsBetween(Map.of(100, 200), Map.of(300, 400)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.ints BETWEEN: Type mismatch, expecting one of the following types: Integer, " +
+                "Collection");
     }
 
     @Test

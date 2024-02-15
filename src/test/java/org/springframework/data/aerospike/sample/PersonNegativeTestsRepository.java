@@ -213,6 +213,11 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByIntsBetween(int number1);
 
     /**
+     * Type mismatch, expecting one of the following types: Number, Collection
+     */
+    List<P> findByIntsBetween(Map<Integer, Integer> map1, Map<Integer, Integer> map2);
+
+    /**
      * Invalid number of arguments: expecting one POJO
      */
     List<P> findByAddress();

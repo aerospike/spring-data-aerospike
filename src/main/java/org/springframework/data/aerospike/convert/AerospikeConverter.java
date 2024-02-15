@@ -26,6 +26,8 @@ import org.springframework.data.convert.EntityConverter;
  */
 public interface AerospikeConverter extends AerospikeReader<Object>, AerospikeWriter<Object> {
 
+    public static final String TYPE_KEY = "@_class";
+
     /**
      * Access Aerospike-specific conversion service.
      *
