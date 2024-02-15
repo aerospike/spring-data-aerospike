@@ -9,7 +9,7 @@ import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
-import org.springframework.data.aerospike.query.CombinedQueryParam;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.repository.query.parser.PartTree;
 
@@ -54,16 +54,16 @@ public class AerospikeQueryCreatorUnitTests {
         PartTree tree1 = new PartTree("findByFirstNameInOrFriend", Person.class);
         AerospikeQueryCreator creator1 = new AerospikeQueryCreator(
             tree1, new StubParameterAccessor(
-            CombinedQueryParam.of(List.of("Oliver", "Peter")),
-            CombinedQueryParam.of(new Person("id", "firstName"))
+            QueryParam.of(List.of("Oliver", "Peter")),
+            QueryParam.of(new Person("id", "firstName"))
         ), context, converter);
         creator1.createQuery();
 
         PartTree tree2 = new PartTree("findByFirstNameOrFriend", Person.class);
         AerospikeQueryCreator creator2 = new AerospikeQueryCreator(
             tree2, new StubParameterAccessor(
-            CombinedQueryParam.of("Oliver", "Peter"),
-            CombinedQueryParam.of(new Person("id", "firstName"))
+            QueryParam.of("Oliver", "Peter"),
+            QueryParam.of(new Person("id", "firstName"))
         ), context, converter);
         creator2.createQuery();
 

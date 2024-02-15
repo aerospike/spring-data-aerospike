@@ -11,9 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.AsCollections;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperations;
-import org.springframework.data.aerospike.query.CombinedQueryParam;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
@@ -32,8 +32,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapQueryCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveIntegrationTests {
@@ -231,8 +231,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findPersonsByFirstnameAndByAge() {
-        CombinedQueryParam firstName = CombinedQueryParam.of("Lilly");
-        CombinedQueryParam age = CombinedQueryParam.of(28);
+        QueryParam firstName = QueryParam.of("Lilly");
+        QueryParam age = QueryParam.of(28);
         List<IndexedPerson> results = reactiveRepository.findByFirstNameAndAge(firstName, age)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -250,7 +250,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     @Test
     public void findByMapKeysContaining() {
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("key1",
-            CriteriaDefinition.AerospikeMapQueryCriteria.KEY).subscribeOn(Schedulers.parallel()).collectList().block();
+            CriteriaDefinition.AerospikeQueryCriteria.KEY).subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(luc, petra);
     }

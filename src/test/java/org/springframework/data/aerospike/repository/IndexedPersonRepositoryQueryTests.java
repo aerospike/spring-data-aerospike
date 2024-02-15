@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
-import org.springframework.data.aerospike.query.CombinedQueryParam;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
@@ -35,7 +35,7 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapQueryCriteria.VALUE;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
@@ -234,8 +234,8 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findsPersonsByActiveAndFirstName() {
         assertThat(tricia.isActive()).isFalse();
-        CombinedQueryParam isActive = CombinedQueryParam.of(false);
-        CombinedQueryParam firstNames = CombinedQueryParam.of("Tricia");
+        QueryParam isActive = QueryParam.of(false);
+        QueryParam firstNames = QueryParam.of("Tricia");
         List<IndexedPerson> result = repository.findByIsActiveAndFirstName(isActive, firstNames);
 
         assertThat(result)
@@ -313,13 +313,13 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findsPersonsByFirstNameAndByAge() {
-        CombinedQueryParam firstNames = CombinedQueryParam.of("Billy");
-        CombinedQueryParam ages = CombinedQueryParam.of(25);
+        QueryParam firstNames = QueryParam.of("Billy");
+        QueryParam ages = QueryParam.of(25);
         List<IndexedPerson> result = repository.findByFirstNameAndAge(firstNames, ages);
         assertThat(result).containsOnly(billy);
 
-        firstNames = CombinedQueryParam.of("Peter");
-        ages = CombinedQueryParam.of(41);
+        firstNames = QueryParam.of("Peter");
+        ages = QueryParam.of(41);
         result = repository.findByFirstNameAndAge(firstNames, ages);
         assertThat(result).containsOnly(peter);
     }
@@ -338,26 +338,26 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findsPersonInAgeRangeAndNameCorrectly() {
-        CombinedQueryParam ageBetween = CombinedQueryParam.of(40, 45);
-        CombinedQueryParam lastNames = CombinedQueryParam.of("Matthews");
+        QueryParam ageBetween = QueryParam.of(40, 45);
+        QueryParam lastNames = QueryParam.of("Matthews");
         Iterable<IndexedPerson> it = repository.findByAgeBetweenAndLastName(ageBetween, lastNames);
         assertThat(it).hasSize(0);
 
-        ageBetween = CombinedQueryParam.of(20, 26);
-        lastNames = CombinedQueryParam.of("Smith");
+        ageBetween = QueryParam.of(20, 26);
+        lastNames = QueryParam.of("Smith");
         Iterable<IndexedPerson> result = repository.findByAgeBetweenAndLastName(ageBetween, lastNames);
         assertThat(result).hasSize(1).contains(billy);
     }
 
     @Test
     public void findsPersonInAgeRangeOrNameCorrectly() {
-        CombinedQueryParam ageBetween = CombinedQueryParam.of(40, 45);
-        CombinedQueryParam lastNames = CombinedQueryParam.of("James");
+        QueryParam ageBetween = QueryParam.of(40, 45);
+        QueryParam lastNames = QueryParam.of("James");
         Iterable<IndexedPerson> it = repository.findByAgeBetweenOrLastName(ageBetween, lastNames);
         assertThat(it).containsExactlyInAnyOrder(john, peter, tricia);
 
-        ageBetween = CombinedQueryParam.of(20, 26);
-        lastNames = CombinedQueryParam.of("Macintosh");
+        ageBetween = QueryParam.of(20, 26);
+        lastNames = QueryParam.of("Macintosh");
         Iterable<IndexedPerson> result = repository.findByAgeBetweenOrLastName(ageBetween, lastNames);
         assertThat(result).containsExactlyInAnyOrder(billy, peter);
     }
@@ -367,7 +367,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(billy.getStringMap()).containsKey("key1");
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("key1",
-            CriteriaDefinition.AerospikeMapQueryCriteria.KEY);
+            CriteriaDefinition.AerospikeQueryCriteria.KEY);
         assertThat(persons).contains(billy);
     }
 
@@ -376,7 +376,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(billy.getStringMap()).containsKey("key1");
 
         List<IndexedPerson> persons = repository.findByStringMapNotContaining("key3",
-            CriteriaDefinition.AerospikeMapQueryCriteria.KEY);
+            CriteriaDefinition.AerospikeQueryCriteria.KEY);
         assertThat(persons).contains(billy);
     }
 

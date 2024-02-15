@@ -442,7 +442,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         reactiveTemplate.insertAll(persons).blockLast();
 
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1",
-            CriteriaDefinition.AerospikeMapQueryCriteria.KEY);
+            CriteriaDefinition.AerospikeQueryCriteria.KEY);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -463,7 +463,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         reactiveTemplate.insertAll(persons).blockLast();
 
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "val1",
-            CriteriaDefinition.AerospikeMapQueryCriteria.VALUE);
+            CriteriaDefinition.AerospikeQueryCriteria.VALUE);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())

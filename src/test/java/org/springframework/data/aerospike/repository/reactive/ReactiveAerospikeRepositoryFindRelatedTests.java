@@ -8,7 +8,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.query.CombinedQueryParam;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.CustomerSomeFields;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
@@ -20,7 +20,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.query.CombinedQueryParam.of;
+import static org.springframework.data.aerospike.query.QueryParam.of;
 import static org.springframework.data.domain.Sort.Order.asc;
 
 /**
@@ -222,8 +222,8 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
 
     @Test
     public void findByFirstnameAndLastname_ShouldWorkProperly() {
-        CombinedQueryParam firstName = of("Bart");
-        CombinedQueryParam lastName = of("Simpson");
+        QueryParam firstName = of("Bart");
+        QueryParam lastName = of("Simpson");
         List<Customer> results = customerRepo.findByFirstNameAndLastName(firstName, lastName)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -232,8 +232,8 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
 
     @Test
     public void findOneByFirstnameAndLastname_ShouldWorkProperly() {
-        CombinedQueryParam firstName = of("Bart");
-        CombinedQueryParam lastName = of("Simpson");
+        QueryParam firstName = of("Bart");
+        QueryParam lastName = of("Simpson");
         Customer result = customerRepo.findByFirstNameAndLastName(firstName, lastName)
             .subscribeOn(Schedulers.parallel()).blockLast();
 
@@ -242,8 +242,8 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
 
     @Test
     public void findByLastnameAndAge_ShouldWorkProperly() {
-        CombinedQueryParam lastName = of("Simpson");
-        CombinedQueryParam age = of(15);
+        QueryParam lastName = of("Simpson");
+        QueryParam age = of(15);
         Customer result = customerRepo.findByLastNameAndAge(lastName, age)
             .subscribeOn(Schedulers.parallel()).blockLast();
 
@@ -276,8 +276,8 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
 
     @Test
     public void findByAgeBetweenAndLastname_ShouldWorkProperly() {
-        CombinedQueryParam ageBetween = of(30, 70);
-        CombinedQueryParam lastName = of("Simpson");
+        QueryParam ageBetween = of(30, 70);
+        QueryParam lastName = of("Simpson");
         List<Customer> results = customerRepo.findByAgeBetweenAndLastName(ageBetween, lastName)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 

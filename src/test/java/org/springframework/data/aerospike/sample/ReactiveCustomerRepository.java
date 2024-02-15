@@ -15,7 +15,7 @@
  */
 package org.springframework.data.aerospike.sample;
 
-import org.springframework.data.aerospike.query.CombinedQueryParam;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
@@ -56,11 +56,11 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByFirstNameIn(List<String> firstNames);
 
-    Flux<Customer> findByFirstNameAndLastName(CombinedQueryParam firstName, CombinedQueryParam lastName);
+    Flux<Customer> findByFirstNameAndLastName(QueryParam firstName, QueryParam lastName);
 
-    Mono<Customer> findOneByFirstNameAndLastName(CombinedQueryParam firstName, CombinedQueryParam lastName);
+    Mono<Customer> findOneByFirstNameAndLastName(QueryParam firstName, QueryParam lastName);
 
-    Flux<Customer> findByLastNameAndAge(CombinedQueryParam lastName, CombinedQueryParam age);
+    Flux<Customer> findByLastNameAndAge(QueryParam lastName, QueryParam age);
 
     Flux<Customer> findByAgeBetween(long from, long to);
 
@@ -68,7 +68,7 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByFirstNameContainingIgnoreCase(String firstName);
 
-    Flux<Customer> findByAgeBetweenAndLastName(CombinedQueryParam ageBetween, CombinedQueryParam lastName);
+    Flux<Customer> findByAgeBetweenAndLastName(QueryParam ageBetween, QueryParam lastName);
 
     Flux<Customer> findByAgeBetweenOrderByFirstNameDesc(long i, long j);
 

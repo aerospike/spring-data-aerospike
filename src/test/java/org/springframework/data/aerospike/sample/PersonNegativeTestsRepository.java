@@ -15,7 +15,7 @@
  */
 package org.springframework.data.aerospike.sample;
 
-import org.springframework.data.aerospike.query.CombinedQueryParam;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 
@@ -27,6 +27,11 @@ import java.util.Map;
  * For actual repository see {@link PersonRepository}
  */
 public interface PersonNegativeTestsRepository<P extends Person> extends AerospikeRepository<P, String> {
+
+    /**
+     * Type mismatch: expecting String
+     */
+    List<P> findByFirstName(int number);
 
     /**
      * Invalid number of arguments: at least two arguments are required
@@ -61,14 +66,14 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     /**
      * Invalid combination of arguments: cannot have multiple MapCriteria arguments
      */
-    List<P> findByStringMapContaining(CriteriaDefinition.AerospikeMapQueryCriteria criterion1,
-                                      CriteriaDefinition.AerospikeMapQueryCriteria criterion2);
+    List<P> findByStringMapContaining(CriteriaDefinition.AerospikeQueryCriteria criterion1,
+                                      CriteriaDefinition.AerospikeQueryCriteria criterion2);
 
     /**
      * Invalid combination of arguments: cannot have multiple MapCriteria arguments
      */
-    List<P> findByStringMapNotContaining(CriteriaDefinition.AerospikeMapQueryCriteria criterion1,
-                                         CriteriaDefinition.AerospikeMapQueryCriteria criterion2);
+    List<P> findByStringMapNotContaining(CriteriaDefinition.AerospikeQueryCriteria criterion1,
+                                         CriteriaDefinition.AerospikeQueryCriteria criterion2);
 
     /**
      * Invalid argument type: expected String, Number or byte[] at position 3
@@ -300,7 +305,7 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     /**
      * Invalid number of arguments, expecting at least one
      */
-    List<P> findByFirstNameOrAge(CombinedQueryParam firstName);
+    List<P> findByFirstNameOrAge(QueryParam firstName);
 
     /**
      * Expecting no arguments
@@ -308,7 +313,12 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByAddressExists(Address address);
 
     /**
-     * Invalid number of arguments: expecting at least one
+     * Invalid number of arguments: expecting one
      */
     List<P> findByIsActive();
+
+    /**
+     * Invalid number of arguments: expecting one
+     */
+    List<P> findByIsActive(boolean value1, boolean value2);
 }
