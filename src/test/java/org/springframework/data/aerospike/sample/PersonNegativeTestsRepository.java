@@ -86,7 +86,7 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByStringMapNotContaining(String key1, String value1, Person key2, String value2);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid combination of arguments: expecting either Map type or a key-value pair
      */
     List<P> findByStringMapEquals(String obj);
 
@@ -96,7 +96,7 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByStringMapIsNot(String obj);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid combination of arguments: expecting either Map type or a key-value pair
      */
     List<P> findByStringMap(int obj);
 
@@ -158,7 +158,7 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByStringsIsNot();
 
     /**
-     * Invalid number of arguments: expecting one
+     * Invalid number of arguments: expecting at least one
      */
     List<P> findByStrings();
 
@@ -168,7 +168,7 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByStringsEquals(String string1, String string2);
 
     /**
-     * Invalid number of arguments: expecting one
+     * Invalid arguments type: expecting Collection or AerospikeNullQueryCriteria, got String
      */
     List<P> findByStringsIsNot(String string1, String string2);
 

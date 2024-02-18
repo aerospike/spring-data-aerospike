@@ -233,7 +233,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
         Qualifier.QualifierBuilder qb = Qualifier.builder();
         if (!params.isEmpty()) {
-            if (op == FilterOperation.CONTAINING) {
+            if (op == CONTAINING) {
                 op = LIST_VAL_CONTAINING;
                 params.add(0, value1); // value1 stores the first parameter
                 return qualifierAndConcatenated(params, qb, part, fieldName, op, null);
@@ -253,21 +253,21 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
                                          List<Object> params) {
         String queryPartDescription = String.join(" ", property.toString(), op.toString());
         switch (op) {
-            case CONTAINING, NOT_CONTAINING -> validateCollectionQueryContaining(value1, params, queryPartDescription);
-            case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> validateCollectionQueryComparison(value1, params,
-                queryPartDescription);
+            case CONTAINING, NOT_CONTAINING, EQ, NOTEQ ->
+                validateCollectionQueryContaining(value1, params, queryPartDescription);
+            case GT, GTEQ, LT, LTEQ -> validateCollectionQueryComparison(value1, params, queryPartDescription);
             case BETWEEN -> validateCollectionQueryBetween(value1, value2, params, queryPartDescription);
             default -> throw new UnsupportedOperationException(
                 String.format("Unsupported operation: %s applied to %s", op, property));
         }
 
-        validateCollectionQueryTypes(property, queryPartDescription, value1, value2, params);
+        validateCollectionQueryTypes(property, op, queryPartDescription, value1, value2, params);
     }
 
-    private void validateCollectionQueryTypes(PropertyPath property, String queryPartDescription, Object value1,
-                                              Object value2, List<Object> params) {
+    private void validateCollectionQueryTypes(PropertyPath property, FilterOperation op, String queryPartDescription,
+                                              Object value1, Object value2, List<Object> params) {
         if (value1 instanceof Collection) {
-            validateTypes(Collection.class, value1, value2, params, queryPartDescription);
+            areTypesValid(Collection.class, value1, value2, params, queryPartDescription);
         } else if (value1 instanceof AerospikeNullQueryCriteria) {
             // Not more than one null value
             if (getArgumentsSize(value1, value2, params) > 1) {
@@ -275,11 +275,19 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
                     "one", queryPartDescription));
             }
         } else {
-            // Determining class of Collection's elements
-            Class<?> elementsClass = getCollectionElementsClass(property);
-            if (elementsClass != null) {
-                validateTypes(elementsClass, value1, value2, params, queryPartDescription, "Collection");
+            switch (op) {
+                case CONTAINING, NOT_CONTAINING, LT, LTEQ, GT, GTEQ, BETWEEN -> {
+                    // Determining class of Collection's elements
+                    Class<?> elementsClass = getCollectionElementsClass(property);
+                    if (elementsClass != null) {
+                        areTypesValid(elementsClass, value1, value2, params, queryPartDescription, "Collection");
+                    }
+                }
+                default -> throw new IllegalArgumentException(String.format("%s: invalid arguments type, expecting " +
+                    "Collection or AerospikeNullQueryCriteria, got %s", queryPartDescription, value1.getClass()
+                    .getSimpleName()));
             }
+
         }
     }
 
@@ -348,8 +356,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             default -> throw new UnsupportedOperationException(
                 String.format("Unsupported operation: %s applied to %s", op, property));
         }
-
-//        validateTypes(part.getProperty(), op, value1, value2, params);
     }
 
     private void validateMapQueryContaining(Object value1, List<Object> params, String queryPartDescription) {
@@ -425,32 +431,17 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private void validateMapQueryEquals(Object value1, List<Object> params, String queryPartDescription) {
         // Only one argument which is not a Map
-        if (params.isEmpty() && !(value1 instanceof Map)) {
+        if (value1 != null && params.isEmpty() && !(value1 instanceof Map)) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, expecting " +
-                "either a Map or a " +
-                "key-value pair");
+                "either Map type or a key-value pair");
         }
 
-        // More than 2 arguments
-        if (getArgumentsSize(value1, params) > 2) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting " +
-                "either a Map or a key-value " +
-                "pair");
-        }
-
-        // 2 arguments of type Map
-        if (getArgumentsSize(value1, params) == 2 && getArgumentsMapsSize(value1, params) > 1) {
+        // More than 2 arguments not of type Map
+        if (getArgumentsSize(value1, params) > 2 && !areTypesValid(Map.class, value1, null, params,
+            queryPartDescription)) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, expecting " +
-                "either a Map or a " +
-                "key-value pair");
+                "either Map type or a key-value pair");
         }
-    }
-
-    private long getArgumentsMapsSize(Object value1, List<Object> params) {
-        int value1MapCount = value1 instanceof Map ? 1 : 0;
-        return value1MapCount + params.stream()
-            .filter(Map.class::isInstance)
-            .count();
     }
 
     private void validateMapQueryComparison(Object value1, List<Object> params, String queryPartDescription) {
@@ -513,13 +504,12 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         // second
         Qualifier qualifier;
 
-        if (op == FilterOperation.CONTAINING) {
+        if (op == CONTAINING) {
             qualifier = processMapContaining(nextParam, part, value1, fieldName, MAP_KEYS_CONTAIN, MAP_VALUES_CONTAIN,
                 MAP_VAL_EQ_BY_KEY);
         } else if (op == FilterOperation.NOT_CONTAINING) {
             qualifier = processMapContaining(nextParam, part, value1, fieldName, MAP_KEYS_NOT_CONTAIN,
-                MAP_VALUES_NOT_CONTAIN,
-                MAP_VAL_NOTEQ_BY_KEY);
+                MAP_VALUES_NOT_CONTAIN, MAP_VAL_NOTEQ_BY_KEY);
         } else {
             qualifier = processMapBetween(part, value1, value2, op, fieldName, nextParam);
         }
@@ -559,10 +549,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
                 qb.setValue1(Value.get(value2)); // contains lower limit (inclusive)
                 qb.setValue3(Value.get(nextParam)); // contains upper limit (inclusive)
             } else {
-                if (op == FilterOperation.EQ) {
-                    throw new IllegalArgumentException(String.format("Unsupported arguments '%s' and '%s', expecting " +
-                        "Map argument in findByMapEquals queries", value1, nextParam));
-                } else {
+                if (op != FilterOperation.EQ) {
                     op = getCorrespondingMapValueFilterOperationOrFail(op);
                     setQbValuesForMapByKey(qb, value1, nextParam);
                 }
@@ -671,13 +658,13 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         return setQualifier(qb, fieldName, op, part, value1, value2, value3, dotPath);
     }
 
-    private void validateTypes(PropertyPath property, FilterOperation op, Object value1, Object value2) {
+    private void areTypesValid(PropertyPath property, FilterOperation op, Object value1, Object value2) {
         String queryPartDescription = String.join(" ", property.toString(), op.toString());
-        validateTypes(property, queryPartDescription, value1, value2);
+        areTypesValid(property, queryPartDescription, value1, value2);
     }
 
-    private void validateTypes(PropertyPath property, String queryPartDescription, Object value1, Object value2) {
-        validateTypes(property.getTypeInformation().getType(), value1, value2, queryPartDescription);
+    private void areTypesValid(PropertyPath property, String queryPartDescription, Object value1, Object value2) {
+        areTypesValid(property.getTypeInformation().getType(), value1, value2, queryPartDescription);
     }
 
     private boolean isAssignableValueOrConverted(Class<?> propertyType, Object obj) {
@@ -694,13 +681,14 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         return false;
     }
 
-    private void validateTypes(Class<?> propertyType, Object value1, Object value2, String queryPartDescription) {
+    private boolean areTypesValid(Class<?> propertyType, Object value1, Object value2,
+                                  String queryPartDescription) {
         List<Object> params = new ArrayList<>();
-        validateTypes(propertyType, value1, value2, params, queryPartDescription);
+        return areTypesValid(propertyType, value1, value2, params, queryPartDescription);
     }
 
-    private void validateTypes(Class<?> propertyType, Object value1, Object value2, List<Object> params,
-                               String queryPartDescription, String... alternativeTypes) {
+    private boolean areTypesValid(Class<?> propertyType, Object value1, Object value2, List<Object> params,
+                                  String queryPartDescription, String... alternativeTypes) {
         List<Object> parameters = Stream.of(value1, value2).filter(Objects::nonNull).collect(Collectors.toList());
         if (params != null && params.size() > 0) parameters.addAll(params.stream().filter(Objects::nonNull).toList());
 
@@ -718,6 +706,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             throw new IllegalArgumentException(String.format("%s: Type mismatch, expecting %s", queryPartDescription,
                 validTypes));
         }
+
+        return true;
     }
 
     /**
@@ -745,7 +735,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
                 String.format("Unsupported operation: %s applied to %s", op, property));
         }
 
-        validateTypes(property, op, value1, value2);
+        areTypesValid(property, op, value1, value2);
     }
 
     private void validateSimplePropertyQuery(PropertyPath property, FilterOperation op, Object value1, Object value2) {
@@ -753,7 +743,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         switch (op) {
             case CONTAINING, NOT_CONTAINING, GT, GTEQ, LT, LTEQ, LIKE, STARTS_WITH, ENDS_WITH -> {
                 validateSimplePropertyQueryComparison(queryPartDescription, value1, value2);
-                validateTypes(property, queryPartDescription, value1, value2);
+                areTypesValid(property, queryPartDescription, value1, value2);
             }
             case IN, NOT_IN -> {
                 validateSimplePropertyQueryComparison(queryPartDescription, value1, value2);
@@ -761,15 +751,15 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             }
             case EQ, NOTEQ -> {
                 validateSimplePropertyQueryEquals(property.getType(), queryPartDescription, value1, value2);
-                validateTypes(property, queryPartDescription, value1, value2);
+                areTypesValid(property, queryPartDescription, value1, value2);
             }
             case BETWEEN -> {
                 validateSimplePropertyQueryBetween(queryPartDescription, value1, value2);
-                validateTypes(property, queryPartDescription, value1, value2);
+                areTypesValid(property, queryPartDescription, value1, value2);
             }
             case IS_NOT_NULL, IS_NULL -> {
                 validateSimplePropertyQueryIsNull(queryPartDescription, value1, value2);
-                validateTypes(property, queryPartDescription, value1, value2);
+                areTypesValid(property, queryPartDescription, value1, value2);
             }
             default -> throw new UnsupportedOperationException(
                 String.format("Unsupported operation: %s applied to %s", op, property));
@@ -779,7 +769,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     private void validateSimplePropertyInQueryTypes(PropertyPath property, String queryPartDescription, Object value1
         , Object value2) {
         if (value1 instanceof Collection) {
-            validateTypes(Collection.class, value1, value2, queryPartDescription);
+            areTypesValid(Collection.class, value1, value2, queryPartDescription);
         } else if (value1 instanceof AerospikeNullQueryCriteria) {
             // Not more than one null value
             if (getArgumentsSize(value1, value2) > 1) {
@@ -787,7 +777,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
                     "expecting one");
             }
         } else {
-            validateTypes(property, queryPartDescription, value1, value2);
+            areTypesValid(property, queryPartDescription, value1, value2);
         }
     }
 
