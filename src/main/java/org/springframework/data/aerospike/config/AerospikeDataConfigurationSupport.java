@@ -59,6 +59,10 @@ import java.util.Set;
 @Configuration
 public abstract class AerospikeDataConfigurationSupport {
 
+    protected static final String CONFIG_PREFIX = "spring-data-aerospike";
+    protected static final String CONFIG_PREFIX_DATA = CONFIG_PREFIX + ".data";
+    protected static final String CONFIG_PREFIX_CONNECTION = CONFIG_PREFIX + ".connection";
+
     @Bean(name = "aerospikeStatementBuilder")
     public StatementBuilder statementBuilder(IndexesCache indexesCache) {
         return new StatementBuilder(indexesCache);
@@ -107,7 +111,8 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
-    public AerospikeClient aerospikeClient(AerospikeSettings settings) {
+    public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
+        // another implementation of IAerospikeClient can be instantiated here by overriding the bean
         return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
     }
 
@@ -196,8 +201,8 @@ public abstract class AerospikeDataConfigurationSupport {
     /**
      * Override this method to define data settings to be used.
      *
-     * <p>The return value of this method overrides the values of 'spring-data-aerospike.data.*' parameters
-     * from application.properties.
+     * <p>The return value of this method overrides the values of
+     * {@link AerospikeDataConfigurationSupport#CONFIG_PREFIX_DATA} parameters from application.properties.
      */
     protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
     }
@@ -225,13 +230,13 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean
-    @ConfigurationProperties(prefix = "spring-data-aerospike.data")
+    @ConfigurationProperties(prefix = CONFIG_PREFIX_DATA)
     public AerospikeDataSettings readAerospikeDataSettings() {
         return new AerospikeDataSettings();
     }
 
     @Bean
-    @ConfigurationProperties(prefix = "spring-data-aerospike.connection")
+    @ConfigurationProperties(prefix = CONFIG_PREFIX_CONNECTION)
     public AerospikeConnectionSettings readAerospikeSettings() {
         return new AerospikeConnectionSettings();
     }
