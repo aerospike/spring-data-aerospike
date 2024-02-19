@@ -1889,10 +1889,14 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    void findByFirstNameNegativeTest() {
+    void findBySimplePropertyNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFirstName(100))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.firstName EQ: Type mismatch, expecting String");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByLastName("Beauford", "Boford"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.lastName EQ: invalid number of arguments, expecting one");
     }
 
     @Test
@@ -2127,7 +2131,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         QueryParam firstName = of("John");
         assertThatThrownBy(() -> negativeTestsRepository.findByFirstNameOrAge(firstName))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.age EQ: invalid number of arguments, expecting at least one");
+            .hasMessage("Person.age EQ: invalid number of arguments, expecting one");
     }
 
     @Test
@@ -2209,14 +2213,11 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressBetween(100, 200, 300))
             .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Invalid number of arguments: expecting two POJOs");
-            .hasMessage("Person.address BETWEEN: invalid arguments type, expecting two POJOs, instead got Integer and" +
-                " Integer");
+            .hasMessage("Person.address BETWEEN: invalid number of arguments, expecting two POJOs");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressBetween(100, 200))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.address BETWEEN: invalid arguments type, expecting two POJOs, instead got Integer and" +
-                " Integer");
+            .hasMessage("Person.address BETWEEN: Type mismatch, expecting Address");
     }
 
     @Test
@@ -2428,9 +2429,15 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.address EQ: invalid number of arguments, expecting one POJO");
 
+        Address address1 = new Address(null, null, null, null);
+        Address address2 = new Address(null, null, null, null);
+        assertThatThrownBy(() -> negativeTestsRepository.findByAddress(address1, address2))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.address EQ: invalid number of arguments, expecting one POJO");
+
         assertThatThrownBy(() -> negativeTestsRepository.findByAddress(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.address EQ: invalid arguments type, expecting a POJO, instead got Integer");
+            .hasMessage("Person.address EQ: Type mismatch, expecting Address");
     }
 
     @Test
@@ -2441,7 +2448,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressIsNot(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.address NOTEQ: invalid arguments type, expecting a POJO, instead got Integer");
+            .hasMessage("Person.address NOTEQ: Type mismatch, expecting Address");
     }
 
     @Test
@@ -2549,7 +2556,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddress(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.address EQ: invalid arguments type, expecting a POJO, instead got Integer");
+            .hasMessage("Person.address EQ: Type mismatch, expecting Address");
     }
 
     @Test
@@ -2560,7 +2567,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressIsNot(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.address NOTEQ: invalid arguments type, expecting a POJO, instead got Integer");
+            .hasMessage("Person.address NOTEQ: Type mismatch, expecting Address");
     }
 
     @Test
@@ -2586,18 +2593,18 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
     void findByNestedSimplePropertyEqualsNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressZipCode())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Address.zipCode EQ: invalid number of arguments, expecting at least one");
+            .hasMessage("Address.zipCode EQ: invalid number of arguments, expecting one");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressZipCodeEquals())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Address.zipCode EQ: invalid number of arguments, expecting at least one");
+            .hasMessage("Address.zipCode EQ: invalid number of arguments, expecting one");
     }
 
     @Test
     void findByNestedSimplePropertyNotEqualNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressZipCodeIsNot())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Address.zipCode NOTEQ: invalid number of arguments, expecting at least one");
+            .hasMessage("Address.zipCode NOTEQ: invalid number of arguments, expecting one");
     }
 
     @Test

@@ -34,6 +34,11 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByFirstName(int number);
 
     /**
+     * Invalid number of arguments: expecting one
+     */
+    List<P> findByLastName(String name1, String name2);
+
+    /**
      * Invalid number of arguments: at least two arguments are required
      */
     List<P> findByStringMapContaining(String key);
@@ -230,15 +235,20 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     /**
      * Invalid number of arguments: expecting one POJO
      */
+    List<P> findByAddress(Address address1, Address address2);
+
+    /**
+     * Invalid number of arguments: expecting one POJO
+     */
     List<P> findByAddressIsNot();
 
     /**
-     * Invalid arguments type: expecting a POJO, instead got Integer
+     * Type mismatch: expecting Address
      */
     List<P> findByAddress(int number1);
 
     /**
-     * Invalid arguments type: expecting a POJO, instead got Integer
+     * Type mismatch: expecting Address
      */
     List<P> findByAddressIsNot(int number1);
 
@@ -258,27 +268,27 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByFriendAddressIsNot();
 
     /**
-     * Invalid arguments type: expecting a POJO, instead got Integer
+     * Type mismatch: expecting Address
      */
     List<P> findByFriendAddress(int number1);
 
     /**
-     * Invalid arguments type: expecting a POJO, instead got Integer
+     * Type mismatch: expecting Address
      */
     List<P> findByFriendAddressIsNot(int number1);
 
     /**
-     * Invalid number of arguments: expecting at least one
+     * Invalid number of arguments: expecting one
      */
     List<P> findByFriendAddressZipCode();
 
     /**
-     * Invalid number of arguments: expecting at least one
+     * Invalid number of arguments: expecting one
      */
     List<P> findByFriendAddressZipCodeEquals();
 
     /**
-     * Invalid number of arguments: expecting at least one
+     * Invalid number of arguments: expecting one
      */
     List<P> findByFriendAddressZipCodeIsNot();
 
@@ -293,12 +303,12 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByAddressBetween(int number1);
 
     /**
-     * Invalid arguments type: expecting two POJOs, instead got Integer and Integer
+     * Type mismatch, expecting Address
      */
     List<P> findByAddressBetween(int number1, int number2);
 
     /**
-     * Invalid arguments type: expecting two POJOs, instead got Integer and Integer
+     * Invalid number of arguments: expecting two POJOs
      */
     List<P> findByAddressBetween(int number1, int number2, int number3);
 
@@ -308,7 +318,7 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByFirstNameAndAge(String firstName, int age);
 
     /**
-     * Invalid number of arguments, expecting at least one
+     * Invalid number of arguments, expecting one
      */
     List<P> findByFirstNameOrAge(QueryParam firstName);
 
