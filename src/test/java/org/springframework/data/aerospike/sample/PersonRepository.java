@@ -43,8 +43,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByLastName(String lastName);
 
-    List<P> findByLastName(String lastName1, String lastName2);
-
     List<P> findByEmailAddress(String email);
 
     // DTO Projection
@@ -264,8 +262,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByCreatedAtAfter(Date date);
 
     Stream<P> findByLastNameNot(String lastName);
-
-    Stream<P> findByLastNameNot(String lastName1, String lastName2);
 
     List<P> findByCredentials(Credentials credentials);
 
