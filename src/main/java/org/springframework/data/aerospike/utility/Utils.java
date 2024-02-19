@@ -123,7 +123,7 @@ public class Utils {
 
     /**
      * Checking that at least one of the arguments is of the following type: a primitive or primitive wrapper, an Enum,
-     * a String or other CharSequence, a Number, a Date, a Temporal, a UUID, a URI, a URL, a Locale, or a Class
+     * a String or other CharSequence, a Number, a Date, a Temporal, a UUID, a URI, a URL, a Locale, or a Class.
      */
     public static boolean isSimpleValueType(Class<?> type) {
         return (Void.class != type && void.class != type &&

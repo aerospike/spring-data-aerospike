@@ -47,7 +47,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.springframework.data.aerospike.convert.AerospikeConverter.TYPE_KEY;
+import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
 import static org.springframework.data.aerospike.query.FilterOperation.*;
 import static org.springframework.data.aerospike.query.Qualifier.idEquals;
 import static org.springframework.data.aerospike.query.Qualifier.idIn;
@@ -686,8 +686,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private boolean isPojoMap(Object obj, Class<?> propertyType) {
         if (obj instanceof TreeMap) {
-            Object typeKey = ((TreeMap<?, ?>) obj).get(TYPE_KEY);
-            return typeKey != null && typeKey.equals(propertyType.getName());
+            Object classKey = ((TreeMap<?, ?>) obj).get(CLASS_KEY);
+            return classKey != null && classKey.equals(propertyType.getName());
         }
         return false;
     }
