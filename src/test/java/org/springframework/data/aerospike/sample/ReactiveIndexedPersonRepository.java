@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.sample;
 
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.domain.Page;
@@ -34,7 +35,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
 
     Mono<Page<IndexedPerson>> findByAgeLessThan(int value, Pageable pageable);
 
-    Flux<IndexedPerson> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criteria);
+    Flux<IndexedPerson> findByStringMapContaining(String element, CriteriaDefinition.AerospikeQueryCriteria criteria);
 
     /**
      * Find all entities that satisfy the condition "have exactly the given map key and the given value"
@@ -178,7 +179,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      */
     Flux<IndexedPerson> findDistinctByFriendLastNameStartingWith(String string);
 
-    Flux<IndexedPerson> findByFirstNameAndAge(String string, int i);
+    Flux<IndexedPerson> findByFirstNameAndAge(QueryParam string, QueryParam i);
 
-    Flux<IndexedPerson> findByAgeBetweenAndLastName(int from, int to, String lastName);
+    Flux<IndexedPerson> findByAgeBetweenAndLastName(QueryParam ageBetween, QueryParam lastName);
 }

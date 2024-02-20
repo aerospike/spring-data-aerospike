@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
@@ -34,7 +35,7 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMapCriteria.VALUE;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
@@ -233,7 +234,9 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findsPersonsByActiveAndFirstName() {
         assertThat(tricia.isActive()).isFalse();
-        List<IndexedPerson> result = repository.findByIsActiveAndFirstName(false, "Tricia");
+        QueryParam isActive = QueryParam.of(false);
+        QueryParam firstNames = QueryParam.of("Tricia");
+        List<IndexedPerson> result = repository.findByIsActiveAndFirstName(isActive, firstNames);
 
         assertThat(result)
             .hasSize(1)
@@ -310,10 +313,14 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findsPersonsByFirstNameAndByAge() {
-        List<IndexedPerson> result = repository.findByFirstNameAndAge("Billy", 25);
+        QueryParam firstNames = QueryParam.of("Billy");
+        QueryParam ages = QueryParam.of(25);
+        List<IndexedPerson> result = repository.findByFirstNameAndAge(firstNames, ages);
         assertThat(result).containsOnly(billy);
 
-        result = repository.findByFirstNameAndAge("Peter", 41);
+        firstNames = QueryParam.of("Peter");
+        ages = QueryParam.of(41);
+        result = repository.findByFirstNameAndAge(firstNames, ages);
         assertThat(result).containsOnly(peter);
     }
 
@@ -331,19 +338,27 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findsPersonInAgeRangeAndNameCorrectly() {
-        Iterable<IndexedPerson> it = repository.findByAgeBetweenAndLastName(40, 45, "Matthews");
+        QueryParam ageBetween = QueryParam.of(40, 45);
+        QueryParam lastNames = QueryParam.of("Matthews");
+        Iterable<IndexedPerson> it = repository.findByAgeBetweenAndLastName(ageBetween, lastNames);
         assertThat(it).hasSize(0);
 
-        Iterable<IndexedPerson> result = repository.findByAgeBetweenAndLastName(20, 26, "Smith");
+        ageBetween = QueryParam.of(20, 26);
+        lastNames = QueryParam.of("Smith");
+        Iterable<IndexedPerson> result = repository.findByAgeBetweenAndLastName(ageBetween, lastNames);
         assertThat(result).hasSize(1).contains(billy);
     }
 
     @Test
     public void findsPersonInAgeRangeOrNameCorrectly() {
-        Iterable<IndexedPerson> it = repository.findByAgeBetweenOrLastName(40, 45, "James");
+        QueryParam ageBetween = QueryParam.of(40, 45);
+        QueryParam lastNames = QueryParam.of("James");
+        Iterable<IndexedPerson> it = repository.findByAgeBetweenOrLastName(ageBetween, lastNames);
         assertThat(it).containsExactlyInAnyOrder(john, peter, tricia);
 
-        Iterable<IndexedPerson> result = repository.findByAgeBetweenOrLastName(20, 26, "Macintosh");
+        ageBetween = QueryParam.of(20, 26);
+        lastNames = QueryParam.of("Macintosh");
+        Iterable<IndexedPerson> result = repository.findByAgeBetweenOrLastName(ageBetween, lastNames);
         assertThat(result).containsExactlyInAnyOrder(billy, peter);
     }
 
@@ -352,7 +367,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(billy.getStringMap()).containsKey("key1");
 
         List<IndexedPerson> persons = repository.findByStringMapContaining("key1",
-            CriteriaDefinition.AerospikeMapCriteria.KEY);
+            CriteriaDefinition.AerospikeQueryCriteria.KEY);
         assertThat(persons).contains(billy);
     }
 
@@ -361,7 +376,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(billy.getStringMap()).containsKey("key1");
 
         List<IndexedPerson> persons = repository.findByStringMapNotContaining("key3",
-            CriteriaDefinition.AerospikeMapCriteria.KEY);
+            CriteriaDefinition.AerospikeQueryCriteria.KEY);
         assertThat(persons).contains(billy);
     }
 

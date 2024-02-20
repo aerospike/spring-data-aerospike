@@ -24,10 +24,26 @@ import lombok.experimental.UtilityClass;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.util.StringUtils;
 
+import java.io.File;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.time.ZoneId;
+import java.time.temporal.Temporal;
 import java.util.Arrays;
+import java.util.Currency;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TimeZone;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
+
+import static org.springframework.util.ClassUtils.isPrimitiveOrWrapper;
 
 /**
  * Utility class containing useful methods for interacting with Aerospike across the entire implementation
@@ -103,5 +119,36 @@ public class Utils {
 
     public static boolean allArrayElementsAreNull(Object[] array) {
         return Arrays.stream(array).allMatch(Objects::isNull);
+    }
+
+    /**
+     * Checking that at least one of the arguments is of the following type: a primitive or primitive wrapper, an Enum,
+     * a String or other CharSequence, a Number, a Date, a Temporal, a UUID, a URI, a URL, a Locale, or a Class.
+     */
+    public static boolean isSimpleValueType(Class<?> type) {
+        return (Void.class != type && void.class != type &&
+            (isPrimitiveOrWrapper(type) ||
+                Enum.class.isAssignableFrom(type) ||
+                CharSequence.class.isAssignableFrom(type) ||
+                Number.class.isAssignableFrom(type) ||
+                Date.class.isAssignableFrom(type) ||
+                Temporal.class.isAssignableFrom(type) ||
+                ZoneId.class.isAssignableFrom(type) ||
+                TimeZone.class.isAssignableFrom(type) ||
+                File.class.isAssignableFrom(type) ||
+                Path.class.isAssignableFrom(type) ||
+                Charset.class.isAssignableFrom(type) ||
+                Currency.class.isAssignableFrom(type) ||
+                InetAddress.class.isAssignableFrom(type) ||
+                URI.class == type ||
+                URL.class == type ||
+                UUID.class == type ||
+                Locale.class == type ||
+                Pattern.class == type ||
+                Class.class == type));
+    }
+
+    public static boolean isBoolean(Class<?> type) {
+        return Boolean.TYPE.equals(type) || Boolean.class.equals(type);
     }
 }

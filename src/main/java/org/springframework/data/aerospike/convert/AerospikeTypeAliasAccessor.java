@@ -20,9 +20,10 @@ import org.springframework.data.mapping.Alias;
 
 import java.util.Map;
 
+import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
+
 public class AerospikeTypeAliasAccessor implements TypeAliasAccessor<Map<String, Object>> {
 
-    private static final String TYPE_KEY = "@_class";
     private final String typeKey;
 
     public AerospikeTypeAliasAccessor(String typeKey) {
@@ -30,7 +31,7 @@ public class AerospikeTypeAliasAccessor implements TypeAliasAccessor<Map<String,
     }
 
     public AerospikeTypeAliasAccessor() {
-        this.typeKey = TYPE_KEY;
+        this.typeKey = CLASS_KEY;
     }
 
     @Override

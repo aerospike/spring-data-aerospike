@@ -27,6 +27,11 @@ import org.springframework.data.convert.EntityConverter;
 public interface AerospikeConverter extends AerospikeReader<Object>, AerospikeWriter<Object> {
 
     /**
+     * Key that identifies POJO's class.
+     */
+    public static final String CLASS_KEY = "@_class";
+
+    /**
      * Access Aerospike-specific conversion service.
      *
      * @return the underlying {@link ConversionService} used by the converter

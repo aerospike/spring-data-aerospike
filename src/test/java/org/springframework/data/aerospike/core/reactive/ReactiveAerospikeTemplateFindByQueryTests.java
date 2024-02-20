@@ -34,6 +34,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @BeforeAll
     public void beforeAllSetUp() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class, OVERRIDE_SET_NAME);
         additionalAerospikeTestOperations.createIndex(Person.class, "person_age_index",
             "age", IndexType.NUMERIC);
         additionalAerospikeTestOperations.createIndex(Person.class, "person_last_name_index",
@@ -46,6 +47,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @BeforeEach
     public void setUp() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class, OVERRIDE_SET_NAME);
         super.setUp();
     }
 
@@ -54,6 +56,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_last_name_index");
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
+        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class, OVERRIDE_SET_NAME);
     }
 
     @Test
@@ -438,7 +442,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         reactiveTemplate.insertAll(persons).blockLast();
 
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1",
-            CriteriaDefinition.AerospikeMapCriteria.KEY);
+            CriteriaDefinition.AerospikeQueryCriteria.KEY);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -459,7 +463,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         reactiveTemplate.insertAll(persons).blockLast();
 
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "val1",
-            CriteriaDefinition.AerospikeMapCriteria.VALUE);
+            CriteriaDefinition.AerospikeQueryCriteria.VALUE);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())

@@ -16,8 +16,10 @@
 package org.springframework.data.aerospike.sample;
 
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -56,13 +58,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     <T> List<T> findById(String id, Class<T> type);
 
     // Dynamic Projection
-    <T> List<T> findByIdAndLastName(List<String> ids, String lastName, Class<T> type);
+    <T> List<T> findByIdAndLastName(QueryParam ids, QueryParam lastName, Class<T> type);
 
     // Dynamic Projection
-    <T> List<T> findByLastNameAndId(String lastName, String id, Class<T> type);
+    <T> List<T> findByLastNameAndId(QueryParam lastName, QueryParam id, Class<T> type);
 
     // Dynamic Projection
-    <T> List<T> findByFirstNameAndLastName(String firstName, String lastName, Class<T> type);
+    <T> List<T> findByFirstNameAndLastName(QueryParam firstName, QueryParam lastName, Class<T> type);
 
     /**
      * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
@@ -71,7 +73,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param ids       List of primary keys
      * @param firstName String to compare with
      */
-    List<P> findByIdAndFirstName(List<String> ids, String firstName);
+    List<P> findByIdAndFirstName(QueryParam ids, QueryParam firstName);
 
     /**
      * Find all entities that satisfy the condition "have primary key in the given list and either first name equal to
@@ -81,9 +83,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param firstName String to compare firstName with
      * @param age       integer to compare age with
      */
-    List<P> findByIdAndFirstNameAndAge(List<String> ids, String firstName, int age);
+    List<P> findByIdAndFirstNameAndAge(QueryParam ids, QueryParam firstName, QueryParam age);
 
-    List<P> findByIdAndFirstNameOrAge(List<String> ids, String firstName, int age);
+    List<P> findByIdAndFirstNameOrAge(QueryParam ids, QueryParam firstName, QueryParam age);
 
     Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 
@@ -138,8 +140,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Stream<P> findByFirstNameIn(List<String> firstNames);
 
     Stream<P> findByFirstNameNotIn(Collection<String> firstNames);
-
-    List<P> findByFirstNameAndLastName(String firstName, String lastName);
 
     List<P> findByAgeBigInteger(BigInteger age);
 
@@ -236,9 +236,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameNotContaining(String str);
 
-    List<P> findByLastNameLikeAndAgeBetween(String lastName, int from, int to);
+    List<P> findByLastNameLikeAndAgeBetween(QueryParam lastName, QueryParam ageBetween);
 
-    List<P> findByAgeOrLastNameLikeAndFirstNameLike(int age, String lastName, String firstName);
+    List<P> findByAgeOrLastNameLikeAndFirstNameLike(QueryParam age, QueryParam lastName,
+                                                    QueryParam firstName);
 
 //	List<P> findByNamedQuery(String firstName);
 
@@ -274,7 +275,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByIsActiveFalse();
 
-    List<P> findByIsActiveAndFirstName(boolean isActive, String firstName);
+    List<P> findByIsActiveAndFirstName(QueryParam isActive, QueryParam firstName);
 
     @SuppressWarnings("UnusedReturnValue")
     long countByLastName(String lastName);
@@ -409,19 +410,37 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
      * @param element   map value
-     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
-     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     * @param criterion {@link AerospikeQueryCriteria#KEY} or
+     *                  {@link AerospikeQueryCriteria#VALUE}
      */
-    List<P> findByStringMapContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
+    List<P> findByStringMapContaining(String element, AerospikeQueryCriteria criterion);
 
     /**
      * Find all entities that do not contain the given map element (key or value depending on the given criterion)
      *
      * @param element   map value
-     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
-     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     * @param criterion {@link AerospikeQueryCriteria#KEY} or
+     *                  {@link AerospikeQueryCriteria#VALUE}
      */
-    List<P> findByStringMapNotContaining(String element, CriteriaDefinition.AerospikeMapCriteria criterion);
+    List<P> findByStringMapNotContaining(String element, AerospikeQueryCriteria criterion);
+
+    /**
+     * Find all entities that do not contain the given map element (key or value depending on the given criterion)
+     *
+     * @param nullCriterion {@link AerospikeNullQueryCriteria#NULL}
+     * @param criterion {@link AerospikeQueryCriteria#KEY} or
+     *                  {@link AerospikeQueryCriteria#VALUE}
+     */
+    List<P> findByStringMapNotContaining(AerospikeNullQueryCriteria nullCriterion, AerospikeQueryCriteria criterion);
+
+    /**
+     * Find all entities containing the given map element (key or value depending on the given criterion)
+     *
+     * @param nullCriterion   {@link AerospikeNullQueryCriteria#NULL}
+     * @param criterion {@link AerospikeQueryCriteria#KEY} or
+     *                  {@link AerospikeQueryCriteria#VALUE}
+     */
+    List<P> findByStringMapContaining(AerospikeNullQueryCriteria nullCriterion, AerospikeQueryCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
@@ -435,10 +454,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
      * @param value     map value
-     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
-     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     * @param criterion {@link AerospikeQueryCriteria#KEY} or
+     *                  {@link AerospikeQueryCriteria#VALUE}
      */
-    List<P> findByMapOfIntListsContaining(List<Integer> value, CriteriaDefinition.AerospikeMapCriteria criterion);
+    List<P> findByMapOfIntListsContaining(List<Integer> value, AerospikeQueryCriteria criterion);
 
     /**
      * Find all entities containing the given map value with the given key
@@ -595,11 +614,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param element1  First key or value
      * @param element2  Second key or value
      * @param element3  Third key or value
-     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
-     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     * @param criterion {@link AerospikeQueryCriteria#KEY} or
+     *                  {@link AerospikeQueryCriteria#VALUE}
      */
     List<P> findByStringMapContaining(String element1, String element2, String element3,
-                                      CriteriaDefinition.AerospikeMapCriteria criterion);
+                                      AerospikeQueryCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have the given map elements (keys or values depending on the
@@ -607,11 +626,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      *
      * @param element1  First key or value
      * @param element2  Second key or value
-     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#KEY} or
-     *                  {@link CriteriaDefinition.AerospikeMapCriteria#VALUE}
+     * @param criterion {@link AerospikeQueryCriteria#KEY} or
+     *                  {@link AerospikeQueryCriteria#VALUE}
      */
     List<P> findByStringMapContaining(String element1, String element2,
-                                      CriteriaDefinition.AerospikeMapCriteria criterion);
+                                      AerospikeQueryCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value containing the given string"
@@ -620,10 +639,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param value1    String to check if map value equals it using key1
      * @param key2      Map key for the second key-value pair
      * @param value2    String to check if map value equals it using key2
-     * @param criterion {@link CriteriaDefinition.AerospikeMapCriteria#VALUE_CONTAINING}
+     * @param criterion {@link AerospikeQueryCriteria#VALUE_CONTAINING}
      */
     List<P> findByStringMapContaining(String key1, String value1, String key2, String value2,
-                                      CriteriaDefinition.AerospikeMapCriteria criterion);
+                                      AerospikeQueryCriteria criterion);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value that is greater than the given
@@ -818,6 +837,16 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringsContaining(String string);
 
     /**
+     * Find all entities that satisfy the condition "have the list which contains null"
+     * <p>
+     * List name in this case is Strings
+     * </p>
+     *
+     * @param nullCriterion {@link AerospikeNullQueryCriteria#NULL}
+     */
+    List<P> findByStringsContaining(AerospikeNullQueryCriteria nullCriterion);
+
+    /**
      * Find all entities that satisfy the condition "have the list which does not contain the given string"
      * <p>
      * List name in this case is Strings
@@ -826,6 +855,18 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param string string to check
      */
     List<P> findByStringsNotContaining(String string);
+
+    /**
+     * Find all entities that satisfy the condition "have the list which does not contain the given string"
+     * <p>
+     * List name in this case is Strings
+     * </p>
+     *
+     * @param nullCriteria {@link AerospikeNullQueryCriteria#NULL} to check for null
+     */
+    List<P> findByStringsNotContaining(AerospikeNullQueryCriteria nullCriteria);
+
+    List<P> findByStringsNotContaining();
 
     /**
      * Find all entities that satisfy the condition "have the list which contains the given integer"
@@ -1090,11 +1131,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByFirstNameGreaterThan(String string);
 
-    List<P> findByFirstNameAndAge(String string, int i);
+    List<P> findByFirstNameAndAge(QueryParam string, QueryParam age);
 
-    Iterable<P> findByAgeBetweenAndLastName(int from, int to, String lastName);
+    Iterable<P> findByAgeBetweenAndLastName(QueryParam ageBetween, QueryParam lastName);
 
-    Iterable<P> findByAgeBetweenOrLastName(int from, int to, String lastName);
+    Iterable<P> findByAgeBetweenOrLastName(QueryParam ageBetween, QueryParam lastName);
 
     List<P> findByFirstNameStartsWith(String string);
 

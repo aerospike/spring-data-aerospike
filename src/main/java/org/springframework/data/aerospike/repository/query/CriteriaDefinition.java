@@ -36,8 +36,12 @@ public interface CriteriaDefinition {
      */
     String getKey();
 
-    enum AerospikeMapCriteria {
+    enum AerospikeQueryCriteria {
         KEY, VALUE, VALUE_CONTAINING
+    }
+
+    enum AerospikeNullQueryCriteria {
+        NULL
     }
 
     enum AerospikeMetadata {
