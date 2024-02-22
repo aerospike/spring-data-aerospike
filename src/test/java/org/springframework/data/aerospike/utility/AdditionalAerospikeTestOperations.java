@@ -66,7 +66,11 @@ public abstract class AdditionalAerospikeTestOperations {
 
     @SneakyThrows
     public List<ScanJob> getScans() {
-        Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", "scan-show");
+        String showCmd = "scan-show";
+        if (serverVersionSupport.isQueryShowSupported()) {
+            showCmd = "query-show";
+        }
+        Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", showCmd);
         String stdout = execResult.getStdout();
         return getScanJobs(stdout);
     }
@@ -77,7 +81,6 @@ public abstract class AdditionalAerospikeTestOperations {
         }
         String response = stdout.replaceAll("\n", "");
         return ResponseUtils.parseResponse(response, pairsMap -> ScanJob.builder()
-            .module(pairsMap.get("module"))
             .set(pairsMap.get("set"))
             .udfFunction(pairsMap.get("udf-function"))
             .status(pairsMap.get("status"))
@@ -253,8 +256,6 @@ public abstract class AdditionalAerospikeTestOperations {
     @Builder
     public static class ScanJob {
 
-        @NonNull
-        String module;
         String set;
         String udfFunction;
         @NonNull

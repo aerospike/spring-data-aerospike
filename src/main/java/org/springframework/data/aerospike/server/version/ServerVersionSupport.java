@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ServerVersionSupport {
 
+    private static final ModuleDescriptor.Version SERVER_VERSION_5_7_0_0 = ModuleDescriptor.Version.parse("5.7.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_0_0_0 = ModuleDescriptor.Version.parse("6.0.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_0 = ModuleDescriptor.Version.parse("6.1.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_1 = ModuleDescriptor.Version.parse("6.1.0.1");
@@ -71,4 +72,10 @@ public class ServerVersionSupport {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_6_1_0_0) >= 0;
     }
+
+    public boolean isQueryShowSupported () {
+        return ModuleDescriptor.Version.parse(getServerVersion())
+            .compareTo(SERVER_VERSION_5_7_0_0) >= 0;
+    }
+
 }
