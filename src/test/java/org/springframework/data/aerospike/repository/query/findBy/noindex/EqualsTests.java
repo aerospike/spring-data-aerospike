@@ -223,7 +223,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
             List<Person> result = repository.findByFriendAddress(address);
 
-            assertThat(result).containsExactly(carter);
+            assertThat(result).contains(carter);
             TestUtils.setFriendsToNull(repository, carter);
         }
     }

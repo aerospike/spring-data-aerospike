@@ -31,6 +31,7 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
     void findByNestedSimplePropertyNotContaining() {
         Address cartersAddress = carter.getAddress();
         Address davesAddress = dave.getAddress();
+        Address boydsAddress = boyd.getAddress();
 
         carter.setAddress(new Address("Foo Street 2", 2, "C10124", "C0123"));
         repository.save(carter);
@@ -46,6 +47,7 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         carter.setAddress(cartersAddress);
         repository.save(carter);
         dave.setAddress(davesAddress);
+        boyd.setAddress(boydsAddress);
         repository.save(dave);
     }
 
