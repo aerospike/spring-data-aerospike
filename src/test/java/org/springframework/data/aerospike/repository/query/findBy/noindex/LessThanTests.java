@@ -123,8 +123,14 @@ public class LessThanTests extends PersonRepositoryQueryTests {
     @Test
     void findByPOJOLessThan() {
         if (serverVersionSupport.isFindByCDTSupported()) {
+            assertThat(dave.getAddress().getStreet()).isEqualTo("Foo Street 1");
+            assertThat(dave.getAddress().getApartment()).isEqualTo(1);
+            assertThat(boyd.getAddress().getStreet()).isEqualTo(null);
+            assertThat(boyd.getAddress().getApartment()).isEqualTo(null);
+
             Address address = new Address("Foo Street 2", 2, "C0124", "C0123");
             assertThat(dave.getAddress()).isNotEqualTo(address);
+            assertThat(boyd.getAddress()).isNotEqualTo(address);
             assertThat(carter.getAddress()).isEqualTo(address);
 
             List<Person> persons = repository.findByAddressLessThan(address);
