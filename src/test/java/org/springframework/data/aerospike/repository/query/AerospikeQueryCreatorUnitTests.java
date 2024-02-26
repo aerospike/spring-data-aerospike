@@ -46,7 +46,7 @@ public class AerospikeQueryCreatorUnitTests {
 
         AerospikeQueryCreator creator = new AerospikeQueryCreator(
             tree, new StubParameterAccessor("Oliver"), context, converter);
-        Query query = creator.createQuery();
+        creator.createQuery();
     }
 
     @Test
@@ -66,7 +66,6 @@ public class AerospikeQueryCreatorUnitTests {
             QueryParam.of(new Person("id", "firstName"))
         ), context, converter);
         creator2.createQuery();
-
     }
 
     private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
