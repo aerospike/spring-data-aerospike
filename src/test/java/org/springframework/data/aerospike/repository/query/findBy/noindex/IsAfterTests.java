@@ -24,5 +24,4 @@ public class IsAfterTests extends PersonRepositoryQueryTests {
         dave.setDateOfBirth(null);
         repository.save(dave);
     }
-
 }
