@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.repository;
+package org.springframework.data.aerospike.repository.query.findBy.indexed;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;

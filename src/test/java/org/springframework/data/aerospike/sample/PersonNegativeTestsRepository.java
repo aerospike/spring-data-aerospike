@@ -34,9 +34,19 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByFirstName(int number);
 
     /**
+     * Type mismatch: expecting Integer
+     */
+    List<P> findByAgeNot(String string);
+
+    /**
      * Invalid number of arguments: expecting one
      */
     List<P> findByLastName(String name1, String name2);
+
+    /**
+     * Invalid number of arguments: expecting one
+     */
+    List<P> findByAgeNot(int age1, int age2);
 
     /**
      * Invalid number of arguments: at least two arguments are required
@@ -123,12 +133,12 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     /**
      * Invalid number of arguments: expecting one (Map) or two (Map key and value)
      */
-    List<P> findByIntMapLessThanEqual(int number1, int number2, int number3);
+    List<P> findByIntMapLessThan(int number1, int number2, int number3);
 
     /**
      * Invalid first argument type: expected String, Number or byte[]
      */
-    List<P> findByIntMapGreaterThan(Person obj, int number);
+    List<P> findByIntMapLessThan(Person obj, int number);
 
     /**
      * Invalid number of arguments: expecting two (Maps) or three (Map key and two values)
@@ -190,12 +200,12 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     /**
      * Invalid number of arguments: expecting one
      */
-    List<P> findByStringsLessThanEqual(List<?> list1, List<?> list2);
+    List<P> findByStringsLessThan(List<?> list1, List<?> list2);
 
     /**
      * Invalid number of arguments: expecting one
      */
-    List<P> findByStringsGreaterThan(String string1, String string2);
+    List<P> findByStringsLessThan(String string1, String string2);
 
     /**
      * Invalid number of arguments: expecting at least one

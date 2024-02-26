@@ -273,6 +273,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByIsActiveTrue();
 
+    List<P> findByIsActiveIsTrue();
+
     List<P> findByIsActiveFalse();
 
     List<P> findByIsActiveAndFirstName(QueryParam isActive, QueryParam firstName);
@@ -297,6 +299,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFirstNameEndingWithIgnoreCase(String string);
 
     List<P> findByFirstNameContainingIgnoreCase(String string);
+
+    /**
+     * Find all entities with age greater than the given numeric parameter
+     *
+     * @param age      integer to compare with
+     */
+    List<P> findByAgeGreaterThan(int age);
 
     /**
      * Find all entities with age greater than the given numeric parameter
@@ -1120,7 +1129,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstName(String name);
 
+    List<P> findByFirstNameIs(String name);
+
+    List<P> findByFirstNameEquals(String name);
+
     List<P> findByFirstNameNot(String name);
+
+    List<P> findByFirstNameIsNot(String name);
 
     /**
      * Find all entities that satisfy the condition "have firstName higher in ordering than the given string".

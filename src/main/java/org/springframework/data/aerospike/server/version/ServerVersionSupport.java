@@ -56,9 +56,9 @@ public class ServerVersionSupport {
     }
 
     /**
-     * Since Aerospike Server ver. 6.3.0.0 find by POJO is supported.
+     * Since Aerospike Server ver. 6.3.0.0 find by Collection Data Types (Collection / Map / POJO) is supported.
      */
-    public boolean isFindByPojoSupported() {
+    public boolean isFindByCDTSupported() {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_6_3_0_0) >= 0;
     }

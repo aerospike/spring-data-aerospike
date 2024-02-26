@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.repository;
+package org.springframework.data.aerospike.repository.query;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -7,7 +7,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.DocumentByteArrayIdRepository;
 import org.springframework.data.aerospike.sample.DocumentByteIdRepository;
 import org.springframework.data.aerospike.sample.DocumentCharacterIdRepository;
