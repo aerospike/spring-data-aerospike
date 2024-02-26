@@ -552,6 +552,14 @@ public class SampleClasses {
     }
 
     @Data
+    public static class idAndAddressesList {
+
+        @Id
+        final String id;
+        final List<Address> addresses;
+    }
+
+    @Data
     @Document(collection = "versioned-set")
     public static class VersionedClass {
 

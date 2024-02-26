@@ -753,6 +753,32 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             (byte) 3)));
     }
 
+    @Test
+    void shouldWriteAndReadNestedPOJOs() {
+        MappingAerospikeConverter converter =
+            getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor(null));
+
+        AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
+        List<Address> addressesList = List.of(
+            new Address(new Street("Street1", 1), 1),
+            new Address(new Street("Street2", 2), 2)
+        );
+        SampleClasses.idAndAddressesList testObj = new idAndAddressesList("testId", addressesList);
+        converter.write(testObj, forWrite);
+
+        assertThat(forWrite.getBins()).containsOnly(
+            new Bin("addresses", List.of(
+                Map.of("apartment", 1, "street", Map.of("name", "Street1", "number", 1)),
+                Map.of("apartment", 2, "street", Map.of("name", "Street2", "number", 2))
+            ))
+        );
+
+        AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
+        SampleClasses.idAndAddressesList actual = converter.read(idAndAddressesList.class, forRead);
+
+        assertThat(actual).isEqualTo(new idAndAddressesList("testId", addressesList));
+    }
+
     private <T> void assertWriteAndRead(int converterOption,
                                         T object,
                                         String expectedSet,

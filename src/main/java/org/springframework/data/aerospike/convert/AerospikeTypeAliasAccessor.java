@@ -24,28 +24,28 @@ import static org.springframework.data.aerospike.convert.AerospikeConverter.CLAS
 
 public class AerospikeTypeAliasAccessor implements TypeAliasAccessor<Map<String, Object>> {
 
-    private final String typeKey;
+    private final String classKey;
 
-    public AerospikeTypeAliasAccessor(String typeKey) {
-        this.typeKey = typeKey;
+    public AerospikeTypeAliasAccessor(String classKey) {
+        this.classKey = classKey;
     }
 
     public AerospikeTypeAliasAccessor() {
-        this.typeKey = CLASS_KEY;
+        this.classKey = CLASS_KEY;
     }
 
     @Override
     public Alias readAliasFrom(Map<String, Object> source) {
-        if (typeKey == null) {
+        if (classKey == null) {
             return Alias.NONE;
         }
-        return Alias.ofNullable(source.get(typeKey));
+        return Alias.ofNullable(source.get(classKey));
     }
 
     @Override
     public void writeTypeTo(Map<String, Object> sink, Object alias) {
-        if (typeKey != null) {
-            sink.put(typeKey, alias);
+        if (classKey != null) {
+            sink.put(classKey, alias);
         }
     }
 }
