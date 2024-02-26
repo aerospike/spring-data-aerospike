@@ -47,8 +47,9 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         carter.setAddress(cartersAddress);
         repository.save(carter);
         dave.setAddress(davesAddress);
-        boyd.setAddress(boydsAddress);
         repository.save(dave);
+        boyd.setAddress(boydsAddress);
+        repository.save(boyd);
     }
 
     @Test
