@@ -62,7 +62,6 @@ public class CrudRepositoryQueryTests extends PersonRepositoryQueryTests {
         if (serverVersionSupport.isBatchWriteSupported()) {
             // batch delete requires server ver. >= 6.0.0
             repository.deleteAll(List.of(dave, carter));
-
         } else {
             List.of(dave, carter).forEach(repository::delete);
         }
