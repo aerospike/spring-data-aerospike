@@ -57,6 +57,11 @@ public enum FilterOperation {
 
     AND {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            // not needed
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             Qualifier[] qs = (Qualifier[]) qualifierMap.get(QUALIFIERS);
             Exp[] childrenExp;
@@ -81,6 +86,11 @@ public enum FilterOperation {
         }
     },
     OR {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            // not needed
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             Qualifier[] qs = (Qualifier[]) qualifierMap.get(QUALIFIERS);
@@ -107,6 +117,12 @@ public enum FilterOperation {
     },
     IN {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             // Convert IN to a collection of OR as Aerospike has no direct support for IN query
             return getMetadataExp(qualifierMap).orElseGet(() -> {
@@ -132,6 +148,12 @@ public enum FilterOperation {
     },
     NOT_IN {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             // Convert NOT_IN to a collection of AND as Aerospike has no direct support for IN query
             return getMetadataExp(qualifierMap).orElseGet(() -> {
@@ -156,6 +178,12 @@ public enum FilterOperation {
         }
     },
     EQ {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getMetadataExp(qualifierMap).orElseGet(() -> {
@@ -197,6 +225,12 @@ public enum FilterOperation {
         }
     },
     NOTEQ {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getMetadataExp(qualifierMap).orElseGet(() -> {
@@ -240,6 +274,12 @@ public enum FilterOperation {
     },
     GT {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getMetadataExp(qualifierMap).orElseGet(() -> {
                 Value value = getValue1(qualifierMap);
@@ -270,6 +310,12 @@ public enum FilterOperation {
     },
     GTEQ {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getMetadataExp(qualifierMap).orElseGet(() -> {
                 Value value = getValue1(qualifierMap);
@@ -297,6 +343,12 @@ public enum FilterOperation {
         }
     },
     LT {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getMetadataExp(qualifierMap).orElseGet(() -> {
@@ -327,6 +379,12 @@ public enum FilterOperation {
     },
     LTEQ {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getMetadataExp(qualifierMap).orElseGet(() -> {
                 Value value = getValue1(qualifierMap);
@@ -354,6 +412,12 @@ public enum FilterOperation {
         }
     },
     BETWEEN {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             validateEquality(getValue1(qualifierMap).getType(), getValue2(qualifierMap).getType(), qualifierMap,
@@ -397,6 +461,12 @@ public enum FilterOperation {
     },
     STARTS_WITH {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String startWithRegexp = getStartsWith(getValue1(qualifierMap).toString());
             return Exp.regexCompare(startWithRegexp, regexFlags(qualifierMap), Exp.stringBin(getField(qualifierMap)));
@@ -408,6 +478,12 @@ public enum FilterOperation {
         }
     },
     ENDS_WITH {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String endWithRegexp = getEndsWith(getValue1(qualifierMap).toString());
@@ -421,6 +497,12 @@ public enum FilterOperation {
     },
     CONTAINING {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String containingRegexp = getContaining(getValue1(qualifierMap).toString());
             return Exp.regexCompare(containingRegexp, regexFlags(qualifierMap), Exp.stringBin(getField(qualifierMap)));
@@ -432,6 +514,12 @@ public enum FilterOperation {
         }
     },
     NOT_CONTAINING {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String notContainingRegexp = getNotContaining(getValue1(qualifierMap).toString());
@@ -447,6 +535,12 @@ public enum FilterOperation {
     },
     LIKE {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             int flags = RegexFlag.EXTENDED;
             if (ignoreCase(qualifierMap)) {
@@ -461,6 +555,12 @@ public enum FilterOperation {
         }
     },
     MAP_VAL_EQ_BY_KEY {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getFilterExpMapValEqOrFail(qualifierMap, Exp::eq);
@@ -502,6 +602,12 @@ public enum FilterOperation {
     },
     MAP_VAL_NOTEQ_BY_KEY {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getFilterExpMapValNotEqOrFail(qualifierMap, Exp::ne);
         }
@@ -512,6 +618,13 @@ public enum FilterOperation {
         }
     },
     MAP_VAL_GT_BY_KEY {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0))); // key
+            qualifierMap.put(VALUE2, Value.get(queryParameters.get(1))); // value
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getFilterExpMapValOrFail(qualifierMap, Exp::gt, "MAP_VAL_GT_BY_KEY");
@@ -540,6 +653,13 @@ public enum FilterOperation {
     },
     MAP_VAL_GTEQ_BY_KEY {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0))); // key
+            qualifierMap.put(VALUE2, Value.get(queryParameters.get(1))); // value
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getFilterExpMapValOrFail(qualifierMap, Exp::ge, "MAP_VAL_GTEQ_BY_KEY");
         }
@@ -565,6 +685,13 @@ public enum FilterOperation {
         }
     },
     MAP_VAL_LT_BY_KEY {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0))); // key
+            qualifierMap.put(VALUE2, Value.get(queryParameters.get(1))); // value
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getFilterExpMapValOrFail(qualifierMap, Exp::lt, "MAP_VAL_LT_BY_KEY");
@@ -592,6 +719,13 @@ public enum FilterOperation {
     },
     MAP_VAL_LTEQ_BY_KEY {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0))); // key
+            qualifierMap.put(VALUE2, Value.get(queryParameters.get(1))); // value
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return getFilterExpMapValOrFail(qualifierMap, Exp::le, "MAP_VAL_LTEQ_BY_KEY");
         }
@@ -616,6 +750,13 @@ public enum FilterOperation {
         }
     },
     MAP_VAL_BETWEEN_BY_KEY {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0))); // key
+            qualifierMap.put(VALUE2, Value.get(queryParameters.get(1))); // value
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
@@ -697,11 +838,18 @@ public enum FilterOperation {
     },
     MAP_VAL_STARTS_WITH_BY_KEY {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0))); // key
+            qualifierMap.put(VALUE2, Value.get(queryParameters.get(1))); // value
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            String startWithRegexp = getStartsWith(getValue1(qualifierMap).toString());
+            String startWithRegexp = getStartsWith(getValue2(qualifierMap).toString());
 
             return Exp.regexCompare(startWithRegexp, regexFlags(qualifierMap),
-                MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(qualifierMap).toString()),
+                MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue1(qualifierMap).toString()),
                     Exp.mapBin(getField(qualifierMap)))
             );
         }
@@ -713,13 +861,20 @@ public enum FilterOperation {
     },
     MAP_VAL_LIKE_BY_KEY {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0))); // key
+            qualifierMap.put(VALUE2, Value.get(queryParameters.get(1))); // value
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             int flags = RegexFlag.EXTENDED;
             if (ignoreCase(qualifierMap)) {
                 flags = RegexFlag.EXTENDED | RegexFlag.ICASE;
             }
-            return Exp.regexCompare(getValue1(qualifierMap).toString(), flags,
-                MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(qualifierMap).toString()),
+            return Exp.regexCompare(getValue2(qualifierMap).toString(), flags,
+                MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue1(qualifierMap).toString()),
                     Exp.mapBin(getField(qualifierMap)))
             );
         }
@@ -730,6 +885,12 @@ public enum FilterOperation {
         }
     },
     MAP_VAL_ENDS_WITH_BY_KEY {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String endWithRegexp = getEndsWith(getValue1(qualifierMap).toString());
@@ -747,6 +908,12 @@ public enum FilterOperation {
     },
     MAP_VAL_CONTAINING_BY_KEY {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String containingRegexp = getContaining(getValue1(qualifierMap).toString());
             Exp bin = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getValue2(qualifierMap).toString()),
@@ -760,6 +927,12 @@ public enum FilterOperation {
         }
     },
     MAP_VAL_NOT_CONTAINING_BY_KEY {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String containingRegexp = getContaining(getValue1(qualifierMap).toString());
@@ -782,6 +955,12 @@ public enum FilterOperation {
     },
     MAP_VAL_EXISTS_BY_KEY {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return mapKeysContain(qualifierMap);
         }
@@ -793,6 +972,12 @@ public enum FilterOperation {
     },
     MAP_VAL_NOT_EXISTS_BY_KEY {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return mapKeysNotContain(qualifierMap);
         }
@@ -803,6 +988,12 @@ public enum FilterOperation {
         }
     },
     MAP_VAL_IS_NOT_NULL_BY_KEY {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap),
@@ -825,6 +1016,12 @@ public enum FilterOperation {
     },
     MAP_VAL_IS_NULL_BY_KEY {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap),
                 "MAP_VAL_IS_NULL_BY_KEY: dotPath was not set");
@@ -846,6 +1043,12 @@ public enum FilterOperation {
     },
     MAP_KEYS_CONTAIN {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return mapKeysContain(qualifierMap);
         }
@@ -856,6 +1059,12 @@ public enum FilterOperation {
         }
     },
     MAP_KEYS_NOT_CONTAIN {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return mapKeysNotContain(qualifierMap);
@@ -868,6 +1077,12 @@ public enum FilterOperation {
     },
     MAP_VALUES_CONTAIN {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return mapValuesContain(qualifierMap);
         }
@@ -879,6 +1094,12 @@ public enum FilterOperation {
     },
     MAP_VALUES_NOT_CONTAIN {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return mapValuesNotContain(qualifierMap);
         }
@@ -889,6 +1110,12 @@ public enum FilterOperation {
         }
     },
     MAP_KEYS_BETWEEN {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             validateEquality(getValue1(qualifierMap).getType(), getValue2(qualifierMap).getType(), qualifierMap,
@@ -920,6 +1147,12 @@ public enum FilterOperation {
         }
     },
     MAP_VAL_BETWEEN {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             validateEquality(getValue1(qualifierMap).getType(), getValue2(qualifierMap).getType(), qualifierMap,
@@ -955,6 +1188,12 @@ public enum FilterOperation {
     },
     GEO_WITHIN {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return Exp.geoCompare(Exp.geoBin(getField(qualifierMap)), Exp.geo(getValue1(qualifierMap).toString()));
         }
@@ -965,6 +1204,12 @@ public enum FilterOperation {
         }
     },
     LIST_VAL_CONTAINING {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
@@ -1001,6 +1246,12 @@ public enum FilterOperation {
     },
     LIST_VAL_NOT_CONTAINING {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
             // so converting to BooleanValue to process correctly
@@ -1033,6 +1284,12 @@ public enum FilterOperation {
         }
     },
     LIST_VAL_BETWEEN {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             validateEquality(getValue1(qualifierMap).getType(), getValue2(qualifierMap).getType(), qualifierMap,
@@ -1068,6 +1325,12 @@ public enum FilterOperation {
         }
     },
     LIST_VAL_GT {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             if (getValue1(qualifierMap).getType() == INTEGER) {
@@ -1112,6 +1375,12 @@ public enum FilterOperation {
     },
     LIST_VAL_GTEQ {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             Exp value = switch (getValue1(qualifierMap).getType()) {
                 case INTEGER -> Exp.val(getValue1(qualifierMap).toLong());
@@ -1139,6 +1408,12 @@ public enum FilterOperation {
         }
     },
     LIST_VAL_LT {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             Exp value = switch (getValue1(qualifierMap).getType()) {
@@ -1176,6 +1451,12 @@ public enum FilterOperation {
         }
     },
     LIST_VAL_LTEQ {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            List<Object> queryParameters = getQueryParameters(qualifierMap);
+            qualifierMap.put(VALUE1, Value.get(queryParameters.get(0)));
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             if (getValue1(qualifierMap).getType() == INTEGER) {
@@ -1218,6 +1499,11 @@ public enum FilterOperation {
         }
     }, IS_NOT_NULL {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            // not needed in this case
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return Exp.binExists(getField(qualifierMap));
         }
@@ -1228,6 +1514,11 @@ public enum FilterOperation {
         }
     }, IS_NULL {
         @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            // not needed in this case
+        }
+
+        @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return Exp.not(Exp.binExists(getField(qualifierMap))); // with value set to null a bin becomes non-existing
         }
@@ -1237,6 +1528,11 @@ public enum FilterOperation {
             return null;
         }
     }, NOT_NULL {
+        @Override
+        public void getValues(Map<String, Object> qualifierMap) {
+            // not needed in this case
+        }
+
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
             return Exp.binExists(getField(qualifierMap)); // if a bin exists its value is not null
@@ -1441,23 +1737,23 @@ public enum FilterOperation {
         String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
             opName + " filter expression: dotPath has not been set");
 
-        return switch (getValue1(qualifierMap).getType()) {
+        return switch (getValue2(qualifierMap).getType()) {
             case INTEGER -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.INT),
-                Exp.val(getValue1(qualifierMap).toLong()));
+                Exp.val(getValue2(qualifierMap).toLong()));
             case STRING -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.STRING),
-                Exp.val(getValue1(qualifierMap).toString()));
+                Exp.val(getValue2(qualifierMap).toString()));
             case LIST -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.LIST),
-                Exp.val((List<?>) getValue1(qualifierMap).getObject()));
+                Exp.val((List<?>) getValue2(qualifierMap).getObject()));
             case MAP -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.MAP),
-                Exp.val((Map<?, ?>) getValue1(qualifierMap).getObject()));
+                Exp.val((Map<?, ?>) getValue2(qualifierMap).getObject()));
             default -> throw new UnsupportedOperationException(
-                opName + " FilterExpression unsupported type: " + getValue1(qualifierMap).getClass().getSimpleName());
+                opName + " FilterExpression unsupported type: " + getValue2(qualifierMap).getClass().getSimpleName());
         };
     }
 
     private static Exp getMapExp(Map<String, Object> qualifierMap, String[] dotPathArr, Exp.Type expType) {
-        // VALUE2 contains key (field name)
-        Exp mapKeyExp = getMapKeyExp(getValue2(qualifierMap).getObject(), keepOriginalKeyTypes(qualifierMap));
+        // VALUE1 contains key (field name)
+        Exp mapKeyExp = getMapKeyExp(getValue1(qualifierMap).getObject(), keepOriginalKeyTypes(qualifierMap));
         if (dotPathArr.length > 2) {
             return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
@@ -1628,6 +1924,11 @@ public enum FilterOperation {
         return ignoreCase(qualifierMap) ? RegexFlag.ICASE : RegexFlag.NONE;
     }
 
+    @SuppressWarnings("unchecked")
+    protected static List<Object> getQueryParameters(Map<String, Object> qualifierMap) {
+        return (List<Object>) qualifierMap.get(QUERY_PARAMETERS);
+    }
+
     protected static Value getValue1(Map<String, Object> qualifierMap) {
         return Value.get(qualifierMap.get(VALUE1));
     }
@@ -1648,6 +1949,8 @@ public enum FilterOperation {
     protected static List<String> getDotPath(Map<String, Object> qualifierMap) {
         return (List<String>) qualifierMap.get(DOT_PATH);
     }
+
+    public abstract void getValues(Map<String, Object> qualifierMap);
 
     public abstract Exp filterExp(Map<String, Object> qualifierMap);
 

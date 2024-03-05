@@ -48,6 +48,8 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     protected static final String SINGLE_ID_FIELD = "id";
     protected static final String MULTIPLE_IDS_FIELD = "ids";
     protected static final String IGNORE_CASE = "ignoreCase";
+    protected static final String QUERY_PARAMETERS = "queryParameters";
+
     protected static final String VALUE1 = "value1";
     protected static final String VALUE2 = "value2";
     protected static final String VALUE3 = "value3";
@@ -143,8 +145,15 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     }
 
     @SuppressWarnings("unchecked")
+    public List<Object> getQueryParameters() { return (List<Object>) internalMap.get(QUERY_PARAMETERS); }
+
+    @SuppressWarnings("unchecked")
     public List<String> getDotPath() {
         return (List<String>) internalMap.get(DOT_PATH);
+    }
+
+    public void setValues() {
+        FilterOperation.valueOf(getOperation().toString()).getValues(internalMap);
     }
 
     public Filter setQueryAsFilter() {
@@ -233,7 +242,7 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
         if (!StringUtils.hasLength(getField()) && StringUtils.hasLength(getMetadataField().toString())) {
             return String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
         }
-        return String.format("(metadata)%s:%s:%s:%s", getMetadataField().toString(),
+        return String.format("(metadata) %s:%s:%s:%s", getMetadataField().toString(),
             getOperation(), getValue1(), getValue2());
     }
 
@@ -284,6 +293,11 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
 
         public QualifierBuilder setConverter(MappingAerospikeConverter converter) {
             this.map.put(CONVERTER, converter);
+            return this;
+        }
+
+        public QualifierBuilder setQueryParameters(List<Object> queryParameters) {
+            this.map.put(QUERY_PARAMETERS, queryParameters);
             return this;
         }
     }

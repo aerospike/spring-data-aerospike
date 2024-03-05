@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria.NULL;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria.NULL_PARAM;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
 
@@ -81,12 +81,12 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         strings.add("ing");
         stefan.setStrings(strings);
         repository.save(stefan);
-        assertThat(repository.findByStringsNotContaining(NULL)).contains(stefan);
+        assertThat(repository.findByStringsNotContaining(NULL_PARAM)).contains(stefan);
 
         strings.add(null);
         stefan.setStrings(strings);
         repository.save(stefan);
-        assertThat(repository.findByStringsNotContaining(NULL)).doesNotContain(stefan);
+        assertThat(repository.findByStringsNotContaining(NULL_PARAM)).doesNotContain(stefan);
 
         stefan.setStrings(null); // cleanup
         repository.save(stefan);
@@ -129,7 +129,7 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         repository.save(stefan);
 
         // find Persons with stringMap not containing null value (regardless of a key)
-        assertThat(repository.findByStringMapNotContaining(NULL, VALUE)).contains(stefan);
+        assertThat(repository.findByStringMapNotContaining(NULL_PARAM, VALUE)).contains(stefan);
 
         // Currently getting key-specific results for a Map requires 2 steps:
         // firstly query for all entities with existing map key
@@ -142,7 +142,7 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         stringMap.put("key", null);
         stefan.setStringMap(stringMap);
         repository.save(stefan);
-        assertThat(repository.findByStringMapNotContaining(NULL, VALUE)).doesNotContain(stefan);
+        assertThat(repository.findByStringMapNotContaining(NULL_PARAM, VALUE)).doesNotContain(stefan);
 
         personsWithMapKeyExists = repository.findByStringMapContaining("key", KEY);
         personsWithMapValueNotNull = personsWithMapKeyExists.stream()

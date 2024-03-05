@@ -1,0 +1,204 @@
+package org.springframework.data.aerospike.repository.query;
+
+import com.aerospike.client.Value;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
+import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.utility.Utils;
+import org.springframework.data.mapping.PropertyPath;
+import org.springframework.data.repository.query.parser.Part;
+import org.springframework.data.util.TypeInformation;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.stream.Stream;
+
+import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria.NULL_PARAM;
+import static org.springframework.util.ClassUtils.isAssignable;
+import static org.springframework.util.ClassUtils.isAssignableValue;
+
+public class AerospikeQueryCreatorUtils {
+
+    protected static Qualifier setQualifier(MappingAerospikeConverter converter, Qualifier.QualifierBuilder qb,
+                                            String fieldName, FilterOperation op, Part part, List<String> dotPath,
+                                            List<Object> queryParameters) {
+        qb.setField(fieldName)
+            .setFilterOperation(op)
+            .setIgnoreCase(ignoreCaseToBoolean(part))
+            .setConverter(converter)
+            .setQueryParameters(queryParameters);
+        if (dotPath != null && !qb.hasDotPath()) qb.setDotPath(dotPath);
+
+        return qb.build();
+    }
+
+    protected static Object convertNullParameter(Object value) {
+        return (value == NULL_PARAM) ? null : value;
+    }
+
+    protected static boolean ignoreCaseToBoolean(Part part) {
+        return switch (part.shouldIgnoreCase()) {
+            case WHEN_POSSIBLE -> part.getProperty().getType() == String.class;
+            case ALWAYS -> true;
+            default -> false;
+        };
+    }
+
+    protected static void setNotNullQbValues(Qualifier.QualifierBuilder qb, Object v1, Object v2, Object v3,
+                                             List<String> dotPath) {
+        if (v1 != null && !qb.hasValue1()) qb.setValue1(Value.get(v1));
+        if (v2 != null && !qb.hasValue2()) qb.setValue2(Value.get(v2));
+        if (v3 != null && !qb.hasValue3()) qb.setValue3(Value.get(v3));
+    }
+
+    /**
+     * Iterate over nested properties until the current one
+     */
+    protected static PropertyPath getNestedPropertyPath(PropertyPath propertyPath) {
+        PropertyPath result = null;
+        for (PropertyPath current = propertyPath; current != null; current = current.next()) {
+            result = current;
+        }
+        return result;
+    }
+
+    protected static Class<?> getElementsClass(PropertyPath property) {
+        // Get the class of object's elements or null
+        return property.getTypeInformation().getComponentType().getType();
+    }
+
+    protected static Qualifier qualifierAndConcatenated(MappingAerospikeConverter converter, List<Object> params,
+                                                        Qualifier.QualifierBuilder qb,
+                                                        Part part, String fieldName, FilterOperation op,
+                                                        List<String> dotPath, List<Object> queryParameters) {
+        return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath, false, queryParameters);
+    }
+
+    protected static Qualifier qualifierAndConcatenated(MappingAerospikeConverter converter, List<Object> params,
+                                                        Qualifier.QualifierBuilder qb,
+                                                        Part part, String fieldName, FilterOperation op,
+                                                        List<String> dotPath, boolean containingMapKeyValuePairs,
+                                                        List<Object> queryParameters) {
+        Qualifier[] qualifiers;
+        if (containingMapKeyValuePairs) {
+            qualifiers = new Qualifier[params.size() / 2]; // keys/values qty must be even
+            for (int i = 0, j = 0; i < params.size(); i += 2, j++) {
+                setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
+                qualifiers[j] = setQualifier(converter, qb, fieldName, op, part, dotPath, queryParameters);
+            }
+
+            return Qualifier.and(qualifiers);
+        } else {
+            qualifiers = new Qualifier[params.size()];
+            for (int i = 0; i < params.size(); i++) {
+                setQbValuesForMapByKey(qb, params.get(i), params.get(i));
+                qualifiers[i] = setQualifier(converter, qb, fieldName, op, part, dotPath, queryParameters);
+            }
+        }
+
+        return Qualifier.and(qualifiers);
+    }
+
+    protected static String getFieldName(String segmentName, AerospikePersistentProperty property) {
+        org.springframework.data.aerospike.mapping.Field annotation =
+            property.findAnnotation(org.springframework.data.aerospike.mapping.Field.class);
+
+        if (annotation != null && StringUtils.hasText(annotation.value())) {
+            return annotation.value();
+        }
+
+        if (!StringUtils.hasText(segmentName)) {
+            throw new IllegalStateException("Segment name is null or empty");
+        }
+
+        return segmentName;
+    }
+
+    protected static void setQbValuesForMapByKey(Qualifier.QualifierBuilder qb, Object key, Object value) {
+        qb.setValue1(Value.get(value)); // contains value
+        qb.setValue2(Value.get(key)); // contains key
+    }
+
+    protected static Object convertIfNecessary(Object obj, MappingAerospikeConverter converter) {
+        if (obj == null || obj instanceof CriteriaDefinition.AerospikeQueryCriteria || obj instanceof CriteriaDefinition.AerospikeNullQueryCriteria) {
+            return obj;
+        }
+
+        // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
+        TypeInformation<?> valueType = TypeInformation.of(obj.getClass());
+        return converter.toWritableValue(obj, valueType);
+    }
+
+    protected static FilterOperation getCorrespondingMapValueFilterOperationOrFail(FilterOperation op) {
+        try {
+            return FilterOperation.valueOf("MAP_VAL_" + op + "_BY_KEY");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                "Cannot find corresponding MAP_VAL_..._BY_KEY FilterOperation for '" + op + "'");
+        }
+    }
+
+    protected static boolean isPojo(Class<?> clazz) { // if it is a first level POJO or a Map
+        TypeInformation<?> type = TypeInformation.of(clazz);
+        return !Utils.isSimpleValueType(clazz) && !type.isCollectionLike();
+    }
+
+    protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath property, FilterOperation op,
+                                        List<Object> queryParameters) {
+        String queryPartDescription = String.join(" ", property.toString(), op.toString());
+        validateTypes(converter, property, queryParameters, queryPartDescription);
+    }
+
+    protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath property,
+                                        List<Object> queryParameters, String queryPartDescription) {
+        validateTypes(converter, property.getTypeInformation().getType(), queryParameters, queryPartDescription);
+    }
+
+    protected static void validateTypes(MappingAerospikeConverter converter, Class<?> propertyType,
+                                        List<Object> queryParameters, String queryPartDescription,
+                                        String... alternativeTypes) {
+        // Checking versus Number rather than strict type to be able to compare, e.g., integer to a long
+        if (isAssignable(Number.class, propertyType) && isAssignableValue(Number.class, queryParameters.get(0))) {
+            propertyType = Number.class;
+        }
+
+        Class<?> clazz = propertyType;
+        if (!queryParameters.stream().allMatch(param -> isAssignableValueOrConverted(clazz, param, converter))) {
+            String validTypes = propertyType.getSimpleName();
+            if (alternativeTypes.length > 0) {
+                validTypes = String.format("one of the following types: %s", propertyType.getSimpleName() + ", "
+                    + String.join(", ", alternativeTypes));
+            }
+            throw new IllegalArgumentException(String.format("%s: Type mismatch, expecting %s", queryPartDescription,
+                validTypes));
+        }
+    }
+
+    protected static boolean isAssignableValueOrConverted(Class<?> propertyType, Object obj,
+                                                          MappingAerospikeConverter converter) {
+        return isAssignableValue(propertyType, obj)
+            || converter.getCustomConversions().hasCustomReadTarget(obj.getClass(), propertyType)
+            || isPojoMap(obj, propertyType);
+    }
+
+    protected static boolean isPojoMap(Object obj, Class<?> propertyType) {
+        if (obj instanceof TreeMap) {
+            Object classKey = ((TreeMap<?, ?>) obj).get(CLASS_KEY);
+            return classKey != null && classKey.equals(propertyType.getName());
+        }
+        return false;
+    }
+
+    protected static int getArgumentsSize(Object value1, Object value2, List<Object> queryParameters) {
+        int paramsSize = queryParameters != null ? queryParameters.size() : 0;
+        return Stream.of(value1, value2).filter(Objects::nonNull).mapToInt(e -> 1).sum() + paramsSize;
+    }
+
+    protected static int getArgumentsSize(Object value1, List<Object> params) {
+        return getArgumentsSize(value1, null, params);
+    }
+}

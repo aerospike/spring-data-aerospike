@@ -436,7 +436,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities that do not contain the given map element (key or value depending on the given criterion)
      *
-     * @param nullCriterion {@link AerospikeNullQueryCriteria#NULL}
+     * @param nullCriterion {@link AerospikeNullQueryCriteria#NULL_PARAM}
      * @param criterion {@link AerospikeQueryCriteria#KEY} or
      *                  {@link AerospikeQueryCriteria#VALUE}
      */
@@ -445,7 +445,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param nullCriterion   {@link AerospikeNullQueryCriteria#NULL}
+     * @param nullCriterion   {@link AerospikeNullQueryCriteria#NULL_PARAM}
      * @param criterion {@link AerospikeQueryCriteria#KEY} or
      *                  {@link AerospikeQueryCriteria#VALUE}
      */
@@ -851,7 +851,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Strings
      * </p>
      *
-     * @param nullCriterion {@link AerospikeNullQueryCriteria#NULL}
+     * @param nullCriterion {@link AerospikeNullQueryCriteria#NULL_PARAM}
      */
     List<P> findByStringsContaining(AerospikeNullQueryCriteria nullCriterion);
 
@@ -871,7 +871,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Strings
      * </p>
      *
-     * @param nullCriteria {@link AerospikeNullQueryCriteria#NULL} to check for null
+     * @param nullCriteria {@link AerospikeNullQueryCriteria#NULL_PARAM} to check for null
      */
     List<P> findByStringsNotContaining(AerospikeNullQueryCriteria nullCriteria);
 

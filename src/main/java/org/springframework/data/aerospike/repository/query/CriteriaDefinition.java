@@ -41,7 +41,7 @@ public interface CriteriaDefinition {
     }
 
     enum AerospikeNullQueryCriteria {
-        NULL
+        NULL_PARAM
     }
 
     enum AerospikeMetadata {

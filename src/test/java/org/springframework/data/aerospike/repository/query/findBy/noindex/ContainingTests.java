@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria.NULL;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria.NULL_PARAM;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE_CONTAINING;
@@ -89,7 +89,7 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         strings.add("null");
         stefan.setStrings(strings);
         repository.save(stefan);
-        assertThat(repository.findByStringsContaining(NULL)).contains(stefan);
+        assertThat(repository.findByStringsContaining(NULL_PARAM)).contains(stefan);
 
         stefan.setStrings(null); // cleanup
         repository.save(stefan);
@@ -325,7 +325,7 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         repository.save(stefan);
 
         // find Persons with stringMap containing null value (regardless of a key)
-        assertThat(repository.findByStringMapContaining(NULL, VALUE)).contains(stefan);
+        assertThat(repository.findByStringMapContaining(NULL_PARAM, VALUE)).contains(stefan);
 
         // Currently getting key-specific results for a Map requires 2 steps:
         // firstly query for all entities with existing map key
