@@ -30,14 +30,14 @@ public interface CriteriaDefinition {
     Qualifier getCriteriaObject();
 
     /**
-     * Get the identifying {@literal key}.
+     * Get the identifying {@literal field}.
      *
      * @since 1.6
      */
-    String getKey();
+    String geField();
 
     enum AerospikeQueryCriteria {
-        KEY, VALUE, VALUE_CONTAINING
+        KEY, VALUE, KEY_VALUE_PAIR
     }
 
     enum AerospikeNullQueryCriteria {

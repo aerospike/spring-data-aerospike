@@ -5,6 +5,7 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
@@ -17,6 +18,7 @@ import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria.NULL_PARAM;
 import static org.springframework.util.ClassUtils.isAssignable;
 import static org.springframework.util.ClassUtils.isAssignableValue;
@@ -24,20 +26,18 @@ import static org.springframework.util.ClassUtils.isAssignableValue;
 public class AerospikeQueryCreatorUtils {
 
     protected static Qualifier setQualifier(MappingAerospikeConverter converter, Qualifier.QualifierBuilder qb,
-                                            String fieldName, FilterOperation op, Part part, List<String> dotPath,
-                                            List<Object> queryParameters) {
+                                            String fieldName, FilterOperation op, Part part, List<String> dotPath) {
         qb.setField(fieldName)
             .setFilterOperation(op)
             .setIgnoreCase(ignoreCaseToBoolean(part))
-            .setConverter(converter)
-            .setQueryParameters(queryParameters);
+            .setConverter(converter);
         if (dotPath != null && !qb.hasDotPath()) qb.setDotPath(dotPath);
 
         return qb.build();
     }
 
     protected static Object convertNullParameter(Object value) {
-        return (value == NULL_PARAM) ? null : value;
+        return (value == NULL_PARAM) ? Value.getAsNull() : value;
     }
 
     protected static boolean ignoreCaseToBoolean(Part part) {
@@ -46,13 +46,6 @@ public class AerospikeQueryCreatorUtils {
             case ALWAYS -> true;
             default -> false;
         };
-    }
-
-    protected static void setNotNullQbValues(Qualifier.QualifierBuilder qb, Object v1, Object v2, Object v3,
-                                             List<String> dotPath) {
-        if (v1 != null && !qb.hasValue1()) qb.setValue1(Value.get(v1));
-        if (v2 != null && !qb.hasValue2()) qb.setValue2(Value.get(v2));
-        if (v3 != null && !qb.hasValue3()) qb.setValue3(Value.get(v3));
     }
 
     /**
@@ -75,20 +68,19 @@ public class AerospikeQueryCreatorUtils {
                                                         Qualifier.QualifierBuilder qb,
                                                         Part part, String fieldName, FilterOperation op,
                                                         List<String> dotPath, List<Object> queryParameters) {
-        return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath, false, queryParameters);
+        return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath, false);
     }
 
     protected static Qualifier qualifierAndConcatenated(MappingAerospikeConverter converter, List<Object> params,
                                                         Qualifier.QualifierBuilder qb,
                                                         Part part, String fieldName, FilterOperation op,
-                                                        List<String> dotPath, boolean containingMapKeyValuePairs,
-                                                        List<Object> queryParameters) {
+                                                        List<String> dotPath, boolean containingMapKeyValuePairs) {
         Qualifier[] qualifiers;
         if (containingMapKeyValuePairs) {
             qualifiers = new Qualifier[params.size() / 2]; // keys/values qty must be even
             for (int i = 0, j = 0; i < params.size(); i += 2, j++) {
                 setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
-                qualifiers[j] = setQualifier(converter, qb, fieldName, op, part, dotPath, queryParameters);
+                qualifiers[j] = setQualifier(converter, qb, fieldName, op, part, dotPath);
             }
 
             return Qualifier.and(qualifiers);
@@ -96,7 +88,7 @@ public class AerospikeQueryCreatorUtils {
             qualifiers = new Qualifier[params.size()];
             for (int i = 0; i < params.size(); i++) {
                 setQbValuesForMapByKey(qb, params.get(i), params.get(i));
-                qualifiers[i] = setQualifier(converter, qb, fieldName, op, part, dotPath, queryParameters);
+                qualifiers[i] = setQualifier(converter, qb, fieldName, op, part, dotPath);
             }
         }
 
@@ -119,18 +111,34 @@ public class AerospikeQueryCreatorUtils {
     }
 
     protected static void setQbValuesForMapByKey(Qualifier.QualifierBuilder qb, Object key, Object value) {
-        qb.setValue1(Value.get(value)); // contains value
-        qb.setValue2(Value.get(key)); // contains key
+        qb.setKey(Value.get(value)); // contains value
+        qb.setValue(Value.get(key)); // contains key
     }
 
     protected static Object convertIfNecessary(Object obj, MappingAerospikeConverter converter) {
-        if (obj == null || obj instanceof CriteriaDefinition.AerospikeQueryCriteria || obj instanceof CriteriaDefinition.AerospikeNullQueryCriteria) {
+        if (obj == null || obj instanceof AerospikeQueryCriteria || obj instanceof AerospikeNullQueryCriteria) {
             return obj;
         }
 
         // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
         TypeInformation<?> valueType = TypeInformation.of(obj.getClass());
         return converter.toWritableValue(obj, valueType);
+    }
+
+    protected static Value getValueOfQueryParameter(Object queryParameter) {
+        return Value.get(convertNullParameter(queryParameter));
+    }
+
+    protected static void setQualifierBuilderKey(Qualifier.QualifierBuilder qb, Object key) {
+        qb.setKey(getValueOfQueryParameter(key));
+    }
+
+    protected static void setQualifierBuilderValue(Qualifier.QualifierBuilder qb, Object value) {
+        qb.setValue(getValueOfQueryParameter(value));
+    }
+
+    protected static void setQualifierBuilderSecondValue(Qualifier.QualifierBuilder qb, Object value) {
+        qb.setSecondValue(getValueOfQueryParameter(value));
     }
 
     protected static FilterOperation getCorrespondingMapValueFilterOperationOrFail(FilterOperation op) {

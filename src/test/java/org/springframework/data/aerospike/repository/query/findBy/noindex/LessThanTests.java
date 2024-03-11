@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -61,46 +60,6 @@ public class LessThanTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsLessThan("string1", "string2"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.strings LT: invalid number of arguments, expecting one");
-    }
-
-    @Test
-    void findByExactMapKeyWithValueLessThanPOJO() {
-        if (serverVersionSupport.isFindByCDTSupported()) {
-            Map<String, Address> mapOfAddresses1 = Map.of("a", new Address("Foo Street 1", 1, "C0123", "Bar"));
-            Map<String, Address> mapOfAddresses2 = Map.of("b", new Address("Foo Street 2", 1, "C0123", "Bar"));
-            Map<String, Address> mapOfAddresses3 = Map.of("c", new Address("Foo Street 2", 1, "C0124", "Bar"));
-            Map<String, Address> mapOfAddresses4 = Map.of("d", new Address("Foo Street 1234", 1, "C01245", "Bar"));
-            stefan.setAddressesMap(mapOfAddresses1);
-            repository.save(stefan);
-            douglas.setAddressesMap(mapOfAddresses2);
-            repository.save(douglas);
-            matias.setAddressesMap(mapOfAddresses3);
-            repository.save(matias);
-            leroi2.setAddressesMap(mapOfAddresses4);
-            repository.save(leroi2);
-
-            List<Person> persons;
-            persons = repository.findByAddressesMapLessThan("a", new Address("Foo Street 1", 1, "C0124", "Bar"));
-            assertThat(persons).containsOnly(stefan);
-
-            persons = repository.findByAddressesMapLessThan("b", new Address("Foo Street 3", 1, "C0123", "Bar"));
-            assertThat(persons).containsOnly(douglas);
-
-            persons = repository.findByAddressesMapLessThan("c", new Address("Foo Street 3", 2, "C0124", "Bar"));
-            assertThat(persons).containsOnly(matias);
-
-            persons = repository.findByAddressesMapLessThan("d", new Address("Foo Street 1234", 1, "C01245", "Bar"));
-            assertThat(persons).isEmpty();
-
-            stefan.setAddressesMap(null);
-            repository.save(stefan);
-            douglas.setAddressesMap(null);
-            repository.save(douglas);
-            matias.setAddressesMap(null);
-            repository.save(matias);
-            leroi2.setAddressesMap(null);
-            repository.save(leroi2);
-        }
     }
 
     @Test

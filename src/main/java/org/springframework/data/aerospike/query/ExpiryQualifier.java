@@ -38,7 +38,7 @@ public class ExpiryQualifier extends Qualifier {
         super(Qualifier.builder()
             .setField(QueryEngine.Meta.EXPIRATION.toString())
             .setFilterOperation(op)
-            .setValue1(value)
+            .setValue(value)
         );
         if (value.getType() != ParticleType.INTEGER) {
             throw new QualifierException("ExpiryQualifier value must be an integer or long");

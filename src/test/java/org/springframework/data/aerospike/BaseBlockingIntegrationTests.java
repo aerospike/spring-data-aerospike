@@ -58,7 +58,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
         Qualifier lastUpdateTimeLtMillis = Qualifier.metadataBuilder()
             .setMetadataField(LAST_UPDATE_TIME)
             .setFilterOperation(operation)
-            .setValue1AsObj(lastUpdateTimeMillis * MILLIS_TO_NANO)
+            .setValueAsObj(lastUpdateTimeMillis * MILLIS_TO_NANO)
             .build();
         return template.find(new Query(lastUpdateTimeLtMillis), entityClass).toList();
     }

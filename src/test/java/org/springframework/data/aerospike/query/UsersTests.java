@@ -35,7 +35,7 @@ class UsersTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("region")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get("n"))
+            .setValue(Value.get("n"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, new Query(qualifier));

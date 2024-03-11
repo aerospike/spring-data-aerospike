@@ -53,7 +53,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.LT)
-                .setValue1(Value.get(26))
+                .setValue(Value.get(26))
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
@@ -74,7 +74,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.LTEQ)
-                .setValue1(Value.get(26))
+                .setValue(Value.get(26))
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
@@ -98,7 +98,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.EQ)
-                .setValue1(Value.get(26))
+                .setValue(Value.get(26))
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
@@ -118,7 +118,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             Qualifier qual1 = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
-                .setValue1(Value.get(BLUE))
+                .setValue(Value.get(BLUE))
                 .build();
 
             KeyRecordIterator it = queryEngine.select(namespace, INDEXED_SET_NAME, new Query(qual1));
@@ -138,7 +138,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.GTEQ)
-                .setValue1(Value.get(28))
+                .setValue(Value.get(28))
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
@@ -161,7 +161,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.GT)
-                .setValue1(Value.get(28))
+                .setValue(Value.get(28))
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
@@ -181,7 +181,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             Qualifier qualifier = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
-                .setValue1(Value.get(ORANGE))
+                .setValue(Value.get(ORANGE))
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_SET_NAME, null,
@@ -209,7 +209,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                 Qualifier qualifier = Qualifier.builder()
                     .setField(GEO_BIN_NAME)
                     .setFilterOperation(FilterOperation.GEO_WITHIN)
-                    .setValue1(Value.getAsGeoJSON(rgnstr))
+                    .setValue(Value.getAsGeoJSON(rgnstr))
                     .build();
 
                 KeyRecordIterator iterator = queryEngine.select(namespace, INDEXED_GEO_SET, null,
@@ -244,13 +244,13 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         Qualifier qual1 = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(GREEN))
+            .setValue(Value.get(GREEN))
             .build();
         Qualifier qual2 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValue1(Value.get(28))
-            .setValue2(Value.get(29))
+            .setValue(Value.get(28))
+            .setValue(Value.get(29))
             .build();
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
@@ -269,13 +269,13 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         Qualifier colorIsGreen = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(GREEN))
+            .setValue(Value.get(GREEN))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValue1(Value.get(28))
-            .setValue2(Value.get(29))
+            .setValue(Value.get(28))
+            .setSecondValue(Value.get(29))
             .build();
 
         tryCreateIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC);

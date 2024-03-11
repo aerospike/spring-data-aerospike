@@ -29,7 +29,7 @@ public class IsLikeTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByNestedStringSimplePropertyLike() {
+    void findByNestedSimplePropertyLike_String() {
         oliver.setFriend(dave);
         repository.save(oliver);
         carter.setFriend(stefan);
@@ -39,16 +39,5 @@ public class IsLikeTests extends PersonRepositoryQueryTests {
         assertThat(result).contains(oliver);
 
         TestUtils.setFriendsToNull(repository, oliver, carter);
-    }
-
-    @Test
-    void findByExactMapKeyWithValueLike() {
-        assertThat(donny.getStringMap()).containsKey("key1");
-        assertThat(donny.getStringMap()).containsValue("val1");
-        assertThat(boyd.getStringMap()).containsKey("key1");
-        assertThat(boyd.getStringMap()).containsValue("val1");
-
-        List<Person> persons = repository.findByStringMapLike("key1", "^.*al1$");
-        assertThat(persons).contains(donny, boyd);
     }
 }

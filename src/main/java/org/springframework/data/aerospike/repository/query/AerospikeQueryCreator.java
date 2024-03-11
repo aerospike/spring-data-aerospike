@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import com.aerospike.client.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -117,9 +118,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         IAerospikeQueryCreator queryCreator = getQueryCreator(part, property, queryParameters, filterOperation);
 
         queryCreator.validate();
-        Qualifier qualifier = queryCreator.process();
-        qualifier.setValues();
-        return qualifier;
+        return queryCreator.process();
     }
 
     private IAerospikeQueryCreator getQueryCreator(Part part, AerospikePersistentProperty property,
@@ -181,20 +180,20 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     private List<Object> getQueryParameters(Iterator<?> parametersIterator) {
         List<Object> params = new ArrayList<>();
 
-        if (parametersIterator.hasNext()) {
-            Object value1 = convertIfNecessary(parametersIterator.next(), converter);
-            params.add(value1);
-        }
+//        if (parametersIterator.hasNext()) {
+//            Object value1 = convertIfNecessary(parametersIterator.next(), converter);
+//            params.add(value1);
+//        }
 
-        if (parametersIterator.hasNext()) {
-            Object value2 = convertIfNecessary(parametersIterator.next(), converter);
-            params.add(value2);
-        }
+//        if (parametersIterator.hasNext()) {
+//            Object value2 = convertIfNecessary(parametersIterator.next(), converter);
+//            params.add(value2);
+//        }
 //        if (part.getType() == BETWEEN || part.getType() == WITHIN) {
 //            value2 = parametersIterator.hasNext() ? convertIfNecessary(parametersIterator.next()) : null;
 //        }
 
-        parametersIterator.forEachRemaining(params::add);
+        parametersIterator.forEachRemaining(param -> params.add(convertIfNecessary(param, converter)));
         // null parameters are not allowed, if required use AerospikeNullQueryCriteria.NULL_PARAM
         return params.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
@@ -207,39 +206,20 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         }
 
         String field = (StringUtils.hasLength(qualifier.getField()) ? qualifier.getField() : "");
-        String operation = (StringUtils.hasLength(qualifier.getOperation().toString()) ?
-            qualifier.getOperation().toString() : "N/A");
-        String value1 = (qualifier.getValue1() != null && !qualifier.getValue1().toString().isEmpty() ?
-            qualifier.getValue1().toString() : "");
-        String value2 = (qualifier.getValue2() != null && !qualifier.getValue2().toString().isEmpty() ?
-            qualifier.getValue2().toString() : "");
+        String operation = qualifier.getOperation().toString();
+        operation = (StringUtils.hasLength(operation) ? operation : "N/A");
+        Value val1 = qualifier.getKey();
+        String value1 = printValue(val1);
+        Value val2 = qualifier.getValue();
+        String value2 = printValue(val2);
+        Value val3 = qualifier.getValue3();
+        String value3 = printValue(val3);
 
-        LOG.debug("Created query: {} {} {} {}", field, operation, value1, value2);
+        LOG.debug("Created query: {} {} {} {} {}", field, operation, value1, value2, value3);
     }
 
-//    private class QueryParameters {
-//
-//        private Object fieldName;
-//        private Object fieldValue;
-//
-//        public QueryParameters(Iterator<?> parameters) {
-//            List<Object> params = new ArrayList<>();
-//
-//            Object value1 = null;
-//            if (parameters.hasNext()) {
-//                value1 = parameters.next();
-//            }
-//            params.add(convertIfNecessary(value1));
-//            parameters.forEachRemaining(params::add);
-//        }
-//
-//        public Object getFieldName() {
-//            return fieldName;
-//        }
-//
-//        public Object getFieldValue() {
-//            return fieldValue;
-//        }
-//
-//    }
+    private String printValue(Value value) {
+        if (value != null && StringUtils.hasLength(value.toString())) return value.toString();
+        return value == Value.getAsNull() ? "null" : "";
+    }
 }

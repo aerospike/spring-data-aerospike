@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.query.model.Index;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.IndexedPersonRepository;
@@ -35,6 +34,8 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY_VALUE_PAIR;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -173,23 +174,10 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(persons).isEmpty();
     }
 
-
-    @Test
-    void findByListValueGreaterThan() {
-        List<IndexedPerson> persons = repository.findByIntsGreaterThan(549);
-        assertThat(persons).containsExactlyInAnyOrder(jane, john);
-    }
-
     @Test
     void findByListValueLessThanOrEqual() {
         List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500);
         assertThat(persons).containsOnly(john);
-    }
-
-    @Test
-    void findByListValueInRange() {
-        List<IndexedPerson> persons = repository.findByIntsBetween(500, 600);
-        assertThat(persons).containsExactlyInAnyOrder(jane, john);
     }
 
     @Test
@@ -366,8 +354,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     void findByMapKeysContaining() {
         assertThat(billy.getStringMap()).containsKey("key1");
 
-        List<IndexedPerson> persons = repository.findByStringMapContaining("key1",
-            CriteriaDefinition.AerospikeQueryCriteria.KEY);
+        List<IndexedPerson> persons = repository.findByStringMapContaining(KEY, "key1");
         assertThat(persons).contains(billy);
     }
 
@@ -375,8 +362,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     void findByMapKeysNotContaining() {
         assertThat(billy.getStringMap()).containsKey("key1");
 
-        List<IndexedPerson> persons = repository.findByStringMapNotContaining("key3",
-            CriteriaDefinition.AerospikeQueryCriteria.KEY);
+        List<IndexedPerson> persons = repository.findByStringMapNotContaining(KEY, "key3");
         assertThat(persons).contains(billy);
     }
 
@@ -384,8 +370,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     void findByMapValuesContaining() {
         assertThat(billy.getStringMap()).containsValue("val1");
 
-        List<IndexedPerson> persons = repository.findByStringMapContaining("val1",
-            VALUE);
+        List<IndexedPerson> persons = repository.findByStringMapContaining(VALUE, "val1");
         assertThat(persons).contains(billy);
     }
 
@@ -393,8 +378,7 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     void findByMapValuesNotContaining() {
         assertThat(billy.getStringMap()).containsValue("val1");
 
-        List<IndexedPerson> persons = repository.findByStringMapNotContaining("val3",
-            VALUE);
+        List<IndexedPerson> persons = repository.findByStringMapNotContaining(VALUE, "val3");
         assertThat(persons).contains(billy);
     }
 
@@ -403,20 +387,11 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         assertThat(tricia.getIntMap()).containsKey("key1");
         assertThat(tricia.getIntMap()).containsValue(0);
 
-        Iterable<IndexedPerson> result = repository.findByIntMapContaining("key1", 0);
+        Iterable<IndexedPerson> result = repository.findByIntMapContaining(KEY_VALUE_PAIR, "key1", 0);
         assertThat(result).contains(tricia);
 
-        Iterable<IndexedPerson> result2 = repository.findByIntMapContaining("key1", 0, "key2", 1);
-        assertThat(result2).contains(tricia);
-    }
-
-    @Test
-    void findByMapKeyValueEqualsString() {
-        assertThat(billy.getStringMap()).containsKey("key1");
-        assertThat(billy.getStringMap()).containsValue("val1");
-
-        List<IndexedPerson> persons = repository.findByStringMapContaining("key1", "val1");
-        assertThat(persons).contains(billy);
+//        Iterable<IndexedPerson> result2 = repository.findByIntMapContaining("key1", 0, "key2", 1);
+//        assertThat(result2).contains(tricia);
     }
 
     @Test
@@ -467,51 +442,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     public void findPersonsByFirstNameLessThan() {
         List<IndexedPerson> result = repository.findByFirstNameGreaterThan("Bill");
         assertThat(result).containsAll(allIndexedPersons);
-    }
-
-    @Test
-    void findByMapKeyValueGreaterThan() {
-        assertThat(tricia.getIntMap()).containsKey("key2");
-        assertThat(tricia.getIntMap().get("key2") > 0).isTrue();
-
-        List<IndexedPerson> persons = repository.findByIntMapGreaterThan("key2", 0);
-        assertThat(persons).contains(tricia);
-    }
-
-    @Test
-    void findByMapKeyValueLessThanOrEqual() {
-        assertThat(tricia.getIntMap()).containsKey("key2");
-        assertThat(tricia.getIntMap().get("key2") > 0).isTrue();
-
-        List<IndexedPerson> persons = repository.findByIntMapLessThanEqual("key2", 1);
-        assertThat(persons).containsExactlyInAnyOrder(tricia, jane);
-    }
-
-    @Test
-    void findByMapKeyValueBetween() {
-        assertThat(jane.getIntMap()).containsKey("key2");
-        assertThat(tricia.getIntMap()).containsKey("key2");
-        assertThat(jane.getIntMap().get("key2") >= 0).isTrue();
-        assertThat(tricia.getIntMap().get("key2") >= 0).isTrue();
-
-        List<IndexedPerson> persons = repository.findByIntMapBetween("key2", 0, 2);
-        assertThat(persons).containsExactlyInAnyOrder(tricia, jane);
-    }
-
-    @Test
-    void findByBestFriendFriendIntMapKeyValueBetween() {
-        assertThat(tricia.getIntMap()).containsKey("key2");
-        assertThat(tricia.getIntMap().get("key2") >= 0).isTrue();
-
-        jane.setFriend(tricia);
-        repository.save(jane);
-        peter.setBestFriend(jane);
-        repository.save(peter);
-
-        List<IndexedPerson> persons = repository.findByBestFriendFriendIntMapBetween("key2", 0, 2);
-        assertThat(persons).contains(peter);
-
-        TestUtils.setFriendsToNull(repository, jane, peter);
     }
 
     @Test

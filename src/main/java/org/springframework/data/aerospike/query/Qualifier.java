@@ -50,9 +50,9 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     protected static final String IGNORE_CASE = "ignoreCase";
     protected static final String QUERY_PARAMETERS = "queryParameters";
 
-    protected static final String VALUE1 = "value1";
-    protected static final String VALUE2 = "value2";
-    protected static final String VALUE3 = "value3";
+    protected static final String KEY = "key";
+    protected static final String VALUE = "value";
+    protected static final String SECOND_VALUE = "value2";
     protected static final String DOT_PATH = "dotPath";
     protected static final String CONVERTER = "converter";
     protected static final String QUALIFIERS = "qualifiers";
@@ -80,7 +80,7 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     }
 
     @Override
-    public String getKey() {
+    public String geField() {
         return this.getField();
     }
 
@@ -136,12 +136,16 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
         return (Qualifier[]) internalMap.get(QUALIFIERS);
     }
 
-    public Value getValue1() {
-        return (Value) internalMap.get(VALUE1);
+    public Value getKey() {
+        return (Value) internalMap.get(KEY);
     }
 
-    public Value getValue2() {
-        return (Value) internalMap.get(VALUE2);
+    public Value getValue() {
+        return (Value) internalMap.get(VALUE);
+    }
+
+    public Value getValue3() {
+        return (Value) internalMap.get(SECOND_VALUE);
     }
 
     @SuppressWarnings("unchecked")
@@ -150,10 +154,6 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     @SuppressWarnings("unchecked")
     public List<String> getDotPath() {
         return (List<String>) internalMap.get(DOT_PATH);
-    }
-
-    public void setValues() {
-        FilterOperation.valueOf(getOperation().toString()).getValues(internalMap);
     }
 
     public Filter setQueryAsFilter() {
@@ -240,10 +240,10 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     @Override
     public String toString() {
         if (!StringUtils.hasLength(getField()) && StringUtils.hasLength(getMetadataField().toString())) {
-            return String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
+            return String.format("%s:%s:%s:%s", getField(), getOperation(), getKey(), getValue());
         }
         return String.format("(metadata) %s:%s:%s:%s", getMetadataField().toString(),
-            getOperation(), getValue1(), getValue2());
+            getOperation(), getKey(), getValue());
     }
 
     protected interface Builder {
@@ -268,27 +268,28 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
             return this;
         }
 
-        public QualifierBuilder setValue1(Value value1) {
-            this.map.put(VALUE1, value1);
+        public QualifierBuilder setKey(Value key) {
+            this.map.put(KEY, key);
             return this;
         }
 
-        public QualifierBuilder setValue2(Value value2) {
-            this.map.put(VALUE2, value2);
+        public QualifierBuilder setValue(Value value) {
+            this.map.put(VALUE, value);
             return this;
         }
 
-        public QualifierBuilder setValue3(Value value3) {
-            this.map.put(VALUE3, value3);
+        public QualifierBuilder setSecondValue(Value secondValue) {
+            this.map.put(SECOND_VALUE, secondValue);
             return this;
         }
 
         public boolean hasValue3() {
-            return this.map.get(VALUE3) != null;
+            return this.map.get(SECOND_VALUE) != null;
         }
 
-        public void setDotPath(List<String> dotPath) {
+        public QualifierBuilder setDotPath(List<String> dotPath) {
             this.map.put(DOT_PATH, dotPath);
+            return this;
         }
 
         public QualifierBuilder setConverter(MappingAerospikeConverter converter) {
@@ -316,21 +317,30 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
             return this;
         }
 
-        public Object getValue1AsObj() {
-            return this.map.get(VALUE1);
+        public Object getKeyAsObj() {
+            return this.map.get(KEY);
         }
 
-        public MetadataQualifierBuilder setValue1AsObj(Object object) {
-            this.map.put(VALUE1, object);
+        public MetadataQualifierBuilder setKeyAsObj(Object object) {
+            this.map.put(KEY, object);
             return this;
         }
 
-        public Object getValue2AsObj() {
-            return this.map.get(VALUE2);
+        public Object getValueAsObj() {
+            return this.map.get(VALUE);
         }
 
-        public MetadataQualifierBuilder setValue2AsObj(Object object) {
-            this.map.put(VALUE2, object);
+        public MetadataQualifierBuilder setValueAsObj(Object object) {
+            this.map.put(VALUE, object);
+            return this;
+        }
+
+        public Object getSecondValueAsObj() {
+            return this.map.get(SECOND_VALUE);
+        }
+
+        public MetadataQualifierBuilder setSecondValueAsObj(Object object) {
+            this.map.put(SECOND_VALUE, object);
             return this;
         }
 
@@ -342,17 +352,17 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
                 if (this.getField() == null) {
                     FilterOperation operation = this.getFilterOperation();
                     switch (operation) {
-                        case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(this.getValue1AsObj() instanceof Long,
+                        case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(getValueAsObj() instanceof Long,
                             operation.name() + ": value1 is expected to be set as Long");
                         case BETWEEN -> {
-                            Assert.isTrue(this.getValue1AsObj() instanceof Long,
+                            Assert.isTrue(getValueAsObj() instanceof Long,
                                 "BETWEEN: value1 is expected to be set as Long");
-                            Assert.isTrue(this.getValue2AsObj() instanceof Long,
+                            Assert.isTrue(getSecondValueAsObj() instanceof Long,
                                 "BETWEEN: value2 is expected to be set as Long");
                         }
-                        case NOT_IN, IN -> Assert.isTrue(this.getValue1AsObj() instanceof Collection
-                                && (!((Collection<Object>) this.getValue1AsObj()).isEmpty())
-                                && ((Collection<Object>) this.getValue1AsObj()).toArray()[0] instanceof Long,
+                        case NOT_IN, IN -> Assert.isTrue(getValueAsObj() instanceof Collection
+                                && (!((Collection<Object>) getValueAsObj()).isEmpty())
+                                && ((Collection<Object>) getValueAsObj()).toArray()[0] instanceof Long,
                             operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
                         default ->
                             throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
@@ -482,11 +492,11 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
         }
 
         public boolean hasValue1() {
-            return this.map.get(VALUE1) != null;
+            return this.map.get(KEY) != null;
         }
 
         public boolean hasValue2() {
-            return this.map.get(VALUE2) != null;
+            return this.map.get(VALUE) != null;
         }
 
         public boolean hasDotPath() {

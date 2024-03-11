@@ -10,10 +10,15 @@ import org.springframework.data.repository.query.parser.Part;
 import java.util.Collection;
 import java.util.List;
 
+import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
+import static org.springframework.data.aerospike.query.FilterOperation.IN;
 import static org.springframework.data.aerospike.query.FilterOperation.LIST_VAL_CONTAINING;
+import static org.springframework.data.aerospike.query.FilterOperation.NOT_IN;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getElementsClass;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.qualifierAndConcatenated;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateTypes;
 
 public class CollectionQueryCreator implements IAerospikeQueryCreator {
@@ -99,6 +104,11 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
 //        Object value2 = queryParameters.get(1);
         FilterOperation op = filterOperation;
 
+        if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
+            setQualifierBuilderValue(qb, queryParameters.get(0));
+            if (queryParameters.size() >=2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
+        }
+
         if (queryParameters.size() > 2) {
             if (filterOperation == FilterOperation.CONTAINING) {
                 op = LIST_VAL_CONTAINING;
@@ -108,9 +118,12 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
             }
         } else if (!(queryParameters.get(0) instanceof Collection<?>)) {
             op = getCorrespondingListFilterOperationOrFail(op);
+            setQualifierBuilderValue(qb, queryParameters.get(0));
+        } else {
+            setQualifierBuilderValue(qb, queryParameters.get(0));
         }
 
-        return setQualifier(converter, qb, fieldName, op, part, null, queryParameters);
+        return setQualifier(converter, qb, fieldName, op, part, null);
     }
 
     private FilterOperation getCorrespondingListFilterOperationOrFail(FilterOperation op) {

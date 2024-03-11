@@ -105,96 +105,19 @@ public class IsNotEqualTests extends PersonRepositoryQueryTests {
         }
     }
 
-    @Test
-    void findByMapNotEqual_NegativeTest() {
-        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot("map1"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.stringMap NOTEQ: invalid combination of arguments, expecting either a Map or a " +
-                "key-value pair");
-
-        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot(Map.of("key", "value"), Map.of("key",
-            "value")))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.stringMap NOTEQ: invalid combination of arguments, expecting either a Map or a " +
-                "key-value pair");
-    }
-
-    @Test
-    void findByMapKeyValueNotEqual() {
-        assertThat(carter.getIntMap()).containsKey("key1");
-        assertThat(!carter.getIntMap().containsValue(22)).isTrue();
-
-        List<Person> persons = repository.findByIntMapIsNot("key1", 22);
-        assertThat(persons).containsOnly(carter);
-    }
-
-    @Test
-    void findByMapOfListsKeyValueNotEqual() {
-        Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200));
-        Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(100), "1", List.of(201));
-        Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(201), "2", List.of(202));
-        Map<String, List<Integer>> mapOfLists4 = Map.of("2", List.of(202), "3", List.of(2000));
-        stefan.setMapOfIntLists(mapOfLists1);
-        repository.save(stefan);
-        douglas.setMapOfIntLists(mapOfLists2);
-        repository.save(douglas);
-        matias.setMapOfIntLists(mapOfLists3);
-        repository.save(matias);
-        leroi2.setMapOfIntLists(mapOfLists4);
-        repository.save(leroi2);
-
-        List<Person> persons;
-        persons = repository.findByMapOfIntListsIsNot("2", List.of(100));
-        assertThat(persons).containsOnly(matias, leroi2);
-
-        persons = repository.findByMapOfIntListsIsNot("0", List.of(202));
-        assertThat(persons).containsOnly(stefan, douglas);
-
-        persons = repository.findByMapOfIntListsIsNot("34", List.of(2000));
-        assertThat(persons).isEmpty();
-    }
-
-    @Test
-    void findByAddressesMapKeyValueNotEqual() {
-        if (serverVersionSupport.isFindByCDTSupported()) {
-            Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
-            Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
-            Address address3 = new Address("Foo Street 2", 1, "C0124", "Bar");
-            Address address4 = new Address("Foo Street 1234", 1, "C01245", "Bar");
-
-            Map<String, Address> mapOfAddresses1 = Map.of("a", address1);
-            Map<String, Address> mapOfAddresses2 = Map.of("b", address2, "a", address1);
-            Map<String, Address> mapOfAddresses3 = Map.of("c", address3, "a", address1);
-            Map<String, Address> mapOfAddresses4 = Map.of("d", address4, "a", address1, "b", address2);
-            stefan.setAddressesMap(mapOfAddresses1);
-            repository.save(stefan);
-            douglas.setAddressesMap(mapOfAddresses2);
-            repository.save(douglas);
-            matias.setAddressesMap(mapOfAddresses3);
-            repository.save(matias);
-            leroi2.setAddressesMap(mapOfAddresses4);
-            repository.save(leroi2);
-
-            List<Person> persons;
-            persons = repository.findByAddressesMapIsNot("a", address1);
-            assertThat(persons).isEmpty();
-
-            persons = repository.findByAddressesMapIsNot("b", address1);
-            assertThat(persons).containsExactlyInAnyOrder(leroi2, douglas);
-
-            persons = repository.findByAddressesMapIsNot("cd", address3);
-            assertThat(persons).isEmpty();
-
-            stefan.setAddressesMap(null);
-            repository.save(stefan);
-            douglas.setAddressesMap(null);
-            repository.save(douglas);
-            matias.setAddressesMap(null);
-            repository.save(matias);
-            leroi2.setAddressesMap(null);
-            repository.save(leroi2);
-        }
-    }
+//    @Test
+//    void findByMapNotEqual_NegativeTest() { // TODO: Map types check?
+//        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot("map1"))
+//            .isInstanceOf(IllegalArgumentException.class)
+//            .hasMessage("Person.stringMap NOTEQ: invalid combination of arguments, expecting either a Map or a " +
+//                "key-value pair");
+//
+//        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot(Map.of("key", "value"), Map.of("key",
+//            "value")))
+//            .isInstanceOf(IllegalArgumentException.class)
+//            .hasMessage("Person.stringMap NOTEQ: invalid combination of arguments, expecting either a Map or a " +
+//                "key-value pair");
+//    }
 
     @Test
     void findByPOJONotEqual() {

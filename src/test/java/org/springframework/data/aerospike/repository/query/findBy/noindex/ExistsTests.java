@@ -13,12 +13,9 @@ public class ExistsTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedSimplePropertyExists() {
-        Assertions.assertThat(stefan.getAddress())
-            .isNull();
-        Assertions.assertThat(carter.getAddress()
-            .getZipCode()).isNotNull();
-        Assertions.assertThat(dave.getAddress()
-            .getZipCode()).isNotNull();
+        Assertions.assertThat(stefan.getAddress()).isNull();
+        Assertions.assertThat(carter.getAddress().getZipCode()).isNotNull();
+        Assertions.assertThat(dave.getAddress().getZipCode()).isNotNull();
 
         Assertions.assertThat(repository.findByAddressZipCodeExists())
             .contains(carter, dave)

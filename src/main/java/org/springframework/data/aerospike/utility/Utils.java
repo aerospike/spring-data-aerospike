@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.temporal.Temporal;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Currency;
 import java.util.Date;
 import java.util.Locale;
@@ -150,5 +151,9 @@ public class Utils {
 
     public static boolean isBoolean(Class<?> type) {
         return Boolean.TYPE.equals(type) || Boolean.class.equals(type);
+    }
+
+    public static boolean hasNoElementsOfClass(Class<?> clazz, Collection<Object> collection) {
+        return collection.stream().noneMatch(clazz::isInstance);
     }
 }

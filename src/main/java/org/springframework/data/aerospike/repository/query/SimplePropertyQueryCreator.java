@@ -11,10 +11,14 @@ import org.springframework.data.repository.query.parser.Part;
 import java.util.Collection;
 import java.util.List;
 
+import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
 import static org.springframework.data.aerospike.query.FilterOperation.IS_NOT_NULL;
 import static org.springframework.data.aerospike.query.FilterOperation.IS_NULL;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getCorrespondingMapValueFilterOperationOrFail;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateTypes;
 
 public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
@@ -43,7 +47,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
 
     @Override
     public void validate() {
-        String queryPartDescription = String.join(" ", part.getProperty().toString(), filterOperation.toString());
+        String queryPartDescription = String.join(" ", propertyPath.toString(), filterOperation.toString());
         switch (filterOperation) {
             case CONTAINING, NOT_CONTAINING, GT, GTEQ, LT, LTEQ, LIKE, STARTS_WITH, ENDS_WITH, EQ, NOTEQ -> {
                 validateSimplePropertyQueryComparison(queryPartDescription, queryParameters);
@@ -117,22 +121,34 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
             queryParameters.add(Value.get(convertPartTypeToBoolean(part.getType())));
         }
 
+//        if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
+        if (filterOperation == BETWEEN) {
+//            setQualifierBuilderValue(qb, queryParameters.get(0));
+            if (queryParameters.size() >=2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
+        }
+
         if (part.getProperty().hasNext()) { // if it is a POJO field // TODO: convert to a flag and pass it
 //            PropertyPath nestedProperty = getNestedPropertyPath(part.getProperty());
 
             if (filterOperation == FilterOperation.BETWEEN) {
 //                value3 = Value.get(queryParameters.get(1)); // contains upper limit
+//                queryParameters.add(Value.get(property.getFieldName())); // setting the upper bound
             } else if (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL) {
 //                value1 = Value.get(property.getFieldName()); // contains key (field name)
             }
 
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
             op = getCorrespondingMapValueFilterOperationOrFail(op);
-            queryParameters.add(0, Value.get(property.getFieldName())); // setting the key (field name)
+//            queryParameters.add(0, Value.get(property.getFieldName())); // setting the key
+            if (queryParameters.size() >= 1) setQualifierBuilderValue(qb, queryParameters.get(0));
+            setQualifierBuilderKey(qb, property.getFieldName());
             dotPath = List.of(part.getProperty().toDotPath());
+        } else {
+            setQualifierBuilderValue(qb, queryParameters.get(0));
+//            setQualifierBuilderKey(qb, property.getFieldName());
         }
 
-        return setQualifier(converter, qb, fieldName, op, part, dotPath, queryParameters);
+        return setQualifier(converter, qb, fieldName, op, part, dotPath);
     }
 
     private boolean convertPartTypeToBoolean(Part.Type type) {

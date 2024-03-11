@@ -60,7 +60,7 @@ class QualifierTests extends BaseQueryEngineTests {
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.LT)
-                .setValue1(Value.get(26)).build();
+                .setValue(Value.get(26)).build();
 
             //noinspection resource
             assertThatThrownBy(() -> queryEngine.select(namespace, SET_NAME, null, new Query(qualifier)))
@@ -104,7 +104,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.LT)
-            .setValue1(Value.get(26))
+            .setValue(Value.get(26))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -122,7 +122,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.LTEQ)
-            .setValue1(Value.get(26))
+            .setValue(Value.get(26))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -143,7 +143,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(26))
+            .setValue(Value.get(26))
             .build();
 
         KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -161,7 +161,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.GTEQ)
-            .setValue1(Value.get(28))
+            .setValue(Value.get(28))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -182,7 +182,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.GT)
-            .setValue1(Value.get(28))
+            .setValue(Value.get(28))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -199,7 +199,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValue1AsObj(1L)
+            .setKeyAsObj(1L)
             .build();
 
         KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -216,7 +216,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(ORANGE))
+            .setValue(Value.get(ORANGE))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -234,7 +234,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(true)
-            .setValue1(Value.get(ORANGE.toUpperCase()))
+            .setValue(Value.get(ORANGE.toUpperCase()))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -253,7 +253,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("BlUe"))
+            .setValue(Value.get("BlUe"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -273,7 +273,7 @@ class QualifierTests extends BaseQueryEngineTests {
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setIgnoreCase(ignoreCase)
-                .setValue1(Value.get("BlUe"))
+                .setValue(Value.get("BlUe"))
                 .build();
 
             KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -296,7 +296,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("lue"))
+            .setValue(Value.get("lue"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -309,7 +309,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.STARTS_WITH)
-            .setValue1(Value.get(BLUE.substring(0, 2)))
+            .setValue(Value.get(BLUE.substring(0, 2)))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -326,7 +326,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.STARTS_WITH)
-            .setValue1(Value.get(BLUE))
+            .setValue(Value.get(BLUE))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -344,7 +344,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField("color")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(true)
-            .setValue1(Value.get("BLU"))
+            .setValue(Value.get("BLU"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -361,7 +361,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.ENDS_WITH)
-            .setValue1(Value.get(GREEN.substring(2)))
+            .setValue(Value.get(GREEN.substring(2)))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -378,7 +378,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.ENDS_WITH)
-            .setValue1(Value.get("e"))
+            .setValue(Value.get("e"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -395,7 +395,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.ENDS_WITH)
-            .setValue1(Value.get(GREEN))
+            .setValue(Value.get(GREEN))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -413,8 +413,8 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValue1(Value.get(26))
-            .setValue2(Value.get(29)) // + 1 as upper limit is exclusive
+            .setValue(Value.get(26))
+            .setValue(Value.get(29)) // + 1 as upper limit is exclusive
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -439,7 +439,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.CONTAINING)
-            .setValue1(Value.get("l"))
+            .setValue(Value.get("l"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -459,7 +459,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.IN)
-            .setValue1(Value.get(inColors))
+            .setValue(Value.get(inColors))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -478,7 +478,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(binName)
             .setFilterOperation(FilterOperation.LIST_VAL_CONTAINING)
-            .setValue1(Value.get(searchColor))
+            .setValue(Value.get(searchColor))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -503,8 +503,8 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(binName)
             .setFilterOperation(FilterOperation.LIST_VAL_BETWEEN)
-            .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd + 1L))
+            .setValue(Value.get(ageStart))
+            .setSecondValue(Value.get(ageEnd + 1L))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -531,7 +531,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(binName)
             .setFilterOperation(FilterOperation.MAP_KEYS_CONTAIN)
-            .setValue1(Value.get(searchColor))
+            .setValue(Value.get(searchColor))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -554,7 +554,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(binName)
             .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
-            .setValue1(Value.get(searchColor))
+            .setValue(Value.get(searchColor))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -578,8 +578,8 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(binName)
             .setFilterOperation(FilterOperation.MAP_KEYS_BETWEEN)
-            .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd + 1L))
+            .setValue(Value.get(ageStart))
+            .setSecondValue(Value.get(ageEnd + 1L))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -610,8 +610,8 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(binName)
             .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN)
-            .setValue1(Value.get(ageStart))
-            .setValue2(Value.get(ageEnd + 1L))
+            .setValue(Value.get(ageStart))
+            .setSecondValue(Value.get(ageEnd + 1L))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -638,7 +638,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.CONTAINING)
-            .setValue1(Value.get(".*"))
+            .setValue(Value.get(".*"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
@@ -654,7 +654,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.STARTS_WITH)
-            .setValue1(Value.get(".*"))
+            .setValue(Value.get(".*"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
@@ -670,7 +670,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.ENDS_WITH)
-            .setValue1(Value.get(".*"))
+            .setValue(Value.get(".*"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
@@ -687,7 +687,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(true)
-            .setValue1(Value.get(".*"))
+            .setValue(Value.get(".*"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
@@ -702,7 +702,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.CONTAINING)
             .setIgnoreCase(true)
-            .setValue1(Value.get(specialString))
+            .setValue(Value.get(specialString))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SPECIAL_CHAR_SET, null, new Query(qualifier));
@@ -724,7 +724,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField(GEO_BIN_NAME)
             .setFilterOperation(FilterOperation.GEO_WITHIN)
-            .setValue1(Value.getAsGeoJSON(rgnstr))
+            .setValue(Value.getAsGeoJSON(rgnstr))
             .build();
 
         KeyRecordIterator iterator = queryEngine.select(namespace, GEO_SET, null, new Query(qualifier));
@@ -741,14 +741,14 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get(BLUE.toUpperCase()))
+            .setValue(Value.get(BLUE.toUpperCase()))
             .build();
 
         Qualifier qual2 = Qualifier.builder()
             .setField("name")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("NA"))
+            .setValue(Value.get("NA"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(Qualifier.and(qual1, qual2)));
@@ -766,7 +766,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get(BLUE.toUpperCase()))
+            .setValue(Value.get(BLUE.toUpperCase()))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
@@ -781,7 +781,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField("name")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("NA"))
+            .setKey(Value.get("NA"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
@@ -794,23 +794,23 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier colorIsGreen = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(GREEN))
+            .setKey(Value.get(GREEN))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValue1(Value.get(28))
-            .setValue2(Value.get(29))
+            .setKey(Value.get(28))
+            .setValue(Value.get(29))
             .build();
         Qualifier ageIs25 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(25))
+            .setKey(Value.get(25))
             .build();
         Qualifier nameIs696 = Qualifier.builder()
             .setField("name")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get("name:696"))
+            .setKey(Value.get("name:696"))
             .build();
 
         Qualifier or = Qualifier.or(ageIs25, ageBetween28And29, nameIs696);
@@ -843,13 +843,13 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier colorIsBlue = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(BLUE))
+            .setKey(Value.get(BLUE))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValue1(Value.get(28))
-            .setValue2(Value.get(30)) // + 1 as upper limit is exclusive
+            .setKey(Value.get(28))
+            .setValue(Value.get(30)) // + 1 as upper limit is exclusive
             .build();
 
         Qualifier or = Qualifier.or(colorIsBlue, ageBetween28And29);

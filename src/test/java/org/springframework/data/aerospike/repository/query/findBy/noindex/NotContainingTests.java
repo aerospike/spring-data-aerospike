@@ -14,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria.NULL_PARAM;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY_VALUE_PAIR;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
 
 /**
@@ -108,7 +109,7 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         assertThat(donny.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsKey("key1");
 
-        List<Person> persons = repository.findByStringMapNotContaining("key1", KEY);
+        List<Person> persons = repository.findByStringMapNotContaining(KEY, "key1");
         assertThat(persons).contains(dave, oliver, alicia, carter, stefan, leroi, leroi2, matias, douglas);
     }
 
@@ -117,8 +118,35 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         assertThat(donny.getStringMap()).containsValue("val1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
-        List<Person> persons = repository.findByStringMapNotContaining("val1", VALUE);
+        List<Person> persons = repository.findByStringMapNotContaining(VALUE, "val1");
         assertThat(persons).contains(dave, oliver, alicia, carter, stefan, leroi, leroi2, matias, douglas);
+    }
+
+    @Test
+    void findByMapNotContainingKeyValuePair_String() {
+        assertThat(donny.getStringMap()).containsKey("key1");
+        assertThat(donny.getStringMap()).containsValue("val1");
+        assertThat(boyd.getStringMap()).containsKey("key1");
+        assertThat(boyd.getStringMap()).containsValue("val1");
+
+        Map<String, String> cartersOriginalStringMap = carter.getStringMap();
+        // setting a Map to check the case with existing key and a different value
+        carter.setStringMap(Map.of("key1", "val2"));
+        repository.save(carter);
+        assertThat(carter.getStringMap()).containsKey("key1");
+        assertThat(carter.getStringMap()).doesNotContainValue("val1");
+
+        List<Person> personsNotContainingValue = repository.findByStringMapNotContaining(VALUE,"val1");
+        assertThat(personsNotContainingValue)
+            .doesNotContain(carter)
+            .contains(donny, boyd); // TODO: test with the older version
+
+        List<Person> personsNotContainingKeyValue = repository.findByStringMapNotContaining(KEY_VALUE_PAIR, "key1", "val1");
+        assertThat(personsNotContainingKeyValue).doesNotContain(donny, boyd, carter);
+
+        // cleanup
+        carter.setStringMap(cartersOriginalStringMap);
+        repository.save(carter);
     }
 
     @Test
@@ -129,12 +157,12 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         repository.save(stefan);
 
         // find Persons with stringMap not containing null value (regardless of a key)
-        assertThat(repository.findByStringMapNotContaining(NULL_PARAM, VALUE)).contains(stefan);
+        assertThat(repository.findByStringMapNotContaining(VALUE, NULL_PARAM)).contains(stefan);
 
         // Currently getting key-specific results for a Map requires 2 steps:
         // firstly query for all entities with existing map key
-        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining("key", KEY);
-        // and then leave only the records that have the key's value != null
+        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining(KEY, "key");
+        // and then process the results programmatically - leave only the records that have the key's value != null
         List<Person> personsWithMapValueNotNull = personsWithMapKeyExists.stream()
             .filter(person -> person.getStringMap().get("key") != null).toList();
         assertThat(personsWithMapValueNotNull).contains(stefan);
@@ -142,9 +170,9 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         stringMap.put("key", null);
         stefan.setStringMap(stringMap);
         repository.save(stefan);
-        assertThat(repository.findByStringMapNotContaining(NULL_PARAM, VALUE)).doesNotContain(stefan);
+        assertThat(repository.findByStringMapNotContaining(VALUE, NULL_PARAM)).doesNotContain(stefan);
 
-        personsWithMapKeyExists = repository.findByStringMapContaining("key", KEY);
+        personsWithMapKeyExists = repository.findByStringMapContaining(KEY, "key");
         personsWithMapValueNotNull = personsWithMapKeyExists.stream()
             .filter(person -> person.getStringMap().get("key") != null).toList();
         assertThat(personsWithMapValueNotNull).doesNotContain(stefan);
@@ -173,12 +201,12 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining(KEY, VALUE))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.stringMap NOT_CONTAINING: invalid combination of arguments, cannot have multiple " +
-                "MapCriteria arguments");
+                "AerospikeQueryCriteria arguments");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining("key", "value", new Person("id"
             , "firstName"), "value"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.stringMap NOT_CONTAINING: invalid argument type, expected String, Number or byte[] at" +
-                " position 3");
+            .hasMessage("Person.stringMap NOT_CONTAINING: invalid combination of arguments, the first one is required " +
+                "to be AerospikeQueryCriteria");
     }
 }

@@ -40,7 +40,7 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
     }
 
     @Override
-    public String getKey() {
+    public String geField() {
         return this.getField();
     }
 }

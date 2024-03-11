@@ -345,7 +345,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Qualifier sinceUpdateTimeLt10Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
-            .setValue1AsObj(50000L)
+            .setKeyAsObj(50000L)
             .build();
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt10Seconds)).collectList().block())
             .containsAll(allIndexedPersons);
@@ -354,8 +354,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValue1AsObj(1L)
-            .setValue2AsObj(50000L)
+            .setKeyAsObj(1L)
+            .setValueAsObj(50000L)
             .build();
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeBetween1And50000)).collectList().block())
             .containsAll(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt10Seconds)).collectList()
@@ -370,14 +370,14 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Qualifier sinceUpdateTimeGt1 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValue1AsObj(1L)
+            .setKeyAsObj(1L)
             .build();
 
         // creating an expression "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
-            .setValue1AsObj(50000L)
+            .setKeyAsObj(50000L)
             .build();
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds)).collectList().block())
             .containsAll(allIndexedPersons);
@@ -386,22 +386,22 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValue1AsObj(1L)
-            .setValue2AsObj(50000L)
+            .setKeyAsObj(1L)
+            .setValueAsObj(50000L)
             .build();
 
         // creating an expression "firsName is equal to Petra"
         Qualifier firstNameEqPetra = Qualifier.builder()
             .setField("firstName")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get("Petra"))
+            .setValue(Value.get("Petra"))
             .build();
 
         // creating an expression "age is equal to 34"
         Qualifier ageEq34 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(34))
+            .setValue(Value.get(34))
             .build();
         result = reactiveRepository.findUsingQuery(new Query(ageEq34)).collectList().block();
         assertThat(result).containsOnly(petra);
@@ -410,7 +410,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Qualifier ageGt34 = Qualifier.builder()
             .setFilterOperation(FilterOperation.GT)
             .setField("age")
-            .setValue1(Value.get(34))
+            .setValue(Value.get(34))
             .build();
         result = reactiveRepository.findUsingQuery(new Query(ageGt34)).collectList().block();
         assertThat(result).doesNotContain(petra);

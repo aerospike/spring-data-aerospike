@@ -44,7 +44,7 @@ public class KeyQualifier extends Qualifier {
         super(Qualifier.builder()
             .setField(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(value)
+            .setValue(value)
         );
     }
 
@@ -52,7 +52,7 @@ public class KeyQualifier extends Qualifier {
         super(Qualifier.builder()
             .setField(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(null)
+            .setValue(null)
         );
         this.internalMap.put(DIGEST_KEY, digest);
         this.hasDigest = true;
@@ -72,6 +72,6 @@ public class KeyQualifier extends Qualifier {
             byte[] digest = getDigest();
             return new Key(namespace, digest, set, null);
         }
-        return new Key(namespace, set, getValue1());
+        return new Key(namespace, set, getKey());
     }
 }

@@ -53,11 +53,11 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     }
 
     @Test
-    public void selectEndssWith() {
+    public void selectEndsWith() {
         Qualifier qual1 = Qualifier.builder()
             .setField("color")
             .setFilterOperation(ENDS_WITH)
-            .setValue1(Value.get("e"))
+            .setValue(Value.get("e"))
             .build();
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
@@ -65,10 +65,10 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .expectNextMatches(results -> {
                 assertThat(results)
                     .allSatisfy(rec -> assertThat(rec.record.getString("color")).endsWith("e"))
-                    .hasSize(queryEngineTestDataPopulator.colourCounts.get(ORANGE) + queryEngineTestDataPopulator.colourCounts.get(BLUE));
+                    .hasSize(queryEngineTestDataPopulator.colourCounts.get(ORANGE)
+                        + queryEngineTestDataPopulator.colourCounts.get(BLUE));
                 return true;
-            })
-            .verifyComplete();
+            }).verifyComplete();
     }
 
     @Test
@@ -76,7 +76,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
         Qualifier startsWithQual = Qualifier.builder()
             .setField("color")
             .setFilterOperation(STARTS_WITH)
-            .setValue1(Value.get("bl"))
+            .setValue(Value.get("bl"))
             .build();
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(startsWithQual));
@@ -97,14 +97,14 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setField("color")
             .setFilterOperation(EQ)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("BLUE"))
+            .setValue(Value.get("BLUE"))
             .build();
 
         Qualifier qual2 = Qualifier.builder()
             .setField("name")
             .setFilterOperation(STARTS_WITH)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("NA"))
+            .setValue(Value.get("NA"))
             .build();
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(Qualifier.and(qual1, qual2)));
@@ -120,7 +120,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setField("color")
             .setFilterOperation(EQ)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("BLUE"))
+            .setValue(Value.get("BLUE"))
             .build();
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
@@ -136,7 +136,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setField("name")
             .setFilterOperation(STARTS_WITH)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("NA"))
+            .setValue(Value.get("NA"))
             .build();
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
@@ -154,7 +154,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setField("color")
             .setFilterOperation(EQ)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("BlUe"))
+            .setValue(Value.get("BlUe"))
             .build();
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(caseInsensitiveQual));
@@ -175,7 +175,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setField("color")
             .setFilterOperation(EQ)
             .setIgnoreCase(ignoreCase)
-            .setValue1(Value.get("lue"))
+            .setValue(Value.get("lue"))
             .build();
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(caseInsensitiveQual));
@@ -196,7 +196,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
         Qualifier qual1 = Qualifier.builder()
             .setField(GEO_BIN_NAME)
             .setFilterOperation(GEO_WITHIN)
-            .setValue1(Value.getAsGeoJSON(rgnstr))
+            .setValue(Value.getAsGeoJSON(rgnstr))
             .build();
 
         Flux<KeyRecord> flux = queryEngine.select(namespace, GEO_SET, null, new Query(qual1));

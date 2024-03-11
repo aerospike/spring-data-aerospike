@@ -49,7 +49,7 @@ public class LoggingTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("testField")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get("testValue1"))
+            .setValue(Value.get("testValue1"))
             .build();
 
         StatementBuilder statementBuilder = new StatementBuilder(indexesCacheMock);
