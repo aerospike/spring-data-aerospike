@@ -199,7 +199,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setKeyAsObj(1L)
+            .setValueAsObj(1L)
             .build();
 
         KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -414,7 +414,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(26))
-            .setValue(Value.get(29)) // + 1 as upper limit is exclusive
+            .setSecondValue(Value.get(29)) // + 1 as upper limit is exclusive
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
@@ -495,36 +495,7 @@ class QualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void listBetweenQualifier() {
-        long ageStart = AGES[0]; // 25
-        long ageEnd = AGES[2]; // 27
-        String binName = "longList";
-
-        Qualifier qualifier = Qualifier.builder()
-            .setField(binName)
-            .setFilterOperation(FilterOperation.LIST_VAL_BETWEEN)
-            .setValue(Value.get(ageStart))
-            .setSecondValue(Value.get(ageEnd + 1L))
-            .build();
-
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
-
-        Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
-            .map(rec -> {
-                @SuppressWarnings("unchecked") List<Long> ageList = (List<Long>) rec.record.getList(binName);
-                return ageList.get(0);
-            })
-            .collect(Collectors.groupingBy(k -> k, countingInt()));
-        assertThat(ageCount.keySet())
-            .isNotEmpty()
-            .allSatisfy(age -> assertThat(age).isBetween(ageStart, ageEnd));
-        assertThat(ageCount.get(25L)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
-        assertThat(ageCount.get(26L)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
-        assertThat(ageCount.get(27L)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(27));
-    }
-
-    @Test
-    void mapKeysContainsQualifier() {
+    void mapKeysContainQualifier() {
         String searchColor = COLOURS[0];
         String binName = "colorAgeMap";
 
@@ -547,7 +518,7 @@ class QualifierTests extends BaseQueryEngineTests {
     }
 
     @Test
-    void mapValuesContainsQualifier() {
+    void mapValuesContainQualifier() {
         String searchColor = COLOURS[0];
         String binName = "ageColorMap";
 
@@ -567,70 +538,6 @@ class QualifierTests extends BaseQueryEngineTests {
                 assertThat(colorMap).containsValue(searchColor);
             })
             .hasSize(queryEngineTestDataPopulator.colourCounts.get(searchColor));
-    }
-
-    @Test
-    void mapKeysBetweenQualifier() {
-        long ageStart = AGES[0]; // 25
-        long ageEnd = AGES[2]; // 27
-        String binName = "ageColorMap";
-
-        Qualifier qualifier = Qualifier.builder()
-            .setField(binName)
-            .setFilterOperation(FilterOperation.MAP_KEYS_BETWEEN)
-            .setValue(Value.get(ageStart))
-            .setSecondValue(Value.get(ageEnd + 1L))
-            .build();
-
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
-
-        Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
-            .map(rec -> {
-                @SuppressWarnings("unchecked")
-                Map<Long, ?> ageColorMap = (Map<Long, ?>) rec.record.getMap(binName);
-                // This is always a one item map
-                //noinspection OptionalGetWithoutIsPresent
-                return ageColorMap.keySet().stream().filter(val -> val != SKIP_LONG_VALUE).findFirst().get();
-            })
-            .collect(Collectors.groupingBy(k -> k, countingInt()));
-        assertThat(ageCount.keySet())
-            .isNotEmpty()
-            .allSatisfy(age -> assertThat(age).isBetween(ageStart, ageEnd));
-        assertThat(ageCount.get(25L)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
-        assertThat(ageCount.get(26L)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
-        assertThat(ageCount.get(27L)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(27));
-    }
-
-    @Test
-    void mapValuesBetweenQualifier() {
-        long ageStart = AGES[0]; // 25
-        long ageEnd = AGES[2]; // 27
-        String binName = "colorAgeMap";
-
-        Qualifier qualifier = Qualifier.builder()
-            .setField(binName)
-            .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN)
-            .setValue(Value.get(ageStart))
-            .setSecondValue(Value.get(ageEnd + 1L))
-            .build();
-
-        KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));
-
-        Map<Long, Integer> ageCount = CollectionUtils.toStream(it)
-            .map(rec -> {
-                @SuppressWarnings("unchecked")
-                Map<?, Long> ageColorMap = (Map<?, Long>) rec.record.getMap(binName);
-                // This is always a one item map
-                //noinspection OptionalGetWithoutIsPresent
-                return ageColorMap.values().stream().filter(val -> val != SKIP_LONG_VALUE).findFirst().get();
-            })
-            .collect(Collectors.groupingBy(k -> k, countingInt()));
-        assertThat(ageCount.keySet())
-            .isNotEmpty()
-            .allSatisfy(age -> assertThat(age).isBetween(ageStart, ageEnd));
-        assertThat(ageCount.get(25L)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(25));
-        assertThat(ageCount.get(26L)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(26));
-        assertThat(ageCount.get(27L)).isEqualTo(queryEngineTestDataPopulator.ageCount.get(27));
     }
 
     @Test
@@ -781,7 +688,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .setField("name")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(ignoreCase)
-            .setKey(Value.get("NA"))
+            .setValue(Value.get("NA"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
@@ -794,7 +701,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier colorIsGreen = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
-            .setKey(Value.get(GREEN))
+            .setValue(Value.get(GREEN))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
             .setField("age")
@@ -805,12 +712,12 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier ageIs25 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.EQ)
-            .setKey(Value.get(25))
+            .setValue(Value.get(25))
             .build();
         Qualifier nameIs696 = Qualifier.builder()
             .setField("name")
             .setFilterOperation(FilterOperation.EQ)
-            .setKey(Value.get("name:696"))
+            .setValue(Value.get("name:696"))
             .build();
 
         Qualifier or = Qualifier.or(ageIs25, ageBetween28And29, nameIs696);
@@ -843,13 +750,13 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier colorIsBlue = Qualifier.builder()
             .setField("color")
             .setFilterOperation(FilterOperation.EQ)
-            .setKey(Value.get(BLUE))
+            .setValue(Value.get(BLUE))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setKey(Value.get(28))
-            .setValue(Value.get(30)) // + 1 as upper limit is exclusive
+            .setValue(Value.get(28))
+            .setSecondValue(Value.get(30)) // + 1 as upper limit is exclusive
             .build();
 
         Qualifier or = Qualifier.or(colorIsBlue, ageBetween28And29);

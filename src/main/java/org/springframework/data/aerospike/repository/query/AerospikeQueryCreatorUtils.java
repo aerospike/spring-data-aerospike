@@ -5,7 +5,7 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
@@ -18,8 +18,8 @@ import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria.NULL_PARAM;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion.NULL_PARAM;
 import static org.springframework.util.ClassUtils.isAssignable;
 import static org.springframework.util.ClassUtils.isAssignableValue;
 
@@ -116,7 +116,7 @@ public class AerospikeQueryCreatorUtils {
     }
 
     protected static Object convertIfNecessary(Object obj, MappingAerospikeConverter converter) {
-        if (obj == null || obj instanceof AerospikeQueryCriteria || obj instanceof AerospikeNullQueryCriteria) {
+        if (obj == null || obj instanceof AerospikeQueryCriterion || obj instanceof AerospikeNullQueryCriterion) {
             return obj;
         }
 

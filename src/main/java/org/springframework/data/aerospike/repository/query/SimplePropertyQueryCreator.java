@@ -30,11 +30,13 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
     private final List<Object> queryParameters;
     private final FilterOperation filterOperation;
     private final MappingAerospikeConverter converter;
+    private final boolean isNested;
     private final boolean isBooleanQuery;
 
     public SimplePropertyQueryCreator(Part part, PropertyPath propertyPath, AerospikePersistentProperty property,
                                       String fieldName, List<Object> queryParameters,
-                                      FilterOperation filterOperation, MappingAerospikeConverter converter) {
+                                      FilterOperation filterOperation, MappingAerospikeConverter converter,
+                                      boolean isNested) {
         this.part = part;
         this.isBooleanQuery = part.getType() == Part.Type.FALSE || part.getType() == Part.Type.TRUE;
         this.propertyPath = propertyPath;
@@ -43,6 +45,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
         this.queryParameters = queryParameters;
         this.filterOperation = filterOperation;
         this.converter = converter;
+        this.isNested = isNested;
     }
 
     @Override
@@ -127,14 +130,14 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
             if (queryParameters.size() >=2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
         }
 
-        if (part.getProperty().hasNext()) { // if it is a POJO field // TODO: convert to a flag and pass it
+        if (isNested) { // if it is a POJO field
 //            PropertyPath nestedProperty = getNestedPropertyPath(part.getProperty());
 
             if (filterOperation == FilterOperation.BETWEEN) {
 //                value3 = Value.get(queryParameters.get(1)); // contains upper limit
 //                queryParameters.add(Value.get(property.getFieldName())); // setting the upper bound
             } else if (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL) {
-//                value1 = Value.get(property.getFieldName()); // contains key (field name)
+                setQualifierBuilderValue(qb, property.getFieldName());
             }
 
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB

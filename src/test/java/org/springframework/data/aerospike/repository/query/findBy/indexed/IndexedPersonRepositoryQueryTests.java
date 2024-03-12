@@ -34,9 +34,9 @@ import static com.aerospike.client.query.IndexType.STRING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY_VALUE_PAIR;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
@@ -172,12 +172,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     void findByListContainingInteger_forEmptyResult() {
         List<IndexedPerson> persons = repository.findByIntsContaining(7777);
         assertThat(persons).isEmpty();
-    }
-
-    @Test
-    void findByListValueLessThanOrEqual() {
-        List<IndexedPerson> persons = repository.findByIntsLessThanEqual(500);
-        assertThat(persons).containsOnly(john);
     }
 
     @Test
@@ -383,15 +377,12 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    void findByMapKeyValueContainingInt() {
+    void findByMapKeyValue() {
         assertThat(tricia.getIntMap()).containsKey("key1");
-        assertThat(tricia.getIntMap()).containsValue(0);
+        assertThat(tricia.getIntMap().get("key1")).isEqualTo(0);
 
         Iterable<IndexedPerson> result = repository.findByIntMapContaining(KEY_VALUE_PAIR, "key1", 0);
         assertThat(result).contains(tricia);
-
-//        Iterable<IndexedPerson> result2 = repository.findByIntMapContaining("key1", 0, "key2", 1);
-//        assertThat(result2).contains(tricia);
     }
 
     @Test

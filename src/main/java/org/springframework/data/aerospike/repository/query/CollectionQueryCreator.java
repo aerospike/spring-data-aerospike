@@ -82,7 +82,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         Object value1 = queryParameters.get(0);
         if (value1 instanceof Collection) {
             validateTypes(converter, Collection.class, queryParameters, queryPartDescription);
-        } else if (value1 instanceof CriteriaDefinition.AerospikeNullQueryCriteria) {
+        } else if (value1 instanceof CriteriaDefinition.AerospikeNullQueryCriterion) {
             // Not more than one null value
             if (queryParameters.size() > 1) { // TODO: check logic
                 throw new IllegalArgumentException(String.format("%s: invalid number of null arguments, expecting " +

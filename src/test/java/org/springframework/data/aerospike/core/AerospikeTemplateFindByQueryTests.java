@@ -46,7 +46,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY_VALUE_PAIR;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
 import static org.springframework.data.domain.Sort.Order.asc;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -335,8 +336,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByMapKeysContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining",
-            CriteriaDefinition.AerospikeQueryCriteria.KEY, "key1");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", KEY, "key1");
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result).containsExactlyInAnyOrder(dave);
@@ -345,7 +345,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findByMapValuesContaining() {
         Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining",
-            CriteriaDefinition.AerospikeQueryCriteria.VALUE, "val2");
+            CriteriaDefinition.AerospikeQueryCriterion.VALUE, "val2");
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)

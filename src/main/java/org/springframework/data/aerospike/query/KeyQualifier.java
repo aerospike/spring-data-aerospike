@@ -72,6 +72,6 @@ public class KeyQualifier extends Qualifier {
             byte[] digest = getDigest();
             return new Key(namespace, digest, set, null);
         }
-        return new Key(namespace, set, getKey());
+        return new Key(namespace, set, getValue());
     }
 }

@@ -137,17 +137,17 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
                 PropertyPath nestedProperty = getNestedPropertyPath(part.getProperty());
                 if (isPojo(nestedProperty.getType())) {
                     queryCreator = new PojoQueryCreator(part, nestedProperty, property, fieldName, queryParameters,
-                        filterOperation, converter);
+                        filterOperation, converter, true);
                 } else {
                     queryCreator = new SimplePropertyQueryCreator(part, nestedProperty, property, fieldName,
-                        queryParameters, filterOperation, converter);
+                        queryParameters, filterOperation, converter, true);
                 }
             } else if (isPojo(part.getProperty().getType())) { // a first level POJO or a Map
                 queryCreator = new PojoQueryCreator(part, part.getProperty(), property, fieldName, queryParameters,
-                    filterOperation, converter);
+                    filterOperation, converter, false);
             } else {
                 queryCreator = new SimplePropertyQueryCreator(part, part.getProperty(), property, fieldName,
-                    queryParameters, filterOperation, converter);
+                    queryParameters, filterOperation, converter, false);
             }
         }
 
@@ -179,22 +179,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private List<Object> getQueryParameters(Iterator<?> parametersIterator) {
         List<Object> params = new ArrayList<>();
-
-//        if (parametersIterator.hasNext()) {
-//            Object value1 = convertIfNecessary(parametersIterator.next(), converter);
-//            params.add(value1);
-//        }
-
-//        if (parametersIterator.hasNext()) {
-//            Object value2 = convertIfNecessary(parametersIterator.next(), converter);
-//            params.add(value2);
-//        }
-//        if (part.getType() == BETWEEN || part.getType() == WITHIN) {
-//            value2 = parametersIterator.hasNext() ? convertIfNecessary(parametersIterator.next()) : null;
-//        }
-
         parametersIterator.forEachRemaining(param -> params.add(convertIfNecessary(param, converter)));
-        // null parameters are not allowed, if required use AerospikeNullQueryCriteria.NULL_PARAM
+        // null parameters are not allowed, instead AerospikeNullQueryCriteria.NULL_PARAM should be used
         return params.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
 
@@ -208,14 +194,15 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         String field = (StringUtils.hasLength(qualifier.getField()) ? qualifier.getField() : "");
         String operation = qualifier.getOperation().toString();
         operation = (StringUtils.hasLength(operation) ? operation : "N/A");
-        Value val1 = qualifier.getKey();
-        String value1 = printValue(val1);
-        Value val2 = qualifier.getValue();
+        Value k = qualifier.getKey();
+        String key = printValue(k);
+        Value val = qualifier.getValue();
+        String value = printValue(val);
+        Value val2 = qualifier.getSecondValue();
         String value2 = printValue(val2);
-        Value val3 = qualifier.getValue3();
-        String value3 = printValue(val3);
 
-        LOG.debug("Created query: {} {} {} {} {}", field, operation, value1, value2, value3);
+        LOG.debug("Created query: field = {}, operation = {}, key = {}, value = {}, value2 = {}",
+            field, operation, key, value, value2);
     }
 
     private String printValue(Value value) {

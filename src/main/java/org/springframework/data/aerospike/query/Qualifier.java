@@ -144,7 +144,7 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
         return (Value) internalMap.get(VALUE);
     }
 
-    public Value getValue3() {
+    public Value getSecondValue() {
         return (Value) internalMap.get(SECOND_VALUE);
     }
 

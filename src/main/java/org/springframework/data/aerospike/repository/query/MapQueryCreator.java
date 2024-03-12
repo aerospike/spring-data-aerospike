@@ -5,7 +5,7 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -16,8 +16,8 @@ import java.util.Objects;
 
 import static org.springframework.data.aerospike.query.FilterOperation.*;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.*;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY_VALUE_PAIR;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
 import static org.springframework.data.aerospike.utility.Utils.hasNoElementsOfClass;
 import static org.springframework.util.ClassUtils.isAssignable;
 import static org.springframework.util.ClassUtils.isAssignableValue;
@@ -67,14 +67,14 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
         Object param1 = queryParameters.get(0);
         // Two or more arguments of type QueryCriteria
-        if (param1 instanceof AerospikeQueryCriteria && hasMultipleQueryCriteria(queryParameters)) {
+        if (param1 instanceof AerospikeQueryCriterion && hasMultipleQueryCriteria(queryParameters)) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, cannot " +
                 "have multiple AerospikeQueryCriteria arguments");
         }
 
         // No QueryCriteria parameters
-        if (hasNoElementsOfClass(AerospikeQueryCriteria.class, queryParameters)
-            || !(param1 instanceof AerospikeQueryCriteria)) {
+        if (hasNoElementsOfClass(AerospikeQueryCriterion.class, queryParameters)
+            || !(param1 instanceof AerospikeQueryCriterion)) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, " +
                 "the first one is required to be AerospikeQueryCriteria");
         }
@@ -88,13 +88,13 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         }
     }
 
-    private boolean isQueryCriterionIn(Object param1, AerospikeQueryCriteria... queryCriteria) {
+    private boolean isQueryCriterionIn(Object param1, AerospikeQueryCriterion... queryCriteria) {
         return Arrays.stream(queryCriteria).anyMatch(criterion -> criterion == param1);
     }
 
     private boolean hasMultipleQueryCriteria(List<Object> params) {
         return params.stream()
-            .filter(AerospikeQueryCriteria.class::isInstance)
+            .filter(AerospikeQueryCriterion.class::isInstance)
             .count() > 1;
     }
 
@@ -280,7 +280,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         List<String> dotPath = null;
         Qualifier.QualifierBuilder qb = Qualifier.builder();
 
-        if (queryParameters.get(0) instanceof AerospikeQueryCriteria queryCriterion) {
+        if (queryParameters.get(0) instanceof AerospikeQueryCriterion queryCriterion) {
             switch (queryCriterion) {
                 case KEY -> {
                     op = keysOp;
@@ -344,7 +344,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         List<String> dotPath = null;
         Qualifier.QualifierBuilder qb = Qualifier.builder();
 
-        if (params.get(0) instanceof AerospikeQueryCriteria queryCriterion) {
+        if (params.get(0) instanceof AerospikeQueryCriterion queryCriterion) {
             switch (queryCriterion) {
 //                case KEY -> op = MAP_KEYS_CONTAIN;
 //                case VALUE -> op = MAP_VALUES_CONTAIN;
@@ -362,7 +362,8 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                     switch (op) {
                         case EQ -> op = MAP_VAL_EQ_BY_KEY;
                         case NOTEQ -> op = MAP_VAL_NOTEQ_BY_KEY;
-                        case CONTAINING -> op = MAP_VAL_CONTAINING_BY_KEY;
+//                        case CONTAINING -> op = MAP_VAL_CONTAINING_BY_KEY;
+                        case CONTAINING -> op = MAP_VAL_EQ_BY_KEY;
                         case NOT_CONTAINING -> op = MAP_VAL_NOT_CONTAINING_BY_KEY;
                     }
                     Value key = getValueOfQueryParameter(params.get(1));

@@ -81,14 +81,14 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     /**
      * Invalid combination of arguments: cannot have multiple AerospikeQueryCriteria arguments
      */
-    List<P> findByStringMapContaining(CriteriaDefinition.AerospikeQueryCriteria criterion1,
-                                      CriteriaDefinition.AerospikeQueryCriteria criterion2);
+    List<P> findByStringMapContaining(CriteriaDefinition.AerospikeQueryCriterion criterion1,
+                                      CriteriaDefinition.AerospikeQueryCriterion criterion2);
 
     /**
      * Invalid combination of arguments: cannot have multiple AerospikeQueryCriteria arguments
      */
-    List<P> findByStringMapNotContaining(CriteriaDefinition.AerospikeQueryCriteria criterion1,
-                                         CriteriaDefinition.AerospikeQueryCriteria criterion2);
+    List<P> findByStringMapNotContaining(CriteriaDefinition.AerospikeQueryCriterion criterion1,
+                                         CriteriaDefinition.AerospikeQueryCriterion criterion2);
 
     /**
      * Invalid argument type: expected String, Number or byte[] at position 3

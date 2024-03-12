@@ -15,7 +15,6 @@ import static org.springframework.data.aerospike.query.FilterOperation.IS_NOT_NU
 import static org.springframework.data.aerospike.query.FilterOperation.IS_NULL;
 import static org.springframework.data.aerospike.query.FilterOperation.NOT_IN;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getCorrespondingMapValueFilterOperationOrFail;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.isPojo;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
@@ -31,10 +30,11 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
     private final List<Object> queryParameters;
     private final FilterOperation filterOperation;
     private final MappingAerospikeConverter converter;
+    private final boolean isNested;
 
     public PojoQueryCreator(Part part, PropertyPath propertyPath, AerospikePersistentProperty property,
                             String fieldName, List<Object> queryParameters, FilterOperation filterOperation,
-                            MappingAerospikeConverter converter) {
+                            MappingAerospikeConverter converter, boolean isNested) {
         this.part = part;
         this.propertyPath = propertyPath;
         this.property = property;
@@ -42,6 +42,7 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
         this.queryParameters = queryParameters;
         this.filterOperation = filterOperation;
         this.converter = converter;
+        this.isNested = isNested;
     }
 
     @Override
@@ -107,7 +108,7 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
             if (queryParameters.size() >=2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
         }
 
-        if (part.getProperty().hasNext()) { // if it is a POJO field
+        if (isNested) { // if it is a POJO field
 //            PropertyPath nestedProperty = getNestedPropertyPath(part.getProperty());
 
             if (filterOperation == FilterOperation.BETWEEN) {
@@ -122,7 +123,7 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
             setQualifierBuilderKey(qb, property.getFieldName());
             setQualifierBuilderValue(qb, queryParameters.get(0));
             dotPath = List.of(part.getProperty().toDotPath());
-        } else if (isPojo(part.getProperty().getType())) { // if it is a first level POJO
+        } else { // if it is a first level POJO
             if (op != FilterOperation.BETWEEN) {
                 // if it is a POJO compared for equality it already has FilterOperation
 //                queryParameters.add(0, Value.get(property.getFieldName())); // setting the key (field name)

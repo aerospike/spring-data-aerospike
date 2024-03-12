@@ -476,7 +476,7 @@ public enum FilterOperation {
                 "MAP_VAL_EQ_BY_KEY secondary index filter: dotPath has not been set");
             final boolean useCtx = dotPathArr.length > 2;
 
-            return switch (getKey(qualifierMap).getType()) {
+            return switch (getValue(qualifierMap).getType()) {
                 case STRING -> {
                     if (ignoreCase(qualifierMap)) { // there is no case-insensitive string comparison filter
                         yield null; // MAP_VALUE_EQ_BY_KEY sIndexFilter: case-insensitive comparison is not supported
@@ -485,7 +485,7 @@ public enum FilterOperation {
                         yield null; // currently not supported
                     } else {
                         yield Filter.contains(getField(qualifierMap), IndexCollectionType.MAPVALUES,
-                            getKey(qualifierMap).toString());
+                            getValue(qualifierMap).toString());
                     }
                 }
                 case INTEGER -> {
@@ -493,8 +493,8 @@ public enum FilterOperation {
                         yield null; // currently not supported
                     } else {
                         yield Filter.range(getField(qualifierMap), IndexCollectionType.MAPVALUES,
-                            getKey(qualifierMap).toLong(),
-                            getKey(qualifierMap).toLong());
+                            getValue(qualifierMap).toLong(),
+                            getValue(qualifierMap).toLong());
                     }
                 }
                 default -> null;
@@ -957,7 +957,7 @@ public enum FilterOperation {
     GEO_WITHIN {
         @Override
         public Exp filterExp(Map<String, Object> qualifierMap) {
-            return Exp.geoCompare(Exp.geoBin(getField(qualifierMap)), Exp.geo(getKey(qualifierMap).toString()));
+            return Exp.geoCompare(Exp.geoBin(getField(qualifierMap)), Exp.geo(getValue(qualifierMap).toString()));
         }
 
         @Override
@@ -1385,13 +1385,13 @@ public enum FilterOperation {
 
     private static Exp mapKeysContain(Map<String, Object> qualifierMap) {
         String errMsg = "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
-            getKey(qualifierMap).getClass().getSimpleName();
+            getValue(qualifierMap).getClass().getSimpleName();
         return mapKeysCount(qualifierMap, Exp::gt, errMsg);
     }
 
     private static Exp mapValuesNotContain(Map<String, Object> qualifierMap) {
         String errMsg = "MAP_VALUES_NOT_CONTAIN FilterExpression unsupported type: got " +
-            getKey(qualifierMap).getClass().getSimpleName();
+            getValue(qualifierMap).getClass().getSimpleName();
         Exp binDoesNotExist = Exp.not(Exp.binExists(getField(qualifierMap)));
         Exp mapValuesNotContain = mapValuesCountComparedToZero(qualifierMap, Exp::eq, errMsg);
         return Exp.or(binDoesNotExist, mapValuesNotContain);
@@ -1416,7 +1416,7 @@ public enum FilterOperation {
 
     // operator is Exp::gt to query for mapKeysContain or Exp::eq to query for mapKeysNotContain
     private static Exp mapKeysCount(Map<String, Object> qualifierMap, BinaryOperator<Exp> operator, String errMsg) {
-        Exp key = getValueExp(getKey(qualifierMap), errMsg);
+        Exp key = getValueExp(getValue(qualifierMap), errMsg);
         return operator.apply(
             MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, key, Exp.mapBin(getField(qualifierMap))),
             Exp.val(0));
@@ -1678,6 +1678,6 @@ public enum FilterOperation {
 
     @SuppressWarnings("SameParameterValue")
     protected Filter geoWithinRadius(IndexCollectionType collectionType, Map<String, Object> qualifierMap) {
-        return Filter.geoContains(getField(qualifierMap), getKey(qualifierMap).toString());
+        return Filter.geoContains(getField(qualifierMap), getValue(qualifierMap).toString());
     }
 }

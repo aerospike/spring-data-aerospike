@@ -40,12 +40,9 @@ public class ExistsTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByPOJOExists() {
-        Assertions.assertThat(stefan.getAddress())
-            .isNull();
-        Assertions.assertThat(carter.getAddress())
-            .isNotNull();
-        Assertions.assertThat(dave.getAddress())
-            .isNotNull();
+        Assertions.assertThat(stefan.getAddress()).isNull();
+        Assertions.assertThat(carter.getAddress()).isNotNull();
+        Assertions.assertThat(dave.getAddress()).isNotNull();
 
         Assertions.assertThat(repository.findByAddressExists())
             .contains(carter, dave)

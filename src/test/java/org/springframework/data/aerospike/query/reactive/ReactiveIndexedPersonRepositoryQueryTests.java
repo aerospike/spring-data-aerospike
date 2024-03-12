@@ -14,7 +14,6 @@ import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperation
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryParam;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
@@ -33,28 +32,59 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.VALUE;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveIntegrationTests {
 
-    static final IndexedPerson alain = IndexedPerson.builder().id(nextId()).firstName("Alain").lastName("Sebastian")
-        .age(42).strings(Arrays.asList("str1", "str2"))
-        .address(new Address("Foo Street 1", 1, "C0123", "Bar")).build();
-    static final IndexedPerson luc = IndexedPerson.builder().id(nextId()).firstName("Luc").lastName("Besson").age(39)
-        .stringMap(AsCollections.of("key1", "val1", "key2", "val2")).address(new Address(null, null, null, null))
+    static final IndexedPerson alain = IndexedPerson.builder()
+        .id(nextId())
+        .firstName("Alain")
+        .lastName("Sebastian")
+        .age(42)
+        .strings(Arrays.asList("str1", "str2"))
+        .address(new Address("Foo Street 1", 1, "C0123", "Bar"))
         .build();
-    static final IndexedPerson lilly = IndexedPerson.builder().id(nextId()).firstName("Lilly").lastName("Bertineau")
-        .age(28).intMap(AsCollections.of("key1", 1, "key2", 2))
-        .address(new Address("Foo Street 2", 2, "C0124", "C0123")).build();
-    static final IndexedPerson daniel = IndexedPerson.builder().id(nextId()).firstName("Daniel").lastName("Morales")
-        .age(29).ints(Arrays.asList(500, 550, 990)).build();
-    static final IndexedPerson petra = IndexedPerson.builder().id(nextId()).firstName("Petra")
+    static final IndexedPerson luc = IndexedPerson.builder()
+        .id(nextId())
+        .firstName("Luc")
+        .lastName("Besson")
+        .age(39)
+        .stringMap(AsCollections.of("key1", "val1", "key2", "val2"))
+        .address(new Address(null, null, null, null))
+        .build();
+    static final IndexedPerson lilly = IndexedPerson.builder()
+        .id(nextId())
+        .firstName("Lilly")
+        .lastName("Bertineau")
+        .age(28)
+        .intMap(AsCollections.of("key1", 1, "key2", 2))
+        .address(new Address("Foo Street 2", 2, "C0124", "C0123"))
+        .build();
+    static final IndexedPerson daniel = IndexedPerson.builder()
+        .id(nextId())
+        .firstName("Daniel")
+        .lastName("Morales")
+        .age(29)
+        .ints(Arrays.asList(500, 550, 990))
+        .build();
+    static final IndexedPerson petra = IndexedPerson.builder()
+        .id(nextId())
+        .firstName("Petra")
         .lastName("Coutant-Kerbalec")
-        .age(34).stringMap(AsCollections.of("key1", "val1", "key2", "val2", "key3", "val3")).build();
-    static final IndexedPerson emilien = IndexedPerson.builder().id(nextId()).firstName("Emilien")
-        .lastName("Coutant-Kerbalec").age(30)
-        .intMap(AsCollections.of("key1", 0, "key2", 1)).ints(Arrays.asList(450, 550, 990)).build();
+        .age(34)
+        .stringMap(AsCollections.of("key1", "val1", "key2", "val2", "key3", "val3"))
+        .build();
+    static final IndexedPerson emilien = IndexedPerson.builder()
+        .id(nextId())
+        .firstName("Emilien")
+        .lastName("Coutant-Kerbalec")
+        .age(30)
+        .intMap(AsCollections.of("key1", 0, "key2", 1))
+        .ints(Arrays.asList(450, 550, 990))
+        .build();
     public static final List<IndexedPerson> allIndexedPersons = Arrays.asList(alain, luc, lilly, daniel, petra,
         emilien);
     @Autowired
@@ -71,8 +101,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_last_name_index", "lastName",
             IndexType.STRING).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_age_index", "age", IndexType.NUMERIC).block();
-        reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_strings_index", "strings", IndexType.STRING
-            , IndexCollectionType.LIST).block();
+        reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_strings_index", "strings",
+            IndexType.STRING, IndexCollectionType.LIST).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_ints_index", "ints", IndexType.NUMERIC,
             IndexCollectionType.LIST).block();
         reactiveTemplate.createIndex(IndexedPerson.class, "indexed_person_string_map_keys_index", "stringMap",
@@ -162,30 +192,6 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
     }
 
     @Test
-    public void findByListValueGreaterThan() {
-        List<IndexedPerson> results = reactiveRepository.findByIntsGreaterThan(549)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
-
-        assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
-    }
-
-    @Test
-    public void findByListValueLessThanOrEqual() {
-        List<IndexedPerson> results = reactiveRepository.findByIntsLessThanEqual(500)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
-
-        assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
-    }
-
-    @Test
-    public void findByListValueInRange() {
-        List<IndexedPerson> results = reactiveRepository.findByIntsBetween(500, 600)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
-
-        assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
-    }
-
-    @Test
     public void findPersonsByLastname() {
         List<IndexedPerson> results = reactiveRepository.findByLastName("Coutant-Kerbalec")
             .subscribeOn(Schedulers.parallel()).collectList().block();
@@ -249,16 +255,15 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByMapKeysContaining() {
-        List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("key1",
-            CriteriaDefinition.AerospikeQueryCriteria.KEY).subscribeOn(Schedulers.parallel()).collectList().block();
+        List<IndexedPerson> results = reactiveRepository.findByStringMapContaining(KEY, "key1")
+            .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(luc, petra);
     }
 
     @Test
     public void findByMapValuesContaining() {
-        List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("val1",
-                VALUE)
+        List<IndexedPerson> results = reactiveRepository.findByStringMapContaining(VALUE, "val1")
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(luc, petra);
@@ -271,7 +276,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         assertThat(luc.getStringMap().containsKey("key1")).isTrue();
         assertThat(luc.getStringMap().containsValue("val1")).isTrue();
 
-        List<IndexedPerson> results = reactiveRepository.findByStringMapContaining("key1", "val1")
+        List<IndexedPerson> results = reactiveRepository.findByStringMapContaining(KEY_VALUE_PAIR, "key1", "val1")
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).contains(petra, luc);
@@ -295,48 +300,10 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         assertThat(lilly.getIntMap().containsKey("key1")).isTrue();
         assertThat(lilly.getIntMap().get("key1")).isNotZero();
 
-        List<IndexedPerson> results = reactiveRepository.findByIntMapContaining("key1", 0)
+        List<IndexedPerson> results = reactiveRepository.findByIntMapContaining(KEY_VALUE_PAIR, "key1", 0)
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsExactly(emilien);
-    }
-
-    @Test
-    public void findByMapKeyValueGreaterThan() {
-        assertThat(emilien.getIntMap().containsKey("key2")).isTrue();
-        assertThat(emilien.getIntMap().get("key2")).isPositive();
-        assertThat(lilly.getIntMap().containsKey("key2")).isTrue();
-        assertThat(lilly.getIntMap().get("key2")).isPositive();
-
-        List<IndexedPerson> results = reactiveRepository.findByIntMapGreaterThan("key2", 0)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
-
-        assertThat(results).containsExactlyInAnyOrder(emilien, lilly);
-    }
-
-    @Test
-    public void findByMapKeyValueLessThanOrEqual() {
-        assertThat(emilien.getIntMap().containsKey("key2")).isTrue();
-        assertThat(emilien.getIntMap().get("key2")).isLessThanOrEqualTo(1);
-        assertThat(lilly.getIntMap().containsKey("key2")).isTrue();
-        assertThat(lilly.getIntMap().get("key2")).isGreaterThan(1);
-
-        List<IndexedPerson> results = reactiveRepository.findByIntMapLessThanEqual("key2", 1)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
-
-        assertThat(results).containsExactlyInAnyOrder(emilien);
-    }
-
-    public void findByMapKeyValueBetween() {
-        assertThat(lilly.getIntMap().containsKey("key2")).isTrue();
-        assertThat(emilien.getIntMap().containsKey("key2")).isTrue();
-        assertThat(lilly.getIntMap().get("key2")).isNotNegative();
-        assertThat(emilien.getIntMap().get("key2")).isNotNegative();
-
-        List<IndexedPerson> results = reactiveRepository.findByIntMapBetween("key2", 0, 1)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
-
-        assertThat(results).containsExactlyInAnyOrder(lilly, emilien);
     }
 
     @Test
@@ -345,7 +312,7 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Qualifier sinceUpdateTimeLt10Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
-            .setKeyAsObj(50000L)
+            .setValueAsObj(50000L)
             .build();
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt10Seconds)).collectList().block())
             .containsAll(allIndexedPersons);
@@ -354,8 +321,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setKeyAsObj(1L)
-            .setValueAsObj(50000L)
+            .setValueAsObj(1L)
+            .setSecondValueAsObj(50000L)
             .build();
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeBetween1And50000)).collectList().block())
             .containsAll(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt10Seconds)).collectList()
@@ -370,14 +337,14 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Qualifier sinceUpdateTimeGt1 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setKeyAsObj(1L)
+            .setValueAsObj(1L)
             .build();
 
         // creating an expression "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
-            .setKeyAsObj(50000L)
+            .setValueAsObj(50000L)
             .build();
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds)).collectList().block())
             .containsAll(allIndexedPersons);
@@ -386,8 +353,8 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setKeyAsObj(1L)
-            .setValueAsObj(50000L)
+            .setValueAsObj(1L)
+            .setSecondValueAsObj(50000L)
             .build();
 
         // creating an expression "firsName is equal to Petra"

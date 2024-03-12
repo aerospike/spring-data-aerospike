@@ -250,7 +250,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
             .setField("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(28))
-            .setValue(Value.get(29))
+            .setSecondValue(Value.get(29))
             .build();
 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {

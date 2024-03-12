@@ -36,11 +36,11 @@ public interface CriteriaDefinition {
      */
     String geField();
 
-    enum AerospikeQueryCriteria {
+    enum AerospikeQueryCriterion {
         KEY, VALUE, KEY_VALUE_PAIR
     }
 
-    enum AerospikeNullQueryCriteria {
+    enum AerospikeNullQueryCriterion {
         NULL_PARAM
     }
 

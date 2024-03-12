@@ -18,8 +18,8 @@ package org.springframework.data.aerospike.sample;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -390,78 +390,78 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param criterion {@link AerospikeQueryCriteria#KEY} or {@link AerospikeQueryCriteria#VALUE}
+     * @param criterion {@link AerospikeQueryCriterion#KEY} or {@link AerospikeQueryCriterion#VALUE}
      * @param element   map value
      */
-    List<P> findByStringMapContaining(AerospikeQueryCriteria criterion, String element);
+    List<P> findByStringMapContaining(AerospikeQueryCriterion criterion, String element);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param criterionPair {@link AerospikeQueryCriteria#KEY_VALUE_PAIR}
+     * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
      * @param key   map key
      * @param value   map value
      */
-    List<P> findByStringMapContaining(AerospikeQueryCriteria criterionPair, String key, String value);
+    List<P> findByStringMapContaining(AerospikeQueryCriterion criterionPair, String key, String value);
 
     /**
      * Find all entities that do not contain the given map element (key or value depending on the given criterion)
      *
      * @param element   map value
-     * @param criterion {@link AerospikeQueryCriteria#KEY} or {@link AerospikeQueryCriteria#VALUE}
+     * @param criterion {@link AerospikeQueryCriterion#KEY} or {@link AerospikeQueryCriterion#VALUE}
      */
-    List<P> findByStringMapNotContaining(AerospikeQueryCriteria criterion, String element);
+    List<P> findByStringMapNotContaining(AerospikeQueryCriterion criterion, String element);
 
     /**
      * Find all entities that do not contain null element (key or value depending on the given criterion)
      *
-     * @param criterion     {@link AerospikeQueryCriteria#KEY} or {@link AerospikeQueryCriteria#VALUE}
-     * @param nullParameter {@link AerospikeNullQueryCriteria#NULL_PARAM}
+     * @param criterion     {@link AerospikeQueryCriterion#KEY} or {@link AerospikeQueryCriterion#VALUE}
+     * @param nullParameter {@link AerospikeNullQueryCriterion#NULL_PARAM}
      */
-    List<P> findByStringMapNotContaining(AerospikeQueryCriteria criterion, AerospikeNullQueryCriteria nullParameter);
+    List<P> findByStringMapNotContaining(AerospikeQueryCriterion criterion, AerospikeNullQueryCriterion nullParameter);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param criterion     {@link AerospikeQueryCriteria#KEY} or {@link AerospikeQueryCriteria#VALUE}
-     * @param nullParameter {@link AerospikeNullQueryCriteria#NULL_PARAM}
+     * @param criterion     {@link AerospikeQueryCriterion#KEY} or {@link AerospikeQueryCriterion#VALUE}
+     * @param nullParameter {@link AerospikeNullQueryCriterion#NULL_PARAM}
      */
-    List<P> findByStringMapContaining(AerospikeQueryCriteria criterion, AerospikeNullQueryCriteria nullParameter);
+    List<P> findByStringMapContaining(AerospikeQueryCriterion criterion, AerospikeNullQueryCriterion nullParameter);
 
     /**
      * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
      *
-     * @param criterionPair {@link AerospikeQueryCriteria#KEY_VALUE_PAIR}
+     * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
      * @param key           Map key
      * @param value         String to check whether map value is not equal to it
      */
-    List<P> findByStringMapNotContaining(AerospikeQueryCriteria criterionPair, String key, @NotNull String value);
+    List<P> findByStringMapNotContaining(AerospikeQueryCriterion criterionPair, String key, @NotNull String value);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
-     * @param criterion {@link AerospikeQueryCriteria#KEY} or {@link AerospikeQueryCriteria#VALUE}
+     * @param criterion {@link AerospikeQueryCriterion#KEY} or {@link AerospikeQueryCriterion#VALUE}
      * @param value     map value
      */
-    List<P> findByMapOfIntListsContaining(AerospikeQueryCriteria criterion, List<Integer> value);
+    List<P> findByMapOfIntListsContaining(AerospikeQueryCriterion criterion, List<Integer> value);
 
     /**
      * Find all entities containing the given map value with the given key
      *
-     * @param criterionPair {@link AerospikeQueryCriteria#KEY_VALUE_PAIR}
+     * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
      * @param key           map key
      * @param value         map value
      */
-    List<P> findByMapOfIntListsContaining(AerospikeQueryCriteria criterionPair, String key, List<Integer> value);
+    List<P> findByMapOfIntListsContaining(AerospikeQueryCriterion criterionPair, String key, List<Integer> value);
 
     /**
      * Find all entities containing the given map value with the given key
      *
-     * @param criterionPair {@link AerospikeQueryCriteria#KEY_VALUE_PAIR}
+     * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
      * @param key           map key
      * @param value         map value
      */
-    List<P> findByAddressesMapContaining(AerospikeQueryCriteria criterionPair, String key, Address value);
+    List<P> findByAddressesMapContaining(AerospikeQueryCriterion criterionPair, String key, Address value);
 
     /**
      * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by map)
@@ -491,11 +491,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have the map which contains the given key and its boolean value".
      * Map name in this case is MapOfBoolean
      *
-     * @param criterionPair criterion {@link AerospikeQueryCriteria#KEY_VALUE_PAIR}
+     * @param criterionPair criterion {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
      * @param key           Map key
      * @param value         Boolean value to check
      */
-    List<P> findByMapOfBooleanContaining(AerospikeQueryCriteria criterionPair, String key, boolean value);
+    List<P> findByMapOfBooleanContaining(AerospikeQueryCriterion criterionPair, String key, boolean value);
 
     /**
      * Find all entities with existing intMap not equal to the given argument
@@ -507,11 +507,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities that satisfy the condition "have the given map key and the value equal to the given integer"
      *
-     * @param criterionPair criterion {@link AerospikeQueryCriteria#KEY_VALUE_PAIR}
+     * @param criterionPair criterion {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
      * @param key           Map key
      * @param value         Integer to check if map value equals it
      */
-    List<P> findByIntMapContaining(AerospikeQueryCriteria criterionPair, String key, int value);
+    List<P> findByIntMapContaining(AerospikeQueryCriterion criterionPair, String key, int value);
 
     /**
      * Find all entities that satisfy the condition "have the map in the given range"
@@ -655,9 +655,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Strings
      * </p>
      *
-     * @param nullParameter {@link AerospikeNullQueryCriteria#NULL_PARAM}
+     * @param nullParameter {@link AerospikeNullQueryCriterion#NULL_PARAM}
      */
-    List<P> findByStringsContaining(AerospikeNullQueryCriteria nullParameter);
+    List<P> findByStringsContaining(AerospikeNullQueryCriterion nullParameter);
 
     /**
      * Find all entities that satisfy the condition "have the list which does not contain the given string"
@@ -675,9 +675,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * List name in this case is Strings
      * </p>
      *
-     * @param nullParameter {@link AerospikeNullQueryCriteria#NULL_PARAM} to check for null
+     * @param nullParameter {@link AerospikeNullQueryCriterion#NULL_PARAM} to check for null
      */
-    List<P> findByStringsNotContaining(AerospikeNullQueryCriteria nullParameter);
+    List<P> findByStringsNotContaining(AerospikeNullQueryCriterion nullParameter);
 
     List<P> findByStringsNotContaining();
 
