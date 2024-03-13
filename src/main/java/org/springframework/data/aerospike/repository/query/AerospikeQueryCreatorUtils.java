@@ -188,10 +188,16 @@ public class AerospikeQueryCreatorUtils {
     protected static boolean isAssignableValueOrConverted(Class<?> propertyType, Object obj,
                                                           MappingAerospikeConverter converter) {
         return isAssignableValue(propertyType, obj)
-            || converter.getCustomConversions().hasCustomReadTarget(obj.getClass(), propertyType);
-//            || isPojoMap(obj, propertyType);
+            || converter.getCustomConversions().hasCustomReadTarget(obj.getClass(), propertyType)
+            || isPojoMap(obj, propertyType);
     }
 
+    /**
+     * Check if an object is a POJO converted to a TreeMap with the same class as the given propertyType
+     * @param obj
+     * @param propertyType
+     * @return
+     */
     protected static boolean isPojoMap(Object obj, Class<?> propertyType) {
         if (obj instanceof TreeMap) {
             Object classKey = ((TreeMap<?, ?>) obj).get(CLASS_KEY);

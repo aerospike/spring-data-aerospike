@@ -80,49 +80,49 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByStringMapNotContaining();
 
     /**
-     * Invalid combination of arguments: cannot have multiple AerospikeQueryCriteria arguments
+     * Invalid combination of arguments: cannot have multiple AerospikeQueryCriterion arguments
      */
     List<P> findByStringMapContaining(CriteriaDefinition.AerospikeQueryCriterion criterion1,
                                       CriteriaDefinition.AerospikeQueryCriterion criterion2);
 
     /**
-     * Invalid combination of arguments: cannot have multiple AerospikeQueryCriteria arguments
+     * Invalid combination of arguments: cannot have multiple AerospikeQueryCriterion arguments
      */
     List<P> findByStringMapNotContaining(CriteriaDefinition.AerospikeQueryCriterion criterion1,
                                          CriteriaDefinition.AerospikeQueryCriterion criterion2);
 
     /**
-     * Invalid argument type: expected String, Number or byte[] at position 3
+     * Invalid combination of arguments, the first one is required to be AerospikeQueryCriterion
      */
     List<P> findByStringMapContaining(String key1, String value1, Person key2, String value2);
 
     /**
-     * Invalid argument type: expected String, Number or byte[] at position 3
+     * Invalid combination of arguments: the first one is required to be AerospikeQueryCriterion
      */
     List<P> findByStringMapNotContaining(String key1, String value1, Person key2, String value2);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid combination of arguments: expecting Map
      */
     List<P> findByStringMapEquals(String obj);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid combination of arguments: expecting Map
      */
     List<P> findByStringMapIsNot(String obj);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid combination of arguments: expecting Map
      */
     List<P> findByStringMap(int obj);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid number of arguments: expecting one
      */
     List<P> findByStringMapEquals(Map<String, String> map1, Map<String, String> map2);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid number of arguments: expecting one
      */
     List<P> findByStringMapIsNot(Map<String, String> map1, Map<String, String> map2);
 
@@ -145,42 +145,42 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
                                    String key, String value);
 
     /**
-     * Invalid combination of arguments: expecting one (Map) or two (Map key and value)
+     * Invalid argument type: expecting Map
      */
     List<P> findByIntMapLessThan(int number1);
 
     /**
-     * Invalid number of arguments: expecting one (Map) or two (Map key and value)
+     * Invalid number of arguments: expecting one
      */
     List<P> findByIntMapLessThan(int number1, int number2, int number3);
 
     /**
-     * Invalid first argument type: expected String, Number or byte[]
+     * Invalid argument type: expecting Map
      */
     List<P> findByIntMapLessThan(Person obj, int number);
 
     /**
-     * Invalid number of arguments: expecting two (Maps) or three (Map key and two values)
+     * Invalid number of arguments: expecting two
      */
     List<P> findByIntMapBetween();
 
     /**
-     * Invalid number of arguments: expecting two (Maps) or three (Map key and two values)
+     * Invalid number of arguments: expecting two
      */
     List<P> findByIntMapBetween(int number1);
 
     /**
-     * Invalid combination of arguments: both must be of type Map
+     * Invalid argument type: expecting Map
      */
     List<P> findByIntMapBetween(int number1, int number2);
 
     /**
-     * Invalid combination of arguments: both must be of type Map
+     * Invalid argument type: expecting Map
      */
     List<P> findByIntMapBetween(int number1, Map<Integer, Integer> map);
 
     /**
-     * Invalid number of arguments: expecting two (Maps) or three (Map key and two values)
+     * Invalid number of arguments: expecting two
      */
     List<P> findByIntMapBetween(int number1, int number2, int number3, int number4);
 

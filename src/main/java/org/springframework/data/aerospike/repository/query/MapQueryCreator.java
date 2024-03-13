@@ -22,6 +22,7 @@ import static org.springframework.data.aerospike.repository.query.AerospikeQuery
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion.NULL_PARAM;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
 import static org.springframework.data.aerospike.utility.Utils.hasNoElementsOfClass;
 
@@ -65,17 +66,17 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         }
 
         Object param1 = queryParameters.get(0);
-        // Two or more arguments of type QueryCriteria
+        // Two or more arguments of type QueryCriterion
         if (param1 instanceof AerospikeQueryCriterion && hasMultipleQueryCriteria(queryParameters)) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, cannot " +
-                "have multiple AerospikeQueryCriteria arguments");
+                "have multiple AerospikeQueryCriterion arguments");
         }
 
-        // No QueryCriteria parameters
+        // No QueryCriterion parameter
         if (hasNoElementsOfClass(AerospikeQueryCriterion.class, queryParameters)
             || !(param1 instanceof AerospikeQueryCriterion)) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, " +
-                "the first one is required to be AerospikeQueryCriteria");
+                "the first one is required to be AerospikeQueryCriterion");
         }
 
         Object param2 = queryParameters.get(1);
@@ -136,7 +137,8 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         } catch (IllegalStateException e) {
             // do nothing
         }
-        return mapValueClass != null && isAssignableValueOrConverted(mapValueClass, param, converter);
+        return mapValueClass != null
+            && (isAssignableValueOrConverted(mapValueClass, param, converter) || param == NULL_PARAM);
     }
 
     private boolean hasMultipleQueryCriteria(List<Object> params) {

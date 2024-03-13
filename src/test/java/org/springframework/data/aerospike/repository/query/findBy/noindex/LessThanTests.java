@@ -66,17 +66,15 @@ public class LessThanTests extends PersonRepositoryQueryTests {
     void findByMapLessThanNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapLessThan(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap LT: invalid combination of arguments, expecting one (Map) or two (Map key and " +
-                "value)");
+            .hasMessage("Person.intMap LT: invalid argument type, expecting Map");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapLessThan(100, 200, 300))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap LT: invalid number of arguments, expecting one (Map) or two (Map key and " +
-                "value)");
+            .hasMessage("Person.intMap LT: invalid number of arguments, expecting one");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapLessThan(new Person("id1", "name1"), 400))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap LT: invalid first argument type, expected String, Number or byte[]");
+            .hasMessage("Person.intMap LT: invalid argument type, expecting Map");
     }
 
     @Test

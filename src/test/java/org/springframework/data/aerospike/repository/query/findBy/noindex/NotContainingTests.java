@@ -95,13 +95,9 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByCollection_NegativeTest() {
-        assertThatThrownBy(() -> negativeTestsRepository.findByIntsContaining())
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.ints CONTAINING: invalid number of arguments, expecting at least one");
-
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsNotContaining())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.ints NOT_CONTAINING: invalid number of arguments, expecting at least one");
+            .hasMessage("Person.ints NOT_CONTAINING: invalid number of arguments, expecting one");
     }
 
     @Test
@@ -199,13 +195,12 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining(KEY, VALUE))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.stringMap NOT_CONTAINING: invalid combination of arguments, cannot have multiple " +
-                "AerospikeQueryCriteria arguments");
+                "AerospikeQueryCriterion arguments");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining("key", "value", new Person("id"
             , "firstName"), "value"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.stringMap NOT_CONTAINING: invalid combination of arguments, the first one is required" +
-                " " +
-                "to be AerospikeQueryCriteria");
+            .hasMessage("Person.stringMap NOT_CONTAINING: invalid combination of arguments, the first one " +
+                "is required to be AerospikeQueryCriterion");
     }
 }

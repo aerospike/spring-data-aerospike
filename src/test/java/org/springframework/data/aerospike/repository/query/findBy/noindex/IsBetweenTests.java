@@ -76,8 +76,7 @@ public class IsBetweenTests extends PersonRepositoryQueryTests {
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsBetween(Map.of(100, 200), Map.of(300, 400)))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.ints BETWEEN: Type mismatch, expecting one of the following types: Integer, " +
-                "Collection");
+            .hasMessage("Person.ints BETWEEN: invalid argument type, expecting Collection");
     }
 
     @Test
@@ -132,26 +131,23 @@ public class IsBetweenTests extends PersonRepositoryQueryTests {
     void findByMapBetween_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two (Maps) or three (Map key " +
-                "and two values)");
+            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two (Maps) or three (Map key " +
-                "and two values)");
+            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100, Map.of(200, 300)))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid combination of arguments, both must be of type Map");
+            .hasMessage("Person.intMap BETWEEN: invalid argument type, expecting Map");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100, 200))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid combination of arguments, both must be of type Map");
+            .hasMessage("Person.intMap BETWEEN: invalid argument type, expecting Map");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100, 200, 300, 400))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two (Maps) or three (Map key " +
-                "and two values)");
+            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two");
     }
 
     @Test
