@@ -66,7 +66,7 @@ public class AerospikeQueryCreatorUtils {
     protected static Qualifier qualifierAndConcatenated(MappingAerospikeConverter converter, List<Object> params,
                                                         QualifierBuilder qb,
                                                         Part part, String fieldName, FilterOperation op,
-                                                        List<String> dotPath, List<Object> queryParameters) {
+                                                        List<String> dotPath) {
         return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath, false);
     }
 
@@ -193,14 +193,15 @@ public class AerospikeQueryCreatorUtils {
     }
 
     /**
-     * Check if an object is a POJO converted to a TreeMap with the same class as the given propertyType
-     * @param obj
-     * @param propertyType
-     * @return
+     * Check if an object is a converted POJO with the same class as the given propertyType
+     *
+     * @param object       Instance to be compared
+     * @param propertyType Class for comparing
+     * @return Whether the object is a converted POJO of the given class
      */
-    protected static boolean isPojoMap(Object obj, Class<?> propertyType) {
-        if (obj instanceof TreeMap) {
-            Object classKey = ((TreeMap<?, ?>) obj).get(CLASS_KEY);
+    protected static boolean isPojoMap(Object object, Class<?> propertyType) {
+        if (object instanceof TreeMap) {
+            Object classKey = ((TreeMap<?, ?>) object).get(CLASS_KEY);
             return classKey != null && classKey.equals(propertyType.getName());
         }
         return false;

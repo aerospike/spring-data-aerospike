@@ -296,7 +296,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
             || op == MAP_VAL_EQ_BY_KEY || op == MAP_VAL_NOTEQ_BY_KEY) {
             return setQualifier(converter, qb, fieldName, op, part, dotPath);
         } else {
-            return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath, queryParameters);
+            return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath);
         }
     }
 }

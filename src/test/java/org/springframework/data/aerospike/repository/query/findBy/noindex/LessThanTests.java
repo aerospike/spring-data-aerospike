@@ -74,7 +74,7 @@ public class LessThanTests extends PersonRepositoryQueryTests {
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapLessThan(new Person("id1", "name1"), 400))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap LT: invalid argument type, expecting Map");
+            .hasMessage("Person.intMap LT: invalid number of arguments, expecting one");
     }
 
     @Test
