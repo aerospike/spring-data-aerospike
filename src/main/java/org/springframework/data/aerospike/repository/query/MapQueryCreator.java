@@ -7,21 +7,23 @@ import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
+import org.springframework.data.util.TypeInformation;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.springframework.data.aerospike.query.FilterOperation.*;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.*;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getCorrespondingMapValueFilterOperationOrFail;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getValueOfQueryParameter;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.isAssignableValueOrConverted;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.qualifierAndConcatenated;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
 import static org.springframework.data.aerospike.utility.Utils.hasNoElementsOfClass;
-import static org.springframework.util.ClassUtils.isAssignable;
-import static org.springframework.util.ClassUtils.isAssignableValue;
 
 public class MapQueryCreator implements IAerospikeQueryCreator {
 
@@ -47,19 +49,15 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     public void validate() {
         String queryPartDescription = String.join(" ", part.getProperty().toString(), filterOperation.toString());
         switch (filterOperation) {
-            case CONTAINING, NOT_CONTAINING -> validateMapQueryContaining(queryParameters, queryPartDescription);
-            case EQ, NOTEQ -> validateMapQueryEquals(queryParameters, queryPartDescription);
-            case GT, GTEQ, LT, LTEQ -> validateMapQueryComparison(queryParameters, queryPartDescription);
-            case BETWEEN -> validateMapQueryBetween(queryParameters, queryPartDescription);
-            case LIKE, STARTS_WITH, ENDS_WITH -> validateMapQueryLike(queryParameters, queryPartDescription);
+            case CONTAINING, NOT_CONTAINING -> validateMapQueryContaining(queryPartDescription);
+            case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> validateMapQueryComparison(queryPartDescription);
+            case BETWEEN -> validateMapQueryBetween(queryPartDescription);
             default -> throw new UnsupportedOperationException(
                 String.format("Unsupported operation: %s applied to %s", filterOperation, property));
         }
-
-//        validateMapQueryTypes(part.getProperty(), queryPartDescription, queryParameters); // TODO
     }
 
-    private void validateMapQueryContaining(List<Object> queryParameters, String queryPartDescription) {
+    private void validateMapQueryContaining(String queryPartDescription) {
         // Less than two arguments, including a case when value1 intentionally equals null
         if (queryParameters.size() < 2) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, at least two " +
@@ -80,17 +78,65 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 "the first one is required to be AerospikeQueryCriteria");
         }
 
-        // Not permitted types as a Map key
         Object param2 = queryParameters.get(1);
-//        if (isQueryCriterionIn(param1, KEY, KEY_VALUE_PAIR, VALUE_CONTAINING) && !(isAllowedMapKeyType(param2))) {
-        if (isQueryCriterionIn(param1, KEY, KEY_VALUE_PAIR) && !(isAllowedMapKeyType(param2))) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expected " +
-                "String, Number or byte[] at position 2");
+        switch ((AerospikeQueryCriterion) param1) {
+            case KEY -> {
+                if (queryParameters.size() != 2) {
+                    throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, " +
+                        "expecting two");
+                }
+
+                if (!(isValidMapKeyType(part.getProperty().getTypeInformation(), param2))) {
+                    throw new IllegalArgumentException(queryPartDescription + ": invalid map key type at position 2");
+                }
+            }
+            case VALUE -> {
+                if (queryParameters.size() != 2) {
+                    throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, " +
+                        "expecting two");
+                }
+
+                if (!(isValidMapValueType(part.getProperty().getTypeInformation(), param2))) {
+                    throw new IllegalArgumentException(queryPartDescription + ": invalid map value type at position 2");
+                }
+
+            }
+            case KEY_VALUE_PAIR -> {
+                if (queryParameters.size() != 3) {
+                    throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, " +
+                        "expecting three");
+                }
+
+                if (!(isValidMapKeyType(part.getProperty().getTypeInformation(), param2))) {
+                    throw new IllegalArgumentException(queryPartDescription + ": invalid map key type at position 2");
+                }
+                Object param3 = queryParameters.get(2);
+                if (!(isValidMapValueType(part.getProperty().getTypeInformation(), param3))) {
+                    throw new IllegalArgumentException(queryPartDescription + ": invalid map value type at position 3");
+                }
+
+            }
         }
     }
 
-    private boolean isQueryCriterionIn(Object param1, AerospikeQueryCriterion... queryCriteria) {
-        return Arrays.stream(queryCriteria).anyMatch(criterion -> criterion == param1);
+    private boolean isValidMapKeyType(TypeInformation<?> typeInformation, Object param) {
+        Class<?> mapKeyClass = null;
+        try {
+            mapKeyClass = typeInformation.getComponentType().getType();
+        } catch (IllegalStateException e) {
+            // do nothing
+        }
+        return mapKeyClass != null && isAssignableValueOrConverted(mapKeyClass, param, converter);
+    }
+
+    private boolean isValidMapValueType(TypeInformation<?> typeInformation, Object param) {
+        Class<?> mapValueClass = null;
+        try {
+            mapValueClass = typeInformation.getRequiredMapValueType().getType();
+        } catch (IllegalStateException e) {
+            // do nothing
+        }
+        return mapValueClass != null && isAssignableValueOrConverted(mapValueClass, param, converter);
     }
 
     private boolean hasMultipleQueryCriteria(List<Object> params) {
@@ -99,130 +145,35 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
             .count() > 1;
     }
 
-    private boolean isAllowedMapKeyType(Object obj) {
-        return obj instanceof String || obj instanceof Number || obj instanceof byte[] || obj == null;
-    }
-
-    private void validateMapQueryEquals(List<Object> queryParameters, String queryPartDescription) {
-        Object value1 = queryParameters.get(0);
-        // Only one argument which is not a Map
-        if (queryParameters.isEmpty() && !(value1 instanceof Map)) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, expecting " +
-                "either a Map or a " +
-                "key-value pair");
+    private void validateMapQueryComparison(String queryPartDescription) {
+        // Other than 1 argument
+        if (queryParameters.size() != 1) {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting one");
         }
 
-        // More than 2 arguments
-        if (queryParameters.size() > 2) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting " +
-                "either a Map or a key-value " +
-                "pair");
-        }
-
-        // 2 arguments of type Map
-        if (queryParameters.size() == 2 && getArgumentsMapsSize(queryParameters) > 1) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, expecting " +
-                "either a Map or a " +
-                "key-value pair");
+        // Not a Map
+        if (!(queryParameters.get(0) instanceof Map)) {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expecting Map");
         }
     }
 
-    private long getArgumentsMapsSize(List<Object> queryParameters) {
-        return queryParameters.stream()
-            .filter(Map.class::isInstance)
-            .count();
-    }
-
-    private void validateMapQueryComparison(List<Object> params, String queryPartDescription) {
-        int argumentsSize = queryParameters.size();
-
-        // More than two arguments
-        if (argumentsSize > 2) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting one " +
-                "(Map) or two (Map key and " +
-                "value)");
+    private void validateMapQueryBetween(String queryPartDescription) {
+        // Other than 2 arguments
+        if (queryParameters.size() != 2) {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting two");
         }
 
-        Object value1 = params.get(0);
-        // One argument not of type Map
-        if (argumentsSize == 1 && !(value1 instanceof Map)) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, expecting " +
-                "one (Map) or two (Map key" +
-                " and value)");
+        Object value = queryParameters.get(0);
+        // Not a Map
+        if (!(value instanceof Map)) {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expecting Map");
         }
 
-        // Two arguments, checking whether first argument's type is allowed
-        if (argumentsSize == 2 && !isAllowedMapKeyType(value1)) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid first argument type, expected " +
-                "String, Number or byte[]");
+        // Arguments of different classes
+        if (!value.getClass().equals(queryParameters.get(1).getClass())) {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid arguments type, expecting both " +
+                "to be of the same class");
         }
-    }
-
-    private void validateMapQueryBetween(List<Object> params, String queryPartDescription) {
-        // Number of arguments is less than two or greater than three
-        int argumentsSize = queryParameters.size();
-        if (argumentsSize < 2 || argumentsSize > 3) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting two " +
-                "(Maps) or three (Map key and two values)");
-        }
-
-        Object value1 = queryParameters.get(0);
-        Object value2 = queryParameters.get(1);
-        // Two arguments when at least one of them is not a Map
-        if (hasQueryTwoParameters(params) && (!(value1 instanceof Map) || !(value2 instanceof Map))) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, both must " +
-                "be of type Map");
-        }
-    }
-
-    private boolean hasQueryTwoParameters(List<Object> params) {
-        return params.size() == 2;
-    }
-
-    private void validateMapQueryTypes(PropertyPath property, String queryPartDescription, List<Object> params) {
-        Object value1 = params.get(0);
-        Object value2 = params.get(1);
-
-        if (value1 instanceof Map) {
-            validateTypes(converter, Map.class, params, queryPartDescription);
-        } else {
-            // Determining class of Map's elements
-            Class<?> elementsClass = getElementsClass(property); // TODO: both keys and values? add NULL check
-            if (elementsClass != null) {
-                validateMapTypes(elementsClass, params, queryPartDescription, "Map");
-            }
-        }
-    }
-
-    private void validateMapTypes(Class<?> propertyType, List<Object> params,
-                                  String queryPartDescription, String... alternativeTypes) {
-        List<Object> parameters = params.stream().filter(Objects::nonNull).toList();
-        if (params == null || params.size() == 0) return;
-
-        Object value1 = params.get(0);
-        // Checking versus Number to be able to compare, e.g., integers to a long
-        if (isAssignable(Number.class, propertyType) && isAssignableValue(Number.class, value1))
-            propertyType = Number.class;
-
-        Class<?> clazz = propertyType;
-        if (!parameters.stream().allMatch(param -> isAssignableValueOrConverted(clazz, param, converter))) {
-            String validTypes = propertyType.getSimpleName();
-            if (alternativeTypes.length > 0) {
-                validTypes = String.format("one of the following types: %s", propertyType.getSimpleName() + ", "
-                    + String.join(", ", alternativeTypes));
-            }
-            throw new IllegalArgumentException(String.format("%s: Type mismatch, expecting %s", queryPartDescription,
-                validTypes));
-        }
-    }
-
-    private void validateMapQueryLike(List<Object> params, String queryPartDescription) {
-        // Number of arguments is not two
-        if (params.size() != 2) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, " +
-                "expecting two (a key and an expression to compare with)");
-        }
-
     }
 
     @Override

@@ -105,19 +105,17 @@ public class IsNotEqualTests extends PersonRepositoryQueryTests {
         }
     }
 
-//    @Test
-//    void findByMapNotEqual_NegativeTest() { // TODO: Map types check?
-//        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot("map1"))
-//            .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Person.stringMap NOTEQ: invalid combination of arguments, expecting either a Map or a " +
-//                "key-value pair");
-//
-//        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot(Map.of("key", "value"), Map.of("key",
-//            "value")))
-//            .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Person.stringMap NOTEQ: invalid combination of arguments, expecting either a Map or a " +
-//                "key-value pair");
-//    }
+    @Test
+    void findByMapNotEqual_NegativeTest() {
+        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot("map1"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.stringMap NOTEQ: invalid argument type, expecting Map");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapIsNot(Map.of("key", "value"), Map.of("key",
+            "value")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.stringMap NOTEQ: invalid number of arguments, expecting one");
+    }
 
     @Test
     void findByPOJONotEqual() {

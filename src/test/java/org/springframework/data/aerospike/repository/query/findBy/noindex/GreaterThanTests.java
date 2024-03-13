@@ -180,6 +180,17 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByCollection_NegativeTest() {
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntsGreaterThan(100, 200))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.ints GT: invalid number of arguments, expecting one");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntsGreaterThan(100))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.ints GT: invalid argument type, expecting Collection");
+    }
+
+    @Test
     void findByMapGreaterThan() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             assertThat(boyd.getStringMap()).isNotEmpty();

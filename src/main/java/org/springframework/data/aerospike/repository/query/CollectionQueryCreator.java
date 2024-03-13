@@ -30,7 +30,8 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
     private final MappingAerospikeConverter converter;
 
     public CollectionQueryCreator(Part part, AerospikePersistentProperty property, String fieldName,
-                                  List<Object> queryParameters, FilterOperation filterOperation, MappingAerospikeConverter converter) {
+                                  List<Object> queryParameters, FilterOperation filterOperation,
+                                  MappingAerospikeConverter converter) {
         this.part = part;
         this.property = property;
         this.fieldName = fieldName;
@@ -50,22 +51,27 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
             default -> throw new UnsupportedOperationException(
                 String.format("Unsupported operation: %s applied to %s", filterOperation, property));
         }
-
-        validateCollectionQueryTypes(part.getProperty(), queryParameters, queryPartDescription);
     }
 
     private void validateCollectionQueryContaining(List<Object> queryParameters, String queryPartDescription) {
-        // No arguments
-        if (queryParameters.size() == 0) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting at " +
-                "least one");
+        // Other than one argument
+        if (queryParameters.size() != 1) {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting one");
         }
+
+        validateCollectionContainingTypes(part.getProperty(), queryParameters, queryPartDescription);
     }
 
     private void validateCollectionQueryComparison(List<Object> queryParameters, String queryPartDescription) {
         // Other than 1 argument
         if (queryParameters.size() != 1) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting one");
+        }
+
+        if (queryParameters.get(0) instanceof Collection) {
+            validateTypes(converter, Collection.class, queryParameters, queryPartDescription);
+        } else {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expecting Collection");
         }
     }
 
@@ -74,20 +80,29 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         if (queryParameters.size() != 2) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting two");
         }
+
+        // Not Collection
+        Object value = queryParameters.get(0);
+        if (value instanceof Collection) {
+            validateTypes(converter, Collection.class, queryParameters, queryPartDescription);
+        } else {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expecting Collection");
+        }
+
+        // Arguments of different classes
+        if (!value.getClass().equals(queryParameters.get(1).getClass())) {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid arguments type, expecting both " +
+                "to be of the same class");
+        }
     }
 
-    private void validateCollectionQueryTypes(PropertyPath property, List<Object> queryParameters,
-                                              String queryPartDescription) {
-        Object value1 = queryParameters.get(0);
-        if (value1 instanceof Collection) {
+    private void validateCollectionContainingTypes(PropertyPath property, List<Object> queryParameters,
+                                                   String queryPartDescription) {
+        Object value = queryParameters.get(0);
+        if (value instanceof Collection) {
             validateTypes(converter, Collection.class, queryParameters, queryPartDescription);
-        } else if (value1 instanceof CriteriaDefinition.AerospikeNullQueryCriterion) {
-            // Not more than one null value
-            if (queryParameters.size() > 1) { // TODO: check logic
-                throw new IllegalArgumentException(String.format("%s: invalid number of null arguments, expecting " +
-                    "one", queryPartDescription));
-            }
-        } else {
+        } else if (!(value instanceof CriteriaDefinition.AerospikeNullQueryCriterion)) {
+            // Not null param
             // Determining class of Collection's elements
             Class<?> componentsClass = getElementsClass(property);
             if (componentsClass != null) {
@@ -103,7 +118,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
             setQualifierBuilderValue(qb, queryParameters.get(0));
-            if (queryParameters.size() >=2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
+            if (queryParameters.size() >= 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
         }
 
         if (!(queryParameters.get(0) instanceof Collection<?>)) {

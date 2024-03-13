@@ -188,8 +188,8 @@ public class AerospikeQueryCreatorUtils {
     protected static boolean isAssignableValueOrConverted(Class<?> propertyType, Object obj,
                                                           MappingAerospikeConverter converter) {
         return isAssignableValue(propertyType, obj)
-            || converter.getCustomConversions().hasCustomReadTarget(obj.getClass(), propertyType)
-            || isPojoMap(obj, propertyType);
+            || converter.getCustomConversions().hasCustomReadTarget(obj.getClass(), propertyType);
+//            || isPojoMap(obj, propertyType);
     }
 
     protected static boolean isPojoMap(Object obj, Class<?> propertyType) {

@@ -139,7 +139,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    // find by deeply nested String POJO field
+        // find by deeply nested String POJO field
     void findByDeeplyNestedSimplePropertyEquals_PojoField_String() {
         String zipCode = "C0123";
         Address address = new Address("Foo Street 1", 1, zipCode, "Bar");
@@ -176,7 +176,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    // find by deeply nested Integer POJO field
+        // find by deeply nested Integer POJO field
     void findByDeeplyNestedSimplePropertyEquals_PojoField_Integer() {
         int apartment = 10;
         Address address = new Address("Foo Street 1", apartment, "C0123", "Bar");
@@ -214,7 +214,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    // find by deeply nested POJO
+        // find by deeply nested POJO
     void findByDeeplyNestedSimplePropertyEquals_Pojo() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
@@ -250,6 +250,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new)); // cleanup
         }
     }
+
     @Test
     void findByCollectionEquals() {
         if (serverVersionSupport.isFindByCDTSupported()) {
@@ -274,6 +275,10 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringsEquals("string1", "string2"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.strings EQ: invalid number of arguments, expecting one");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByStrings(List.of("test"), List.of("test2")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.strings EQ: invalid number of arguments, expecting one");
     }
 
     @Test
@@ -291,24 +296,21 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         }
     }
 
-//    @Test
-//    void findByMapEquals_NegativeTest() {
-//        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapEquals("map1")) // TODO: validation
-//            .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Person.stringMap EQ: invalid combination of arguments, expecting either a Map or a key-value" +
-//                " pair");
-//
-//        assertThatThrownBy(() -> negativeTestsRepository.findByStringMap(100))
-//            .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Person.stringMap EQ: invalid combination of arguments, expecting either a Map or a key-value" +
-//                " pair");
-//
-//        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapEquals(Map.of("key", "value"), Map.of("key",
-//            "value")))
-//            .isInstanceOf(IllegalArgumentException.class)
-//            .hasMessage("Person.stringMap EQ: invalid combination of arguments, expecting either a Map or a key-value" +
-//                " pair");
-//    }
+    @Test
+    void findByMapEquals_NegativeTest() {
+        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapEquals("map1"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.stringMap EQ: invalid argument type, expecting Map");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByStringMap(100))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.stringMap EQ: invalid argument type, expecting Map");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapEquals(Map.of("key", "value"), Map.of("key",
+            "value")))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.stringMap EQ: invalid number of arguments, expecting one");
+    }
 
     @Test
     void findByPOJOEquals() {

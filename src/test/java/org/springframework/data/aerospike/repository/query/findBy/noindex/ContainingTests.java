@@ -330,5 +330,21 @@ public class ContainingTests extends PersonRepositoryQueryTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.stringMap CONTAINING: invalid combination of arguments, the first one is required " +
                 "to be AerospikeQueryCriteria");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntMapContaining(KEY, 100))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.intMap CONTAINING: invalid map key type at position 2");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntMapContaining(VALUE, "test"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.intMap CONTAINING: invalid map value type at position 2");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntMapContaining(KEY_VALUE_PAIR, "test"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.intMap CONTAINING: invalid number of arguments, expecting three");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntMapContaining(KEY_VALUE_PAIR, "test", "test2"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.intMap CONTAINING: invalid map value type at position 3");
     }
 }
