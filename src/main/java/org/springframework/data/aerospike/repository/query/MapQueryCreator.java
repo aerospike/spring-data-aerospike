@@ -265,8 +265,8 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
             qualifier = processMapContaining(part, fieldName, MAP_KEYS_CONTAIN, MAP_VALUES_CONTAIN,
                 MAP_VAL_EQ_BY_KEY);
         } else if (op == FilterOperation.NOT_CONTAINING) {
-            qualifier = processMapContaining(part, fieldName, MAP_KEYS_NOT_CONTAIN,
-                MAP_VALUES_NOT_CONTAIN, MAP_VAL_NOTEQ_BY_KEY);
+            qualifier = processMapContaining(part, fieldName, MAP_KEYS_NOT_CONTAIN, MAP_VALUES_NOT_CONTAIN,
+                MAP_VAL_NOTEQ_BY_KEY);
         } else {
             qualifier = processMapOtherThanContaining(part, params, op, fieldName);
         }

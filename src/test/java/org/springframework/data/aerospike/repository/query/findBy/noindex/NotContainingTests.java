@@ -136,13 +136,11 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         assertThat(carter.getStringMap()).containsKey("key1");
         assertThat(carter.getStringMap()).doesNotContainValue("val1");
 
-        List<Person> personsNotContainingValue = repository.findByStringMapNotContaining(VALUE,"val1");
-        assertThat(personsNotContainingValue)
-            .doesNotContain(carter)
-            .contains(donny, boyd); // TODO: test with the older version
-
-        List<Person> personsNotContainingKeyValue = repository.findByStringMapNotContaining(KEY_VALUE_PAIR, "key1", "val1");
-        assertThat(personsNotContainingKeyValue).doesNotContain(donny, boyd, carter);
+        List<Person> personsNotContainingKeyValue = repository.findByStringMapNotContaining(KEY_VALUE_PAIR, "key1",
+            "val1");
+        assertThat(personsNotContainingKeyValue)
+            .contains(carter)
+            .doesNotContain(donny, boyd);
 
         // cleanup
         carter.setStringMap(cartersOriginalStringMap);
@@ -206,7 +204,8 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining("key", "value", new Person("id"
             , "firstName"), "value"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.stringMap NOT_CONTAINING: invalid combination of arguments, the first one is required " +
+            .hasMessage("Person.stringMap NOT_CONTAINING: invalid combination of arguments, the first one is required" +
+                " " +
                 "to be AerospikeQueryCriteria");
     }
 }

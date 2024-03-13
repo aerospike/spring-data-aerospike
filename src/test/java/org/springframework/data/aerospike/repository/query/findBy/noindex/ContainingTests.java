@@ -193,7 +193,7 @@ public class ContainingTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByExactMapKeyAndValue_Boolean() { // TODO: why FilterOperation is MAP_VAL_CONTAINING_BY_KEY
+    void findByExactMapKeyAndValue_Boolean() {
         oliver.setMapOfBoolean(Map.of("test", true));
         repository.save(oliver);
         alicia.setMapOfBoolean(Map.of("test", true));
