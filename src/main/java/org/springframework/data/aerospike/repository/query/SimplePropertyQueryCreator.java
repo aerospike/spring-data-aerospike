@@ -4,7 +4,8 @@ import com.aerospike.client.Value;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -109,46 +110,32 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
     @Override
     public Qualifier process() {
         List<String> dotPath = null;
-//        if (value2 == null && parametersIterator.hasNext()) {
-//            value2 = convertIfNecessary(parametersIterator.next());
-//        }
-
-//        Object value1 = queryParameters.get(0);
-//        Object value2 = null;
-//        Object value3 = null;
-        Qualifier.QualifierBuilder qb = Qualifier.builder();
-        FilterOperation op = filterOperation;
+        QualifierBuilder qb = Qualifier.builder();
 
         if (isBooleanQuery) {
-            // setting the value (false or true) for a boolean query without arguments
+            // setting the value for a boolean query without arguments
             queryParameters.add(Value.get(convertPartTypeToBoolean(part.getType())));
         }
 
-//        if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
         if (filterOperation == BETWEEN) {
-//            setQualifierBuilderValue(qb, queryParameters.get(0));
-            if (queryParameters.size() >=2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
+            // the correct number of arguments is validated before
+            setQualifierBuilderSecondValue(qb, queryParameters.get(1));
         }
 
-        if (isNested) { // if it is a POJO field
-//            PropertyPath nestedProperty = getNestedPropertyPath(part.getProperty());
-
-            if (filterOperation == FilterOperation.BETWEEN) {
-//                value3 = Value.get(queryParameters.get(1)); // contains upper limit
-//                queryParameters.add(Value.get(property.getFieldName())); // setting the upper bound
-            } else if (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL) {
+        FilterOperation op = filterOperation;
+        if (isNested) { //  POJO field
+            if (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL) {
                 setQualifierBuilderValue(qb, property.getFieldName());
             }
 
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
             op = getCorrespondingMapValueFilterOperationOrFail(op);
-//            queryParameters.add(0, Value.get(property.getFieldName())); // setting the key
+
             if (queryParameters.size() >= 1) setQualifierBuilderValue(qb, queryParameters.get(0));
             setQualifierBuilderKey(qb, property.getFieldName());
             dotPath = List.of(part.getProperty().toDotPath());
-        } else {
+        } else { // first level simple property
             setQualifierBuilderValue(qb, queryParameters.get(0));
-//            setQualifierBuilderKey(qb, property.getFieldName());
         }
 
         return setQualifier(converter, qb, fieldName, op, part, dotPath);

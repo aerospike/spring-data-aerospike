@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
@@ -440,7 +440,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         Qualifier ageRangeQualifier = Qualifier.builder()
             .setField(binName)
-            .setFilterOperation(FilterOperation.LIST_VAL_CONTAINING)
+            .setFilterOperation(FilterOperation.COLLECTION_VAL_CONTAINING)
             .setValue(Value.get(searchColor))
             .build();
 

@@ -4,7 +4,8 @@ import com.aerospike.client.Value;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
@@ -199,7 +200,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         if (params == null || params.size() == 0) return;
 
         Object value1 = params.get(0);
-        // Checking versus Number rather than strict type to be able to compare, e.g., integers to a long
+        // Checking versus Number to be able to compare, e.g., integers to a long
         if (isAssignable(Number.class, propertyType) && isAssignableValue(Number.class, value1))
             propertyType = Number.class;
 
@@ -227,23 +228,20 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     @Override
     public Qualifier process() {
         Qualifier qualifier = null;
-        Qualifier.QualifierBuilder qb = Qualifier.builder();
+        QualifierBuilder qb = Qualifier.builder();
         int paramsSize = queryParameters.size();
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
             setQualifierBuilderValue(qb, queryParameters.get(0));
-            if (queryParameters.size() >=2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
+            if (queryParameters.size() >= 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
             qualifier = setQualifier(converter, qb, fieldName, filterOperation, part, null);
             return qualifier;
         }
 
-        // the first parameter is value1, params list contains parameters except value1 and value2
-//        if (paramsSize == 2 || paramsSize == 3) { // two or three parameters
-        if (paramsSize == 2) { // two query parameters
+        if (paramsSize == 2) {
             qualifier = processMapTwoParams(part, queryParameters, filterOperation, fieldName);
-//        } else if (queryParameters.size() < 2) { // only value1 and/or value2 parameter(s)
-        } else if (queryParameters.size() < 2) { // only value1 and/or value2 parameter(s)
-            if (filterOperation != FilterOperation.BETWEEN) { // if not map in range (2 maps as parameters)
+        } else if (queryParameters.size() < 2) {
+            if (filterOperation != FilterOperation.BETWEEN) {
                 setQualifierBuilderValue(qb, queryParameters.get(0));
                 qualifier = setQualifier(converter, qb, fieldName, filterOperation, part, null);
             }
@@ -256,11 +254,6 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
     private Qualifier processMapTwoParams(Part part, List<Object> params, FilterOperation op, String fieldName) {
         Qualifier qualifier;
-//        Object value1 = queryParameters.get(0);
-//        Object value2 = queryParameters.get(1);
-//        Object value3 = null;
-//        if (queryParameters.size() >= 3) value3 = queryParameters.get(2); // TODO: use QueryParameters object
-
         if (op == FilterOperation.CONTAINING) {
             qualifier = processMapContaining(part, fieldName, MAP_KEYS_CONTAIN, MAP_VALUES_CONTAIN,
                 MAP_VAL_EQ_BY_KEY);
@@ -278,7 +271,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                                            FilterOperation valuesOp, FilterOperation byKeyOp) {
         FilterOperation op = byKeyOp;
         List<String> dotPath = null;
-        Qualifier.QualifierBuilder qb = Qualifier.builder();
+        QualifierBuilder qb = Qualifier.builder();
 
         if (queryParameters.get(0) instanceof AerospikeQueryCriterion queryCriterion) {
             switch (queryCriterion) {
@@ -293,32 +286,17 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 default -> throw new UnsupportedOperationException("Unsupported parameter: " + queryCriterion);
             }
         }
-//        else {
-//            op = byKeyOp;
-//            dotPath = List.of(part.getProperty().toDotPath(), Value.get(value1).toString());
-//            setQbValuesForMapByKey(qb, value1, nextParam);
-//        }
-
-//        List<Object> params = queryParameters.subList(1, queryParameters.size()); // the first parameter stores the criterion we don't need from now
         return setQualifier(converter, qb, fieldName, op, part, dotPath);
     }
 
     private Qualifier processMapOtherThanContaining(Part part, List<Object> queryParameters, FilterOperation op,
                                                     String fieldName) {
-        Qualifier.QualifierBuilder qb = Qualifier.builder();
+        QualifierBuilder qb = Qualifier.builder();
         Object param1 = queryParameters.get(0);
         List<String> dotPath = List.of(part.getProperty().toDotPath(), Value.get(param1).toString());
 
-        if (queryParameters.size() == 3) { // TODO: if the specific query parameter is present?
-//            if (queryParameters.size() == 3 || ) { // TODO: if the specific query parameter is present?
-                if (op == FilterOperation.BETWEEN) { // BETWEEN for values by a certain key or for 2 Maps
-                op = getCorrespondingMapValueFilterOperationOrFail(op);
-//                qb.setValue2(Value.get(value1)); // contains key
-//                qb.setValue1(Value.get(value2)); // contains lower limit (inclusive)
-//                qb.setValue3(Value.get(nextParam)); // contains upper limit (inclusive)
-            } else {
-                op = getCorrespondingMapValueFilterOperationOrFail(op);
-            }
+        if (queryParameters.size() == 3) {
+            op = getCorrespondingMapValueFilterOperationOrFail(op);
         }
 
         setQualifierBuilderKey(qb, queryParameters.get(0));
@@ -330,90 +308,42 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         if (op == FilterOperation.CONTAINING || op == FilterOperation.NOT_CONTAINING) {
             return processMapMultipleParamsContaining(part, params, op, fieldName);
         } else {
-            // TODO
-//            String paramsString = params.stream().map(Object::toString).collect(Collectors.joining(", "));
-//            throw new IllegalArgumentException(String.format(
-//                "Expected not more than 2 arguments (propertyType: Map, filterOperation: %s), got %d instead: '%s, %s'",
-//                op, params.size() + 1, value1, paramsString));
             return processMapOtherThanContaining(part, params, op, fieldName);
         }
     }
 
     private Qualifier processMapMultipleParamsContaining(Part part, List<Object> params, FilterOperation op,
                                                          String fieldName) {
-        List<String> dotPath = null;
-        Qualifier.QualifierBuilder qb = Qualifier.builder();
+        List<String> dotPath;
+        QualifierBuilder qb = Qualifier.builder();
+        AerospikeQueryCriterion queryCriterion;
+        Object firstParam = params.get(0);
 
-        if (params.get(0) instanceof AerospikeQueryCriterion queryCriterion) {
-            switch (queryCriterion) {
-//                case KEY -> op = MAP_KEYS_CONTAIN;
-//                case VALUE -> op = MAP_VALUES_CONTAIN;
-//                case VALUE_CONTAINING -> {
-//                    switch (op) {
-//                        case EQ -> op = MAP_VAL_EQ_BY_KEY;
-//                        case NOTEQ -> op = MAP_VAL_NOTEQ_BY_KEY;
-//                        case CONTAINING -> op = MAP_VAL_CONTAINING_BY_KEY;
-//                        case NOT_CONTAINING -> op = MAP_VAL_NOT_CONTAINING_BY_KEY;
-//                    }
-//                    setQualifierBuilderKey(qb, queryParameters.get(1));
-//                    setQualifierBuilderValue(qb, queryParameters.get(2));
-//                }
-                case KEY_VALUE_PAIR -> {
-                    switch (op) {
-                        case EQ -> op = MAP_VAL_EQ_BY_KEY;
-                        case NOTEQ -> op = MAP_VAL_NOTEQ_BY_KEY;
-//                        case CONTAINING -> op = MAP_VAL_CONTAINING_BY_KEY;
-                        case CONTAINING -> op = MAP_VAL_EQ_BY_KEY;
-                        case NOT_CONTAINING -> op = MAP_VAL_NOT_CONTAINING_BY_KEY;
-                    }
-                    Value key = getValueOfQueryParameter(params.get(1));
-                    qb.setKey(key);
-                    dotPath = List.of(part.getProperty().toDotPath(), key.toString());
-                    setQualifierBuilderValue(qb, queryParameters.get(2));
-
+        if (firstParam instanceof AerospikeQueryCriterion) {
+            queryCriterion = (AerospikeQueryCriterion) params.get(0);
+            if (queryCriterion == KEY_VALUE_PAIR) {
+                switch (op) {
+                    case EQ, CONTAINING -> op = MAP_VAL_EQ_BY_KEY;
+                    case NOTEQ -> op = MAP_VAL_NOTEQ_BY_KEY;
+                    case NOT_CONTAINING -> op = MAP_VAL_NOT_CONTAINING_BY_KEY;
                 }
-                default -> throw new UnsupportedOperationException("Unsupported parameter: " + queryCriterion);
+                Value key = getValueOfQueryParameter(params.get(1));
+                qb.setKey(key);
+                dotPath = List.of(part.getProperty().toDotPath(), key.toString());
+                setQualifierBuilderValue(qb, queryParameters.get(2));
+            } else {
+                throw new UnsupportedOperationException("Unsupported parameter: " + queryCriterion);
             }
-//            params = params.stream().limit(params.size() - 1L).collect(Collectors.toList());
-//            params = params.subList(1, params.size()); // the first parameter stores the criterion we don't need from now
         } else {
-            throw new UnsupportedOperationException("Unsupported combination of operation " + op + " and " +
-                "parameters with size of + " + params.size()); // TODO
+            throw new UnsupportedOperationException(
+                String.format("Unsupported combination of operation %s and the first parameter %s", op, firstParam));
         }
 
-//        params.add(0, value1); // value1 stores the criterion
         if (op == MAP_VAL_CONTAINING_BY_KEY || op == MAP_VAL_NOT_CONTAINING_BY_KEY
             || op == MAP_VAL_EQ_BY_KEY || op == MAP_VAL_NOTEQ_BY_KEY) {
-            return processMapMultipleParamsContaining(params, qb, part, fieldName, op, dotPath);
+            return setQualifier(converter, qb, fieldName, op, part, dotPath);
         } else {
             return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath, queryParameters);
         }
     }
-
-    private Qualifier processMapMultipleParamsContaining(List<Object> params, Qualifier.QualifierBuilder qb,
-                                                                Part part, String fieldName, FilterOperation op,
-                                                                List<String> dotPath) {
-//        if (params.size() > 2) {
-//            if ((params.size() & 1) != 0) { // if params.size() is an odd number
-//                throw new IllegalArgumentException("FindByMapContaining: expected either one, two " +
-//                    "or even number of key/value arguments, instead got " + params.size());
-//            }
-//            return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath, true, queryParameters);
-//            throw new UnsupportedOperationException("Unsupported combination of operation " + op + " and " +
-//                "parameters with size of + " + params.size());
-//        } else if (params.size() == 2) {
-//            setQbValuesForMapByKey(qb, params.get(1), params.get(0));
-//            Value param1 = Value.get(convertIfNecessary(params.get(0), converter));
-//            Value param2 = Value.get(convertIfNecessary(params.get(1), converter));
-//            queryParameters.clear(); // TODO
-//            queryParameters.addAll(params); // TODO
-//            queryParameters.add(0, param1); // setting key
-//            queryParameters.add(1, param2); // setting value
-            return setQualifier(converter, qb, fieldName, op, part, dotPath);
-//        } else {
-//            throw new UnsupportedOperationException("Unsupported combination of operation " + op + " and " +
-//                "parameters with size of + " + params.size());
-//        }
-    }
-
 }

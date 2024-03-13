@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexedField;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;

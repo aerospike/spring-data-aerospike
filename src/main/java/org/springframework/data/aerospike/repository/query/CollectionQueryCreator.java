@@ -3,7 +3,8 @@ package org.springframework.data.aerospike.repository.query;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -12,10 +13,8 @@ import java.util.List;
 
 import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
 import static org.springframework.data.aerospike.query.FilterOperation.IN;
-import static org.springframework.data.aerospike.query.FilterOperation.LIST_VAL_CONTAINING;
 import static org.springframework.data.aerospike.query.FilterOperation.NOT_IN;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getElementsClass;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.qualifierAndConcatenated;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
@@ -99,9 +98,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
 
     @Override
     public Qualifier process() {
-        Qualifier.QualifierBuilder qb = Qualifier.builder();
-//        Object value1 = queryParameters.get(0);
-//        Object value2 = queryParameters.get(1);
+        QualifierBuilder qb = Qualifier.builder();
         FilterOperation op = filterOperation;
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
@@ -109,29 +106,21 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
             if (queryParameters.size() >=2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
         }
 
-        if (queryParameters.size() > 2) {
-            if (filterOperation == FilterOperation.CONTAINING) {
-                op = LIST_VAL_CONTAINING;
-//                params.add(0, value1); // value1 stores the first parameter
-                return qualifierAndConcatenated(converter, queryParameters, qb, part, fieldName, op, null,
-                    queryParameters);
-            }
-        } else if (!(queryParameters.get(0) instanceof Collection<?>)) {
+        if (!(queryParameters.get(0) instanceof Collection<?>)) {
+            // CONTAINING
             op = getCorrespondingListFilterOperationOrFail(op);
-            setQualifierBuilderValue(qb, queryParameters.get(0));
-        } else {
-            setQualifierBuilderValue(qb, queryParameters.get(0));
         }
+        setQualifierBuilderValue(qb, queryParameters.get(0));
 
         return setQualifier(converter, qb, fieldName, op, part, null);
     }
 
     private FilterOperation getCorrespondingListFilterOperationOrFail(FilterOperation op) {
         try {
-            return FilterOperation.valueOf("LIST_VAL_" + op);
+            return FilterOperation.valueOf("COLLECTION_VAL_" + op);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
-                "Cannot find corresponding LIST_VAL_... FilterOperation for '" + op + "'");
+                "Cannot find corresponding COLLECTION_VAL_... FilterOperation for '" + op + "'");
         }
     }
 }

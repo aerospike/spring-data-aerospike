@@ -20,6 +20,7 @@ import com.aerospike.client.Value;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.CollectionUtils;
 

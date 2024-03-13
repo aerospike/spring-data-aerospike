@@ -139,6 +139,118 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    // find by deeply nested String POJO field
+    void findByDeeplyNestedSimplePropertyEquals_PojoField_String() {
+        String zipCode = "C0123";
+        Address address = new Address("Foo Street 1", 1, zipCode, "Bar");
+        dave.setAddress(address);
+        repository.save(dave);
+
+        alicia.setFriend(dave);
+        repository.save(alicia);
+        oliver.setBestFriend(alicia);
+        repository.save(oliver);
+        carter.setFriend(oliver);
+        repository.save(carter);
+        donny.setFriend(carter);
+        repository.save(donny);
+        boyd.setFriend(donny);
+        repository.save(boyd);
+        stefan.setFriend(boyd);
+        repository.save(stefan);
+        leroi.setFriend(stefan);
+        repository.save(leroi);
+        leroi2.setFriend(leroi);
+        repository.save(leroi2);
+        matias.setFriend(leroi2);
+        repository.save(matias);
+        douglas.setFriend(matias);
+        repository.save(douglas);
+
+        List<Person> result =
+            repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendFriendAddressZipCode(zipCode);
+
+        assertThat(result).containsExactly(douglas);
+
+        TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new)); // cleanup
+    }
+
+    @Test
+    // find by deeply nested Integer POJO field
+    void findByDeeplyNestedSimplePropertyEquals_PojoField_Integer() {
+        int apartment = 10;
+        Address address = new Address("Foo Street 1", apartment, "C0123", "Bar");
+        alicia.setAddress(address);
+        repository.save(alicia);
+
+        oliver.setBestFriend(alicia);
+        repository.save(oliver);
+        carter.setFriend(oliver);
+        repository.save(carter);
+        donny.setFriend(carter);
+        repository.save(donny);
+        boyd.setFriend(donny);
+        repository.save(boyd);
+        stefan.setFriend(boyd);
+        repository.save(stefan);
+        leroi.setFriend(stefan);
+        repository.save(leroi);
+        leroi2.setFriend(leroi);
+        repository.save(leroi2);
+        douglas.setFriend(leroi2);
+        repository.save(douglas);
+        matias.setFriend(douglas);
+        repository.save(matias);
+
+        List<Person> result =
+            repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddressApartment(apartment);
+
+        assertThat(result).containsExactly(matias);
+
+        // cleanup
+        TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));
+        alicia.setAddress(null);
+        repository.save(alicia);
+    }
+
+    @Test
+    // find by deeply nested POJO
+    void findByDeeplyNestedSimplePropertyEquals_Pojo() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
+            dave.setAddress(address);
+            repository.save(dave);
+
+            alicia.setBestFriend(dave);
+            repository.save(alicia);
+            oliver.setBestFriend(alicia);
+            repository.save(oliver);
+            carter.setFriend(oliver);
+            repository.save(carter);
+            donny.setFriend(carter);
+            repository.save(donny);
+            boyd.setFriend(donny);
+            repository.save(boyd);
+            stefan.setFriend(boyd);
+            repository.save(stefan);
+            leroi.setFriend(stefan);
+            repository.save(leroi);
+            matias.setFriend(leroi);
+            repository.save(matias);
+            douglas.setFriend(matias);
+            repository.save(douglas);
+            leroi2.setFriend(douglas);
+            repository.save(leroi2);
+
+            List<Person> result =
+                repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendBestFriendAddress(address);
+
+            assertThat(result).containsExactly(leroi2);
+
+            TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new)); // cleanup
+        }
+    }
+    @Test
     void findByCollectionEquals() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             List<String> listToCompareWith = List.of("str0", "str1", "str2");

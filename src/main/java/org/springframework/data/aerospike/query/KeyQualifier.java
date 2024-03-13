@@ -18,10 +18,13 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Key;
 import com.aerospike.client.Value;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.support.SimpleAerospikeRepository;
 
 import java.io.Serial;
+
+import static org.springframework.data.aerospike.query.qualifier.QualifierField.DIGEST_KEY;
 
 /**
  * Qualifier used to query by primary key
@@ -36,7 +39,6 @@ public class KeyQualifier extends Qualifier {
 
     @Serial
     private static final long serialVersionUID = 2430949321378171078L;
-    private static final String DIGEST_KEY = "digest";
 
     boolean hasDigest = false;
 
@@ -60,7 +62,7 @@ public class KeyQualifier extends Qualifier {
 
     @Override
     protected String luaFieldString(String field) {
-        return DIGEST_KEY;
+        return "digest";
     }
 
     public byte[] getDigest() {

@@ -16,7 +16,8 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.IQualifierBuilder;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 
 /**
  * @author Michael Zhang
@@ -26,7 +27,7 @@ import org.springframework.data.aerospike.query.Qualifier;
 @Deprecated(since = "4.6.0", forRemoval = true)
 public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 
-    public AerospikeCriteria(Qualifier.Builder builder) {
+    public AerospikeCriteria(IQualifierBuilder builder) {
         super(builder);
     }
 
@@ -40,7 +41,7 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
     }
 
     @Override
-    public String geField() {
+    public String getCriteriaField() {
         return this.getField();
     }
 }

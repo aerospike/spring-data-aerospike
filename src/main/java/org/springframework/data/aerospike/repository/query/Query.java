@@ -17,7 +17,7 @@ package org.springframework.data.aerospike.repository.query;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 

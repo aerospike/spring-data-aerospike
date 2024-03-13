@@ -1,12 +1,12 @@
 package org.springframework.data.aerospike.repository.query;
 
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 
 import java.util.Collection;
 import java.util.List;
 
-import static org.springframework.data.aerospike.query.Qualifier.idEquals;
-import static org.springframework.data.aerospike.query.Qualifier.idIn;
+import static org.springframework.data.aerospike.query.qualifier.Qualifier.idEquals;
+import static org.springframework.data.aerospike.query.qualifier.Qualifier.idIn;
 
 public class IdQueryCreator implements IAerospikeQueryCreator {
 

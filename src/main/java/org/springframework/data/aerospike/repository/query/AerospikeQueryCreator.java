@@ -22,8 +22,8 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryParam;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.mapping.PropertyPath;
@@ -133,7 +133,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         } else if (property.isMap()) {
             queryCreator = new MapQueryCreator(part, property, fieldName, queryParameters, filterOperation, converter);
         } else {
-            if (part.getProperty().hasNext()) { // a POJO field (a simple type field or an inner POJO)
+            if (part.getProperty().hasNext()) { // a POJO field (a simple property field or an inner POJO)
                 PropertyPath nestedProperty = getNestedPropertyPath(part.getProperty());
                 if (isPojo(nestedProperty.getType())) {
                     queryCreator = new PojoQueryCreator(part, nestedProperty, property, fieldName, queryParameters,

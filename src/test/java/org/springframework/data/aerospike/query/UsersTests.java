@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Value;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 
 import static org.assertj.core.api.Assertions.assertThat;

@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.query;
 
 import lombok.experimental.UtilityClass;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 
 import java.util.ArrayList;

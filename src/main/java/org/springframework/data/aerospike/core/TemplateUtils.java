@@ -2,7 +2,7 @@ package org.springframework.data.aerospike.core;
 
 import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.springframework.data.aerospike.query.Qualifier.and;
-import static org.springframework.data.aerospike.query.Qualifier.or;
+import static org.springframework.data.aerospike.query.qualifier.Qualifier.and;
+import static org.springframework.data.aerospike.query.qualifier.Qualifier.or;
 
 @UtilityClass
 public class TemplateUtils {

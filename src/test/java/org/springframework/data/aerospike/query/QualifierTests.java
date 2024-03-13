@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.utility.CollectionUtils;
 
@@ -477,7 +478,7 @@ class QualifierTests extends BaseQueryEngineTests {
 
         Qualifier qualifier = Qualifier.builder()
             .setField(binName)
-            .setFilterOperation(FilterOperation.LIST_VAL_CONTAINING)
+            .setFilterOperation(FilterOperation.COLLECTION_VAL_CONTAINING)
             .setValue(Value.get(searchColor))
             .build();
 

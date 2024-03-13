@@ -4,7 +4,8 @@ import com.aerospike.client.Value;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.aerospike.utility.Utils;
 import org.springframework.data.mapping.PropertyPath;
@@ -13,9 +14,7 @@ import org.springframework.data.util.TypeInformation;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.TreeMap;
-import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;
@@ -25,7 +24,7 @@ import static org.springframework.util.ClassUtils.isAssignableValue;
 
 public class AerospikeQueryCreatorUtils {
 
-    protected static Qualifier setQualifier(MappingAerospikeConverter converter, Qualifier.QualifierBuilder qb,
+    protected static Qualifier setQualifier(MappingAerospikeConverter converter, QualifierBuilder qb,
                                             String fieldName, FilterOperation op, Part part, List<String> dotPath) {
         qb.setField(fieldName)
             .setFilterOperation(op)
@@ -65,14 +64,14 @@ public class AerospikeQueryCreatorUtils {
     }
 
     protected static Qualifier qualifierAndConcatenated(MappingAerospikeConverter converter, List<Object> params,
-                                                        Qualifier.QualifierBuilder qb,
+                                                        QualifierBuilder qb,
                                                         Part part, String fieldName, FilterOperation op,
                                                         List<String> dotPath, List<Object> queryParameters) {
         return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath, false);
     }
 
     protected static Qualifier qualifierAndConcatenated(MappingAerospikeConverter converter, List<Object> params,
-                                                        Qualifier.QualifierBuilder qb,
+                                                        QualifierBuilder qb,
                                                         Part part, String fieldName, FilterOperation op,
                                                         List<String> dotPath, boolean containingMapKeyValuePairs) {
         Qualifier[] qualifiers;
@@ -110,7 +109,7 @@ public class AerospikeQueryCreatorUtils {
         return segmentName;
     }
 
-    protected static void setQbValuesForMapByKey(Qualifier.QualifierBuilder qb, Object key, Object value) {
+    protected static void setQbValuesForMapByKey(QualifierBuilder qb, Object key, Object value) {
         qb.setKey(Value.get(value)); // contains value
         qb.setValue(Value.get(key)); // contains key
     }
@@ -129,15 +128,15 @@ public class AerospikeQueryCreatorUtils {
         return Value.get(convertNullParameter(queryParameter));
     }
 
-    protected static void setQualifierBuilderKey(Qualifier.QualifierBuilder qb, Object key) {
+    protected static void setQualifierBuilderKey(QualifierBuilder qb, Object key) {
         qb.setKey(getValueOfQueryParameter(key));
     }
 
-    protected static void setQualifierBuilderValue(Qualifier.QualifierBuilder qb, Object value) {
+    protected static void setQualifierBuilderValue(QualifierBuilder qb, Object value) {
         qb.setValue(getValueOfQueryParameter(value));
     }
 
-    protected static void setQualifierBuilderSecondValue(Qualifier.QualifierBuilder qb, Object value) {
+    protected static void setQualifierBuilderSecondValue(QualifierBuilder qb, Object value) {
         qb.setSecondValue(getValueOfQueryParameter(value));
     }
 
@@ -199,14 +198,5 @@ public class AerospikeQueryCreatorUtils {
             return classKey != null && classKey.equals(propertyType.getName());
         }
         return false;
-    }
-
-    protected static int getArgumentsSize(Object value1, Object value2, List<Object> queryParameters) {
-        int paramsSize = queryParameters != null ? queryParameters.size() : 0;
-        return Stream.of(value1, value2).filter(Objects::nonNull).mapToInt(e -> 1).sum() + paramsSize;
-    }
-
-    protected static int getArgumentsSize(Object value1, List<Object> params) {
-        return getArgumentsSize(value1, null, params);
     }
 }

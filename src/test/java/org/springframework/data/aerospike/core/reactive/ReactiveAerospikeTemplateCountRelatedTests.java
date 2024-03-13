@@ -7,7 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import reactor.core.scheduler.Schedulers;
@@ -46,7 +47,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         String id4 = nextId();
         reactiveTemplate.insert(new Person(id4, "petya", 52)).block();
 
-        Qualifier.QualifierBuilder qbVasya1 = Qualifier.builder()
+        QualifierBuilder qbVasya1 = Qualifier.builder()
             .setField("firstName")
             .setValue(Value.get("vasili"))
             .setFilterOperation(FilterOperation.EQ);
@@ -58,7 +59,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .block();
         assertThat(vasyaCount).isEqualTo(3);
 
-        Qualifier.QualifierBuilder qbVasya2 = Qualifier.builder()
+        QualifierBuilder qbVasya2 = Qualifier.builder()
             .setField("age")
             .setValue(Value.get(51))
             .setFilterOperation(FilterOperation.EQ);
@@ -70,7 +71,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
             .block();
         assertThat(vasya51Count).isEqualTo(1);
 
-        Qualifier.QualifierBuilder qbPetya = Qualifier.builder()
+        QualifierBuilder qbPetya = Qualifier.builder()
             .setField("firstName")
             .setValue(Value.get("petya"))
             .setFilterOperation(FilterOperation.EQ);
@@ -92,7 +93,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         String id3 = nextId();
         reactiveTemplate.insert(new Person(id3, "vasili", 52)).block();
 
-        Qualifier.QualifierBuilder qbVasya1 = Qualifier.builder()
+        QualifierBuilder qbVasya1 = Qualifier.builder()
             .setField("firstName")
             .setValue(Value.get("vas"))
             .setIgnoreCase(true)
@@ -101,7 +102,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         Query query1 = new Query(qbVasya1.build());
         assertThat(reactiveTemplate.count(query1, Person.class).block()).isEqualTo(3);
 
-        Qualifier.QualifierBuilder qbVasya2 = Qualifier.builder()
+        QualifierBuilder qbVasya2 = Qualifier.builder()
             .setField("firstName")
             .setValue(Value.get("VaS"))
             .setIgnoreCase(false)
@@ -115,7 +116,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
 
     @Test
     void count_shouldReturnZeroIfNoDocumentsByProvidedCriteriaIsFound() {
-        Qualifier.QualifierBuilder qb1 = Qualifier.builder()
+        QualifierBuilder qb1 = Qualifier.builder()
             .setField("firstName")
             .setValue(Value.get("nastyushka"))
             .setFilterOperation(FilterOperation.EQ);
