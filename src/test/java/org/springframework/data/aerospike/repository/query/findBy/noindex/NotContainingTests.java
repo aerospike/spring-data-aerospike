@@ -194,8 +194,7 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining(KEY, VALUE))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.stringMap NOT_CONTAINING: invalid combination of arguments, cannot have multiple " +
-                "AerospikeQueryCriterion arguments");
+            .hasMessage("Person.stringMap NOT_CONTAINING: invalid map key type at position 2");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining("key", "value", new Person("id"
             , "firstName"), "value"))

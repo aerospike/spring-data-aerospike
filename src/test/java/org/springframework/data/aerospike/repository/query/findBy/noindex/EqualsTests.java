@@ -138,8 +138,8 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             .hasMessage("Address.zipCode EQ: invalid number of arguments, expecting one");
     }
 
+    // find by deeply nested String POJO field
     @Test
-        // find by deeply nested String POJO field
     void findByDeeplyNestedSimplePropertyEquals_PojoField_String() {
         String zipCode = "C0123";
         Address address = new Address("Foo Street 1", 1, zipCode, "Bar");
@@ -175,8 +175,8 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new)); // cleanup
     }
 
+    // find by deeply nested Integer POJO field
     @Test
-        // find by deeply nested Integer POJO field
     void findByDeeplyNestedSimplePropertyEquals_PojoField_Integer() {
         int apartment = 10;
         Address address = new Address("Foo Street 1", apartment, "C0123", "Bar");
@@ -213,8 +213,8 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         repository.save(alicia);
     }
 
+    // find by deeply nested POJO
     @Test
-        // find by deeply nested POJO
     void findByDeeplyNestedSimplePropertyEquals_Pojo() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");

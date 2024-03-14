@@ -949,11 +949,11 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<QualifierField, Object> qualifierMap) {
             Value val = getValue(qualifierMap);
-//            // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
-//            // converting to BooleanValue to process correctly
-//            if (val instanceof Value.BoolIntValue) {
-//                qualifierMap.put(VALUE, new Value.BooleanValue((Boolean) (getValue(qualifierMap).getObject())));
-//            }
+            // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
+            // converting to BooleanValue to process correctly
+            if (val instanceof Value.BoolIntValue) {
+                qualifierMap.put(VALUE, new Value.BooleanValue((Boolean) (getValue(qualifierMap).getObject())));
+            }
 
             Exp value = switch (val.getType()) {
                 case INTEGER -> Exp.val(val.toLong());
@@ -985,11 +985,11 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<QualifierField, Object> qualifierMap) {
             Value val = getValue(qualifierMap);
-//            // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
-//            // so converting to BooleanValue to process correctly
-//            if (val instanceof Value.BoolIntValue) {
-//                qualifierMap.put(VALUE, new Value.BooleanValue((Boolean) (getKey(qualifierMap).getObject())));
-//            }
+            // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
+            // so converting to BooleanValue to process correctly
+            if (val instanceof Value.BoolIntValue) {
+                qualifierMap.put(VALUE, new Value.BooleanValue((Boolean) (getKey(qualifierMap).getObject())));
+            }
 
             Exp value = switch (val.getType()) {
                 case INTEGER -> Exp.val(val.toLong());
