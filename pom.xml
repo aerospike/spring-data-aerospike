@@ -41,6 +41,7 @@
         <logback.test>1.4.14</logback.test>
         <hibernate.validator>8.0.1.Final</hibernate.validator>
         <netty.version>4.1.104.Final</netty.version>
+        <reportportal.agent.version>5.1.11</reportportal.agent.version>
     </properties>
 
     <licenses>
@@ -326,6 +327,11 @@
             <version>${netty.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.epam.reportportal</groupId>
+            <artifactId>agent-java-junit5</artifactId>
+            <version>${reportportal.agent.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -388,6 +394,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <properties>
+                        <configurationParameters>
+                            junit.jupiter.extensions.autodetection.enabled = true
+                        </configurationParameters>
+                    </properties>
                     <includes>
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
