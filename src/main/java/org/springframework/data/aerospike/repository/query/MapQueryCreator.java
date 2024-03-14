@@ -133,12 +133,6 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
             || (isAssignableValueOrConverted(mapValueClass, param, converter) || param == NULL_PARAM);
     }
 
-    private boolean hasMultipleQueryCriteria(List<Object> params) {
-        return params.stream()
-            .filter(AerospikeQueryCriterion.class::isInstance)
-            .count() > 1;
-    }
-
     private void validateMapQueryComparison(String queryPartDescription) {
         // Other than 1 argument
         if (queryParameters.size() != 1) {

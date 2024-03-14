@@ -881,9 +881,8 @@ public enum FilterOperation {
             Pair<Exp, Exp> twoValues = switch (getValue(qualifierMap).getType()) {
                 case INTEGER ->
                     Pair.of(Exp.val(getValue(qualifierMap).toLong()), Exp.val(getSecondValue(qualifierMap).toLong()));
-                case STRING ->
-                    Pair.of(Exp.val(getValue(qualifierMap).toString()),
-                        Exp.val(getSecondValue(qualifierMap).toString()));
+                case STRING -> Pair.of(Exp.val(getValue(qualifierMap).toString()),
+                    Exp.val(getSecondValue(qualifierMap).toString()));
                 case LIST -> Pair.of(Exp.val((List<?>) getValue(qualifierMap).getObject()),
                     Exp.val((List<?>) getSecondValue(qualifierMap).getObject()));
                 case MAP -> Pair.of(Exp.val((Map<?, ?>) getValue(qualifierMap).getObject()),
@@ -910,9 +909,8 @@ public enum FilterOperation {
             Pair<Exp, Exp> twoValues = switch (getValue(qualifierMap).getType()) {
                 case INTEGER ->
                     Pair.of(Exp.val(getValue(qualifierMap).toLong()), Exp.val(getSecondValue(qualifierMap).toLong()));
-                case STRING ->
-                    Pair.of(Exp.val(getValue(qualifierMap).toString()),
-                        Exp.val(getSecondValue(qualifierMap).toString()));
+                case STRING -> Pair.of(Exp.val(getValue(qualifierMap).toString()),
+                    Exp.val(getSecondValue(qualifierMap).toString()));
                 case LIST -> Pair.of(Exp.val((List<?>) getValue(qualifierMap).getObject()),
                     Exp.val((List<?>) getSecondValue(qualifierMap).getObject()));
                 case MAP -> Pair.of(Exp.val((Map<?, ?>) getValue(qualifierMap).getObject()),
@@ -1023,9 +1021,8 @@ public enum FilterOperation {
             Pair<Exp, Exp> twoValues = switch (getValue(qualifierMap).getType()) {
                 case INTEGER ->
                     Pair.of(Exp.val(getValue(qualifierMap).toLong()), Exp.val(getSecondValue(qualifierMap).toLong()));
-                case STRING ->
-                    Pair.of(Exp.val(getValue(qualifierMap).toString()),
-                        Exp.val(getSecondValue(qualifierMap).toString()));
+                case STRING -> Pair.of(Exp.val(getValue(qualifierMap).toString()),
+                    Exp.val(getSecondValue(qualifierMap).toString()));
                 case LIST -> Pair.of(Exp.val((List<?>) getValue(qualifierMap).getObject()),
                     Exp.val((List<?>) getSecondValue(qualifierMap).getObject()));
                 case MAP -> Pair.of(Exp.val((Map<?, ?>) getValue(qualifierMap).getObject()),
