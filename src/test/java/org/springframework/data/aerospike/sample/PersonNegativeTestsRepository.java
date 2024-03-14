@@ -92,12 +92,12 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
                                          CriteriaDefinition.AerospikeQueryCriterion criterion2);
 
     /**
-     * Invalid combination of arguments, the first one is required to be AerospikeQueryCriterion
+     * Invalid first argument type, required AerospikeQueryCriterion
      */
     List<P> findByStringMapContaining(String key1, String value1, Person key2, String value2);
 
     /**
-     * Invalid combination of arguments: the first one is required to be AerospikeQueryCriterion
+     * Invalid first argument type: required AerospikeQueryCriterion
      */
     List<P> findByStringMapNotContaining(String key1, String value1, Person key2, String value2);
 
