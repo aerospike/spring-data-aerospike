@@ -44,20 +44,6 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierField.
  */
 public class Qualifier implements CriteriaDefinition, Map<QualifierField, Object>, Serializable {
 
-    //
-//    protected static final String FIELD = "field";
-//    protected static final String METADATA_FIELD = "metadata_field";
-//    protected static final String SINGLE_ID_FIELD = "id";
-//    protected static final String MULTIPLE_IDS_FIELD = "ids";
-//    protected static final String IGNORE_CASE = "ignoreCase";
-//    protected static final String KEY = "key";
-//    protected static final String VALUE = "value";
-//    protected static final String SECOND_VALUE = "value2";
-//    protected static final String DOT_PATH = "dotPath";
-//    protected static final String CONVERTER = "converter";
-//    protected static final String QUALIFIERS = "qualifiers";
-//    protected static final String OPERATION = "operation";
-//    protected static final String AS_FILTER = "queryAsFilter";
     @Serial
     private static final long serialVersionUID = -2689196529952712849L;
     protected final Map<QualifierField, Object> internalMap = new HashMap<>();

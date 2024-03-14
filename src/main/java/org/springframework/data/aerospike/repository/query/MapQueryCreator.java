@@ -24,7 +24,6 @@ import static org.springframework.data.aerospike.repository.query.AerospikeQuery
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion.NULL_PARAM;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
-import static org.springframework.data.aerospike.utility.Utils.hasNoElementsOfClass;
 
 public class MapQueryCreator implements IAerospikeQueryCreator {
 
@@ -59,24 +58,17 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     }
 
     private void validateMapQueryContaining(String queryPartDescription) {
-        // Less than two arguments, including a case when value1 intentionally equals null
+        // Less than two arguments
         if (queryParameters.size() < 2) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, at least two " +
                 "arguments are required");
         }
 
         Object param1 = queryParameters.get(0);
-        // Two or more arguments of type QueryCriterion
-        if (param1 instanceof AerospikeQueryCriterion && hasMultipleQueryCriteria(queryParameters)) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, cannot " +
-                "have multiple AerospikeQueryCriterion arguments");
-        }
-
-        // No QueryCriterion parameter
-        if (hasNoElementsOfClass(AerospikeQueryCriterion.class, queryParameters)
-            || !(param1 instanceof AerospikeQueryCriterion)) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid combination of arguments, " +
-                "the first one is required to be AerospikeQueryCriterion");
+        // The first argument not QueryCriterion
+        if (!(param1 instanceof AerospikeQueryCriterion)) {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid first argument type, required " +
+                "AerospikeQueryCriterion");
         }
 
         Object param2 = queryParameters.get(1);
@@ -100,7 +92,6 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 if (!(isValidMapValueType(part.getProperty().getTypeInformation(), param2))) {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid map value type at position 2");
                 }
-
             }
             case KEY_VALUE_PAIR -> {
                 if (queryParameters.size() != 3) {
@@ -115,30 +106,31 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 if (!(isValidMapValueType(part.getProperty().getTypeInformation(), param3))) {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid map value type at position 3");
                 }
-
             }
+            default -> throw new IllegalStateException(queryPartDescription + ": invalid AerospikeQueryCriterion " +
+                "type of the first argument, expecting KEY, VALUE or KEY_VALUE_PAIR");
         }
     }
 
     private boolean isValidMapKeyType(TypeInformation<?> typeInformation, Object param) {
-        Class<?> mapKeyClass = null;
+        Class<?> mapKeyClass;
         try {
             mapKeyClass = typeInformation.getComponentType().getType();
-        } catch (IllegalStateException e) {
-            // do nothing
+        } catch (IllegalStateException e) { // cannot resolve Map key type
+            mapKeyClass = null;
         }
-        return mapKeyClass != null && isAssignableValueOrConverted(mapKeyClass, param, converter);
+        return mapKeyClass == null || isAssignableValueOrConverted(mapKeyClass, param, converter);
     }
 
     private boolean isValidMapValueType(TypeInformation<?> typeInformation, Object param) {
-        Class<?> mapValueClass = null;
+        Class<?> mapValueClass;
         try {
             mapValueClass = typeInformation.getRequiredMapValueType().getType();
-        } catch (IllegalStateException e) {
-            // do nothing
+        } catch (IllegalStateException e) { // cannot resolve Map value type
+            mapValueClass = null;
         }
-        return mapValueClass != null
-            && (isAssignableValueOrConverted(mapValueClass, param, converter) || param == NULL_PARAM);
+        return mapValueClass == null
+            || (isAssignableValueOrConverted(mapValueClass, param, converter) || param == NULL_PARAM);
     }
 
     private boolean hasMultipleQueryCriteria(List<Object> params) {
