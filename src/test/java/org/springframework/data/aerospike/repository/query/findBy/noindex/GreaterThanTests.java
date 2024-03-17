@@ -144,10 +144,13 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
         assertThat(persons).isEmpty();
     }
 
+    /*
+        Note:
+        only the upper level ListOfLists will be compared even if the parameter has different number of levels
+        So findByListOfListsGreaterThan(List.of(1)) and findByListOfListsGreaterThan(List.of(List.of(List.of(1))))
+        will compare with the given parameter only the upper level ListOfLists itself
+     */
     @Test
-//    Note: only the upper level ListOfLists will be compared even if the parameter has different number of levels
-//    So findByListOfListsGreaterThan(List.of(1)) and findByListOfListsGreaterThan(List.of(List.of(List.of(1))))
-//    will compare with the given parameter only the upper level ListOfLists itself
     void findByCollectionOfListsGreaterThan() {
         List<List<Integer>> listOfLists1 = List.of(List.of(100));
         List<List<Integer>> listOfLists2 = List.of(List.of(101));
