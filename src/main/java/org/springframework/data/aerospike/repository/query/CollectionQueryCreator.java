@@ -14,7 +14,7 @@ import java.util.List;
 import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
 import static org.springframework.data.aerospike.query.FilterOperation.IN;
 import static org.springframework.data.aerospike.query.FilterOperation.NOT_IN;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getElementsClass;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getCollectionElementsClass;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
@@ -104,7 +104,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         } else if (!(value instanceof CriteriaDefinition.AerospikeNullQueryCriterion)) {
             // Not null param
             // Determining class of Collection's elements
-            Class<?> componentsClass = getElementsClass(property);
+            Class<?> componentsClass = getCollectionElementsClass(property);
             if (componentsClass != null) {
                 validateTypes(converter, componentsClass, queryParameters, queryPartDescription, "Collection");
             }

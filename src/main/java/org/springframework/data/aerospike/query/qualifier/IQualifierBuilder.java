@@ -7,7 +7,7 @@ import java.util.Map;
  */
 public interface IQualifierBuilder {
 
-    Map<QualifierField, Object> getMap();
+    Map<QualifierKey, Object> getMap();
 
     Qualifier build();
 }

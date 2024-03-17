@@ -111,7 +111,7 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
             dotPath = List.of(part.getProperty().toDotPath());
         } else { // first level POJO
             if (op != FilterOperation.BETWEEN) {
-                if (queryParameters.size() >= 1) setQualifierBuilderValue(qb, queryParameters.get(0));
+                if (!queryParameters.isEmpty()) setQualifierBuilderValue(qb, queryParameters.get(0));
             }
         }
 

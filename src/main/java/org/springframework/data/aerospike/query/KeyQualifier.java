@@ -24,7 +24,7 @@ import org.springframework.data.aerospike.repository.support.SimpleAerospikeRepo
 
 import java.io.Serial;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.DIGEST_KEY;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DIGEST_KEY;
 
 /**
  * Qualifier used to query by primary key

@@ -79,7 +79,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                         "expecting two");
                 }
 
-                if (!(isValidMapKeyType(part.getProperty().getTypeInformation(), param2))) {
+                if (!(isValidMapKeyTypeOrUnresolved(part.getProperty().getTypeInformation(), param2))) {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid map key type at position 2");
                 }
             }
@@ -89,7 +89,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                         "expecting two");
                 }
 
-                if (!(isValidMapValueType(part.getProperty().getTypeInformation(), param2))) {
+                if (!(isValidMapValueTypeOrUnresolved(part.getProperty().getTypeInformation(), param2))) {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid map value type at position 2");
                 }
             }
@@ -99,11 +99,11 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                         "expecting three");
                 }
 
-                if (!(isValidMapKeyType(part.getProperty().getTypeInformation(), param2))) {
+                if (!(isValidMapKeyTypeOrUnresolved(part.getProperty().getTypeInformation(), param2))) {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid map key type at position 2");
                 }
                 Object param3 = queryParameters.get(2);
-                if (!(isValidMapValueType(part.getProperty().getTypeInformation(), param3))) {
+                if (!(isValidMapValueTypeOrUnresolved(part.getProperty().getTypeInformation(), param3))) {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid map value type at position 3");
                 }
             }
@@ -112,9 +112,10 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         }
     }
 
-    private boolean isValidMapKeyType(TypeInformation<?> typeInformation, Object param) {
+    private boolean isValidMapKeyTypeOrUnresolved(TypeInformation<?> typeInformation, Object param) {
         Class<?> mapKeyClass;
         try {
+            // Expected to return non-null value as far as typeInformation is a Map
             mapKeyClass = typeInformation.getComponentType().getType();
         } catch (IllegalStateException e) { // cannot resolve Map key type
             mapKeyClass = null;
@@ -122,9 +123,10 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         return mapKeyClass == null || isAssignableValueOrConverted(mapKeyClass, param, converter);
     }
 
-    private boolean isValidMapValueType(TypeInformation<?> typeInformation, Object param) {
+    private boolean isValidMapValueTypeOrUnresolved(TypeInformation<?> typeInformation, Object param) {
         Class<?> mapValueClass;
         try {
+            // Expected to return non-null value as far as typeInformation is a Map
             mapValueClass = typeInformation.getRequiredMapValueType().getType();
         } catch (IllegalStateException e) { // cannot resolve Map value type
             mapValueClass = null;
@@ -180,10 +182,8 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         if (paramsSize == 2) {
             qualifier = processMapTwoParams(part, queryParameters, filterOperation, fieldName);
         } else if (queryParameters.size() < 2) {
-            if (filterOperation != FilterOperation.BETWEEN) {
-                setQualifierBuilderValue(qb, queryParameters.get(0));
-                qualifier = setQualifier(converter, qb, fieldName, filterOperation, part, null);
-            }
+            setQualifierBuilderValue(qb, queryParameters.get(0));
+            qualifier = setQualifier(converter, qb, fieldName, filterOperation, part, null);
         } else { // multiple parameters
             qualifier = processMapMultipleParams(part, queryParameters, filterOperation, fieldName);
         }
@@ -209,7 +209,6 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     private Qualifier processMapContaining(Part part, String fieldName, FilterOperation keysOp,
                                            FilterOperation valuesOp, FilterOperation byKeyOp) {
         FilterOperation op = byKeyOp;
-        List<String> dotPath = null;
         QualifierBuilder qb = Qualifier.builder();
 
         if (queryParameters.get(0) instanceof AerospikeQueryCriterion queryCriterion) {
@@ -225,7 +224,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 default -> throw new UnsupportedOperationException("Unsupported parameter: " + queryCriterion);
             }
         }
-        return setQualifier(converter, qb, fieldName, op, part, dotPath);
+        return setQualifier(converter, qb, fieldName, op, part, null);
     }
 
     private Qualifier processMapOtherThanContaining(Part part, List<Object> queryParameters, FilterOperation op,

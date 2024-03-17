@@ -58,8 +58,9 @@ public class AerospikeQueryCreatorUtils {
         return result;
     }
 
-    protected static Class<?> getElementsClass(PropertyPath property) {
-        // Get the class of object's elements or null
+    protected static Class<?> getCollectionElementsClass(PropertyPath property) {
+        // Get the class of object's elements
+        // Expected to return non-null value as far as property is a Collection
         return property.getTypeInformation().getComponentType().getType();
     }
 
@@ -81,14 +82,11 @@ public class AerospikeQueryCreatorUtils {
                 setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
                 qualifiers[j] = setQualifier(converter, qb, fieldName, op, part, dotPath);
             }
-
-            return Qualifier.and(qualifiers);
-        } else {
-            qualifiers = new Qualifier[params.size()];
-            for (int i = 0; i < params.size(); i++) {
-                setQbValuesForMapByKey(qb, params.get(i), params.get(i));
-                qualifiers[i] = setQualifier(converter, qb, fieldName, op, part, dotPath);
-            }
+        }
+        qualifiers = new Qualifier[params.size()];
+        for (int i = 0; i < params.size(); i++) {
+            setQbValuesForMapByKey(qb, params.get(i), params.get(i));
+            qualifiers[i] = setQualifier(converter, qb, fieldName, op, part, dotPath);
         }
 
         return Qualifier.and(qualifiers);
@@ -200,8 +198,8 @@ public class AerospikeQueryCreatorUtils {
      * @return Whether the object is a converted POJO of the given class
      */
     protected static boolean isPojoMap(Object object, Class<?> propertyType) {
-        if (object instanceof TreeMap) {
-            Object classKey = ((TreeMap<?, ?>) object).get(CLASS_KEY);
+        if (object instanceof TreeMap<?, ?> treeMap) {
+            Object classKey = treeMap.get(CLASS_KEY);
             return classKey != null && classKey.equals(propertyType.getName());
         }
         return false;

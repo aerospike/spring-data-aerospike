@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.query.qualifier;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.MULTIPLE_IDS_FIELD;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.SINGLE_ID_FIELD;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.MULTIPLE_IDS_FIELD;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SINGLE_ID_FIELD;
 
 class IdQualifierBuilder extends BaseQualifierBuilder<IdQualifierBuilder> {
 

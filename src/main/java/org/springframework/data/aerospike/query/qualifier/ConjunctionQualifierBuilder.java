@@ -2,7 +2,7 @@ package org.springframework.data.aerospike.query.qualifier;
 
 import org.springframework.util.Assert;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.QUALIFIERS;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.QUALIFIERS;
 
 class ConjunctionQualifierBuilder extends BaseQualifierBuilder<ConjunctionQualifierBuilder> {
 

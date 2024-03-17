@@ -102,7 +102,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
 
     private void validateSimplePropertyQueryIsNull(String queryPartDescription, List<Object> queryParameters) {
         // Number of arguments is not zero
-        if (queryParameters.size() != 0) {
+        if (!queryParameters.isEmpty()) {
             throw new IllegalArgumentException(queryPartDescription + ": expecting no arguments");
         }
     }
@@ -131,7 +131,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
             op = getCorrespondingMapValueFilterOperationOrFail(op);
 
-            if (queryParameters.size() >= 1) setQualifierBuilderValue(qb, queryParameters.get(0));
+            if (!queryParameters.isEmpty()) setQualifierBuilderValue(qb, queryParameters.get(0));
             setQualifierBuilderKey(qb, property.getFieldName());
             dotPath = List.of(part.getProperty().toDotPath());
         } else { // first level simple property

@@ -5,13 +5,13 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 
 import java.util.List;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.CONVERTER;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.DOT_PATH;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.FIELD;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.IGNORE_CASE;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.KEY;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.SECOND_VALUE;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.VALUE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.CONVERTER;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DOT_PATH;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FIELD;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
 public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 

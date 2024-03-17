@@ -621,7 +621,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      *
      * @param zipCode - Zip code to check for equality
      */
-    List<P> findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendFriendAddressZipCode(String zipCode);
+    List<P> findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddressZipCode(String zipCode);
 
     /**
      * Find all entities that satisfy the condition "have a friend who has a friend (etc.) ... who has the address with
@@ -637,7 +637,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      *
      * @param address - Address to check for equality
      */
-    List<P> findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendBestFriendAddress(Address address);
+    List<P> findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddress(Address address);
 
     /**
      * Find all entities that satisfy the condition "have the list which contains the given string"

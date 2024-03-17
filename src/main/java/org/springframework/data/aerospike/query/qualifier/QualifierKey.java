@@ -1,6 +1,9 @@
 package org.springframework.data.aerospike.query.qualifier;
 
-public enum QualifierField {
+/**
+ * Key for storing data within Qualifier map
+ */
+public enum QualifierKey {
 
     FIELD,
     METADATA_FIELD,

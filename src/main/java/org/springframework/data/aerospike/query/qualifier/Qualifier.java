@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.*;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
 
 /**
  * Generic Bin qualifier. It acts as a filter to exclude records that do not meet the given criteria.
@@ -42,11 +42,11 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierField.
  *
  * @author Peter Milne
  */
-public class Qualifier implements CriteriaDefinition, Map<QualifierField, Object>, Serializable {
+public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>, Serializable {
 
     @Serial
     private static final long serialVersionUID = -2689196529952712849L;
-    protected final Map<QualifierField, Object> internalMap = new HashMap<>();
+    protected final Map<QualifierKey, Object> internalMap = new HashMap<>();
 
     protected Qualifier(IQualifierBuilder builder) {
         if (!builder.getMap().isEmpty()) {
@@ -70,7 +70,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierField, Object
         return this.getField();
     }
 
-    private Map<QualifierField, Object> getMap() {
+    private Map<QualifierKey, Object> getMap() {
         return Collections.unmodifiableMap(this.internalMap);
     }
 
@@ -186,7 +186,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierField, Object
     }
 
     @Override
-    public Object put(QualifierField key, Object value) {
+    public Object put(QualifierKey key, Object value) {
         return internalMap.put(key, value);
     }
 
@@ -196,7 +196,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierField, Object
     }
 
     @Override
-    public void putAll(Map<? extends QualifierField, ?> m) {
+    public void putAll(Map<? extends QualifierKey, ?> m) {
         internalMap.putAll(m);
     }
 
@@ -206,7 +206,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierField, Object
     }
 
     @Override
-    public Set<QualifierField> keySet() {
+    public Set<QualifierKey> keySet() {
         return internalMap.keySet();
     }
 
@@ -216,7 +216,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierField, Object
     }
 
     @Override
-    public Set<Entry<QualifierField, Object>> entrySet() {
+    public Set<Entry<QualifierKey, Object>> entrySet() {
         return internalMap.entrySet();
     }
 

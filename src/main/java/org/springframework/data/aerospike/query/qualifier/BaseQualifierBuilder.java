@@ -6,17 +6,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.DOT_PATH;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.FIELD;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.KEY;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.OPERATION;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.SECOND_VALUE;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.VALUE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DOT_PATH;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FIELD;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.OPERATION;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
 @SuppressWarnings("unchecked")
 abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements IQualifierBuilder {
 
-    protected final Map<QualifierField, Object> map = new HashMap<>();
+    protected final Map<QualifierKey, Object> map = new HashMap<>();
 
     public FilterOperation getFilterOperation() {
         return (FilterOperation) this.map.get(OPERATION);
@@ -52,7 +52,7 @@ abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implement
         return new Qualifier(this);
     }
 
-    public Map<QualifierField, Object> getMap() {
+    public Map<QualifierKey, Object> getMap() {
         return Collections.unmodifiableMap(this.map);
     }
 

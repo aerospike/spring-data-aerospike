@@ -138,16 +138,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             .hasMessage("Address.zipCode EQ: invalid number of arguments, expecting one");
     }
 
-    // find by deeply nested String POJO field
-    @Test
-    void findByDeeplyNestedSimplePropertyEquals_PojoField_String() {
-        String zipCode = "C0123";
-        Address address = new Address("Foo Street 1", 1, zipCode, "Bar");
-        dave.setAddress(address);
-        repository.save(dave);
-
-        alicia.setFriend(dave);
-        repository.save(alicia);
+    private void setSequenceOfFriends() {
         oliver.setBestFriend(alicia);
         repository.save(oliver);
         carter.setFriend(oliver);
@@ -166,46 +157,43 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         repository.save(matias);
         douglas.setFriend(matias);
         repository.save(douglas);
+    }
+
+    // find by deeply nested String POJO field
+    @Test
+    void findByDeeplyNestedSimplePropertyEquals_PojoField_String_10_levels() {
+        String zipCode = "C0123";
+        Address address = new Address("Foo Street 1", 1, zipCode, "Bar");
+        alicia.setAddress(address);
+        repository.save(alicia);
+
+        setSequenceOfFriends();
 
         List<Person> result =
-            repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendFriendAddressZipCode(zipCode);
+            repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddressZipCode(zipCode);
 
         assertThat(result).containsExactly(douglas);
 
-        TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new)); // cleanup
+        // cleanup
+        TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));
+        alicia.setAddress(null);
+        repository.save(alicia);
     }
 
     // find by deeply nested Integer POJO field
     @Test
-    void findByDeeplyNestedSimplePropertyEquals_PojoField_Integer() {
+    void findByDeeplyNestedSimplePropertyEquals_PojoField_Integer_10_levels() {
         int apartment = 10;
         Address address = new Address("Foo Street 1", apartment, "C0123", "Bar");
         alicia.setAddress(address);
         repository.save(alicia);
 
-        oliver.setBestFriend(alicia);
-        repository.save(oliver);
-        carter.setFriend(oliver);
-        repository.save(carter);
-        donny.setFriend(carter);
-        repository.save(donny);
-        boyd.setFriend(donny);
-        repository.save(boyd);
-        stefan.setFriend(boyd);
-        repository.save(stefan);
-        leroi.setFriend(stefan);
-        repository.save(leroi);
-        leroi2.setFriend(leroi);
-        repository.save(leroi2);
-        douglas.setFriend(leroi2);
-        repository.save(douglas);
-        matias.setFriend(douglas);
-        repository.save(matias);
+        setSequenceOfFriends();
 
         List<Person> result =
             repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddressApartment(apartment);
 
-        assertThat(result).containsExactly(matias);
+        assertThat(result).containsExactly(douglas);
 
         // cleanup
         TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));
@@ -215,39 +203,23 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     // find by deeply nested POJO
     @Test
-    void findByDeeplyNestedSimplePropertyEquals_Pojo() {
+    void findByDeeplyNestedSimplePropertyEquals_Pojo_9_levels() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
-            dave.setAddress(address);
-            repository.save(dave);
-
-            alicia.setBestFriend(dave);
+            alicia.setAddress(address);
             repository.save(alicia);
-            oliver.setBestFriend(alicia);
-            repository.save(oliver);
-            carter.setFriend(oliver);
-            repository.save(carter);
-            donny.setFriend(carter);
-            repository.save(donny);
-            boyd.setFriend(donny);
-            repository.save(boyd);
-            stefan.setFriend(boyd);
-            repository.save(stefan);
-            leroi.setFriend(stefan);
-            repository.save(leroi);
-            matias.setFriend(leroi);
-            repository.save(matias);
-            douglas.setFriend(matias);
-            repository.save(douglas);
-            leroi2.setFriend(douglas);
-            repository.save(leroi2);
+
+            setSequenceOfFriends();
 
             List<Person> result =
-                repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendBestFriendAddress(address);
+                repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddress(address);
 
-            assertThat(result).containsExactly(leroi2);
+            assertThat(result).containsExactly(douglas);
 
-            TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new)); // cleanup
+            // cleanup
+            TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));
+            alicia.setAddress(null);
+            repository.save(alicia);
         }
     }
 

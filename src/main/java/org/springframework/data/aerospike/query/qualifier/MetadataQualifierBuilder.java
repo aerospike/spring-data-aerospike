@@ -6,10 +6,10 @@ import org.springframework.util.Assert;
 
 import java.util.Collection;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.KEY;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.METADATA_FIELD;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.SECOND_VALUE;
-import static org.springframework.data.aerospike.query.qualifier.QualifierField.VALUE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.METADATA_FIELD;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
 public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQualifierBuilder> {
 
@@ -69,7 +69,7 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
                             "BETWEEN: value2 is expected to be set as Long");
                     }
                     case NOT_IN, IN -> Assert.isTrue(getValueAsObj() instanceof Collection
-                            && (!((Collection<Object>) getValueAsObj()).isEmpty())
+                            && !((Collection<Object>) getValueAsObj()).isEmpty()
                             && ((Collection<Object>) getValueAsObj()).toArray()[0] instanceof Long,
                         operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
                     default -> throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
