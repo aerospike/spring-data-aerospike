@@ -54,18 +54,10 @@ public class AerospikeQueryCreatorUnitTests {
         PartTree tree1 = new PartTree("findByFirstNameInOrFriend", Person.class);
         AerospikeQueryCreator creator1 = new AerospikeQueryCreator(
             tree1, new StubParameterAccessor(
-            QueryParam.of(List.of(List.of("Oliver", "Peter"))),
-            QueryParam.of(new Person("id", "firstName"))
-        ), context, converter);
-        creator1.createQuery();
-
-        PartTree tree2 = new PartTree("findByFirstNameInOrFriend", Person.class);
-        AerospikeQueryCreator creator2 = new AerospikeQueryCreator(
-            tree2, new StubParameterAccessor(
             QueryParam.of(List.of("Oliver", "Peter")),
             QueryParam.of(new Person("id", "firstName"))
         ), context, converter);
-        creator2.createQuery();
+        creator1.createQuery();
     }
 
     private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {

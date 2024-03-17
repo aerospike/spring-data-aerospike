@@ -7,8 +7,8 @@ import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.config.ReactiveTestConfig;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import reactor.core.publisher.Flux;
@@ -58,7 +58,7 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
         Qualifier lastUpdateTimeLtMillis = Qualifier.metadataBuilder()
             .setMetadataField(LAST_UPDATE_TIME)
             .setFilterOperation(operation)
-            .setValue1AsObj(lastUpdateTimeMillis * MILLIS_TO_NANO)
+            .setValueAsObj(lastUpdateTimeMillis * MILLIS_TO_NANO)
             .build();
         return reactiveTemplate.find(new Query(lastUpdateTimeLtMillis), entityClass).collectList().block();
     }

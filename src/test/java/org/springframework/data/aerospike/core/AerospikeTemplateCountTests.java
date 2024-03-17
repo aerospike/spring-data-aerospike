@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 
@@ -63,7 +63,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
             new Query(Qualifier.builder()
                 .setFilterOperation(FilterOperation.EQ)
                 .setField("firstName")
-                .setValue1(Value.get("vasili"))
+                .setValue(Value.get("vasili"))
                 .build()
             ),
             Person.class
@@ -74,13 +74,13 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         Qualifier qbIs1 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
             .setField("firstName")
-            .setValue1(Value.get("vasili"))
+            .setValue(Value.get("vasili"))
             .build();
 
         Qualifier qbIs2 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
             .setField("age")
-            .setValue1(Value.get(51))
+            .setValue(Value.get(51))
             .build();
 
         long vasya51Count = template.count(
@@ -93,7 +93,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
             new Query(Qualifier.builder()
                 .setFilterOperation(FilterOperation.EQ)
                 .setField("firstName")
-                .setValue1(Value.get("petya"))
+                .setValue(Value.get("petya"))
                 .build()
             ),
             Person.class
@@ -117,7 +117,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
         Query query1 = new Query(Qualifier.builder()
             .setField("firstName")
-            .setValue1(Value.get("vas"))
+            .setValue(Value.get("vas"))
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(true)
             .build()
@@ -126,7 +126,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
         Query query2 = new Query(Qualifier.builder()
             .setField("firstName")
-            .setValue1(Value.get("VaS"))
+            .setValue(Value.get("VaS"))
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(false)
             .build()
@@ -146,7 +146,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         Query query1 = new Query
             (Qualifier.builder()
                 .setField("firstName")
-                .setValue1(Value.get("nastyushka"))
+                .setValue(Value.get("nastyushka"))
                 .setFilterOperation(FilterOperation.STARTS_WITH)
                 .build()
             );

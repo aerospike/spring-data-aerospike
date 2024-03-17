@@ -19,12 +19,13 @@ import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 /**
- * This repository acts as a storage for invalid method names used for testing.
- * For actual repository see {@link PersonRepository}
+ * This repository acts as a storage for invalid method names used for testing. For actual repository see
+ * {@link PersonRepository}
  */
 public interface PersonNegativeTestsRepository<P extends Person> extends AerospikeRepository<P, String> {
 
@@ -79,93 +80,109 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     List<P> findByStringMapNotContaining();
 
     /**
-     * Invalid combination of arguments: cannot have multiple MapCriteria arguments
+     * Invalid map key type at position 2
      */
-    List<P> findByStringMapContaining(CriteriaDefinition.AerospikeQueryCriteria criterion1,
-                                      CriteriaDefinition.AerospikeQueryCriteria criterion2);
+    List<P> findByStringMapContaining(CriteriaDefinition.AerospikeQueryCriterion criterion1,
+                                      CriteriaDefinition.AerospikeQueryCriterion criterion2);
 
     /**
-     * Invalid combination of arguments: cannot have multiple MapCriteria arguments
+     * Invalid map key type at position 2
      */
-    List<P> findByStringMapNotContaining(CriteriaDefinition.AerospikeQueryCriteria criterion1,
-                                         CriteriaDefinition.AerospikeQueryCriteria criterion2);
+    List<P> findByStringMapNotContaining(CriteriaDefinition.AerospikeQueryCriterion criterion1,
+                                         CriteriaDefinition.AerospikeQueryCriterion criterion2);
 
     /**
-     * Invalid argument type: expected String, Number or byte[] at position 3
+     * Invalid first argument type, required AerospikeQueryCriterion
      */
     List<P> findByStringMapContaining(String key1, String value1, Person key2, String value2);
 
     /**
-     * Invalid argument type: expected String, Number or byte[] at position 3
+     * Invalid first argument type: required AerospikeQueryCriterion
      */
     List<P> findByStringMapNotContaining(String key1, String value1, Person key2, String value2);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid combination of arguments: expecting Map
      */
     List<P> findByStringMapEquals(String obj);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid combination of arguments: expecting Map
      */
     List<P> findByStringMapIsNot(String obj);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid combination of arguments: expecting Map
      */
     List<P> findByStringMap(int obj);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid number of arguments: expecting one
      */
     List<P> findByStringMapEquals(Map<String, String> map1, Map<String, String> map2);
 
     /**
-     * Invalid combination of arguments: expecting either a Map or a key-value pair
+     * Invalid number of arguments: expecting one
      */
     List<P> findByStringMapIsNot(Map<String, String> map1, Map<String, String> map2);
 
     /**
-     * Invalid combination of arguments: expecting one (Map) or two (Map key and value)
+     * Invalid map key type at position 2
+     */
+    List<P> findByIntMapContaining(CriteriaDefinition.AerospikeQueryCriterion criterion,
+                                   int number);
+
+    /**
+     * Invalid map key/value type at position 2
+     */
+    List<P> findByIntMapContaining(CriteriaDefinition.AerospikeQueryCriterion criterion,
+                                   String string);
+
+    /**
+     * Invalid map value type at position 3
+     */
+    List<P> findByIntMapContaining(CriteriaDefinition.AerospikeQueryCriterion criterion,
+                                   String key, String value);
+
+    /**
+     * Invalid argument type: expecting Map
      */
     List<P> findByIntMapLessThan(int number1);
 
     /**
-     * Invalid number of arguments: expecting one (Map) or two (Map key and value)
+     * Invalid number of arguments: expecting one
      */
     List<P> findByIntMapLessThan(int number1, int number2, int number3);
 
     /**
-     * Invalid first argument type: expected String, Number or byte[]
+     * Invalid argument type: expecting Map
      */
     List<P> findByIntMapLessThan(Person obj, int number);
 
     /**
-     * Invalid number of arguments: expecting two (Maps) or three (Map key and two values)
+     * Invalid number of arguments: expecting two
      */
     List<P> findByIntMapBetween();
 
     /**
-     * Invalid number of arguments: expecting two (Maps) or three (Map key and two values)
+     * Invalid number of arguments: expecting two
      */
     List<P> findByIntMapBetween(int number1);
 
     /**
-     * Invalid combination of arguments: both must be of type Map
+     * Invalid argument type: expecting Map
      */
     List<P> findByIntMapBetween(int number1, int number2);
 
     /**
-     * Invalid combination of arguments: both must be of type Map
+     * Invalid argument type: expecting Map
      */
     List<P> findByIntMapBetween(int number1, Map<Integer, Integer> map);
 
     /**
-     * Invalid number of arguments: expecting two (Maps) or three (Map key and two values)
+     * Invalid number of arguments: expecting two
      */
     List<P> findByIntMapBetween(int number1, int number2, int number3, int number4);
-
-    List<P> findByStringsEquals(int number1);
 
     /**
      * Invalid number of arguments: expecting one
@@ -181,6 +198,11 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
      * Invalid number of arguments: expecting one
      */
     List<P> findByStringsEquals(String string1, String string2);
+
+    /**
+     * Invalid number of arguments: expecting one
+     */
+    List<P> findByStrings(Collection<String> collection1, Collection<String> collection2);
 
     /**
      * Invalid number of arguments: expecting one
@@ -206,6 +228,16 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
      * Invalid number of arguments: expecting one
      */
     List<P> findByStringsLessThan(String string1, String string2);
+
+    /**
+     * Invalid number of arguments: expecting one
+     */
+    List<P> findByIntsGreaterThan(int number1, int number2);
+
+    /**
+     * Invalid argument type: expecting Collection
+     */
+    List<P> findByIntsGreaterThan(int number);
 
     /**
      * Invalid number of arguments: expecting at least one

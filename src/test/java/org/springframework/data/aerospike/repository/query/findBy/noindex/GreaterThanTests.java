@@ -93,7 +93,7 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByNestedIntegerSimplePropertyGreaterThan() {
+    void findByNestedSimplePropertyGreaterThan_Integer() {
         alicia.setFriend(boyd);
         repository.save(alicia);
         dave.setFriend(oliver);
@@ -113,57 +113,6 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
             .containsExactlyInAnyOrder(alicia, leroi);
 
         TestUtils.setFriendsToNull(repository, alicia, dave, carter, leroi);
-    }
-
-    @Test
-    void findByArrayValueGreaterThanNumber() {
-        List<Person> persons;
-        persons = repository.findByIntArrayGreaterThan(1);
-        assertThat(persons).containsOnly(matias, leroi);
-
-        persons = repository.findByIntArrayGreaterThan(Long.MIN_VALUE);
-        assertThat(persons).containsOnly(matias, leroi);
-
-        persons = repository.findByIntArrayGreaterThan(Long.MAX_VALUE - 1);
-        assertThat(persons).isEmpty();
-
-        assertThatThrownBy(() -> repository.findByIntArrayGreaterThan(Long.MAX_VALUE))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("LIST_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
-    }
-
-    @Test
-    void findByCollectionValueGreaterThanNumber() {
-        List<Person> persons;
-        persons = repository.findByIntsGreaterThan(549);
-        assertThat(persons).containsOnly(oliver, alicia);
-
-        persons = repository.findByIntsGreaterThan(990);
-        assertThat(persons).isEmpty();
-
-        persons = repository.findByIntsGreaterThan(Long.MIN_VALUE);
-        assertThat(persons).containsOnly(oliver, alicia);
-
-        persons = repository.findByIntsGreaterThan(Long.MAX_VALUE - 1);
-        assertThat(persons).isEmpty();
-
-        assertThatThrownBy(() -> repository.findByIntsGreaterThan(Long.MAX_VALUE))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("LIST_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE..Long.MAX_VALUE-1]");
-    }
-
-    @Test
-    void findByCollectionValueGreaterThanString() {
-        List<Person> persons;
-        persons = repository.findByStringsGreaterThan("str0");
-        assertThat(persons).containsOnly(dave, donny);
-
-        persons = repository.findByStringsGreaterThan("");
-        assertThat(persons).containsOnly(dave, donny);
-
-        // ordering is by each byte in a String, so "t" > "str" because "t" > "s"
-        persons = repository.findByStringsGreaterThan("t");
-        assertThat(persons).isEmpty();
     }
 
     @Test
@@ -195,10 +144,13 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
         assertThat(persons).isEmpty();
     }
 
+    /*
+        Note:
+        only the upper level ListOfLists will be compared even if the parameter has different number of levels
+        So findByListOfListsGreaterThan(List.of(1)) and findByListOfListsGreaterThan(List.of(List.of(List.of(1))))
+        will compare with the given parameter only the upper level ListOfLists itself
+     */
     @Test
-//    Note: only the upper level ListOfLists will be compared even if the parameter has different number of levels
-//    So findByListOfListsGreaterThan(List.of(1)) and findByListOfListsGreaterThan(List.of(List.of(List.of(1))))
-//    will compare with the given parameter only the upper level ListOfLists itself
     void findByCollectionOfListsGreaterThan() {
         List<List<Integer>> listOfLists1 = List.of(List.of(100));
         List<List<Integer>> listOfLists2 = List.of(List.of(101));
@@ -231,47 +183,14 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByExactMapKeyWithValueGreaterThan() {
-        assertThat(carter.getIntMap()).containsKey("key2");
-        assertThat(carter.getIntMap().get("key2") > 0).isTrue();
+    void findByCollection_NegativeTest() {
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntsGreaterThan(100, 200))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.ints GT: invalid number of arguments, expecting one");
 
-        List<Person> persons = repository.findByIntMapGreaterThan("key2", 0);
-        assertThat(persons).containsExactly(carter);
-    }
-
-    @Test
-    void findByMapKeyValueGreaterThanList() {
-        if (serverVersionSupport.isFindByCDTSupported()) {
-            Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200), "2", List.of(300),
-                "3", List.of(400));
-            Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(101), "1", List.of(201), "2", List.of(301),
-                "3", List.of(401));
-            Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(102), "2", List.of(202), "3", List.of(300),
-                "4", List.of(400));
-            Map<String, List<Integer>> mapOfLists4 = Map.of("2", List.of(1000), "3", List.of(2000), "4",
-                List.of(3000), "5", List.of(4000));
-            stefan.setMapOfIntLists(mapOfLists1);
-            repository.save(stefan);
-            douglas.setMapOfIntLists(mapOfLists2);
-            repository.save(douglas);
-            matias.setMapOfIntLists(mapOfLists3);
-            repository.save(matias);
-            leroi2.setMapOfIntLists(mapOfLists4);
-            repository.save(leroi2);
-
-            List<Person> persons;
-            persons = repository.findByMapOfIntListsGreaterThan("0", List.of(100));
-            assertThat(persons).containsOnly(douglas);
-
-            persons = repository.findByMapOfIntListsGreaterThan("1", List.of(102));
-            assertThat(persons).containsOnly(stefan, douglas);
-
-            persons = repository.findByMapOfIntListsGreaterThan("2", List.of(200));
-            assertThat(persons).containsOnly(stefan, douglas, matias, leroi2);
-
-            persons = repository.findByMapOfIntListsGreaterThan("3", List.of(2000));
-            assertThat(persons).isEmpty();
-        }
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntsGreaterThan(100))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.ints GT: invalid argument type, expecting Collection");
     }
 
     @Test

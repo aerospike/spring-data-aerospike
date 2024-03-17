@@ -48,15 +48,4 @@ public class MatchesRegexTests extends PersonRepositoryQueryTests {
         assertThat(result).contains(oliver);
         TestUtils.setFriendsToNull(repository, oliver, carter);
     }
-
-    @Test
-    void findByExactMapKeyWithValueMatchingRegex() {
-        assertThat(donny.getStringMap()).containsKey("key1");
-        assertThat(donny.getStringMap()).containsValue("val1");
-        assertThat(boyd.getStringMap()).containsKey("key1");
-        assertThat(boyd.getStringMap()).containsValue("val1");
-
-        List<Person> persons = repository.findByStringMapMatchesRegex("key1", "^.*al1$");
-        assertThat(persons).contains(donny, boyd);
-    }
 }

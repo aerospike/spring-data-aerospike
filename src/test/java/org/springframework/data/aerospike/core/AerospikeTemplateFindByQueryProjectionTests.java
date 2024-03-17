@@ -124,7 +124,6 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
 
         Stream<PersonSomeFields> result = template.find(query, PersonSomeFields.class, OVERRIDE_SET_NAME);
-
         assertThat(result).containsOnly(PersonSomeFields.builder()
             .firstName("Dave")
             .lastName("Matthews")

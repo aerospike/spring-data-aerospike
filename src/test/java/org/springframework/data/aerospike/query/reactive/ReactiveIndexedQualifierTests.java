@@ -22,7 +22,7 @@ import com.aerospike.client.query.KeyRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
@@ -60,7 +60,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(LT)
-                .setValue1(Value.get(26))
+                .setValue(Value.get(26))
                 .build();
 
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
@@ -92,7 +92,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(LTEQ)
-                .setValue1(Value.get(26))
+                .setValue(Value.get(26))
                 .build();
 
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
@@ -127,7 +127,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(EQ)
-                .setValue1(Value.get(26))
+                .setValue(Value.get(26))
                 .build();
 
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
@@ -151,7 +151,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(GTEQ)
-                .setValue1(Value.get(28))
+                .setValue(Value.get(28))
                 .build();
 
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
@@ -186,7 +186,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             Qualifier qualifier = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(GT)
-                .setValue1(Value.get(28))
+                .setValue(Value.get(28))
                 .build();
 
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
@@ -209,7 +209,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             Qualifier qualifier = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(EQ)
-                .setValue1(Value.get(ORANGE))
+                .setValue(Value.get(ORANGE))
                 .build();
 
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
@@ -232,7 +232,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             Qualifier qual1 = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
-                .setValue1(Value.get(BLUE))
+                .setValue(Value.get(BLUE))
                 .build();
 
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, new Query(qual1));
@@ -256,13 +256,13 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             Qualifier qual1 = Qualifier.builder()
                 .setField("color")
                 .setFilterOperation(FilterOperation.EQ)
-                .setValue1(Value.get(GREEN))
+                .setValue(Value.get(GREEN))
                 .build();
             Qualifier qual2 = Qualifier.builder()
                 .setField("age")
                 .setFilterOperation(FilterOperation.BETWEEN)
-                .setValue1(Value.get(28))
-                .setValue2(Value.get(29))
+                .setValue(Value.get(28))
+                .setValue(Value.get(29))
                 .build();
 
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null,
@@ -293,7 +293,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
             Qualifier qualifier = Qualifier.builder()
                 .setField(GEO_BIN_NAME)
                 .setFilterOperation(GEO_WITHIN)
-                .setValue1(Value.getAsGeoJSON(rgnstr))
+                .setValue(Value.getAsGeoJSON(rgnstr))
                 .build();
 
             Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_GEO_SET, null, new Query(qualifier));

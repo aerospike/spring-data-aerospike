@@ -65,25 +65,6 @@ public class IsBetweenTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByCollectionValueBetween_Integer() {
-        List<Person> persons = repository.findByIntsBetween(500, 600);
-        assertThat(persons).containsExactlyInAnyOrder(oliver, alicia);
-    }
-
-    @Test
-    void findByCollectionValueBetween_String() {
-        List<Person> persons;
-        persons = repository.findByStringsBetween("str1", "str3");
-        assertThat(persons).containsExactlyInAnyOrder(donny, dave);
-
-        persons = repository.findByStringsBetween("str3", "str3"); // upper limit is exclusive
-        assertThat(persons).isEmpty();
-
-        persons = repository.findByStringsBetween("str3", "str4");
-        assertThat(persons).containsExactlyInAnyOrder(donny);
-    }
-
-    @Test
     void findByCollectionBetween_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsBetween())
             .isInstanceOf(IllegalArgumentException.class)
@@ -95,8 +76,7 @@ public class IsBetweenTests extends PersonRepositoryQueryTests {
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsBetween(Map.of(100, 200), Map.of(300, 400)))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.ints BETWEEN: Type mismatch, expecting one of the following types: Integer, " +
-                "Collection");
+            .hasMessage("Person.ints BETWEEN: invalid argument type, expecting Collection");
     }
 
     @Test
@@ -111,24 +91,6 @@ public class IsBetweenTests extends PersonRepositoryQueryTests {
             persons = repository.findByIntMapBetween(map1, map2);
             assertThat(persons).contains(carter);
         }
-    }
-
-    @Test
-    void findByExactMapKeyAndValueBetween() {
-        assertThat(carter.getIntMap()).containsKey("key1");
-        assertThat(carter.getIntMap().get("key1") >= 0).isTrue();
-
-        List<Person> persons;
-        persons = repository.findByIntMapBetween("key1", 0, 1);
-        assertThat(persons).contains(carter);
-
-        assertThat(donny.getStringMap()).containsKey("key1");
-        assertThat(boyd.getStringMap()).containsKey("key1");
-        assertThat(donny.getStringMap().get("key1").equals("val1")).isTrue();
-        assertThat(boyd.getStringMap().get("key1").equals("val1")).isTrue();
-
-        persons = repository.findByStringMapBetween("key1", "val1", "val2");
-        assertThat(persons).contains(boyd, donny);
     }
 
     @Test
@@ -148,15 +110,19 @@ public class IsBetweenTests extends PersonRepositoryQueryTests {
             repository.save(leroi2);
 
             List<Person> persons;
-            persons = repository.findByMapOfIntListsBetween(Map.of("0", List.of(100), "1", List.of(200)),
-                Map.of("3", List.of(3000), "4", List.of(4001)));
+            var map1 = Map.of("0", List.of(100), "1", List.of(200));
+            var map2 = Map.of("3", List.of(3000), "4", List.of(4001));
+            persons = repository.findByMapOfIntListsBetween(map1, map2);
             assertThat(persons).contains(stefan, douglas, matias, leroi2);
 
-            persons = repository.findByMapOfIntListsBetween(Map.of("0", List.of(100), "1", List.of(200)),
-                Map.of("3", List.of(3000), "4", List.of(4000)));
+            var map3 = Map.of("0", List.of(100), "1", List.of(200));
+            var map4 = Map.of("3", List.of(3000), "4", List.of(4000));
+            persons = repository.findByMapOfIntListsBetween(map3, map4);
             assertThat(persons).contains(stefan, douglas, matias);
 
-            persons = repository.findByMapOfIntListsBetween(Map.of("5", List.of(4001)), Map.of("910", List.of(10000)));
+            var map5 = Map.of("5", List.of(4001));
+            var map6 = Map.of("910", List.of(10000));
+            persons = repository.findByMapOfIntListsBetween(map5, map6);
             assertThat(persons).isEmpty();
         }
     }
@@ -165,26 +131,23 @@ public class IsBetweenTests extends PersonRepositoryQueryTests {
     void findByMapBetween_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two (Maps) or three (Map key " +
-                "and two values)");
+            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two (Maps) or three (Map key " +
-                "and two values)");
+            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100, Map.of(200, 300)))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid combination of arguments, both must be of type Map");
+            .hasMessage("Person.intMap BETWEEN: invalid argument type, expecting Map");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100, 200))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid combination of arguments, both must be of type Map");
+            .hasMessage("Person.intMap BETWEEN: invalid argument type, expecting Map");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween(100, 200, 300, 400))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two (Maps) or three (Map key " +
-                "and two values)");
+            .hasMessage("Person.intMap BETWEEN: invalid number of arguments, expecting two");
     }
 
     @Test

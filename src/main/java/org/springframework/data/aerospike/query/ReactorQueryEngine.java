@@ -24,6 +24,7 @@ import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;

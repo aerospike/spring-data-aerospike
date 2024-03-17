@@ -16,7 +16,7 @@
 package org.springframework.data.aerospike.repository.query;
 
 import com.aerospike.client.query.Filter;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 
 /**
  * @author Peter Milne
@@ -30,18 +30,18 @@ public interface CriteriaDefinition {
     Qualifier getCriteriaObject();
 
     /**
-     * Get the identifying {@literal key}.
+     * Get the identifying {@literal field}.
      *
      * @since 1.6
      */
-    String getKey();
+    String getCriteriaField();
 
-    enum AerospikeQueryCriteria {
-        KEY, VALUE, VALUE_CONTAINING
+    enum AerospikeQueryCriterion {
+        KEY, VALUE, KEY_VALUE_PAIR
     }
 
-    enum AerospikeNullQueryCriteria {
-        NULL
+    enum AerospikeNullQueryCriterion {
+        NULL_PARAM
     }
 
     enum AerospikeMetadata {

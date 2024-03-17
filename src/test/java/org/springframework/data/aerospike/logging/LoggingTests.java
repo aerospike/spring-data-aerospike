@@ -14,9 +14,9 @@ import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.StubParameterAccessor;
@@ -49,7 +49,7 @@ public class LoggingTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("testField")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get("testValue1"))
+            .setValue(Value.get("testValue1"))
             .build();
 
         StatementBuilder statementBuilder = new StatementBuilder(indexesCacheMock);
@@ -73,7 +73,7 @@ public class LoggingTests {
         creator.createQuery();
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
-        String msg = "Created query: firstName EQ TestName";
+        String msg = "Created query: field = firstName, operation = EQ, key = , value = TestName, value2 = ";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }

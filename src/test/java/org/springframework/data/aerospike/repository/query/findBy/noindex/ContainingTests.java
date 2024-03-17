@@ -11,10 +11,10 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriteria.NULL;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.KEY;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE;
-import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriteria.VALUE_CONTAINING;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion.NULL_PARAM;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.VALUE;
 
 /**
  * Tests for the "Contains" repository query. Keywords: Containing, IsContaining, Contains.
@@ -62,9 +62,6 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         assertThat(repository.findByIntArrayContaining(1)).containsOnly(matias);
         assertThat(repository.findByIntArrayContaining(5)).containsOnly(matias, leroi);
         assertThat(repository.findByIntArrayContaining(10)).containsOnly(leroi);
-
-        assertThat(repository.findByIntArrayContaining(1, 2)).containsOnly(matias);
-        assertThat(repository.findByIntArrayContaining(6, 7)).containsOnly(leroi);
     }
 
     @Test
@@ -77,8 +74,6 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         assertThat(repository.findByIntsContaining(550)).containsOnly(oliver, alicia);
         assertThat(repository.findByIntsContaining(990)).containsOnly(oliver, alicia);
         assertThat(repository.findByIntsContaining(600)).containsOnly(alicia);
-        assertThat(repository.findByIntsContaining(550, 990)).containsOnly(oliver, alicia);
-        assertThat(repository.findByIntsContaining(550, 990, 600)).containsOnly(alicia);
         assertThat(repository.findByIntsContaining(7777)).isEmpty();
     }
 
@@ -89,7 +84,7 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         strings.add("null");
         stefan.setStrings(strings);
         repository.save(stefan);
-        assertThat(repository.findByStringsContaining(NULL)).contains(stefan);
+        assertThat(repository.findByStringsContaining(NULL_PARAM)).contains(stefan);
 
         stefan.setStrings(null); // cleanup
         repository.save(stefan);
@@ -99,11 +94,7 @@ public class ContainingTests extends PersonRepositoryQueryTests {
     void findByCollectionContaining_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsContaining())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.ints CONTAINING: invalid number of arguments, expecting at least one");
-
-        assertThatThrownBy(() -> negativeTestsRepository.findByIntsNotContaining())
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.ints NOT_CONTAINING: invalid number of arguments, expecting at least one");
+            .hasMessage("Person.ints CONTAINING: invalid number of arguments, expecting one");
     }
 
     @Test
@@ -161,14 +152,8 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         assertThat(donny.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsKey("key1");
 
-        List<Person> persons = repository.findByStringMapContaining("key1", KEY);
+        List<Person> persons = repository.findByStringMapContaining(KEY, "key1");
         assertThat(persons).contains(donny, boyd);
-
-        List<Person> persons2 = repository.findByStringMapContaining("key1", "key2", KEY);
-        assertThat(persons2).contains(boyd);
-
-        List<Person> persons3 = repository.findByStringMapContaining("key1", "key2", "key3", KEY);
-        assertThat(persons3).isEmpty();
     }
 
     @Test
@@ -176,12 +161,8 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         assertThat(donny.getStringMap()).containsValue("val1");
         assertThat(boyd.getStringMap()).containsValue("val1");
 
-        List<Person> persons = repository.findByStringMapContaining("val1", VALUE);
+        List<Person> persons = repository.findByStringMapContaining(VALUE, "val1");
         assertThat(persons).contains(donny, boyd);
-        List<Person> persons2 = repository.findByStringMapContaining("val1", "val2", VALUE);
-        assertThat(persons2).contains(boyd);
-        List<Person> persons3 = repository.findByStringMapContaining("val1", "val2", "val3", VALUE);
-        assertThat(persons3).isEmpty();
     }
 
     @Test
@@ -199,40 +180,27 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         leroi2.setMapOfIntLists(mapOfLists4);
         repository.save(leroi2);
 
-        List<Person> persons = repository.findByMapOfIntListsContaining(List.of(100), VALUE);
+        List<Person> persons = repository.findByMapOfIntListsContaining(VALUE, List.of(100));
         assertThat(persons).contains(stefan);
-        List<Person> persons2 = repository.findByMapOfIntListsContaining(List.of(201), VALUE);
+        List<Person> persons2 = repository.findByMapOfIntListsContaining(VALUE, List.of(201));
         assertThat(persons2).contains(douglas, matias);
-        List<Person> persons3 = repository.findByMapOfIntListsContaining(List.of(20000), VALUE);
+        List<Person> persons3 = repository.findByMapOfIntListsContaining(VALUE, List.of(20000));
         assertThat(persons3).isEmpty();
     }
 
     @Test
-    void findByExactMapKeysWithValuesContainingString() {
-        assertThat(donny.getStringMap()).containsKey("key1");
-        assertThat(donny.getStringMap()).containsValue("val1");
-        assertThat(boyd.getStringMap()).containsKey("key1");
-        assertThat(boyd.getStringMap()).containsValue("val1");
-
-        List<Person> persons = repository.findByStringMapContaining("key1", "al", VALUE_CONTAINING);
-        assertThat(persons).contains(donny, boyd);
-
-        List<Person> persons2 = repository.findByStringMapContaining("key1", "al", "key2", "va", VALUE_CONTAINING);
-        assertThat(persons2).contains(boyd);
-    }
-
-    @Test
-    void findByExactMapKeysWithValuesContainingBoolean() {
+    void findByExactMapKeyAndValue_Boolean() {
         oliver.setMapOfBoolean(Map.of("test", true));
         repository.save(oliver);
         alicia.setMapOfBoolean(Map.of("test", true));
         repository.save(alicia);
 
-        assertThat(repository.findByMapOfBooleanContaining("test", true)).containsOnly(oliver, alicia);
+        assertThat(repository.findByMapOfBooleanContaining(KEY_VALUE_PAIR, "test", true))
+            .containsOnly(oliver, alicia);
     }
 
     @Test
-    void findByExactMapKeysWithValuesContainingList() {
+    void findByExactMapKeyAndValue_List() {
         Map<String, List<Integer>> mapOfLists1 = Map.of("0", List.of(100), "1", List.of(200));
         Map<String, List<Integer>> mapOfLists2 = Map.of("0", List.of(100), "1", List.of(201));
         Map<String, List<Integer>> mapOfLists3 = Map.of("1", List.of(201), "2", List.of(202));
@@ -247,18 +215,18 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         repository.save(leroi2);
 
         List<Person> persons;
-        persons = repository.findByMapOfIntListsContaining("0", List.of(100));
+        persons = repository.findByMapOfIntListsContaining(KEY_VALUE_PAIR, "0", List.of(100));
         assertThat(persons).containsExactlyInAnyOrder(stefan, douglas);
 
-        persons = repository.findByMapOfIntListsContaining("2", List.of(202));
+        persons = repository.findByMapOfIntListsContaining(KEY_VALUE_PAIR, "2", List.of(202));
         assertThat(persons).containsExactlyInAnyOrder(matias, leroi2);
 
-        persons = repository.findByMapOfIntListsContaining("34", List.of(2000));
+        persons = repository.findByMapOfIntListsContaining(KEY_VALUE_PAIR, "34", List.of(2000));
         assertThat(persons).isEmpty();
     }
 
     @Test
-    void findByExactMapKeysWithValuesContainingPOJO() {
+    void findByExactMapKeyAndValue_POJO() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
             Address address2 = new Address("Foo Street 2", 1, "C0123", "Bar");
@@ -279,13 +247,13 @@ public class ContainingTests extends PersonRepositoryQueryTests {
             repository.save(leroi2);
 
             List<Person> persons;
-            persons = repository.findByAddressesMapContaining("a", address1);
+            persons = repository.findByAddressesMapContaining(KEY_VALUE_PAIR, "a", address1);
             assertThat(persons).containsExactlyInAnyOrder(stefan, douglas, matias, leroi2);
 
-            persons = repository.findByAddressesMapContaining("b", address2);
+            persons = repository.findByAddressesMapContaining(KEY_VALUE_PAIR, "b", address2);
             assertThat(persons).containsExactlyInAnyOrder(douglas, leroi2);
 
-            persons = repository.findByAddressesMapContaining("cd", address3);
+            persons = repository.findByAddressesMapContaining(KEY_VALUE_PAIR, "cd", address3);
             assertThat(persons).isEmpty();
 
             stefan.setAddressesMap(null);
@@ -300,21 +268,13 @@ public class ContainingTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByMapContainingKeyValuePairs() {
-        assertThat(donny.getStringMap()).containsKey("key1");
-        assertThat(donny.getStringMap()).containsValue("val1");
-        assertThat(boyd.getStringMap()).containsKey("key1");
-        assertThat(boyd.getStringMap()).containsValue("val1");
+    void findByExactMapKeyAndValue_Integer() {
+        assertThat(carter.getIntMap()).containsKey("key1");
+        assertThat(carter.getIntMap()).containsValue(0);
 
         List<Person> persons;
-        persons = repository.findByStringMapContaining("key1", "val1");
-        assertThat(persons).containsExactlyInAnyOrder(donny, boyd);
-
-        persons = repository.findByStringMapContaining("key1", "val1", "key2", "val2");
-        assertThat(persons).containsExactly(boyd);
-
-        persons = repository.findByStringMapContaining("key1", "val1", "key2", "val2", "key3", "value3");
-        assertThat(persons).isEmpty();
+        persons = repository.findByIntMapContaining(KEY_VALUE_PAIR, "key1", 0);
+        assertThat(persons).containsExactlyInAnyOrder(carter);
     }
 
     @Test
@@ -325,11 +285,11 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         repository.save(stefan);
 
         // find Persons with stringMap containing null value (regardless of a key)
-        assertThat(repository.findByStringMapContaining(NULL, VALUE)).contains(stefan);
+        assertThat(repository.findByStringMapContaining(VALUE, NULL_PARAM)).contains(stefan);
 
         // Currently getting key-specific results for a Map requires 2 steps:
         // firstly query for all entities with existing map key
-        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining("key", KEY);
+        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining(KEY, "key");
         // and then leave only the records that have the key's value == null
         List<Person> personsWithMapValueNull = personsWithMapKeyExists.stream()
             .filter(person -> person.getStringMap().get("key") == null).toList();
@@ -358,13 +318,27 @@ public class ContainingTests extends PersonRepositoryQueryTests {
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapContaining(KEY, VALUE))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.stringMap CONTAINING: invalid combination of arguments, cannot have multiple " +
-                "MapCriteria arguments");
+            .hasMessage("Person.stringMap CONTAINING: invalid map key type at position 2");
 
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapContaining("key", "value", new Person("id",
             "firstName"), "value"))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.stringMap CONTAINING: invalid argument type, expected String, Number or byte[] at " +
-                "position 3");
+            .hasMessage("Person.stringMap CONTAINING: invalid first argument type, required AerospikeQueryCriterion");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntMapContaining(KEY, 100))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.intMap CONTAINING: invalid map key type at position 2");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntMapContaining(VALUE, "test"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.intMap CONTAINING: invalid map value type at position 2");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntMapContaining(KEY_VALUE_PAIR, "test"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.intMap CONTAINING: invalid number of arguments, expecting three");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIntMapContaining(KEY_VALUE_PAIR, "test", "test2"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.intMap CONTAINING: invalid map value type at position 3");
     }
 }

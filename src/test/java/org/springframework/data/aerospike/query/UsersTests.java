@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Value;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +36,7 @@ class UsersTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.builder()
             .setField("region")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get("n"))
+            .setValue(Value.get("n"))
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, USERS_SET, null, new Query(qualifier));

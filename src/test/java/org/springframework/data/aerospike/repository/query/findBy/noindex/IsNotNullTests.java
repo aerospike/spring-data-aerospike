@@ -11,12 +11,9 @@ public class IsNotNullTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedSimpleValueIsNotNull() {
-        Assertions.assertThat(stefan.getAddress())
-            .isNull();
-        Assertions.assertThat(carter.getAddress()
-            .getZipCode()).isNotNull();
-        Assertions.assertThat(dave.getAddress()
-            .getZipCode()).isNotNull();
+        Assertions.assertThat(stefan.getAddress()).isNull();
+        Assertions.assertThat(carter.getAddress().getZipCode()).isNotNull();
+        Assertions.assertThat(dave.getAddress().getZipCode()).isNotNull();
 
         stefan.setAddress(new Address(null, null, "zipCode", null));
         repository.save(stefan);
@@ -25,8 +22,7 @@ public class IsNotNullTests extends PersonRepositoryQueryTests {
 
         stefan.setAddress(new Address(null, null, null, null));
         repository.save(stefan);
-        Assertions.assertThat(repository.findByAddressZipCodeIsNotNull())
-            .doesNotContain(stefan); // zipCode is null
+        Assertions.assertThat(repository.findByAddressZipCodeIsNotNull()).doesNotContain(stefan); // zipCode is null
 
         stefan.setAddress(null); // cleanup
         repository.save(stefan);
@@ -34,25 +30,20 @@ public class IsNotNullTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByPOJOIsNotNull() {
-        Assertions.assertThat(stefan.getAddress())
-            .isNull();
-        Assertions.assertThat(carter.getAddress())
-            .isNotNull();
-        Assertions.assertThat(dave.getAddress())
-            .isNotNull();
+        Assertions.assertThat(stefan.getAddress()).isNull();
+        Assertions.assertThat(carter.getAddress()).isNotNull();
+        Assertions.assertThat(dave.getAddress()).isNotNull();
         Assertions.assertThat(repository.findByAddressIsNotNull())
             .contains(carter, dave)
             .doesNotContain(stefan);
 
-        stefan.setAddress(new Address(null, null, "zipCode", null));
+        stefan.setAddress(new Address(null, null, "zipCode", null)); // Address is not null
         repository.save(stefan);
-        Assertions.assertThat(repository.findByAddressIsNotNull())
-            .contains(stefan); // Address is not null
+        Assertions.assertThat(repository.findByAddressIsNotNull()).contains(stefan);
 
-        stefan.setAddress(new Address(null, null, null, null));
+        stefan.setAddress(new Address(null, null, null, null)); // Address is not null
         repository.save(stefan);
-        Assertions.assertThat(repository.findByAddressIsNotNull())
-            .contains(stefan); // Address is not null
+        Assertions.assertThat(repository.findByAddressIsNotNull()).contains(stefan);
 
         stefan.setAddress(null); // cleanup
         repository.save(stefan);

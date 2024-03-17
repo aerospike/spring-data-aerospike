@@ -18,10 +18,13 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.Key;
 import com.aerospike.client.Value;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.support.SimpleAerospikeRepository;
 
 import java.io.Serial;
+
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DIGEST_KEY;
 
 /**
  * Qualifier used to query by primary key
@@ -36,7 +39,6 @@ public class KeyQualifier extends Qualifier {
 
     @Serial
     private static final long serialVersionUID = 2430949321378171078L;
-    private static final String DIGEST_KEY = "digest";
 
     boolean hasDigest = false;
 
@@ -44,7 +46,7 @@ public class KeyQualifier extends Qualifier {
         super(Qualifier.builder()
             .setField(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(value)
+            .setValue(value)
         );
     }
 
@@ -52,7 +54,7 @@ public class KeyQualifier extends Qualifier {
         super(Qualifier.builder()
             .setField(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(null)
+            .setValue(null)
         );
         this.internalMap.put(DIGEST_KEY, digest);
         this.hasDigest = true;
@@ -60,7 +62,7 @@ public class KeyQualifier extends Qualifier {
 
     @Override
     protected String luaFieldString(String field) {
-        return DIGEST_KEY;
+        return "digest";
     }
 
     public byte[] getDigest() {
@@ -72,6 +74,6 @@ public class KeyQualifier extends Qualifier {
             byte[] digest = getDigest();
             return new Key(namespace, digest, set, null);
         }
-        return new Key(namespace, set, getValue1());
+        return new Key(namespace, set, getValue());
     }
 }

@@ -8,10 +8,10 @@ import org.springframework.data.aerospike.config.BlockingTestConfig;
 import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
@@ -58,7 +58,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
         Qualifier lastUpdateTimeLtMillis = Qualifier.metadataBuilder()
             .setMetadataField(LAST_UPDATE_TIME)
             .setFilterOperation(operation)
-            .setValue1AsObj(lastUpdateTimeMillis * MILLIS_TO_NANO)
+            .setValueAsObj(lastUpdateTimeMillis * MILLIS_TO_NANO)
             .build();
         return template.find(new Query(lastUpdateTimeLtMillis), entityClass).toList();
     }

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.Qualifier;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
@@ -46,6 +46,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY;
+import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
 import static org.springframework.data.domain.Sort.Order.asc;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -333,50 +335,17 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findByListValueLessThanOrEqual() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsLessThanEqual", 25);
-        Stream<Person> result = template.find(query, Person.class);
-
-        assertThat(result)
-            .hasSize(2)
-            .containsExactlyInAnyOrder(ashley, beatrice);
-    }
-
-    @Test
-    public void findByListValueGreaterThan() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsGreaterThan", 10);
-        Stream<Person> result = template.find(query, Person.class);
-
-        assertThat(result)
-            .hasSize(3)
-            .containsExactlyInAnyOrder(ashley, beatrice, jean);
-    }
-
-    @Test
-    public void findByListValueInRange() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsBetween", 10, 700);
-        Stream<Person> result = template.find(query, Person.class);
-
-        assertThat(result)
-            .hasSize(3)
-            .containsExactlyInAnyOrder(jean, ashley, beatrice);
-    }
-
-    @Test
     public void findByMapKeysContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1",
-            CriteriaDefinition.AerospikeQueryCriteria.KEY);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", KEY, "key1");
         Stream<Person> result = template.find(query, Person.class);
 
-        assertThat(result)
-            .hasSize(1)
-            .containsExactlyInAnyOrder(dave);
+        assertThat(result).containsExactlyInAnyOrder(dave);
     }
 
     @Test
     public void findByMapValuesContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "val2",
-            CriteriaDefinition.AerospikeQueryCriteria.VALUE);
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining",
+            CriteriaDefinition.AerospikeQueryCriterion.VALUE, "val2");
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -386,62 +355,11 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByMapKeyValueContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key1", "val1");
+        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining",
+            KEY_VALUE_PAIR, "key1", "val1");
         Stream<Person> result = template.find(query, Person.class);
 
-        assertThat(result)
-            .hasSize(1)
-            .containsExactlyInAnyOrder(dave);
-    }
-
-    @Test
-    public void findByMapKeyValueNotEquals() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapIsNot", "key2", 11);
-        Stream<Person> result = template.find(query, Person.class);
-
-        assertThat(result)
-            .contains(xylophone);
-    }
-
-    @Test
-    public void findByMapKeyValueGreaterThan() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapGreaterThan", "key1", 1);
-        Stream<Person> result = template.find(query, Person.class);
-
-        assertThat(result)
-            .hasSize(1)
-            .containsExactlyInAnyOrder(knowlen);
-    }
-
-    @Test
-    public void findByMapKeyValueBetween() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntMapBetween", "key3", 11, 25);
-        Stream<Person> result = template.find(query, Person.class);
-
-        assertThat(result)
-            .hasSize(1)
-            .containsExactlyInAnyOrder(mitch);
-    }
-
-    @Test
-    public void findByMapKeyValueStartsWith() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapStartsWith", "key4", "val");
-        Stream<Person> result = template.find(query, Person.class);
-
-        assertThat(result)
-            .hasSize(2)
-            .containsExactlyInAnyOrder(alister, aabbot);
-    }
-
-    @Test
-    public void findByMapKeyValueContains() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", "key4", "al",
-            CriteriaDefinition.AerospikeQueryCriteria.VALUE_CONTAINING);
-        Stream<Person> result = template.find(query, Person.class);
-
-        assertThat(result)
-            .hasSize(2)
-            .containsExactlyInAnyOrder(alister, aabbot);
+        assertThat(result).containsExactlyInAnyOrder(dave);
     }
 
     @Test
@@ -539,7 +457,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Qualifier qualifier = Qualifier.builder()
             .setField(fieldName)
             .setFilterOperation(FilterOperation.EQ)
-            .setValue1(Value.get(fieldValue1))
+            .setValue(Value.get(fieldValue1))
             .build();
         Stream<SampleClasses.CustomCollectionClass> result1 =
             template.find(new Query(qualifier), SampleClasses.CustomCollectionClass.class);
@@ -549,12 +467,12 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Qualifier dataEqFieldValue1 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
             .setField(fieldName)
-            .setValue1(Value.get(fieldValue1))
+            .setValue(Value.get(fieldValue1))
             .build();
         Qualifier dataEqFieldValue2 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
             .setField(fieldName)
-            .setValue1(Value.get(fieldValue2))
+            .setValue(Value.get(fieldValue2))
             .build();
         Qualifier qualifierOr = Qualifier.or(dataEqFieldValue1, dataEqFieldValue2);
         Stream<SampleClasses.CustomCollectionClass> result3 =

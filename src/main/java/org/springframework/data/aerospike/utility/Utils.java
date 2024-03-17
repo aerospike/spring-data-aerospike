@@ -147,8 +147,4 @@ public class Utils {
                 Pattern.class == type ||
                 Class.class == type));
     }
-
-    public static boolean isBoolean(Class<?> type) {
-        return Boolean.TYPE.equals(type) || Boolean.class.equals(type);
-    }
 }

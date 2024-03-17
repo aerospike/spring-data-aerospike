@@ -19,6 +19,8 @@ package org.springframework.data.aerospike.query;
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import org.springframework.data.aerospike.exceptions.QualifierException;
+import org.springframework.data.aerospike.query.qualifier.MetadataQualifierBuilder;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 
 import java.io.Serial;
 
@@ -38,7 +40,7 @@ public class ExpiryQualifier extends Qualifier {
         super(Qualifier.builder()
             .setField(QueryEngine.Meta.EXPIRATION.toString())
             .setFilterOperation(op)
-            .setValue1(value)
+            .setValue(value)
         );
         if (value.getType() != ParticleType.INTEGER) {
             throw new QualifierException("ExpiryQualifier value must be an integer or long");

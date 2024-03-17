@@ -17,6 +17,7 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.Expression;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;

@@ -106,15 +106,4 @@ public class StartsWithTests extends PersonRepositoryQueryTests {
 
         TestUtils.setFriendsToNull(repository, oliver, dave, carter);
     }
-
-    @Test
-    void findByExactMapKeyWithValueStartingWith() {
-        assertThat(donny.getStringMap()).containsKey("key1");
-        assertThat(donny.getStringMap()).containsValue("val1");
-        assertThat(boyd.getStringMap()).containsKey("key1");
-        assertThat(boyd.getStringMap()).containsValue("val1");
-
-        List<Person> persons = repository.findByStringMapStartsWith("key1", "val");
-        assertThat(persons).contains(donny, boyd);
-    }
 }

@@ -14,15 +14,14 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.springframework.data.aerospike.query;
+package org.springframework.data.aerospike.query.qualifier;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
-import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
-import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.Serial;
@@ -34,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
+
 /**
  * Generic Bin qualifier. It acts as a filter to exclude records that do not meet the given criteria.
  * <p>
@@ -41,26 +42,13 @@ import java.util.Set;
  *
  * @author Peter Milne
  */
-public class Qualifier implements CriteriaDefinition, Map<String, Object>, Serializable {
+public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>, Serializable {
 
-    protected static final String FIELD = "field";
-    protected static final String METADATA_FIELD = "metadata_field";
-    protected static final String SINGLE_ID_FIELD = "id";
-    protected static final String MULTIPLE_IDS_FIELD = "ids";
-    protected static final String IGNORE_CASE = "ignoreCase";
-    protected static final String VALUE1 = "value1";
-    protected static final String VALUE2 = "value2";
-    protected static final String VALUE3 = "value3";
-    protected static final String DOT_PATH = "dotPath";
-    protected static final String CONVERTER = "converter";
-    protected static final String QUALIFIERS = "qualifiers";
-    protected static final String OPERATION = "operation";
-    protected static final String AS_FILTER = "queryAsFilter";
     @Serial
     private static final long serialVersionUID = -2689196529952712849L;
-    protected final Map<String, Object> internalMap = new HashMap<>();
+    protected final Map<QualifierKey, Object> internalMap = new HashMap<>();
 
-    protected Qualifier(Qualifier.Builder builder) {
+    protected Qualifier(IQualifierBuilder builder) {
         if (!builder.getMap().isEmpty()) {
             internalMap.putAll(builder.getMap());
         }
@@ -78,11 +66,11 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     }
 
     @Override
-    public String getKey() {
+    public String getCriteriaField() {
         return this.getField();
     }
 
-    private Map<String, Object> getMap() {
+    private Map<QualifierKey, Object> getMap() {
         return Collections.unmodifiableMap(this.internalMap);
     }
 
@@ -134,12 +122,16 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
         return (Qualifier[]) internalMap.get(QUALIFIERS);
     }
 
-    public Value getValue1() {
-        return (Value) internalMap.get(VALUE1);
+    public Value getKey() {
+        return (Value) internalMap.get(KEY);
     }
 
-    public Value getValue2() {
-        return (Value) internalMap.get(VALUE2);
+    public Value getValue() {
+        return (Value) internalMap.get(VALUE);
+    }
+
+    public Value getSecondValue() {
+        return (Value) internalMap.get(SECOND_VALUE);
     }
 
     @SuppressWarnings("unchecked")
@@ -194,7 +186,7 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     }
 
     @Override
-    public Object put(String key, Object value) {
+    public Object put(QualifierKey key, Object value) {
         return internalMap.put(key, value);
     }
 
@@ -204,7 +196,7 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     }
 
     @Override
-    public void putAll(Map<? extends String, ?> m) {
+    public void putAll(Map<? extends QualifierKey, ?> m) {
         internalMap.putAll(m);
     }
 
@@ -214,7 +206,7 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     }
 
     @Override
-    public Set<String> keySet() {
+    public Set<QualifierKey> keySet() {
         return internalMap.keySet();
     }
 
@@ -224,273 +216,17 @@ public class Qualifier implements CriteriaDefinition, Map<String, Object>, Seria
     }
 
     @Override
-    public Set<Entry<String, Object>> entrySet() {
+    public Set<Entry<QualifierKey, Object>> entrySet() {
         return internalMap.entrySet();
     }
 
     @Override
     public String toString() {
         if (!StringUtils.hasLength(getField()) && StringUtils.hasLength(getMetadataField().toString())) {
-            return String.format("%s:%s:%s:%s", getField(), getOperation(), getValue1(), getValue2());
+            return String.format("%s:%s:%s:%s:%s", getField(), getOperation(), getKey(), getValue(), getSecondValue());
         }
-        return String.format("(metadata)%s:%s:%s:%s", getMetadataField().toString(),
-            getOperation(), getValue1(), getValue2());
-    }
-
-    protected interface Builder {
-
-        Map<String, Object> getMap();
-
-        Qualifier build();
-    }
-
-    public static class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
-
-        private QualifierBuilder() {
-        }
-
-        public QualifierBuilder setIgnoreCase(boolean ignoreCase) {
-            this.map.put(IGNORE_CASE, ignoreCase);
-            return this;
-        }
-
-        public QualifierBuilder setField(String field) {
-            this.map.put(FIELD, field);
-            return this;
-        }
-
-        public QualifierBuilder setValue1(Value value1) {
-            this.map.put(VALUE1, value1);
-            return this;
-        }
-
-        public QualifierBuilder setValue2(Value value2) {
-            this.map.put(VALUE2, value2);
-            return this;
-        }
-
-        public QualifierBuilder setValue3(Value value3) {
-            this.map.put(VALUE3, value3);
-            return this;
-        }
-
-        public boolean hasValue3() {
-            return this.map.get(VALUE3) != null;
-        }
-
-        public void setDotPath(List<String> dotPath) {
-            this.map.put(DOT_PATH, dotPath);
-        }
-
-        public QualifierBuilder setConverter(MappingAerospikeConverter converter) {
-            this.map.put(CONVERTER, converter);
-            return this;
-        }
-    }
-
-    public static class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQualifierBuilder> {
-
-        private MetadataQualifierBuilder() {
-        }
-
-        public CriteriaDefinition.AerospikeMetadata getMetadataField() {
-            return (CriteriaDefinition.AerospikeMetadata) map.get(METADATA_FIELD);
-        }
-
-        public MetadataQualifierBuilder setMetadataField(CriteriaDefinition.AerospikeMetadata metadataField) {
-            this.map.put(METADATA_FIELD, metadataField);
-            return this;
-        }
-
-        public Object getValue1AsObj() {
-            return this.map.get(VALUE1);
-        }
-
-        public MetadataQualifierBuilder setValue1AsObj(Object object) {
-            this.map.put(VALUE1, object);
-            return this;
-        }
-
-        public Object getValue2AsObj() {
-            return this.map.get(VALUE2);
-        }
-
-        public MetadataQualifierBuilder setValue2AsObj(Object object) {
-            this.map.put(VALUE2, object);
-            return this;
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        protected void validate() {
-            // metadata query
-            if (this.getMetadataField() != null) {
-                if (this.getField() == null) {
-                    FilterOperation operation = this.getFilterOperation();
-                    switch (operation) {
-                        case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(this.getValue1AsObj() instanceof Long,
-                            operation.name() + ": value1 is expected to be set as Long");
-                        case BETWEEN -> {
-                            Assert.isTrue(this.getValue1AsObj() instanceof Long,
-                                "BETWEEN: value1 is expected to be set as Long");
-                            Assert.isTrue(this.getValue2AsObj() instanceof Long,
-                                "BETWEEN: value2 is expected to be set as Long");
-                        }
-                        case NOT_IN, IN -> Assert.isTrue(this.getValue1AsObj() instanceof Collection
-                                && (!((Collection<Object>) this.getValue1AsObj()).isEmpty())
-                                && ((Collection<Object>) this.getValue1AsObj()).toArray()[0] instanceof Long,
-                            operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
-                        default ->
-                            throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
-                                "metadataField");
-                    }
-                } else {
-                    throw new IllegalArgumentException("Either a field or a metadataField must be set, not both");
-                }
-            }
-        }
-    }
-
-    private static class IdQualifierBuilder extends BaseQualifierBuilder<IdQualifierBuilder> {
-
-        private IdQualifierBuilder() {
-        }
-
-        private IdQualifierBuilder setId(String id) {
-            this.map.put(SINGLE_ID_FIELD, id);
-            return this;
-        }
-
-        private IdQualifierBuilder setId(Short id) {
-            this.map.put(SINGLE_ID_FIELD, id);
-            return this;
-        }
-
-        private IdQualifierBuilder setId(Integer id) {
-            this.map.put(SINGLE_ID_FIELD, id);
-            return this;
-        }
-
-        private IdQualifierBuilder setId(Long id) {
-            this.map.put(SINGLE_ID_FIELD, id);
-            return this;
-        }
-
-        private IdQualifierBuilder setId(Character id) {
-            this.map.put(SINGLE_ID_FIELD, id);
-            return this;
-        }
-
-        private IdQualifierBuilder setId(Byte id) {
-            this.map.put(SINGLE_ID_FIELD, id);
-            return this;
-        }
-
-        private IdQualifierBuilder setId(byte[] id) {
-            this.map.put(SINGLE_ID_FIELD, id);
-            return this;
-        }
-
-        private IdQualifierBuilder setIds(String... ids) {
-            this.map.put(MULTIPLE_IDS_FIELD, ids);
-            return this;
-        }
-
-        private IdQualifierBuilder setIds(Short... ids) {
-            this.map.put(MULTIPLE_IDS_FIELD, ids);
-            return this;
-        }
-
-        private IdQualifierBuilder setIds(Integer... ids) {
-            this.map.put(MULTIPLE_IDS_FIELD, ids);
-            return this;
-        }
-
-        private IdQualifierBuilder setIds(Long... ids) {
-            this.map.put(MULTIPLE_IDS_FIELD, ids);
-            return this;
-        }
-
-        private IdQualifierBuilder setIds(Character... ids) {
-            this.map.put(MULTIPLE_IDS_FIELD, ids);
-            return this;
-        }
-
-        private IdQualifierBuilder setIds(Byte... ids) {
-            this.map.put(MULTIPLE_IDS_FIELD, ids);
-            return this;
-        }
-
-        private IdQualifierBuilder setIds(byte[]... ids) {
-            this.map.put(MULTIPLE_IDS_FIELD, ids);
-            return this;
-        }
-    }
-
-    private static class ConjunctionQualifierBuilder extends BaseQualifierBuilder<ConjunctionQualifierBuilder> {
-
-        private ConjunctionQualifierBuilder() {
-        }
-
-        private ConjunctionQualifierBuilder setQualifiers(Qualifier... qualifiers) {
-            this.map.put(QUALIFIERS, qualifiers);
-            return this;
-        }
-
-        private Qualifier[] getQualifiers() {
-            return (Qualifier[]) this.map.get(QUALIFIERS);
-        }
-
-        @Override
-        protected void validate() {
-            Assert.notNull(this.getQualifiers(), "Qualifiers must not be null");
-            Assert.notEmpty(this.getQualifiers(), "Qualifiers must not be empty");
-            Assert.isTrue(this.getQualifiers().length > 1, "There must be at least 2 qualifiers");
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected abstract static class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements Builder {
-
-        protected final Map<String, Object> map = new HashMap<>();
-
-        public FilterOperation getFilterOperation() {
-            return (FilterOperation) this.map.get(OPERATION);
-        }
-
-        public T setFilterOperation(FilterOperation filterOperation) {
-            this.map.put(OPERATION, filterOperation);
-            return (T) this;
-        }
-
-        public String getField() {
-            return (String) this.map.get(FIELD);
-        }
-
-        public boolean hasValue1() {
-            return this.map.get(VALUE1) != null;
-        }
-
-        public boolean hasValue2() {
-            return this.map.get(VALUE2) != null;
-        }
-
-        public boolean hasDotPath() {
-            return this.map.get(DOT_PATH) != null;
-        }
-
-        public Qualifier build() {
-            validate();
-            return new Qualifier(this);
-        }
-
-        public Map<String, Object> getMap() {
-            return Collections.unmodifiableMap(this.map);
-        }
-
-        protected void validate() {
-            // do nothing
-        }
+        return String.format("(metadata) %s:%s:%s:%s:%s", getMetadataField().toString(),
+            getOperation(), getKey(), getValue(), getSecondValue());
     }
 
     /**

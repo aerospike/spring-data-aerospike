@@ -2,7 +2,7 @@ package org.springframework.data.aerospike.sample;
 
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
-import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
@@ -35,50 +35,25 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
 
     Mono<Page<IndexedPerson>> findByAgeLessThan(int value, Pageable pageable);
 
-    Flux<IndexedPerson> findByStringMapContaining(String element, CriteriaDefinition.AerospikeQueryCriteria criteria);
+    Flux<IndexedPerson> findByStringMapContaining(AerospikeQueryCriterion criteria, String element);
+
+    /**
+     * Find all entities that satisfy the condition "have exactly the given map key and value"
+     *
+     * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
+     * @param key   Map key
+     * @param value Value of the key
+     */
+    Flux<IndexedPerson> findByStringMapContaining(AerospikeQueryCriterion criterionPair, String key, String value);
 
     /**
      * Find all entities that satisfy the condition "have exactly the given map key and the given value"
      *
+     * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
      * @param key   Map key
      * @param value Value of the key
      */
-    Flux<IndexedPerson> findByStringMapContaining(String key, String value);
-
-    /**
-     * Find all entities that satisfy the condition "have exactly the given map key and the given value"
-     *
-     * @param key   Map key
-     * @param value Value of the key
-     */
-    Flux<IndexedPerson> findByIntMapContaining(String key, int value);
-
-    /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is greater than the given
-     * integer"
-     *
-     * @param key         Map key
-     * @param greaterThan integer to check if value is greater than it
-     */
-    Flux<IndexedPerson> findByIntMapGreaterThan(String key, int greaterThan);
-
-    /**
-     * Find all entities that satisfy the condition "have the given map key and a value that is less than or equal to
-     * the given integer"
-     *
-     * @param key               Map key
-     * @param lessThanOrEqualTo integer to check if value satisfies the condition
-     */
-    Flux<IndexedPerson> findByIntMapLessThanEqual(String key, int lessThanOrEqualTo);
-
-    /**
-     * Find all entities that satisfy the condition "have the given map key and a value in between the given integers"
-     *
-     * @param key  Map key
-     * @param from the lower limit for the map value, inclusive
-     * @param to   the upper limit for the map value, inclusive
-     */
-    Flux<IndexedPerson> findByIntMapBetween(String key, int from, int to);
+    Flux<IndexedPerson> findByIntMapContaining(AerospikeQueryCriterion criterionPair, String key, int value);
 
     Flux<IndexedPerson> findByFriendLastName(String value);
 
@@ -134,39 +109,6 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * @param integer number to check
      */
     Flux<IndexedPerson> findByIntsContaining(int integer);
-
-    /**
-     * Find all entities that satisfy the condition "have at least one list value which is greater than the given
-     * integer"
-     * <p>
-     * List name in this case is Ints
-     * </p>
-     *
-     * @param integer upper limit, exclusive
-     */
-    Flux<IndexedPerson> findByIntsGreaterThan(int integer);
-
-    /**
-     * Find all entities that satisfy the condition "have at least one list value which is less than or equal to the
-     * given integer"
-     * <p>
-     * List name in this case is Ints
-     * </p>
-     *
-     * @param integer upper limit, inclusive
-     */
-    Flux<IndexedPerson> findByIntsLessThanEqual(int integer);
-
-    /**
-     * Find all entities that satisfy the condition "have at least one list value in the given range"
-     * <p>
-     * List name in this case is Ints
-     * </p>
-     *
-     * @param from lower limit, inclusive
-     * @param to   upper limit, inclusive
-     */
-    Flux<IndexedPerson> findByIntsBetween(int from, int to);
 
     Flux<IndexedPerson> findByFirstName(String string);
 
