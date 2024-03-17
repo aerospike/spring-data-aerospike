@@ -115,7 +115,9 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     private boolean isValidMapKeyTypeOrUnresolved(TypeInformation<?> typeInformation, Object param) {
         Class<?> mapKeyClass;
         try {
-            // Expected to return non-null value as far as typeInformation is a Map
+            if (typeInformation.getComponentType() == null) {
+                return true;
+            }
             mapKeyClass = typeInformation.getComponentType().getType();
         } catch (IllegalStateException e) { // cannot resolve Map key type
             mapKeyClass = null;
@@ -126,13 +128,15 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     private boolean isValidMapValueTypeOrUnresolved(TypeInformation<?> typeInformation, Object param) {
         Class<?> mapValueClass;
         try {
-            // Expected to return non-null value as far as typeInformation is a Map
+            if (typeInformation.getRequiredMapValueType() == null) {
+                return true;
+            }
             mapValueClass = typeInformation.getRequiredMapValueType().getType();
         } catch (IllegalStateException e) { // cannot resolve Map value type
             mapValueClass = null;
         }
-        return mapValueClass == null
-            || (isAssignableValueOrConverted(mapValueClass, param, converter) || param == NULL_PARAM);
+        return mapValueClass == null || isAssignableValueOrConverted(mapValueClass, param, converter)
+            || param == NULL_PARAM;
     }
 
     private void validateMapQueryComparison(String queryPartDescription) {

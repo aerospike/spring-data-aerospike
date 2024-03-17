@@ -60,7 +60,9 @@ public class AerospikeQueryCreatorUtils {
 
     protected static Class<?> getCollectionElementsClass(PropertyPath property) {
         // Get the class of object's elements
-        // Expected to return non-null value as far as property is a Collection
+        if (property.getTypeInformation().getComponentType() == null) {
+            return null;
+        }
         return property.getTypeInformation().getComponentType().getType();
     }
 
