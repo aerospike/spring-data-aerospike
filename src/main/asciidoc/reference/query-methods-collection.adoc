@@ -1,0 +1,125 @@
+[[aerospike.query_methods.collection]]
+= Collection Repository Queries
+
+[width="100%",cols="<7%,<30%,<25%",options="header",]
+|===
+|Keyword |Repository query sample |Snippet
+
+|Is, Equals
+
+or no keyword a|
+[source,java]
+----
+findByStringList(Collection<String> stringList)
+----
+|...where x.stringList = ?
+
+|Not, IsNot a|
+[source,java]
+----
+findByStringListNot(Collection<String> stringList)
+----
+|...where x.stringList <> ?
+
+|In a|
+[source,java]
+----
+findByStringListIn(Collection<Collection<String>>)
+----
+|...where x.stringList in ?
+
+|Not In a|
+[source,java]
+----
+findByStringListNotIn(Collection<Collection<String>>)
+----
+|...where x.stringList not in ?
+
+|Null, IsNull a|
+[source,java]
+----
+findByStringListIsNull()
+----
+
+|...where x.stringList = null or x.stringList does not exist
+
+|Exists
+
+NotNull, IsNotNull a|
+[source,java]
+----
+findByStringListExists()
+----
+
+[source,java]
+----
+findByStringListNotNull()
+----
+
+|...where x.stringList != null
+
+("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist when their value is not equal to null)
+
+|LessThan, IsLessThan a|
+[source,java]
+----
+findByStringListLessThan(Collection<String> stringList)
+----
+|...where x.stringList < ?
+
+|LessThanEqual, IsLessThanEqual a|
+[source,java]
+----
+findByStringListLessThanEqual(Collection<String> stringList)
+----
+|...where x.stringList <= ?
+
+|GreaterThan, IsGreaterThan a|
+[source,java]
+----
+findByStringListGreaterThan(Collection<String> stringList)
+----
+|...where x.stringList > ?
+
+|GreaterThanEqual, IsGreaterThanEqual a|
+[source,java]
+----
+findByStringListGreaterThanEqual(Collection<String> stringList)
+----
+|...where x.stringList >= ?
+
+|Between, IsBetween a|
+[source,java]
+----
+findByStringListBetween(Collection<String> lowerLimit, Collection<String> upperLimit)
+----
+|...where x.stringList between ? and ?
+
+|Containing, IsContaining, Contains a|
+[source,java]
+----
+findByStringListContaining(String string)
+----
+|...where x.stringList contains ?
+
+|NotContaining, IsNotContaining, NotContains a|
+[source,java]
+----
+findByStringListNotContaining(String string)
+----
+|...where x.stringList not contains ?
+
+|And a|
+[source,java]
+----
+findByStringListAndIntList(Collection<String> stringList, Collection<Integer> intList)
+----
+|...where x.stringList = ? and x.intList = ?
+
+|Or a|
+[source,java]
+----
+findByStringListOrIntList(Collection<String> stringList, Collection<Integer> intList)
+----
+|...where x.stringList = ? or x.intList = ?
+|===
