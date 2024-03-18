@@ -1,9 +1,10 @@
-package org.springframework.data.aerospike.repository.query.findBy.noindex;
+package org.springframework.data.aerospike.repository.query.blocking.noindex.findBy;
 
 import com.aerospike.client.Value;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
