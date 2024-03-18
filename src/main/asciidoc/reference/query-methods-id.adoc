@@ -1,0 +1,21 @@
+[[aerospike.query_methods.id]]
+= Id Repository Queries
+
+[width="100%",cols="<7%,<30%,<25%",options="header",]
+|===
+|Keyword |Repository query sample |Snippet
+
+|no keyword a|
+[source,java]
+----
+findById(String id)
+----
+|...where x.PK = ?
+
+|And a|
+[source,java]
+----
+findByIdAndFirstName(String id, String firstName)
+----
+|...where x.PK = ? and x.firstName = ?
+|===

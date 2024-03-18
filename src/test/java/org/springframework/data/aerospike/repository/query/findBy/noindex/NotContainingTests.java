@@ -196,8 +196,8 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.stringMap NOT_CONTAINING: invalid map key type at position 2");
 
-        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining("key", "value", new Person("id"
-            , "firstName"), "value"))
+        assertThatThrownBy(() -> negativeTestsRepository.findByStringMapNotContaining("key", "value",
+            new Person("id", "firstName"), "value"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.stringMap NOT_CONTAINING: invalid first argument type, required AerospikeQueryCriterion");
     }

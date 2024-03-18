@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,6 +16,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for the CrudRepository queries API.
  */
 public class CrudRepositoryQueryTests extends PersonRepositoryQueryTests {
+
+    @Test
+    void findPersonById() {
+        Optional<Person> person = repository.findById(dave.getId());
+
+        assertThat(person).hasValueSatisfying(actual -> {
+            assertThat(actual).isInstanceOf(Person.class);
+            assertThat(actual).isEqualTo(dave);
+        });
+    }
 
     @Test
     void findAll() {
@@ -55,6 +66,15 @@ public class CrudRepositoryQueryTests extends PersonRepositoryQueryTests {
         } finally {
             repository.save(dave);
         }
+    }
+
+    @Test
+    void deletePersonById() {
+        repository.deleteById(dave.getId());
+
+        assertThat(repository.findById(dave.getId())).isEmpty();
+
+        repository.save(dave); // cleanup
     }
 
     @Test

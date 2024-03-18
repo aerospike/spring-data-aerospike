@@ -1,92 +1,28 @@
 = Query Methods
 
-Spring Data Aerospike supports defining queries by method name in the Repository interface so that the implementation is generated. The format of method names is fairly flexible, comprising a verb and criteria.
+Spring Data Aerospike supports defining queries by method name in the Repository interface so that the implementation is generated.
+The format of method names is fairly flexible, comprising a verb and criteria.
 
-Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`. For example, `countByLastName`, `findByFirstName` etc.
+Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`.
+For example, `findByFirstName`, `countByLastName` etc.
 
-For more details refer to SpringData documentation: <<query-by-example, Query By Example>>.
+For more details refer to basic SpringData documentation: <<query-by-example, Query By Example>>.
 
-[width="100%",cols="<12%,<25%,<25%",options="header",]
-|===
-|Keyword |Sample |Snippet
-|And |findByLastNameAndFirstName |...where x.lastName = ? and x.firstName = ?
+== Repository Query Keywords
 
-|Or |findByLastNameOrFirstName |...where x.lastName = ? or x.firstName = ?
+Here are the references to the examples of repository queries:
 
-|Is, Equals |findByLastName, findByLastNameIs, findByLastNameEquals |...where x.lastName = ?
+<<aerospike.query_methods.simple_property, Simple property>>
 
-|Between |findByDateOfBirthBetween |...where x.dateOfBirth between ? and ?
+<<aerospike.query_methods.collection, Collection>>
 
-|LessThan |findByAgeLessThan |...where x.age < ?
+<<aerospike.query_methods.map, Map>>
 
-|LessThanEqual |findByAgeLessThanEqual |...where x.age <= ?
+<<aerospike.query_methods.pojo, POJO>>
 
-|GreaterThan |findByAgeGreaterThan |...where x.age > ?
+<<aerospike.query_methods.id, Id>>
 
-|GreaterThanEqual |findByAgeGreaterThanEqual |...where x.age >= ?
-
-|After |findByDateOfBirthAfter |...where x.dateOfBirth > ?
-
-|Before |findByDateOfBirthBefore |...where x.dateOfBirth < ?
-
-|Like, MatchesRegex |findByLastNameLike
-
-findByLastNameMatchesRegex
-
-|...where x.lastName like ?
-
-|StartingWith |findByLastNameStartingWith |...where x.lastName like 'abc%'
-
-|EndingWith |findByLastNameEndingWith |...where x.lastName like '%abc'
-
-|Containing |findByLastNameContaining |...where x.lastName like '%abc%
-
-|Not Containing |findByLastNameNotContaining |...where x.lastName not like '%abc%
-
-|OrderBy |findByLastNameOrderByFirstNameDesc |...where x.lastName = ? order by x.firstName desc
-
-|Not |findByLastNameNot |...where x.lastName <> ?
-
-|In |findByLastNameIn(Collection<String>) |...where x.lastName in ?
-
-|Not In |findByLastNameNotIn(Collection<String>) |...where x.lastName not in ?
-
-|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
-
-|Exists
-
-IsNotNull
-
-|findByAddressExists()
-
-findByObjectIsNotNull()
-
-findByObjectFieldExists()
-
-|...where address exists and != null
-
-...where object exists and != null
-
-...where object.field exists and != null
-
-("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably as bins/fields exist when have a value not equal to null)
-
-|IsNull |findByObjectIsNull()
-
-findByObjectFieldIsNull()
-
-|...where object = null
-
-...where object.field = null
-
-(bins/fields exist when have a value not equal to null)
-
-|True |findByEnabledTrue() |...where x.enabled = true
-
-|False |findByOptOutFalse() |...where x.optOut = false
-
-|FindUsingQuery |findUsingQuery(query) |find matching entities (see xref:#find-using-query[find using query]])
-|===
+== Repository Interface Example
 
 Below is an example of an interface with several query methods:
 
@@ -102,8 +38,20 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 }
 ----
 
+== Query Modifiers
+
+[width="100%",cols="<12%,<25%,<30%",options="header",]
+|===
+|Keyword |Sample |Snippet
+
+|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
+
+|OrderBy |findByLastNameOrderByFirstNameDesc |...where x.lastName = ? order by x.firstName desc
+|===
+
 == Limiting Query Results
-[width="100%",cols="<12%,<25%,<25%",options="header",]
+
+[width="100%",cols="<12%,<25%,<30%",options="header",]
 |===
 |Keyword |Sample |Snippet
 |First |findFirstByAge | select top 1 where x.age = ?
@@ -120,9 +68,12 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 [[find-using-query]]
 == Find Using Query
 
-User can perform a custom `Query` for finding matching entities in the Aerospike database. A `Query` can be created using a `Qualifier` which represents an expression. It may contain other qualifiers and combine them using either `AND` or `OR`.
+User can perform a custom `Query` for finding matching entities in the Aerospike database.
+A `Query` can be created using a `Qualifier` which represents an expression.
+It may contain other qualifiers and combine them using either `AND` or `OR`.
 
-`Qualifier` can be created for regular bins, metadata and ids (primary keys). Below is an example of different variations:
+`Qualifier` can be created for regular bins, metadata and ids (primary keys).
+Below is an example of different variations:
 
 [source,java]
 ----

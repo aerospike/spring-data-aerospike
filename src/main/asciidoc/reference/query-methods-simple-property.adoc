@@ -1,0 +1,175 @@
+[[aerospike.query_methods.simple_property]]
+= Simple Property Repository Queries
+
+[width="100%",cols="<7%,<30%,<25%",options="header",]
+|===
+|Keyword |Repository query sample |Snippet
+
+|Is, Equals
+
+or no keyword a|
+[source,java]
+----
+findByLastName(String lastName)
+----
+|...where x.lastName = ?
+
+|Not, IsNot a|
+[source,java]
+----
+findByLastNameNot(String lastName)
+----
+|...where x.lastName <> ?
+
+|True, isTrue a|
+[source,java]
+----
+findByEnabledTrue()
+----
+|...where x.enabled = true
+
+|False, isFalse a|
+[source,java]
+----
+findByEnabledFalse()
+----
+|...where x.enabled = false
+
+|In, IsIn a|
+[source,java]
+----
+findByLastNameIn(Collection<String>)
+----
+|...where x.lastName in ?
+
+|NotIn, IsNotIn a|
+[source,java]
+----
+findByLastNameNotIn(Collection<String>)
+----
+|...where x.lastName not in ?
+
+|Null, IsNull a|
+[source,java]
+----
+findByEmailAddressIsNull()
+----
+
+|...where x.emailAddress = null or x.emailAddress does not exist
+
+|Exists
+
+NotNull, IsNotNull a|
+[source,java]
+----
+findByEmailAddressExists()
+----
+
+[source,java]
+----
+findByEmailAddressNotNull()
+----
+
+|...where x.emailAddress != null
+
+("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist when their value is not equal to null)
+
+|LessThan, IsLessThan a|
+[source,java]
+----
+findByAgeLessThan(int age)
+----
+|...where x.age < ?
+
+|LessThanEqual, IsLessThanEqual a|
+[source,java]
+----
+findByAgeLessThanEqual(int age)
+----
+|...where x.age <= ?
+
+|GreaterThan, IsGreaterThan a|
+[source,java]
+----
+findByAgeGreaterThan(int age)
+----
+|...where x.age > ?
+
+|GreaterThanEqual, IsGreaterThanEqual a|
+[source,java]
+----
+findByAgeGreaterThanEqual(int age)
+----
+|...where x.age >= ?
+
+|Between, IsBetween a|
+[source,java]
+----
+findByAgeBetween(int lowerLimit, int upperLimit)
+----
+|...where x.age between ? and ?
+
+|Before, IsBefore a|
+[source,java]
+----
+findByDateOfBirthBefore(Date date)
+----
+|...where x.dateOfBirth < ?
+
+|After, IsAfter a|
+[source,java]
+----
+findByDateOfBirthAfter(Date date)
+----
+|...where x.dateOfBirth > ?
+
+|StartingWith, IsStartingWith, StartsWith a|
+[source,java]
+----
+findByLastNameStartingWith(String string)
+----
+|...where x.lastName like 'abc%'
+
+|EndingWith, IsEndingWith, EndsWith a|
+[source,java]
+----
+findByLastNameEndingWith(String string)
+----
+|...where x.lastName like '%abc'
+
+|Like, IsLike, MatchesRegex a|
+[source,java]
+----
+findByLastNameLike(String lastNameRegex)
+----
+
+|...where x.lastName like ?
+
+|Containing, IsContaining, Contains a|
+[source,java]
+----
+findByLastNameContaining(String substring)
+----
+|...where x.lastName like '%abc%'
+
+|NotContaining, IsNotContaining, NotContains a|
+[source,java]
+----
+findByLastNameNotContaining(String substring)
+----
+|...where x.lastName not like '%abc%'
+
+|And a|
+[source,java]
+----
+findByLastNameAndFirstName(String lastName, String firstName)
+----
+|...where x.lastName = ? and x.firstName = ?
+
+|Or a|
+[source,java]
+----
+findByLastNameOrFirstName(String lastName, String firstName)
+----
+|...where x.lastName = ? or x.firstName = ?
+|===

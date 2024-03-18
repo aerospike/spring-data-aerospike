@@ -4,8 +4,10 @@ import com.aerospike.client.Value;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.aerospike.utility.TestUtils;
 
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.query.QueryParam.of;
 
 /**
  * Tests for the "Equals" repository query. Keywords: Is, Equals (or no keyword).
@@ -108,6 +111,87 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByLastName("Beauford", "Boford"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.lastName EQ: invalid number of arguments, expecting one");
+    }
+
+    @Test
+    void findPersonById_AND_simpleProperty() {
+        QueryParam ids = of(List.of(dave.getId(), boyd.getId()));
+        QueryParam names = of(carter.getFirstName());
+        List<Person> persons = repository.findByIdAndFirstName(ids, names);
+        assertThat(persons).isEmpty();
+
+        ids = of(List.of(boyd.getId(), dave.getId(), carter.getId()));
+        names = of(dave.getFirstName());
+        persons = repository.findByIdAndFirstName(ids, names);
+        assertThat(persons).containsOnly(dave);
+
+        ids = of(List.of(leroi.getId(), leroi2.getId(), carter.getId()));
+        QueryParam firstNames = of(leroi.getFirstName());
+        QueryParam ages = of(leroi2.getAge());
+        List<Person> persons2 = repository.findByIdAndFirstNameAndAge(ids, firstNames, ages);
+        assertThat(persons2).containsOnly(leroi2);
+
+        // "findByIdOr..." will return empty list because primary keys are used to firstly narrow down the results.parts
+        // In a combined id query "OR" can be put only between the non-id fields like shown below,
+        // and the results are limited by the given ids
+        ids = of(List.of(leroi.getId(), leroi2.getId(),
+            carter.getId()));
+        firstNames = of(leroi.getFirstName());
+        ages = of(leroi2.getAge());
+        List<Person> persons3 = repository.findByIdAndFirstNameOrAge(ids, firstNames, ages);
+        assertThat(persons3).containsOnly(leroi, leroi2);
+
+        ids = of(List.of(leroi.getId(), leroi2.getId(),
+            carter.getId()));
+        firstNames = of(leroi.getFirstName());
+        ages = of(stefan.getAge());
+        List<Person> persons4 = repository.findByIdAndFirstNameOrAge(ids, firstNames, ages);
+        assertThat(persons4).containsOnly(leroi, leroi2);
+    }
+
+    @Test
+    void findById_dynamicProjection() {
+        List<PersonSomeFields> result = repository.findById(dave.getId(), PersonSomeFields.class);
+        assertThat(result).containsOnly(dave.toPersonSomeFields());
+    }
+
+    @Test
+    void findBySimpleProperty_String_projection() {
+        List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
+        assertThat(result).containsOnly(carter.toPersonSomeFields());
+    }
+
+    @Test
+    void findById_AND_simpleProperty_dynamicProjection() {
+        QueryParam ids = of(List.of(boyd.getId(), dave.getId(), carter.getId()));
+        QueryParam lastNames = of(carter.getLastName());
+        List<PersonSomeFields> result = repository.findByIdAndLastName(ids, lastNames, PersonSomeFields.class);
+        assertThat(result).containsOnly(carter.toPersonSomeFields());
+    }
+
+    @Test
+    void findById_AND_simpleProperty_DynamicProjection_EmptyResult() {
+        QueryParam ids = of(List.of(carter.getId(), boyd.getId()));
+        QueryParam lastNames = of(dave.getLastName());
+        List<PersonSomeFields> result = repository.findByIdAndLastName(ids, lastNames, PersonSomeFields.class);
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findBySimpleProperty_AND_id_dynamicProjection() {
+        QueryParam ids = of(dave.getId());
+        QueryParam lastNames = of(dave.getLastName());
+        List<PersonSomeFields> result = repository.findByLastNameAndId(lastNames, ids, PersonSomeFields.class);
+        assertThat(result).containsOnly(dave.toPersonSomeFields());
+    }
+
+    @Test
+    void findBySimpleProperty_AND_simpleProperty_DynamicProjection() {
+        QueryParam firstNames = of(carter.getFirstName());
+        QueryParam lastNames = of(carter.getLastName());
+        List<PersonSomeFields> result = repository.findByFirstNameAndLastName(firstNames, lastNames,
+            PersonSomeFields.class);
+        assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
