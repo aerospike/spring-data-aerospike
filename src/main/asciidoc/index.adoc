@@ -1,6 +1,6 @@
 = Spring Data Aerospike - Documentation
 :doctype: book
-:revnumber: 4.6.0
+:revnumber: 4.7.0
 :revdate: {localdate}
 :toc:
 :toc-placement!:
