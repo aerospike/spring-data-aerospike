@@ -1,0 +1,39 @@
+= Query Methods
+
+Spring Data Aerospike supports defining queries by method name in the Repository interface so that the implementation is generated.
+The format of method names is fairly flexible, comprising a verb and criteria.
+
+Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`.
+For example, `findByFirstName`, `countByLastName` etc.
+
+For more details refer to basic SpringData documentation: <<query-by-example, Query By Example>>.
+
+== Repository Query Keywords
+
+Here are the references to the examples of repository queries:
+
+<<aerospike.query_methods.simple_property, Simple property>>
+
+<<aerospike.query_methods.collection, Collection>>
+
+<<aerospike.query_methods.map, Map>>
+
+<<aerospike.query_methods.pojo, POJO>>
+
+<<aerospike.query_methods.id, Id>>
+
+== Repository Interface Example
+
+Below is an example of an interface with several query methods:
+
+[source,java]
+----
+public interface PersonRepository extends AerospikeRepository<Person, Long> {
+    List<Person> findByLastName(String lastName);
+    List<Person> findByLastNameContaining(String lastName);
+    List<Person> findByLastNameStartingWith(String lastName);
+    List<Person> findByLastNameAndFirstNameContaining(String lastName, String firstName);
+    List<Person> findByAgeBetween(long startAge, long endAge);
+    Optional<Person> findById(Long id);
+}
+----

@@ -1,6 +1,6 @@
 = Spring Data Aerospike - Documentation
 :doctype: book
-:revnumber: 4.6.0
+:revnumber: 4.7.0
 :revdate: {localdate}
 :toc:
 :toc-placement!:
@@ -32,7 +32,13 @@ include::reference/aerospike-reactive-repositories.adoc[]
 include::spring-data-commons-docs/repository-projections.adoc[]
 include::reference/aerospike-projections.adoc[]
 include::spring-data-commons-docs/query-by-example.adoc[]
-include::reference/query-methods.adoc[]
+include::reference/query-methods-preface.adoc[]
+include::reference/query-methods-simple-property.adoc[]
+include::reference/query-methods-collection.adoc[]
+include::reference/query-methods-map.adoc[]
+include::reference/query-methods-pojo.adoc[]
+include::reference/query-methods-id.adoc[]
+include::reference/query-methods-modification.adoc[]
 include::spring-data-commons-docs/object-mapping.adoc[]
 include::reference/aerospike-object-mapping.adoc[]
 include::reference/template.adoc[]
