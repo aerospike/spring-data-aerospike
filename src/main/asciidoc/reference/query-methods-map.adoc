@@ -1,0 +1,125 @@
+[[aerospike.query_methods.map]]
+= Map Repository Queries
+
+[width="100%",cols="<7%,<30%,<25%",options="header",]
+|===
+|Keyword |Repository query sample |Snippet
+
+|Is, Equals
+
+or no keyword a|
+[source,java]
+----
+findByStringMap(Map<String, String> stringMap)
+----
+|...where x.stringMap = ?
+
+|Not, IsNot a|
+[source,java]
+----
+findByStringMapNot(Map<String, String> stringMap)
+----
+|...where x.stringMap <> ?
+
+|In a|
+[source,java]
+----
+findByStringMapIn(Collection<Map<String, String>>)
+----
+|...where x.stringMap in ?
+
+|Not In a|
+[source,java]
+----
+findByStringMapNotIn(Collection<Map<String, String>>)
+----
+|...where x.stringMap not in ?
+
+|Null, IsNull a|
+[source,java]
+----
+findByStringMapIsNull()
+----
+
+|...where x.stringMap = null or x.stringMap does not exist
+
+|Exists
+
+NotNull, IsNotNull a|
+[source,java]
+----
+findByStringMapExists()
+----
+
+[source,java]
+----
+findByStringMapNotNull()
+----
+
+|...where x.stringMap != null
+
+("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist when their value is not equal to null)
+
+|LessThan, IsLessThan a|
+[source,java]
+----
+findByStringMapLessThan(Map<String, String> stringMap)
+----
+|...where x.stringMap < ?
+
+|LessThanEqual, IsLessThanEqual a|
+[source,java]
+----
+findByStringMapLessThanEqual(Map<String, String> stringMap)
+----
+|...where x.stringMap <= ?
+
+|GreaterThan, IsGreaterThan a|
+[source,java]
+----
+findByStringMapGreaterThan(Map<String, String> stringMap)
+----
+|...where x.stringMap > ?
+
+|GreaterThanEqual, IsGreaterThanEqual a|
+[source,java]
+----
+findByStringMapGreaterThanEqual(Map<String, String> stringMap)
+----
+|...where x.stringMap >= ?
+
+|Between, IsBetween a|
+[source,java]
+----
+findByStringMapBetween(Map<String, String> lowerLimit, Map<String, String> upperLimit)
+----
+|...where x.stringMap between ? and ?
+
+|Containing, IsContaining, Contains a|
+[source,java]
+----
+findByStringMapContaining(AerospikeQueryCriterion criterion, String string)
+----
+|...where x.stringMap contains ?
+
+|NotContaining, IsNotContaining, NotContains a|
+[source,java]
+----
+findByStringNameNotContaining(AerospikeQueryCriterion criterion, String string)
+----
+|...where x.stringMap not contains ?
+
+|And a|
+[source,java]
+----
+findByStringMapAndIntMap(Map<String, String> stringMap, Map<Integer, Integer> intMap)
+----
+|...where x.stringMap = ? and x.intMap = ?
+
+|Or a|
+[source,java]
+----
+findByStringMapOrIntMap(Map<String, String> stringMap, Map<Integer, Integer> intList)
+----
+|...where x.stringMap = ? or x.intMap = ?
+|===
