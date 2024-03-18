@@ -1,0 +1,111 @@
+[[aerospike.query_methods.pojo]]
+= POJO Repository Queries
+
+[width="100%",cols="<7%,<30%,<25%",options="header",]
+|===
+|Keyword |Repository query sample |Snippet
+
+|Is, Equals
+
+or no keyword a|
+[source,java]
+----
+findByAddress(Address address)
+----
+|...where x.address = ?
+
+|Not, IsNot a|
+[source,java]
+----
+findByAddressNot(Address address)
+----
+|...where x.address <> ?
+
+|In a|
+[source,java]
+----
+findByAddressIn(Collection<Address>)
+----
+|...where x.address in ?
+
+|Not In a|
+[source,java]
+----
+findByAddressNotIn(Collection<Address>)
+----
+|...where x.address not in ?
+
+|Null, IsNull a|
+[source,java]
+----
+findByAddressIsNull()
+----
+
+|...where x.address = null or x.address does not exist
+
+|Exists
+
+NotNull, IsNotNull a|
+[source,java]
+----
+findByAddressExists()
+----
+
+[source,java]
+----
+findByAddressNotNull()
+----
+
+|...where x.address != null
+
+("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist when their value is not equal to null)
+
+|LessThan, IsLessThan a|
+[source,java]
+----
+findByAddressLessThan(Address address)
+----
+|...where x.address < ?
+
+|LessThanEqual, IsLessThanEqual a|
+[source,java]
+----
+findByAddressLessThanEqual(Address address)
+----
+|...where x.address <= ?
+
+|GreaterThan, IsGreaterThan a|
+[source,java]
+----
+findByAddressGreaterThan(Address address)
+----
+|...where x.address > ?
+
+|GreaterThanEqual, IsGreaterThanEqual a|
+[source,java]
+----
+findByAddressGreaterThanEqual(Address address)
+----
+|...where x.address >= ?
+
+|Between, IsBetween a|
+[source,java]
+----
+findByAddressBetween(Address lowerLimit, Address upperLimit)
+----
+|...where x.address between ? and ?
+
+|And a|
+[source,java]
+----
+findByAddressAndFriend(Address address, Person friend)
+----
+|...where x.address = ? and x.friend = ?
+
+|Or a|
+[source,java]
+----
+findByAddressOrFriend(Address address, Person friend)
+----
+|...where x.address = ? or x.friend = ?
+|===
