@@ -15,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Tests for the "Is between" repository query. Keywords: Between, IsBetween.
  */
-public class IsBetweenTests extends PersonRepositoryQueryTests {
+public class BetweenTests extends PersonRepositoryQueryTests {
 
     @Test
     void findBySimplePropertyBetween_Integer() {

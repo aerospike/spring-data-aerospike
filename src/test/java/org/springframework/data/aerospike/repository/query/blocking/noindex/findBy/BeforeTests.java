@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the "Is before" repository query. Keywords: Before, IsBefore.
  */
-public class IsBeforeTests extends PersonRepositoryQueryTests {
+public class BeforeTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByLocalDateSimplePropertyBefore() {

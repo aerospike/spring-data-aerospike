@@ -8,7 +8,7 @@ import org.springframework.data.aerospike.sample.Address;
 /**
  * Tests for the "Is not null" repository query. Keywords: NotNull, IsNotNull.
  */
-public class IsNotNullTests extends PersonRepositoryQueryTests {
+public class NotNullTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedSimpleValueIsNotNull() {

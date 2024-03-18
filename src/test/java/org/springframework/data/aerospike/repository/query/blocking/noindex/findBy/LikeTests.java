@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the "Is like" repository query. Keywords: Like, IsLike.
  */
-public class IsLikeTests extends PersonRepositoryQueryTests {
+public class LikeTests extends PersonRepositoryQueryTests {
 
     @Test
     void findBySimplePropertyLike_String() {

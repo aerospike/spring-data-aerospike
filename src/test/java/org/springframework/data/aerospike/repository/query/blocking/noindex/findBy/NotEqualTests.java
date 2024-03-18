@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Tests for the "Is not equal" repository query. Keywords: Not, IsNot.
  */
-public class IsNotEqualTests extends PersonRepositoryQueryTests {
+public class NotEqualTests extends PersonRepositoryQueryTests {
 
     @Test
     void findBySimplePropertyNotEqual_String() {

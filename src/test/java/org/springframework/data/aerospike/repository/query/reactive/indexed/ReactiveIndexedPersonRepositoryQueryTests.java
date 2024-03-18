@@ -116,5 +116,4 @@ public class ReactiveIndexedPersonRepositoryQueryTests extends BaseReactiveInteg
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_address_keys_index");
         additionalAerospikeTestOperations.dropIndex(IndexedPerson.class, "indexed_person_address_values_index");
     }
-
 }

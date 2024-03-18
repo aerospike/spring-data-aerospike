@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the "Is in" repository query. Keywords: In, IsIn.
  */
-public class IsInTests extends PersonRepositoryQueryTests {
+public class InTests extends PersonRepositoryQueryTests {
 
     @Test
     void findBySimplePropertyIn_String() {

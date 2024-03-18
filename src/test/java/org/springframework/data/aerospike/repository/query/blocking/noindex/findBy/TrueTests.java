@@ -1,39 +1,50 @@
 package org.springframework.data.aerospike.repository.query.blocking.noindex.findBy;
 
 import com.aerospike.client.Value;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Person;
 
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
- * Tests for the "Is false" repository query. Keywords: False, IsFalse.
+ * Tests for the "Is true" repository query. Keywords: True, IsTrue.
  */
-public class IsFalseTests extends PersonRepositoryQueryTests {
+public class TrueTests extends PersonRepositoryQueryTests {
 
     @Test
-    void findByBooleanIntSimplePropertyIsFalse() {
+    void findByBooleanIntSimplePropertyIsTrue() {
         boolean initialValue = Value.UseBoolBin;
         Value.UseBoolBin = false; // save boolean as int
         Person intBoolBinPerson = Person.builder().id(nextId()).isActive(true).firstName("Test")
             .build();
         repository.save(intBoolBinPerson);
 
-        Assertions.assertThat(repository.findByIsActiveFalse()).doesNotContain(intBoolBinPerson);
+        List<Person> persons1 = repository.findByIsActiveTrue();
+        assertThat(persons1).contains(intBoolBinPerson);
+
+        List<Person> persons2 = repository.findByIsActiveIsTrue(); // another way to call the query method
+        assertThat(persons2).containsExactlyElementsOf(persons1);
 
         Value.UseBoolBin = initialValue; // set back to the default value
         repository.delete(intBoolBinPerson);
     }
 
     @Test
-    void findByBooleanSimplePropertyIsFalse() {
+    void findByBooleanSimplePropertyIsTrue() {
         boolean initialValue = Value.UseBoolBin;
         Value.UseBoolBin = true; // save boolean as bool, available in Server 5.6+
         Person intBoolBinPerson = Person.builder().id(nextId()).isActive(true).firstName("Test")
             .build();
         repository.save(intBoolBinPerson);
 
-        Assertions.assertThat(repository.findByIsActiveFalse()).doesNotContain(intBoolBinPerson);
+        List<Person> persons1 = repository.findByIsActiveTrue();
+        assertThat(persons1).contains(intBoolBinPerson);
+
+        List<Person> persons2 = repository.findByIsActiveIsTrue(); // another way to call the query method
+        assertThat(persons2).containsExactlyElementsOf(persons1);
 
         Value.UseBoolBin = initialValue; // set back to the default value
         repository.delete(intBoolBinPerson);

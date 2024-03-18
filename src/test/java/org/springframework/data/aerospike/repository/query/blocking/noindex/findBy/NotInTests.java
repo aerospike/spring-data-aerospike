@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the "Is not in" repository query. Keywords: NotIn, IsNotIn.
  */
-public class IsNotInTests extends PersonRepositoryQueryTests {
+public class NotInTests extends PersonRepositoryQueryTests {
 
     @Test
     void findBySimplePropertyNotIn_String() {

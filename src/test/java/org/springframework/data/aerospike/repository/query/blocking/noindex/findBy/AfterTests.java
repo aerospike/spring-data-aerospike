@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the "Is after" repository query. Keywords: After, IsAfter.
  */
-public class IsAfterTests extends PersonRepositoryQueryTests {
+public class AfterTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByDateSimplePropertyAfter() {

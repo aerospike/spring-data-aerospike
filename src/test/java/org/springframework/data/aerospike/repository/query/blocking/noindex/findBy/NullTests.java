@@ -9,7 +9,7 @@ import org.springframework.data.aerospike.utility.TestUtils;
 /**
  * Tests for the "Is null" repository query. Keywords: Null, IsNull.
  */
-public class IsNullTests extends PersonRepositoryQueryTests {
+public class NullTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedSimplePropertyIsNull() {

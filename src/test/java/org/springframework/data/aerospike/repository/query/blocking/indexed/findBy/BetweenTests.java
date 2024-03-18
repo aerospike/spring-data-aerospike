@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Tests for the "Is between" repository query. Keywords: Between, IsBetween.
  */
-public class IsBetweenTests extends IndexedPersonRepositoryQueryTests {
+public class BetweenTests extends IndexedPersonRepositoryQueryTests {
 
     @Test
     public void findBySimplePropertyBetween_Integer() {

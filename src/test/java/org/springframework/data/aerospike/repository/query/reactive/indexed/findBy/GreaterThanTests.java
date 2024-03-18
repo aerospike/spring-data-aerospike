@@ -47,5 +47,4 @@ public class GreaterThanTests extends ReactiveIndexedPersonRepositoryQueryTests 
         assertThat(slice.hasNext()).isFalse();
         assertThat(slice.isLast()).isTrue();
     }
-
 }

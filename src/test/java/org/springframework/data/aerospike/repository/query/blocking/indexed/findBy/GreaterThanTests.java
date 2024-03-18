@@ -19,6 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GreaterThanTests extends IndexedPersonRepositoryQueryTests {
 
     @Test
+    public void findBySimplePropertyLessThan_String() {
+        List<IndexedPerson> result = repository.findByFirstNameGreaterThan("Bill");
+        assertThat(result).containsAll(allIndexedPersons);
+    }
+
+    @Test
     public void findBySimplePropertyGreaterThan_Integer_Paginated() {
         Slice<IndexedPerson> slice = repository.findByAgeGreaterThan(40, PageRequest.of(0, 10));
         assertThat(slice.hasContent()).isTrue();
