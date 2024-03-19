@@ -29,7 +29,7 @@ public interface AerospikeConverter extends AerospikeReader<Object>, AerospikeWr
     /**
      * Key that identifies POJO's class.
      */
-    public static final String CLASS_KEY = "@_class";
+    String CLASS_KEY = "@_class";
 
     /**
      * Access Aerospike-specific conversion service.
