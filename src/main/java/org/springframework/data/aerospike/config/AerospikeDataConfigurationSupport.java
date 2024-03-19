@@ -247,17 +247,18 @@ public abstract class AerospikeDataConfigurationSupport {
         // values set via configureDataSettings() have precedence over the parameters from application.properties
         configureDataSettings(dataSettings);
 
-        // getHosts() return value has precedence over hosts parameter from application.properties
+        // getHosts() has precedence over hosts parameter from application.properties
         Collection<Host> hosts;
         if ((hosts = getHosts()) != null) {
             connectionSettings.setHostsArray(hosts.toArray(new Host[0]));
-        } else if (!StringUtils.hasText(connectionSettings.getHosts())) {
+        } else if (StringUtils.hasText(connectionSettings.getHosts())) {
+            connectionSettings.setHostsArray(Host.parseHosts(connectionSettings.getHosts(), getDefaultPort()));
+        } else {
             throw new IllegalStateException("No hosts found, please set hosts parameter in application.properties or " +
                 "override getHosts() method");
         }
-        connectionSettings.setHostsArray(Host.parseHosts(connectionSettings.getHosts(), getDefaultPort()));
 
-        // nameSpace() return value has precedence over namespace parameter from application.properties
+        // nameSpace() has precedence over namespace parameter from application.properties
         String namespace;
         if ((namespace = nameSpace()) != null) connectionSettings.setNamespace(namespace);
 
