@@ -20,6 +20,11 @@ jobs:
           distribution: 'temurin'
           java-version: 17
 
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: 3.9.6
+
       # See: https://github.com/actions/cache/blob/main/examples.md#java---maven
       - name: Maven cache and restore deps
         uses: actions/cache@v4
