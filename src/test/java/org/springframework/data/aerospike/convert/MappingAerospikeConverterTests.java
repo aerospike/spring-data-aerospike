@@ -43,15 +43,15 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.AsCollections.list;
-import static org.springframework.data.aerospike.AsCollections.of;
-import static org.springframework.data.aerospike.AsCollections.set;
 import static org.springframework.data.aerospike.assertions.KeyAssert.assertThat;
 import static org.springframework.data.aerospike.sample.SampleClasses.*;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
 import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
+import static org.springframework.data.aerospike.utility.AsCollections.list;
+import static org.springframework.data.aerospike.utility.AsCollections.of;
+import static org.springframework.data.aerospike.utility.AsCollections.set;
 
 public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverterTest {
 

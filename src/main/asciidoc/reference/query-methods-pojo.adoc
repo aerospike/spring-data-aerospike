@@ -1,9 +1,9 @@
 [[aerospike.query_methods.pojo]]
 = POJO Repository Queries
 
-[width="100%",cols="<7%,<30%,<25%",options="header",]
+[width="100%",cols="<7%,<30%,<25%,<20%",options="header",]
 |===
-|Keyword |Repository query sample |Snippet
+|Keyword |Repository query sample |Snippet |Notes
 
 |Is, Equals
 
@@ -13,6 +13,7 @@ or no keyword a|
 findByAddress(Address address)
 ----
 |...where x.address = ?
+|
 
 |Not, IsNot a|
 [source,java]
@@ -20,6 +21,7 @@ findByAddress(Address address)
 findByAddressNot(Address address)
 ----
 |...where x.address <> ?
+|
 
 |In a|
 [source,java]
@@ -27,6 +29,7 @@ findByAddressNot(Address address)
 findByAddressIn(Collection<Address>)
 ----
 |...where x.address in ?
+|Find records where `address` bin value equals one of the Address objects in the given argument.
 
 |Not In a|
 [source,java]
@@ -34,14 +37,15 @@ findByAddressIn(Collection<Address>)
 findByAddressNotIn(Collection<Address>)
 ----
 |...where x.address not in ?
+|Find records where `address` bin value is not equal to any of the Address objects in the given argument.
 
 |Null, IsNull a|
 [source,java]
 ----
 findByAddressIsNull()
 ----
-
 |...where x.address = null or x.address does not exist
+|The same as "does not exist", objects and fields exist in AerospikeDB when their value is not equal to null.
 
 |Exists
 
@@ -55,10 +59,8 @@ findByAddressExists()
 ----
 findByAddressNotNull()
 ----
-
 |...where x.address != null
-
-("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist when their value is not equal to null)
+|"Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist when their value is not equal to null.
 
 |LessThan, IsLessThan a|
 [source,java]
@@ -66,13 +68,15 @@ findByAddressNotNull()
 findByAddressLessThan(Address address)
 ----
 |...where x.address < ?
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has fewer elements or has a corresponding element lower in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |LessThanEqual, IsLessThanEqual a|
 [source,java]
 ----
 findByAddressLessThanEqual(Address address)
 ----
-|...where x.address <= ?
+|...where x.address < = ?
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has smaller or the same amount of elements or has each corresponding element lower in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |GreaterThan, IsGreaterThan a|
 [source,java]
@@ -80,6 +84,7 @@ findByAddressLessThanEqual(Address address)
 findByAddressGreaterThan(Address address)
 ----
 |...where x.address > ?
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has more elements or has a corresponding element higher in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |GreaterThanEqual, IsGreaterThanEqual a|
 [source,java]
@@ -87,6 +92,7 @@ findByAddressGreaterThan(Address address)
 findByAddressGreaterThanEqual(Address address)
 ----
 |...where x.address >= ?
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has larger or the same amount of elements or has each corresponding element higher in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |Between, IsBetween a|
 [source,java]
@@ -94,6 +100,7 @@ findByAddressGreaterThanEqual(Address address)
 findByAddressBetween(Address lowerLimit, Address upperLimit)
 ----
 |...where x.address between ? and ?
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) is in the range between the given arguments. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |And a|
 [source,java]
@@ -101,6 +108,7 @@ findByAddressBetween(Address lowerLimit, Address upperLimit)
 findByAddressAndFriend(Address address, Person friend)
 ----
 |...where x.address = ? and x.friend = ?
+|
 
 |Or a|
 [source,java]
@@ -108,4 +116,5 @@ findByAddressAndFriend(Address address, Person friend)
 findByAddressOrFriend(Address address, Person friend)
 ----
 |...where x.address = ? or x.friend = ?
+|
 |===

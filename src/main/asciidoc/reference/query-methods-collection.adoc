@@ -1,9 +1,9 @@
 [[aerospike.query_methods.collection]]
 = Collection Repository Queries
 
-[width="100%",cols="<7%,<30%,<25%",options="header",]
+[width="100%",cols="<7%,<30%,<25%,<20%",options="header",]
 |===
-|Keyword |Repository query sample |Snippet
+|Keyword |Repository query sample |Snippet |Notes
 
 |Is, Equals
 
@@ -13,6 +13,7 @@ or no keyword a|
 findByStringList(Collection<String> stringList)
 ----
 |...where x.stringList = ?
+|
 
 |Not, IsNot a|
 [source,java]
@@ -20,6 +21,7 @@ findByStringList(Collection<String> stringList)
 findByStringListNot(Collection<String> stringList)
 ----
 |...where x.stringList <> ?
+|
 
 |In a|
 [source,java]
@@ -27,6 +29,7 @@ findByStringListNot(Collection<String> stringList)
 findByStringListIn(Collection<Collection<String>>)
 ----
 |...where x.stringList in ?
+|Find records where `stringList` bin value equals one of the collections in the given argument.
 
 |Not In a|
 [source,java]
@@ -34,14 +37,15 @@ findByStringListIn(Collection<Collection<String>>)
 findByStringListNotIn(Collection<Collection<String>>)
 ----
 |...where x.stringList not in ?
+|Find records where `stringList` bin value is not equal to any of the collections in the given argument.
 
 |Null, IsNull a|
 [source,java]
 ----
 findByStringListIsNull()
 ----
-
 |...where x.stringList = null or x.stringList does not exist
+|The same as "does not exist", objects and fields exist in AerospikeDB when their value is not equal to null.
 
 |Exists
 
@@ -57,8 +61,7 @@ findByStringListNotNull()
 ----
 
 |...where x.stringList != null
-
-("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist when their value is not equal to null)
+|("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist in AerospikeDB when their value is not equal to null).
 
 |LessThan, IsLessThan a|
 [source,java]
@@ -66,13 +69,15 @@ findByStringListNotNull()
 findByStringListLessThan(Collection<String> stringList)
 ----
 |...where x.stringList < ?
+|Find records where `stringList` bin value has fewer elements or has a corresponding element lower in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |LessThanEqual, IsLessThanEqual a|
 [source,java]
 ----
 findByStringListLessThanEqual(Collection<String> stringList)
 ----
-|...where x.stringList <= ?
+|...where x.stringList < = ?
+|Find records where `stringList` bin value has smaller or the same amount of elements or has each corresponding element lower in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |GreaterThan, IsGreaterThan a|
 [source,java]
@@ -80,6 +85,7 @@ findByStringListLessThanEqual(Collection<String> stringList)
 findByStringListGreaterThan(Collection<String> stringList)
 ----
 |...where x.stringList > ?
+|Find records where `stringList` bin value has more elements or has a corresponding element higher in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |GreaterThanEqual, IsGreaterThanEqual a|
 [source,java]
@@ -87,6 +93,7 @@ findByStringListGreaterThan(Collection<String> stringList)
 findByStringListGreaterThanEqual(Collection<String> stringList)
 ----
 |...where x.stringList >= ?
+|Find records where `stringList` bin value has larger or the same amount of elements or has each corresponding element higher in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |Between, IsBetween a|
 [source,java]
@@ -94,6 +101,7 @@ findByStringListGreaterThanEqual(Collection<String> stringList)
 findByStringListBetween(Collection<String> lowerLimit, Collection<String> upperLimit)
 ----
 |...where x.stringList between ? and ?
+|Find records where `stringList` bin value is in the range between the given arguments. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |Containing, IsContaining, Contains a|
 [source,java]
@@ -101,6 +109,7 @@ findByStringListBetween(Collection<String> lowerLimit, Collection<String> upperL
 findByStringListContaining(String string)
 ----
 |...where x.stringList contains ?
+|
 
 |NotContaining, IsNotContaining, NotContains a|
 [source,java]
@@ -108,6 +117,7 @@ findByStringListContaining(String string)
 findByStringListNotContaining(String string)
 ----
 |...where x.stringList not contains ?
+|
 
 |And a|
 [source,java]
@@ -115,6 +125,7 @@ findByStringListNotContaining(String string)
 findByStringListAndIntList(Collection<String> stringList, Collection<Integer> intList)
 ----
 |...where x.stringList = ? and x.intList = ?
+|
 
 |Or a|
 [source,java]
@@ -122,4 +133,5 @@ findByStringListAndIntList(Collection<String> stringList, Collection<Integer> in
 findByStringListOrIntList(Collection<String> stringList, Collection<Integer> intList)
 ----
 |...where x.stringList = ? or x.intList = ?
+|
 |===

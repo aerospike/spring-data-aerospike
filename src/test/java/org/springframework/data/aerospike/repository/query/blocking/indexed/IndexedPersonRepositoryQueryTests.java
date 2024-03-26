@@ -21,7 +21,7 @@ import static com.aerospike.client.query.IndexCollectionType.MAPKEYS;
 import static com.aerospike.client.query.IndexCollectionType.MAPVALUES;
 import static com.aerospike.client.query.IndexType.NUMERIC;
 import static com.aerospike.client.query.IndexType.STRING;
-import static org.springframework.data.aerospike.AsCollections.of;
+import static org.springframework.data.aerospike.utility.AsCollections.of;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
