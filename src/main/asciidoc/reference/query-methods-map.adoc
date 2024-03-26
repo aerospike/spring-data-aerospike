@@ -111,9 +111,15 @@ findByStringMapContaining(AerospikeQueryCriterion criterion, String string)
 findByStringMapContaining(AerospikeQueryCriterion criterionPair, String string, String value)
 ----
 |...where x.stringMap contains ?
-|`findByStringMapContaining(KEY, "key1")`
+a|* Find records where `stringMap` bin value (which is a Map) contains key "key1":
+
+`findByStringMapContaining(KEY, "key1")`
+
+* Find records where `stringMap` bin value (which is a Map) contains value "value1":
 
 `findByStringMapContaining(VALUE, "value1")`
+
+* Find records where `stringMap` bin value (which is a Map) contains key "key1" with the value "value1":
 
 `findByStringMapContaining(KEY_VALUE_PAIR, "key1", "value1")`
 
