@@ -25,9 +25,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
 import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
-import static org.springframework.data.aerospike.utility.AsCollections.list;
-import static org.springframework.data.aerospike.utility.AsCollections.of;
-import static org.springframework.data.aerospike.utility.AsCollections.set;
+import static org.springframework.data.aerospike.util.AsCollections.list;
+import static org.springframework.data.aerospike.util.AsCollections.of;
+import static org.springframework.data.aerospike.util.AsCollections.set;
 
 public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeConverterTest {
 

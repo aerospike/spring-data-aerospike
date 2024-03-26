@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.utility;
+package org.springframework.data.aerospike.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeansException;

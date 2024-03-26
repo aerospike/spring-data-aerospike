@@ -3,7 +3,7 @@ package org.springframework.data.aerospike.repository.query.reactive.indexed.fin
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.reactive.indexed.ReactiveIndexedPersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.IndexedPerson;
-import org.springframework.data.aerospike.utility.TestUtils;
+import org.springframework.data.aerospike.util.TestUtils;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;

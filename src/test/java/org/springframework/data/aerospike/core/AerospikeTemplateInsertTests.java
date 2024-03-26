@@ -27,7 +27,7 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
-import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.util.AsyncUtils;
 
 import java.util.Arrays;
 import java.util.Collections;

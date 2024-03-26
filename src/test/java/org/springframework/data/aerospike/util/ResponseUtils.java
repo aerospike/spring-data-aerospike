@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.utility;
+package org.springframework.data.aerospike.util;
 
 import java.util.AbstractMap;
 import java.util.Arrays;

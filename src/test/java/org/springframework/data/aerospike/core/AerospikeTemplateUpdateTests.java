@@ -25,7 +25,7 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.util.AsyncUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

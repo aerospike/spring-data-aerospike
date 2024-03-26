@@ -21,7 +21,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
+import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class ReactiveAerospikeTemplateIndexTests extends BaseReactiveIntegrationTests {
 

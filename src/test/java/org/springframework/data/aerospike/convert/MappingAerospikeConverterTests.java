@@ -47,11 +47,11 @@ import static org.springframework.data.aerospike.assertions.KeyAssert.assertThat
 import static org.springframework.data.aerospike.sample.SampleClasses.*;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
-import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
-import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
-import static org.springframework.data.aerospike.utility.AsCollections.list;
-import static org.springframework.data.aerospike.utility.AsCollections.of;
-import static org.springframework.data.aerospike.utility.AsCollections.set;
+import static org.springframework.data.aerospike.util.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
+import static org.springframework.data.aerospike.util.AerospikeExpirationPolicy.NEVER_EXPIRE;
+import static org.springframework.data.aerospike.util.AsCollections.list;
+import static org.springframework.data.aerospike.util.AsCollections.of;
+import static org.springframework.data.aerospike.util.AsCollections.set;
 
 public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverterTest {
 

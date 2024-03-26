@@ -22,7 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.aerospike.utility.CollectionUtils;
+import org.springframework.data.aerospike.util.CollectionUtils;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,7 +35,7 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.INDEXED_GEO_SET;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.INDEXED_SET_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.ORANGE;
-import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
+import static org.springframework.data.aerospike.util.CollectionUtils.countingInt;
 
 /*
  * These tests generate qualifiers on indexed bins.

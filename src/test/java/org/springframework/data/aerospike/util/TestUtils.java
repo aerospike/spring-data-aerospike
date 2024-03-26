@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.utility;
+package org.springframework.data.aerospike.util;
 
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;

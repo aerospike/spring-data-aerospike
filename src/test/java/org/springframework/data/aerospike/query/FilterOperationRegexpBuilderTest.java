@@ -17,7 +17,7 @@
 package org.springframework.data.aerospike.query;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder;
+import org.springframework.data.aerospike.util.FilterOperationRegexpBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

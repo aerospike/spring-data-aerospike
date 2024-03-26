@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.utility;
+package org.springframework.data.aerospike.util;
 
 import org.awaitility.core.ThrowingRunnable;
 import org.junit.jupiter.api.Assertions;

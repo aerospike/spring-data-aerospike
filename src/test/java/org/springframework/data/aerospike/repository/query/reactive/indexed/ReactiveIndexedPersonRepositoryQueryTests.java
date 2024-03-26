@@ -11,7 +11,7 @@ import org.springframework.data.aerospike.ReactiveBlockingAerospikeTestOperation
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.ReactiveIndexedPersonRepository;
-import org.springframework.data.aerospike.utility.AsCollections;
+import org.springframework.data.aerospike.util.AsCollections;
 
 import java.util.Arrays;
 import java.util.List;

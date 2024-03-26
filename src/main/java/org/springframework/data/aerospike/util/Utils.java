@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike.utility;
+package org.springframework.data.aerospike.util;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;

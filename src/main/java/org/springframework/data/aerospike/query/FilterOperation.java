@@ -49,11 +49,11 @@ import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.NULL;
 import static com.aerospike.client.command.ParticleType.STRING;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
-import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getContaining;
-import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getEndsWith;
-import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getNotContaining;
-import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getStartsWith;
-import static org.springframework.data.aerospike.utility.FilterOperationRegexpBuilder.getStringEquals;
+import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getContaining;
+import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getEndsWith;
+import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getNotContaining;
+import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getStartsWith;
+import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getStringEquals;
 
 public enum FilterOperation {
 

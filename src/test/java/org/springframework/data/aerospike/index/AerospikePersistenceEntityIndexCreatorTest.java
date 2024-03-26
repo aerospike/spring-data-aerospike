@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.sample.AutoIndexedDocument;
-import org.springframework.data.aerospike.utility.MockObjectProvider;
+import org.springframework.data.aerospike.util.MockObjectProvider;
 
 import java.util.Collections;
 import java.util.Set;

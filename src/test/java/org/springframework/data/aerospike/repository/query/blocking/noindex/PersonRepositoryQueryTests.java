@@ -9,7 +9,7 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonNegativeTestsRepository;
 import org.springframework.data.aerospike.sample.PersonRepository;
-import org.springframework.data.aerospike.utility.AsCollections;
+import org.springframework.data.aerospike.util.AsCollections;
 
 import java.util.List;
 

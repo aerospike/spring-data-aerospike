@@ -13,7 +13,7 @@ import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
-import org.springframework.data.aerospike.utility.AwaitilityUtils;
+import org.springframework.data.aerospike.util.AwaitilityUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;

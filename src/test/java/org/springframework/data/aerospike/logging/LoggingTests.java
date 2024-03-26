@@ -21,7 +21,7 @@ import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.StubParameterAccessor;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.MemoryAppender;
+import org.springframework.data.aerospike.util.MemoryAppender;
 import org.springframework.data.repository.query.parser.PartTree;
 
 import java.util.Collections;
