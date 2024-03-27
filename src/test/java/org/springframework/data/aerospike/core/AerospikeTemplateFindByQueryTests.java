@@ -33,8 +33,8 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
-import org.springframework.data.aerospike.utility.CollectionUtils;
-import org.springframework.data.aerospike.utility.QueryUtils;
+import org.springframework.data.aerospike.util.CollectionUtils;
+import org.springframework.data.aerospike.util.QueryUtils;
 import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;

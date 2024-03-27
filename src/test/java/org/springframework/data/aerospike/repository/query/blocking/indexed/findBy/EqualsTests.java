@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.blocking.indexed.IndexedPersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.IndexedPerson;
-import org.springframework.data.aerospike.utility.TestUtils;
+import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
 

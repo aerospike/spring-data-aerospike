@@ -24,7 +24,7 @@ import com.aerospike.client.policy.WritePolicy;
 import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
-import org.springframework.data.aerospike.utility.Utils;
+import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.keyvalue.core.AbstractKeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueAdapter;
 import org.springframework.data.keyvalue.core.KeyValueTemplate;

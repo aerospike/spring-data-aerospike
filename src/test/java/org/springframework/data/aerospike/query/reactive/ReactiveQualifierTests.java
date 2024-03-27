@@ -44,7 +44,7 @@ import static org.springframework.data.aerospike.query.QueryEngineTestDataPopula
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SET_NAME;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SPECIAL_CHAR_BIN;
 import static org.springframework.data.aerospike.query.QueryEngineTestDataPopulator.SPECIAL_CHAR_SET;
-import static org.springframework.data.aerospike.utility.CollectionUtils.countingInt;
+import static org.springframework.data.aerospike.util.CollectionUtils.countingInt;
 
 /*
  * Tests to ensure that Qualifiers are built successfully for non indexed bins.

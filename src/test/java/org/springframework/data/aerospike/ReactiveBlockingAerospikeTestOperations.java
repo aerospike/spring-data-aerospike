@@ -8,7 +8,7 @@ import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
+import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Collection;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextId;
+import static org.springframework.data.aerospike.util.AerospikeUniqueId.nextId;
 
 public class ReactiveBlockingAerospikeTestOperations extends AdditionalAerospikeTestOperations {
 

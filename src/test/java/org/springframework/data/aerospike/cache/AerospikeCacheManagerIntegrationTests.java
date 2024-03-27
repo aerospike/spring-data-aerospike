@@ -26,11 +26,11 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeOperations;
-import org.springframework.data.aerospike.utility.AwaitilityUtils;
+import org.springframework.data.aerospike.util.AwaitilityUtils;
 import org.springframework.data.annotation.Id;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
+import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
 

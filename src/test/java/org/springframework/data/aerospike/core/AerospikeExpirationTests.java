@@ -37,10 +37,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.data.Offset.offset;
 import static org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpirationAnnotationAndPersistenceConstructor;
-import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
-import static org.springframework.data.aerospike.utility.AerospikeExpirationPolicy.NEVER_EXPIRE;
-import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
-import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTwoSecondsUntil;
+import static org.springframework.data.aerospike.util.AerospikeExpirationPolicy.DO_NOT_UPDATE_EXPIRATION;
+import static org.springframework.data.aerospike.util.AerospikeExpirationPolicy.NEVER_EXPIRE;
+import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
+import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTwoSecondsUntil;
 
 public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 

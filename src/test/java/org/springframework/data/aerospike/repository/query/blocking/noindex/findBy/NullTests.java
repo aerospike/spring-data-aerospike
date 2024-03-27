@@ -4,7 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
-import org.springframework.data.aerospike.utility.TestUtils;
+import org.springframework.data.aerospike.util.TestUtils;
 
 /**
  * Tests for the "Is null" repository query. Keywords: Null, IsNull.

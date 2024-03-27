@@ -9,7 +9,7 @@ import org.springframework.data.aerospike.repository.query.blocking.noindex.Pers
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
-import org.springframework.data.aerospike.utility.TestUtils;
+import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
 import java.util.Map;

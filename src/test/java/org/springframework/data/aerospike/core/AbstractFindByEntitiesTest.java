@@ -19,7 +19,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.utility.AerospikeUniqueId.nextId;
+import static org.springframework.data.aerospike.util.AerospikeUniqueId.nextId;
 
 public interface AbstractFindByEntitiesTest {
 

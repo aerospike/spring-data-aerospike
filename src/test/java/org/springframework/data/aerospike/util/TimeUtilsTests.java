@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.utility;
+package org.springframework.data.aerospike.util;
 
 import org.assertj.core.data.Offset;
 import org.joda.time.DateTime;

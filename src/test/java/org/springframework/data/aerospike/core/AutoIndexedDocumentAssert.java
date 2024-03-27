@@ -5,7 +5,7 @@ import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.query.model.Index;
-import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
+import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
 
 import java.util.List;
 

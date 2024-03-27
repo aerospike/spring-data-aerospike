@@ -7,7 +7,7 @@ import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
-import org.springframework.data.aerospike.utility.Utils;
+import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.util.TypeInformation;

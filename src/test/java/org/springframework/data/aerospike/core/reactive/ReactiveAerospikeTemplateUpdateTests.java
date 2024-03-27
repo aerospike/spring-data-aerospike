@@ -11,7 +11,7 @@ import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
-import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.util.AsyncUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
