@@ -44,7 +44,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static com.aerospike.client.ResultCode.OP_NOT_APPLICABLE;
-import static org.springframework.data.aerospike.utility.TimeUtils.unixTimeToOffsetInSeconds;
+import static org.springframework.data.aerospike.util.TimeUtils.unixTimeToOffsetInSeconds;
 
 @Slf4j
 public class MappingAerospikeWriteConverter implements EntityWriter<Object, AerospikeWriteData> {

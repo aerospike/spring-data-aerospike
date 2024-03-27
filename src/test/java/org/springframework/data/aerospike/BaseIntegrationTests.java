@@ -4,8 +4,8 @@ import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
-import org.springframework.data.aerospike.utility.AerospikeUniqueId;
+import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
+import org.springframework.data.aerospike.util.AerospikeUniqueId;
 
 public abstract class BaseIntegrationTests {
 

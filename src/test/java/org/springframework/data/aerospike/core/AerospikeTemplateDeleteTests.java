@@ -29,7 +29,7 @@ import org.springframework.data.aerospike.sample.SampleClasses.CollectionOfObjec
 import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClassToDelete;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
-import org.springframework.data.aerospike.utility.AwaitilityUtils;
+import org.springframework.data.aerospike.util.AwaitilityUtils;
 
 import java.time.Instant;
 import java.util.Arrays;

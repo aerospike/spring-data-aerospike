@@ -4,12 +4,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.aerospike.AsCollections;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonNegativeTestsRepository;
 import org.springframework.data.aerospike.sample.PersonRepository;
+import org.springframework.data.aerospike.util.AsCollections;
 
 import java.util.List;
 

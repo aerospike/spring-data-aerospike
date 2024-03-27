@@ -11,7 +11,7 @@ import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.QueryUtils;
+import org.springframework.data.aerospike.util.QueryUtils;
 import org.springframework.data.domain.Sort;
 import reactor.core.scheduler.Schedulers;
 

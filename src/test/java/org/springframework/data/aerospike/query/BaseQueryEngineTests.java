@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
-import org.springframework.data.aerospike.utility.AwaitilityUtils;
+import org.springframework.data.aerospike.util.AwaitilityUtils;
 
 import java.util.Optional;
 

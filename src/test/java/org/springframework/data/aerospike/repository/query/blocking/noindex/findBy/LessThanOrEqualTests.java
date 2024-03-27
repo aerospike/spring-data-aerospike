@@ -3,7 +3,7 @@ package org.springframework.data.aerospike.repository.query.blocking.noindex.fin
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.aerospike.utility.TestUtils;
+import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
 

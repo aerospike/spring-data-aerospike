@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.utility;
+package org.springframework.data.aerospike.util;
 
 import com.aerospike.client.Record;
 import com.aerospike.client.query.KeyRecord;

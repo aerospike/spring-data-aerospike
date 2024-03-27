@@ -20,7 +20,7 @@ import org.springframework.data.aerospike.repository.config.EnableReactiveAerosp
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.data.aerospike.utility.AdditionalAerospikeTestOperations;
+import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;

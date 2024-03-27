@@ -45,7 +45,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import static org.springframework.data.aerospike.convert.AerospikeMetaData.PRIMARY_KEY;
-import static org.springframework.data.aerospike.utility.TimeUtils.offsetInSecondsToUnixTime;
+import static org.springframework.data.aerospike.util.TimeUtils.offsetInSecondsToUnixTime;
 
 public class MappingAerospikeReadConverter implements EntityReader<Object, AerospikeReadData> {
 

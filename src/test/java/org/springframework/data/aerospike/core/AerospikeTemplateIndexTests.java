@@ -10,7 +10,7 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.model.Index;
-import org.springframework.data.aerospike.utility.AsyncUtils;
+import org.springframework.data.aerospike.util.AsyncUtils;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.springframework.data.aerospike.utility.AwaitilityUtils.awaitTenSecondsUntil;
+import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
 @TestPropertySource(properties = {"spring-data-aerospike.data.create-indexes-on-startup=true"})
 // this test class requires secondary indexes created on startup
