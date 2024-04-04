@@ -68,7 +68,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                  FilterExpressionsBuilder filterExpressionsBuilder,
                                                  AerospikeSettings settings) {
         ReactorQueryEngine queryEngine = new ReactorQueryEngine(aerospikeReactorClient, statementBuilder,
-            filterExpressionsBuilder);
+            filterExpressionsBuilder, settings.getDataSettings());
         boolean scansEnabled = settings.getDataSettings().isScansEnabled();
         queryEngine.setScansEnabled(scansEnabled);
         log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);

@@ -138,7 +138,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
             setQualifierBuilderValue(qb, queryParameters.get(0));
         }
 
-        return setQualifier(converter, qb, fieldName, op, part, dotPath);
+        return setQualifier(qb, fieldName, op, part, dotPath);
     }
 
     private boolean convertPartTypeToBoolean(Part.Type type) {
