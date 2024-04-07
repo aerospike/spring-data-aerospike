@@ -215,7 +215,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LTEQ)
-            .setValueAsObj(Value.get(1))
+            .setValueAsObj(1)
             .build())))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("LTEQ: value1 is expected to be set as Long");
@@ -264,19 +264,16 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         assertThat(repository.findUsingQuery(new Query(stringMapValuesContainString))).containsOnly(donny, boyd);
 
         int valueToSearchLessThan = 100;
-        assertThat(carter.getIntMap().get("key1")).isLessThan(valueToSearchLessThan);
         assertThat(carter.getIntMap().get(keyExactMatch)).isLessThan(valueToSearchLessThan);
 
         // it cannot be easily combined using boolean logic
-        // because in fact it is a "less than" Exp that uses the result of "MapExp.getByKey" Exp,
+        // because in fact it is a "less than" Exp that uses the result of another Exp "MapExp.getByKey",
         // so it requires new logic if exposed to users
         Qualifier intMapWithExactKeyAndValueLt100 = Qualifier.builder()
-            .setField("intMap")
+            .setField("intMap") // Map bin name
             .setFilterOperation(FilterOperation.MAP_VAL_LT_BY_KEY)
-            .setKey(Value.get("key2"))
-            .setValue(Value.get(100))
-            .setDotPath(List.of("intMap", keyExactMatch))
-            .setConverter(getMappingAerospikeConverter(new AerospikeCustomConversions(Collections.emptyList())))
+            .setKey(Value.get(keyExactMatch)) // Map key
+            .setValue(Value.get(valueToSearchLessThan)) // Map value to compare with
             .build();
         assertThat(repository.findUsingQuery(new Query(intMapWithExactKeyAndValueLt100))).containsOnly(carter);
     }

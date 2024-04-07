@@ -160,7 +160,7 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
 
     @Test
     public void findById_shouldReadClassWithNumericKeyMapWrittenByTemplate() {
-        if (template.getAerospikeConverter().getAerospikeSettings().isKeepOriginalKeyTypes()) {
+        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             int intKey = 1;
             double doubleKey = 100.25;
             String value = "String value";
@@ -181,7 +181,7 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
 
     @Test
     public void findById_shouldReadClassWithNumericKeyMap() {
-        if (template.getAerospikeConverter().getAerospikeSettings().isKeepOriginalKeyTypes()) {
+        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             int intKey = 1;
             double doubleKey = 100.25;
             String value = "String value";
@@ -206,7 +206,7 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
 
     @Test
     public void findById_shouldReadClassWithByteArrayId() {
-        if (template.getAerospikeConverter().getAerospikeSettings().isKeepOriginalKeyTypes()) {
+        if (template.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             long longId = 10L;
             SampleClasses.DocumentWithLongId document = SampleClasses.DocumentWithLongId.builder().id(longId).build();
             template.save(document);
