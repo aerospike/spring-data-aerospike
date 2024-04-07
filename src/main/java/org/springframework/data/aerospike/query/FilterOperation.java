@@ -784,8 +784,7 @@ public enum FilterOperation {
     MAP_VAL_IS_NOT_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap)
-            );
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap));
             if (dotPathArray != null && dotPathArray.length > 1) {
                 // in case it is a field of an object set to null the key does not get added to a Map,
                 // so it is enough to look for Maps with the given key
@@ -805,8 +804,7 @@ public enum FilterOperation {
     MAP_VAL_IS_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap)
-            );
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap));
             if (dotPathArray != null && dotPathArray.length > 1) {
                 // in case it is a field of an object set to null the key does not get added to a Map,
                 // so it is enough to look for Maps without the given key
@@ -1405,8 +1403,7 @@ public enum FilterOperation {
 
     private static Exp getFilterExpMapValOrFail(Map<QualifierKey, Object> qualifierMap, BinaryOperator<Exp> operator,
                                                 String opName) {
-        String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap)
-        );
+        String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
 
         return switch (getValue(qualifierMap).getType()) {
             case INTEGER -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.INT),

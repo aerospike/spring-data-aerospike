@@ -1,7 +1,6 @@
 package org.springframework.data.aerospike.query.qualifier;
 
 import com.aerospike.client.Value;
-import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     /**
      * Set Map key.
      * <p>
-     * Use one of Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
+     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
      * key into a {@link Value} object.
      */
     public QualifierBuilder setKey(Value key) {
@@ -44,7 +43,7 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     /**
      * Set value.
      * <p>
-     * Use one of Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
+     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
      * value into a {@link Value} object.
      */
     public QualifierBuilder setValue(Value value) {
@@ -55,7 +54,7 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     /**
      * Set second value.
      * <p>
-     * Use one of Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
+     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
      * second value into a {@link Value} object.
      */
     public QualifierBuilder setSecondValue(Value secondValue) {
@@ -64,7 +63,7 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
-     * Required only for a nested value query (e.g. find by a field of a POJO).
+     * Required only for a nested value query (e.g. find by a POJO field).
      */
     public QualifierBuilder setDotPath(List<String> dotPath) {
         this.map.put(DOT_PATH, dotPath);
