@@ -2,11 +2,9 @@ package org.springframework.data.aerospike.query.qualifier;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
-import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 
 import java.util.List;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.CONVERTER;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DOT_PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FIELD;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;

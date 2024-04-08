@@ -36,7 +36,7 @@ public class NotInTests extends PersonRepositoryQueryTests {
             repository.save(carter);
 
             List<Person> result = repository.findByFriendIntsNotIn(List.of(List.of(0, 1, 2, 3, 4, 5, 6, 7),
-                List.of(1, 2, 3), List.of(1, 2, 3, 4)));
+                List.of(1, 2, 3), List.of(0, 1, 2, 3, 4, 5)));
 
             assertThat(result).contains(carter);
             TestUtils.setFriendsToNull(repository, carter);

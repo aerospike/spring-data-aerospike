@@ -501,22 +501,19 @@ public enum FilterOperation {
     MAP_VAL_IN_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-//            return getFilterExpMapValEqOrFail(qualifierMap, Exp::eq);
             // Convert IN to EQ with logical OR as there is no direct support for IN query
-            return getMetadataExp(qualifierMap).orElseGet(() -> {
-                Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
-                Exp[] arrElementsExp = collection.stream().map(item ->
-                    Qualifier.builder()
-                        .setField(getField(qualifierMap))
-                        .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
-                        .setKey(getKey(qualifierMap))
-                        .setValue(Value.get(item))
-                        .build()
-                        .toFilterExp()
-                ).toArray(Exp[]::new);
+            Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
+            Exp[] arrElementsExp = collection.stream().map(item ->
+                Qualifier.builder()
+                    .setField(getField(qualifierMap))
+                    .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
+                    .setKey(getKey(qualifierMap))
+                    .setValue(Value.get(item))
+                    .build()
+                    .toFilterExp()
+            ).toArray(Exp[]::new);
 
-                return Exp.or(arrElementsExp);
-            });
+            return Exp.or(arrElementsExp);
         }
 
         @Override
@@ -527,22 +524,19 @@ public enum FilterOperation {
     MAP_VAL_NOT_IN_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-//            return getFilterExpMapValEqOrFail(qualifierMap, Exp::eq);
-            // Convert IN to EQ with logical OR as there is no direct support for IN query
-            return getMetadataExp(qualifierMap).orElseGet(() -> {
-                Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
-                Exp[] arrElementsExp = collection.stream().map(item ->
-                    Qualifier.builder()
-                        .setField(getField(qualifierMap))
-                        .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
-                        .setKey(getKey(qualifierMap))
-                        .setValue(Value.get(item))
-                        .build()
-                        .toFilterExp()
-                ).toArray(Exp[]::new);
+            // Convert NOT_IN to NOTEQ with logical AND as there is no direct support for NOT_IN query
+            Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
+            Exp[] arrElementsExp = collection.stream().map(item ->
+                Qualifier.builder()
+                    .setField(getField(qualifierMap))
+                    .setFilterOperation(FilterOperation.MAP_VAL_NOTEQ_BY_KEY)
+                    .setKey(getKey(qualifierMap))
+                    .setValue(Value.get(item))
+                    .build()
+                    .toFilterExp()
+            ).toArray(Exp[]::new);
 
-                return Exp.or(arrElementsExp);
-            });
+            return Exp.and(arrElementsExp);
         }
 
         @Override
