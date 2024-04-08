@@ -56,7 +56,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
                                    StatementBuilder statementBuilder,
                                    FilterExpressionsBuilder filterExpressionsBuilder, AerospikeSettings settings) {
-        QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder);
+        QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder,
+            settings.getDataSettings());
         boolean scansEnabled = settings.getDataSettings().isScansEnabled();
         log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
         queryEngine.setScansEnabled(scansEnabled);

@@ -127,7 +127,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         }
         setQualifierBuilderValue(qb, queryParameters.get(0));
 
-        return setQualifier(converter, qb, fieldName, op, part, null);
+        return setQualifier(qb, fieldName, op, part, null);
     }
 
     private FilterOperation getCorrespondingListFilterOperationOrFail(FilterOperation op) {

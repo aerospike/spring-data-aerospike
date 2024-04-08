@@ -789,14 +789,14 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         aerospikeConverter.write(object, forWrite);
 
-        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeConverter.getAerospikeSettings(), NAMESPACE,
+        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeConverter.getAerospikeDataSettings(), NAMESPACE,
             expectedSet, expectedUserKey);
 
         for (Bin expectedBin : expectedBins) {
             if (expectedBin.value.getType() == ParticleType.MAP) {
                 // Compare Maps
                 assertThat(
-                    compareMaps(aerospikeConverter.getAerospikeSettings(), expectedBin,
+                    compareMaps(aerospikeConverter.getAerospikeDataSettings(), expectedBin,
                         forWrite.getBins().stream().filter(bin -> bin.name.equals(expectedBin.name))
                             .findFirst().orElse(null))).isTrue();
             } else {
@@ -833,7 +833,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         aerospikeConverter.write(object, forWrite);
 
-        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeConverter.getAerospikeSettings(), NAMESPACE,
+        KeyAssert.assertThat(forWrite.getKey()).consistsOf(aerospikeConverter.getAerospikeDataSettings(), NAMESPACE,
             expectedSet, expectedUserKey);
         assertThat(forWrite.getBins()).containsOnly(expectedBins);
 

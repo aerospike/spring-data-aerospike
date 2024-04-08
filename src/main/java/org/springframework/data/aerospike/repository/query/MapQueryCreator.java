@@ -172,14 +172,14 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
     @Override
     public Qualifier process() {
-        Qualifier qualifier = null;
+        Qualifier qualifier;
         QualifierBuilder qb = Qualifier.builder();
         int paramsSize = queryParameters.size();
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
             setQualifierBuilderValue(qb, queryParameters.get(0));
             if (queryParameters.size() >= 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
-            qualifier = setQualifier(converter, qb, fieldName, filterOperation, part, null);
+            qualifier = setQualifier(qb, fieldName, filterOperation, part, null);
             return qualifier;
         }
 
@@ -187,7 +187,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
             qualifier = processMapTwoParams(part, queryParameters, filterOperation, fieldName);
         } else if (queryParameters.size() < 2) {
             setQualifierBuilderValue(qb, queryParameters.get(0));
-            qualifier = setQualifier(converter, qb, fieldName, filterOperation, part, null);
+            qualifier = setQualifier(qb, fieldName, filterOperation, part, null);
         } else { // multiple parameters
             qualifier = processMapMultipleParams(part, queryParameters, filterOperation, fieldName);
         }
@@ -228,7 +228,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 default -> throw new UnsupportedOperationException("Unsupported parameter: " + queryCriterion);
             }
         }
-        return setQualifier(converter, qb, fieldName, op, part, null);
+        return setQualifier(qb, fieldName, op, part, null);
     }
 
     private Qualifier processMapOtherThanContaining(Part part, List<Object> queryParameters, FilterOperation op,
@@ -243,7 +243,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
         setQualifierBuilderKey(qb, queryParameters.get(0));
         setQualifierBuilderValue(qb, queryParameters.get(1));
-        return setQualifier(converter, qb, fieldName, op, part, dotPath);
+        return setQualifier(qb, fieldName, op, part, dotPath);
     }
 
     private Qualifier processMapMultipleParams(Part part, List<Object> params, FilterOperation op, String fieldName) {
@@ -283,7 +283,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
         if (op == MAP_VAL_CONTAINING_BY_KEY || op == MAP_VAL_NOT_CONTAINING_BY_KEY
             || op == MAP_VAL_EQ_BY_KEY || op == MAP_VAL_NOTEQ_BY_KEY) {
-            return setQualifier(converter, qb, fieldName, op, part, dotPath);
+            return setQualifier(qb, fieldName, op, part, dotPath);
         } else {
             return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath);
         }

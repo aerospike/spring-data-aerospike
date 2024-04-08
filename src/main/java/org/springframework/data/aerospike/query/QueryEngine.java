@@ -26,6 +26,7 @@ import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
@@ -48,6 +49,7 @@ public class QueryEngine {
     private final StatementBuilder statementBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
+    private final AerospikeDataSettings dataSettings;
     /**
      * Scans can potentially slow down Aerospike server, so we are disabling them by default. If you still need to use
      * scans, set this property to true.
@@ -59,10 +61,11 @@ public class QueryEngine {
     private long queryMaxRecords;
 
     public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
-                       FilterExpressionsBuilder filterExpressionsBuilder) {
+                       FilterExpressionsBuilder filterExpressionsBuilder, AerospikeDataSettings dataSettings) {
         this.client = client;
         this.statementBuilder = statementBuilder;
         this.filterExpressionsBuilder = filterExpressionsBuilder;
+        this.dataSettings = dataSettings;
     }
 
     /**
@@ -106,6 +109,10 @@ public class QueryEngine {
         /*
          *  query with filters
          */
+        if (query != null) {
+            // dataSettings provided to be used in FilterOperation
+            query.getCriteriaObject().setDataSettings(dataSettings);
+        }
         Statement statement = statementBuilder.build(namespace, set, query, binNames);
         statement.setMaxRecords(queryMaxRecords);
         QueryPolicy localQueryPolicy = getQueryPolicy(query, true);

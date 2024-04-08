@@ -26,7 +26,7 @@ import com.aerospike.client.exp.MapExp;
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
-import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierKey;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
@@ -56,7 +56,6 @@ import static org.springframework.data.aerospike.util.FilterOperationRegexpBuild
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getStringEquals;
 
 public enum FilterOperation {
-
     AND {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -462,9 +461,8 @@ public enum FilterOperation {
          */
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
-                "MAP_VAL_EQ_BY_KEY secondary index filter: dotPath has not been set");
-            final boolean useCtx = dotPathArr.length > 2;
+            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
+            final boolean useCtx = dotPathArr != null && dotPathArr.length > 2;
 
             return switch (getValue(qualifierMap).getType()) {
                 case STRING -> {
@@ -518,9 +516,8 @@ public enum FilterOperation {
                 return null;
             }
 
-            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
-                "MAP_VAL_GT_BY_KEY secondary index filter: dotPath has not been set");
-            if (dotPathArr.length > 2) {
+            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
+            if (dotPathArr != null && dotPathArr.length > 2) {
                 return null; // currently not supported
             } else {
                 return Filter.range(getField(qualifierMap), IndexCollectionType.MAPVALUES,
@@ -544,9 +541,8 @@ public enum FilterOperation {
                 return null;
             }
 
-            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
-                "MAP_VAL_GTEQ_BY_KEY secondary index filter: dotPath has not been set");
-            if (dotPathArr.length > 2) {
+            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
+            if (dotPathArr != null && dotPathArr.length > 2) {
                 return null; // currently not supported
             } else {
                 return Filter.range(getField(qualifierMap), IndexCollectionType.MAPVALUES,
@@ -571,9 +567,8 @@ public enum FilterOperation {
                 return null;
             }
 
-            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
-                "MAP_VAL_LT_BY_KEY secondary index filter: dotPath has not been set");
-            if (dotPathArr.length > 2) {
+            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
+            if (dotPathArr != null && dotPathArr.length > 2) {
                 return null; // currently not supported
             } else {
                 return Filter.range(getField(qualifierMap), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
@@ -596,9 +591,8 @@ public enum FilterOperation {
                 return null;
             }
 
-            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
-                "MAP_VAL_LTEQ_BY_KEY secondary index filter: dotPath has not been set");
-            if (dotPathArr.length > 2) {
+            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
+            if (dotPathArr != null && dotPathArr.length > 2) {
                 return null; // currently not supported
             } else {
                 return Filter.range(getField(qualifierMap), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
@@ -609,8 +603,7 @@ public enum FilterOperation {
     MAP_VAL_BETWEEN_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
-                "MAP_VAL_BETWEEN_BY_KEY filter expression: dotPath has not been set");
+            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
             Exp lowerLimit;
             Exp upperLimit;
             Exp.Type type;
@@ -648,7 +641,7 @@ public enum FilterOperation {
                                               Exp lowerLimit,
                                               Exp upperLimit) {
             Exp mapExp;
-            if (dotPathArr.length > 2) {
+            if (dotPathArr != null && dotPathArr.length > 2) {
                 mapExp = MapExp.getByKey(MapReturnType.VALUE, type, Exp.val(getKey(qualifierMap).toString()),
                     Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
             } else {
@@ -671,9 +664,8 @@ public enum FilterOperation {
                 return null;
             }
 
-            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
-                "MAP_VAL_BETWEEN_BY_KEY secondary index filter: dotPath has not been set");
-            if (dotPathArr.length > 2) {
+            String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
+            if (dotPathArr != null && dotPathArr.length > 2) {
                 return null; // currently not supported
             } else {
                 return Filter.range(getField(qualifierMap), IndexCollectionType.MAPVALUES,
@@ -792,9 +784,8 @@ public enum FilterOperation {
     MAP_VAL_IS_NOT_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap),
-                "MAP_VAL_IS_NULL_BY_KEY: dotPath was not set");
-            if (dotPathArray.length > 1) {
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap));
+            if (dotPathArray != null && dotPathArray.length > 1) {
                 // in case it is a field of an object set to null the key does not get added to a Map,
                 // so it is enough to look for Maps with the given key
                 return mapKeysContain(qualifierMap);
@@ -813,9 +804,8 @@ public enum FilterOperation {
     MAP_VAL_IS_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap),
-                "MAP_VAL_IS_NULL_BY_KEY: dotPath was not set");
-            if (dotPathArray.length > 1) {
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap));
+            if (dotPathArray != null && dotPathArray.length > 1) {
                 // in case it is a field of an object set to null the key does not get added to a Map,
                 // so it is enough to look for Maps without the given key
                 return mapKeysNotContain(qualifierMap);
@@ -1413,8 +1403,7 @@ public enum FilterOperation {
 
     private static Exp getFilterExpMapValOrFail(Map<QualifierKey, Object> qualifierMap, BinaryOperator<Exp> operator,
                                                 String opName) {
-        String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
-            opName + " filter expression: dotPath has not been set");
+        String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
 
         return switch (getValue(qualifierMap).getType()) {
             case INTEGER -> operator.apply(getMapExp(qualifierMap, dotPathArr, Exp.Type.INT),
@@ -1432,7 +1421,7 @@ public enum FilterOperation {
 
     private static Exp getMapExp(Map<QualifierKey, Object> qualifierMap, String[] dotPathArr, Exp.Type expType) {
         Exp mapKeyExp = getMapKeyExp(getKey(qualifierMap).getObject(), keepOriginalKeyTypes(qualifierMap));
-        if (dotPathArr.length > 2) {
+        if (dotPathArr != null && dotPathArr.length > 2) {
             return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
         } else {
@@ -1463,8 +1452,10 @@ public enum FilterOperation {
     }
 
     private static boolean keepOriginalKeyTypes(Map<QualifierKey, Object> qualifierMap) {
-        return ((MappingAerospikeConverter) qualifierMap.get(CONVERTER))
-            .getAerospikeSettings().isKeepOriginalKeyTypes();
+        Object dataSettings = qualifierMap.get(DATA_SETTINGS);
+        if (dataSettings == null) throw new IllegalStateException("Expecting AerospikeDataSettings in qualifier map " +
+            "with the key " + DATA_SETTINGS);
+        return ((AerospikeDataSettings) dataSettings).isKeepOriginalKeyTypes();
     }
 
     private static Exp getFilterExpMapValEqOrFail(Map<QualifierKey, Object> qualifierMap,
@@ -1479,9 +1470,8 @@ public enum FilterOperation {
 
     private static Exp getMapValEqOrFail(Map<QualifierKey, Object> qualifierMap, BinaryOperator<Exp> operator,
                                          String opName) {
-        String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap),
-            opName + " filter expression: dotPath has not been set");
-        final boolean useCtx = dotPathArr.length > 2;
+        String[] dotPathArr = getDotPathArray(getDotPath(qualifierMap));
+        final boolean useCtx = dotPathArr != null && dotPathArr.length > 2;
 
         // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
         // so converting to BooleanValue to process correctly
@@ -1536,7 +1526,7 @@ public enum FilterOperation {
         return operator.apply(binExp.apply(field), exp);
     }
 
-    private static String[] getDotPathArray(List<String> dotPathList, String errMsg) {
+    private static String[] getDotPathArray(List<String> dotPathList) {
         if (dotPathList != null && !dotPathList.isEmpty()) {
             // the first element of dotPath is part.getProperty().toDotPath()
             // the second element of dotPath, if present, is a value
@@ -1544,9 +1534,8 @@ public enum FilterOperation {
                 : Stream.of(dotPathList.get(1));
             return Stream.concat(Arrays.stream(dotPathList.get(0).split("\\.")), valueStream)
                 .toArray(String[]::new);
-        } else {
-            throw new IllegalStateException(errMsg);
         }
+        return null;
     }
 
     private static CTX[] dotPathToCtxMapKeys(String[] dotPathArray) {

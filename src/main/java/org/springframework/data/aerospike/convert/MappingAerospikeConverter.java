@@ -43,7 +43,7 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
     @Getter
     private final GenericConversionService conversionService;
     @Getter
-    private final AerospikeDataSettings aerospikeSettings;
+    private final AerospikeDataSettings aerospikeDataSettings;
     private final MappingAerospikeReadConverter readConverter;
     private final MappingAerospikeWriteConverter writeConverter;
 
@@ -55,7 +55,7 @@ public class MappingAerospikeConverter implements InitializingBean, AerospikeCon
                                      AerospikeDataSettings settings) {
         this.conversions = conversions;
         this.conversionService = new DefaultConversionService();
-        this.aerospikeSettings = settings;
+        this.aerospikeDataSettings = settings;
 
         EntityInstantiators entityInstantiators = new EntityInstantiators();
         TypeMapper<Map<String, Object>> typeMapper = new DefaultTypeMapper<>(aerospikeTypeAliasAccessor,
