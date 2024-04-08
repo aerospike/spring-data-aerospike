@@ -15,7 +15,7 @@ public enum QualifierKey {
     SECOND_VALUE,
     VALUE_TYPE,
     DOT_PATH,
-    CONVERTER,
+    DATA_SETTINGS,
     QUALIFIERS,
     OPERATION,
     DIGEST_KEY,

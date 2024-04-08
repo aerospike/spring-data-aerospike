@@ -106,7 +106,7 @@ public class ReactiveAerospikeTemplateFindByIdTests extends BaseReactiveIntegrat
 
     @Test
     public void findById_shouldReadClassWithNonStringId() {
-        if (reactiveTemplate.getAerospikeConverter().getAerospikeSettings().isKeepOriginalKeyTypes()) {
+        if (reactiveTemplate.getAerospikeConverter().getAerospikeDataSettings().isKeepOriginalKeyTypes()) {
             long longId = 10L;
             SampleClasses.DocumentWithLongId document = SampleClasses.DocumentWithLongId.builder().id(longId).build();
             reactiveTemplate.save(document).block();

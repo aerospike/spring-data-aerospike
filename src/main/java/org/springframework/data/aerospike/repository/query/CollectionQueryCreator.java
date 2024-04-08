@@ -173,7 +173,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
             setQualifierBuilderValue(qb, queryParameters.get(0));
         }
 
-        return setQualifier(converter, qb, fieldName, op, part, dotPath);
+        return setQualifier(qb, fieldName, op, part, dotPath);
     }
 
     private FilterOperation getCorrespondingListFilterOperationOrFail(FilterOperation op) {

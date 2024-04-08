@@ -1,5 +1,11 @@
 package org.springframework.data.aerospike.query.qualifier;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.data.aerospike.config.AerospikeDataConfigurationSupport;
+import org.springframework.data.aerospike.config.AerospikeSettings;
+import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.query.FilterOperation;
 
 import java.util.Collections;
@@ -19,32 +25,32 @@ abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implement
     protected final Map<QualifierKey, Object> map = new HashMap<>();
 
     public FilterOperation getFilterOperation() {
-        return (FilterOperation) this.map.get(OPERATION);
+        return (FilterOperation) map.get(OPERATION);
     }
 
     public T setFilterOperation(FilterOperation filterOperation) {
-        this.map.put(OPERATION, filterOperation);
+        map.put(OPERATION, filterOperation);
         return (T) this;
     }
 
     public String getField() {
-        return (String) this.map.get(FIELD);
+        return (String) map.get(FIELD);
     }
 
     public boolean hasKey() {
-        return this.map.get(KEY) != null;
+        return map.get(KEY) != null;
     }
 
     public boolean hasValue() {
-        return this.map.get(VALUE) != null;
+        return map.get(VALUE) != null;
     }
 
     public boolean hasSecondValue() {
-        return this.map.get(SECOND_VALUE) != null;
+        return map.get(SECOND_VALUE) != null;
     }
 
     public boolean hasDotPath() {
-        return this.map.get(DOT_PATH) != null;
+        return map.get(DOT_PATH) != null;
     }
 
     public Qualifier build() {
@@ -53,7 +59,7 @@ abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implement
     }
 
     public Map<QualifierKey, Object> getMap() {
-        return Collections.unmodifiableMap(this.map);
+        return Collections.unmodifiableMap(map);
     }
 
     protected void validate() {

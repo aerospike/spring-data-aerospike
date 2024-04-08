@@ -24,12 +24,11 @@ import static org.springframework.util.ClassUtils.isAssignableValue;
 
 public class AerospikeQueryCreatorUtils {
 
-    protected static Qualifier setQualifier(MappingAerospikeConverter converter, QualifierBuilder qb,
+    protected static Qualifier setQualifier(QualifierBuilder qb,
                                             String fieldName, FilterOperation op, Part part, List<String> dotPath) {
         qb.setField(fieldName)
             .setFilterOperation(op)
-            .setIgnoreCase(ignoreCaseToBoolean(part))
-            .setConverter(converter);
+            .setIgnoreCase(ignoreCaseToBoolean(part));
         if (dotPath != null && !qb.hasDotPath()) qb.setDotPath(dotPath);
 
         return qb.build();
@@ -82,13 +81,13 @@ public class AerospikeQueryCreatorUtils {
             qualifiers = new Qualifier[params.size() / 2]; // keys/values qty must be even
             for (int i = 0, j = 0; i < params.size(); i += 2, j++) {
                 setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
-                qualifiers[j] = setQualifier(converter, qb, fieldName, op, part, dotPath);
+                qualifiers[j] = setQualifier(qb, fieldName, op, part, dotPath);
             }
         }
         qualifiers = new Qualifier[params.size()];
         for (int i = 0; i < params.size(); i++) {
             setQbValuesForMapByKey(qb, params.get(i), params.get(i));
-            qualifiers[i] = setQualifier(converter, qb, fieldName, op, part, dotPath);
+            qualifiers[i] = setQualifier(qb, fieldName, op, part, dotPath);
         }
 
         return Qualifier.and(qualifiers);

@@ -173,7 +173,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private <T> void applyBufferedBatchWrite(Iterable<T> documents, String setName, OperationType operationType) {
-        int batchSize = converter.getAerospikeSettings().getBatchWriteSize();
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<T> docsList = new ArrayList<>();
 
         for (T doc : documents) {
@@ -456,7 +456,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T> void deleteAll(Iterable<T> documents) {
         String setName = getSetName(documents.iterator().next());
 
-        int batchSize = converter.getAerospikeSettings().getBatchWriteSize();
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> documentsList = new ArrayList<>();
         for (Object document : documents) {
             if (batchWriteSizeMatch(batchSize, documentsList.size())) {
@@ -490,7 +490,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 
-        int batchSize = converter.getAerospikeSettings().getBatchWriteSize();
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
         for (Object id : ids) {
             if (batchWriteSizeMatch(batchSize, idsList.size())) {
@@ -884,7 +884,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        int batchSize = converter.getAerospikeSettings().getBatchWriteSize();
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
         List<S> result = new ArrayList<>();
 

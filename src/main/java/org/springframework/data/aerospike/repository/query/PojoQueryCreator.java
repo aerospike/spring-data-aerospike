@@ -115,6 +115,6 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
             }
         }
 
-        return setQualifier(converter, qb, fieldName, op, part, dotPath);
+        return setQualifier(qb, fieldName, op, part, dotPath);
     }
 }
