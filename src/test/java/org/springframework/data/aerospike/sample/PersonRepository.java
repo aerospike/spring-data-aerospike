@@ -166,7 +166,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities that satisfy the condition "have address in the given range"
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
      *
      * @param from lower limit for the map value, inclusive
      * @param to   upper limit for the map value, exclusive
@@ -220,7 +220,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding key-value
      * lower in ordering than in the given argument" (find by POJO).
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
      *
      * @param address - Address to compare with
      */
@@ -371,7 +371,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have integers list with more elements or with a corresponding
      * element higher in ordering than in the given argument" (find by list).
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
      * @param list - List to compare with
      */
@@ -381,11 +381,21 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities that satisfy the condition "have strings set with more elements or with a corresponding element
      * higher in ordering than in the given argument" (find by collection).
      * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
      * @param collection - Collection to compare with
      */
     List<P> findByIntSetGreaterThanEqual(Collection<Integer> collection);
+
+    /**
+     * Find all entities that satisfy the condition "have strings set with more elements or with a corresponding element
+     * higher in ordering than in the given argument" (find by collection).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param collection - Collection to compare with
+     */
+    List<P> findByIntsGreaterThanEqual(Collection<Integer> collection);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
@@ -576,8 +586,124 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendAgeBetween(int from, int to);
 
     /**
+     * Find all entities that satisfy the condition "have a friend with the ints list (find by nested Collection)"
+     */
+    List<P> findByFriendIntsExists();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list which is null (i.e. friend's
+     * ints list does not exist)" (find by nested Collection)
+     */
+    List<P> findByFriendIntsIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list which is not null (i.e. friend's
+     * ints list exists)" (find by nested Collection)
+     */
+    List<P> findByFriendIntsIsNotNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list equal to the given argument" (find
+     * by nested Collection)
+     *
+     * @param ints - List of integers to check for equality
+     */
+    List<P> findByFriendInts(List<Integer> ints);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list not equal to the given argument"
+     * (find by nested Collection)
+     *
+     * @param ints - List of integers to check for equality
+     */
+    List<P> findByFriendIntsIsNot(List<Integer> ints);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list greater than or equal to the
+     * given argument" (find by nested Collection)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param ints - List of integers to compare
+     */
+    List<P> findByFriendIntsGreaterThanEqual(List<Integer> ints);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list greater than the given argument"
+     * (find by nested Collection)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param ints - List of integers to compare
+     */
+    List<P> findByFriendIntsGreaterThan(List<Integer> ints);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list less than or equal to the given
+     * argument" (find by nested Collection)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param ints - List of integers to compare
+     */
+    List<P> findByFriendIntsLessThanEqual(List<Integer> ints);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list less than the given argument"
+     * (find by nested Collection)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param ints - List of integers to compare
+     */
+    List<P> findByFriendIntsLessThan(List<Integer> ints);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list between the given arguments"
+     * (find by nested Collection)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param lowerLimit - lower limit, inclusive
+     * @param upperLimit - upper limit, exclusive
+     */
+    List<P> findByFriendIntsBetween(List<Integer> lowerLimit, List<Integer> upperLimit);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list equal to one of the values in
+     * the given list" (find by nested Collection)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByFriendIntsIn(List<List<Integer>> list);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list equal to neither of the values in
+     * the given list" (find by nested Collection)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByFriendIntsNotIn(List<List<Integer>> list);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list that contains the given integer"
+     * (find by nested Collection)
+     *
+     * @param integer number to check
+     */
+    List<P> findByFriendIntsContaining(int integer);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with the ints list that does not contain the given
+     * integer" (find by nested Collection)
+     *
+     * @param integer number to check
+     */
+    List<P> findByFriendIntsNotContaining(int integer);
+
+    /**
      * Find all entities that satisfy the condition "have a friend with the address equal to the given argument" (find
-     * by inner POJO)
+     * by nested POJO)
      *
      * @param address - Address to check for equality
      */
@@ -679,8 +805,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByStringsNotContaining(AerospikeNullQueryCriterion nullParameter);
 
-    List<P> findByStringsNotContaining();
-
     /**
      * Find all entities that satisfy the condition "have the list which contains the given integer"
      * <p>
@@ -692,29 +816,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsContaining(int integer);
 
     /**
-     * Find all entities that satisfy the condition "have the list which contains the given integers"
-     * <p>
-     * List name in this case is Ints
-     * </p>
-     *
-     * @param integer1 number to check
-     * @param integer2 number to check
-     */
-    List<P> findByIntsContaining(int integer1, int integer2);
-
-    /**
-     * Find all entities that satisfy the condition "have the list which contains the given integers"
-     * <p>
-     * List name in this case is Ints
-     * </p>
-     *
-     * @param integer1 number to check
-     * @param integer2 number to check
-     * @param integer3 number to check
-     */
-    List<P> findByIntsContaining(int integer1, int integer2, int integer3);
-
-    /**
      * Find all entities that satisfy the condition "have the array which contains the given integer"
      * <p>
      * Array name in this case is IntArray
@@ -723,17 +824,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param integer number to check
      */
     List<P> findByIntArrayContaining(int integer);
-
-    /**
-     * Find all entities that satisfy the condition "have the array which contains the given integers"
-     * <p>
-     * Array name in this case is IntArray
-     * </p>
-     *
-     * @param integer1 number to check
-     * @param integer2 number to check
-     */
-    List<P> findByIntArrayContaining(int integer1, int integer2);
 
     /**
      * Find all entities that satisfy the condition "have the list which contains the given boolean"

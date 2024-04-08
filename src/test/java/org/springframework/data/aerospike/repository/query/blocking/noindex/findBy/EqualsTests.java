@@ -339,6 +339,23 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionEquals() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            var ints = List.of(1, 2, 3, 4);
+            dave.setInts(ints);
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendInts(ints);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapEquals() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Map<String, String> mapToCompareWith = Map.of("key1", "val1", "key2", "val2");

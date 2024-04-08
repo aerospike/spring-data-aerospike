@@ -94,15 +94,15 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
 
     @Override
     public Qualifier process() {
-        List<String> dotPath = null;
         QualifierBuilder qb = Qualifier.builder();
         FilterOperation op = filterOperation;
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
             setQualifierBuilderValue(qb, queryParameters.get(0));
-            if (queryParameters.size() >=2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
+            if (queryParameters.size() == 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
         }
 
+        List<String> dotPath = null;
         if (isNested) { // POJO field
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
             op = getCorrespondingMapValueFilterOperationOrFail(filterOperation);

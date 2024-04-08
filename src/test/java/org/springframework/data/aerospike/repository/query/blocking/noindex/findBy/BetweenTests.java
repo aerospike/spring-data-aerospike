@@ -81,6 +81,22 @@ public class BetweenTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionBetween() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsBetween(List.of(1, 2, 3, 4), List.of(1, 2, 3, 4, 5));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapBetween() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             assertThat(carter.getIntMap()).isEqualTo(Map.of("key1", 0, "key2", 1));

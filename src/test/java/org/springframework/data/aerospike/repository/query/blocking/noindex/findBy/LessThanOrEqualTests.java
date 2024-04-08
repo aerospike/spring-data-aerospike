@@ -27,10 +27,23 @@ public class LessThanOrEqualTests extends PersonRepositoryQueryTests {
 
         List<Person> result = repository.findByFriendAgeLessThanEqual(42);
 
-        assertThat(result)
-            .hasSize(2)
-            .containsExactlyInAnyOrder(dave, carter);
-
+        assertThat(result).containsExactlyInAnyOrder(dave, carter);
         TestUtils.setFriendsToNull(repository, alicia, dave, carter, leroi);
+    }
+
+    @Test
+    void findByNestedCollectionLessThanOrEqual() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsLessThanEqual(List.of(1, 2, 3, 4, 5));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
     }
 }

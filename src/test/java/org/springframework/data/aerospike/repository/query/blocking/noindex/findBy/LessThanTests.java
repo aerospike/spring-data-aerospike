@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -63,6 +64,21 @@ public class LessThanTests extends PersonRepositoryQueryTests {
             .hasMessage("Person.strings LT: invalid number of arguments, expecting one");
     }
 
+    @Test
+    void findByNestedCollectionLessThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsLessThan(List.of(1, 2, 3, 4, 5));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
     @Test
     void findByMapLessThanNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapLessThan(100))

@@ -206,6 +206,22 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionGreaterThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsGreaterThan(List.of(1, 2, 3, 3));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapGreaterThan() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             assertThat(boyd.getStringMap()).isNotEmpty();

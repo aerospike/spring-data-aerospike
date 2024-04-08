@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,13 +25,13 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 public class NotContainingTests extends PersonRepositoryQueryTests {
 
     @Test
-    void findBySimplePropertyNotContaining_String() {
+    void findBySimplePropertyNotContainingString() {
         List<Person> persons = repository.findByFirstNameNotContaining("er");
         assertThat(persons).containsExactlyInAnyOrder(dave, donny, alicia, boyd, stefan, matias, douglas);
     }
 
     @Test
-    void findByNestedSimplePropertyNotContaining() {
+    void findByNestedSimplePropertyNotContainingString() {
         Address cartersAddress = carter.getAddress();
         Address davesAddress = dave.getAddress();
         Address boydsAddress = boyd.getAddress();
@@ -78,7 +79,7 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByCollectionContainingNull() {
+    void findByCollectionNotContainingNull() {
         List<String> strings = new ArrayList<>();
         strings.add("ing");
         stefan.setStrings(strings);
@@ -95,7 +96,23 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByCollection_NegativeTest() {
+    void findByNestedCollectionNotContainingInteger() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsNotContaining(1000);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByCollectionNotContaining_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsNotContaining())
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.ints NOT_CONTAINING: invalid number of arguments, expecting one");

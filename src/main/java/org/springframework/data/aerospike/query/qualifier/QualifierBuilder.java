@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.query.qualifier;
 
 import com.aerospike.client.Value;
+import com.aerospike.client.command.ParticleType;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IG
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE_TYPE;
 
 public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
@@ -40,6 +42,14 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
     public QualifierBuilder setSecondValue(Value secondValue) {
         this.map.put(SECOND_VALUE, secondValue);
+        return this;
+    }
+
+    /**
+     * Set value type using {@link ParticleType}.
+     */
+    public QualifierBuilder setValueType(int type) {
+        this.map.put(VALUE_TYPE, type);
         return this;
     }
 

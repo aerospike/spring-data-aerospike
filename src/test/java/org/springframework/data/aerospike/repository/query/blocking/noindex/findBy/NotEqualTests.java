@@ -89,6 +89,22 @@ public class NotEqualTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionNotEqual() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsIsNot(List.of(0, 1, 2, 3, 4, 5, 6, 7));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapNotEqual() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);

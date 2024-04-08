@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,13 +24,13 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 public class ContainingTests extends PersonRepositoryQueryTests {
 
     @Test
-    void findBySimplePropertyContaining_String() {
+    void findBySimplePropertyContainingString() {
         List<Person> persons = repository.findByFirstNameContaining("er");
         assertThat(persons).containsExactlyInAnyOrder(carter, oliver, leroi, leroi2);
     }
 
     @Test
-    void findDistinctByStringSimplePropertyContaining() {
+    void findDistinctBySimplePropertyContainingString() {
         List<Person> persons = repository.findDistinctByFirstNameContaining("er");
         assertThat(persons).hasSize(3);
 
@@ -38,7 +39,7 @@ public class ContainingTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByNestedSimplePropertyContaining() {
+    void findByNestedSimplePropertyContainingString() {
         Address cartersAddress = carter.getAddress();
         Address davesAddress = dave.getAddress();
 
@@ -76,6 +77,22 @@ public class ContainingTests extends PersonRepositoryQueryTests {
         assertThat(repository.findByIntsContaining(990)).containsOnly(oliver, alicia);
         assertThat(repository.findByIntsContaining(600)).containsOnly(alicia);
         assertThat(repository.findByIntsContaining(7777)).isEmpty();
+    }
+
+    @Test
+    void findByNestedCollectionContainingInteger() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsContaining(1);
+
+            assertThat(result).containsOnly(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
     }
 
     @Test

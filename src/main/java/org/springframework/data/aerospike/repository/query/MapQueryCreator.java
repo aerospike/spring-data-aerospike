@@ -178,7 +178,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
             setQualifierBuilderValue(qb, queryParameters.get(0));
-            if (queryParameters.size() >= 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
+            if (queryParameters.size() == 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
             qualifier = setQualifier(converter, qb, fieldName, filterOperation, part, null);
             return qualifier;
         }

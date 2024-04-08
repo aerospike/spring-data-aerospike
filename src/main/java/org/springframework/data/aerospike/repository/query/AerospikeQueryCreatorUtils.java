@@ -154,15 +154,15 @@ public class AerospikeQueryCreatorUtils {
         return !Utils.isSimpleValueType(clazz) && !type.isCollectionLike();
     }
 
-    protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath property, FilterOperation op,
-                                        List<Object> queryParameters) {
-        String queryPartDescription = String.join(" ", property.toString(), op.toString());
-        validateTypes(converter, property, queryParameters, queryPartDescription);
+    protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath propertyPath,
+                                        FilterOperation op, List<Object> queryParameters) {
+        String queryPartDescription = String.join(" ", propertyPath.toString(), op.toString());
+        validateTypes(converter, propertyPath, queryParameters, queryPartDescription);
     }
 
-    protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath property,
+    protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath propertyPath,
                                         List<Object> queryParameters, String queryPartDescription) {
-        validateTypes(converter, property.getTypeInformation().getType(), queryParameters, queryPartDescription);
+        validateTypes(converter, propertyPath.getTypeInformation().getType(), queryParameters, queryPartDescription);
     }
 
     protected static void validateTypes(MappingAerospikeConverter converter, Class<?> propertyType,
