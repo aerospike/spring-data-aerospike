@@ -24,8 +24,8 @@ import static org.springframework.util.ClassUtils.isAssignableValue;
 
 public class AerospikeQueryCreatorUtils {
 
-    protected static Qualifier setQualifier(QualifierBuilder qb,
-                                            String fieldName, FilterOperation op, Part part, List<String> dotPath) {
+    protected static Qualifier setQualifier(QualifierBuilder qb, String fieldName, FilterOperation op, Part part,
+                                            List<String> dotPath) {
         qb.setField(fieldName)
             .setFilterOperation(op)
             .setIgnoreCase(ignoreCaseToBoolean(part));
@@ -181,6 +181,20 @@ public class AerospikeQueryCreatorUtils {
             }
             throw new IllegalArgumentException(String.format("%s: Type mismatch, expecting %s", queryPartDescription,
                 validTypes));
+        }
+    }
+
+    protected static void validateQueryIsNull(List<Object> queryParameters, String queryPartDescription) {
+        // Number of arguments is not zero
+        if (!queryParameters.isEmpty()) {
+            throw new IllegalArgumentException(queryPartDescription + ": expecting no arguments");
+        }
+    }
+
+    protected static void validateQueryIn(List<Object> queryParameters, String queryPartDescription) {
+        // Number of arguments is not one
+        if (queryParameters.size() != 1) {
+            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting one");
         }
     }
 

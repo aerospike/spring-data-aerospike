@@ -19,10 +19,12 @@ import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Info;
 import com.aerospike.client.ResultCode;
+import com.aerospike.client.Value;
 import com.aerospike.client.cluster.Node;
+import com.aerospike.client.command.ParticleType;
+import com.aerospike.client.exp.Exp;
 import lombok.experimental.UtilityClass;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
-import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -32,17 +34,21 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.temporal.Temporal;
-import java.util.Arrays;
 import java.util.Currency;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
+import static com.aerospike.client.command.ParticleType.BOOL;
+import static com.aerospike.client.command.ParticleType.INTEGER;
+import static com.aerospike.client.command.ParticleType.LIST;
+import static com.aerospike.client.command.ParticleType.MAP;
+import static com.aerospike.client.command.ParticleType.STRING;
 import static org.springframework.util.ClassUtils.isPrimitiveOrWrapper;
 
 /**
@@ -104,21 +110,16 @@ public class Utils {
         return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);
     }
 
-    public static Optional<Integer> getIntegerProperty(String property) {
-        if (StringUtils.hasText(property)) {
-            int result;
-            try {
-                result = Integer.parseInt(property);
-            } catch (NumberFormatException e) {
-                return Optional.empty();
-            }
-            return Optional.of(result);
-        }
-        return Optional.empty();
-    }
-
-    public static boolean allArrayElementsAreNull(Object[] array) {
-        return Arrays.stream(array).allMatch(Objects::isNull);
+    public static Exp getValueExpOrFail(Value value, String errMsg) {
+        return switch (value.getType()) {
+            case INTEGER -> Exp.val(value.toLong());
+            case STRING -> Exp.val(value.toString());
+            case BOOL -> Exp.val((Boolean) value.getObject());
+            case LIST -> Exp.val((List<?>) value.getObject());
+            case MAP -> Exp.val((Map<?, ?>) value.getObject());
+            case ParticleType.NULL -> Exp.nil();
+            default -> throw new UnsupportedOperationException(errMsg);
+        };
     }
 
     /**

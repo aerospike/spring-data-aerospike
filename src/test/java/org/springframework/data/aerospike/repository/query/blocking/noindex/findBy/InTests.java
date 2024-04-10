@@ -6,6 +6,7 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +37,23 @@ public class InTests extends PersonRepositoryQueryTests {
 
             List<Person> result = repository.findByFriendIntsIn(List.of(List.of(0, 1, 2, 3, 4, 5, 6, 7),
                 List.of(1, 2, 3), List.of(1, 2, 3, 4)));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByNestedMapIn() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapIn(List.of(Map.of("0", 1, "2", 3, "4", 5, "6", 7),
+                Map.of("1", 2, "3", 4567), Map.of("1", 2, "3", 4)));
 
             assertThat(result).contains(carter);
             TestUtils.setFriendsToNull(repository, carter);

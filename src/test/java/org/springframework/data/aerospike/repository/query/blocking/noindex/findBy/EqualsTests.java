@@ -371,6 +371,23 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedMapEquals() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            var intMap = Map.of("1", 2, "3", 4);
+            dave.setIntMap(intMap);
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMap(intMap);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapEquals_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByStringMapEquals("map1"))
             .isInstanceOf(IllegalArgumentException.class)

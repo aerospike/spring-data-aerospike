@@ -409,8 +409,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * Find all entities containing the given map element (key or value depending on the given criterion)
      *
      * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
-     * @param key   map key
-     * @param value   map value
+     * @param key           map key
+     * @param value         map value
      */
     List<P> findByStringMapContaining(AerospikeQueryCriterion criterionPair, String key, String value);
 
@@ -439,7 +439,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringMapContaining(AerospikeQueryCriterion criterion, AerospikeNullQueryCriterion nullParameter);
 
     /**
-     * Find all entities that satisfy the condition "have the given map key and the value equal to the given string"
+     * Find all entities that satisfy the condition "does not have the given map key or does not have the given value"
      *
      * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
      * @param key           Map key
@@ -591,8 +591,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsExists();
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list which is null (i.e. friend's
-     * ints list does not exist)" (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with the ints list which is null (i.e. friend's ints
+     * list does not exist)" (find by nested Collection)
      */
     List<P> findByFriendIntsIsNull();
 
@@ -619,8 +619,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsIsNot(List<Integer> ints);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list greater than or equal to the
-     * given argument" (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with the ints list greater than or equal to the given
+     * argument" (find by nested Collection)
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
@@ -659,8 +659,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsLessThan(List<Integer> ints);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list between the given arguments"
-     * (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with the ints list between the given arguments" (find
+     * by nested Collection)
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
@@ -670,8 +670,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsBetween(List<Integer> lowerLimit, List<Integer> upperLimit);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list equal to one of the values in
-     * the given list" (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with the ints list equal to one of the values in the
+     * given list" (find by nested Collection)
      *
      * @param list - list of possible values
      */
@@ -700,6 +700,164 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param integer number to check
      */
     List<P> findByFriendIntsNotContaining(int integer);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap (find by nested Map)"
+     */
+    List<P> findByFriendIntMapExists();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap which is null (i.e. friend's intMap does
+     * not exist)" (find by nested Map)
+     */
+    List<P> findByFriendIntMapIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap which is not null (i.e. friend's intMap
+     * exists)" (find by nested Map)
+     */
+    List<P> findByFriendIntMapIsNotNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap equal to the given argument" (find by
+     * nested Map)
+     *
+     * @param intMap - Map to check for equality
+     */
+    List<P> findByFriendIntMap(Map<String, Integer> intMap);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap not equal to the given argument" (find by
+     * nested Map)
+     *
+     * @param intMap - Map to check for equality
+     */
+    List<P> findByFriendIntMapIsNot(Map<String, Integer> intMap);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap greater than or equal to the given
+     * argument" (find by nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param intMap - Map to compare
+     */
+    List<P> findByFriendIntMapGreaterThanEqual(Map<String, Integer> intMap);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap greater than the given argument" (find by
+     * nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param intMap - Map to compare
+     */
+    List<P> findByFriendIntMapGreaterThan(Map<String, Integer> intMap);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap less than or equal to the given argument"
+     * (find by nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param intMap - Map to compare
+     */
+    List<P> findByFriendIntMapLessThanEqual(Map<String, Integer> intMap);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap less than the given argument" (find by
+     * nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param intMap - Map to compare
+     */
+    List<P> findByFriendIntMapLessThan(Map<String, Integer> intMap);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap between the given arguments" (find by
+     * nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param lowerLimit - lower limit, inclusive
+     * @param upperLimit - upper limit, exclusive
+     */
+    List<P> findByFriendIntMapBetween(Map<String, Integer> lowerLimit, Map<String, Integer> upperLimit);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap equal to one of the values in the given
+     * list" (find by nested Map)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByFriendIntMapIn(List<Map<String, Integer>> list);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap equal to neither of the values in the
+     * given list" (find by nested Map)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByFriendIntMapNotIn(List<Map<String, Integer>> list);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap that contains the given integer" (find by
+     * nested Map)
+     *
+     * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
+     * @param key           Map key
+     * @param value         Integer to check whether map value equals it
+     */
+    List<P> findByFriendIntMapContaining(AerospikeQueryCriterion criterionPair, String key, @NotNull Integer value);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap that contains the given value - key or
+     * value depending on the criterion parameter" (find by nested Map)
+     *
+     * @param criterion {@link AerospikeQueryCriterion#KEY or AerospikeQueryCriterion#VALUE}
+     * @param element   Map key or value
+     */
+    List<P> findByFriendStringMapContaining(AerospikeQueryCriterion criterion, String element);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap that does not contain the given value -
+     * key or value depending on the criterion parameter" (find by nested Map)
+     *
+     * @param criterion {@link AerospikeQueryCriterion#KEY or AerospikeQueryCriterion#VALUE}
+     * @param element   Map key or value
+     */
+    List<P> findByFriendStringMapNotContaining(AerospikeQueryCriterion criterion, String element);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap that contains null value" (find by nested
+     * Map)
+     *
+     * @param criterion     {@link AerospikeQueryCriterion#VALUE}
+     * @param nullParameter {@link AerospikeNullQueryCriterion#NULL_PARAM}
+     */
+    List<P> findByFriendStringMapContaining(AerospikeQueryCriterion criterion,
+                                            AerospikeNullQueryCriterion nullParameter);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with intMap that does not contain null value" (find
+     * by nested Map)
+     *
+     * @param criterion     {@link AerospikeQueryCriterion#VALUE}
+     * @param nullParameter {@link AerospikeNullQueryCriterion#NULL_PARAM}
+     */
+    List<P> findByFriendStringMapNotContaining(AerospikeQueryCriterion criterion,
+                                            AerospikeNullQueryCriterion nullParameter);
+
+    /**
+     * Find all entities that satisfy the condition "does not have the given map key or does not have the given value"
+     * (find by nested Map)
+     *
+     * @param criterionPair {@link AerospikeQueryCriterion#KEY_VALUE_PAIR}
+     * @param key           Map key
+     * @param value         Integer value to check
+     */
+    List<P> findByFriendIntMapNotContaining(AerospikeQueryCriterion criterionPair, String key, @NotNull Integer value);
 
     /**
      * Find all entities that satisfy the condition "have a friend with the address equal to the given argument" (find

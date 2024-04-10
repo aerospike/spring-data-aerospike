@@ -7,6 +7,7 @@ import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,6 +38,23 @@ public class NotInTests extends PersonRepositoryQueryTests {
 
             List<Person> result = repository.findByFriendIntsNotIn(List.of(List.of(0, 1, 2, 3, 4, 5, 6, 7),
                 List.of(1, 2, 3), List.of(0, 1, 2, 3, 4, 5)));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByNestedMapNotIn() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapNotIn(List.of(Map.of("0", 1, "2", 3, "4", 5, "6", 7),
+                Map.of("1", 2, "3", 4567), Map.of("0", 1, "2", 3, "4", 5)));
 
             assertThat(result).contains(carter);
             TestUtils.setFriendsToNull(repository, carter);

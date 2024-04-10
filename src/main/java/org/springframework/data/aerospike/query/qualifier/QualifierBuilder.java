@@ -7,11 +7,11 @@ import java.util.List;
 
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DOT_PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FIELD;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FIELD_TYPE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE_TYPE;
 
 public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
@@ -65,10 +65,10 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
-     * Set value type using {@link ParticleType}.
+     * Set the type of the queried field using {@link ParticleType}.
      */
-    public QualifierBuilder setValueType(int type) {
-        this.map.put(VALUE_TYPE, type);
+    public QualifierBuilder setFieldType(int type) {
+        this.map.put(FIELD_TYPE, type);
         return this;
     }
 

@@ -23,6 +23,7 @@ import static org.springframework.data.aerospike.repository.query.AerospikeQuery
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateQueryIsNull;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateTypes;
 
 public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
@@ -70,11 +71,10 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
                 validateTypes(converter, propertyPath, queryParameters, queryPartDescription);
             }
             case IS_NOT_NULL, IS_NULL -> {
-                validateSimplePropertyQueryIsNull(queryPartDescription, queryParameters);
+                validateQueryIsNull(queryParameters, queryPartDescription);
                 validateTypes(converter, propertyPath, queryParameters, queryPartDescription);
             }
-            default -> throw new UnsupportedOperationException(
-                String.format("Unsupported operation: %s applied to %s", filterOperation, property));
+            default -> throw new UnsupportedOperationException("Unsupported operation: " + queryPartDescription);
         }
     }
 
@@ -113,13 +113,6 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
         }
     }
 
-    private void validateSimplePropertyQueryIsNull(String queryPartDescription, List<Object> queryParameters) {
-        // Number of arguments is not zero
-        if (!queryParameters.isEmpty()) {
-            throw new IllegalArgumentException(queryPartDescription + ": expecting no arguments");
-        }
-    }
-
     @Override
     public Qualifier process() {
         QualifierBuilder qb = Qualifier.builder();
@@ -136,21 +129,21 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
 
         if (filterOperation == CONTAINING || filterOperation == NOT_CONTAINING) {
             // only a String can be used with CONTAINING, it is validated in validateSimplePropertyContaining()
-            qb.setValueType(ParticleType.STRING);
+            qb.setFieldType(ParticleType.STRING);
         }
 
         List<String> dotPath = null;
         FilterOperation op = filterOperation;
         if (isNested) { // POJO field
-            if (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL) {
-                setQualifierBuilderValue(qb, property.getFieldName());
-            }
-
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
             op = getCorrespondingMapValueFilterOperationOrFail(op);
 
-            if (!queryParameters.isEmpty()) setQualifierBuilderValue(qb, queryParameters.get(0));
-            setQualifierBuilderKey(qb, property.getFieldName());
+            if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
+                setQualifierBuilderValue(qb, property.getFieldName());
+            } else {
+                setQualifierBuilderValue(qb, queryParameters.get(0));
+                setQualifierBuilderKey(qb, property.getFieldName());
+            }
             dotPath = List.of(part.getProperty().toDotPath());
         } else { // first level simple property
             setQualifierBuilderValue(qb, queryParameters.get(0));

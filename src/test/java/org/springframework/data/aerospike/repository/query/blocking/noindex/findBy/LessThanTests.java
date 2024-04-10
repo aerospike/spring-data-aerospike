@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -79,6 +80,23 @@ public class LessThanTests extends PersonRepositoryQueryTests {
             TestUtils.setFriendsToNull(repository, carter);
         }
     }
+
+    @Test
+    void findByNestedMapLessThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapLessThan(Map.of("1", 2, "3", 4, "5", 6));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
     @Test
     void findByMapLessThanNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapLessThan(100))

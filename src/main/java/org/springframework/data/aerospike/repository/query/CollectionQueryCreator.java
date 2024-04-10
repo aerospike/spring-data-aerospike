@@ -25,6 +25,8 @@ import static org.springframework.data.aerospike.repository.query.AerospikeQuery
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateQueryIn;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateQueryIsNull;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateTypes;
 
 public class CollectionQueryCreator implements IAerospikeQueryCreator {
@@ -59,10 +61,9 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
             case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> validateCollectionQueryComparison(queryParameters,
                 queryPartDescription);
             case BETWEEN -> validateCollectionQueryBetween(queryParameters, queryPartDescription);
-            case IN, NOT_IN -> validateCollectionQueryIn(queryParameters, queryPartDescription);
-            case IS_NOT_NULL, IS_NULL -> validateCollectionQueryIsNull(queryParameters, queryPartDescription);
-            default -> throw new UnsupportedOperationException(
-                String.format("Unsupported operation: %s applied to %s", filterOperation, property));
+            case IN, NOT_IN -> validateQueryIn(queryParameters, queryPartDescription);
+            case IS_NOT_NULL, IS_NULL -> validateQueryIsNull(queryParameters, queryPartDescription);
+            default -> throw new UnsupportedOperationException("Unsupported operation: " + queryPartDescription);
         }
     }
 
@@ -109,20 +110,6 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         }
     }
 
-    private void validateCollectionQueryIn(List<Object> queryParameters, String queryPartDescription) {
-        // Number of arguments is not one
-        if (queryParameters.size() != 1) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting one");
-        }
-    }
-
-    private void validateCollectionQueryIsNull(List<Object> queryParameters, String queryPartDescription) {
-        // Number of arguments is not zero
-        if (!queryParameters.isEmpty()) {
-            throw new IllegalArgumentException(queryPartDescription + ": expecting no arguments");
-        }
-    }
-
     private void validateCollectionContainingTypes(PropertyPath property, List<Object> queryParameters,
                                                    String queryPartDescription) {
         Object value = queryParameters.get(0);
@@ -151,16 +138,14 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         List<String> dotPath = null;
         if (isNested) { // POJO field
             if (op == CONTAINING || op == NOT_CONTAINING) {
-                qb.setValueType(ParticleType.LIST);
+                qb.setFieldType(ParticleType.LIST);
             }
 
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
             op = getCorrespondingMapValueFilterOperationOrFail(op);
 
-            if (queryParameters.isEmpty()) {
-                if (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL) {
-                    setQualifierBuilderValue(qb, property.getFieldName());
-                }
+            if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
+                setQualifierBuilderValue(qb, property.getFieldName());
             } else {
                 setQualifierBuilderValue(qb, queryParameters.get(0));
                 setQualifierBuilderKey(qb, property.getFieldName());

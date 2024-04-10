@@ -18,6 +18,8 @@ import static org.springframework.data.aerospike.repository.query.AerospikeQuery
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateQueryIn;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateQueryIsNull;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.validateTypes;
 
 public class PojoQueryCreator implements IAerospikeQueryCreator {
@@ -53,10 +55,9 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
             case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> validatePojoQueryComparison(queryParameters,
                 queryPartDescription);
             case BETWEEN -> validatePojoQueryBetween(queryParameters, queryPartDescription);
-            case IN, NOT_IN -> validatePojoQueryIn(queryParameters, queryPartDescription);
-            case IS_NOT_NULL, IS_NULL -> validatePojoQueryIsNull(queryParameters, queryPartDescription);
-            default -> throw new UnsupportedOperationException(
-                String.format("Unsupported operation: %s applied to %s", filterOperation, property));
+            case IN, NOT_IN -> validateQueryIn(queryParameters, queryPartDescription);
+            case IS_NOT_NULL, IS_NULL -> validateQueryIsNull(queryParameters, queryPartDescription);
+            default -> throw new UnsupportedOperationException("Unsupported operation: " + queryPartDescription);
         }
 
         validateTypes(converter, propertyPath, filterOperation, queryParameters);
@@ -75,20 +76,6 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
         if (queryParameters.size() != 2) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting two " +
                 "POJOs");
-        }
-    }
-
-    private void validatePojoQueryIn(List<Object> queryParameters, String queryPartDescription) {
-        // Number of arguments is not one
-        if (queryParameters.size() != 1) {
-            throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting one");
-        }
-    }
-
-    private void validatePojoQueryIsNull(List<Object> queryParameters, String queryPartDescription) {
-        // Number of arguments is not zero
-        if (!queryParameters.isEmpty()) {
-            throw new IllegalArgumentException(queryPartDescription + ": expecting no arguments");
         }
     }
 

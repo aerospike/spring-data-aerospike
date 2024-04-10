@@ -8,6 +8,7 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -47,6 +48,26 @@ public class NotNullTests extends PersonRepositoryQueryTests {
             assertThat(dave.getFriend()).isNull();
 
             List<Person> result = repository.findByFriendIntsIsNotNull();
+
+            assertThat(result)
+                .contains(carter)
+                .doesNotContain(dave);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByNestedMapIsNotNull() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+            assertThat(carter.getFriend().getIntMap()).isNotNull();
+            assertThat(dave.getFriend()).isNull();
+
+            List<Person> result = repository.findByFriendIntMapIsNotNull();
 
             assertThat(result)
                 .contains(carter)

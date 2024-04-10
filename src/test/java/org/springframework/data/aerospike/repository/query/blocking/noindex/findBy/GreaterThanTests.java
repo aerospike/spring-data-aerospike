@@ -232,4 +232,20 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
             assertThat(persons).containsExactlyInAnyOrder(boyd);
         }
     }
+
+    @Test
+    void findByNestedMapGreaterThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapGreaterThan(Map.of("1", 2, "3", 3));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
 }

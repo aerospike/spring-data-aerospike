@@ -13,7 +13,7 @@ public enum QualifierKey {
     KEY,
     VALUE,
     SECOND_VALUE,
-    VALUE_TYPE,
+    FIELD_TYPE,
     DOT_PATH,
     DATA_SETTINGS,
     QUALIFIERS,

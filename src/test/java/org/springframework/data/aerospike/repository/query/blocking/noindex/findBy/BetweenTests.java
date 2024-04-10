@@ -145,6 +145,22 @@ public class BetweenTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedMapBetween() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapBetween(Map.of("1", 2, "3", 4), Map.of("1", 2, "3", 4, "5", 6));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapBetween_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapBetween())
             .isInstanceOf(IllegalArgumentException.class)
