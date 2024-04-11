@@ -11,6 +11,7 @@ public enum QualifierKey {
     MULTIPLE_IDS_FIELD,
     IGNORE_CASE,
     KEY,
+    SECOND_KEY,
     VALUE,
     SECOND_VALUE,
     FIELD_TYPE,

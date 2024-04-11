@@ -45,6 +45,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 import static com.aerospike.client.command.ParticleType.BOOL;
+import static com.aerospike.client.command.ParticleType.DOUBLE;
 import static com.aerospike.client.command.ParticleType.INTEGER;
 import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
@@ -113,12 +114,25 @@ public class Utils {
     public static Exp getValueExpOrFail(Value value, String errMsg) {
         return switch (value.getType()) {
             case INTEGER -> Exp.val(value.toLong());
-            case STRING -> Exp.val(value.toString());
             case BOOL -> Exp.val((Boolean) value.getObject());
+            case STRING -> Exp.val(value.toString());
             case LIST -> Exp.val((List<?>) value.getObject());
             case MAP -> Exp.val((Map<?, ?>) value.getObject());
             case ParticleType.NULL -> Exp.nil();
             default -> throw new UnsupportedOperationException(errMsg);
+        };
+    }
+
+    public static Exp.Type getExpType(Value value) {
+        return switch (value.getType()) {
+            case INTEGER -> Exp.Type.INT;
+            case DOUBLE -> Exp.Type.FLOAT;
+            case BOOL -> Exp.Type.BOOL;
+            case STRING -> Exp.Type.STRING;
+            case LIST -> Exp.Type.LIST;
+            case MAP -> Exp.Type.MAP;
+            case ParticleType.NULL -> Exp.Type.NIL;
+            default -> throw new UnsupportedOperationException("Unsupported Value type: " + value.getType());
         };
     }
 

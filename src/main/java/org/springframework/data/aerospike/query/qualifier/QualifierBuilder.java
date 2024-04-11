@@ -10,6 +10,7 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FI
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FIELD_TYPE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_KEY;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
@@ -39,6 +40,17 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
      */
     public QualifierBuilder setKey(Value key) {
         this.map.put(KEY, key);
+        return this;
+    }
+
+    /**
+     * Set second Map key.
+     * <p>
+     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
+     * key into a {@link Value} object.
+     */
+    public QualifierBuilder setSecondKey(Value key) {
+        this.map.put(SECOND_KEY, key);
         return this;
     }
 
