@@ -194,7 +194,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         if (isNested) { // POJO field
             if (op == CONTAINING || op == NOT_CONTAINING) {
                 // for nested MapContaining queries
-                qb.setFieldType(ParticleType.MAP);
+                qb.setNestedType(ParticleType.MAP);
             }
 
             if (paramsSize == 2) {

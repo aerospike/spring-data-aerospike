@@ -7,10 +7,10 @@ import java.util.List;
 
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DOT_PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FIELD;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FIELD_TYPE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_KEY;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.NESTED_KEY;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.NESTED_TYPE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
@@ -44,13 +44,14 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
-     * Set second Map key.
+     * For "find by one level nested map containing" queries.
+     * Set nested Map key.
      * <p>
      * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
      * key into a {@link Value} object.
      */
-    public QualifierBuilder setSecondKey(Value key) {
-        this.map.put(SECOND_KEY, key);
+    public QualifierBuilder setNestedKey(Value key) {
+        this.map.put(NESTED_KEY, key);
         return this;
     }
 
@@ -77,10 +78,11 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
-     * Set the type of the queried field using {@link ParticleType}.
+     * For "find by one level nested map containing" queries.
+     * Set the type of the nested map value using {@link ParticleType}.
      */
-    public QualifierBuilder setFieldType(int type) {
-        this.map.put(FIELD_TYPE, type);
+    public QualifierBuilder setNestedType(int type) {
+        this.map.put(NESTED_TYPE, type);
         return this;
     }
 

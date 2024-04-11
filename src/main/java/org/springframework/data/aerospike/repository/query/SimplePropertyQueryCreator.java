@@ -126,7 +126,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
 
         if (filterOperation == CONTAINING || filterOperation == NOT_CONTAINING) {
             // only a String can be used with CONTAINING, it is validated in validateSimplePropertyContaining()
-            qb.setFieldType(ParticleType.STRING);
+            qb.setNestedType(ParticleType.STRING);
         }
 
         List<String> dotPath = null;

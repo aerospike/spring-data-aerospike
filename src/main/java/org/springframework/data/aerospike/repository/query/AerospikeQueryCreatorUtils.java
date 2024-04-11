@@ -134,7 +134,7 @@ public class AerospikeQueryCreatorUtils {
     }
 
     protected static void setQualifierBuilderSecondKey(QualifierBuilder qb, Object key) {
-        qb.setSecondKey(getValueOfQueryParameter(key));
+        qb.setNestedKey(getValueOfQueryParameter(key));
     }
 
     protected static void setQualifierBuilderValue(QualifierBuilder qb, Object value) {

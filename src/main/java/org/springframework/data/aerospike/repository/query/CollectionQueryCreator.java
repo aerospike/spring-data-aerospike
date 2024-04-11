@@ -139,7 +139,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         List<String> dotPath = null;
         if (isNested) { // POJO field
             if (op == CONTAINING || op == NOT_CONTAINING) {
-                qb.setFieldType(ParticleType.LIST);
+                qb.setNestedType(ParticleType.LIST);
             }
 
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB

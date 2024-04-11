@@ -771,7 +771,7 @@ public enum FilterOperation {
     MAP_VAL_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            int nestedType = FilterOperation.getFieldType(qualifierMap);
+            int nestedType = FilterOperation.getNestedType(qualifierMap);
             switch (nestedType) {
                 case STRING -> {
                     // Out of simple properties only a String is validated for CONTAINING
@@ -796,7 +796,7 @@ public enum FilterOperation {
                     Value val = getValue(qualifierMap);
                     Exp value = getExpOrFail(val, "MAP_VAL_CONTAINING_BY_KEY");
                     Exp key = getExpOrFail(getKey(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
-                    Exp secondKey = getExpOrFail(getSecondKey(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
+                    Exp secondKey = getExpOrFail(getNestedKey(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
 
                     Exp nestedMap = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, key,
                         Exp.mapBin(getField(qualifierMap)));
@@ -816,7 +816,7 @@ public enum FilterOperation {
     MAP_VAL_NOT_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            Integer fieldType = getFieldType(qualifierMap);
+            Integer fieldType = getNestedType(qualifierMap);
             Exp mapBinDoesNotExist = Exp.not(Exp.binExists(getField(qualifierMap)));
             Exp key = getExpOrFail(getKey(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
             Exp mapNotContainingKey = Exp.eq(
@@ -845,7 +845,7 @@ public enum FilterOperation {
                 case MAP -> {
                     Value val = getValue(qualifierMap);
                     Exp value = getExpOrFail(val, "MAP_VAL_NOT_CONTAINING_BY_KEY");
-                    Exp secondKey = getExpOrFail(getSecondKey(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
+                    Exp secondKey = getExpOrFail(getNestedKey(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
 
                     Exp nestedMap = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, key,
                         Exp.mapBin(getField(qualifierMap)));
@@ -1707,8 +1707,8 @@ public enum FilterOperation {
         return qualifierMap.get(KEY);
     }
 
-    protected static Value getSecondKey(Map<QualifierKey, Object> qualifierMap) {
-        return Value.get(qualifierMap.get(SECOND_KEY));
+    protected static Value getNestedKey(Map<QualifierKey, Object> qualifierMap) {
+        return Value.get(qualifierMap.get(NESTED_KEY));
     }
 
     protected static Value getValue(Map<QualifierKey, Object> qualifierMap) {
@@ -1723,8 +1723,8 @@ public enum FilterOperation {
         return Value.get(qualifierMap.get(SECOND_VALUE));
     }
 
-    protected static Integer getFieldType(Map<QualifierKey, Object> qualifierMap) {
-        Object fieldType = qualifierMap.get(FIELD_TYPE);
+    protected static Integer getNestedType(Map<QualifierKey, Object> qualifierMap) {
+        Object fieldType = qualifierMap.get(NESTED_TYPE);
         return fieldType != null ? (int) fieldType : null;
     }
 
