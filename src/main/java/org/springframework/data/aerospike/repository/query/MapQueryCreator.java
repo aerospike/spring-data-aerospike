@@ -8,7 +8,6 @@ import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
-import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.util.TypeInformation;
 
@@ -23,7 +22,6 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 public class MapQueryCreator implements IAerospikeQueryCreator {
 
     private final Part part;
-    private final PropertyPath propertyPath;
     private final AerospikePersistentProperty property;
     private final String fieldName;
     private final List<Object> queryParameters;
@@ -31,11 +29,10 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     private final MappingAerospikeConverter converter;
     private final boolean isNested;
 
-    public MapQueryCreator(Part part, PropertyPath propertyPath, AerospikePersistentProperty property, String fieldName,
+    public MapQueryCreator(Part part, AerospikePersistentProperty property, String fieldName,
                            List<Object> queryParameters, FilterOperation filterOperation,
                            MappingAerospikeConverter converter, boolean isNested) {
         this.part = part;
-        this.propertyPath = propertyPath;
         this.property = property;
         this.fieldName = fieldName;
         this.queryParameters = queryParameters;
@@ -212,7 +209,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 dotPath = List.of(part.getProperty().toDotPath());
                 qualifier = setQualifier(qb, fieldName, op, part, dotPath);
             } else { // multiple parameters
-                qualifier = processMapMultipleParams(qb, part, queryParameters, filterOperation, fieldName, isNested);
+                qualifier = processMapMultipleParams(qb);
             }
         } else {
             if (paramsSize == 2) {
@@ -221,7 +218,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 setQualifierBuilderValue(qb, queryParameters.get(0));
                 qualifier = setQualifier(qb, fieldName, filterOperation, part, dotPath);
             } else { // multiple parameters
-                qualifier = processMapMultipleParams(qb, part, queryParameters, filterOperation, fieldName, isNested);
+                qualifier = processMapMultipleParams(qb);
             }
         }
 
@@ -278,12 +275,11 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         return setQualifier(qb, fieldName, op, part, dotPath);
     }
 
-    private Qualifier processMapMultipleParams(QualifierBuilder qb, Part part, List<Object> params, FilterOperation op,
-                                               String fieldName, boolean isNested) {
-        if (op == FilterOperation.CONTAINING || op == FilterOperation.NOT_CONTAINING) {
-            return processMapMultipleParamsContaining(qb, part, params, op, fieldName, isNested);
+    private Qualifier processMapMultipleParams(QualifierBuilder qb) {
+        if (filterOperation == FilterOperation.CONTAINING || filterOperation == FilterOperation.NOT_CONTAINING) {
+            return processMapMultipleParamsContaining(qb, part, queryParameters, filterOperation, fieldName, isNested);
         } else {
-            return processMapOtherThanContaining(qb, part, params, op, fieldName);
+            return processMapOtherThanContaining(qb, part, queryParameters, filterOperation, fieldName);
         }
     }
 

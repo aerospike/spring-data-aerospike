@@ -771,7 +771,8 @@ public enum FilterOperation {
     MAP_VAL_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            int nestedType = FilterOperation.getNestedType(qualifierMap);
+            Integer nestedType = FilterOperation.getNestedType(qualifierMap);
+            if (nestedType == null) throw new IllegalStateException("Expecting valid nestedType, got null");
             switch (nestedType) {
                 case STRING -> {
                     // Out of simple properties only a String is validated for CONTAINING
@@ -816,14 +817,15 @@ public enum FilterOperation {
     MAP_VAL_NOT_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            Integer fieldType = getNestedType(qualifierMap);
+            Integer nestedType = getNestedType(qualifierMap);
             Exp mapBinDoesNotExist = Exp.not(Exp.binExists(getField(qualifierMap)));
             Exp key = getExpOrFail(getKey(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
             Exp mapNotContainingKey = Exp.eq(
                 MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, key, Exp.mapBin(getField(qualifierMap))),
                 Exp.val(0));
 
-            switch (fieldType) {
+            if (nestedType == null) throw new IllegalStateException("Expecting valid nestedType, got null");
+            switch (nestedType) {
                 case STRING -> {
                     // Out of simple properties only a String is validated for NOT_CONTAINING
                     String containingRegexp = getContaining(getValue(qualifierMap).toString());
@@ -854,7 +856,7 @@ public enum FilterOperation {
                         value);
                     return Exp.or(mapBinDoesNotExist, mapNotContainingKey, nestedMapNotContainingValueByKey);
                 }
-                default -> throw new UnsupportedOperationException("Unsupported value type: " + fieldType);
+                default -> throw new UnsupportedOperationException("Unsupported value type: " + nestedType);
             }
         }
 
@@ -1345,8 +1347,8 @@ public enum FilterOperation {
     }
 
     private static Exp getExpOrFail(Value value, String filterOpName) {
-        String errMsg = filterOpName + " FilterExpression unsupported value type: got ";
-        errMsg += value.getClass().getSimpleName();
+        String errMsg = String.format("%s FilterExpression unsupported value type: got %s", filterOpName,
+            value.getClass().getSimpleName());
         return getValueExpOrFail(value, errMsg);
     }
 
