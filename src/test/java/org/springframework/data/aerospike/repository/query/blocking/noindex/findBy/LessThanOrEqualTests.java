@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.repository.query.blocking.noindex.fin
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
+import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.util.TestUtils;
 
@@ -48,7 +49,6 @@ public class LessThanOrEqualTests extends PersonRepositoryQueryTests {
         }
     }
 
-
     @Test
     void findByNestedMapLessThanOrEqual() {
         if (serverVersionSupport.isFindByCDTSupported()) {
@@ -59,6 +59,22 @@ public class LessThanOrEqualTests extends PersonRepositoryQueryTests {
             repository.save(carter);
 
             List<Person> result = repository.findByFriendIntMapLessThanEqual(Map.of("1", 2, "3", 4, "5", 6));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByNestedPojoLessThanOrEqual() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address = new Address("Foo Street 1", 2, "C0124", "Bar");
+            assertThat(dave.getAddress()).isNotNull();
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressLessThanEqual(address);
 
             assertThat(result).contains(carter);
             TestUtils.setFriendsToNull(repository, carter);

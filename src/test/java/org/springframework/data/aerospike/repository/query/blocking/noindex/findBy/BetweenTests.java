@@ -217,4 +217,21 @@ public class BetweenTests extends PersonRepositoryQueryTests {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.address BETWEEN: Type mismatch, expecting Address");
     }
+
+    @Test
+    void findByNestedPojoBetween() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
+            Address address2 = new Address("Foo Street 1", 2, "C0124", "Bar");
+            assertThat(dave.getAddress()).isNotNull();
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressBetween(address1, address2);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
 }

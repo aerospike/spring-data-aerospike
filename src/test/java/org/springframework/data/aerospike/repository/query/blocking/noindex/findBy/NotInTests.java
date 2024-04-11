@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.repository.query.blocking.noindex.fin
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
+import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.util.TestUtils;
 
@@ -58,6 +59,29 @@ public class NotInTests extends PersonRepositoryQueryTests {
 
             assertThat(result).contains(carter);
             TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByNestedPojoNotIn() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
+            Address address2 = new Address("Foo Street 1", 2, "C0124", "C0123");
+            Address address3 = new Address("Foo Street 1", 23, "C0125", "Bar");
+            Address address4 = new Address("Foo Street 1", 456, "C0126", "Bar");
+            assertThat(carter.getAddress())
+                .isNotEqualTo(address1)
+                .isNotEqualTo(address2)
+                .isNotEqualTo(address3)
+                .isNotEqualTo(address4);
+
+            dave.setFriend(carter);
+            repository.save(dave);
+
+            List<Person> result = repository.findByFriendAddressNotIn(List.of(address1, address2, address3, address4));
+
+            assertThat(result).contains(dave);
+            TestUtils.setFriendsToNull(repository, dave);
         }
     }
 }

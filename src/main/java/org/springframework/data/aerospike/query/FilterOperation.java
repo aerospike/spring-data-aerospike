@@ -772,7 +772,7 @@ public enum FilterOperation {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
             int nestedType = FilterOperation.getFieldType(qualifierMap);
-            switch (nestedType){
+            switch (nestedType) {
                 case STRING -> {
                     // Out of simple properties only a String is validated for CONTAINING
                     String containingRegexp = getContaining(getValue(qualifierMap).toString());
@@ -781,8 +781,8 @@ public enum FilterOperation {
                     return Exp.regexCompare(containingRegexp, regexFlags(qualifierMap), nestedString);
                 }
                 case LIST -> {
-                    Exp value = getExpOrFail(getValue(qualifierMap),"MAP_VAL_CONTAINING_BY_KEY");
-                    Exp key = getExpOrFail(getKey(qualifierMap),"MAP_VAL_CONTAINING_BY_KEY");
+                    Exp value = getExpOrFail(getValue(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
+                    Exp key = getExpOrFail(getKey(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
 
                     // Map value is a List
                     Exp nestedList = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.LIST, key,
@@ -794,9 +794,9 @@ public enum FilterOperation {
                 }
                 case MAP -> {
                     Value val = getValue(qualifierMap);
-                    Exp value = getExpOrFail(val,"MAP_VAL_CONTAINING_BY_KEY");
-                    Exp key = getExpOrFail(getKey(qualifierMap),"MAP_VAL_CONTAINING_BY_KEY");
-                    Exp secondKey = getExpOrFail(getSecondKey(qualifierMap),"MAP_VAL_CONTAINING_BY_KEY");
+                    Exp value = getExpOrFail(val, "MAP_VAL_CONTAINING_BY_KEY");
+                    Exp key = getExpOrFail(getKey(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
+                    Exp secondKey = getExpOrFail(getSecondKey(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
 
                     Exp nestedMap = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, key,
                         Exp.mapBin(getField(qualifierMap)));
@@ -818,12 +818,12 @@ public enum FilterOperation {
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
             Integer fieldType = getFieldType(qualifierMap);
             Exp mapBinDoesNotExist = Exp.not(Exp.binExists(getField(qualifierMap)));
-            Exp key = getExpOrFail(getKey(qualifierMap),"MAP_VAL_NOT_CONTAINING_BY_KEY");
+            Exp key = getExpOrFail(getKey(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
             Exp mapNotContainingKey = Exp.eq(
                 MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, key, Exp.mapBin(getField(qualifierMap))),
                 Exp.val(0));
 
-            switch (fieldType){
+            switch (fieldType) {
                 case STRING -> {
                     // Out of simple properties only a String is validated for NOT_CONTAINING
                     String containingRegexp = getContaining(getValue(qualifierMap).toString());
@@ -834,18 +834,18 @@ public enum FilterOperation {
                         Exp.not(Exp.regexCompare(containingRegexp, regexFlags(qualifierMap), nestedString)));
                 }
                 case LIST -> {
-                    Exp value = getExpOrFail(getValue(qualifierMap),"MAP_VAL_NOT_CONTAINING_BY_KEY");
+                    Exp value = getExpOrFail(getValue(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
 
                     Exp nestedList = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.LIST, key,
                         Exp.mapBin(getField(qualifierMap)));
                     Exp nestedListNotContainingValue = Exp.eq(ListExp.getByValue(ListReturnType.COUNT, value,
-                            nestedList), Exp.val(0));
+                        nestedList), Exp.val(0));
                     return Exp.or(mapBinDoesNotExist, mapNotContainingKey, nestedListNotContainingValue);
                 }
                 case MAP -> {
                     Value val = getValue(qualifierMap);
-                    Exp value = getExpOrFail(val,"MAP_VAL_NOT_CONTAINING_BY_KEY");
-                    Exp secondKey = getExpOrFail(getSecondKey(qualifierMap),"MAP_VAL_NOT_CONTAINING_BY_KEY");
+                    Exp value = getExpOrFail(val, "MAP_VAL_NOT_CONTAINING_BY_KEY");
+                    Exp secondKey = getExpOrFail(getSecondKey(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
 
                     Exp nestedMap = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, key,
                         Exp.mapBin(getField(qualifierMap)));
@@ -1618,11 +1618,11 @@ public enum FilterOperation {
                                    boolean useCtx) {
         if (useCtx) {
             return MapExp.getByKey(MapReturnType.VALUE, expType,
-                Exp.val(getKey(qualifierMap).toString()), // key (field name) // TODO: get key type
+                getValueExpOrFail(getKey(qualifierMap), "MAP_VAL_EQ: unsupported type"), // key (field name)
                 Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
         } else {
             return MapExp.getByKey(MapReturnType.VALUE, expType,
-                Exp.val(getKey(qualifierMap).toString()), // TODO: get key type
+                getValueExpOrFail(getKey(qualifierMap), "MAP_VAL_EQ: unsupported type"),
                 Exp.mapBin(getField(qualifierMap)));
         }
     }

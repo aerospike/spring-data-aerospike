@@ -89,6 +89,21 @@ public class ExistsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedPojoExists() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            assertThat(dave.getAddress()).isNotNull();
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressExists();
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByPOJOExistsNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressExists(new Address(null, null, null, null)))
             .isInstanceOf(IllegalArgumentException.class)

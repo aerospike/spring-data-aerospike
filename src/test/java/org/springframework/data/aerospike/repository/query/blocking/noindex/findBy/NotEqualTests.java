@@ -177,6 +177,22 @@ public class NotEqualTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedPojoNotEqual() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address = new Address("Foo Street 1", 100, "C0123", "Bar");
+            assertThat(dave.getAddress()).isNotEqualTo(address);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressIsNot(address);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByNestedPOJONotEqual_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressIsNot())
             .isInstanceOf(IllegalArgumentException.class)

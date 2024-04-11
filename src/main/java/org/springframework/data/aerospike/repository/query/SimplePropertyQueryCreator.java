@@ -60,22 +60,19 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
             case CONTAINING, NOT_CONTAINING, GT, GTEQ, LT, LTEQ, LIKE, STARTS_WITH, ENDS_WITH, EQ, NOTEQ -> {
                 validateSimplePropertyQueryComparison(queryPartDescription, queryParameters);
                 validateSimplePropertyContaining(queryPartDescription, queryParameters, filterOperation, propertyPath);
-                validateTypes(converter, propertyPath, queryParameters, queryPartDescription);
             }
             case IN, NOT_IN -> {
                 validateSimplePropertyQueryComparison(queryPartDescription, queryParameters);
-                validateSimplePropertyInQueryTypes(queryPartDescription, queryParameters);
             }
             case BETWEEN -> {
                 validateSimplePropertyQueryBetween(queryPartDescription, queryParameters);
-                validateTypes(converter, propertyPath, queryParameters, queryPartDescription);
             }
             case IS_NOT_NULL, IS_NULL -> {
                 validateQueryIsNull(queryParameters, queryPartDescription);
-                validateTypes(converter, propertyPath, queryParameters, queryPartDescription);
             }
             default -> throw new UnsupportedOperationException("Unsupported operation: " + queryPartDescription);
         }
+        validateTypes(converter, propertyPath, queryParameters, filterOperation, queryPartDescription);
     }
 
     private void validateSimplePropertyContaining(String queryPartDescription, List<Object> queryParameters,
@@ -102,7 +99,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
     private void validateSimplePropertyInQueryTypes(String queryPartDescription, List<Object> queryParameters) {
         Object param1 = queryParameters.get(0);
         if (param1 instanceof Collection) {
-            validateTypes(converter, Collection.class, queryParameters, queryPartDescription);
+            validateTypes(converter, Collection.class, queryParameters, filterOperation, queryPartDescription);
         }
     }
 

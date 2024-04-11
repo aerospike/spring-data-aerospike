@@ -180,9 +180,9 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
             setQualifierBuilderValue(qb, queryParameters.get(0));
-            setQualifierBuilderKey(qb, property.getFieldName());
             if (queryParameters.size() == 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
             if (isNested) {
+                setQualifierBuilderKey(qb, property.getFieldName());
                 dotPath = List.of(part.getProperty().toDotPath());
                 // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
                 op = getCorrespondingMapValueFilterOperationOrFail(filterOperation);
@@ -215,12 +215,6 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 qualifier = processMapMultipleParams(qb, part, queryParameters, filterOperation, fieldName, isNested);
             }
         } else {
-            if (op == CONTAINING || op == NOT_CONTAINING) {
-                // for not nested MapContaining queries the only valid fieldType is String
-                // e.g., findByMapContaining(KEY_VALUE_PAIR, "key", "value")
-                qb.setFieldType(ParticleType.STRING);
-            }
-
             if (paramsSize == 2) {
                 qualifier = processMapTwoParams(qb, part, queryParameters, filterOperation, fieldName);
             } else if (queryParameters.size() < 2) {

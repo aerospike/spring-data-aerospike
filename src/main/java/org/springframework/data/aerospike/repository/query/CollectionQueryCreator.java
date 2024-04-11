@@ -83,7 +83,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         }
 
         if (queryParameters.get(0) instanceof Collection) {
-            validateTypes(converter, Collection.class, queryParameters, queryPartDescription);
+            validateTypes(converter, Collection.class, queryParameters, filterOperation, queryPartDescription);
         } else {
             throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expecting Collection");
         }
@@ -98,7 +98,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         // Not Collection
         Object value = queryParameters.get(0);
         if (value instanceof Collection) {
-            validateTypes(converter, Collection.class, queryParameters, queryPartDescription);
+            validateTypes(converter, Collection.class, queryParameters, filterOperation, queryPartDescription);
         } else {
             throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expecting Collection");
         }
@@ -114,13 +114,14 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
                                                    String queryPartDescription) {
         Object value = queryParameters.get(0);
         if (value instanceof Collection) {
-            validateTypes(converter, Collection.class, queryParameters, queryPartDescription);
+            validateTypes(converter, Collection.class, queryParameters, filterOperation, queryPartDescription);
         } else if (!(value instanceof CriteriaDefinition.AerospikeNullQueryCriterion)) {
             // Not null param
             // Determining class of Collection's elements
             Class<?> componentsClass = getCollectionElementsClass(property);
             if (componentsClass != null) {
-                validateTypes(converter, componentsClass, queryParameters, queryPartDescription, "Collection");
+                validateTypes(converter, componentsClass, queryParameters, filterOperation, queryPartDescription,
+                    "Collection");
             }
         }
     }

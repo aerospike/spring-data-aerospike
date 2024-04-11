@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.repository.query.blocking.noindex.fin
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
+import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.aerospike.util.TestUtils;
@@ -235,6 +236,22 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedMapGreaterThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
+            assertThat(carter.getAddress()).isNotNull();
+
+            dave.setFriend(carter);
+            repository.save(dave);
+
+            List<Person> result = repository.findByFriendAddressGreaterThan(address);
+
+            assertThat(result).contains(dave);
+            TestUtils.setFriendsToNull(repository, dave);
+        }
+    }
+
+    @Test
+    void findByNestedPojoGreaterThan() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             dave.setIntMap(Map.of("1", 2, "3", 4));
             repository.save(dave);

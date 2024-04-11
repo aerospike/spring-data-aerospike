@@ -96,4 +96,21 @@ public class NotNullTests extends PersonRepositoryQueryTests {
         stefan.setAddress(null); // cleanup
         repository.save(stefan);
     }
+
+    @Test
+    void findByNestedPojoIsNotNull() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            assertThat(dave.getAddress()).isNotNull();
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressIsNotNull();
+
+            assertThat(result)
+                .contains(carter)
+                .doesNotContain(dave);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
 }

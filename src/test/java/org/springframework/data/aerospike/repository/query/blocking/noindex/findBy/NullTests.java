@@ -95,4 +95,24 @@ public class NullTests extends PersonRepositoryQueryTests {
         stefan.setAddress(null); // cleanup
         repository.save(stefan);
     }
+
+    @Test
+    void findByNestedPojoIsNull() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            assertThat(dave.getAddress()).isNotNull();
+            assertThat(donny.getAddress()).isNull();
+
+            carter.setFriend(dave);
+            repository.save(carter);
+            stefan.setFriend(donny);
+            repository.save(stefan);
+
+            List<Person> result = repository.findByFriendAddressIsNull();
+
+            assertThat(result)
+                .contains(stefan)
+                .doesNotContain(carter);
+            TestUtils.setFriendsToNull(repository, carter, stefan);
+        }
+    }
 }

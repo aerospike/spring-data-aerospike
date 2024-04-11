@@ -111,6 +111,13 @@ public class Utils {
         return InfoResponseUtils.getPropertyFromInfoResponse(infoString, "objects", Long::parseLong);
     }
 
+    /**
+     * Convert {@link Value} type to {@link Exp}
+     *
+     * @param value  Value instance
+     * @param errMsg Error message to use
+     * @return Exp instance
+     */
     public static Exp getValueExpOrFail(Value value, String errMsg) {
         return switch (value.getType()) {
             case INTEGER -> Exp.val(value.toLong());

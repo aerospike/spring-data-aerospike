@@ -129,4 +129,20 @@ public class LessThanTests extends PersonRepositoryQueryTests {
             assertThat(persons).containsExactlyInAnyOrder(dave, boyd);
         }
     }
+
+    @Test
+    void findByNestedPojoLessThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address = new Address("Foo Street 1", 2, "C0124", "Bar");
+            assertThat(dave.getAddress()).isNotNull();
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressLessThan(address);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
 }

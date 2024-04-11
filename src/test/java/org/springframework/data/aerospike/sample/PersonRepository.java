@@ -847,7 +847,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param nullParameter {@link AerospikeNullQueryCriterion#NULL_PARAM}
      */
     List<P> findByFriendStringMapNotContaining(AerospikeQueryCriterion criterion,
-                                            AerospikeNullQueryCriterion nullParameter);
+                                               AerospikeNullQueryCriterion nullParameter);
 
     /**
      * Find all entities that satisfy the condition "does not have the given map key or does not have the given value"
@@ -860,12 +860,104 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntMapNotContaining(AerospikeQueryCriterion criterionPair, String key, @NotNull Integer value);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the address equal to the given argument" (find
-     * by nested POJO)
+     * Find all entities that satisfy the condition "have a friend with address (find by nested Map)"
+     */
+    List<P> findByFriendAddressExists();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address which is null (i.e. friend's address
+     * does not exist)" (find by nested Map)
+     */
+    List<P> findByFriendAddressIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address which is not null (i.e. friend's address
+     * exists)" (find by nested Map)
+     */
+    List<P> findByFriendAddressIsNotNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address equal to the given argument" (find by
+     * nested POJO)
      *
      * @param address - Address to check for equality
      */
     List<P> findByFriendAddress(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address not equal to the given argument" (find
+     * by nested Map)
+     *
+     * @param address - Address to check for equality
+     */
+    List<P> findByFriendAddressIsNot(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address greater than or equal to the given
+     * argument" (find by nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param address - Address to compare
+     */
+    List<P> findByFriendAddressGreaterThanEqual(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address greater than the given argument" (find
+     * by nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param address - Address to compare
+     */
+    List<P> findByFriendAddressGreaterThan(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address less than or equal to the given
+     * argument" (find by nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param address - Address to compare
+     */
+    List<P> findByFriendAddressLessThanEqual(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address less than the given argument" (find by
+     * nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param address - Address to compare
+     */
+    List<P> findByFriendAddressLessThan(Address address);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address between the given arguments" (find by
+     * nested Map)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
+     *
+     * @param lowerLimit - lower limit, inclusive
+     * @param upperLimit - upper limit, exclusive
+     */
+    List<P> findByFriendAddressBetween(Address lowerLimit, Address upperLimit);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address equal to one of the values in the given
+     * list" (find by nested Map)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByFriendAddressIn(List<Address> list);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with address equal to neither of the values in the
+     * given list" (find by nested Map)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByFriendAddressNotIn(List<Address> list);
 
     /**
      * Find all entities that satisfy the condition "have a friend with the address with zipCode equal to the given

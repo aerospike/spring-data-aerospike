@@ -12,6 +12,8 @@ import java.util.List;
 
 import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
 import static org.springframework.data.aerospike.query.FilterOperation.IN;
+import static org.springframework.data.aerospike.query.FilterOperation.IS_NOT_NULL;
+import static org.springframework.data.aerospike.query.FilterOperation.IS_NULL;
 import static org.springframework.data.aerospike.query.FilterOperation.NOT_IN;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getCorrespondingMapValueFilterOperationOrFail;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
@@ -81,20 +83,34 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
 
     @Override
     public Qualifier process() {
+        Qualifier qualifier;
         QualifierBuilder qb = Qualifier.builder();
         FilterOperation op = filterOperation;
+        List<String> dotPath = null;
+
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
             setQualifierBuilderValue(qb, queryParameters.get(0));
             if (queryParameters.size() == 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
+            if (isNested) {
+                setQualifierBuilderKey(qb, property.getFieldName());
+                dotPath = List.of(part.getProperty().toDotPath());
+                // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
+                op = getCorrespondingMapValueFilterOperationOrFail(filterOperation);
+            }
+            qualifier = setQualifier(qb, fieldName, op, part, dotPath);
+            return qualifier;
         }
 
-        List<String> dotPath = null;
         if (isNested) { // POJO field
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
             op = getCorrespondingMapValueFilterOperationOrFail(filterOperation);
-            setQualifierBuilderKey(qb, property.getFieldName());
-            setQualifierBuilderValue(qb, queryParameters.get(0));
+            if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
+                setQualifierBuilderValue(qb, property.getFieldName());
+            } else {
+                setQualifierBuilderValue(qb, queryParameters.get(0));
+                setQualifierBuilderKey(qb, property.getFieldName());
+            }
             dotPath = List.of(part.getProperty().toDotPath());
         } else { // first level POJO
             if (op != FilterOperation.BETWEEN) {

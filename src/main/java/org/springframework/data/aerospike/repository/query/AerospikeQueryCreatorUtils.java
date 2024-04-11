@@ -13,8 +13,10 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.util.TypeInformation;
 import org.springframework.util.StringUtils;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;
@@ -160,16 +162,17 @@ public class AerospikeQueryCreatorUtils {
     protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath propertyPath,
                                         FilterOperation op, List<Object> queryParameters) {
         String queryPartDescription = String.join(" ", propertyPath.toString(), op.toString());
-        validateTypes(converter, propertyPath, queryParameters, queryPartDescription);
+        validateTypes(converter, propertyPath, queryParameters, op, queryPartDescription);
     }
 
     protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath propertyPath,
-                                        List<Object> queryParameters, String queryPartDescription) {
-        validateTypes(converter, propertyPath.getTypeInformation().getType(), queryParameters, queryPartDescription);
+                                        List<Object> queryParameters, FilterOperation op, String queryPartDescription) {
+        validateTypes(converter, propertyPath.getTypeInformation()
+            .getType(), queryParameters, op, queryPartDescription);
     }
 
     protected static void validateTypes(MappingAerospikeConverter converter, Class<?> propertyType,
-                                        List<Object> queryParameters, String queryPartDescription,
+                                        List<Object> queryParameters, FilterOperation op, String queryPartDescription,
                                         String... alternativeTypes) {
         // Checking versus Number rather than strict type to be able to compare, e.g., integer to a long
         if (isAssignable(Number.class, propertyType) && isAssignableValue(Number.class, queryParameters.get(0))) {
@@ -177,7 +180,13 @@ public class AerospikeQueryCreatorUtils {
         }
 
         Class<?> clazz = propertyType;
-        if (!queryParameters.stream().allMatch(param -> isAssignableValueOrConverted(clazz, param, converter))) {
+        Stream<Object> params = queryParameters.stream();
+        if ((op == FilterOperation.IN || op == FilterOperation.NOT_IN)
+            && queryParameters.size() == 1
+            && queryParameters.get(0) instanceof Collection<?>) {
+            params = ((Collection<Object>) queryParameters.get(0)).stream();
+        }
+        if (!params.allMatch(param -> isAssignableValueOrConverted(clazz, param, converter))) {
             String validTypes = propertyType.getSimpleName();
             if (alternativeTypes.length > 0) {
                 validTypes = String.format("one of the following types: %s", propertyType.getSimpleName() + ", "
