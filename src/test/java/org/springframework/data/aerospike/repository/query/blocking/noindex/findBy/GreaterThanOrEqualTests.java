@@ -18,6 +18,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class GreaterThanOrEqualTests extends PersonRepositoryQueryTests {
 
     @Test
+    void findByNestedSimplePropertyGreaterThan_String() {
+        String zipCode = "C0124";
+        assertThat(carter.getAddress().getZipCode()).isEqualTo(zipCode);
+        assertThat(repository.findByAddressZipCodeGreaterThanEqual(zipCode)).containsExactly(carter);
+    }
+
+    @Test
     void findByCollectionGreaterThanOrEqual_Set() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Set<Integer> setToCompareWith = Set.of(0, 1, 2, 3, 4);

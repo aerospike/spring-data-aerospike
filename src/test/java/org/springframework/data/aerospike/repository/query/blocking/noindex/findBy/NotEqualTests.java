@@ -37,6 +37,10 @@ public class NotEqualTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedSimplePropertyNotEqual() {
+        String zipCode = "C0123456789";
+        assertThat(carter.getAddress().getZipCode()).isNotEqualTo(zipCode);
+        assertThat(repository.findByAddressZipCodeIsNot(zipCode)).contains(carter);
+
         oliver.setFriend(alicia);
         repository.save(oliver);
         dave.setFriend(oliver);

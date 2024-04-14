@@ -28,6 +28,14 @@ public class InTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedSimplePropertyIn_String() {
+        assertThat(carter.getAddress().getZipCode()).isEqualTo("C0124");
+        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
+        assertThat(repository.findByAddressZipCodeIn(List.of("C0123", "C0124", "C0125")))
+            .containsExactlyInAnyOrder(dave, carter);
+    }
+
+    @Test
     void findByNestedCollectionIn() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             dave.setInts(List.of(1, 2, 3, 4));

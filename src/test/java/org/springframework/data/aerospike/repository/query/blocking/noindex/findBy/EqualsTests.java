@@ -197,7 +197,11 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedSimplePropertyEquals() {
-        String zipCode = "C012345";
+        String zipCode = "C0124";
+        assertThat(carter.getAddress().getZipCode()).isEqualTo(zipCode);
+        assertThat(repository.findByAddressZipCode(zipCode)).containsExactly(carter);
+
+        zipCode = "C012345";
         Address address = new Address("Foo Street 1", 1, zipCode, "Bar");
         dave.setAddress(address);
         repository.save(dave);
@@ -208,7 +212,6 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         List<Person> result = repository.findByFriendAddressZipCode(zipCode);
 
         assertThat(result).containsExactly(carter);
-
         TestUtils.setFriendsToNull(repository, carter);
     }
 

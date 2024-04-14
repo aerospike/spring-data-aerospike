@@ -34,6 +34,13 @@ public class LessThanOrEqualTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedSimplePropertyGreaterThan_String() {
+        assertThat(carter.getAddress().getZipCode()).isEqualTo("C0124");
+        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
+        assertThat(repository.findByAddressZipCodeLessThanEqual("C0125")).containsExactlyInAnyOrder(carter, dave);
+    }
+
+    @Test
     void findByNestedCollectionLessThanOrEqual() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             dave.setInts(List.of(1, 2, 3, 4));

@@ -197,24 +197,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByAddressExists();
 
-    List<P> findByAddressZipCodeExists();
-
     List<P> findByAddressIsNotNull();
 
     List<P> findByAddressIsNull();
-
-    List<P> findByAddressZipCodeIsNull();
-
-    /**
-     * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with zipCode
-     * which is not null" (find by nested POJO field)
-     */
-    List<P> findByFriendBestFriendAddressZipCodeIsNull();
-
-    /**
-     * Find all entities that satisfy the condition "have address with existing zipCode"
-     */
-    List<P> findByAddressZipCodeIsNotNull();
 
     /**
      * Find all entities that satisfy the condition "have Address with fewer elements or with a corresponding key-value
@@ -225,12 +210,6 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param address - Address to compare with
      */
     List<P> findByAddressLessThan(Address address);
-
-    List<P> findByAddressZipCode(@NotNull String zipCode);
-
-    List<P> findByAddressZipCodeContaining(String str);
-
-    List<P> findByAddressZipCodeNotContaining(String str);
 
     List<P> findByFirstNameContaining(String str);
 
@@ -586,40 +565,163 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendAgeBetween(int from, int to);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list (find by nested Collection)"
+     * Find all entities that satisfy the condition "have address with zipCode (find by nested simple property)"
      */
-    List<P> findByFriendIntsExists();
+
+    List<P> findByAddressZipCodeExists();
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list which is null (i.e. friend's ints
-     * list does not exist)" (find by nested Collection)
+     * Find all entities that satisfy the condition "have address with zipCode which is null (i.e. friend's first name
+     * does not exist)" (find by nested simple property)
      */
-    List<P> findByFriendIntsIsNull();
+    List<P> findByAddressZipCodeIsNull();
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list which is not null (i.e. friend's
-     * ints list exists)" (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend who has bestFriend with the address with zipCode
+     * which is not null" (find by deeply nested simple property)
      */
-    List<P> findByFriendIntsIsNotNull();
+    List<P> findByFriendBestFriendAddressZipCodeIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode which is not null (i.e. address's zipCode
+     * exists)" (find by nested simple property)
+     */
+    List<P> findByAddressZipCodeIsNotNull();
 
     /**
      * Find all entities that satisfy the condition "have a friend with the ints list equal to the given argument" (find
      * by nested Collection)
+     *
+     * @param zipCode - String to check for equality
+     */
+    List<P> findByAddressZipCode(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode not equal to the given argument" (find by
+     * nested simple property)
+     *
+     * @param zipCode - String to check for equality
+     */
+    List<P> findByAddressZipCodeIsNot(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode greater than or equal to the given
+     * argument" (find by nested simple property)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param zipCode - String to compare
+     */
+    List<P> findByAddressZipCodeGreaterThanEqual(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode greater than the given argument" (find by
+     * nested simple property)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param zipCode - String to compare
+     */
+    List<P> findByAddressZipCodeGreaterThan(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode less than or equal to the given argument"
+     * (find by nested simple property)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param zipCode - String to compare
+     */
+    List<P> findByAddressZipCodeLessThanEqual(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode less than the given argument" (find by
+     * nested simple property)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param zipCode - String to compare
+     */
+    List<P> findByAddressZipCodeLessThan(String zipCode);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode between the given arguments" (find by
+     * nested simple property)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param lowerLimit - lower limit, inclusive
+     * @param upperLimit - upper limit, exclusive
+     */
+    List<P> findByAddressZipCodeBetween(String lowerLimit, String upperLimit);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode equal to one of the values in the given
+     * list" (find by nested simple property)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByAddressZipCodeIn(List<String> list);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode equal to neither of the values in the
+     * given list" (find by nested simple property)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByAddressZipCodeNotIn(List<String> list);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode that contains the given substring" (find
+     * by nested simple property)
+     *
+     * @param string substring to check
+     */
+    List<P> findByAddressZipCodeContaining(String string);
+
+    /**
+     * Find all entities that satisfy the condition "have address with zipCode that does not contain the given string"
+     * (find by nested simple property)
+     *
+     * @param string substring to check
+     */
+    List<P> findByAddressZipCodeNotContaining(String string);
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with ints list (find by nested Collection)"
+     */
+    List<P> findByFriendIntsExists();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with ints list which is null (i.e. friend's ints list
+     * does not exist)" (find by nested Collection)
+     */
+    List<P> findByFriendIntsIsNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with ints list which is not null (i.e. friend's ints
+     * list exists)" (find by nested Collection)
+     */
+    List<P> findByFriendIntsIsNotNull();
+
+    /**
+     * Find all entities that satisfy the condition "have a friend with ints list equal to the given argument" (find by
+     * nested Collection)
      *
      * @param ints - List of integers to check for equality
      */
     List<P> findByFriendInts(List<Integer> ints);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list not equal to the given argument"
-     * (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with ints list not equal to the given argument" (find
+     * by nested Collection)
      *
      * @param ints - List of integers to check for equality
      */
     List<P> findByFriendIntsIsNot(List<Integer> ints);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list greater than or equal to the given
+     * Find all entities that satisfy the condition "have a friend with ints list greater than or equal to the given
      * argument" (find by nested Collection)
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
@@ -629,8 +731,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsGreaterThanEqual(List<Integer> ints);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list greater than the given argument"
-     * (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with ints list greater than the given argument" (find
+     * by nested Collection)
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
@@ -639,7 +741,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsGreaterThan(List<Integer> ints);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list less than or equal to the given
+     * Find all entities that satisfy the condition "have a friend with ints list less than or equal to the given
      * argument" (find by nested Collection)
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
@@ -649,8 +751,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsLessThanEqual(List<Integer> ints);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list less than the given argument"
-     * (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with ints list less than the given argument" (find by
+     * nested Collection)
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
@@ -659,8 +761,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsLessThan(List<Integer> ints);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list between the given arguments" (find
-     * by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with ints list between the given arguments" (find by
+     * nested Collection)
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
@@ -670,7 +772,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsBetween(List<Integer> lowerLimit, List<Integer> upperLimit);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list equal to one of the values in the
+     * Find all entities that satisfy the condition "have a friend with ints list equal to one of the values in the
      * given list" (find by nested Collection)
      *
      * @param list - list of possible values
@@ -678,23 +780,23 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFriendIntsIn(List<List<Integer>> list);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list equal to neither of the values in
-     * the given list" (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with ints list equal to neither of the values in the
+     * given list" (find by nested Collection)
      *
      * @param list - list of possible values
      */
     List<P> findByFriendIntsNotIn(List<List<Integer>> list);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list that contains the given integer"
-     * (find by nested Collection)
+     * Find all entities that satisfy the condition "have a friend with ints list that contains the given integer" (find
+     * by nested Collection)
      *
      * @param integer number to check
      */
     List<P> findByFriendIntsContaining(int integer);
 
     /**
-     * Find all entities that satisfy the condition "have a friend with the ints list that does not contain the given
+     * Find all entities that satisfy the condition "have a friend with ints list that does not contain the given
      * integer" (find by nested Collection)
      *
      * @param integer number to check

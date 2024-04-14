@@ -48,6 +48,14 @@ public class BetweenTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedSimplePropertyBetween_String() {
+        assertThat(carter.getAddress().getZipCode()).isEqualTo("C0124");
+        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
+        assertThat(repository.findByAddressZipCodeBetween("C0123", "C0124"))
+            .containsExactly(dave);
+    }
+
+    @Test
     void findByCollectionBetween_IntegerList() {
         List<Integer> list1 = List.of(100, 200, 300);
         List<Integer> list2 = List.of(1000, 2000, 3000);

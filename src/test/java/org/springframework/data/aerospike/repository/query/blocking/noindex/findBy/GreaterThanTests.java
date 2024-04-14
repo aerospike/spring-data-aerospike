@@ -90,6 +90,28 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findBySimplePropertyGreaterThan_Integer_projection() {
+        Slice<PersonSomeFields> slice = repository.findPersonSomeFieldsByAgeGreaterThan(40, PageRequest.of(0, 10));
+
+        assertThat(slice.hasContent()).isTrue();
+        assertThat(slice.hasNext()).isFalse();
+        assertThat(slice.getContent()).hasSize(4).contains(dave.toPersonSomeFields(),
+            carter.toPersonSomeFields(), boyd.toPersonSomeFields(), leroi.toPersonSomeFields());
+    }
+
+    @Test
+    void findBySimplePropertyGreaterThan_String() {
+        List<Person> result = repository.findByFirstNameGreaterThan("Leroa");
+        assertThat(result).contains(leroi, leroi2);
+    }
+
+    @Test
+    void findByNestedSimplePropertyGreaterThan_String() {
+        assertThat(carter.getAddress().getZipCode()).isEqualTo("C0124");
+        assertThat(repository.findByAddressZipCodeGreaterThan("C0123")).containsExactly(carter);
+    }
+
+    @Test
     void findByNestedSimplePropertyGreaterThan_Integer() {
         alicia.setFriend(boyd);
         repository.save(alicia);
@@ -110,22 +132,6 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
             .containsExactlyInAnyOrder(alicia, leroi);
 
         TestUtils.setFriendsToNull(repository, alicia, dave, carter, leroi);
-    }
-
-    @Test
-    void findBySimplePropertyGreaterThan_Integer_projection() {
-        Slice<PersonSomeFields> slice = repository.findPersonSomeFieldsByAgeGreaterThan(40, PageRequest.of(0, 10));
-
-        assertThat(slice.hasContent()).isTrue();
-        assertThat(slice.hasNext()).isFalse();
-        assertThat(slice.getContent()).hasSize(4).contains(dave.toPersonSomeFields(),
-            carter.toPersonSomeFields(), boyd.toPersonSomeFields(), leroi.toPersonSomeFields());
-    }
-
-    @Test
-    void findBySimplePropertyGreaterThan_String() {
-        List<Person> result = repository.findByFirstNameGreaterThan("Leroa");
-        assertThat(result).contains(leroi, leroi2);
     }
 
     @Test
