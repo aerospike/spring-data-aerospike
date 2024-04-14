@@ -37,6 +37,10 @@ public class NotEqualTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedSimplePropertyNotEqual() {
+        String zipCode = "C0123456789";
+        assertThat(carter.getAddress().getZipCode()).isNotEqualTo(zipCode);
+        assertThat(repository.findByAddressZipCodeIsNot(zipCode)).contains(carter);
+
         oliver.setFriend(alicia);
         repository.save(oliver);
         dave.setFriend(oliver);
@@ -89,6 +93,22 @@ public class NotEqualTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionNotEqual() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsIsNot(List.of(0, 1, 2, 3, 4, 5, 6, 7));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapNotEqual() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Map<String, Integer> mapToCompareWith = Map.of("key1", 0, "key2", 1);
@@ -119,6 +139,22 @@ public class NotEqualTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedMapNotEqual() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapIsNot(Map.of("0", 1, "2", 3, "4", 5, "6", 7));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByPOJONotEqual() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
@@ -142,6 +178,22 @@ public class NotEqualTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressIsNot(100))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.address NOTEQ: Type mismatch, expecting Address");
+    }
+
+    @Test
+    void findByNestedPojoNotEqual() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address = new Address("Foo Street 1", 100, "C0123", "Bar");
+            assertThat(dave.getAddress()).isNotEqualTo(address);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressIsNot(address);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
     }
 
     @Test

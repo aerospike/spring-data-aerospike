@@ -4,7 +4,13 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
+import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.util.TestUtils;
 
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -40,6 +46,38 @@ public class ExistsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionExists() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsExists();
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByNestedMapExists() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapExists();
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByPOJOExists() {
         Assertions.assertThat(stefan.getAddress()).isNull();
         Assertions.assertThat(carter.getAddress()).isNotNull();
@@ -48,6 +86,21 @@ public class ExistsTests extends PersonRepositoryQueryTests {
         Assertions.assertThat(repository.findByAddressExists())
             .contains(carter, dave)
             .doesNotContain(stefan);
+    }
+
+    @Test
+    void findByNestedPojoExists() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            assertThat(dave.getAddress()).isNotNull();
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressExists();
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
     }
 
     @Test

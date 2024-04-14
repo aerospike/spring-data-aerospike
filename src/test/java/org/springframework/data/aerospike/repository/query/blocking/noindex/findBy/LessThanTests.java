@@ -4,10 +4,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -25,6 +27,13 @@ public class LessThanTests extends PersonRepositoryQueryTests {
         assertThat(page.hasNext()).isFalse();
         assertThat(page.getTotalPages()).isEqualTo(1);
         assertThat(page.getTotalElements()).isEqualTo(page.getSize());
+    }
+
+    @Test
+    void findByNestedSimplePropertyGreaterThan_String() {
+        assertThat(carter.getAddress().getZipCode()).isEqualTo("C0124");
+        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
+        assertThat(repository.findByAddressZipCodeLessThan("C0124")).containsExactly(dave);
     }
 
     @Test
@@ -64,6 +73,38 @@ public class LessThanTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionLessThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsLessThan(List.of(1, 2, 3, 4, 5));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByNestedMapLessThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapLessThan(Map.of("1", 2, "3", 4, "5", 6));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapLessThanNegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntMapLessThan(100))
             .isInstanceOf(IllegalArgumentException.class)
@@ -93,6 +134,22 @@ public class LessThanTests extends PersonRepositoryQueryTests {
 
             List<Person> persons = repository.findByAddressLessThan(address);
             assertThat(persons).containsExactlyInAnyOrder(dave, boyd);
+        }
+    }
+
+    @Test
+    void findByNestedPojoLessThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address = new Address("Foo Street 1", 2, "C0124", "Bar");
+            assertThat(dave.getAddress()).isNotNull();
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressLessThan(address);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
         }
     }
 }

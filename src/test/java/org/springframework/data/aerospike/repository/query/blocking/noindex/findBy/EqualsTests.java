@@ -197,7 +197,11 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedSimplePropertyEquals() {
-        String zipCode = "C012345";
+        String zipCode = "C0124";
+        assertThat(carter.getAddress().getZipCode()).isEqualTo(zipCode);
+        assertThat(repository.findByAddressZipCode(zipCode)).containsExactly(carter);
+
+        zipCode = "C012345";
         Address address = new Address("Foo Street 1", 1, zipCode, "Bar");
         dave.setAddress(address);
         repository.save(dave);
@@ -208,7 +212,6 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         List<Person> result = repository.findByFriendAddressZipCode(zipCode);
 
         assertThat(result).containsExactly(carter);
-
         TestUtils.setFriendsToNull(repository, carter);
     }
 
@@ -339,6 +342,23 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionEquals() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            var ints = List.of(1, 2, 3, 4);
+            dave.setInts(ints);
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendInts(ints);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapEquals() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Map<String, String> mapToCompareWith = Map.of("key1", "val1", "key2", "val2");
@@ -350,6 +370,23 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // another way to call the method
             List<Person> persons2 = repository.findByStringMap(mapToCompareWith);
             assertThat(persons2).contains(boyd);
+        }
+    }
+
+    @Test
+    void findByNestedMapEquals() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            var intMap = Map.of("1", 2, "3", 4);
+            dave.setIntMap(intMap);
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMap(intMap);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
         }
     }
 

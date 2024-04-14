@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,13 +25,13 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 public class NotContainingTests extends PersonRepositoryQueryTests {
 
     @Test
-    void findBySimplePropertyNotContaining_String() {
+    void findBySimplePropertyNotContainingString() {
         List<Person> persons = repository.findByFirstNameNotContaining("er");
         assertThat(persons).containsExactlyInAnyOrder(dave, donny, alicia, boyd, stefan, matias, douglas);
     }
 
     @Test
-    void findByNestedSimplePropertyNotContaining() {
+    void findByNestedSimplePropertyNotContainingString() {
         Address cartersAddress = carter.getAddress();
         Address davesAddress = dave.getAddress();
         Address boydsAddress = boyd.getAddress();
@@ -78,7 +79,7 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByCollectionContainingNull() {
+    void findByCollectionNotContainingNull() {
         List<String> strings = new ArrayList<>();
         strings.add("ing");
         stefan.setStrings(strings);
@@ -95,10 +96,59 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByCollection_NegativeTest() {
+    void findByNestedCollectionNotContainingInteger() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsNotContaining(1000);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByCollectionNotContaining_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsNotContaining())
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.ints NOT_CONTAINING: invalid number of arguments, expecting one");
+    }
+
+    @Test
+    void findByMapNotContainingNullValue() {
+        Map<String, String> stringMap = new HashMap<>();
+        stringMap.put("key", "str");
+        stefan.setStringMap(stringMap);
+        repository.save(stefan);
+
+        // find Persons with stringMap not containing null value (regardless of key)
+        assertThat(repository.findByStringMapNotContaining(VALUE, NULL_PARAM)).contains(stefan);
+
+        // Currently getting key-specific results for a Map requires 2 steps:
+        // firstly query for all entities with existing map key
+        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining(KEY, "key");
+        // and then process the results programmatically - leave only the records that have the key's value != null
+        List<Person> personsWithMapValueNotNull = personsWithMapKeyExists.stream()
+            .filter(person -> person.getStringMap().get("key") != null).toList();
+        assertThat(personsWithMapValueNotNull).contains(stefan);
+
+        // Checking that the query results change if there is null value
+        stringMap.put("key", null);
+        stefan.setStringMap(stringMap);
+        repository.save(stefan);
+        assertThat(repository.findByStringMapNotContaining(VALUE, NULL_PARAM)).doesNotContain(stefan);
+
+        personsWithMapKeyExists = repository.findByStringMapContaining(KEY, "key");
+        personsWithMapValueNotNull = personsWithMapKeyExists.stream()
+            .filter(person -> person.getStringMap().get("key") != null).toList();
+        assertThat(personsWithMapValueNotNull).doesNotContain(stefan);
+
+        stefan.setStringMap(null); // cleanup
+        repository.save(stefan);
     }
 
     @Test
@@ -145,35 +195,92 @@ public class NotContainingTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByMapNotContainingNullValue() {
-        Map<String, String> stringMap = new HashMap<>();
-        stringMap.put("key", "str");
-        stefan.setStringMap(stringMap);
-        repository.save(stefan);
+    void findByNestedMapNotContainingKeyValuePair_Integer() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            assertThat(carter.getIntMap()).containsKey("key1");
+            assertThat(carter.getIntMap().get("key1")).isNotEqualTo(1);
 
-        // find Persons with stringMap not containing null value (regardless of a key)
-        assertThat(repository.findByStringMapNotContaining(VALUE, NULL_PARAM)).contains(stefan);
+            dave.setFriend(carter);
+            repository.save(dave);
 
-        // Currently getting key-specific results for a Map requires 2 steps:
-        // firstly query for all entities with existing map key
-        List<Person> personsWithMapKeyExists = repository.findByStringMapContaining(KEY, "key");
-        // and then process the results programmatically - leave only the records that have the key's value != null
-        List<Person> personsWithMapValueNotNull = personsWithMapKeyExists.stream()
-            .filter(person -> person.getStringMap().get("key") != null).toList();
-        assertThat(personsWithMapValueNotNull).contains(stefan);
+            List<Person> result = repository.findByFriendIntMapNotContaining(KEY_VALUE_PAIR, "key1", 1);
 
-        stringMap.put("key", null);
-        stefan.setStringMap(stringMap);
-        repository.save(stefan);
-        assertThat(repository.findByStringMapNotContaining(VALUE, NULL_PARAM)).doesNotContain(stefan);
+            assertThat(result).contains(dave);
+            TestUtils.setFriendsToNull(repository, dave);
+        }
+    }
 
-        personsWithMapKeyExists = repository.findByStringMapContaining(KEY, "key");
-        personsWithMapValueNotNull = personsWithMapKeyExists.stream()
-            .filter(person -> person.getStringMap().get("key") != null).toList();
-        assertThat(personsWithMapValueNotNull).doesNotContain(stefan);
+    @Test
+    void findByNestedMapKeysNotContainingString() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            assertThat(donny.getStringMap()).doesNotContainKey("key100");
+            assertThat(boyd.getStringMap()).doesNotContainKey("key100");
 
-        stefan.setStringMap(null); // cleanup
-        repository.save(stefan);
+            dave.setFriend(donny);
+            repository.save(dave);
+            carter.setFriend(boyd);
+            repository.save(carter);
+
+            List<Person> persons = repository.findByFriendStringMapNotContaining(KEY, "key100");
+            assertThat(persons).contains(dave, carter);
+            TestUtils.setFriendsToNull(repository, dave, carter);
+        }
+    }
+
+    @Test
+    void findByNestedMapValuesNotContainingString() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            assertThat(donny.getStringMap()).doesNotContainValue("val100");
+            assertThat(boyd.getStringMap()).doesNotContainValue("val100");
+
+            dave.setFriend(donny);
+            repository.save(dave);
+            carter.setFriend(boyd);
+            repository.save(carter);
+
+            List<Person> persons = repository.findByFriendStringMapNotContaining(VALUE, "val100");
+            assertThat(persons).contains(dave, carter);
+            TestUtils.setFriendsToNull(repository, dave, carter);
+        }
+    }
+
+    @Test
+    void findByNestedMapNotContainingNullValue() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Map<String, String> stringMap = new HashMap<>();
+            stringMap.put("key", "str");
+            stefan.setStringMap(stringMap);
+            repository.save(stefan);
+
+            dave.setFriend(stefan);
+            repository.save(dave);
+
+            // find Persons with stringMap containing null value (regardless of key)
+            assertThat(repository.findByFriendStringMapNotContaining(VALUE, NULL_PARAM)).contains(dave);
+
+            // Currently getting key-specific results for a Map requires 2 steps:
+            // firstly query for all entities with existing map key
+            List<Person> personsWithMapKeyExists = repository.findByFriendStringMapContaining(KEY, "key");
+            // and then process the results programmatically - leave only the records that have the key's value != null
+            List<Person> personsWithMapValueNotNull = personsWithMapKeyExists.stream()
+                .filter(person -> person.getFriend().getStringMap().get("key") != null).toList();
+            assertThat(personsWithMapValueNotNull).contains(dave);
+
+            // Checking that the query results change if there is null value
+            stringMap.put("key", null);
+            stefan.setStringMap(stringMap);
+            repository.save(stefan);
+            assertThat(repository.findByFriendStringMapNotContaining(VALUE, NULL_PARAM)).doesNotContain(dave);
+
+            personsWithMapKeyExists = repository.findByFriendStringMapContaining(KEY, "key");
+            personsWithMapValueNotNull = personsWithMapKeyExists.stream()
+                .filter(person -> person.getFriend().getStringMap().get("key") != null).toList();
+            assertThat(personsWithMapValueNotNull).doesNotContain(dave);
+
+            TestUtils.setFriendsToNull(repository, dave); // cleanup
+            stefan.setStringMap(null);
+            repository.save(stefan);
+        }
     }
 
     @Test
