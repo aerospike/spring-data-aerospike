@@ -19,7 +19,6 @@ import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cdt.ListReturnType;
 import com.aerospike.client.cdt.MapReturnType;
-import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.ListExp;
 import com.aerospike.client.exp.MapExp;
@@ -46,7 +45,6 @@ import static com.aerospike.client.command.ParticleType.BOOL;
 import static com.aerospike.client.command.ParticleType.INTEGER;
 import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
-import static com.aerospike.client.command.ParticleType.NULL;
 import static com.aerospike.client.command.ParticleType.STRING;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getContaining;
@@ -54,6 +52,8 @@ import static org.springframework.data.aerospike.util.FilterOperationRegexpBuild
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getNotContaining;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getStartsWith;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getStringEquals;
+import static org.springframework.data.aerospike.util.Utils.getExpType;
+import static org.springframework.data.aerospike.util.Utils.getValueExpOrFail;
 
 public enum FilterOperation {
     AND {
@@ -111,8 +111,7 @@ public enum FilterOperation {
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
             // Convert IN to EQ with logical OR as there is no direct support for IN query
             return getMetadataExp(qualifierMap).orElseGet(() -> {
-                Value value = getValueAsCollectionOrFail(qualifierMap);
-                Collection<?> collection = (Collection<?>) value.getObject();
+                Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
                 Exp[] arrElementsExp = collection.stream().map(item ->
                     Qualifier.builder()
                         .setField(getField(qualifierMap))
@@ -136,8 +135,7 @@ public enum FilterOperation {
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
             // Convert NOT_IN to NOTEQ with logical AND as there is no direct support for NOT_IN query
             return getMetadataExp(qualifierMap).orElseGet(() -> {
-                Value value = getValueAsCollectionOrFail(qualifierMap);
-                Collection<?> collection = (Collection<?>) value.getObject();
+                Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
                 Exp[] arrElementsExp = collection.stream().map(item ->
                     Qualifier.builder()
                         .setField(getField(qualifierMap))
@@ -500,6 +498,52 @@ public enum FilterOperation {
             return null; // not supported
         }
     },
+    MAP_VAL_IN_BY_KEY {
+        @Override
+        public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
+            // Convert IN to EQ with logical OR as there is no direct support for IN query
+            Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
+            Exp[] arrElementsExp = collection.stream().map(item ->
+                Qualifier.builder()
+                    .setField(getField(qualifierMap))
+                    .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
+                    .setKey(getKey(qualifierMap))
+                    .setValue(Value.get(item))
+                    .build()
+                    .toFilterExp()
+            ).toArray(Exp[]::new);
+
+            return Exp.or(arrElementsExp);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
+            return null;
+        }
+    },
+    MAP_VAL_NOT_IN_BY_KEY {
+        @Override
+        public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
+            // Convert NOT_IN to NOTEQ with logical AND as there is no direct support for NOT_IN query
+            Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
+            Exp[] arrElementsExp = collection.stream().map(item ->
+                Qualifier.builder()
+                    .setField(getField(qualifierMap))
+                    .setFilterOperation(FilterOperation.MAP_VAL_NOTEQ_BY_KEY)
+                    .setKey(getKey(qualifierMap))
+                    .setValue(Value.get(item))
+                    .build()
+                    .toFilterExp()
+            ).toArray(Exp[]::new);
+
+            return Exp.and(arrElementsExp);
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
+            return null;
+        }
+    },
     MAP_VAL_GT_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -727,10 +771,42 @@ public enum FilterOperation {
     MAP_VAL_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            String containingRegexp = getContaining(getValue(qualifierMap).toString());
-            Exp bin = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING, Exp.val(getKey(qualifierMap).toString()),
-                Exp.mapBin(getField(qualifierMap)));
-            return Exp.regexCompare(containingRegexp, regexFlags(qualifierMap), bin);
+            Integer nestedType = FilterOperation.getNestedType(qualifierMap);
+            if (nestedType == null) throw new IllegalStateException("Expecting valid nestedType, got null");
+            switch (nestedType) {
+                case STRING -> {
+                    // Out of simple properties only a String is validated for CONTAINING
+                    String containingRegexp = getContaining(getValue(qualifierMap).toString());
+                    Exp nestedString = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
+                        Exp.val(getKey(qualifierMap).toString()), Exp.mapBin(getField(qualifierMap)));
+                    return Exp.regexCompare(containingRegexp, regexFlags(qualifierMap), nestedString);
+                }
+                case LIST -> {
+                    Exp value = getExpOrFail(getValue(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
+                    Exp key = getExpOrFail(getKey(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
+
+                    // Map value is a List
+                    Exp nestedList = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.LIST, key,
+                        Exp.mapBin(getField(qualifierMap)));
+                    // Check whether List contains the value
+                    return Exp.gt(
+                        ListExp.getByValue(ListReturnType.COUNT, value, nestedList),
+                        Exp.val(0));
+                }
+                case MAP -> {
+                    Value val = getValue(qualifierMap);
+                    Exp value = getExpOrFail(val, "MAP_VAL_CONTAINING_BY_KEY");
+                    Exp key = getExpOrFail(getKey(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
+                    Exp secondKey = getExpOrFail(getNestedKey(qualifierMap), "MAP_VAL_CONTAINING_BY_KEY");
+
+                    Exp nestedMap = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, key,
+                        Exp.mapBin(getField(qualifierMap)));
+                    return Exp.eq(
+                        MapExp.getByKey(MapReturnType.VALUE, getExpType(val), secondKey, nestedMap),
+                        value);
+                }
+                default -> throw new UnsupportedOperationException("Unsupported nested type: " + nestedType);
+            }
         }
 
         @Override
@@ -741,17 +817,47 @@ public enum FilterOperation {
     MAP_VAL_NOT_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            String containingRegexp = getContaining(getValue(qualifierMap).toString());
-            Exp mapIsNull = Exp.not(Exp.binExists(getField(qualifierMap)));
-            Exp mapKeysNotContaining = Exp.eq(
-                MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, Exp.val(getKey(qualifierMap).toString()),
-                    Exp.mapBin(getField(qualifierMap))),
+            Integer nestedType = getNestedType(qualifierMap);
+            Exp mapBinDoesNotExist = Exp.not(Exp.binExists(getField(qualifierMap)));
+            Exp key = getExpOrFail(getKey(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
+            Exp mapNotContainingKey = Exp.eq(
+                MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, key, Exp.mapBin(getField(qualifierMap))),
                 Exp.val(0));
-            Exp binValue = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
-                Exp.val(getKey(qualifierMap).toString()),
-                Exp.mapBin(getField(qualifierMap)));
-            return Exp.or(mapIsNull, mapKeysNotContaining,
-                Exp.not(Exp.regexCompare(containingRegexp, regexFlags(qualifierMap), binValue)));
+
+            if (nestedType == null) throw new IllegalStateException("Expecting valid nestedType, got null");
+            switch (nestedType) {
+                case STRING -> {
+                    // Out of simple properties only a String is validated for NOT_CONTAINING
+                    String containingRegexp = getContaining(getValue(qualifierMap).toString());
+                    Exp nestedString = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.STRING,
+                        Exp.val(getKey(qualifierMap).toString()),
+                        Exp.mapBin(getField(qualifierMap)));
+                    return Exp.or(mapBinDoesNotExist, mapNotContainingKey,
+                        Exp.not(Exp.regexCompare(containingRegexp, regexFlags(qualifierMap), nestedString)));
+                }
+                case LIST -> {
+                    Exp value = getExpOrFail(getValue(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
+
+                    Exp nestedList = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.LIST, key,
+                        Exp.mapBin(getField(qualifierMap)));
+                    Exp nestedListNotContainingValue = Exp.eq(ListExp.getByValue(ListReturnType.COUNT, value,
+                        nestedList), Exp.val(0));
+                    return Exp.or(mapBinDoesNotExist, mapNotContainingKey, nestedListNotContainingValue);
+                }
+                case MAP -> {
+                    Value val = getValue(qualifierMap);
+                    Exp value = getExpOrFail(val, "MAP_VAL_NOT_CONTAINING_BY_KEY");
+                    Exp secondKey = getExpOrFail(getNestedKey(qualifierMap), "MAP_VAL_NOT_CONTAINING_BY_KEY");
+
+                    Exp nestedMap = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, key,
+                        Exp.mapBin(getField(qualifierMap)));
+                    Exp nestedMapNotContainingValueByKey = Exp.ne(
+                        MapExp.getByKey(MapReturnType.VALUE, getExpType(val), secondKey, nestedMap),
+                        value);
+                    return Exp.or(mapBinDoesNotExist, mapNotContainingKey, nestedMapNotContainingValueByKey);
+                }
+                default -> throw new UnsupportedOperationException("Unsupported value type: " + nestedType);
+            }
         }
 
         @Override
@@ -944,19 +1050,9 @@ public enum FilterOperation {
             if (val instanceof Value.BoolIntValue) {
                 qualifierMap.put(VALUE, new Value.BooleanValue((Boolean) (getValue(qualifierMap).getObject())));
             }
-
-            Exp value = switch (val.getType()) {
-                case INTEGER -> Exp.val(val.toLong());
-                case STRING -> Exp.val(val.toString());
-                case BOOL -> Exp.val((Boolean) val.getObject());
-                case LIST -> Exp.val((List<?>) val.getObject());
-                case MAP -> Exp.val((Map<?, ?>) val.getObject());
-                case ParticleType.NULL -> Exp.nil();
-                default -> throw new UnsupportedOperationException(
-                    "COLLECTION_VAL_CONTAINING FilterExpression unsupported type: got " +
-                        val.getClass().getSimpleName());
-            };
-
+            String errMsg = "COLLECTION_VAL_CONTAINING FilterExpression unsupported type: got " +
+                val.getClass().getSimpleName();
+            Exp value = getValueExpOrFail(val, errMsg);
             return Exp.gt(
                 ListExp.getByValue(ListReturnType.COUNT, value, Exp.listBin(getField(qualifierMap))),
                 Exp.val(0));
@@ -980,18 +1076,9 @@ public enum FilterOperation {
             if (val instanceof Value.BoolIntValue) {
                 qualifierMap.put(VALUE, new Value.BooleanValue((Boolean) (getKey(qualifierMap).getObject())));
             }
-
-            Exp value = switch (val.getType()) {
-                case INTEGER -> Exp.val(val.toLong());
-                case STRING -> Exp.val(val.toString());
-                case BOOL -> Exp.val((Boolean) val.getObject());
-                case LIST -> Exp.val((List<?>) val.getObject());
-                case MAP -> Exp.val((Map<?, ?>) val.getObject());
-                case ParticleType.NULL -> Exp.nil();
-                default -> throw new UnsupportedOperationException(
-                    "COLLECTION_VAL_CONTAINING FilterExpression unsupported type: got " + val.getClass()
-                        .getSimpleName());
-            };
+            String errMsg = "COLLECTION_VAL_NOT_CONTAINING FilterExpression unsupported type: got " +
+                val.getClass().getSimpleName();
+            Exp value = getValueExpOrFail(val, errMsg);
 
             Exp binIsNull = Exp.not(Exp.binExists(getField(qualifierMap)));
             Exp listNotContaining = Exp.eq(
@@ -1259,14 +1346,20 @@ public enum FilterOperation {
         return processMetadataFieldInOrNot(qualifierMap, true);
     }
 
-    private static Value getValueAsCollectionOrFail(Map<QualifierKey, Object> qualifierMap) {
+    private static Exp getExpOrFail(Value value, String filterOpName) {
+        String errMsg = String.format("%s FilterExpression unsupported value type: got %s", filterOpName,
+            value.getClass().getSimpleName());
+        return getValueExpOrFail(value, errMsg);
+    }
+
+    private static Collection<?> getValueAsCollectionOrFail(Map<QualifierKey, Object> qualifierMap) {
         Value value = getValue(qualifierMap);
         String errMsg = "FilterOperation.IN expects argument with type Collection, instead got: " +
             value.getObject().getClass().getSimpleName();
         if (value.getType() != LIST || !(value.getObject() instanceof Collection<?>)) {
             throw new IllegalArgumentException(errMsg);
         }
-        return value;
+        return (Collection<?>) value.getObject();
     }
 
     /**
@@ -1371,23 +1464,25 @@ public enum FilterOperation {
         return mapValuesCountComparedToZero(qualifierMap, Exp::gt, errMsg);
     }
 
-    private static Exp getValueExp(Value value, String errMsg) {
-        return switch (value.getType()) {
-            case INTEGER -> Exp.val(value.toLong());
-            case STRING -> Exp.val(value.toString());
-            case LIST -> Exp.val((List<?>) value.getObject());
-            case MAP -> Exp.val((Map<?, ?>) value.getObject());
-            case NULL -> Exp.nil();
-            default -> throw new UnsupportedOperationException(errMsg);
-        };
-    }
-
     // operator is Exp::gt to query for mapKeysContain or Exp::eq to query for mapKeysNotContain
     private static Exp mapKeysCount(Map<QualifierKey, Object> qualifierMap, BinaryOperator<Exp> operator,
                                     String errMsg) {
-        Exp key = getValueExp(getValue(qualifierMap), errMsg);
+        Exp key = getValueExpOrFail(getValue(qualifierMap), errMsg);
+        Exp map = Exp.mapBin(getField(qualifierMap));
+        Value mapBinKey = getKey(qualifierMap);
+
+        if (!mapBinKey.equals(Value.NullValue.INSTANCE)) {
+            // If map key != null it is a nested query (one level)
+            String err = "MAP_VAL_NOT_CONTAINING_BY_KEY FilterExpression unsupported type: got " +
+                mapBinKey.getClass().getSimpleName();
+            Exp nestedMapKey = getValueExpOrFail(mapBinKey, err);
+
+            // locate a Map within its parent bin
+            map = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, nestedMapKey, Exp.mapBin(getField(qualifierMap)));
+        }
+
         return operator.apply(
-            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, key, Exp.mapBin(getField(qualifierMap))),
+            MapExp.getByKey(MapReturnType.COUNT, Exp.Type.INT, key, map),
             Exp.val(0));
     }
 
@@ -1395,9 +1490,22 @@ public enum FilterOperation {
     private static Exp mapValuesCountComparedToZero(Map<QualifierKey, Object> qualifierMap,
                                                     BinaryOperator<Exp> operator,
                                                     String errMsg) {
-        Exp value = getValueExp(getValue(qualifierMap), errMsg);
+        Exp value = getValueExpOrFail(getValue(qualifierMap), errMsg);
+        Exp map = Exp.mapBin(getField(qualifierMap));
+        Value mapBinKey = getKey(qualifierMap);
+
+        if (!mapBinKey.equals(Value.NullValue.INSTANCE)) {
+            // If map key != null it means a nested query (one level)
+            String err = "MAP_VAL_NOT_CONTAINING_BY_KEY FilterExpression unsupported type: got " +
+                mapBinKey.getClass().getSimpleName();
+            Exp nestedMapKey = getValueExpOrFail(mapBinKey, err);
+
+            // if it is a nested query we need to locate a Map within its parent bin
+            map = MapExp.getByKey(MapReturnType.VALUE, Exp.Type.MAP, nestedMapKey, Exp.mapBin(getField(qualifierMap)));
+        }
+
         return operator.apply(
-            MapExp.getByValue(MapReturnType.COUNT, value, Exp.mapBin(getField(qualifierMap))),
+            MapExp.getByValue(MapReturnType.COUNT, value, map),
             Exp.val(0));
     }
 
@@ -1512,11 +1620,11 @@ public enum FilterOperation {
                                    boolean useCtx) {
         if (useCtx) {
             return MapExp.getByKey(MapReturnType.VALUE, expType,
-                Exp.val(getKey(qualifierMap).toString()), // key (field name)
+                getValueExpOrFail(getKey(qualifierMap), "MAP_VAL_EQ: unsupported type"), // key (field name)
                 Exp.mapBin(getField(qualifierMap)), dotPathToCtxMapKeys(dotPathArr));
         } else {
             return MapExp.getByKey(MapReturnType.VALUE, expType,
-                Exp.val(getKey(qualifierMap).toString()),
+                getValueExpOrFail(getKey(qualifierMap), "MAP_VAL_EQ: unsupported type"),
                 Exp.mapBin(getField(qualifierMap)));
         }
     }
@@ -1601,6 +1709,10 @@ public enum FilterOperation {
         return qualifierMap.get(KEY);
     }
 
+    protected static Value getNestedKey(Map<QualifierKey, Object> qualifierMap) {
+        return Value.get(qualifierMap.get(NESTED_KEY));
+    }
+
     protected static Value getValue(Map<QualifierKey, Object> qualifierMap) {
         return Value.get(qualifierMap.get(VALUE));
     }
@@ -1611,6 +1723,11 @@ public enum FilterOperation {
 
     protected static Value getSecondValue(Map<QualifierKey, Object> qualifierMap) {
         return Value.get(qualifierMap.get(SECOND_VALUE));
+    }
+
+    protected static Integer getNestedType(Map<QualifierKey, Object> qualifierMap) {
+        Object fieldType = qualifierMap.get(NESTED_TYPE);
+        return fieldType != null ? (int) fieldType : null;
     }
 
     @SuppressWarnings("unchecked")

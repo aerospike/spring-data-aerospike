@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.repository.query.blocking.noindex.fin
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
+import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.aerospike.util.TestUtils;
@@ -89,6 +90,28 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findBySimplePropertyGreaterThan_Integer_projection() {
+        Slice<PersonSomeFields> slice = repository.findPersonSomeFieldsByAgeGreaterThan(40, PageRequest.of(0, 10));
+
+        assertThat(slice.hasContent()).isTrue();
+        assertThat(slice.hasNext()).isFalse();
+        assertThat(slice.getContent()).hasSize(4).contains(dave.toPersonSomeFields(),
+            carter.toPersonSomeFields(), boyd.toPersonSomeFields(), leroi.toPersonSomeFields());
+    }
+
+    @Test
+    void findBySimplePropertyGreaterThan_String() {
+        List<Person> result = repository.findByFirstNameGreaterThan("Leroa");
+        assertThat(result).contains(leroi, leroi2);
+    }
+
+    @Test
+    void findByNestedSimplePropertyGreaterThan_String() {
+        assertThat(carter.getAddress().getZipCode()).isEqualTo("C0124");
+        assertThat(repository.findByAddressZipCodeGreaterThan("C0123")).containsExactly(carter);
+    }
+
+    @Test
     void findByNestedSimplePropertyGreaterThan_Integer() {
         alicia.setFriend(boyd);
         repository.save(alicia);
@@ -109,22 +132,6 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
             .containsExactlyInAnyOrder(alicia, leroi);
 
         TestUtils.setFriendsToNull(repository, alicia, dave, carter, leroi);
-    }
-
-    @Test
-    void findBySimplePropertyGreaterThan_Integer_projection() {
-        Slice<PersonSomeFields> slice = repository.findPersonSomeFieldsByAgeGreaterThan(40, PageRequest.of(0, 10));
-
-        assertThat(slice.hasContent()).isTrue();
-        assertThat(slice.hasNext()).isFalse();
-        assertThat(slice.getContent()).hasSize(4).contains(dave.toPersonSomeFields(),
-            carter.toPersonSomeFields(), boyd.toPersonSomeFields(), leroi.toPersonSomeFields());
-    }
-
-    @Test
-    void findBySimplePropertyGreaterThan_String() {
-        List<Person> result = repository.findByFirstNameGreaterThan("Leroa");
-        assertThat(result).contains(leroi, leroi2);
     }
 
     @Test
@@ -206,6 +213,22 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionGreaterThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsGreaterThan(List.of(1, 2, 3, 3));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
     void findByMapGreaterThan() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             assertThat(boyd.getStringMap()).isNotEmpty();
@@ -214,6 +237,38 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
             Map<String, String> mapToCompare = Map.of("Key", "Val", "Key2", "Val2");
             List<Person> persons = repository.findByStringMapGreaterThan(mapToCompare);
             assertThat(persons).containsExactlyInAnyOrder(boyd);
+        }
+    }
+
+    @Test
+    void findByNestedMapGreaterThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address = new Address("Foo Street 1", 1, "C0123", "Bar");
+            assertThat(carter.getAddress()).isNotNull();
+
+            dave.setFriend(carter);
+            repository.save(dave);
+
+            List<Person> result = repository.findByFriendAddressGreaterThan(address);
+
+            assertThat(result).contains(dave);
+            TestUtils.setFriendsToNull(repository, dave);
+        }
+    }
+
+    @Test
+    void findByNestedPojoGreaterThan() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapGreaterThan(Map.of("1", 2, "3", 3));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
         }
     }
 }

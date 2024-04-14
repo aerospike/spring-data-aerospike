@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.repository.query;
 
 import com.aerospike.client.Value;
+import com.aerospike.client.command.ParticleType;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -14,14 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.springframework.data.aerospike.query.FilterOperation.*;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getCorrespondingMapValueFilterOperationOrFail;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getValueOfQueryParameter;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.isAssignableValueOrConverted;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.qualifierAndConcatenated;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.*;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion.NULL_PARAM;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion.KEY_VALUE_PAIR;
 
@@ -33,16 +27,18 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     private final List<Object> queryParameters;
     private final FilterOperation filterOperation;
     private final MappingAerospikeConverter converter;
+    private final boolean isNested;
 
     public MapQueryCreator(Part part, AerospikePersistentProperty property, String fieldName,
                            List<Object> queryParameters, FilterOperation filterOperation,
-                           MappingAerospikeConverter converter) {
+                           MappingAerospikeConverter converter, boolean isNested) {
         this.part = part;
         this.property = property;
         this.fieldName = fieldName;
         this.queryParameters = queryParameters;
         this.filterOperation = filterOperation;
         this.converter = converter;
+        this.isNested = isNested;
     }
 
     @Override
@@ -52,8 +48,9 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
             case CONTAINING, NOT_CONTAINING -> validateMapQueryContaining(queryPartDescription);
             case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> validateMapQueryComparison(queryPartDescription);
             case BETWEEN -> validateMapQueryBetween(queryPartDescription);
-            default -> throw new UnsupportedOperationException(
-                String.format("Unsupported operation: %s applied to %s", filterOperation, property));
+            case IN, NOT_IN -> validateQueryIn(queryParameters, queryPartDescription);
+            case IS_NOT_NULL, IS_NULL -> validateQueryIsNull(queryParameters, queryPartDescription);
+            default -> throw new UnsupportedOperationException("Unsupported operation: " + queryPartDescription);
         }
     }
 
@@ -175,46 +172,78 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         Qualifier qualifier;
         QualifierBuilder qb = Qualifier.builder();
         int paramsSize = queryParameters.size();
+        List<String> dotPath = null;
+        FilterOperation op = filterOperation;
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {
             setQualifierBuilderValue(qb, queryParameters.get(0));
-            if (queryParameters.size() >= 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
-            qualifier = setQualifier(qb, fieldName, filterOperation, part, null);
+            if (queryParameters.size() == 2) setQualifierBuilderSecondValue(qb, queryParameters.get(1));
+            if (isNested) {
+                setQualifierBuilderKey(qb, property.getFieldName());
+                dotPath = List.of(part.getProperty().toDotPath());
+                // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
+                op = getCorrespondingMapValueFilterOperationOrFail(filterOperation);
+            }
+            qualifier = setQualifier(qb, fieldName, op, part, dotPath);
             return qualifier;
         }
 
-        if (paramsSize == 2) {
-            qualifier = processMapTwoParams(part, queryParameters, filterOperation, fieldName);
-        } else if (queryParameters.size() < 2) {
-            setQualifierBuilderValue(qb, queryParameters.get(0));
-            qualifier = setQualifier(qb, fieldName, filterOperation, part, null);
-        } else { // multiple parameters
-            qualifier = processMapMultipleParams(part, queryParameters, filterOperation, fieldName);
+        if (isNested) { // POJO field
+            if (op == CONTAINING || op == NOT_CONTAINING) {
+                // for nested MapContaining queries
+                qb.setNestedType(ParticleType.MAP);
+            }
+
+            if (paramsSize == 2) {
+                setQualifierBuilderKey(qb, property.getFieldName());
+                qualifier = processMapTwoParams(qb, part, queryParameters, filterOperation, fieldName);
+            } else if (queryParameters.size() < 2) {
+                if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
+                    setQualifierBuilderValue(qb, property.getFieldName());
+                } else {
+                    setQualifierBuilderValue(qb, queryParameters.get(0));
+                    setQualifierBuilderKey(qb, property.getFieldName());
+                }
+                // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
+                op = getCorrespondingMapValueFilterOperationOrFail(filterOperation);
+                dotPath = List.of(part.getProperty().toDotPath());
+                qualifier = setQualifier(qb, fieldName, op, part, dotPath);
+            } else { // multiple parameters
+                qualifier = processMapMultipleParams(qb);
+            }
+        } else {
+            if (paramsSize == 2) {
+                qualifier = processMapTwoParams(qb, part, queryParameters, filterOperation, fieldName);
+            } else if (queryParameters.size() < 2) {
+                setQualifierBuilderValue(qb, queryParameters.get(0));
+                qualifier = setQualifier(qb, fieldName, filterOperation, part, dotPath);
+            } else { // multiple parameters
+                qualifier = processMapMultipleParams(qb);
+            }
         }
 
         return qualifier;
     }
 
-    private Qualifier processMapTwoParams(Part part, List<Object> params, FilterOperation op, String fieldName) {
+    private Qualifier processMapTwoParams(QualifierBuilder qb, Part part, List<Object> params, FilterOperation op,
+                                          String fieldName) {
         Qualifier qualifier;
         if (op == FilterOperation.CONTAINING) {
-            qualifier = processMapContaining(part, fieldName, MAP_KEYS_CONTAIN, MAP_VALUES_CONTAIN,
+            qualifier = processMapContaining(qb, part, fieldName, MAP_KEYS_CONTAIN, MAP_VALUES_CONTAIN,
                 MAP_VAL_EQ_BY_KEY);
         } else if (op == FilterOperation.NOT_CONTAINING) {
-            qualifier = processMapContaining(part, fieldName, MAP_KEYS_NOT_CONTAIN, MAP_VALUES_NOT_CONTAIN,
+            qualifier = processMapContaining(qb, part, fieldName, MAP_KEYS_NOT_CONTAIN, MAP_VALUES_NOT_CONTAIN,
                 MAP_VAL_NOTEQ_BY_KEY);
         } else {
-            qualifier = processMapOtherThanContaining(part, params, op, fieldName);
+            qualifier = processMapOtherThanContaining(qb, part, params, op, fieldName);
         }
 
         return qualifier;
     }
 
-    private Qualifier processMapContaining(Part part, String fieldName, FilterOperation keysOp,
+    private Qualifier processMapContaining(QualifierBuilder qb, Part part, String fieldName, FilterOperation keysOp,
                                            FilterOperation valuesOp, FilterOperation byKeyOp) {
         FilterOperation op = byKeyOp;
-        QualifierBuilder qb = Qualifier.builder();
-
         if (queryParameters.get(0) instanceof AerospikeQueryCriterion queryCriterion) {
             switch (queryCriterion) {
                 case KEY -> {
@@ -231,9 +260,9 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         return setQualifier(qb, fieldName, op, part, null);
     }
 
-    private Qualifier processMapOtherThanContaining(Part part, List<Object> queryParameters, FilterOperation op,
+    private Qualifier processMapOtherThanContaining(QualifierBuilder qb, Part part, List<Object> queryParameters,
+                                                    FilterOperation op,
                                                     String fieldName) {
-        QualifierBuilder qb = Qualifier.builder();
         Object param1 = queryParameters.get(0);
         List<String> dotPath = List.of(part.getProperty().toDotPath(), Value.get(param1).toString());
 
@@ -246,33 +275,41 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         return setQualifier(qb, fieldName, op, part, dotPath);
     }
 
-    private Qualifier processMapMultipleParams(Part part, List<Object> params, FilterOperation op, String fieldName) {
-        if (op == FilterOperation.CONTAINING || op == FilterOperation.NOT_CONTAINING) {
-            return processMapMultipleParamsContaining(part, params, op, fieldName);
+    private Qualifier processMapMultipleParams(QualifierBuilder qb) {
+        if (filterOperation == FilterOperation.CONTAINING || filterOperation == FilterOperation.NOT_CONTAINING) {
+            return processMapMultipleParamsContaining(qb, part, queryParameters, filterOperation, fieldName, isNested);
         } else {
-            return processMapOtherThanContaining(part, params, op, fieldName);
+            return processMapOtherThanContaining(qb, part, queryParameters, filterOperation, fieldName);
         }
     }
 
-    private Qualifier processMapMultipleParamsContaining(Part part, List<Object> params, FilterOperation op,
-                                                         String fieldName) {
+    private Qualifier processMapMultipleParamsContaining(QualifierBuilder qb, Part part, List<Object> params,
+                                                         FilterOperation op, String fieldName, boolean isNested) {
         List<String> dotPath;
-        QualifierBuilder qb = Qualifier.builder();
         AerospikeQueryCriterion queryCriterion;
         Object firstParam = params.get(0);
 
         if (firstParam instanceof AerospikeQueryCriterion) {
-            queryCriterion = (AerospikeQueryCriterion) params.get(0);
+            queryCriterion = (AerospikeQueryCriterion) firstParam;
             if (queryCriterion == KEY_VALUE_PAIR) {
-                switch (op) {
-                    case EQ, CONTAINING -> op = MAP_VAL_EQ_BY_KEY;
-                    case NOTEQ -> op = MAP_VAL_NOTEQ_BY_KEY;
-                    case NOT_CONTAINING -> op = MAP_VAL_NOT_CONTAINING_BY_KEY;
+                Value key;
+                if (isNested) {
+                    switch (op) {
+                        case EQ, CONTAINING -> op = MAP_VAL_CONTAINING_BY_KEY;
+                        case NOTEQ, NOT_CONTAINING -> op = MAP_VAL_NOT_CONTAINING_BY_KEY;
+                    }
+                    key = getValueOfQueryParameter(property.getFieldName());
+                    setQualifierBuilderSecondKey(qb, params.get(1));
+                } else {
+                    switch (op) {
+                        case EQ, CONTAINING -> op = MAP_VAL_EQ_BY_KEY;
+                        case NOTEQ, NOT_CONTAINING -> op = MAP_VAL_NOTEQ_BY_KEY;
+                    }
+                    key = getValueOfQueryParameter(params.get(1));
                 }
-                Value key = getValueOfQueryParameter(params.get(1));
                 qb.setKey(key);
                 dotPath = List.of(part.getProperty().toDotPath(), key.toString());
-                setQualifierBuilderValue(qb, queryParameters.get(2));
+                setQualifierBuilderValue(qb, params.get(2));
             } else {
                 throw new UnsupportedOperationException("Unsupported parameter: " + queryCriterion);
             }

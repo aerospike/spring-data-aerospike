@@ -48,6 +48,14 @@ public class BetweenTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedSimplePropertyBetween_String() {
+        assertThat(carter.getAddress().getZipCode()).isEqualTo("C0124");
+        assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
+        assertThat(repository.findByAddressZipCodeBetween("C0123", "C0124"))
+            .containsExactly(dave);
+    }
+
+    @Test
     void findByCollectionBetween_IntegerList() {
         List<Integer> list1 = List.of(100, 200, 300);
         List<Integer> list2 = List.of(1000, 2000, 3000);
@@ -78,6 +86,22 @@ public class BetweenTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByIntsBetween(Map.of(100, 200), Map.of(300, 400)))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.ints BETWEEN: invalid argument type, expecting Collection");
+    }
+
+    @Test
+    void findByNestedCollectionBetween() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntsBetween(List.of(1, 2, 3, 4), List.of(1, 2, 3, 4, 5));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
     }
 
     @Test
@@ -125,6 +149,22 @@ public class BetweenTests extends PersonRepositoryQueryTests {
             var map6 = Map.of("910", List.of(10000));
             persons = repository.findByMapOfIntListsBetween(map5, map6);
             assertThat(persons).isEmpty();
+        }
+    }
+
+    @Test
+    void findByNestedMapBetween() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendIntMapBetween(Map.of("1", 2, "3", 4), Map.of("1", 2, "3", 4, "5", 6));
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
         }
     }
 
@@ -184,5 +224,22 @@ public class BetweenTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByAddressBetween(100, 200))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.address BETWEEN: Type mismatch, expecting Address");
+    }
+
+    @Test
+    void findByNestedPojoBetween() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Address address1 = new Address("Foo Street 1", 1, "C0123", "Bar");
+            Address address2 = new Address("Foo Street 1", 2, "C0124", "Bar");
+            assertThat(dave.getAddress()).isNotNull();
+
+            carter.setFriend(dave);
+            repository.save(carter);
+
+            List<Person> result = repository.findByFriendAddressBetween(address1, address2);
+
+            assertThat(result).contains(carter);
+            TestUtils.setFriendsToNull(repository, carter);
+        }
     }
 }
