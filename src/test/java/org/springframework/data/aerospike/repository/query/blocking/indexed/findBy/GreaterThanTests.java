@@ -23,7 +23,7 @@ public class GreaterThanTests extends IndexedPersonRepositoryQueryTests {
     @AssertBinsAreIndexed(binNames = "firstName", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_String_NoSecondaryIndexFilter() {
         // "Greater than a String" has no secondary index Filter
-        assertStmtHasSecIndexFilter("findByFirstNameGreaterThan", IndexedPerson.class, "Bill");
+        assertThat(stmtHasSecIndexFilter("findByFirstNameGreaterThan", IndexedPerson.class, "Bill")).isFalse();
         List<IndexedPerson> result = repository.findByFirstNameGreaterThan("Bill");
         assertThat(result).containsAll(allIndexedPersons);
     }

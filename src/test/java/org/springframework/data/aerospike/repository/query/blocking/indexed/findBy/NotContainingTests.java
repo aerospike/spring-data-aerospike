@@ -18,9 +18,10 @@ public class NotContainingTests extends IndexedPersonRepositoryQueryTests {
 
     @Test
     @AssertBinsAreIndexed(binNames = "stringMap", entityClass = IndexedPerson.class)
-    void findByMapKeysNotContaining_String() {
+    void findByMapKeysNotContaining_String_NoSecondaryIndexFilter() {
         assertThat(billy.getStringMap()).containsKey("key1");
-        assertStmtHasSecIndexFilter("findByStringMapNotContaining", IndexedPerson.class, KEY, "key3");
+        // "Not containing" has no secondary index Filter
+        assertThat(stmtHasSecIndexFilter("findByStringMapNotContaining", IndexedPerson.class, KEY, "key3")).isFalse();
 
         List<IndexedPerson> persons = repository.findByStringMapNotContaining(KEY, "key3");
         assertThat(persons).contains(billy);
@@ -30,7 +31,8 @@ public class NotContainingTests extends IndexedPersonRepositoryQueryTests {
     @AssertBinsAreIndexed(binNames = "stringMap", entityClass = IndexedPerson.class)
     void findByMapValuesNotContaining_String() {
         assertThat(billy.getStringMap()).containsValue("val1");
-        assertStmtHasSecIndexFilter("findByStringMapNotContaining", IndexedPerson.class, VALUE, "val3");
+        // "Not containing" has no secondary index Filter
+        assertThat(stmtHasSecIndexFilter("findByStringMapNotContaining", IndexedPerson.class, VALUE, "val3")).isFalse();
 
         List<IndexedPerson> persons = repository.findByStringMapNotContaining(VALUE, "val3");
         assertThat(persons).contains(billy);

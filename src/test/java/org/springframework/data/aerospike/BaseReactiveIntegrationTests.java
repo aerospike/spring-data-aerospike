@@ -17,6 +17,7 @@ import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.query.model.IndexedField;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.sample.ReactiveIndexedPersonRepository;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.QueryUtils;
 import org.springframework.data.mapping.context.MappingContext;
@@ -109,7 +110,9 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
             Method testMethod = testMethodOptional.get();
             if (!hasNoindexAnnotation(testMethod)) {
                 assertThat(hasAssertBinsAreIndexedAnnotation(testMethod))
-                    .as("Expecting the test method to have @AssertBinsAreIndexed annotation").isTrue();
+                    .as(String.format("Expecting the test method %s to have @AssertBinsAreIndexed annotation",
+                        testMethod.getName())).
+                    isTrue();
                 String[] binNames = getBinNames(testMethod);
                 Class<?> entityClass = getEntityClass(testMethod);
                 assertThat(binNames).as("Expecting bin names to be populated").isNotNull();
@@ -132,15 +135,16 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
      */
     protected void assertStmtHasSecIndexFilter(String methodName, Class<?> returnEntityClass,
                                                Object... methodParams) {
-        assertThat(statementHasSecIndexFilter(methodName, returnEntityClass, methodParams))
+        assertThat(stmtHasSecIndexFilter(methodName, returnEntityClass, methodParams))
             .as(String.format("Expecting the query %s statement to have secondary index filter", methodName)).isTrue();
     }
 
-    protected boolean statementHasSecIndexFilter(String methodName, Class<?> returnTypeClass,
-                                                 Object... methodParams) {
-        String setName = reactiveTemplate.getSetName(returnTypeClass);
-        String[] binNames = getBinNamesFromTargetClass(returnTypeClass, mappingContext);
-        Query query = QueryUtils.createQueryForMethodWithArgs(methodName, methodParams);
+    protected boolean stmtHasSecIndexFilter(String methodName, Class<?> returnEntityClass,
+                                            Object... methodParams) {
+        String setName = reactiveTemplate.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+        Query query = QueryUtils.createQueryForMethodWithArgs(ReactiveIndexedPersonRepository.class, returnEntityClass,
+            methodName, methodParams);
 
         Statement statement = reactiveQueryEngine.getStatementBuilder().build(namespace, setName, query, binNames);
         // Checking that the statement has secondary index filter (which means it will be used)

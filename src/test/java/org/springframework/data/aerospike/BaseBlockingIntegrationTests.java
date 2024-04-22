@@ -102,7 +102,8 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
             Method testMethod = testMethodOptional.get();
             if (!hasNoindexAnnotation(testMethod)) {
                 assertThat(hasAssertBinsAreIndexedAnnotation(testMethod))
-                    .as("Expecting the test method to have @AssertBinsAreIndexed annotation").isTrue();
+                    .as(String.format("Expecting the test method %s to have @AssertBinsAreIndexed annotation", testMethod.getName()))
+                    .isTrue();
                 String[] binNames = getBinNames(testMethod);
                 Class<?> entityClass = getEntityClass(testMethod);
                 assertThat(binNames).as("Expecting bin names to be populated").isNotNull();
