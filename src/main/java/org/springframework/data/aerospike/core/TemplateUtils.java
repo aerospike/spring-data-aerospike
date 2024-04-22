@@ -1,8 +1,13 @@
 package org.springframework.data.aerospike.core;
 
 import lombok.experimental.UtilityClass;
+import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
+import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
+import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.mapping.PropertyHandler;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -93,4 +98,18 @@ public class TemplateUtils {
             throw new UnsupportedOperationException("Only OR / AND operations are supported");
         }
     }
+
+    public static String[] getBinNamesFromTargetClass(Class<?> targetClass,
+                                                      MappingContext<BasicAerospikePersistentEntity<?>,
+                                                          AerospikePersistentProperty> mappingContext) {
+        AerospikePersistentEntity<?> targetEntity = mappingContext.getRequiredPersistentEntity(targetClass);
+
+        List<String> binNamesList = new ArrayList<>();
+
+        targetEntity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property
+            -> binNamesList.add(property.getFieldName()));
+
+        return binNamesList.toArray(new String[0]);
+    }
+
 }

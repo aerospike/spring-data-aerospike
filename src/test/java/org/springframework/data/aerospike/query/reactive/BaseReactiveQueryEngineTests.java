@@ -8,14 +8,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.query.QueryEngineTestDataPopulator;
-import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import reactor.core.publisher.Mono;
 
 public abstract class BaseReactiveQueryEngineTests extends BaseReactiveIntegrationTests {
 
-    @Autowired
-    ReactorQueryEngine queryEngine;
     @Autowired
     QueryEngineTestDataPopulator queryEngineTestDataPopulator;
     @Autowired

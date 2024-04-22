@@ -60,4 +60,9 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
     public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
         return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
     }
+
+    @Bean
+    public IndexedBinsAnnotationsProcessor someAnnotationProcessor() {
+        return new IndexedBinsAnnotationsProcessor();
+    }
 }

@@ -46,6 +46,7 @@ public class QueryEngine {
             "disabled by default in spring-data-aerospike. " +
             "If you still need to use them, enable them via `scans-enabled` property.";
     private final IAerospikeClient client;
+    @Getter
     private final StatementBuilder statementBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;

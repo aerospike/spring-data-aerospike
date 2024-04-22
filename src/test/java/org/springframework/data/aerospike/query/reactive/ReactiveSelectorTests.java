@@ -26,7 +26,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     @Test
     public void selectOneWithKey() {
         KeyQualifier kq = new KeyQualifier(Value.get("selector-test:3"));
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(kq));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(kq));
 
         StepVerifier.create(flux)
             .expectNextCount(1)
@@ -36,7 +36,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     @Test
     public void selectOneWithNonExistingKey() {
         KeyQualifier kq = new KeyQualifier(Value.get("selector-test:no-such-record"));
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(kq));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(kq));
 
         StepVerifier.create(flux)
             .expectNextCount(0)
@@ -45,7 +45,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
 
     @Test
     public void selectAll() {
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, null);
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, null);
 
         StepVerifier.create(flux)
             .expectNextCount(RECORD_COUNT)
@@ -60,7 +60,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setValue(Value.get("e"))
             .build();
 
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(qual1));
         StepVerifier.create(flux.collectList())
             .expectNextMatches(results -> {
                 assertThat(results)
@@ -79,7 +79,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setValue(Value.get("bl"))
             .build();
 
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(startsWithQual));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(startsWithQual));
         StepVerifier.create(flux.collectList())
             .expectNextMatches(results -> {
                 assertThat(results)
@@ -107,7 +107,8 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setValue(Value.get("NA"))
             .build();
 
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(Qualifier.and(qual1, qual2)));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(Qualifier.and(qual1,
+            qual2)));
         StepVerifier.create(flux)
             .expectNextCount(queryEngineTestDataPopulator.colourCounts.get("blue"))
             .verifyComplete();
@@ -123,7 +124,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setValue(Value.get("BLUE"))
             .build();
 
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(qual1));
         StepVerifier.create(flux)
             .expectNextCount(0)
             .verifyComplete();
@@ -139,7 +140,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setValue(Value.get("NA"))
             .build();
 
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(qual1));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(qual1));
         StepVerifier.create(flux)
             .expectNextCount(0)
             .verifyComplete();
@@ -157,7 +158,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setValue(Value.get("BlUe"))
             .build();
 
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(caseInsensitiveQual));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(caseInsensitiveQual));
         StepVerifier.create(flux.collectList())
             .expectNextMatches(results -> {
                 assertThat(results)
@@ -178,7 +179,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setValue(Value.get("lue"))
             .build();
 
-        Flux<KeyRecord> flux = queryEngine.select(namespace, SET_NAME, null, new Query(caseInsensitiveQual));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, SET_NAME, null, new Query(caseInsensitiveQual));
 
         StepVerifier.create(flux)
             .expectNextCount(0)
@@ -199,7 +200,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
             .setValue(Value.getAsGeoJSON(rgnstr))
             .build();
 
-        Flux<KeyRecord> flux = queryEngine.select(namespace, GEO_SET, null, new Query(qual1));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, GEO_SET, null, new Query(qual1));
         StepVerifier.create(flux.collectList())
             .expectNextMatches(results -> {
                 assertThat(results)

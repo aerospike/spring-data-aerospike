@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class EqualsTests extends IndexedPersonRepositoryQueryTests {
 
     @Test
-    public void countBySimpleProperty_String() {
+    public void countBySimpleProperty_String_NegativeTest() {
         assertThatThrownBy(() -> repository.countByLastName("Lerois"))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessage("Query method IndexedPerson.countByLastName is not supported");
