@@ -5,6 +5,8 @@ import com.aerospike.client.cdt.CTX;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -25,6 +27,11 @@ import static org.springframework.data.aerospike.util.AsCollections.of;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
+
+    @BeforeEach
+    public void beforeEach(TestInfo testInfo) {
+        assertBinsAreIndexed(testInfo);
+    }
 
     @Autowired
     protected IndexedPersonRepository repository;
@@ -74,84 +81,153 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
     public void beforeAll() {
         additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
         additionalAerospikeTestOperations.saveAll(repository, allIndexedPersons);
+        String setName = template.getSetName(IndexedPerson.class);
 
         List<Index> newIndexes = new ArrayList<>();
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_first_name_index").bin("firstName").indexType(STRING).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_last_name_index").bin("lastName").indexType(STRING).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_age_index").bin("age").indexType(NUMERIC).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_strings_index").bin("strings").indexType(STRING).indexCollectionType(LIST).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_ints_index").bin("ints").indexType(NUMERIC).indexCollectionType(LIST).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_string_map_keys_index").bin("stringMap").indexType(STRING)
-            .indexCollectionType(MAPKEYS).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_string_map_values_index").bin("stringMap").indexType(STRING)
-            .indexCollectionType(MAPVALUES).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_int_map_keys_index").bin("intMap").indexType(STRING).indexCollectionType(MAPKEYS)
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_first_name_index")
+            .bin("firstName")
+            .indexType(STRING)
             .build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_int_map_values_index").bin("intMap").indexType(NUMERIC)
-            .indexCollectionType(MAPVALUES).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_address_keys_index").bin("address").indexType(STRING).indexCollectionType(MAPKEYS)
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_last_name_index")
+            .bin("lastName")
+            .indexType(STRING)
             .build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_address_values_index").bin("address").indexType(STRING)
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_age_index")
+            .bin("age")
+            .indexType(NUMERIC)
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_isActive_index")
+            .bin("isActive")
+            .indexType(STRING)
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_strings_index")
+            .bin("strings")
+            .indexType(STRING)
+            .indexCollectionType(LIST)
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_ints_index")
+            .bin("ints")
+            .indexType(NUMERIC)
+            .indexCollectionType(LIST)
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_string_map_keys_index")
+            .bin("stringMap")
+            .indexType(STRING)
+            .indexCollectionType(MAPKEYS)
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_string_map_values_index")
+            .bin("stringMap")
+            .indexType(STRING)
             .indexCollectionType(MAPVALUES).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_int_map_keys_index")
+            .bin("intMap")
+            .indexType(STRING)
+            .indexCollectionType(MAPKEYS)
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_int_map_values_index")
+            .bin("intMap")
+            .indexType(NUMERIC)
+            .indexCollectionType(MAPVALUES)
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_address_keys_index")
+            .bin("address")
+            .indexType(STRING)
+            .indexCollectionType(MAPKEYS)
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_address_values_index")
+            .bin("address")
+            .indexType(STRING)
+            .indexCollectionType(MAPVALUES)
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
             .name("indexed_person_friend_address_keys_index")
-            .bin("friend").indexType(STRING).indexCollectionType(MAPKEYS)
-            .ctx(new CTX[]{CTX.mapKey(Value.get("address"))}).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .bin("friend")
+            .indexType(STRING)
+            .indexCollectionType(MAPKEYS)
+            .ctx(new CTX[]{CTX.mapKey(Value.get("address"))})
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
             .name("indexed_person_friend_address_values_index")
-            .bin("friend").indexType(STRING).indexCollectionType(MAPVALUES)
-            .ctx(new CTX[]{CTX.mapValue(Value.get("address"))}).build());
-        newIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
+            .bin("friend")
+            .indexType(STRING)
+            .indexCollectionType(MAPVALUES)
+            .ctx(new CTX[]{CTX.mapValue(Value.get("address"))})
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
             .name("indexed_person_friend_bestFriend_address_keys_index")
-            .bin("friend").indexType(STRING).indexCollectionType(MAPKEYS)
-            .ctx(new CTX[]{CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address"))}).build());
+            .bin("friend")
+            .indexType(STRING)
+            .indexCollectionType(MAPKEYS)
+            .ctx(new CTX[]{CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address"))})
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_bestFriend_friend_address_keys_index")
+            .bin("bestFriend")
+            .indexType(STRING)
+            .indexCollectionType(MAPKEYS)
+            .ctx(new CTX[]{CTX.mapKey(Value.get("friend")), CTX.mapKey(Value.get("address"))})
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_bestFriend_friend_address_values_index")
+            .bin("bestFriend")
+            .indexType(STRING)
+            .indexCollectionType(MAPVALUES)
+            .ctx(new CTX[]{CTX.mapKey(Value.get("friend")), CTX.mapKey(Value.get("address"))})
+            .build());
         additionalAerospikeTestOperations.createIndexes(newIndexes);
     }
 
     @AfterAll
     public void afterAll() {
         additionalAerospikeTestOperations.deleteAll(repository, allIndexedPersons);
-
         List<Index> dropIndexes = new ArrayList<>();
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_first_name_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_last_name_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_age_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_strings_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_ints_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_string_map_keys_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_string_map_values_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_int_map_keys_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_int_map_values_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_address_keys_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_address_values_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_friend_address_keys_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_friend_address_values_index").build());
-        dropIndexes.add(Index.builder().set(template.getSetName(IndexedPerson.class))
-            .name("indexed_person_friend_bestFriend_address_keys_index").build());
+        String setName = template.getSetName(IndexedPerson.class);
+
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_first_name_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_last_name_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_age_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_isActive_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_strings_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_ints_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_string_map_keys_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_string_map_values_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_int_map_keys_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_int_map_values_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_address_keys_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_address_values_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_friend_address_keys_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_friend_address_values_index").build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_friend_bestFriend_address_keys_index")
+            .build());
         additionalAerospikeTestOperations.dropIndexes(dropIndexes);
     }
 

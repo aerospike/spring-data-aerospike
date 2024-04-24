@@ -95,12 +95,12 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return (CriteriaDefinition.AerospikeMetadata) internalMap.get(METADATA_FIELD);
     }
 
-    public void setQueryAsFilter(Boolean queryAsFilter) {
-        internalMap.put(AS_FILTER, queryAsFilter);
+    public void setHasSecIndexFilter(Boolean queryAsFilter) {
+        internalMap.put(HAS_SINDEX_FILTER, queryAsFilter);
     }
 
-    public Boolean queryAsFilter() {
-        return internalMap.containsKey(AS_FILTER) && (Boolean) internalMap.get(AS_FILTER);
+    public Boolean hasSecIndexFilter() {
+        return internalMap.containsKey(HAS_SINDEX_FILTER) && (Boolean) internalMap.get(HAS_SINDEX_FILTER);
     }
 
     public void setDataSettings(AerospikeDataSettings dataSettings) {
@@ -144,11 +144,11 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return (List<String>) internalMap.get(DOT_PATH);
     }
 
-    public Filter setQueryAsFilter() {
+    public Filter getSecondaryIndexFilter() {
         return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
     }
 
-    public Exp toFilterExp() {
+    public Exp getFilterExp() {
         return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
     }
 

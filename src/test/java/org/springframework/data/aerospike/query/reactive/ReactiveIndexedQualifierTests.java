@@ -63,7 +63,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue(Value.get(26))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
+            Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -95,7 +95,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue(Value.get(26))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
+            Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -130,7 +130,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue(Value.get(26))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
+            Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
                     assertThat(results)
@@ -154,7 +154,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue(Value.get(28))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
+            Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -189,7 +189,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue(Value.get(28))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
+            Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -212,7 +212,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue(Value.get(ORANGE))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
+            Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_SET_NAME, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
@@ -235,7 +235,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue(Value.get(BLUE))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, new Query(qual1));
+            Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_SET_NAME, new Query(qual1));
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {
                     assertThat(results)
@@ -265,7 +265,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue(Value.get(29))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_SET_NAME, null,
+            Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_SET_NAME, null,
                 new Query(Qualifier.and(qual1, qual2)));
 
             StepVerifier.create(flux.collectList())
@@ -296,7 +296,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setValue(Value.getAsGeoJSON(rgnstr))
                 .build();
 
-            Flux<KeyRecord> flux = queryEngine.select(namespace, INDEXED_GEO_SET, null, new Query(qualifier));
+            Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_GEO_SET, null, new Query(qualifier));
 
             StepVerifier.create(flux.collectList())
                 .expectNextMatches(results -> {

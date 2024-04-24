@@ -38,7 +38,6 @@ import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
-import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.KeyRecordIterator;
 import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
@@ -47,7 +46,6 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.util.StreamUtils;
 import org.springframework.util.Assert;
 
@@ -76,6 +74,7 @@ import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredi
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getBinNamesFromTargetClass;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
@@ -802,7 +801,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass,
                                                  Query query) {
         Record aeroRecord;
-        String[] binNames = getBinNamesFromTargetClass(targetClass);
+        String[] binNames = getBinNamesFromTargetClass(targetClass, mappingContext);
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
             aeroRecord = getAndTouch(key, entity.getExpiration(), binNames, query);
@@ -811,17 +810,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             aeroRecord = getAerospikeClient().get(policy, key, binNames);
         }
         return mapToEntity(key, targetClass, aeroRecord);
-    }
-
-    private String[] getBinNamesFromTargetClass(Class<?> targetClass) {
-        AerospikePersistentEntity<?> targetEntity = mappingContext.getRequiredPersistentEntity(targetClass);
-
-        List<String> binNamesList = new ArrayList<>();
-
-        targetEntity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property
-            -> binNamesList.add(property.getFieldName()));
-
-        return binNamesList.toArray(new String[0]);
     }
 
     private Policy getPolicyFilterExp(Query query) {
@@ -981,7 +969,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             Class<?> target;
             Record[] aeroRecords;
             if (targetClass != null && targetClass != entityClass) {
-                String[] binNames = getBinNamesFromTargetClass(targetClass);
+                String[] binNames = getBinNamesFromTargetClass(targetClass, mappingContext);
                 aeroRecords = getAerospikeClient().get(policy, keys, binNames);
                 target = targetClass;
             } else {
@@ -1438,7 +1426,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         KeyRecordIterator recIterator;
 
         if (targetClass != null) {
-            String[] binNames = getBinNamesFromTargetClass(targetClass);
+            String[] binNames = getBinNamesFromTargetClass(targetClass, mappingContext);
             recIterator = queryEngine.select(namespace, setName, binNames, query);
         } else {
             recIterator = queryEngine.select(namespace, setName, query);
@@ -1468,7 +1456,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
             Record[] aeroRecords;
             if (targetClass != null) {
-                String[] binNames = getBinNamesFromTargetClass(targetClass);
+                String[] binNames = getBinNamesFromTargetClass(targetClass, mappingContext);
                 aeroRecords = getAerospikeClient().get(policy, keys, binNames);
             } else {
                 aeroRecords = getAerospikeClient().get(policy, keys);

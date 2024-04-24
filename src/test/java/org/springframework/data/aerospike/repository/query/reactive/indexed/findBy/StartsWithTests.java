@@ -1,6 +1,8 @@
 package org.springframework.data.aerospike.repository.query.reactive.indexed.findBy;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
+import org.springframework.data.aerospike.config.NoSecondaryIndexRequired;
 import org.springframework.data.aerospike.repository.query.reactive.indexed.ReactiveIndexedPersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.util.TestUtils;
@@ -17,18 +19,24 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class StartsWithTests extends ReactiveIndexedPersonRepositoryQueryTests {
 
     @Test
-    void findBySimplePropertyStartingWith_String_Distinct() {
+    @AssertBinsAreIndexed(binNames = "lastName", entityClass = IndexedPerson.class)
+    void findBySimplePropertyStartingWith_String_Distinct_NoSecondaryIndexFilter() {
+        // There is no secondary index filter for "starts with"
+        assertThat(stmtHasSecIndexFilter("findDistinctByLastNameStartingWith", IndexedPerson.class, "Coutant-Kerbalec")).isFalse();
         List<IndexedPerson> persons = reactiveRepository.findDistinctByLastNameStartingWith("Coutant-Kerbalec")
             .subscribeOn(Schedulers.parallel()).collectList().block();
         assertThat(persons).hasSize(1);
 
+        // There is no secondary index filter for "starts with"
+        assertThat(stmtHasSecIndexFilter("findByLastNameStartingWith", IndexedPerson.class, "Coutant-Kerbalec")).isFalse();
         List<IndexedPerson> persons2 = reactiveRepository.findByLastNameStartingWith("Coutant-Kerbalec")
             .subscribeOn(Schedulers.parallel()).collectList().block();
         assertThat(persons2).hasSize(2);
     }
 
     @Test
-    void findByNestedSimplePropertyStartingWith_String_Distinct() {
+    @NoSecondaryIndexRequired
+    void findByNestedSimplePropertyStartingWith_String_Distinct_NegativeTest() {
         alain.setFriend(luc);
         reactiveRepository.save(alain);
         lilly.setFriend(petra);

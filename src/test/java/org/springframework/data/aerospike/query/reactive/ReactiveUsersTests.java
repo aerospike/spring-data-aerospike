@@ -22,7 +22,7 @@ public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
             .setValue(Value.get("n"))
             .build();
 
-        Flux<KeyRecord> flux = queryEngine.select(namespace, USERS_SET, null, new Query(qualifier));
+        Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, USERS_SET, null, new Query(qualifier));
 
         StepVerifier.create(flux.collectList())
             .expectNextMatches(results -> {

@@ -2,6 +2,8 @@ package org.springframework.data.aerospike.repository.query.reactive.indexed.fin
 
 import com.aerospike.client.Value;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
+import org.springframework.data.aerospike.config.NoSecondaryIndexRequired;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -16,6 +18,7 @@ import static org.springframework.data.aerospike.repository.query.CriteriaDefini
 public class CustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTests {
 
     @Test
+    @NoSecondaryIndexRequired
     public void findPersonsByMetadata() {
         // creating an expression "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
@@ -39,6 +42,7 @@ public class CustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTest
     }
 
     @Test
+    @AssertBinsAreIndexed(binNames = {"firstName", "age",}, entityClass = IndexedPerson.class)
     public void findPersonsByQuery() {
         Iterable<IndexedPerson> result;
 

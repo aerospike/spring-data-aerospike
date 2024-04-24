@@ -101,10 +101,10 @@ public class StatementBuilder {
         } else { // No index with bin values ratio found, do not consider cardinality when setting a filter
             for (Qualifier innerQualifier : qualifier.getQualifiers()) {
                 if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
-                    Filter filter = innerQualifier.setQueryAsFilter();
+                    Filter filter = innerQualifier.getSecondaryIndexFilter();
                     if (filter != null) {
                         stmt.setFilter(filter);
-                        innerQualifier.setQueryAsFilter(true);
+                        innerQualifier.setHasSecIndexFilter(true);
                         break; // the filter from the first processed qualifier becomes statement's sIndex filter
                     }
                 }
@@ -113,10 +113,10 @@ public class StatementBuilder {
     }
 
     private void setFilterFromSingleQualifier(Statement stmt, Qualifier qualifier) {
-        Filter filter = qualifier.setQueryAsFilter();
+        Filter filter = qualifier.getSecondaryIndexFilter();
         if (filter != null) {
             stmt.setFilter(filter);
-            qualifier.setQueryAsFilter(true);
+            qualifier.setHasSecIndexFilter(true);
         }
     }
 
@@ -137,7 +137,7 @@ public class StatementBuilder {
     }
 
     private int getMinBinValuesRatioForQualifier(Statement stmt, Qualifier qualifier) {
-        // Get all indexes that uses this field
+        // Get all indexes for field
         List<Index> indexList = indexesCache.getAllIndexesForField(
             new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField()));
 

@@ -20,30 +20,31 @@ import com.aerospike.client.exp.Expression;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 
+import static org.springframework.data.aerospike.query.FilterOperation.dualFilterOperations;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
 public class FilterExpressionsBuilder {
 
     public Expression build(Query query) {
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
-        if (qualifier != null && excludeIrrelevantFilters(qualifier)) {
-            return Exp.build(qualifier.toFilterExp());
+        if (qualifier != null && requiresFilterExp(qualifier)) {
+            return Exp.build(qualifier.getFilterExp());
         }
         return null;
     }
 
     /**
-     * The filter allows only qualifiers without sIndexFilter and those with the dualFilterOperation that require both
+     * FilterExp is built only for a qualifier without sIndexFilter or for dualFilterOperation that requires both
      * sIndexFilter and FilterExpression. The filter is irrelevant for AND operation (nested qualifiers)
      */
-    private boolean excludeIrrelevantFilters(Qualifier qualifier) {
-        if (!qualifier.queryAsFilter()) {
+    private boolean requiresFilterExp(Qualifier qualifier) {
+        if (!qualifier.hasSecIndexFilter()) {
             return true;
-        } else if (qualifier.queryAsFilter() && FilterOperation.dualFilterOperations.contains(qualifier.getOperation())) {
-            qualifier.setQueryAsFilter(false); // clear the flag in case if the same Qualifier is going to be reused
+        } else if (qualifier.hasSecIndexFilter() && dualFilterOperations.contains(qualifier.getOperation())) {
+            qualifier.setHasSecIndexFilter(false); // clear the flag in case if the same Qualifier is going to be reused
             return true;
         } else {
-            qualifier.setQueryAsFilter(false); // clear the flag in case if the same Qualifier is going to be reused
+            qualifier.setHasSecIndexFilter(false); // clear the flag in case if the same Qualifier is going to be reused
             return false;
         }
     }

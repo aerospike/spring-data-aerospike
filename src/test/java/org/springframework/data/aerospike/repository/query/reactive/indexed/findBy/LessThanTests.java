@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.repository.query.reactive.indexed.findBy;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
 import org.springframework.data.aerospike.repository.query.reactive.indexed.ReactiveIndexedPersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.domain.Page;
@@ -15,7 +16,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LessThanTests extends ReactiveIndexedPersonRepositoryQueryTests {
 
     @Test
+    @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyLessThan_Integer_Unpaged() {
+        assertStmtHasSecIndexFilter("findByAgeLessThan", IndexedPerson.class, 40, Pageable.unpaged());
         Page<IndexedPerson> page = reactiveRepository.findByAgeLessThan(40, Pageable.unpaged())
             .subscribeOn(Schedulers.parallel()).block();
         assertThat(page.hasContent()).isTrue();
