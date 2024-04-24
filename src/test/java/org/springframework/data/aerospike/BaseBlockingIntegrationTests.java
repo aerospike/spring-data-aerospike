@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.config.BlockingTestConfig;
 import org.springframework.data.aerospike.config.CommonTestConfig;
+import org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
@@ -23,16 +24,14 @@ import org.springframework.data.aerospike.util.QueryUtils;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.util.StringUtils;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
+import static java.util.function.Predicate.not;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.getBinNames;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.getEntityClass;
 import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.hasAssertBinsAreIndexedAnnotation;
-import static org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor.hasNoindexAnnotation;
 import static org.springframework.data.aerospike.core.TemplateUtils.getBinNamesFromTargetClass;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.LAST_UPDATE_TIME;
 
@@ -97,12 +96,12 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     }
 
     protected void assertBinsAreIndexed(TestInfo testInfo) {
-        Optional<Method> testMethodOptional = testInfo.getTestMethod();
-        if (testMethodOptional.isPresent()) {
-            Method testMethod = testMethodOptional.get();
-            if (!hasNoindexAnnotation(testMethod)) {
+        testInfo.getTestMethod().stream()
+            .filter(not(IndexedBinsAnnotationsProcessor::hasNoindexAnnotation))
+            .forEach(testMethod -> {
                 assertThat(hasAssertBinsAreIndexedAnnotation(testMethod))
-                    .as(String.format("Expecting the test method %s to have @AssertBinsAreIndexed annotation", testMethod.getName()))
+                    .as(String.format("Expecting the test method %s to have @AssertBinsAreIndexed annotation",
+                        testMethod.getName()))
                     .isTrue();
                 String[] binNames = getBinNames(testMethod);
                 Class<?> entityClass = getEntityClass(testMethod);
@@ -113,8 +112,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
                 for (String binName : binNames) {
                     assertBinIsIndexed(binName, entityClass);
                 }
-            }
-        }
+            });
     }
 
     /**
