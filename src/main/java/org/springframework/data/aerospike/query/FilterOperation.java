@@ -68,10 +68,10 @@ public enum FilterOperation {
             }
             if (qs.length > 1) {
                 for (int i = 0; i < qs.length; i++) {
-                    childrenExp[i] = qs[i].toFilterExp();
+                    childrenExp[i] = qs[i].getFilterExp();
                 }
             } else {
-                return qs[0].toFilterExp();
+                return qs[0].getFilterExp();
             }
             return Exp.and(childrenExp);
         }
@@ -93,10 +93,10 @@ public enum FilterOperation {
             }
             if (qs.length > 1) {
                 for (int i = 0; i < qs.length; i++) {
-                    childrenExp[i] = qs[i].toFilterExp();
+                    childrenExp[i] = qs[i].getFilterExp();
                 }
             } else {
-                return qs[0].toFilterExp();
+                return qs[0].getFilterExp();
             }
             return Exp.or(childrenExp);
         }
@@ -118,7 +118,7 @@ public enum FilterOperation {
                         .setFilterOperation(FilterOperation.EQ)
                         .setValue(Value.get(item))
                         .build()
-                        .toFilterExp()
+                        .getFilterExp()
                 ).toArray(Exp[]::new);
 
                 return Exp.or(arrElementsExp);
@@ -142,7 +142,7 @@ public enum FilterOperation {
                         .setFilterOperation(FilterOperation.NOTEQ)
                         .setValue(Value.get(item))
                         .build()
-                        .toFilterExp()
+                        .getFilterExp()
                 ).toArray(Exp[]::new);
 
                 return Exp.and(arrElementsExp);
@@ -184,15 +184,17 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             Value value = getValue(qualifierMap);
-            if (value.getType() == INTEGER) {
-                return Filter.equal(getField(qualifierMap), value.toLong());
-            } else {
-                // There is no case-insensitive string comparison filter.
-                if (ignoreCase(qualifierMap)) {
-                    return null;
+            return switch (value.getType()) {
+                case INTEGER -> Filter.equal(getField(qualifierMap), value.toLong());
+                case STRING -> {
+                    // There is no case-insensitive string comparison filter.
+                    if (ignoreCase(qualifierMap)) {
+                        yield null;
+                    }
+                    yield Filter.equal(getField(qualifierMap), value.toString());
                 }
-                return Filter.equal(getField(qualifierMap), value.toString());
-            }
+                default -> null;
+            };
         }
     },
     NOTEQ {
@@ -257,11 +259,11 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             // Long.MAX_VALUE shall not be given as + 1 will cause overflow
-            if (getKey(qualifierMap).getType() != INTEGER || getKey(qualifierMap).toLong() == Long.MAX_VALUE) {
+            if (getValue(qualifierMap).getType() != INTEGER || getValue(qualifierMap).toLong() == Long.MAX_VALUE) {
                 return null;
             }
 
-            return Filter.range(getField(qualifierMap), getKey(qualifierMap).toLong() + 1, Long.MAX_VALUE);
+            return Filter.range(getField(qualifierMap), getValue(qualifierMap).toLong() + 1, Long.MAX_VALUE);
         }
     },
     GTEQ {
@@ -284,10 +286,10 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            if (getKey(qualifierMap).getType() != INTEGER) {
+            if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
-            return Filter.range(getField(qualifierMap), getKey(qualifierMap).toLong(), Long.MAX_VALUE);
+            return Filter.range(getField(qualifierMap), getValue(qualifierMap).toLong(), Long.MAX_VALUE);
         }
     },
     LT {
@@ -311,10 +313,10 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             // Long.MIN_VALUE shall not be given as - 1 will cause overflow
-            if (getKey(qualifierMap).getType() != INTEGER || getKey(qualifierMap).toLong() == Long.MIN_VALUE) {
+            if (getValue(qualifierMap).getType() != INTEGER || getValue(qualifierMap).toLong() == Long.MIN_VALUE) {
                 return null;
             }
-            return Filter.range(getField(qualifierMap), Long.MIN_VALUE, getKey(qualifierMap).toLong() - 1);
+            return Filter.range(getField(qualifierMap), Long.MIN_VALUE, getValue(qualifierMap).toLong() - 1);
         }
     },
     LTEQ {
@@ -337,10 +339,10 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            if (getKey(qualifierMap).getType() != INTEGER) {
+            if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
-            return Filter.range(getField(qualifierMap), Long.MIN_VALUE, getKey(qualifierMap).toLong());
+            return Filter.range(getField(qualifierMap), Long.MIN_VALUE, getValue(qualifierMap).toLong());
         }
     },
     BETWEEN {
@@ -510,7 +512,7 @@ public enum FilterOperation {
                     .setKey(getKey(qualifierMap))
                     .setValue(Value.get(item))
                     .build()
-                    .toFilterExp()
+                    .getFilterExp()
             ).toArray(Exp[]::new);
 
             return Exp.or(arrElementsExp);
@@ -533,7 +535,7 @@ public enum FilterOperation {
                     .setKey(getKey(qualifierMap))
                     .setValue(Value.get(item))
                     .build()
-                    .toFilterExp()
+                    .getFilterExp()
             ).toArray(Exp[]::new);
 
             return Exp.and(arrElementsExp);
@@ -631,7 +633,7 @@ public enum FilterOperation {
          */
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            if (getKey(qualifierMap).getType() != INTEGER) {
+            if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
 
@@ -640,7 +642,7 @@ public enum FilterOperation {
                 return null; // currently not supported
             } else {
                 return Filter.range(getField(qualifierMap), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
-                    getKey(qualifierMap).toLong());
+                    getValue(qualifierMap).toLong());
             }
         }
     },
@@ -704,7 +706,7 @@ public enum FilterOperation {
          */
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            if (getKey(qualifierMap).getType() != INTEGER || getSecondValue(qualifierMap).getType() != INTEGER) {
+            if (getValue(qualifierMap).getType() != INTEGER || getSecondValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
 
@@ -713,7 +715,7 @@ public enum FilterOperation {
                 return null; // currently not supported
             } else {
                 return Filter.range(getField(qualifierMap), IndexCollectionType.MAPVALUES,
-                    getKey(qualifierMap).toLong(),
+                    getValue(qualifierMap).toLong(),
                     getSecondValue(qualifierMap).toLong());
             }
         }
@@ -1127,26 +1129,26 @@ public enum FilterOperation {
     COLLECTION_VAL_GT {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            if (getKey(qualifierMap).getType() == INTEGER) {
-                if (getKey(qualifierMap).toLong() == Long.MAX_VALUE) {
+            if (getValue(qualifierMap).getType() == INTEGER) {
+                if (getValue(qualifierMap).toLong() == Long.MAX_VALUE) {
                     throw new IllegalArgumentException(
                         "COLLECTION_VAL_GT FilterExpression unsupported value: expected [Long.MIN_VALUE.." +
                             "Long.MAX_VALUE-1]");
                 }
 
                 return Exp.gt(
-                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getKey(qualifierMap).toLong() + 1L),
+                    ListExp.getByValueRange(ListReturnType.COUNT, Exp.val(getValue(qualifierMap).toLong() + 1L),
                         null, Exp.listBin(getField(qualifierMap))),
                     Exp.val(0)
                 );
             } else {
-                Exp value = switch (getKey(qualifierMap).getType()) {
-                    case STRING -> Exp.val(getKey(qualifierMap).toString());
-                    case LIST -> Exp.val((List<?>) getKey(qualifierMap).getObject());
-                    case MAP -> Exp.val((Map<?, ?>) getKey(qualifierMap).getObject());
+                Exp value = switch (getValue(qualifierMap).getType()) {
+                    case STRING -> Exp.val(getValue(qualifierMap).toString());
+                    case LIST -> Exp.val((List<?>) getValue(qualifierMap).getObject());
+                    case MAP -> Exp.val((Map<?, ?>) getValue(qualifierMap).getObject());
                     default -> throw new UnsupportedOperationException(
                         "COLLECTION_VAL_GT FilterExpression unsupported type: got "
-                            + getKey(qualifierMap).getClass().getSimpleName());
+                            + getValue(qualifierMap).getClass().getSimpleName());
                 };
 
                 Exp rangeIncludingValue = ListExp.getByValueRange(ListReturnType.COUNT, value, null,
@@ -1159,25 +1161,25 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             // Long.MAX_VALUE shall not be given as + 1 will cause overflow
-            if (getKey(qualifierMap).getType() != INTEGER || getKey(qualifierMap).toLong() == Long.MAX_VALUE) {
+            if (getValue(qualifierMap).getType() != INTEGER || getValue(qualifierMap).toLong() == Long.MAX_VALUE) {
                 return null;
             }
 
             return Filter.range(getField(qualifierMap), IndexCollectionType.LIST,
-                getKey(qualifierMap).toLong() + 1, Long.MAX_VALUE);
+                getValue(qualifierMap).toLong() + 1, Long.MAX_VALUE);
         }
     },
     COLLECTION_VAL_GTEQ {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            Exp value = switch (getKey(qualifierMap).getType()) {
-                case INTEGER -> Exp.val(getKey(qualifierMap).toLong());
-                case STRING -> Exp.val(getKey(qualifierMap).toString());
-                case LIST -> Exp.val((List<?>) getKey(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getKey(qualifierMap).getObject());
+            Exp value = switch (getValue(qualifierMap).getType()) {
+                case INTEGER -> Exp.val(getValue(qualifierMap).toLong());
+                case STRING -> Exp.val(getValue(qualifierMap).toString());
+                case LIST -> Exp.val((List<?>) getValue(qualifierMap).getObject());
+                case MAP -> Exp.val((Map<?, ?>) getValue(qualifierMap).getObject());
                 default -> throw new UnsupportedOperationException(
                     "COLLECTION_VAL_GTEQ FilterExpression unsupported type: got "
-                        + getKey(qualifierMap).getClass().getSimpleName());
+                        + getValue(qualifierMap).getClass().getSimpleName());
             };
 
             return Exp.gt(
@@ -1187,33 +1189,33 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            if (getKey(qualifierMap).getType() != INTEGER) {
+            if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
 
-            return Filter.range(getField(qualifierMap), IndexCollectionType.LIST, getKey(qualifierMap).toLong(),
+            return Filter.range(getField(qualifierMap), IndexCollectionType.LIST, getValue(qualifierMap).toLong(),
                 Long.MAX_VALUE);
         }
     },
     COLLECTION_VAL_LT {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            Exp value = switch (getKey(qualifierMap).getType()) {
+            Exp value = switch (getValue(qualifierMap).getType()) {
                 case INTEGER -> {
-                    if (getKey(qualifierMap).toLong() == Long.MIN_VALUE) {
+                    if (getValue(qualifierMap).toLong() == Long.MIN_VALUE) {
                         throw new UnsupportedOperationException(
                             "COLLECTION_VAL_LT FilterExpression unsupported value: expected [Long.MIN_VALUE+1.." +
                                 "Long.MAX_VALUE]");
                     }
 
-                    yield Exp.val(getKey(qualifierMap).toLong());
+                    yield Exp.val(getValue(qualifierMap).toLong());
                 }
-                case STRING -> Exp.val(getKey(qualifierMap).toString());
-                case LIST -> Exp.val((List<?>) getKey(qualifierMap).getObject());
-                case MAP -> Exp.val((Map<?, ?>) getKey(qualifierMap).getObject());
+                case STRING -> Exp.val(getValue(qualifierMap).toString());
+                case LIST -> Exp.val((List<?>) getValue(qualifierMap).getObject());
+                case MAP -> Exp.val((Map<?, ?>) getValue(qualifierMap).getObject());
                 default -> throw new UnsupportedOperationException(
                     "COLLECTION_VAL_GTEQ FilterExpression unsupported type: got "
-                        + getKey(qualifierMap).getClass().getSimpleName());
+                        + getValue(qualifierMap).getClass().getSimpleName());
             };
 
             return Exp.gt(
@@ -1224,23 +1226,23 @@ public enum FilterOperation {
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             // Long.MIN_VALUE shall not be given as - 1 will cause overflow
-            if (getKey(qualifierMap).getType() != INTEGER || getKey(qualifierMap).toLong() == Long.MIN_VALUE) {
+            if (getValue(qualifierMap).getType() != INTEGER || getValue(qualifierMap).toLong() == Long.MIN_VALUE) {
                 return null;
             }
 
             return Filter.range(getField(qualifierMap), IndexCollectionType.LIST, Long.MIN_VALUE,
-                getKey(qualifierMap).toLong() - 1);
+                getValue(qualifierMap).toLong() - 1);
         }
     },
     COLLECTION_VAL_LTEQ {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            if (getKey(qualifierMap).getType() == INTEGER) {
+            if (getValue(qualifierMap).getType() == INTEGER) {
                 Exp upperLimit;
-                if (getKey(qualifierMap).toLong() == Long.MAX_VALUE) {
+                if (getValue(qualifierMap).toLong() == Long.MAX_VALUE) {
                     upperLimit = Exp.inf();
                 } else {
-                    upperLimit = Exp.val(getKey(qualifierMap).toLong() + 1L);
+                    upperLimit = Exp.val(getValue(qualifierMap).toLong() + 1L);
                 }
 
                 return Exp.gt(
@@ -1248,13 +1250,13 @@ public enum FilterOperation {
                         upperLimit, Exp.listBin(getField(qualifierMap))),
                     Exp.val(0));
             } else {
-                Exp value = switch (getKey(qualifierMap).getType()) {
-                    case STRING -> Exp.val(getKey(qualifierMap).toString());
-                    case LIST -> Exp.val((List<?>) getKey(qualifierMap).getObject());
-                    case MAP -> Exp.val((Map<?, ?>) getKey(qualifierMap).getObject());
+                Exp value = switch (getValue(qualifierMap).getType()) {
+                    case STRING -> Exp.val(getValue(qualifierMap).toString());
+                    case LIST -> Exp.val((List<?>) getValue(qualifierMap).getObject());
+                    case MAP -> Exp.val((Map<?, ?>) getValue(qualifierMap).getObject());
                     default -> throw new UnsupportedOperationException(
                         "COLLECTION_VAL_LTEQ FilterExpression unsupported type: got " +
-                            getKey(qualifierMap).getClass().getSimpleName());
+                            getValue(qualifierMap).getClass().getSimpleName());
                 };
 
                 Exp rangeIncludingValue = ListExp.getByValueRange(ListReturnType.COUNT, null, value,
@@ -1266,12 +1268,12 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            if (getKey(qualifierMap).getType() != INTEGER) {
+            if (getValue(qualifierMap).getType() != INTEGER) {
                 return null;
             }
 
             return Filter.range(getField(qualifierMap), IndexCollectionType.LIST, Long.MIN_VALUE,
-                getKey(qualifierMap).toLong());
+                getValue(qualifierMap).toLong());
         }
     }, IS_NOT_NULL {
         @Override
@@ -1332,7 +1334,7 @@ public enum FilterOperation {
                 .setFilterOperation(filterOperation)
                 .setValueAsObj(item)
                 .build()
-                .toFilterExp()
+                .getFilterExp()
         ).toArray(Exp[]::new);
 
         return notIn ? Exp.and(listElementsExp) : Exp.or(listElementsExp);

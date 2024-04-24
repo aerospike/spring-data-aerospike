@@ -216,7 +216,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByNestedSimplePropertyEqualsNegativeTest() {
+    void findByNestedSimplePropertyEquals_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddressZipCode())
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Address.zipCode EQ: invalid number of arguments, expecting one");
@@ -440,7 +440,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByNestedPojoEqualsNegativeTest() {
+    void findByNestedPojoEquals_NegativeTest() {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddress())
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.address EQ: invalid number of arguments, expecting one POJO");

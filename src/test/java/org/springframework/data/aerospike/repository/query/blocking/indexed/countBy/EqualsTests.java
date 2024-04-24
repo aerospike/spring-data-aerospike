@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.repository.query.blocking.indexed.countBy;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.config.NoSecondaryIndexRequired;
 import org.springframework.data.aerospike.repository.query.blocking.indexed.IndexedPersonRepositoryQueryTests;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -11,7 +12,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class EqualsTests extends IndexedPersonRepositoryQueryTests {
 
     @Test
-    public void countBySimpleProperty_String() {
+    @NoSecondaryIndexRequired
+    public void countBySimpleProperty_String_NegativeTest() {
         assertThatThrownBy(() -> repository.countByLastName("Lerois"))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessage("Query method IndexedPerson.countByLastName is not supported");

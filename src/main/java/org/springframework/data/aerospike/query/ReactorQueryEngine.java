@@ -44,6 +44,7 @@ import static org.springframework.data.aerospike.query.QualifierUtils.queryCrite
 public class ReactorQueryEngine {
 
     private final IAerospikeReactorClient client;
+    @Getter
     private final StatementBuilder statementBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
