@@ -42,6 +42,6 @@ public class AerospikeCriteria extends Qualifier implements CriteriaDefinition {
 
     @Override
     public String getCriteriaField() {
-        return this.getField();
+        return this.getBinName();
     }
 }

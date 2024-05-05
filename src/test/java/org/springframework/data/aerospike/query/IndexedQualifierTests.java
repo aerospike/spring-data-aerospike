@@ -52,7 +52,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age < 26
             Qualifier qualifier = Qualifier.builder()
-                .setField("age")
+                .setBinName("age")
                 .setFilterOperation(FilterOperation.LT)
                 .setValue(Value.get(26))
                 .build();
@@ -73,7 +73,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age <= 26
             Qualifier qualifier = Qualifier.builder()
-                .setField("age")
+                .setBinName("age")
                 .setFilterOperation(FilterOperation.LTEQ)
                 .setValue(Value.get(26))
                 .build();
@@ -97,7 +97,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age == 26
             Qualifier qualifier = Qualifier.builder()
-                .setField("age")
+                .setBinName("age")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue(Value.get(26))
                 .build();
@@ -117,7 +117,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     void selectWithBlueColorQuery() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Qualifier qual1 = Qualifier.builder()
-                .setField("color")
+                .setBinName("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue(Value.get(BLUE))
                 .build();
@@ -137,7 +137,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age >= 28
             Qualifier qualifier = Qualifier.builder()
-                .setField("age")
+                .setBinName("age")
                 .setFilterOperation(FilterOperation.GTEQ)
                 .setValue(Value.get(28))
                 .build();
@@ -160,7 +160,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     void selectOnIndexedGTQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Qualifier qualifier = Qualifier.builder()
-                .setField("age")
+                .setBinName("age")
                 .setFilterOperation(FilterOperation.GT)
                 .setValue(Value.get(28))
                 .build();
@@ -180,7 +180,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     void selectOnIndexedStringEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
             Qualifier qualifier = Qualifier.builder()
-                .setField("color")
+                .setBinName("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue(Value.get(ORANGE))
                 .build();
@@ -208,7 +208,7 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
                     lon, lat, radius);
 
                 Qualifier qualifier = Qualifier.builder()
-                    .setField(GEO_BIN_NAME)
+                    .setBinName(GEO_BIN_NAME)
                     .setFilterOperation(FilterOperation.GEO_WITHIN)
                     .setValue(Value.getAsGeoJSON(rgnstr))
                     .build();
@@ -243,12 +243,12 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     @Test
     void selectWithQualifiersOnly() {
         Qualifier qual1 = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(GREEN))
             .build();
         Qualifier qual2 = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(28))
             .setSecondValue(Value.get(29))
@@ -268,12 +268,12 @@ class IndexedQualifierTests extends BaseQueryEngineTests {
     @Test
     void selectWithAndQualifier() {
         Qualifier colorIsGreen = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(GREEN))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(28))
             .setSecondValue(Value.get(29))

@@ -19,7 +19,7 @@ public class BetweenTests extends IndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyBetween_Integer() {
-        assertStmtHasSecIndexFilter("findByAgeBetween", IndexedPerson.class, 40, 45);
+        assertQueryHasSecIndexFilter("findByAgeBetween", IndexedPerson.class, 40, 45);
         Iterable<IndexedPerson> it = repository.findByAgeBetween(40, 45);
         assertThat(it).hasSize(2).contains(john, peter);
     }
@@ -27,7 +27,7 @@ public class BetweenTests extends IndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyBetween_Integer_OrderBySimpleProperty() {
-        assertStmtHasSecIndexFilter("findByAgeBetweenOrderByLastName", IndexedPerson.class, 30, 45);
+        assertQueryHasSecIndexFilter("findByAgeBetweenOrderByLastName", IndexedPerson.class, 30, 45);
         Iterable<IndexedPerson> it = repository.findByAgeBetweenOrderByLastName(30, 45);
         assertThat(it).hasSize(3);
     }
@@ -37,13 +37,13 @@ public class BetweenTests extends IndexedPersonRepositoryQueryTests {
     public void findBySimplePropertyBetween_Integer_AND_SimplePropertyEquals_String() {
         QueryParam ageBetween = QueryParam.of(40, 45);
         QueryParam lastName = QueryParam.of("Matthews");
-        assertStmtHasSecIndexFilter("findByAgeBetweenAndLastName", IndexedPerson.class, ageBetween, lastName);
+        assertQueryHasSecIndexFilter("findByAgeBetweenAndLastName", IndexedPerson.class, ageBetween, lastName);
         Iterable<IndexedPerson> it = repository.findByAgeBetweenAndLastName(ageBetween, lastName);
         assertThat(it).hasSize(0);
 
         ageBetween = QueryParam.of(20, 26);
         lastName = QueryParam.of("Smith");
-        assertStmtHasSecIndexFilter("findByAgeBetweenAndLastName", IndexedPerson.class, ageBetween, lastName);
+        assertQueryHasSecIndexFilter("findByAgeBetweenAndLastName", IndexedPerson.class, ageBetween, lastName);
         Iterable<IndexedPerson> result = repository.findByAgeBetweenAndLastName(ageBetween, lastName);
         assertThat(result).hasSize(1).contains(billy);
     }

@@ -4,7 +4,10 @@ import com.aerospike.client.Value;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseIntegrationTests;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.QueryParam;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
@@ -14,6 +17,7 @@ import org.springframework.data.aerospike.util.TestUtils;
 import java.util.List;
 import java.util.Map;
 
+import static com.aerospike.client.exp.Exp.Type.MAP;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.query.QueryParam.of;
@@ -210,8 +214,22 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         repository.save(carter);
 
         List<Person> result = repository.findByFriendAddressZipCode(zipCode);
-
         assertThat(result).containsExactly(carter);
+
+        // An alternative to "findByFriendAddressZipCode" is using a custom query
+        Qualifier nestedZipCodeEq = Qualifier.builder()
+            // find records having a map with a key that equals a value
+            // POJOs are saved as Maps
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+            .setBinName("friend") // bin name
+            .setBinType(MAP) // bin type
+            .setCtx("address") // context path from the bin to the nested map, exclusive
+            .setKey(Value.get("zipCode")) // nested key
+            .setValue(Value.get(zipCode)) // value of the nested key
+            .build();
+
+        Iterable<Person> result2 = repository.findUsingQuery(new Query(nestedZipCodeEq));
+        assertThat(result).isEqualTo(result2);
         TestUtils.setFriendsToNull(repository, carter);
     }
 
@@ -259,8 +277,23 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
         List<Person> result =
             repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddressZipCode(zipCode);
-
         assertThat(result).containsExactly(douglas);
+
+        // An alternative way to perform the same using a custom query
+        Qualifier nestedZipCodeEq = Qualifier.builder()
+            // find records having a map with a key that equals a value
+            // POJOs are saved as Maps
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+            .setBinName("friend") // bin name
+            .setBinType(MAP) // bin type
+            // context path from the bin to the nested map, exclusive
+            .setCtx("friend.friend.friend.friend.friend.friend.friend.bestFriend.address")
+            .setKey(Value.get("zipCode")) // nested key
+            .setValue(Value.get(zipCode)) // value of the nested key
+            .build();
+
+        Iterable<Person> result2 = repository.findUsingQuery(new Query(nestedZipCodeEq));
+        assertThat(result).isEqualTo(result2);
 
         // cleanup
         TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));
@@ -280,8 +313,23 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
         List<Person> result =
             repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddressApartment(apartment);
-
         assertThat(result).containsExactly(douglas);
+
+        // An alternative way to perform the same using a custom query
+        Qualifier nestedApartmentEq = Qualifier.builder()
+            // find records having a map with a key that equals a value
+            // POJOs are saved as Maps
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+            .setBinName("friend") // bin name
+            .setBinType(MAP) // bin type
+            // context path from the bin to the nested map, exclusive
+            .setCtx("friend.friend.friend.friend.friend.friend.friend.bestFriend.address")
+            .setKey(Value.get("apartment")) // nested key
+            .setValue(Value.get(apartment)) // value of the nested key
+            .build();
+
+        Iterable<Person> result2 = repository.findUsingQuery(new Query(nestedApartmentEq));
+        assertThat(result).isEqualTo(result2);
 
         // cleanup
         TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));
@@ -301,8 +349,23 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
             List<Person> result =
                 repository.findByFriendFriendFriendFriendFriendFriendFriendFriendBestFriendAddress(address);
-
             assertThat(result).containsExactly(douglas);
+
+            // An alternative way to perform the same using a custom query
+            Qualifier nestedAddressEq = Qualifier.builder()
+                // find records having a map with a key that equals a value
+                // POJOs are saved as Maps
+                .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+                .setBinName("friend") // bin name
+                .setBinType(MAP) // bin type
+                // context path from the bin to the nested map, exclusive
+                .setCtx("friend.friend.friend.friend.friend.friend.friend.bestFriend")
+                .setKey(Value.get("address")) // nested key
+                .setValue(Value.get(pojoToMap(address))) // value of the nested key
+                .build();
+
+            Iterable<Person> result2 = repository.findUsingQuery(new Query(nestedAddressEq));
+            assertThat(result).isEqualTo(result2);
 
             // cleanup
             TestUtils.setFriendsToNull(repository, allPersons.toArray(Person[]::new));

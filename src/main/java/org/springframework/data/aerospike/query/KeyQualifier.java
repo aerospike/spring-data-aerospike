@@ -44,7 +44,7 @@ public class KeyQualifier extends Qualifier {
 
     public KeyQualifier(Value value) {
         super(Qualifier.builder()
-            .setField(QueryEngine.Meta.KEY.toString())
+            .setBinName(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
             .setValue(value)
         );
@@ -52,7 +52,7 @@ public class KeyQualifier extends Qualifier {
 
     public KeyQualifier(byte[] digest) {
         super(Qualifier.builder()
-            .setField(QueryEngine.Meta.KEY.toString())
+            .setBinName(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
             .setValue(null)
         );

@@ -18,7 +18,7 @@ public class BetweenTests extends ReactiveIndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyBetween_Integer() {
-        assertStmtHasSecIndexFilter("findByAgeBetween", IndexedPerson.class, 39, 45);
+        assertQueryHasSecIndexFilter("findByAgeBetween", IndexedPerson.class, 39, 45);
         List<IndexedPerson> results = reactiveRepository.findByAgeBetween(39, 45)
             .subscribeOn(Schedulers.parallel()).collectList().block();
         assertThat(results).hasSize(2).contains(alain, luc);

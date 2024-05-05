@@ -22,13 +22,13 @@ public class StartsWithTests extends ReactiveIndexedPersonRepositoryQueryTests {
     @AssertBinsAreIndexed(binNames = "lastName", entityClass = IndexedPerson.class)
     void findBySimplePropertyStartingWith_String_Distinct_NoSecondaryIndexFilter() {
         // There is no secondary index filter for "starts with"
-        assertThat(stmtHasSecIndexFilter("findDistinctByLastNameStartingWith", IndexedPerson.class, "Coutant-Kerbalec")).isFalse();
+        assertThat(queryHasSecIndexFilter("findDistinctByLastNameStartingWith", IndexedPerson.class, "Coutant-Kerbalec")).isFalse();
         List<IndexedPerson> persons = reactiveRepository.findDistinctByLastNameStartingWith("Coutant-Kerbalec")
             .subscribeOn(Schedulers.parallel()).collectList().block();
         assertThat(persons).hasSize(1);
 
         // There is no secondary index filter for "starts with"
-        assertThat(stmtHasSecIndexFilter("findByLastNameStartingWith", IndexedPerson.class, "Coutant-Kerbalec")).isFalse();
+        assertThat(queryHasSecIndexFilter("findByLastNameStartingWith", IndexedPerson.class, "Coutant-Kerbalec")).isFalse();
         List<IndexedPerson> persons2 = reactiveRepository.findByLastNameStartingWith("Coutant-Kerbalec")
             .subscribeOn(Schedulers.parallel()).collectList().block();
         assertThat(persons2).hasSize(2);

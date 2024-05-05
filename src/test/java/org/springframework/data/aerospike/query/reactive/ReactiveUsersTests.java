@@ -17,7 +17,7 @@ public class ReactiveUsersTests extends BaseReactiveQueryEngineTests {
     @Test
     public void usersInNorthRegion() {
         Qualifier qualifier = Qualifier.builder()
-            .setField("region")
+            .setBinName("region")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("n"))
             .build();

@@ -59,7 +59,7 @@ class QualifierTests extends BaseQueryEngineTests {
         queryEngine.setScansEnabled(false);
         try {
             Qualifier qualifier = Qualifier.builder()
-                .setField("age")
+                .setBinName("age")
                 .setFilterOperation(FilterOperation.LT)
                 .setValue(Value.get(26)).build();
 
@@ -103,7 +103,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void lTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age < 26
         Qualifier qualifier = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.LT)
             .setValue(Value.get(26))
             .build();
@@ -121,7 +121,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void numericLTEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age <= 26
         Qualifier qualifier = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.LTEQ)
             .setValue(Value.get(26))
             .build();
@@ -142,7 +142,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void numericEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age == 26
         Qualifier qualifier = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(26))
             .build();
@@ -160,7 +160,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void numericGTEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age >= 28
         Qualifier qualifier = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.GTEQ)
             .setValue(Value.get(28))
             .build();
@@ -181,7 +181,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void numericGTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
         Qualifier qualifier = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.GT)
             .setValue(Value.get(28))
             .build();
@@ -215,7 +215,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void stringEQQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(ORANGE))
             .build();
@@ -232,7 +232,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void stringEQIgnoreCaseQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(true)
             .setValue(Value.get(ORANGE.toUpperCase()))
@@ -251,7 +251,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void stringEqualIgnoreCaseWorksOnUnindexedBin() {
         boolean ignoreCase = true;
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("BlUe"))
@@ -271,7 +271,7 @@ class QualifierTests extends BaseQueryEngineTests {
         withIndex(namespace, SET_NAME, "color_index_selector", "color", IndexType.STRING, () -> {
             boolean ignoreCase = true;
             Qualifier qualifier = Qualifier.builder()
-                .setField("color")
+                .setBinName("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setIgnoreCase(ignoreCase)
                 .setValue(Value.get("BlUe"))
@@ -294,7 +294,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void stringEqualIgnoreCaseWorksRequiresFullMatch() {
         boolean ignoreCase = true;
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("lue"))
@@ -308,7 +308,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void stringStartWithQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue(Value.get(BLUE.substring(0, 2)))
             .build();
@@ -325,7 +325,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void stringStartWithEntireWordQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue(Value.get(BLUE))
             .build();
@@ -342,7 +342,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void stringStartWithICASEQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(true)
             .setValue(Value.get("BLU"))
@@ -360,7 +360,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void stringEndsWithQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue(Value.get(GREEN.substring(2)))
             .build();
@@ -377,7 +377,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void selectEndsWith() {
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue(Value.get("e"))
             .build();
@@ -394,7 +394,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void stringEndsWithEntireWordQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue(Value.get(GREEN))
             .build();
@@ -412,7 +412,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void betweenQualifier() {
         // Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
         Qualifier qualifier = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(26))
             .setSecondValue(Value.get(29)) // + 1 as upper limit is exclusive
@@ -438,7 +438,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .collect(Collectors.toMap(color -> color, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.CONTAINING)
             .setValue(Value.get("l"))
             .build();
@@ -458,7 +458,7 @@ class QualifierTests extends BaseQueryEngineTests {
             .collect(Collectors.toMap(color -> color, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
         Qualifier qualifier = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.IN)
             .setValue(Value.get(inColors))
             .build();
@@ -477,7 +477,7 @@ class QualifierTests extends BaseQueryEngineTests {
         String binName = "colorList";
 
         Qualifier qualifier = Qualifier.builder()
-            .setField(binName)
+            .setBinName(binName)
             .setFilterOperation(FilterOperation.COLLECTION_VAL_CONTAINING)
             .setValue(Value.get(searchColor))
             .build();
@@ -501,7 +501,7 @@ class QualifierTests extends BaseQueryEngineTests {
         String binName = "colorAgeMap";
 
         Qualifier qualifier = Qualifier.builder()
-            .setField(binName)
+            .setBinName(binName)
             .setFilterOperation(FilterOperation.MAP_KEYS_CONTAIN)
             .setValue(Value.get(searchColor))
             .build();
@@ -524,7 +524,7 @@ class QualifierTests extends BaseQueryEngineTests {
         String binName = "ageColorMap";
 
         Qualifier qualifier = Qualifier.builder()
-            .setField(binName)
+            .setBinName(binName)
             .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
             .setValue(Value.get(searchColor))
             .build();
@@ -544,7 +544,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void containingDoesNotUseSpecialCharacterQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField(SPECIAL_CHAR_BIN)
+            .setBinName(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.CONTAINING)
             .setValue(Value.get(".*"))
             .build();
@@ -560,7 +560,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void startWithDoesNotUseSpecialCharacterQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField(SPECIAL_CHAR_BIN)
+            .setBinName(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue(Value.get(".*"))
             .build();
@@ -576,7 +576,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void endWithDoesNotUseSpecialCharacterQualifier() {
         Qualifier qualifier = Qualifier.builder()
-            .setField(SPECIAL_CHAR_BIN)
+            .setBinName(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue(Value.get(".*"))
             .build();
@@ -592,7 +592,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void eQIcaseDoesNotUseSpecialCharacter() {
         Qualifier qualifier = Qualifier.builder()
-            .setField(SPECIAL_CHAR_BIN)
+            .setBinName(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(true)
             .setValue(Value.get(".*"))
@@ -607,7 +607,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @ValueSource(strings = {"[", "$", "\\", "^"})
     void containingFindsSquareBracket(String specialString) {
         Qualifier qualifier = Qualifier.builder()
-            .setField(SPECIAL_CHAR_BIN)
+            .setBinName(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.CONTAINING)
             .setIgnoreCase(true)
             .setValue(Value.get(specialString))
@@ -630,7 +630,7 @@ class QualifierTests extends BaseQueryEngineTests {
                 + "\"coordinates\": [[%.8f, %.8f], %f] }",
             lon, lat, radius);
         Qualifier qualifier = Qualifier.builder()
-            .setField(GEO_BIN_NAME)
+            .setBinName(GEO_BIN_NAME)
             .setFilterOperation(FilterOperation.GEO_WITHIN)
             .setValue(Value.getAsGeoJSON(rgnstr))
             .build();
@@ -646,14 +646,14 @@ class QualifierTests extends BaseQueryEngineTests {
     void startWithAndEqualIgnoreCaseReturnsAllItems() {
         boolean ignoreCase = true;
         Qualifier qual1 = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get(BLUE.toUpperCase()))
             .build();
 
         Qualifier qual2 = Qualifier.builder()
-            .setField("name")
+            .setBinName("name")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("NA"))
@@ -671,7 +671,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void equalIgnoreCaseReturnsNoItemsIfNoneMatched() {
         boolean ignoreCase = false;
         Qualifier qual1 = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get(BLUE.toUpperCase()))
@@ -686,7 +686,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void startWithIgnoreCaseReturnsNoItemsIfNoneMatched() {
         boolean ignoreCase = false;
         Qualifier qual1 = Qualifier.builder()
-            .setField("name")
+            .setBinName("name")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("NA"))
@@ -700,23 +700,23 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void selectWithBetweenAndOrQualifiers() {
         Qualifier colorIsGreen = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(GREEN))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setKey(Value.get(28))
             .setValue(Value.get(29))
             .build();
         Qualifier ageIs25 = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(25))
             .build();
         Qualifier nameIs696 = Qualifier.builder()
-            .setField("name")
+            .setBinName("name")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("name:696"))
             .build();
@@ -749,12 +749,12 @@ class QualifierTests extends BaseQueryEngineTests {
     void selectWithOrQualifiers() {
         // We are expecting to get back all records where color == blue or (age == 28 || age == 29)
         Qualifier colorIsBlue = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(BLUE))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(28))
             .setSecondValue(Value.get(30)) // + 1 as upper limit is exclusive
