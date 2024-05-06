@@ -22,10 +22,12 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.QueryUtils;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.util.TypeInformation;
 import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.function.Predicate.not;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -116,26 +118,54 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     }
 
     /**
-     * Assert that the given query statement contains secondary index filter
+     * Assert that the given query's statement contains secondary index filter
+     *
+     * @param query        Query to be performed
+     * @param returnEntityClass Class of Query return entity
+     */
+    protected void assertQueryHasSecIndexFilter(Query query, Class<?> returnEntityClass) {
+        String setName = template.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
+
+        assertThat(queryHasSecIndexFilter(namespace, setName, query, binNames))
+            .as(String.format("Expecting the query '%s' statement to have secondary index filter",
+                query.getCriteriaObject())).isTrue();
+    }
+
+    /**
+     * Assert that the given method's query statement contains secondary index filter
      *
      * @param methodName        Query method to be performed
      * @param returnEntityClass Class of Query return entity
      * @param methodParams      Query parameters
      */
-    protected void assertStmtHasSecIndexFilter(String methodName, Class<?> returnEntityClass,
-                                               Object... methodParams) {
-        assertThat(stmtHasSecIndexFilter(methodName, returnEntityClass, methodParams))
+    protected void assertQueryHasSecIndexFilter(String methodName, Class<?> returnEntityClass,
+                                                Object... methodParams) {
+        assertThat(queryHasSecIndexFilter(methodName, returnEntityClass, methodParams))
             .as(String.format("Expecting the query %s statement to have secondary index filter", methodName)).isTrue();
     }
 
-    protected boolean stmtHasSecIndexFilter(String methodName, Class<?> returnTypeClass,
-                                            Object... methodParams) {
-        String setName = template.getSetName(returnTypeClass);
-        String[] binNames = getBinNamesFromTargetClass(returnTypeClass, mappingContext);
+    protected boolean queryHasSecIndexFilter(String methodName, Class<?> returnEntityClass,
+                                             Object... methodParams) {
+        String setName = template.getSetName(returnEntityClass);
+        String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
         Query query = QueryUtils.createQueryForMethodWithArgs(methodName, methodParams);
 
+        return queryHasSecIndexFilter(namespace, setName, query, binNames);
+    }
+
+    protected boolean queryHasSecIndexFilter(String namespace, String setName, Query query, String[] binNames) {
         Statement statement = queryEngine.getStatementBuilder().build(namespace, setName, query, binNames);
         // Checking that the statement has secondary index filter (which means it will be used)
         return statement.getFilter() != null;
+    }
+
+    protected Map<?, ?> pojoToMap(Object pojo) {
+        Object result = template.getAerospikeConverter().toWritableValue(pojo, TypeInformation.of(pojo.getClass()));
+        if (result instanceof Map<?,?>) {
+            return (Map<?, ?>) result;
+        }
+
+        throw new IllegalArgumentException("The result of conversion is not a Map, expecting only a POJO argument");
     }
 }

@@ -11,11 +11,14 @@ import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
@@ -28,12 +31,37 @@ public class AerospikeQueryCreatorUtils {
 
     protected static Qualifier setQualifier(QualifierBuilder qb, String fieldName, FilterOperation op, Part part,
                                             List<String> dotPath) {
-        qb.setField(fieldName)
+        qb.setBinName(fieldName)
             .setFilterOperation(op)
             .setIgnoreCase(ignoreCaseToBoolean(part));
-        if (dotPath != null && !qb.hasDotPath()) qb.setDotPath(dotPath);
+        if (dotPath != null && !qb.hasDotPath()) {
+            qb.setDotPath(dotPath);
+            String[] dotPathArr = getDotPathArray(dotPath);
+            if (dotPathArr != null && dotPathArr.length > 2) {
+                qb.setCtxList(getCtxFromDotPathArray(dotPathArr));
+            }
+        }
 
         return qb.build();
+    }
+
+    public static String[] getDotPathArray(List<String> dotPathList) {
+        if (dotPathList != null && !dotPathList.isEmpty()) {
+            // the first element of dotPath is part.getProperty().toDotPath()
+            // the second element of dotPath, if present, is a value
+            Stream<String> valueStream = dotPathList.size() == 1 || dotPathList.get(1) == null ? Stream.empty()
+                : Stream.of(dotPathList.get(1));
+            return Stream.concat(Arrays.stream(dotPathList.get(0).split("\\.")), valueStream)
+                .toArray(String[]::new);
+        }
+        return null;
+    }
+
+    protected static List<String> getCtxFromDotPathArray(@NonNull String[] dotPathArr) {
+        return Arrays.stream(dotPathArr)
+            .skip(1) // first element is bin name
+            .limit(dotPathArr.length - 2L) // last element is the key we already have
+            .collect(Collectors.toList());
     }
 
     protected static Object convertNullParameter(Object value) {

@@ -247,6 +247,10 @@ public class ContainingTests extends PersonRepositoryQueryTests {
 
         assertThat(repository.findByMapOfBooleanContaining(KEY_VALUE_PAIR, "test", true))
             .containsOnly(oliver, alicia);
+        oliver.setMapOfBoolean(null);
+        repository.save(oliver);
+        alicia.setMapOfBoolean(null);
+        repository.save(alicia);
     }
 
     @Test

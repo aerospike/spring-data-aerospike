@@ -133,14 +133,14 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
      * @param returnEntityClass Class of Query return entity
      * @param methodParams      Query parameters
      */
-    protected void assertStmtHasSecIndexFilter(String methodName, Class<?> returnEntityClass,
-                                               Object... methodParams) {
-        assertThat(stmtHasSecIndexFilter(methodName, returnEntityClass, methodParams))
+    protected void assertQueryHasSecIndexFilter(String methodName, Class<?> returnEntityClass,
+                                                Object... methodParams) {
+        assertThat(queryHasSecIndexFilter(methodName, returnEntityClass, methodParams))
             .as(String.format("Expecting the query %s statement to have secondary index filter", methodName)).isTrue();
     }
 
-    protected boolean stmtHasSecIndexFilter(String methodName, Class<?> returnEntityClass,
-                                            Object... methodParams) {
+    protected boolean queryHasSecIndexFilter(String methodName, Class<?> returnEntityClass,
+                                             Object... methodParams) {
         String setName = reactiveTemplate.getSetName(returnEntityClass);
         String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
         Query query = QueryUtils.createQueryForMethodWithArgs(ReactiveIndexedPersonRepository.class, returnEntityClass,

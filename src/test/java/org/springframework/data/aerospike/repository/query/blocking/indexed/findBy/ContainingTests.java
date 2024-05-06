@@ -20,7 +20,7 @@ public class ContainingTests extends IndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "strings", entityClass = IndexedPerson.class)
     void findByCollectionContaining_String() {
-        assertStmtHasSecIndexFilter("findByStringsContaining", IndexedPerson.class, "str1");
+        assertQueryHasSecIndexFilter("findByStringsContaining", IndexedPerson.class, "str1");
         assertThat(repository.findByStringsContaining("str1")).containsOnly(john, peter);
         assertThat(repository.findByStringsContaining("str2")).containsOnly(john, peter);
         assertThat(repository.findByStringsContaining("str3")).containsOnly(peter);
@@ -30,7 +30,7 @@ public class ContainingTests extends IndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "ints", entityClass = IndexedPerson.class)
     void findByCollectionContaining_Integer() {
-        assertStmtHasSecIndexFilter("findByIntsContaining", IndexedPerson.class, 550);
+        assertQueryHasSecIndexFilter("findByIntsContaining", IndexedPerson.class, 550);
         assertThat(repository.findByIntsContaining(550)).containsOnly(john, jane);
         assertThat(repository.findByIntsContaining(990)).containsOnly(john, jane);
         assertThat(repository.findByIntsContaining(600)).containsOnly(jane);
@@ -41,7 +41,7 @@ public class ContainingTests extends IndexedPersonRepositoryQueryTests {
     @AssertBinsAreIndexed(binNames = "stringMap", entityClass = IndexedPerson.class)
     void findByMapKeysContaining_String() {
         assertThat(billy.getStringMap()).containsKey("key1");
-        assertStmtHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, KEY, "key1");
+        assertQueryHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, KEY, "key1");
 
         List<IndexedPerson> persons = repository.findByStringMapContaining(KEY, "key1");
         assertThat(persons).contains(billy);
@@ -51,7 +51,7 @@ public class ContainingTests extends IndexedPersonRepositoryQueryTests {
     @AssertBinsAreIndexed(binNames = "stringMap", entityClass = IndexedPerson.class)
     void findByMapValuesContaining_String() {
         assertThat(billy.getStringMap()).containsValue("val1");
-        assertStmtHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, VALUE, "key1");
+        assertQueryHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, VALUE, "key1");
 
         List<IndexedPerson> persons = repository.findByStringMapContaining(VALUE, "val1");
         assertThat(persons).contains(billy);
@@ -62,7 +62,7 @@ public class ContainingTests extends IndexedPersonRepositoryQueryTests {
     void findByExactMapKeyAndValue_Integer() {
         assertThat(tricia.getIntMap()).containsKey("key1");
         assertThat(tricia.getIntMap().get("key1")).isEqualTo(0);
-        assertStmtHasSecIndexFilter("findByIntMapContaining", IndexedPerson.class, KEY_VALUE_PAIR, "key1", 0);
+        assertQueryHasSecIndexFilter("findByIntMapContaining", IndexedPerson.class, KEY_VALUE_PAIR, "key1", 0);
 
         Iterable<IndexedPerson> result = repository.findByIntMapContaining(KEY_VALUE_PAIR, "key1", 0);
         assertThat(result).contains(tricia);

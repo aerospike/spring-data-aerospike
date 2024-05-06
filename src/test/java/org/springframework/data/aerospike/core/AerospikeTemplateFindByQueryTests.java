@@ -455,7 +455,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
         // find by query
         Qualifier qualifier = Qualifier.builder()
-            .setField(fieldName)
+            .setBinName(fieldName)
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(fieldValue1))
             .build();
@@ -466,12 +466,12 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         // find by query with a complex qualifier
         Qualifier dataEqFieldValue1 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
-            .setField(fieldName)
+            .setBinName(fieldName)
             .setValue(Value.get(fieldValue1))
             .build();
         Qualifier dataEqFieldValue2 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
-            .setField(fieldName)
+            .setBinName(fieldName)
             .setValue(Value.get(fieldValue2))
             .build();
         Qualifier qualifierOr = Qualifier.or(dataEqFieldValue1, dataEqFieldValue2);

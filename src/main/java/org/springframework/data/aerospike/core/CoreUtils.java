@@ -104,7 +104,7 @@ public class CoreUtils {
 
             final Set<Object> distinctValues = ConcurrentHashMap.newKeySet();
             distinctPredicate = kr -> {
-                final String distinctField = query.getCriteriaObject().getField();
+                final String distinctField = query.getCriteriaObject().getBinName();
                 if (kr.record == null || kr.record.bins == null) {
                     return false;
                 }

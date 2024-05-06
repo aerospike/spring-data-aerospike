@@ -55,7 +55,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     @Test
     public void selectEndsWith() {
         Qualifier qual1 = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(ENDS_WITH)
             .setValue(Value.get("e"))
             .build();
@@ -74,7 +74,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     @Test
     public void selectStartsWith() {
         Qualifier startsWithQual = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(STARTS_WITH)
             .setValue(Value.get("bl"))
             .build();
@@ -94,14 +94,14 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     public void startWithAndEqualIgnoreCaseReturnsAllItems() {
         boolean ignoreCase = true;
         Qualifier qual1 = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(EQ)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("BLUE"))
             .build();
 
         Qualifier qual2 = Qualifier.builder()
-            .setField("name")
+            .setBinName("name")
             .setFilterOperation(STARTS_WITH)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("NA"))
@@ -118,7 +118,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     public void equalIgnoreCaseReturnsNoItemsIfNoneMatched() {
         boolean ignoreCase = false;
         Qualifier qual1 = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(EQ)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("BLUE"))
@@ -134,7 +134,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     public void startWithIgnoreCaseReturnsNoItemsIfNoneMatched() {
         boolean ignoreCase = false;
         Qualifier qual1 = Qualifier.builder()
-            .setField("name")
+            .setBinName("name")
             .setFilterOperation(STARTS_WITH)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("NA"))
@@ -152,7 +152,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
         String expectedColor = "blue";
 
         Qualifier caseInsensitiveQual = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(EQ)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("BlUe"))
@@ -173,7 +173,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
     public void stringEqualIgnoreCaseWorksRequiresFullMatch() {
         boolean ignoreCase = true;
         Qualifier caseInsensitiveQual = Qualifier.builder()
-            .setField("color")
+            .setBinName("color")
             .setFilterOperation(EQ)
             .setIgnoreCase(ignoreCase)
             .setValue(Value.get("lue"))
@@ -195,7 +195,7 @@ public class ReactiveSelectorTests extends BaseReactiveQueryEngineTests {
                 + "\"coordinates\": [[%.8f, %.8f], %f] }",
             lon, lat, radius);
         Qualifier qual1 = Qualifier.builder()
-            .setField(GEO_BIN_NAME)
+            .setBinName(GEO_BIN_NAME)
             .setFilterOperation(GEO_WITHIN)
             .setValue(Value.getAsGeoJSON(rgnstr))
             .build();

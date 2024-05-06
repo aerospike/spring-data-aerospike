@@ -57,7 +57,7 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
     protected void validate() {
         // metadata query
         if (this.getMetadataField() != null) {
-            if (this.getField() == null) {
+            if (this.getBinName() == null) {
                 FilterOperation operation = this.getFilterOperation();
                 switch (operation) {
                     case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(getValueAsObj() instanceof Long,

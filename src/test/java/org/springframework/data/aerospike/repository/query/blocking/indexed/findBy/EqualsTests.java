@@ -4,7 +4,10 @@ import com.aerospike.client.Value;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseIntegrationTests;
 import org.springframework.data.aerospike.config.AssertBinsAreIndexed;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.QueryParam;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.blocking.indexed.IndexedPersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.IndexedPerson;
 import org.springframework.data.aerospike.sample.Person;
@@ -12,6 +15,7 @@ import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
 
+import static com.aerospike.client.exp.Exp.Type.MAP;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -22,11 +26,11 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "lastName", entityClass = IndexedPerson.class)
     public void findBySimplePropertyEquals_String() {
-        assertStmtHasSecIndexFilter("findByLastName", IndexedPerson.class, "Gillaham");
+        assertQueryHasSecIndexFilter("findByLastName", IndexedPerson.class, "Gillaham");
         List<IndexedPerson> result = repository.findByLastName("Gillaham");
         assertThat(result).containsOnly(jane);
 
-        assertStmtHasSecIndexFilter("findByFirstName", IndexedPerson.class, "Tricia");
+        assertQueryHasSecIndexFilter("findByFirstName", IndexedPerson.class, "Tricia");
         assertBinIsIndexed("firstName", IndexedPerson.class);
         List<IndexedPerson> result2 = repository.findByFirstName("Tricia");
         assertThat(result2).containsOnly(tricia);
@@ -47,8 +51,7 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
         );
         repository.save(boolBinPerson);
 
-        // Secondary index filter for a boolean value is not supported
-        assertThat(stmtHasSecIndexFilter("findByIsActive", IndexedPerson.class, true)).isFalse();
+        assertThat(queryHasSecIndexFilter("findByIsActive", IndexedPerson.class, true)).isFalse();
         assertThat(repository.findByIsActive(true)).contains(boolBinPerson);
 
         Value.UseBoolBin = initialValue; // set back to the default value
@@ -62,7 +65,7 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
         QueryParam paramFalse = QueryParam.of(false);
         QueryParam paramTricia = QueryParam.of("Tricia");
 
-        assertStmtHasSecIndexFilter("findByIsActiveAndFirstName", IndexedPerson.class, paramFalse, paramTricia);
+        assertQueryHasSecIndexFilter("findByIsActiveAndFirstName", IndexedPerson.class, paramFalse, paramTricia);
         List<IndexedPerson> result = repository.findByIsActiveAndFirstName(paramFalse, paramTricia);
 
         assertThat(result).containsOnly(tricia);
@@ -73,13 +76,13 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
     public void findByTwoSimplePropertiesEqual_StringAndInteger() {
         QueryParam firstName = QueryParam.of("Billy");
         QueryParam age = QueryParam.of(25);
-        assertStmtHasSecIndexFilter("findByFirstNameAndAge", IndexedPerson.class, firstName, age);
+        assertQueryHasSecIndexFilter("findByFirstNameAndAge", IndexedPerson.class, firstName, age);
         List<IndexedPerson> result = repository.findByFirstNameAndAge(firstName, age);
         assertThat(result).containsOnly(billy);
 
         firstName = QueryParam.of("Peter");
         age = QueryParam.of(41);
-        assertStmtHasSecIndexFilter("findByFirstNameAndAge", IndexedPerson.class, firstName, age);
+        assertQueryHasSecIndexFilter("findByFirstNameAndAge", IndexedPerson.class, firstName, age);
         result = repository.findByFirstNameAndAge(firstName, age);
         assertThat(result).containsOnly(peter);
     }
@@ -89,7 +92,7 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
     void findByNestedSimpleProperty_String() {
         String zipCode = "C0123";
         assertThat(john.getAddress().getZipCode()).isEqualTo(zipCode);
-        assertStmtHasSecIndexFilter("findByAddressZipCode", IndexedPerson.class, zipCode);
+        assertQueryHasSecIndexFilter("findByAddressZipCode", IndexedPerson.class, zipCode);
         List<IndexedPerson> result = repository.findByAddressZipCode(zipCode);
         assertThat(result).contains(john);
     }
@@ -102,10 +105,25 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
         jane.setFriend(john);
         repository.save(jane);
 
-        // Currently nested queries don't have secondary index filter
-//        assertStmtHasSecIndexFilter("findByFriendAddressZipCode", IndexedPerson.class, zipCode);
+        assertQueryHasSecIndexFilter("findByFriendAddressZipCode", IndexedPerson.class, zipCode);
         List<IndexedPerson> result = repository.findByFriendAddressZipCode(zipCode);
         assertThat(result).contains(jane);
+
+        // An alternative way to perform the same using a custom query
+        Qualifier nestedZipCodeEq = Qualifier.builder()
+            // find records having a map with a key that equals a value
+            // POJOs are saved as Maps
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+            .setBinName("friend") // bin name
+            .setBinType(MAP) // bin type
+            .setCtx("address") // context path from the bin to the nested map, exclusive
+            .setKey(Value.get("zipCode")) // nested key
+            .setValue(Value.get(zipCode)) // value of the nested key
+            .build();
+
+        assertQueryHasSecIndexFilter(new Query(nestedZipCodeEq), IndexedPerson.class);
+        Iterable<IndexedPerson> result2 = repository.findUsingQuery(new Query(nestedZipCodeEq));
+        assertThat(result).isEqualTo(result2);
         TestUtils.setFriendsToNull(repository, jane);
     }
 
@@ -119,10 +137,23 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
         peter.setFriend(jane);
         repository.save(peter);
 
-        // Currently deeply nested queries don't have secondary index filter
-//        assertStmtHasSecIndexFilter("findByFriendBestFriendAddressZipCode", IndexedPerson.class, zipCode);
+        assertQueryHasSecIndexFilter("findByFriendBestFriendAddressZipCode", IndexedPerson.class, zipCode);
         List<IndexedPerson> result = repository.findByFriendBestFriendAddressZipCode(zipCode);
         assertThat(result).contains(peter);
+
+        // An alternative way to perform the same using a custom query
+        Qualifier nestedZipCodeEq = Qualifier.builder()
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+            .setBinName("friend") // bin name
+            .setBinType(MAP) // bin type
+            .setCtx("bestFriend.address") // context path from the bin to the nested map, exclusive
+            .setKey(Value.get("zipCode")) // nested key
+            .setValue(Value.get(zipCode)) // value of the nested key
+            .build();
+
+        assertQueryHasSecIndexFilter(new Query(nestedZipCodeEq), IndexedPerson.class);
+        Iterable<IndexedPerson> result2 = repository.findUsingQuery(new Query(nestedZipCodeEq));
+        assertThat(result).isEqualTo(result2);
         TestUtils.setFriendsToNull(repository, jane, peter);
     }
 
@@ -136,10 +167,22 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
         peter.setFriend(jane);
         repository.save(peter);
 
-        // Currently deeply nested queries don't have secondary index filter
-//        assertStmtHasSecIndexFilter("findByFriendBestFriendAddressApartment", IndexedPerson.class, apartment);
+        assertQueryHasSecIndexFilter("findByFriendBestFriendAddressApartment", IndexedPerson.class, apartment);
         List<IndexedPerson> result = repository.findByFriendBestFriendAddressApartment(apartment);
         assertThat(result).contains(peter);
+
+        // An alternative way to perform the same using a custom query
+        Qualifier nestedApartmentEq = Qualifier.builder()
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+            .setBinName("friend") // bin name
+            .setBinType(MAP) // bin type
+            .setCtx("bestFriend.address") // context - path from the bin to the nested map, exclusive
+            .setKey(Value.get("apartment")) // nested key
+            .setValue(Value.get(apartment)) // value of the nested key
+            .build();
+
+        Iterable<IndexedPerson> result2 = repository.findUsingQuery(new Query(nestedApartmentEq));
+        assertThat(result).isEqualTo(result2);
         TestUtils.setFriendsToNull(repository, jane, peter);
     }
 }
