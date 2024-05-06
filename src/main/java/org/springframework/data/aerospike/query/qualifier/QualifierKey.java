@@ -10,6 +10,7 @@ public enum QualifierKey {
     METADATA_FIELD,
     SINGLE_ID_FIELD,
     MULTIPLE_IDS_FIELD,
+    DOT_PATH,
     CTX_PATH,
     CTX_LIST,
     IGNORE_CASE,

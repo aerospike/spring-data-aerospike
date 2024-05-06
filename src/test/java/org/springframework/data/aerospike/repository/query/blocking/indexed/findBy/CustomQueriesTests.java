@@ -124,5 +124,35 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
         assertThat(result).contains(peter);
         TestUtils.setFriendsToNull(repository, jane, peter);
     }
+
+    @Test
+    @AssertBinsAreIndexed(binNames = "bestFriend", entityClass = IndexedPerson.class)
+    void findByNestedSimplePropertyBetween_Integer_3_levels() {
+        int apartment = 2;
+        assertThat(jane.getAddress().getApartment()).isEqualTo(apartment);
+        tricia.setFriend(jane);
+        repository.save(tricia);
+        billy.setBestFriend(tricia);
+        repository.save(billy);
+        assertThat(billy.getBestFriend().getFriend().getAddress().getApartment()).isEqualTo(apartment);
+
+        // An alternative way to perform the same using a custom query
+        Qualifier nestedApartmentBetween = Qualifier.builder()
+            // find records having a map with a key between given values
+            // POJOs are saved as Maps
+            .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN_BY_KEY) // POJOs are saved as Maps
+            .setBinName("bestFriend") // bin name
+            .setBinType(MAP) // bin type
+            .setCtx("friend.address") // context path from the bin to the nested map, exclusive
+            .setKey(Value.get("apartment")) // nested key
+            .setValue(Value.get(1)) // lower limit for the value of the nested key
+            .setSecondValue(Value.get(3)) // lower limit for the value of the nested key
+            .build();
+
+        assertQueryHasSecIndexFilter(new Query(nestedApartmentBetween), IndexedPerson.class);
+        Iterable<IndexedPerson> persons = repository.findUsingQuery(new Query(nestedApartmentBetween));
+        assertThat(persons).contains(billy);
+        TestUtils.setFriendsToNull(repository, tricia, billy);
+    }
 }
 

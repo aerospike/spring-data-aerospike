@@ -8,6 +8,7 @@ import java.util.Map;
 
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.BIN_NAME;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.CTX_PATH;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DOT_PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.OPERATION;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
@@ -41,6 +42,10 @@ abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implement
 
     public boolean hasSecondValue() {
         return map.get(SECOND_VALUE) != null;
+    }
+
+    public boolean hasDotPath() {
+        return map.get(DOT_PATH) != null;
     }
 
     public boolean hasCtxPath() {

@@ -95,9 +95,9 @@ public class CoreUtils {
     static Predicate<KeyRecord> getDistinctPredicate(Query query) {
         Predicate<KeyRecord> distinctPredicate;
         if (query != null && query.isDistinct()) {
-            List<String> ctxPathList = query.getCriteriaObject().getCtxPath();
-            if (ctxPathList != null && ctxPathList.size() > 0 && ctxPathList.get(0) != null) {
-                String dotPathString = String.join(",", query.getCriteriaObject().getCtxPath());
+            List<String> dotPathList = query.getCriteriaObject().getDotPath();
+            if (dotPathList != null && dotPathList.size() > 0 && dotPathList.get(0) != null) {
+                String dotPathString = String.join(",", query.getCriteriaObject().getDotPath());
                 throw new UnsupportedOperationException("DISTINCT queries are currently supported only for the first " +
                     "level objects, got a query for " + dotPathString);
             }

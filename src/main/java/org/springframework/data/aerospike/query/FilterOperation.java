@@ -50,6 +50,7 @@ import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.STRING;
 import static java.util.function.Predicate.not;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getDotPathArray;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getContaining;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getEndsWith;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getNotContaining;
@@ -650,25 +651,6 @@ public enum FilterOperation {
             return mapValBetweenByKey(qualifierMap, ctxList, type, lowerLimit, upperLimit);
         }
 
-        private static Exp mapValBetweenByKey(Map<QualifierKey, Object> qualifierMap, List<String> ctxList,
-                                              Exp.Type type,
-                                              Exp lowerLimit,
-                                              Exp upperLimit) {
-            Exp mapExp;
-            if (ctxList != null && ctxList.size() > 2) {
-                mapExp = MapExp.getByKey(MapReturnType.VALUE, type, Exp.val(getKey(qualifierMap).toString()),
-                    Exp.mapBin(getBinName(qualifierMap)), resolveCtxList(ctxList));
-            } else {
-                mapExp = MapExp.getByKey(MapReturnType.VALUE, type, Exp.val(getKey(qualifierMap).toString()),
-                    Exp.mapBin(getBinName(qualifierMap)));
-            }
-
-            return Exp.and(
-                Exp.ge(mapExp, lowerLimit),
-                Exp.lt(mapExp, upperLimit)
-            );
-        }
-
         /**
          * This secondary index filter must NOT run independently as it requires also FilterExpression to filter by key
          */
@@ -854,8 +836,8 @@ public enum FilterOperation {
     MAP_VAL_IS_NOT_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            List<String> ctx = getCtxList(qualifierMap);
-            if (ctx != null) {
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap));
+            if (dotPathArray != null && dotPathArray.length > 1) {
                 // in case it is a field of an object set to null the key does not get added to a Map,
                 // so it is enough to look for Maps with the given key
                 return mapKeysContain(qualifierMap);
@@ -874,8 +856,8 @@ public enum FilterOperation {
     MAP_VAL_IS_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            List<String> ctx = getCtxList(qualifierMap);
-            if (ctx != null) {
+            String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap));
+            if (dotPathArray != null && dotPathArray.length > 1) {
                 // in case it is a field of an object set to null the key does not get added to a Map,
                 // so it is enough to look for Maps without the given key
                 return mapKeysNotContain(qualifierMap);
@@ -1401,6 +1383,25 @@ public enum FilterOperation {
         };
     }
 
+    private static Exp mapValBetweenByKey(Map<QualifierKey, Object> qualifierMap, List<String> ctxList,
+                                          Exp.Type type,
+                                          Exp lowerLimit,
+                                          Exp upperLimit) {
+        Exp mapExp;
+        if (ctxList != null) {
+            mapExp = MapExp.getByKey(MapReturnType.VALUE, type, Exp.val(getKey(qualifierMap).toString()),
+                Exp.mapBin(getBinName(qualifierMap)), resolveCtxList(ctxList));
+        } else {
+            mapExp = MapExp.getByKey(MapReturnType.VALUE, type, Exp.val(getKey(qualifierMap).toString()),
+                Exp.mapBin(getBinName(qualifierMap)));
+        }
+
+        return Exp.and(
+            Exp.ge(mapExp, lowerLimit),
+            Exp.lt(mapExp, upperLimit)
+        );
+    }
+
     private static Exp mapKeysNotContain(Map<QualifierKey, Object> qualifierMap) {
         String errMsg = "MAP_KEYS_NOT_CONTAIN FilterExpression unsupported type: got " +
             getKey(qualifierMap).getClass().getSimpleName();
@@ -1496,7 +1497,7 @@ public enum FilterOperation {
 
     private static Exp getMapExp(Map<QualifierKey, Object> qualifierMap, List<String> ctxList, Exp.Type expType) {
         Exp mapKeyExp = getMapKeyExp(getKey(qualifierMap).getObject(), keepOriginalKeyTypes(qualifierMap));
-        if (ctxList != null && ctxList.size() > 2) {
+        if (ctxList != null) {
             return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getBinName(qualifierMap)), resolveCtxList(ctxList));
         } else {
@@ -1727,14 +1728,17 @@ public enum FilterOperation {
         int valType = val.getType();
         return switch (valType) {
             // TODO: Add Bytes and Double Support (will fail on old mode - no results)
-            case INTEGER ->
-                Filter.contains(getBinName(qualifierMap), collectionType, val.toLong(),
-                    getCtx(getCtxList(qualifierMap)));
-            case STRING ->
-                Filter.contains(getBinName(qualifierMap), collectionType, val.toString(),
-                    getCtx(getCtxList(qualifierMap)));
+            case INTEGER -> Filter.contains(getBinName(qualifierMap), collectionType, val.toLong(),
+                getCtx(getCtxList(qualifierMap)));
+            case STRING -> Filter.contains(getBinName(qualifierMap), collectionType, val.toString(),
+                getCtx(getCtxList(qualifierMap)));
             default -> null;
         };
+    }
+
+    @SuppressWarnings("unchecked")
+    protected static List<String> getDotPath(Map<QualifierKey, Object> qualifierMap) {
+        return (List<String>) qualifierMap.get(DOT_PATH);
     }
 
     protected Filter collectionRange(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap) {

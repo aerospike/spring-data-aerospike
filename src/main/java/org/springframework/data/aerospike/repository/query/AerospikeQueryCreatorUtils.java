@@ -34,7 +34,8 @@ public class AerospikeQueryCreatorUtils {
         qb.setBinName(fieldName)
             .setFilterOperation(op)
             .setIgnoreCase(ignoreCaseToBoolean(part));
-        if (dotPath != null && !qb.hasCtxPath()) {
+        if (dotPath != null && !qb.hasDotPath()) {
+            qb.setDotPath(dotPath);
             String[] dotPathArr = getDotPathArray(dotPath);
             if (dotPathArr != null && dotPathArr.length > 2) {
                 qb.setCtxList(getCtxFromDotPathArray(dotPathArr));
@@ -44,7 +45,7 @@ public class AerospikeQueryCreatorUtils {
         return qb.build();
     }
 
-    protected static String[] getDotPathArray(List<String> dotPathList) {
+    public static String[] getDotPathArray(List<String> dotPathList) {
         if (dotPathList != null && !dotPathList.isEmpty()) {
             // the first element of dotPath is part.getProperty().toDotPath()
             // the second element of dotPath, if present, is a value

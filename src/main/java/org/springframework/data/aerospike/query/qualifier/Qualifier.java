@@ -140,6 +140,11 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     @SuppressWarnings("unchecked")
+    public List<String> getDotPath() {
+        return (List<String>) internalMap.get(DOT_PATH);
+    }
+
+    @SuppressWarnings("unchecked")
     public List<String> getCtxPath() {
         return (List<String>) internalMap.get(CTX_PATH);
     }

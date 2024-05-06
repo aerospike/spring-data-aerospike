@@ -35,6 +35,14 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
+     * Set full path from bin name to required element
+     */
+    public QualifierBuilder setDotPath(List<String> dotPath) {
+        this.map.put(DOT_PATH, dotPath);
+        return this;
+    }
+
+    /**
      * Set context path.
      */
     public QualifierBuilder setCtx(String ctx) {
