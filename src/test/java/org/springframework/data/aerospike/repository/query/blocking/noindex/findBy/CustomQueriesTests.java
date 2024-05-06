@@ -14,7 +14,6 @@ import org.springframework.data.aerospike.repository.query.blocking.noindex.Pers
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -74,14 +73,14 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
 
         // creating an expression "firstName is equal to Carter"
         Qualifier firstNameEqCarter = Qualifier.builder()
-            .setField("firstName")
+            .setBinName("firstName")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("Carter"))
             .build();
 
         // creating an expression "age is equal to 49"
         Qualifier ageEq49 = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(49))
             .build();
@@ -90,7 +89,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
 
         // creating an expression "firstName is equal to Leroi" with sorting by age and limiting by 1 row
         Qualifier firstNameEqLeroi = Qualifier.builder()
-            .setField("firstName")
+            .setBinName("firstName")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("Leroi"))
             .build();
@@ -103,7 +102,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         // creating an expression "age is greater than 49"
         Qualifier ageGt49 = Qualifier.builder()
             .setFilterOperation(FilterOperation.GT)
-            .setField("age")
+            .setBinName("age")
             .setValue(Value.get(49))
             .build();
         result = repository.findUsingQuery(new Query(ageGt49));
@@ -257,7 +256,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         assertThat(boyd.getStringMap().get("key1")).isEqualTo(valueToSearch);
 
         Qualifier stringMapValuesContainString = Qualifier.builder()
-            .setField("stringMap")
+            .setBinName("stringMap")
             .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
             .setValue(Value.get(valueToSearch))
             .build();
@@ -270,7 +269,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         // because in fact it is a "less than" Exp that uses the result of another Exp "MapExp.getByKey",
         // so it requires new logic if exposed to users
         Qualifier intMapWithExactKeyAndValueLt100 = Qualifier.builder()
-            .setField("intMap") // Map bin name
+            .setBinName("intMap") // Map bin name
             .setFilterOperation(FilterOperation.MAP_VAL_LT_BY_KEY)
             .setKey(Value.get(keyExactMatch)) // Map key
             .setValue(Value.get(valueToSearchLessThan)) // Map value to compare with

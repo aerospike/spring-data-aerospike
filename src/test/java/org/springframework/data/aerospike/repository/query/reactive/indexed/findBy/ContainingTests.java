@@ -21,7 +21,7 @@ public class ContainingTests extends ReactiveIndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "strings", entityClass = IndexedPerson.class)
     public void findByCollectionContaining_String() {
-        assertStmtHasSecIndexFilter("findByStringsContaining", IndexedPerson.class, "str1");
+        assertQueryHasSecIndexFilter("findByStringsContaining", IndexedPerson.class, "str1");
         List<IndexedPerson> results = reactiveRepository.findByStringsContaining("str1")
             .subscribeOn(Schedulers.parallel()).collectList().block();
         assertThat(results).containsExactlyInAnyOrder(alain);
@@ -30,7 +30,7 @@ public class ContainingTests extends ReactiveIndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "ints", entityClass = IndexedPerson.class)
     public void findByCollectionContaining_Integer() {
-        assertStmtHasSecIndexFilter("findByIntsContaining", IndexedPerson.class, 550);
+        assertQueryHasSecIndexFilter("findByIntsContaining", IndexedPerson.class, 550);
         List<IndexedPerson> results = reactiveRepository.findByIntsContaining(550)
             .subscribeOn(Schedulers.parallel()).collectList().block();
         assertThat(results).containsExactlyInAnyOrder(daniel, emilien);
@@ -39,7 +39,7 @@ public class ContainingTests extends ReactiveIndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "stringMap", entityClass = IndexedPerson.class)
     public void findByMapKeysContaining_String() {
-        assertStmtHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, KEY, "key1");
+        assertQueryHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, KEY, "key1");
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining(KEY, "key1")
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
@@ -49,7 +49,7 @@ public class ContainingTests extends ReactiveIndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "stringMap", entityClass = IndexedPerson.class)
     public void findByMapValuesContaining_String() {
-        assertStmtHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, VALUE, "val1");
+        assertQueryHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, VALUE, "val1");
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining(VALUE, "val1")
             .subscribeOn(Schedulers.parallel()).collectList().block();
         assertThat(results).contains(luc, petra);
@@ -62,7 +62,7 @@ public class ContainingTests extends ReactiveIndexedPersonRepositoryQueryTests {
         assertThat(petra.getStringMap().containsValue("val1")).isTrue();
         assertThat(luc.getStringMap().containsKey("key1")).isTrue();
         assertThat(luc.getStringMap().containsValue("val1")).isTrue();
-        assertStmtHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, KEY_VALUE_PAIR, "key1", "val1");
+        assertQueryHasSecIndexFilter("findByStringMapContaining", IndexedPerson.class, KEY_VALUE_PAIR, "key1", "val1");
 
         List<IndexedPerson> results = reactiveRepository.findByStringMapContaining(KEY_VALUE_PAIR, "key1", "val1")
             .subscribeOn(Schedulers.parallel()).collectList().block();
@@ -76,7 +76,7 @@ public class ContainingTests extends ReactiveIndexedPersonRepositoryQueryTests {
         assertThat(emilien.getIntMap().get("key1")).isZero();
         assertThat(lilly.getIntMap().containsKey("key1")).isTrue();
         assertThat(lilly.getIntMap().get("key1")).isNotZero();
-        assertStmtHasSecIndexFilter("findByIntMapContaining", IndexedPerson.class, KEY_VALUE_PAIR, "key1", 0);
+        assertQueryHasSecIndexFilter("findByIntMapContaining", IndexedPerson.class, KEY_VALUE_PAIR, "key1", 0);
 
         List<IndexedPerson> results = reactiveRepository.findByIntMapContaining(KEY_VALUE_PAIR, "key1", 0)
             .subscribeOn(Schedulers.parallel()).collectList().block();

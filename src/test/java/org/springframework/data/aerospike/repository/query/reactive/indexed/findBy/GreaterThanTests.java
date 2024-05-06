@@ -22,7 +22,7 @@ public class GreaterThanTests extends ReactiveIndexedPersonRepositoryQueryTests 
     @Test
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_Integer_Paginated() {
-        assertStmtHasSecIndexFilter("findByAgeGreaterThan", IndexedPerson.class, 1, PageRequest.of(0, 1));
+        assertQueryHasSecIndexFilter("findByAgeGreaterThan", IndexedPerson.class, 1, PageRequest.of(0, 1));
         Page<IndexedPerson> page = reactiveRepository.findByAgeGreaterThan(1, PageRequest.of(0, 1))
             .subscribeOn(Schedulers.parallel()).block();
         assertThat(page).containsAnyElementsOf(allIndexedPersons);
@@ -44,7 +44,7 @@ public class GreaterThanTests extends ReactiveIndexedPersonRepositoryQueryTests 
     @Test
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyGreaterThan_Integer_Unpaged() {
-        assertStmtHasSecIndexFilter("findByAgeGreaterThan", IndexedPerson.class, 40, Pageable.unpaged());
+        assertQueryHasSecIndexFilter("findByAgeGreaterThan", IndexedPerson.class, 40, Pageable.unpaged());
         Slice<IndexedPerson> slice = reactiveRepository.findByAgeGreaterThan(40, Pageable.unpaged())
             .subscribeOn(Schedulers.parallel()).block();
         assertThat(slice.hasContent()).isTrue();

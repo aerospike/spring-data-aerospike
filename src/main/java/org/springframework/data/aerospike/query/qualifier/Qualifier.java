@@ -68,7 +68,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     @Override
     public String getCriteriaField() {
-        return this.getField();
+        return this.getBinName();
     }
 
     private Map<QualifierKey, Object> getMap() {
@@ -87,8 +87,8 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return (FilterOperation) internalMap.get(OPERATION);
     }
 
-    public String getField() {
-        return (String) internalMap.get(FIELD);
+    public String getBinName() {
+        return (String) internalMap.get(BIN_NAME);
     }
 
     public CriteriaDefinition.AerospikeMetadata getMetadataField() {
@@ -142,6 +142,11 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     @SuppressWarnings("unchecked")
     public List<String> getDotPath() {
         return (List<String>) internalMap.get(DOT_PATH);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> getCtxPath() {
+        return (List<String>) internalMap.get(CTX_PATH);
     }
 
     public Filter getSecondaryIndexFilter() {
@@ -227,8 +232,9 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     @Override
     public String toString() {
-        if (!StringUtils.hasLength(getField()) && StringUtils.hasLength(getMetadataField().toString())) {
-            return String.format("%s:%s:%s:%s:%s", getField(), getOperation(), getKey(), getValue(), getSecondValue());
+        if (StringUtils.hasLength(getBinName()) && getMetadataField() == null) {
+            return String.format("%s:%s:%s:%s:%s", getBinName(), getOperation(), getKey(), getValue(),
+                getSecondValue());
         }
         return String.format("(metadata) %s:%s:%s:%s:%s", getMetadataField().toString(),
             getOperation(), getKey(), getValue(), getSecondValue());

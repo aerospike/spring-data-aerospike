@@ -5,17 +5,20 @@ package org.springframework.data.aerospike.query.qualifier;
  */
 public enum QualifierKey {
 
-    FIELD,
+    BIN_NAME,
+    BIN_TYPE,
     METADATA_FIELD,
     SINGLE_ID_FIELD,
     MULTIPLE_IDS_FIELD,
+    DOT_PATH,
+    CTX_PATH,
+    CTX_LIST,
     IGNORE_CASE,
     KEY,
     NESTED_KEY,
     VALUE,
     SECOND_VALUE,
     NESTED_TYPE,
-    DOT_PATH,
     DATA_SETTINGS,
     QUALIFIERS,
     OPERATION,

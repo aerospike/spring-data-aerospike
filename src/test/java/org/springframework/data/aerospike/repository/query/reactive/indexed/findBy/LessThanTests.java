@@ -18,7 +18,7 @@ public class LessThanTests extends ReactiveIndexedPersonRepositoryQueryTests {
     @Test
     @AssertBinsAreIndexed(binNames = "age", entityClass = IndexedPerson.class)
     public void findBySimplePropertyLessThan_Integer_Unpaged() {
-        assertStmtHasSecIndexFilter("findByAgeLessThan", IndexedPerson.class, 40, Pageable.unpaged());
+        assertQueryHasSecIndexFilter("findByAgeLessThan", IndexedPerson.class, 40, Pageable.unpaged());
         Page<IndexedPerson> page = reactiveRepository.findByAgeLessThan(40, Pageable.unpaged())
             .subscribeOn(Schedulers.parallel()).block();
         assertThat(page.hasContent()).isTrue();

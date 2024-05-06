@@ -204,7 +204,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             Arrays.stream(qualifiers).forEach(this::logQualifierDetails);
         }
 
-        String field = (StringUtils.hasLength(qualifier.getField()) ? qualifier.getField() : "");
+        String field = (StringUtils.hasLength(qualifier.getBinName()) ? qualifier.getBinName() : "");
         String operation = qualifier.getOperation().toString();
         operation = (StringUtils.hasLength(operation) ? operation : "N/A");
         Value k = qualifier.getKey();

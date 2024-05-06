@@ -122,16 +122,16 @@ public class StatementBuilder {
 
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
         boolean hasIndex = false, hasField = false;
-        if (StringUtils.hasLength(qualifier.getField())) {
+        if (StringUtils.hasLength(qualifier.getBinName())) {
             hasField = true;
             hasIndex = indexesCache.hasIndexFor(
-                new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField())
+                new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName())
             );
         }
 
         if (log.isDebugEnabled() && hasField) {
             log.debug("Bin {}.{}.{} has secondary index: {}",
-                stmt.getNamespace(), stmt.getSetName(), qualifier.getField(), hasIndex);
+                stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndex);
         }
         return hasIndex;
     }
@@ -139,7 +139,7 @@ public class StatementBuilder {
     private int getMinBinValuesRatioForQualifier(Statement stmt, Qualifier qualifier) {
         // Get all indexes for field
         List<Index> indexList = indexesCache.getAllIndexesForField(
-            new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getField()));
+            new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName()));
 
         // Return the lowest bin values ratio of the indexes in indexList
         Optional<Index> minBinValuesRatio = indexList.stream()

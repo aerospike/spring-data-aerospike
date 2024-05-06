@@ -151,13 +151,6 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
             .build());
         newIndexes.add(Index.builder()
             .set(setName)
-            .name("indexed_person_address_keys_index")
-            .bin("address")
-            .indexType(STRING)
-            .indexCollectionType(MAPKEYS)
-            .build());
-        newIndexes.add(Index.builder()
-            .set(setName)
             .name("indexed_person_address_values_index")
             .bin("address")
             .indexType(STRING)
@@ -165,41 +158,49 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
             .build());
         newIndexes.add(Index.builder()
             .set(setName)
-            .name("indexed_person_friend_address_keys_index")
-            .bin("friend")
-            .indexType(STRING)
-            .indexCollectionType(MAPKEYS)
-            .ctx(new CTX[]{CTX.mapKey(Value.get("address"))})
-            .build());
-        newIndexes.add(Index.builder()
-            .set(setName)
             .name("indexed_person_friend_address_values_index")
             .bin("friend")
             .indexType(STRING)
             .indexCollectionType(MAPVALUES)
-            .ctx(new CTX[]{CTX.mapValue(Value.get("address"))})
+            .ctx(new CTX[]{CTX.mapKey(Value.get("address"))})
             .build());
         newIndexes.add(Index.builder()
             .set(setName)
-            .name("indexed_person_friend_bestFriend_address_keys_index")
+            .name("indexed_person_addressesList_0_values_index")
+            .bin("addressesList")
+            .indexType(STRING)
+            .indexCollectionType(MAPVALUES)
+            .ctx(new CTX[]{CTX.listIndex(0)})
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_friend_bestFriend_address_values_index")
             .bin("friend")
             .indexType(STRING)
-            .indexCollectionType(MAPKEYS)
+            .indexCollectionType(MAPVALUES)
             .ctx(new CTX[]{CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address"))})
             .build());
         newIndexes.add(Index.builder()
             .set(setName)
-            .name("indexed_person_bestFriend_friend_address_keys_index")
-            .bin("bestFriend")
-            .indexType(STRING)
-            .indexCollectionType(MAPKEYS)
-            .ctx(new CTX[]{CTX.mapKey(Value.get("friend")), CTX.mapKey(Value.get("address"))})
+            .name("indexed_person_friend_bestFriend_address_values_num_index")
+            .bin("friend")
+            .indexType(NUMERIC)
+            .indexCollectionType(MAPVALUES)
+            .ctx(new CTX[]{CTX.mapKey(Value.get("bestFriend")), CTX.mapKey(Value.get("address"))})
             .build());
         newIndexes.add(Index.builder()
             .set(setName)
             .name("indexed_person_bestFriend_friend_address_values_index")
             .bin("bestFriend")
             .indexType(STRING)
+            .indexCollectionType(MAPVALUES)
+            .ctx(new CTX[]{CTX.mapKey(Value.get("friend")), CTX.mapKey(Value.get("address"))})
+            .build());
+        newIndexes.add(Index.builder()
+            .set(setName)
+            .name("indexed_person_bestFriend_friend_address_values_num_index")
+            .bin("bestFriend")
+            .indexType(NUMERIC)
             .indexCollectionType(MAPVALUES)
             .ctx(new CTX[]{CTX.mapKey(Value.get("friend")), CTX.mapKey(Value.get("address"))})
             .build());
@@ -227,6 +228,12 @@ public class IndexedPersonRepositoryQueryTests extends BaseBlockingIntegrationTe
         dropIndexes.add(Index.builder().set(setName).name("indexed_person_friend_address_keys_index").build());
         dropIndexes.add(Index.builder().set(setName).name("indexed_person_friend_address_values_index").build());
         dropIndexes.add(Index.builder().set(setName).name("indexed_person_friend_bestFriend_address_keys_index")
+            .build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_friend_bestFriend_address_values_num_index")
+            .build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_bestFriend_friend_address_values_index")
+            .build());
+        dropIndexes.add(Index.builder().set(setName).name("indexed_person_bestFriend_friend_address_values_num_index")
             .build());
         additionalAerospikeTestOperations.dropIndexes(dropIndexes);
     }

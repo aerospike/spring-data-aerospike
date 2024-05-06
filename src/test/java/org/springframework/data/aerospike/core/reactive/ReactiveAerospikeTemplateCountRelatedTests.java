@@ -48,7 +48,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         reactiveTemplate.insert(new Person(id4, "petya", 52)).block();
 
         QualifierBuilder qbVasya1 = Qualifier.builder()
-            .setField("firstName")
+            .setBinName("firstName")
             .setValue(Value.get("vasili"))
             .setFilterOperation(FilterOperation.EQ);
 
@@ -60,7 +60,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         assertThat(vasyaCount).isEqualTo(3);
 
         QualifierBuilder qbVasya2 = Qualifier.builder()
-            .setField("age")
+            .setBinName("age")
             .setValue(Value.get(51))
             .setFilterOperation(FilterOperation.EQ);
 
@@ -72,7 +72,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         assertThat(vasya51Count).isEqualTo(1);
 
         QualifierBuilder qbPetya = Qualifier.builder()
-            .setField("firstName")
+            .setBinName("firstName")
             .setValue(Value.get("petya"))
             .setFilterOperation(FilterOperation.EQ);
         Long petyaCount = reactiveTemplate.count(new Query(qbPetya.build()), Person.class)
@@ -94,7 +94,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         reactiveTemplate.insert(new Person(id3, "vasili", 52)).block();
 
         QualifierBuilder qbVasya1 = Qualifier.builder()
-            .setField("firstName")
+            .setBinName("firstName")
             .setValue(Value.get("vas"))
             .setIgnoreCase(true)
             .setFilterOperation(FilterOperation.STARTS_WITH);
@@ -103,7 +103,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
         assertThat(reactiveTemplate.count(query1, Person.class).block()).isEqualTo(3);
 
         QualifierBuilder qbVasya2 = Qualifier.builder()
-            .setField("firstName")
+            .setBinName("firstName")
             .setValue(Value.get("VaS"))
             .setIgnoreCase(false)
             .setFilterOperation(FilterOperation.STARTS_WITH);
@@ -117,7 +117,7 @@ class ReactiveAerospikeTemplateCountRelatedTests extends BaseReactiveIntegration
     @Test
     void count_shouldReturnZeroIfNoDocumentsByProvidedCriteriaIsFound() {
         QualifierBuilder qb1 = Qualifier.builder()
-            .setField("firstName")
+            .setBinName("firstName")
             .setValue(Value.get("nastyushka"))
             .setFilterOperation(FilterOperation.EQ);
 
