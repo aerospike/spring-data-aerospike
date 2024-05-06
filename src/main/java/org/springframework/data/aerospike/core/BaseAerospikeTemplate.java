@@ -146,6 +146,10 @@ abstract class BaseAerospikeTemplate {
         return this.converter;
     }
 
+    public ServerVersionSupport getServerVersionSupport() {
+        return this.serverVersionSupport;
+    }
+
     public String getNamespace() {
         return namespace;
     }

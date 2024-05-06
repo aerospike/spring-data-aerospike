@@ -44,7 +44,8 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     final Person aabbot = Person.builder()
         .id(nextId()).firstName("Aabbot").lastName("Matthews").emailAddress("aabbot@gmail.com").age(30).build();
 
-    final List<Person> allPersons = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch, alister,
+    final List<Person> allPersons = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch,
+        alister,
         aabbot);
 
     @BeforeAll
@@ -108,7 +109,7 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
 
     @Test
     public void findWithFilterEqualProjection() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
 
         Stream<PersonSomeFields> result = template.find(query, Person.class, PersonSomeFields.class);
 
@@ -121,7 +122,7 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
 
     @Test
     public void findWithFilterEqualProjectionWithSetName() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
 
         Stream<PersonSomeFields> result = template.find(query, PersonSomeFields.class, OVERRIDE_SET_NAME);
         assertThat(result).containsOnly(PersonSomeFields.builder()
@@ -133,7 +134,8 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
 
     @Test
     public void findWithFilterEqualOrderByAscProjection() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameAsc", "Matthews");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport,
+            "findByLastNameOrderByFirstNameAsc", "Matthews");
 
         Stream<PersonSomeFields> result = template.find(query, Person.class, PersonSomeFields.class);
 
@@ -160,13 +162,15 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
     public void findAll_findsAllExistingDocumentsProjection() {
         Stream<PersonSomeFields> result = template.findAll(Person.class, PersonSomeFields.class);
 
-        assertThat(result).containsAll(allPersons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
+        assertThat(result).containsAll(allPersons.stream().map(Person::toPersonSomeFields)
+            .collect(Collectors.toList()));
     }
 
     @Test
     public void findAll_findsAllExistingDocumentsProjectionWithSetName() {
         Stream<PersonSomeFields> result = template.findAll(PersonSomeFields.class, OVERRIDE_SET_NAME);
 
-        assertThat(result).containsAll(allPersons.stream().map(Person::toPersonSomeFields).collect(Collectors.toList()));
+        assertThat(result).containsAll(allPersons.stream().map(Person::toPersonSomeFields)
+            .collect(Collectors.toList()));
     }
 }

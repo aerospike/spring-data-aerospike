@@ -18,6 +18,7 @@ public class ServerVersionSupport {
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_0 = ModuleDescriptor.Version.parse("6.1.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_1 = ModuleDescriptor.Version.parse("6.1.0.1");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_3_0_0 = ModuleDescriptor.Version.parse("6.3.0.0");
+    private static final ModuleDescriptor.Version SERVER_VERSION_7_0_0_0 = ModuleDescriptor.Version.parse("7.0.0.0");
 
     private final IAerospikeClient client;
     private final ScheduledExecutorService executorService;
@@ -46,6 +47,21 @@ public class ServerVersionSupport {
         return versionString;
     }
 
+    public boolean isQueryShowSupported() {
+        return ModuleDescriptor.Version.parse(getServerVersion())
+            .compareTo(SERVER_VERSION_5_7_0_0) >= 0;
+    }
+
+    public boolean isBatchWriteSupported() {
+        return ModuleDescriptor.Version.parse(getServerVersion())
+            .compareTo(SERVER_VERSION_6_0_0_0) >= 0;
+    }
+
+    public boolean isSIndexCardinalitySupported() {
+        return ModuleDescriptor.Version.parse(getServerVersion())
+            .compareTo(SERVER_VERSION_6_1_0_0) >= 0;
+    }
+
     /**
      * Since Aerospike Server ver. 6.1.0.1 attempting to create a secondary index which already exists or to drop a
      * non-existing secondary index returns success/OK instead of an error.
@@ -63,19 +79,8 @@ public class ServerVersionSupport {
             .compareTo(SERVER_VERSION_6_3_0_0) >= 0;
     }
 
-    public boolean isBatchWriteSupported() {
+    public boolean isServerVersionGtOrEq7() {
         return ModuleDescriptor.Version.parse(getServerVersion())
-            .compareTo(SERVER_VERSION_6_0_0_0) >= 0;
+            .compareTo(SERVER_VERSION_7_0_0_0) >= 0;
     }
-
-    public boolean isSIndexCardinalitySupported() {
-        return ModuleDescriptor.Version.parse(getServerVersion())
-            .compareTo(SERVER_VERSION_6_1_0_0) >= 0;
-    }
-
-    public boolean isQueryShowSupported () {
-        return ModuleDescriptor.Version.parse(getServerVersion())
-            .compareTo(SERVER_VERSION_5_7_0_0) >= 0;
-    }
-
 }

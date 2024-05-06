@@ -130,21 +130,22 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findWithFilterEqual() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
         Stream<Person> result = template.find(query, Person.class);
         assertThat(result).containsOnly(dave);
     }
 
     @Test
     public void findWithFilterEqualWithSetName() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
         Stream<Person> result = template.find(query, Person.class, OVERRIDE_SET_NAME);
         assertThat(result).containsOnly(dave);
     }
 
     @Test
     public void findWithFilterEqualOrderByAsc() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameAsc", "Matthews");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport,
+            "findByLastNameOrderByFirstNameAsc", "Matthews");
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -155,7 +156,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findWithFilterEqualOrderByDesc() {
         Object[] args = {"Matthews"};
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameDesc", args);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport,
+            "findByLastNameOrderByFirstNameDesc", args);
 
         Stream<Person> result = template.find(query, Person.class);
 
@@ -167,7 +169,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @Test
     public void findWithFilterEqualOrderByDescNonExisting() {
         Object[] args = {"NonExistingSurname"};
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameDesc", args);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport,
+            "findByLastNameOrderByFirstNameDesc", args);
 
         Stream<Person> result = template.find(query, Person.class);
         assertThat(result).isEmpty();
@@ -175,7 +178,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findWithFilterRange() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findCustomerByAgeBetween", 25, 31);
 
         Stream<Person> result = template.find(query, Person.class);
         assertThat(result).hasSize(6);
@@ -183,7 +186,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findWithFilterRangeWithSetName() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findCustomerByAgeBetween", 25, 31);
 
         Stream<Person> result = template.find(query, Person.class, OVERRIDE_SET_NAME);
         assertThat(result).hasSize(6);
@@ -191,7 +194,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findWithFilterRangeNonExisting() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 100, 150);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findCustomerByAgeBetween", 100,
+            150);
 
         Stream<Person> result = template.find(query, Person.class);
         assertThat(result).isEmpty();
@@ -306,7 +310,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByListContainingInteger() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsContaining", 100);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByIntsContaining", 100);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -316,7 +320,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByListContainingIntegerWithSetName() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsContaining", 100);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByIntsContaining", 100);
         Stream<Person> result = template.find(query, Person.class, OVERRIDE_SET_NAME);
 
         assertThat(result)
@@ -326,7 +330,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByListContainingString() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringsContaining", "str2");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByStringsContaining", "str2");
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -336,7 +340,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByMapKeysContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", KEY, "key1");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByStringMapContaining", KEY,
+            "key1");
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result).containsExactlyInAnyOrder(dave);
@@ -344,7 +349,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByMapValuesContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining",
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByStringMapContaining",
             CriteriaDefinition.AerospikeQueryCriterion.VALUE, "val2");
         Stream<Person> result = template.find(query, Person.class);
 
@@ -355,7 +360,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByMapKeyValueContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining",
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByStringMapContaining",
             KEY_VALUE_PAIR, "key1", "val1");
         Stream<Person> result = template.find(query, Person.class);
 
@@ -364,7 +369,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findPersonsByFriendAge() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAge", 50);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAge", 50);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -374,7 +379,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findPersonsByFriendAgeNotEqual() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeIsNot", 50);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAgeIsNot", 50);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -383,7 +388,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findPersonsByFriendAgeGreaterThan() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeGreaterThan", 42);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAgeGreaterThan", 42);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -393,7 +398,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findPersonsByFriendAgeLessThanOrEqual() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeLessThanEqual", 54);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAgeLessThanEqual", 54);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -403,7 +408,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findPersonsByFriendAgeLessThanOrEqualWithSetName() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeLessThanEqual", 54);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAgeLessThanEqual", 54);
         Stream<Person> result = template.find(query, Person.class, OVERRIDE_SET_NAME);
 
         assertThat(result)
@@ -413,7 +418,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findPersonsByFriendAgeRange() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeBetween", 50, 55);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAgeBetween", 50, 55);
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -423,7 +428,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findPersonsByAddressZipCode() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByAddressZipCode", "C0123");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByAddressZipCode", "C0123");
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)
@@ -433,7 +438,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @Test
     public void findByAddressZipCodeContaining() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByAddressZipCodeContaining", "C012");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByAddressZipCodeContaining",
+            "C012");
         Stream<Person> result = template.find(query, Person.class);
 
         assertThat(result)

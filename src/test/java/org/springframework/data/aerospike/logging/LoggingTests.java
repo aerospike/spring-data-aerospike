@@ -21,6 +21,7 @@ import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.StubParameterAccessor;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.MemoryAppender;
 import org.springframework.data.repository.query.parser.PartTree;
 
@@ -66,10 +67,11 @@ public class LoggingTests {
         AerospikeMappingContext context = new AerospikeMappingContext();
         AerospikeCustomConversions conversions = new AerospikeCustomConversions(Collections.emptyList());
         MappingAerospikeConverter converter = getMappingAerospikeConverter(conversions);
+        ServerVersionSupport serverVersionSupport = Mockito.mock(ServerVersionSupport.class);
 
         PartTree tree = new PartTree("findByFirstName", Person.class);
         AerospikeQueryCreator creator = new AerospikeQueryCreator(
-            tree, new StubParameterAccessor("TestName"), context, converter);
+            tree, new StubParameterAccessor("TestName"), context, converter, serverVersionSupport);
         creator.createQuery();
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();

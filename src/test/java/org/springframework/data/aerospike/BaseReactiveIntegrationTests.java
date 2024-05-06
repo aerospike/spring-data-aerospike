@@ -144,7 +144,7 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
         String setName = reactiveTemplate.getSetName(returnEntityClass);
         String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
         Query query = QueryUtils.createQueryForMethodWithArgs(ReactiveIndexedPersonRepository.class, returnEntityClass,
-            methodName, methodParams);
+            serverVersionSupport, methodName, methodParams);
 
         Statement statement = reactiveQueryEngine.getStatementBuilder().build(namespace, setName, query, binNames);
         // Checking that the statement has secondary index filter (which means it will be used)

@@ -7,6 +7,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -36,12 +37,13 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
     private final FilterOperation filterOperation;
     private final MappingAerospikeConverter converter;
     private final boolean isNested;
+    private ServerVersionSupport versionSupport;
     private final boolean isBooleanQuery;
 
     public SimplePropertyQueryCreator(Part part, PropertyPath propertyPath, AerospikePersistentProperty property,
                                       String fieldName, List<Object> queryParameters,
                                       FilterOperation filterOperation, MappingAerospikeConverter converter,
-                                      boolean isNested) {
+                                      boolean isNested, ServerVersionSupport versionSupport) {
         this.part = part;
         this.isBooleanQuery = part.getType() == Part.Type.FALSE || part.getType() == Part.Type.TRUE;
         this.propertyPath = propertyPath;
@@ -51,6 +53,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
         this.filterOperation = filterOperation;
         this.converter = converter;
         this.isNested = isNested;
+        this.versionSupport = versionSupport;
     }
 
     @Override
@@ -146,7 +149,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
             setQualifierBuilderValue(qb, queryParameters.get(0));
         }
 
-        return setQualifier(qb, fieldName, op, part, dotPath);
+        return setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
     }
 
     private boolean convertPartTypeToBoolean(Part.Type type) {

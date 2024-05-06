@@ -5,6 +5,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -34,10 +35,12 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
     private final FilterOperation filterOperation;
     private final MappingAerospikeConverter converter;
     private final boolean isNested;
+    private ServerVersionSupport versionSupport;
 
     public PojoQueryCreator(Part part, PropertyPath propertyPath, AerospikePersistentProperty property,
                             String fieldName, List<Object> queryParameters, FilterOperation filterOperation,
-                            MappingAerospikeConverter converter, boolean isNested) {
+                            MappingAerospikeConverter converter, boolean isNested,
+                            ServerVersionSupport versionSupport) {
         this.part = part;
         this.propertyPath = propertyPath;
         this.property = property;
@@ -46,6 +49,7 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
         this.filterOperation = filterOperation;
         this.converter = converter;
         this.isNested = isNested;
+        this.versionSupport = versionSupport;
     }
 
     @Override
@@ -98,7 +102,7 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
                 // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
                 op = getCorrespondingMapValueFilterOperationOrFail(filterOperation);
             }
-            qualifier = setQualifier(qb, fieldName, op, part, dotPath);
+            qualifier = setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
             return qualifier;
         }
 
@@ -118,6 +122,6 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
             }
         }
 
-        return setQualifier(qb, fieldName, op, part, dotPath);
+        return setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
     }
 }

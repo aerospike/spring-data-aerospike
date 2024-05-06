@@ -30,6 +30,7 @@ import org.springframework.data.aerospike.index.AerospikeIndexResolverUtils;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierKey;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.util.Pair;
 
 import java.util.Arrays;
@@ -1318,22 +1319,22 @@ public enum FilterOperation {
      */
     private static Optional<Exp> getMetadataExp(Map<QualifierKey, Object> qualifierMap) {
         CriteriaDefinition.AerospikeMetadata metadataField = getMetadataField(qualifierMap);
-        String field = getBinName(qualifierMap);
+        String binName = getBinName(qualifierMap);
 
-        if (metadataField != null && (field == null || field.isEmpty())) {
+        if (metadataField != null && (binName == null || binName.isEmpty())) {
             FilterOperation operation = getOperation(qualifierMap);
             switch (operation) {
                 case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> {
                     BinaryOperator<Exp> operationFunction = mapOperation(operation);
                     return Optional.of(
                         operationFunction.apply(
-                            mapMetadataExp(metadataField),
+                            mapMetadataExp(metadataField, getServerVersionSupport(qualifierMap)),
                             Exp.val(getValueAsLongOrFail(getValueAsObject(qualifierMap)))
                         )
                     );
                 }
                 case BETWEEN -> {
-                    Exp metadata = mapMetadataExp(metadataField);
+                    Exp metadata = mapMetadataExp(metadataField, getServerVersionSupport(qualifierMap));
                     Exp value = Exp.val(getValue(qualifierMap).toLong());
                     Exp secondValue = Exp.val(getSecondValue(qualifierMap).toLong());
                     return Optional.of(Exp.and(Exp.ge(metadata, value), Exp.lt(metadata, secondValue)));
@@ -1359,14 +1360,15 @@ public enum FilterOperation {
         }
     }
 
-    private static Exp mapMetadataExp(CriteriaDefinition.AerospikeMetadata metadataField) {
+    private static Exp mapMetadataExp(CriteriaDefinition.AerospikeMetadata metadataField,
+                                      ServerVersionSupport versionSupport) {
         return switch (metadataField) {
             case SINCE_UPDATE_TIME -> Exp.sinceUpdate();
             case LAST_UPDATE_TIME -> Exp.lastUpdate();
             case VOID_TIME -> Exp.voidTime();
             case TTL -> Exp.ttl();
-            case RECORD_SIZE_ON_DISK -> Exp.deviceSize();
-            case RECORD_SIZE_IN_MEMORY -> Exp.memorySize();
+            case RECORD_SIZE_ON_DISK -> versionSupport.isServerVersionGtOrEq7() ? Exp.recordSize() : Exp.deviceSize();
+            case RECORD_SIZE_IN_MEMORY -> versionSupport.isServerVersionGtOrEq7() ? Exp.recordSize() : Exp.memorySize();
             default -> throw new IllegalStateException("Cannot map metadata Expression to " + metadataField);
         };
     }
@@ -1717,6 +1719,10 @@ public enum FilterOperation {
 
     private static CTX[] getCtx(List<String> ctxList) {
         return ctxList != null ? resolveCtxList(ctxList) : null;
+    }
+
+    protected static ServerVersionSupport getServerVersionSupport(Map<QualifierKey, Object> qualifierMap) {
+        return (ServerVersionSupport) qualifierMap.get(SERVER_VERSION_SUPPORT);
     }
 
     public abstract Exp filterExp(Map<QualifierKey, Object> qualifierMap);
