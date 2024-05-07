@@ -131,7 +131,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
 
         List<PersonSomeFields> actual = reactiveTemplate.find(query, Person.class, PersonSomeFields.class)
             .subscribeOn(Schedulers.parallel())
@@ -151,7 +151,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findCustomerByAgeBetween", 25, 31);
 
         List<PersonSomeFields> actual = reactiveTemplate.find(query, Person.class, PersonSomeFields.class)
             .subscribeOn(Schedulers.parallel())
@@ -172,7 +172,7 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers, OVERRIDE_SET_NAME).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findCustomerByAgeBetween", 25, 31);
 
         List<PersonSomeFields> actual = reactiveTemplate.find(query, PersonSomeFields.class, OVERRIDE_SET_NAME)
             .subscribeOn(Schedulers.parallel())
@@ -187,7 +187,8 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
 
     @Test
     public void findByFilterRangeNonExistingProjection() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 100, 150);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findCustomerByAgeBetween", 100,
+            150);
 
         List<PersonSomeFields> actual = reactiveTemplate.find(query, Person.class, PersonSomeFields.class)
             .subscribeOn(Schedulers.parallel())

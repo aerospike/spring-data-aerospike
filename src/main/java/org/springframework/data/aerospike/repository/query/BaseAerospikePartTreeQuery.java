@@ -20,6 +20,7 @@ import org.springframework.beans.support.PropertyComparator;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -49,18 +50,20 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
     private final AerospikeMappingContext context;
     private final MappingAerospikeConverter converter;
+    private final ServerVersionSupport versionSupport;
 
     protected BaseAerospikePartTreeQuery(QueryMethod queryMethod,
                                          QueryMethodEvaluationContextProvider evalContextProvider,
                                          Class<? extends AbstractQueryCreator<?, ?>> queryCreator,
                                          AerospikeMappingContext context,
-                                         MappingAerospikeConverter converter) {
+                                         MappingAerospikeConverter converter, ServerVersionSupport versionSupport) {
         this.queryMethod = queryMethod;
         this.evaluationContextProvider = evalContextProvider;
         this.queryCreator = queryCreator;
         this.entityClass = queryMethod.getEntityInformation().getJavaType();
         this.context = context;
         this.converter = converter;
+        this.versionSupport = versionSupport;
     }
 
     @Override
@@ -120,8 +123,8 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     public Query createQuery(ParametersParameterAccessor accessor, PartTree tree) {
         Constructor<? extends AbstractQueryCreator<?, ?>> constructor = ClassUtils
             .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class,
-                AerospikeMappingContext.class, MappingAerospikeConverter.class);
-        return (Query) BeanUtils.instantiateClass(constructor, tree, accessor, context, converter)
+                AerospikeMappingContext.class, MappingAerospikeConverter.class, ServerVersionSupport.class);
+        return (Query) BeanUtils.instantiateClass(constructor, tree, accessor, context, converter, versionSupport)
             .createQuery();
     }
 

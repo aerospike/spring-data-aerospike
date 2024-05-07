@@ -216,7 +216,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .mapToObj(id -> new Person(nextId(), "Dave", "Matthews")).collect(Collectors.toList());
         reactiveTemplate.insertAll(allUsers).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFirstName", "Dave");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -236,7 +236,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         reactiveTemplate.insertAll(allUsers).blockLast();
         allUsers.sort(Comparator.comparing(Person::getFirstName)); // Order user list by firstname ascending
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameAsc", "Matthews");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport,
+            "findByLastNameOrderByFirstNameAsc", "Matthews");
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -257,7 +258,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         allUsers.sort((o1, o2) -> o2.getFirstName()
             .compareTo(o1.getFirstName())); // Order user list by firstname descending
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameDesc", "Matthews");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport,
+            "findByLastNameOrderByFirstNameDesc", "Matthews");
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -278,7 +280,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         allUsers.sort((o1, o2) -> o2.getFirstName()
             .compareTo(o1.getFirstName())); // Order user list by firstname descending
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameDesc", "Matthews");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport,
+            "findByLastNameOrderByFirstNameDesc", "Matthews");
 
         List<Person> actual = reactiveTemplate.find(query, Person.class, OVERRIDE_SET_NAME)
             .subscribeOn(Schedulers.parallel())
@@ -299,7 +302,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         reactiveTemplate.insertAll(allUsers).blockLast();
 
         // upper limit is exclusive
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 25, 31);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findCustomerByAgeBetween", 25, 31);
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -314,7 +317,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
 
     @Test
     public void findByFilterRangeNonExisting() {
-        Query query = QueryUtils.createQueryForMethodWithArgs("findCustomerByAgeBetween", 100, 150);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findCustomerByAgeBetween", 100,
+            150);
 
         List<Person> actual = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -326,7 +330,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     @Test
     public void findWithFilterEqualOrderByDescNonExisting() {
         Object[] args = {"NonExistingSurname"};
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByLastNameOrderByFirstNameDesc", args);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport,
+            "findByLastNameOrderByFirstNameDesc", args);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -343,7 +348,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByIntsContaining", 100);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByIntsContaining", 100);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -363,7 +368,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringsContaining", "str2");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByStringsContaining", "str2");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -383,7 +388,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", KEY, "key1");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByStringMapContaining", KEY,
+            "key1");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -403,7 +409,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", VALUE, "val1");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByStringMapContaining",
+            VALUE, "val1");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -423,7 +430,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", KEY_VALUE_PAIR, "key1",
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByStringMapContaining",
+            KEY_VALUE_PAIR, "key1",
             "val1");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
@@ -444,7 +452,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByStringMapContaining", KEY_VALUE_PAIR, "key3",
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByStringMapContaining",
+            KEY_VALUE_PAIR, "key3",
             "val3");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
@@ -465,7 +474,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAge", 50);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAge", 50);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -485,7 +494,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeIsNot", 50);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAgeIsNot", 50);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -505,7 +514,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeGreaterThan", 42);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAgeGreaterThan", 42);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -525,7 +534,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeLessThanEqual", 42);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAgeLessThanEqual", 42);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -545,7 +554,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByFriendAgeBetween", 42, 51);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFriendAgeBetween", 42, 51);
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -565,7 +574,7 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByAddressZipCode", "C01233");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByAddressZipCode", "C01233");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())
@@ -585,7 +594,8 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
             .collect(Collectors.toList());
         reactiveTemplate.insertAll(persons).blockLast();
 
-        Query query = QueryUtils.createQueryForMethodWithArgs("findByAddressZipCodeContaining", "123");
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByAddressZipCodeContaining",
+            "123");
 
         List<Person> result = reactiveTemplate.find(query, Person.class)
             .subscribeOn(Schedulers.parallel())

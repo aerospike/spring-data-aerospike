@@ -49,7 +49,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                                           ReactiveAerospikeTemplate operations,
                                           Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(queryMethod, evalContextProvider, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
-            operations.getAerospikeConverter());
+            operations.getAerospikeConverter(), operations.getServerVersionSupport());
         this.operations = operations;
     }
 

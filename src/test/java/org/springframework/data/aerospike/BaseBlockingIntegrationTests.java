@@ -120,7 +120,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     /**
      * Assert that the given query's statement contains secondary index filter
      *
-     * @param query        Query to be performed
+     * @param query             Query to be performed
      * @param returnEntityClass Class of Query return entity
      */
     protected void assertQueryHasSecIndexFilter(Query query, Class<?> returnEntityClass) {
@@ -149,7 +149,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
                                              Object... methodParams) {
         String setName = template.getSetName(returnEntityClass);
         String[] binNames = getBinNamesFromTargetClass(returnEntityClass, mappingContext);
-        Query query = QueryUtils.createQueryForMethodWithArgs(methodName, methodParams);
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, methodName, methodParams);
 
         return queryHasSecIndexFilter(namespace, setName, query, binNames);
     }
@@ -162,7 +162,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
 
     protected Map<?, ?> pojoToMap(Object pojo) {
         Object result = template.getAerospikeConverter().toWritableValue(pojo, TypeInformation.of(pojo.getClass()));
-        if (result instanceof Map<?,?>) {
+        if (result instanceof Map<?, ?>) {
             return (Map<?, ?>) result;
         }
 
