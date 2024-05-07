@@ -112,7 +112,6 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
         return this;
     }
 
-
     /**
      * Set server version support.
      */

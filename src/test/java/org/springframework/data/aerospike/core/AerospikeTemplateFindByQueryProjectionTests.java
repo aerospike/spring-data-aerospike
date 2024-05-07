@@ -43,10 +43,8 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         .id(nextId()).firstName("Alister").lastName("Matthews").emailAddress("alister@gmail.com").age(29).build();
     final Person aabbot = Person.builder()
         .id(nextId()).firstName("Aabbot").lastName("Matthews").emailAddress("aabbot@gmail.com").age(30).build();
-
     final List<Person> allPersons = Arrays.asList(jean, ashley, beatrice, dave, zaipper, knowlen, xylophone, mitch,
-        alister,
-        aabbot);
+        alister, aabbot);
 
     @BeforeAll
     public void beforeAllSetUp() {
