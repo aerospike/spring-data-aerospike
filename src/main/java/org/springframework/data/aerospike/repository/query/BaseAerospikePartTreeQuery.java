@@ -123,7 +123,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     public Query createQuery(ParametersParameterAccessor accessor, PartTree tree) {
         Constructor<? extends AbstractQueryCreator<?, ?>> constructor = ClassUtils
             .getConstructorIfAvailable(queryCreator, PartTree.class, ParameterAccessor.class,
-                AerospikeMappingContext.class, MappingAerospikeConverter.class);
+                AerospikeMappingContext.class, MappingAerospikeConverter.class, ServerVersionSupport.class);
         return (Query) BeanUtils.instantiateClass(constructor, tree, accessor, context, converter, versionSupport)
             .createQuery();
     }
