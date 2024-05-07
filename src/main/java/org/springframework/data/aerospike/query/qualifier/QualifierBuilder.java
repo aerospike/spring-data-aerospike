@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.query.qualifier;
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 
 import java.util.List;
 
@@ -108,6 +109,14 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
      */
     public QualifierBuilder setNestedType(int type) {
         this.map.put(NESTED_TYPE, type);
+        return this;
+    }
+
+    /**
+     * Set server version support.
+     */
+    public QualifierBuilder setServerVersionSupport(ServerVersionSupport serverVersionSupport) {
+        this.map.put(SERVER_VERSION_SUPPORT, serverVersionSupport);
         return this;
     }
 }

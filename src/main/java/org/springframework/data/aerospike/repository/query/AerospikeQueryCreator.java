@@ -24,6 +24,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PersistentPropertyPath;
 import org.springframework.data.mapping.PropertyPath;
@@ -56,13 +57,15 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     private static final Logger LOG = LoggerFactory.getLogger(AerospikeQueryCreator.class);
     private final AerospikeMappingContext context;
     private final MappingAerospikeConverter converter;
+    private final ServerVersionSupport versionSupport;
     private final boolean isCombinedQuery;
 
-    public AerospikeQueryCreator(PartTree tree, ParameterAccessor parameters,
-                                 AerospikeMappingContext context, MappingAerospikeConverter converter) {
+    public AerospikeQueryCreator(PartTree tree, ParameterAccessor parameters, AerospikeMappingContext context,
+                                 MappingAerospikeConverter converter, ServerVersionSupport versionSupport) {
         super(tree, parameters);
         this.context = context;
         this.converter = converter;
+        this.versionSupport = versionSupport;
         this.isCombinedQuery = tree.getParts().toList().size() > 1;
     }
 
@@ -132,35 +135,35 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             if (part.getProperty().hasNext()) { // a POJO field
                 PropertyPath nestedProperty = getNestedPropertyPath(part.getProperty());
                 queryCreator = new CollectionQueryCreator(part, nestedProperty, property, fieldName, queryParameters,
-                    filterOperation, converter, true);
+                    filterOperation, converter, true, versionSupport);
             } else {
                 queryCreator = new CollectionQueryCreator(part, part.getProperty(), property, fieldName,
-                    queryParameters, filterOperation, converter, false);
+                    queryParameters, filterOperation, converter, false, versionSupport);
             }
         } else if (property.isMap()) {
             if (part.getProperty().hasNext()) { // a POJO field
                 queryCreator = new MapQueryCreator(part, property, fieldName, queryParameters, filterOperation,
-                    converter, true);
+                    converter, versionSupport, true);
             } else {
                 queryCreator = new MapQueryCreator(part, property, fieldName, queryParameters, filterOperation,
-                    converter, false);
+                    converter, versionSupport, false);
             }
         } else {
             if (part.getProperty().hasNext()) { // a POJO field (a simple property field or an inner POJO)
                 PropertyPath nestedProperty = getNestedPropertyPath(part.getProperty());
                 if (isPojo(nestedProperty.getType())) {
                     queryCreator = new PojoQueryCreator(part, nestedProperty, property, fieldName, queryParameters,
-                        filterOperation, converter, true);
+                        filterOperation, converter, true, versionSupport);
                 } else {
                     queryCreator = new SimplePropertyQueryCreator(part, nestedProperty, property, fieldName,
-                        queryParameters, filterOperation, converter, true);
+                        queryParameters, filterOperation, converter, true, versionSupport);
                 }
             } else if (isPojo(part.getProperty().getType())) { // a first level POJO or a Map
                 queryCreator = new PojoQueryCreator(part, part.getProperty(), property, fieldName, queryParameters,
-                    filterOperation, converter, false);
+                    filterOperation, converter, false, versionSupport);
             } else {
                 queryCreator = new SimplePropertyQueryCreator(part, part.getProperty(), property, fieldName,
-                    queryParameters, filterOperation, converter, false);
+                    queryParameters, filterOperation, converter, false, versionSupport);
             }
         }
 

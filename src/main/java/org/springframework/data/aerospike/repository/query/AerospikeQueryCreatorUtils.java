@@ -7,6 +7,7 @@ import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
@@ -30,7 +31,7 @@ import static org.springframework.util.ClassUtils.isAssignableValue;
 public class AerospikeQueryCreatorUtils {
 
     protected static Qualifier setQualifier(QualifierBuilder qb, String fieldName, FilterOperation op, Part part,
-                                            List<String> dotPath) {
+                                            List<String> dotPath, ServerVersionSupport versionSupport) {
         qb.setBinName(fieldName)
             .setFilterOperation(op)
             .setIgnoreCase(ignoreCaseToBoolean(part));
@@ -41,7 +42,7 @@ public class AerospikeQueryCreatorUtils {
                 qb.setCtxList(getCtxFromDotPathArray(dotPathArr));
             }
         }
-
+        qb.setServerVersionSupport(versionSupport);
         return qb.build();
     }
 
@@ -95,14 +96,14 @@ public class AerospikeQueryCreatorUtils {
         return property.getTypeInformation().getComponentType().getType();
     }
 
-    protected static Qualifier qualifierAndConcatenated(MappingAerospikeConverter converter, List<Object> params,
+    protected static Qualifier qualifierAndConcatenated(ServerVersionSupport versionSupport, List<Object> params,
                                                         QualifierBuilder qb,
                                                         Part part, String fieldName, FilterOperation op,
                                                         List<String> dotPath) {
-        return qualifierAndConcatenated(converter, params, qb, part, fieldName, op, dotPath, false);
+        return qualifierAndConcatenated(versionSupport, params, qb, part, fieldName, op, dotPath, false);
     }
 
-    protected static Qualifier qualifierAndConcatenated(MappingAerospikeConverter converter, List<Object> params,
+    protected static Qualifier qualifierAndConcatenated(ServerVersionSupport versionSupport, List<Object> params,
                                                         QualifierBuilder qb,
                                                         Part part, String fieldName, FilterOperation op,
                                                         List<String> dotPath, boolean containingMapKeyValuePairs) {
@@ -111,13 +112,13 @@ public class AerospikeQueryCreatorUtils {
             qualifiers = new Qualifier[params.size() / 2]; // keys/values qty must be even
             for (int i = 0, j = 0; i < params.size(); i += 2, j++) {
                 setQbValuesForMapByKey(qb, params.get(i), params.get(i + 1));
-                qualifiers[j] = setQualifier(qb, fieldName, op, part, dotPath);
+                qualifiers[j] = setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
             }
         }
         qualifiers = new Qualifier[params.size()];
         for (int i = 0; i < params.size(); i++) {
             setQbValuesForMapByKey(qb, params.get(i), params.get(i));
-            qualifiers[i] = setQualifier(qb, fieldName, op, part, dotPath);
+            qualifiers[i] = setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
         }
 
         return Qualifier.and(qualifiers);

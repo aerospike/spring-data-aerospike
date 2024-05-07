@@ -9,6 +9,7 @@ import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.PersonRepository;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
@@ -46,14 +47,17 @@ public class QueryUtils {
         return c.isPrimitive() ? (Class<T>) WRAPPERS_TO_PRIMITIVES.get(c) : c;
     }
 
-    public static Query createQueryForMethodWithArgs(String methodName, Object... args) {
-        return createQueryForMethodWithArgs(PersonRepository.class, Person.class, methodName, args);
+    public static Query createQueryForMethodWithArgs(ServerVersionSupport versionSupport, String methodName,
+                                                     Object... args) {
+        return createQueryForMethodWithArgs(PersonRepository.class, Person.class, versionSupport, methodName, args);
     }
 
     public static Query createQueryForMethodWithArgs(Class<?> repositoryClass, Class<?> entityClass,
+                                                     ServerVersionSupport versionSupport,
                                                      String methodName, Object... args) {
         //noinspection rawtypes
         Class[] argTypes = Stream.of(args).map(Object::getClass).toArray(Class[]::new);
+        //noinspection rawtypes
         Class[] argTypesCheckedForPageable = checkForPageable(argTypes);
         Method method = ReflectionUtils.findMethod(repositoryClass, methodName, argTypesCheckedForPageable);
 
@@ -78,12 +82,14 @@ public class QueryUtils {
             new AerospikeQueryCreator(partTree,
                 new ParametersParameterAccessor(
                     new QueryMethod(method, new DefaultRepositoryMetadata(repositoryClass),
-                        new SpelAwareProxyProjectionFactory()).getParameters(), args), context, converter);
+                        new SpelAwareProxyProjectionFactory()).getParameters(), args), context, converter,
+                versionSupport);
         return creator.createQuery();
     }
 
     /**
      * Check instances of Pageable and use the interface as we do in repositories' methods
+     *
      * @param argTypes Types of arguments
      * @return Array of arguments types with Pageable instances replaced with Pageable
      */

@@ -6,6 +6,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 
@@ -39,10 +40,12 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
     private final FilterOperation filterOperation;
     private final MappingAerospikeConverter converter;
     private final boolean isNested;
+    private final ServerVersionSupport versionSupport;
 
     public CollectionQueryCreator(Part part, PropertyPath propertyPath, AerospikePersistentProperty property,
                                   String fieldName, List<Object> queryParameters, FilterOperation filterOperation,
-                                  MappingAerospikeConverter converter, boolean isNested) {
+                                  MappingAerospikeConverter converter, boolean isNested,
+                                  ServerVersionSupport versionSupport) {
         this.part = part;
         this.propertyPath = propertyPath;
         this.property = property;
@@ -51,6 +54,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         this.filterOperation = filterOperation;
         this.converter = converter;
         this.isNested = isNested;
+        this.versionSupport = versionSupport;
     }
 
     @Override
@@ -159,7 +163,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
             setQualifierBuilderValue(qb, queryParameters.get(0));
         }
 
-        return setQualifier(qb, fieldName, op, part, dotPath);
+        return setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
     }
 
     private FilterOperation getCorrespondingListFilterOperationOrFail(FilterOperation op) {

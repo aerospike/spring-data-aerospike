@@ -31,6 +31,7 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.repository.query.Query;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.lang.Nullable;
@@ -77,6 +78,11 @@ public interface AerospikeOperations {
      * @return converter in use.
      */
     MappingAerospikeConverter getAerospikeConverter();
+
+    /**
+     * @return server version support in use.
+     */
+    ServerVersionSupport getServerVersionSupport();
 
     /**
      * @return Aerospike client in use.

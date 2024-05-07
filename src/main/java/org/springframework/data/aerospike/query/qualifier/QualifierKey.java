@@ -23,5 +23,6 @@ public enum QualifierKey {
     QUALIFIERS,
     OPERATION,
     DIGEST_KEY,
-    HAS_SINDEX_FILTER
+    HAS_SINDEX_FILTER,
+    SERVER_VERSION_SUPPORT
 }

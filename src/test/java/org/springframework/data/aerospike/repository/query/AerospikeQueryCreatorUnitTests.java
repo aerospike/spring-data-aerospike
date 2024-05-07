@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.repository.query;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
@@ -11,6 +12,7 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.repository.query.parser.PartTree;
 
 import java.util.Collections;
@@ -26,6 +28,7 @@ public class AerospikeQueryCreatorUnitTests {
     AerospikeCustomConversions conversions;
     MappingAerospikeConverter converter;
     AutoCloseable openMocks;
+    ServerVersionSupport serverVersionSupport;
 
     @BeforeEach
     public void setUp() {
@@ -33,6 +36,7 @@ public class AerospikeQueryCreatorUnitTests {
         context = new AerospikeMappingContext();
         conversions = new AerospikeCustomConversions(Collections.emptyList());
         converter = getMappingAerospikeConverter(conversions);
+        serverVersionSupport = Mockito.mock(ServerVersionSupport.class);
     }
 
     @AfterEach
@@ -45,7 +49,7 @@ public class AerospikeQueryCreatorUnitTests {
         PartTree tree = new PartTree("findByFirstName", Person.class);
 
         AerospikeQueryCreator creator = new AerospikeQueryCreator(
-            tree, new StubParameterAccessor("Oliver"), context, converter);
+            tree, new StubParameterAccessor("Oliver"), context, converter, serverVersionSupport);
         creator.createQuery();
     }
 
@@ -56,7 +60,7 @@ public class AerospikeQueryCreatorUnitTests {
             tree1, new StubParameterAccessor(
             QueryParam.of(List.of("Oliver", "Peter")),
             QueryParam.of(new Person("id", "firstName"))
-        ), context, converter);
+        ), context, converter, serverVersionSupport);
         creator1.createQuery();
     }
 
