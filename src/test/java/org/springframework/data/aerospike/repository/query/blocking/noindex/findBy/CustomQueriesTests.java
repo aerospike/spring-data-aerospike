@@ -283,5 +283,15 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         converter.afterPropertiesSet();
         return converter;
     }
+
+    @Test
+    void findBySimplePropertyEquals_Enum() {
+        Qualifier sexEqFemale = Qualifier.builder()
+            .setBinName("sex")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(Value.get(Person.Sex.FEMALE))
+            .build();
+        assertThat(repository.findUsingQuery(new Query(sexEqFemale))).containsOnly(alicia);
+    }
 }
 
