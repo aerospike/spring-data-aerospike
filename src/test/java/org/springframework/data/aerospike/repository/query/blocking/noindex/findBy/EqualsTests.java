@@ -28,71 +28,6 @@ import static org.springframework.data.aerospike.query.QueryParam.of;
 public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
-    void findByBooleanIntSimplePropertyEquals() {
-        boolean initialValue = Value.UseBoolBin;
-        Value.UseBoolBin = false; // save boolean as int
-        Person intBoolBinPerson = Person.builder()
-            .id(BaseIntegrationTests.nextId())
-            .isActive(true)
-            .firstName("Test")
-            .build();
-        repository.save(intBoolBinPerson);
-
-        List<Person> persons = repository.findByIsActive(true);
-        assertThat(persons).contains(intBoolBinPerson);
-
-        Value.UseBoolBin = initialValue; // set back to the default value
-        repository.delete(intBoolBinPerson);
-    }
-
-    @Test
-    void findByBooleanIntSimplePropertyEquals_NegativeTest() {
-        boolean initialValue = Value.UseBoolBin;
-        Value.UseBoolBin = false; // save boolean as int
-
-        assertThatThrownBy(() -> negativeTestsRepository.findByIsActive())
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.isActive EQ: invalid number of arguments, expecting one");
-
-        assertThatThrownBy(() -> negativeTestsRepository.findByIsActive(true, false))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.isActive EQ: invalid number of arguments, expecting one");
-
-        Value.UseBoolBin = initialValue; // set back to the default value
-    }
-
-    @Test
-    void findByBooleanSimplePropertyEquals() {
-        boolean initialValue = Value.UseBoolBin;
-        Value.UseBoolBin = true; // save boolean as bool, available in Server 5.6+
-        Person intBoolBinPerson = Person.builder().id(BaseIntegrationTests.nextId()).isActive(true).firstName("Test")
-            .build();
-        repository.save(intBoolBinPerson);
-
-        List<Person> persons = repository.findByIsActive(true);
-        assertThat(persons).contains(intBoolBinPerson);
-
-        Value.UseBoolBin = initialValue; // set back to the default value
-        repository.delete(intBoolBinPerson);
-    }
-
-    @Test
-    void findByBooleanSimplePropertyEquals_NegativeTest() {
-        boolean initialValue = Value.UseBoolBin;
-        Value.UseBoolBin = true; // save boolean as bool, available in Server 5.6+
-
-        assertThatThrownBy(() -> negativeTestsRepository.findByIsActive())
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.isActive EQ: invalid number of arguments, expecting one");
-
-        assertThatThrownBy(() -> negativeTestsRepository.findByIsActive(true, false))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Person.isActive EQ: invalid number of arguments, expecting one");
-
-        Value.UseBoolBin = initialValue; // set back to the default value
-    }
-
-    @Test
     void findBySimplePropertyEquals_String() {
         List<Person> result = repository.findByFirstName("Leroi");
         assertThat(result).containsOnly(leroi, leroi2);
@@ -116,6 +51,77 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByLastName("Beauford", "Boford"))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.lastName EQ: invalid number of arguments, expecting one");
+    }
+
+    @Test
+    void findBySimplePropertyEquals_Enum() {
+        List<Person> result = repository.findBySex(Person.Sex.FEMALE);
+        assertThat(result).containsOnly(alicia);
+    }
+
+    @Test
+    void findBySimplePropertyEquals_BooleanInt() {
+        boolean initialValue = Value.UseBoolBin;
+        Value.UseBoolBin = false; // save boolean as int
+        Person intBoolBinPerson = Person.builder()
+            .id(BaseIntegrationTests.nextId())
+            .isActive(true)
+            .firstName("Test")
+            .build();
+        repository.save(intBoolBinPerson);
+
+        List<Person> persons = repository.findByIsActive(true);
+        assertThat(persons).contains(intBoolBinPerson);
+
+        Value.UseBoolBin = initialValue; // set back to the default value
+        repository.delete(intBoolBinPerson);
+    }
+
+    @Test
+    void findBySimplePropertyEquals_BooleanInt_NegativeTest() {
+        boolean initialValue = Value.UseBoolBin;
+        Value.UseBoolBin = false; // save boolean as int
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIsActive())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.isActive EQ: invalid number of arguments, expecting one");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIsActive(true, false))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.isActive EQ: invalid number of arguments, expecting one");
+
+        Value.UseBoolBin = initialValue; // set back to the default value
+    }
+
+    @Test
+    void findBySimplePropertyEquals_Boolean() {
+        boolean initialValue = Value.UseBoolBin;
+        Value.UseBoolBin = true; // save boolean as bool, available in Server 5.6+
+        Person intBoolBinPerson = Person.builder().id(BaseIntegrationTests.nextId()).isActive(true).firstName("Test")
+            .build();
+        repository.save(intBoolBinPerson);
+
+        List<Person> persons = repository.findByIsActive(true);
+        assertThat(persons).contains(intBoolBinPerson);
+
+        Value.UseBoolBin = initialValue; // set back to the default value
+        repository.delete(intBoolBinPerson);
+    }
+
+    @Test
+    void findBySimplePropertyEquals_Boolean_NegativeTest() {
+        boolean initialValue = Value.UseBoolBin;
+        Value.UseBoolBin = true; // save boolean as bool, available in Server 5.6+
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIsActive())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.isActive EQ: invalid number of arguments, expecting one");
+
+        assertThatThrownBy(() -> negativeTestsRepository.findByIsActive(true, false))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Person.isActive EQ: invalid number of arguments, expecting one");
+
+        Value.UseBoolBin = initialValue; // set back to the default value
     }
 
     @Test

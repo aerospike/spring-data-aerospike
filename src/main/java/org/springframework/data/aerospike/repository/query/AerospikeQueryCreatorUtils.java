@@ -244,7 +244,9 @@ public class AerospikeQueryCreatorUtils {
                                                           MappingAerospikeConverter converter) {
         return isAssignableValue(propertyType, obj)
             || converter.getCustomConversions().hasCustomReadTarget(obj.getClass(), propertyType)
-            || isPojoMap(obj, propertyType);
+            // POJOs and enums got converted to Strings when query parameters were set
+            || isPojoMap(obj, propertyType)
+            || (propertyType.isEnum() && obj instanceof String);
     }
 
     /**

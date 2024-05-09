@@ -13,6 +13,8 @@ import org.springframework.data.aerospike.util.AsCollections;
 
 import java.util.List;
 
+import static org.springframework.data.aerospike.sample.Person.Sex.FEMALE;
+
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
 
@@ -43,6 +45,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         .id(nextId())
         .firstName("Alicia")
         .lastName("Keys")
+        .sex(FEMALE)
         .age(30)
         .ints(List.of(550, 600, 990))
         .build();
