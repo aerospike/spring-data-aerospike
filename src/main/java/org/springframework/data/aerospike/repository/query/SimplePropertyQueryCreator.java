@@ -137,16 +137,16 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
         if (isNested) { // POJO field
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
             op = getCorrespondingMapValueFilterOperationOrFail(op);
+            dotPath = List.of(part.getProperty().toDotPath());
+        }
 
-            if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
-                setQualifierBuilderValue(qb, property.getFieldName());
-            } else {
-                setQualifierBuilderValue(qb, queryParameters.get(0));
+        if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
+            setQualifierBuilderValue(qb, property.getFieldName());
+        } else {
+            setQualifierBuilderValue(qb, queryParameters.get(0));
+            if (isNested) {
                 setQualifierBuilderKey(qb, property.getFieldName());
             }
-            dotPath = List.of(part.getProperty().toDotPath());
-        } else { // first level simple property
-            setQualifierBuilderValue(qb, queryParameters.get(0));
         }
 
         return setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
