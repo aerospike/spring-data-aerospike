@@ -87,9 +87,13 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         }
 
         if (queryParameters.get(0) instanceof Collection) {
-            validateTypes(converter, Collection.class, queryParameters, filterOperation, queryPartDescription);
+            validateTypes(converter, Collection.class, queryParameters, this.filterOperation, queryPartDescription);
         } else {
             throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expecting Collection");
+        }
+
+        if (queryParameters.stream().anyMatch(param -> !(param instanceof List<?>))) {
+            throw new IllegalArgumentException(queryPartDescription + ": only Lists can be compared");
         }
     }
 
@@ -111,6 +115,10 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         if (!value.getClass().equals(queryParameters.get(1).getClass())) {
             throw new IllegalArgumentException(queryPartDescription + ": invalid arguments type, expecting both " +
                 "to be of the same class");
+        }
+
+        if (queryParameters.stream().anyMatch(param -> !(param instanceof List<?>))) {
+            throw new IllegalArgumentException(queryPartDescription + ": only Lists can be compared");
         }
     }
 

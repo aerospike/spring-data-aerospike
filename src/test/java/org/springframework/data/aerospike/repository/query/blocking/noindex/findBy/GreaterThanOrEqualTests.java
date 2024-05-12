@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for the "Is greater than or equal" repository query. Keywords: GreaterThanEqual, IsGreaterThanEqual.
@@ -25,15 +26,16 @@ public class GreaterThanOrEqualTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByCollectionGreaterThanOrEqual_Set() {
+    void findByCollectionGreaterThanOrEqual_Set_NegativeTest() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Set<Integer> setToCompareWith = Set.of(0, 1, 2, 3, 4);
             dave.setIntSet(setToCompareWith);
             repository.save(dave);
-            assertThat(dave.getIntSet()).isEqualTo(setToCompareWith);
 
-            List<Person> persons = repository.findByIntSetGreaterThanEqual(setToCompareWith);
-            assertThat(persons).contains(dave);
+            // only Lists can be compared because they maintain ordering
+            assertThatThrownBy(() -> negativeTestsRepository.findByIntSetGreaterThanEqual(setToCompareWith))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Person.intSet GTEQ: only Lists can be compared");
         }
     }
 

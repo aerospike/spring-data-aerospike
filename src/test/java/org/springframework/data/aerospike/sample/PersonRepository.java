@@ -320,18 +320,18 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Page<P> findByAddressIn(List<Address> address, Pageable page);
 
     /**
-     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by List)
      *
      * @param list List to compare strings with
      */
     List<P> findByStringsEquals(List<String> list);
 
     /**
-     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by List)
      *
      * @param collection Collection to compare strings with
      */
-    List<P> findByStrings(Collection<String> collection);
+    List<P> findByStrings(List<String> collection);
 
     /**
      * Find all entities with existing strings list not equal to the given argument
@@ -362,23 +362,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities that satisfy the condition "have strings set with more elements or with a corresponding element
-     * higher in ordering than in the given argument" (find by collection).
+     * higher in ordering than in the given argument" (find by List).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
      * @param collection - Collection to compare with
      */
-    List<P> findByIntSetGreaterThanEqual(Collection<Integer> collection);
-
-    /**
-     * Find all entities that satisfy the condition "have strings set with more elements or with a corresponding element
-     * higher in ordering than in the given argument" (find by collection).
-     * <p>
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
-     *
-     * @param collection - Collection to compare with
-     */
-    List<P> findByIntsGreaterThanEqual(Collection<Integer> collection);
+    List<P> findByIntsGreaterThanEqual(List<Integer> collection);
 
     /**
      * Find all entities containing the given map element (key or value depending on the given criterion)
@@ -515,6 +505,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit for the map value, exclusive
      */
     List<P> findByIntMapBetween(Map<String, Integer> from, Map<String, Integer> to);
+
+    /**
+     * Find all entities that satisfy the condition "have intMap equal to one of the values in the given list"
+     * (find by Map)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByIntMapIn(List<Map<String, Integer>> list);
 
     /**
      * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value in
@@ -1170,6 +1168,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param integer number to check
      */
     List<P> findByIntsContaining(int integer);
+
+    /**
+     * Find all entities that satisfy the condition "have ints equal to one of the values in the given list"
+     * (find by List)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByIntsIn(List<List<Integer>> list);
 
     /**
      * Find all entities that satisfy the condition "have the array which contains the given integer"

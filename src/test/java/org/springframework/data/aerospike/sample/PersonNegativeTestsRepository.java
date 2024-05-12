@@ -22,6 +22,7 @@ import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This repository acts as a storage for invalid method names used for testing. For actual repository see
@@ -238,6 +239,12 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
      * Invalid argument type: expecting Collection
      */
     List<P> findByIntsGreaterThan(int number);
+
+
+    /**
+     * Only Lists can be compared
+     */
+    List<P> findByIntSetGreaterThanEqual(Set<Integer> set);
 
     /**
      * Invalid number of arguments: expecting at least one
