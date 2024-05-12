@@ -172,7 +172,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
     @Override
     public Qualifier process() {
-        Qualifier qualifier;
+        Qualifier qualifier = null;
         QualifierBuilder qb = Qualifier.builder();
         int paramsSize = queryParameters.size();
         List<String> dotPath = null;
@@ -191,38 +191,38 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
             return qualifier;
         }
 
-        if (isNested) { // POJO field
-            if (op == CONTAINING || op == NOT_CONTAINING) {
-                // for nested MapContaining queries
-                qb.setNestedType(ParticleType.MAP);
-            }
+        // POJO field
+        if (isNested && (op == CONTAINING || op == NOT_CONTAINING)) {
+            // for nested MapContaining queries
+            qb.setNestedType(ParticleType.MAP);
+        }
 
-            if (paramsSize == 2) {
-                setQualifierBuilderKey(qb, property.getFieldName());
-                qualifier = processMapTwoParams(qb, part, queryParameters, filterOperation, fieldName);
-            } else if (queryParameters.size() < 2) {
-                if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
-                    setQualifierBuilderValue(qb, property.getFieldName());
-                } else {
-                    setQualifierBuilderValue(qb, queryParameters.get(0));
+        if (queryParameters.size() < 2) {
+            if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
+                setQualifierBuilderValue(qb, property.getFieldName());
+            } else {
+                setQualifierBuilderValue(qb, queryParameters.get(0));
+                if (isNested) {
                     setQualifierBuilderKey(qb, property.getFieldName());
                 }
+            }
+            if (isNested) {
                 // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
                 op = getCorrespondingMapValueFilterOperationOrFail(filterOperation);
                 dotPath = List.of(part.getProperty().toDotPath());
-                qualifier = setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
-            } else { // multiple parameters
-                qualifier = processMapMultipleParams(qb);
             }
-        } else {
-            if (paramsSize == 2) {
-                qualifier = processMapTwoParams(qb, part, queryParameters, filterOperation, fieldName);
-            } else if (queryParameters.size() < 2) {
-                setQualifierBuilderValue(qb, queryParameters.get(0));
-                qualifier = setQualifier(qb, fieldName, filterOperation, part, dotPath, versionSupport);
-            } else { // multiple parameters
-                qualifier = processMapMultipleParams(qb);
+            qualifier = setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
+        }
+
+        if (paramsSize == 2) {
+            if (isNested) {
+                setQualifierBuilderKey(qb, property.getFieldName());
             }
+            qualifier = processMapTwoParams(qb, part, queryParameters, filterOperation, fieldName);
+        }
+
+        if (queryParameters.size() > 2) { // multiple parameters
+            qualifier = processMapMultipleParams(qb);
         }
 
         return qualifier;

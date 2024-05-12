@@ -148,19 +148,20 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
 
             // getting MAP_VAL_ operation because the property is in a POJO which is represented by a Map in DB
             op = getCorrespondingMapValueFilterOperationOrFail(op);
-
-            if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
-                setQualifierBuilderValue(qb, property.getFieldName());
-            } else {
-                setQualifierBuilderValue(qb, queryParameters.get(0));
-                setQualifierBuilderKey(qb, property.getFieldName());
-            }
             dotPath = List.of(part.getProperty().toDotPath());
         } else { // first level
             if (op == CONTAINING || op == NOT_CONTAINING) {
                 op = getCorrespondingListFilterOperationOrFail(op);
             }
+        }
+
+        if (queryParameters.isEmpty() && (filterOperation == IS_NOT_NULL || filterOperation == IS_NULL)) {
+            setQualifierBuilderValue(qb, property.getFieldName());
+        } else {
             setQualifierBuilderValue(qb, queryParameters.get(0));
+            if (isNested) {
+                setQualifierBuilderKey(qb, property.getFieldName());
+            }
         }
 
         return setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
