@@ -164,8 +164,10 @@ public class AerospikeQueryCreatorUtils {
 
     private static boolean isComparisonOperation(FilterOperation filterOperation) {
         return switch (filterOperation) {
-            case EQ, NOTEQ, LT, LTEQ, GT, GTEQ, BETWEEN: yield true;
-            default: yield false;
+            case EQ, NOTEQ, LT, LTEQ, GT, GTEQ, BETWEEN:
+                yield true;
+            default:
+                yield false;
         };
     }
 
@@ -243,8 +245,7 @@ public class AerospikeQueryCreatorUtils {
 
     private static boolean propertyTypeAndFirstParamAssignableToNumber(Class<?> propertyType,
                                                                        List<Object> queryParameters) {
-        return queryParameters != null
-            && queryParameters.size() > 0
+        return !queryParameters.isEmpty()
             && isAssignable(Number.class, propertyType)
             && isAssignableValue(Number.class, queryParameters.get(0));
     }

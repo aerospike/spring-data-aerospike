@@ -92,9 +92,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
             throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expecting Collection");
         }
 
-        if (queryParameters.stream().anyMatch(param -> !(param instanceof List<?>))) {
-            throw new IllegalArgumentException(queryPartDescription + ": only Lists can be compared");
-        }
+        validateListType(queryParameters, queryPartDescription);
     }
 
     private void validateCollectionQueryBetween(List<Object> queryParameters, String queryPartDescription) {
@@ -117,6 +115,10 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
                 "to be of the same class");
         }
 
+        validateListType(queryParameters, queryPartDescription);
+    }
+
+    private void validateListType(List<Object> queryParameters, String queryPartDescription) {
         if (queryParameters.stream().anyMatch(param -> !(param instanceof List<?>))) {
             throw new IllegalArgumentException(queryPartDescription + ": only Lists can be compared");
         }
