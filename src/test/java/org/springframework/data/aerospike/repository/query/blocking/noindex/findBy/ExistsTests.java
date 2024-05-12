@@ -19,6 +19,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class ExistsTests extends PersonRepositoryQueryTests {
 
     @Test
+    void findBySimplePropertyExists() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            List<Person> result = repository.findByFirstNameExists();
+            assertThat(result).containsAll(allPersons);
+        }
+    }
+
+    @Test
     void findByNestedSimplePropertyExists() {
         Assertions.assertThat(stefan.getAddress()).isNull();
         Assertions.assertThat(carter.getAddress().getZipCode()).isNotNull();
@@ -46,6 +54,17 @@ public class ExistsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByCollectionExists() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            List<Person> result = repository.findByIntsExists();
+            assertThat(result).contains(dave);
+        }
+    }
+
+    @Test
     void findByNestedCollectionExists() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             dave.setInts(List.of(1, 2, 3, 4));
@@ -58,6 +77,17 @@ public class ExistsTests extends PersonRepositoryQueryTests {
 
             assertThat(result).contains(carter);
             TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByMapExists() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            List<Person> result = repository.findByIntMapExists();
+            assertThat(result).contains(carter);
         }
     }
 

@@ -163,6 +163,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      */
     List<P> findByFirstNameBetween(String from, String to);
 
+    List<P> findByIntsExists();
+
+    List<P> findByIntMapExists();
+
     /**
      * Find all entities that satisfy the condition "have address in the given range"
      * <p>
@@ -1281,6 +1285,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFirstNameNot(String name);
 
     List<P> findByFirstNameIsNot(String name);
+
+    List<P> findByFirstNameExists();
 
     /**
      * Find all entities that satisfy the condition "have firstName higher in ordering than the given string".
