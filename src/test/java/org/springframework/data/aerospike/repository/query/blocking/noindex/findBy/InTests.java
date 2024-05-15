@@ -36,6 +36,18 @@ public class InTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByCollectionIn() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setInts(List.of(1, 2, 3, 4));
+            repository.save(dave);
+
+            List<Person> result = repository.findByIntsIn(List.of(List.of(0, 1, 2, 3, 4, 5, 6, 7),
+                List.of(1, 2, 3), List.of(1, 2, 3, 4)));
+            assertThat(result).contains(dave);
+        }
+    }
+
+    @Test
     void findByNestedCollectionIn() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             dave.setInts(List.of(1, 2, 3, 4));
@@ -49,6 +61,18 @@ public class InTests extends PersonRepositoryQueryTests {
 
             assertThat(result).contains(carter);
             TestUtils.setFriendsToNull(repository, carter);
+        }
+    }
+
+    @Test
+    void findByMapIn() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            dave.setIntMap(Map.of("1", 2, "3", 4));
+            repository.save(dave);
+
+            List<Person> result = repository.findByIntMapIn(List.of(Map.of("0", 1, "2", 3, "4", 5, "6", 7),
+                Map.of("1", 2, "3", 4567), Map.of("1", 2, "3", 4)));
+            assertThat(result).contains(dave);
         }
     }
 

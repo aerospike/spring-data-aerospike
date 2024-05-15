@@ -87,7 +87,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
         }
 
         if (queryParameters.get(0) instanceof Collection) {
-            validateTypes(converter, Collection.class, queryParameters, filterOperation, queryPartDescription);
+            validateTypes(converter, Collection.class, queryParameters, this.filterOperation, queryPartDescription);
         } else {
             throw new IllegalArgumentException(queryPartDescription + ": invalid argument type, expecting Collection");
         }

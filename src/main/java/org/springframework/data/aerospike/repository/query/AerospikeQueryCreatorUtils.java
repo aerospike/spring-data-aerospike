@@ -145,13 +145,19 @@ public class AerospikeQueryCreatorUtils {
     }
 
     protected static Object convertIfNecessary(Object obj, MappingAerospikeConverter converter) {
-        if (obj == null || obj instanceof AerospikeQueryCriterion || obj instanceof AerospikeNullQueryCriterion) {
+        if (typeDoesNotRequireConversion(obj)) {
             return obj;
         }
 
         // converting if necessary (e.g., Date to Long so that proper filter expression or sIndex filter can be built)
         TypeInformation<?> valueType = TypeInformation.of(obj.getClass());
         return converter.toWritableValue(obj, valueType);
+    }
+
+    private static boolean typeDoesNotRequireConversion(Object obj) {
+        return obj == null
+            || obj instanceof AerospikeQueryCriterion
+            || obj instanceof AerospikeNullQueryCriterion;
     }
 
     protected static Value getValueOfQueryParameter(Object queryParameter) {
@@ -196,15 +202,15 @@ public class AerospikeQueryCreatorUtils {
 
     protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath propertyPath,
                                         List<Object> queryParameters, FilterOperation op, String queryPartDescription) {
-        validateTypes(converter, propertyPath.getTypeInformation()
-            .getType(), queryParameters, op, queryPartDescription);
+        validateTypes(converter, propertyPath.getTypeInformation().getType(), queryParameters, op,
+            queryPartDescription);
     }
 
     protected static void validateTypes(MappingAerospikeConverter converter, Class<?> propertyType,
                                         List<Object> queryParameters, FilterOperation op, String queryPartDescription,
                                         String... alternativeTypes) {
         // Checking versus Number rather than strict type to be able to compare, e.g., integer to a long
-        if (isAssignable(Number.class, propertyType) && isAssignableValue(Number.class, queryParameters.get(0))) {
+        if (propertyTypeAndFirstParamAssignableToNumber(propertyType, queryParameters)) {
             propertyType = Number.class;
         }
 
@@ -224,6 +230,13 @@ public class AerospikeQueryCreatorUtils {
             throw new IllegalArgumentException(String.format("%s: Type mismatch, expecting %s", queryPartDescription,
                 validTypes));
         }
+    }
+
+    private static boolean propertyTypeAndFirstParamAssignableToNumber(Class<?> propertyType,
+                                                                       List<Object> queryParameters) {
+        return !queryParameters.isEmpty()
+            && isAssignable(Number.class, propertyType)
+            && isAssignableValue(Number.class, queryParameters.get(0));
     }
 
     protected static void validateQueryIsNull(List<Object> queryParameters, String queryPartDescription) {

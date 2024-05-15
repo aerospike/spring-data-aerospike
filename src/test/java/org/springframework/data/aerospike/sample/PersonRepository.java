@@ -320,18 +320,18 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Page<P> findByAddressIn(List<Address> address, Pageable page);
 
     /**
-     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
+     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by Collection)
      *
-     * @param list List to compare strings with
+     * @param strings Collection to compare strings with, subsequently gets converted to a List
      */
-    List<P> findByStringsEquals(List<String> list);
+    List<P> findByStringsEquals(Collection<String> strings);
 
     /**
-     * Find all entities that satisfy the condition "have strings the same as the given argument" (find by collection)
+     * Find all entities that satisfy the condition "have strings list equal to the given argument" (find by Collection)
      *
-     * @param collection Collection to compare strings with
+     * @param strings Collection to compare strings with, subsequently gets converted to a List
      */
-    List<P> findByStrings(Collection<String> collection);
+    List<P> findByStrings(Collection<String> strings);
 
     /**
      * Find all entities with existing strings list not equal to the given argument
@@ -342,41 +342,71 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities that satisfy the condition "have strings list with fewer elements or with a corresponding
-     * element lower in ordering than in the given argument" (find by list).
+     * element lower in ordering than in the given argument" (find by Collection).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
-     * @param list - List to compare with
+     * @param strings - Collection to compare with, subsequently gets converted to a List
      */
-    List<P> findByStringsLessThan(List<String> list);
+    List<P> findByStringsLessThan(Collection<String> strings);
 
     /**
-     * Find all entities that satisfy the condition "have integers list with more elements or with a corresponding
-     * element higher in ordering than in the given argument" (find by list).
+     * Find all entities that satisfy the condition "have ints list with more elements or with a corresponding
+     * element higher in ordering than in the given argument" (find by Collection).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
-     * @param list - List to compare with
+     * @param ints - Collection to compare with, subsequently gets converted to a List
      */
-    List<P> findByIntsGreaterThan(List<Integer> list);
+    List<P> findByIntsGreaterThan(Collection<Integer> ints);
 
     /**
-     * Find all entities that satisfy the condition "have strings set with more elements or with a corresponding element
-     * higher in ordering than in the given argument" (find by collection).
+     * Find all entities that satisfy the condition "have intSet with fewer elements or with a corresponding element
+     * lower in ordering than in the given argument" (find by Collection).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
-     * @param collection - Collection to compare with
+     * @param collection - Collection to compare with, subsequently gets converted to a List
+     */
+    List<P> findByIntSetLessThan(Collection<Integer> collection);
+
+    /**
+     * Find all entities that satisfy the condition "have intSet with fewer elements or with a corresponding element
+     * lower in ordering than in the given argument, or equal to the given argument" (find by Collection).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param collection - Collection to compare with, subsequently gets converted to a List
+     */
+    List<P> findByIntSetLessThanEqual(Collection<Integer> collection);
+
+    /**
+     * Find all entities that satisfy the condition "have intSet with more elements or with a corresponding element
+     * higher in ordering than in the given argument" (find by Collection).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param collection - Collection to compare with, subsequently gets converted to a List
+     */
+    List<P> findByIntSetGreaterThan(Collection<Integer> collection);
+
+    /**
+     * Find all entities that satisfy the condition "have intSet with more elements or with a corresponding element
+     * higher in ordering than in the given argument, or equal to the given argument" (find by Collection).
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param collection - Collection to compare with, subsequently gets converted to a List
      */
     List<P> findByIntSetGreaterThanEqual(Collection<Integer> collection);
 
     /**
-     * Find all entities that satisfy the condition "have strings set with more elements or with a corresponding element
-     * higher in ordering than in the given argument" (find by collection).
+     * Find all entities that satisfy the condition "have ints list with more elements or with a corresponding element
+     * higher in ordering than in the given argument, or equal to the given argument" (find by Collection).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
-     * @param collection - Collection to compare with
+     * @param collection - Collection to compare with, subsequently gets converted to a List
      */
     List<P> findByIntsGreaterThanEqual(Collection<Integer> collection);
 
@@ -457,14 +487,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAddressesMapContaining(AerospikeQueryCriterion criterionPair, String key, Address value);
 
     /**
-     * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by map)
+     * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by Map)
      *
      * @param map Map to compare stringMap with
      */
     List<P> findByStringMapEquals(Map<String, String> map);
 
     /**
-     * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by map)
+     * Find all entities that satisfy the condition "have stringMap the same as the given argument" (find by Map)
      *
      * @param map Map to compare stringMap with
      */
@@ -472,7 +502,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     /**
      * Find all entities that satisfy the condition "have stringMap with more elements or with a corresponding key-value
-     * higher in ordering than in the given argument" (find by map).
+     * higher in ordering than in the given argument" (find by Map).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map">Information about ordering</a>
      *
@@ -515,6 +545,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit for the map value, exclusive
      */
     List<P> findByIntMapBetween(Map<String, Integer> from, Map<String, Integer> to);
+
+    /**
+     * Find all entities that satisfy the condition "have intMap equal to one of the values in the given list"
+     * (find by Map)
+     *
+     * @param list - list of possible values
+     */
+    List<P> findByIntMapIn(List<Map<String, Integer>> list);
 
     /**
      * Find all entities that satisfy the condition "have a bestFriend who has a friend with address apartment value in
@@ -1172,6 +1210,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsContaining(int integer);
 
     /**
+     * Find all entities that satisfy the condition "have ints list equal to one of the values in the given list"
+     * (find by Collection)
+     *
+     * @param list - list of possible values, each of them subsequently gets converted to a List
+     */
+    List<P> findByIntsIn(List<Collection<Integer>> list);
+
+    /**
      * Find all entities that satisfy the condition "have the array which contains the given integer"
      * <p>
      * Array name in this case is IntArray
@@ -1239,30 +1285,34 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsLessThanEqual(long value);
 
     /**
-     * Find all entities that satisfy the condition "have list in the given range"
-     * <p>
-     * List name in this case is Ints
-     * </p>
+     * Find all entities that satisfy the condition "have intSet in the given range"
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
-     * @param from lower limit, inclusive
-     * @param to   upper limit, exclusive
+     * @param from lower limit, inclusive, subsequently gets converted to a List
+     * @param to   upper limit, exclusive, subsequently gets converted to a List
      */
-    List<P> findByIntsBetween(List<Integer> from, List<Integer> to);
+    List<P> findByIntSetBetween(Collection<Integer> from, Collection<Integer> to);
 
     /**
-     * Find all entities that satisfy the condition "have list in the given range"
-     * <p>
-     * List name in this case is Strings
-     * </p>
+     * Find all entities that satisfy the condition "have ints list in the given range"
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
-     * @param from lower limit, inclusive
-     * @param to   upper limit, exclusive
+     * @param from lower limit, inclusive, subsequently gets converted to a List
+     * @param to   upper limit, exclusive, subsequently gets converted to a List
      */
-    List<P> findByStringsBetween(List<String> from, List<String> to);
+    List<P> findByIntsBetween(Collection<Integer> from, Collection<Integer> to);
+
+    /**
+     * Find all entities that satisfy the condition "have strings list in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive, subsequently gets converted to a List
+     * @param to   upper limit, exclusive, subsequently gets converted to a List
+     */
+    List<P> findByStringsBetween(Collection<String> from, Collection<String> to);
 
     P findFirstByLastNameStartingWith(String lastName, Sort sort);
 
