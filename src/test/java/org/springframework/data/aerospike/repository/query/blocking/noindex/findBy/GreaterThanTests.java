@@ -11,8 +11,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -132,6 +136,43 @@ public class GreaterThanTests extends PersonRepositoryQueryTests {
             .containsExactlyInAnyOrder(alicia, leroi);
 
         TestUtils.setFriendsToNull(repository, alicia, dave, carter, leroi);
+    }
+
+    /**
+     * Collections are converted to Lists when saved to AerospikeDB.
+     * <p>
+     * Argument of type Collection meant to be compared with a List in DB also gets converted to a List.
+     * <p>
+     * In this test we are providing a SortedSet and a PriorityQueue which preserve the order of elements,
+     * such Collections can be consistently compared to a List saved in DB.
+     */
+    @Test
+    void findByCollectionGreaterThan_SortedSet() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Set<Integer> davesIntSet = Set.of(1);
+            dave.setIntSet(davesIntSet);
+            repository.save(dave);
+            assertThat(dave.getIntSet()).isEqualTo(davesIntSet);
+
+            Set<Integer> setToCompareWith = new TreeSet<>(Set.of(0, 1, 2, 3, 4)); // natural order
+            List<Person> persons = repository.findByIntSetGreaterThan(setToCompareWith);
+            assertThat(persons).contains(dave);
+
+            Set<Integer> setToCompareWith2 = new TreeSet<>(Comparator.comparingInt(Integer::intValue));
+            setToCompareWith2.addAll(Set.of(3, 1, 2, 4, 0)); // gets sorted using Comparator
+            List<Person> persons2 = repository.findByIntSetGreaterThan(setToCompareWith2);
+            assertThat(persons2).contains(dave);
+
+            List<Integer> listToCompareWith = List.of(3, 1, 2, 0, 4); // the insertion order is preserved
+            List<Person> persons3 = repository.findByIntSetGreaterThan(listToCompareWith);
+            assertThat(persons3).doesNotContain(dave);
+
+            // gets sorted using natural order
+            PriorityQueue<Integer> queueToCompareWith = new PriorityQueue<>(Set.of(3, 1, 2, 4, 0));
+            List<Person> persons4 = repository.findByIntSetGreaterThan(queueToCompareWith);
+            assertThat(persons4).contains(dave);
+
+        }
     }
 
     @Test

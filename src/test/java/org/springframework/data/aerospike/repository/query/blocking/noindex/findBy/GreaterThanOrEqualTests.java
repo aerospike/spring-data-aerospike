@@ -6,12 +6,14 @@ import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.util.TestUtils;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.TreeSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for the "Is greater than or equal" repository query. Keywords: GreaterThanEqual, IsGreaterThanEqual.
@@ -25,17 +27,64 @@ public class GreaterThanOrEqualTests extends PersonRepositoryQueryTests {
         assertThat(repository.findByAddressZipCodeGreaterThanEqual(zipCode)).containsExactly(carter);
     }
 
+    /**
+     * Collections are converted to Lists when saved to AerospikeDB.
+     * <p>
+     * Argument of type Collection meant to be compared with a List in DB also gets converted to a List.
+     * <p>
+     * In this test we are providing an unordered Collection (Set) which means that the order of elements
+     * in a resulting List cannot be guaranteed.
+     * <p>
+     * Comparing with an unordered Collection works only for equality (EQ/NOTEQ) operations
+     * and not for LT/LTEQ/GT/GTEQ/BETWEEN.
+     */
     @Test
-    void findByCollectionGreaterThanOrEqual_Set_NegativeTest() {
+    void findByCollectionGreaterThanOrEqual_UnorderedSet_Equals_List() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             Set<Integer> setToCompareWith = Set.of(0, 1, 2, 3, 4);
             dave.setIntSet(setToCompareWith);
             repository.save(dave);
+            assertThat(dave.getIntSet()).isEqualTo(setToCompareWith);
 
-            // only Lists can be compared because they maintain ordering
-            assertThatThrownBy(() -> negativeTestsRepository.findByIntSetGreaterThanEqual(setToCompareWith))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Person.intSet GTEQ: only Lists can be compared");
+            List<Person> persons = repository.findByIntSetGreaterThanEqual(setToCompareWith);
+            assertThat(persons).contains(dave);
+        }
+    }
+
+    /**
+     * Collections are converted to Lists when saved to AerospikeDB.
+     * <p>
+     * Argument of type Collection meant to be compared with a List in DB also gets converted to a List.
+     * <p>
+     * In this test we are providing a SortedSet and a PriorityQueue which preserve the order of elements,
+     * such Collections can be consistently compared to a List saved in DB.
+     */
+    @Test
+    void findByCollectionGreaterThanOrEqual_SortedSet() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            Set<Integer> davesIntSet = Set.of(1);
+            dave.setIntSet(davesIntSet);
+            repository.save(dave);
+            assertThat(dave.getIntSet()).isEqualTo(davesIntSet);
+
+            Set<Integer> setToCompareWith = new TreeSet<>(Set.of(0, 1, 2, 3, 4)); // natural order
+            List<Person> persons = repository.findByIntSetGreaterThanEqual(setToCompareWith);
+            assertThat(persons).contains(dave);
+
+            Set<Integer> setToCompareWith2 = new TreeSet<>(Comparator.comparingInt(Integer::intValue));
+            setToCompareWith2.addAll(Set.of(3, 1, 2, 4, 0)); // gets sorted using Comparator
+            List<Person> persons2 = repository.findByIntSetGreaterThanEqual(setToCompareWith2);
+            assertThat(persons2).contains(dave);
+
+            List<Integer> listToCompareWith = List.of(3, 1, 2, 0, 4); // the insertion order is preserved
+            List<Person> persons3 = repository.findByIntSetGreaterThanEqual(listToCompareWith);
+            assertThat(persons3).doesNotContain(dave);
+
+            // gets sorted using natural order
+            PriorityQueue<Integer> queueToCompareWith = new PriorityQueue<>(Set.of(3, 1, 2, 4, 0));
+            List<Person> persons4 = repository.findByIntSetGreaterThanEqual(queueToCompareWith);
+            assertThat(persons4).contains(dave);
+
         }
     }
 

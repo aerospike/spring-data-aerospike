@@ -144,9 +144,8 @@ public class AerospikeQueryCreatorUtils {
         qb.setValue(Value.get(key)); // contains key
     }
 
-    protected static Object convertIfNecessary(Object obj, MappingAerospikeConverter converter,
-                                               FilterOperation filterOperation) {
-        if (typeDoesNotRequireConversion(obj, filterOperation)) {
+    protected static Object convertIfNecessary(Object obj, MappingAerospikeConverter converter) {
+        if (typeDoesNotRequireConversion(obj)) {
             return obj;
         }
 
@@ -155,20 +154,10 @@ public class AerospikeQueryCreatorUtils {
         return converter.toWritableValue(obj, valueType);
     }
 
-    private static boolean typeDoesNotRequireConversion(Object obj, FilterOperation filterOperation) {
+    private static boolean typeDoesNotRequireConversion(Object obj) {
         return obj == null
             || obj instanceof AerospikeQueryCriterion
-            || obj instanceof AerospikeNullQueryCriterion
-            || (isComparisonOperation(filterOperation) && obj instanceof Collection<?>);
-    }
-
-    private static boolean isComparisonOperation(FilterOperation filterOperation) {
-        return switch (filterOperation) {
-            case EQ, NOTEQ, LT, LTEQ, GT, GTEQ, BETWEEN:
-                yield true;
-            default:
-                yield false;
-        };
+            || obj instanceof AerospikeNullQueryCriterion;
     }
 
     protected static Value getValueOfQueryParameter(Object queryParameter) {

@@ -195,7 +195,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
 
     private List<Object> getQueryParameters(Iterator<?> parametersIterator, FilterOperation filterOperation) {
         List<Object> params = new ArrayList<>();
-        parametersIterator.forEachRemaining(param -> params.add(convertIfNecessary(param, converter, filterOperation)));
+        parametersIterator.forEachRemaining(param -> params.add(convertIfNecessary(param, converter)));
         // null parameters are not allowed, instead AerospikeNullQueryCriteria.NULL_PARAM should be used
         return params.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
