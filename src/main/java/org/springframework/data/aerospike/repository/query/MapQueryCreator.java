@@ -56,7 +56,6 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
             case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> {
                 validateMapQueryComparison(queryPartDescription);
                 validateTypes(converter, propertyPath, filterOperation, queryParameters);
-
             }
             case BETWEEN -> {
                 validateMapQueryBetween(queryPartDescription);
