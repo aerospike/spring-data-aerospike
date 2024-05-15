@@ -32,11 +32,11 @@ public class GreaterThanOrEqualTests extends PersonRepositoryQueryTests {
      * <p>
      * Argument of type Collection meant to be compared with a List in DB also gets converted to a List.
      * <p>
-     * In this test we are providing an unordered Collection (Set) which means that the order of elements
-     * in a resulting List cannot be guaranteed.
+     * In this test we are providing an unordered Collection (Set) which means that the order of elements in a resulting
+     * List cannot be guaranteed.
      * <p>
-     * Comparing with an unordered Collection works only for equality (EQ/NOTEQ) operations
-     * and not for LT/LTEQ/GT/GTEQ/BETWEEN.
+     * Comparing with an unordered Collection works only for equality (EQ/NOTEQ) operations and not for
+     * LT/LTEQ/GT/GTEQ/BETWEEN.
      */
     @Test
     void findByCollectionGreaterThanOrEqual_UnorderedSet_Equals_List() {
@@ -56,8 +56,8 @@ public class GreaterThanOrEqualTests extends PersonRepositoryQueryTests {
      * <p>
      * Argument of type Collection meant to be compared with a List in DB also gets converted to a List.
      * <p>
-     * In this test we are providing a SortedSet and a PriorityQueue which preserve the order of elements,
-     * such Collections can be consistently compared to a List saved in DB.
+     * In this test we are providing a SortedSet and a PriorityQueue which preserve the order of elements, such
+     * Collections can be consistently compared to a List saved in DB.
      */
     @Test
     void findByCollectionGreaterThanOrEqual_SortedSet() {
@@ -84,7 +84,6 @@ public class GreaterThanOrEqualTests extends PersonRepositoryQueryTests {
             PriorityQueue<Integer> queueToCompareWith = new PriorityQueue<>(Set.of(3, 1, 2, 4, 0));
             List<Person> persons4 = repository.findByIntSetGreaterThanEqual(queueToCompareWith);
             assertThat(persons4).contains(dave);
-
         }
     }
 

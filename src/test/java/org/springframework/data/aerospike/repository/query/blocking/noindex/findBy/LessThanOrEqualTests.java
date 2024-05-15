@@ -49,11 +49,11 @@ public class LessThanOrEqualTests extends PersonRepositoryQueryTests {
      * <p>
      * Argument of type Collection meant to be compared with a List in DB also gets converted to a List.
      * <p>
-     * In this test we are providing an unordered Collection (Set) which means that the order of elements
-     * in a resulting List cannot be guaranteed.
+     * In this test we are providing an unordered Collection (Set) which means that the order of elements in a resulting
+     * List cannot be guaranteed.
      * <p>
-     * Comparing with an unordered Collection works only for equality (EQ/NOTEQ) operations
-     * and not for LT/LTEQ/GT/GTEQ/BETWEEN.
+     * Comparing with an unordered Collection works only for equality (EQ/NOTEQ) operations and not for
+     * LT/LTEQ/GT/GTEQ/BETWEEN.
      */
     @Test
     void findByCollectionLessThanOrEqual_UnorderedSet_Equals_List() {
@@ -73,8 +73,8 @@ public class LessThanOrEqualTests extends PersonRepositoryQueryTests {
      * <p>
      * Argument of type Collection meant to be compared with a List in DB also gets converted to a List.
      * <p>
-     * In this test we are providing a SortedSet and a PriorityQueue which preserve the order of elements,
-     * such Collections can be consistently compared to a List saved in DB.
+     * In this test we are providing a SortedSet and a PriorityQueue which preserve the order of elements, such
+     * Collections can be consistently compared to a List saved in DB.
      */
     @Test
     void findByCollectionLessThanOrEqual_SortedSet() {
