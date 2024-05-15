@@ -142,10 +142,11 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             }
         } else if (property.isMap()) {
             if (part.getProperty().hasNext()) { // a POJO field
-                queryCreator = new MapQueryCreator(part, property, fieldName, queryParameters, filterOperation,
+                PropertyPath nestedProperty = getNestedPropertyPath(part.getProperty());
+                queryCreator = new MapQueryCreator(part, nestedProperty, property, fieldName, queryParameters, filterOperation,
                     converter, versionSupport, true);
             } else {
-                queryCreator = new MapQueryCreator(part, property, fieldName, queryParameters, filterOperation,
+                queryCreator = new MapQueryCreator(part, part.getProperty(), property, fieldName, queryParameters, filterOperation,
                     converter, versionSupport, false);
             }
         } else {

@@ -202,8 +202,8 @@ public class AerospikeQueryCreatorUtils {
 
     protected static void validateTypes(MappingAerospikeConverter converter, PropertyPath propertyPath,
                                         List<Object> queryParameters, FilterOperation op, String queryPartDescription) {
-        validateTypes(converter, propertyPath.getTypeInformation()
-            .getType(), queryParameters, op, queryPartDescription);
+        validateTypes(converter, propertyPath.getTypeInformation().getType(), queryParameters, op,
+            queryPartDescription);
     }
 
     protected static void validateTypes(MappingAerospikeConverter converter, Class<?> propertyType,
