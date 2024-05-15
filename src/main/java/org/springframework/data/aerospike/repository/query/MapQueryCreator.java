@@ -9,6 +9,7 @@ import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.util.TypeInformation;
 
@@ -24,6 +25,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
     private final Part part;
     private final AerospikePersistentProperty property;
+    private final PropertyPath propertyPath;
     private final String fieldName;
     private final List<Object> queryParameters;
     private final FilterOperation filterOperation;
@@ -31,10 +33,11 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     private final ServerVersionSupport versionSupport;
     private final boolean isNested;
 
-    public MapQueryCreator(Part part, AerospikePersistentProperty property, String fieldName,
+    public MapQueryCreator(Part part, PropertyPath propertyPath, AerospikePersistentProperty property, String fieldName,
                            List<Object> queryParameters, FilterOperation filterOperation,
                            MappingAerospikeConverter converter, ServerVersionSupport versionSupport, boolean isNested) {
         this.part = part;
+        this.propertyPath = propertyPath;
         this.property = property;
         this.fieldName = fieldName;
         this.queryParameters = queryParameters;
@@ -46,13 +49,26 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
 
     @Override
     public void validate() {
-        String queryPartDescription = String.join(" ", part.getProperty().toString(), filterOperation.toString());
+        String queryPartDescription = String.join(" ", propertyPath.toString(), filterOperation.toString());
         switch (filterOperation) {
+            // Types of query arguments for CONTAINING and NOT_CONTAINING are validated within the method
             case CONTAINING, NOT_CONTAINING -> validateMapQueryContaining(queryPartDescription);
-            case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> validateMapQueryComparison(queryPartDescription);
-            case BETWEEN -> validateMapQueryBetween(queryPartDescription);
-            case IN, NOT_IN -> validateQueryIn(queryParameters, queryPartDescription);
-            case IS_NOT_NULL, IS_NULL -> validateQueryIsNull(queryParameters, queryPartDescription);
+            case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> {
+                validateMapQueryComparison(queryPartDescription);
+                validateTypes(converter, propertyPath, filterOperation, queryParameters);
+            }
+            case BETWEEN -> {
+                validateMapQueryBetween(queryPartDescription);
+                validateTypes(converter, propertyPath, filterOperation, queryParameters);
+            }
+            case IN, NOT_IN -> {
+                validateQueryIn(queryParameters, queryPartDescription);
+                validateTypes(converter, propertyPath, filterOperation, queryParameters);
+            }
+            case IS_NOT_NULL, IS_NULL -> {
+                validateQueryIsNull(queryParameters, queryPartDescription);
+                validateTypes(converter, propertyPath, filterOperation, queryParameters);
+            }
             default -> throw new UnsupportedOperationException("Unsupported operation: " + queryPartDescription);
         }
     }
