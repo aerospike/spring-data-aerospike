@@ -51,7 +51,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     public void validate() {
         String queryPartDescription = String.join(" ", propertyPath.toString(), filterOperation.toString());
         switch (filterOperation) {
-            // Types for CONTAINING and NOT_CONTAINING are validated within the method
+            // Types of query arguments for CONTAINING and NOT_CONTAINING are validated within the method
             case CONTAINING, NOT_CONTAINING -> validateMapQueryContaining(queryPartDescription);
             case EQ, NOTEQ, GT, GTEQ, LT, LTEQ -> {
                 validateMapQueryComparison(queryPartDescription);
