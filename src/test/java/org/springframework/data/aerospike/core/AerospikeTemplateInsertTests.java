@@ -77,7 +77,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .strings(Arrays.asList("a", "b", "c"))
             .friend(new Person(null, "Anna", 43))
             .isActive(true)
-            .sex(Person.Sex.MALE)
+            .gender(Person.Gender.MALE)
             .dateOfBirth(new Date())
             .build();
         template.insert(customer);
@@ -99,7 +99,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .strings(Arrays.asList("a", "b", "c"))
             .friend(new Person(null, "Anna", 43))
             .isActive(true)
-            .sex(Person.Sex.MALE)
+            .gender(Person.Gender.MALE)
             .dateOfBirth(new Date())
             .build();
         template.insert(customer, OVERRIDE_SET_NAME);

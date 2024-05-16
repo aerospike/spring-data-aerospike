@@ -1326,7 +1326,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstName(String name);
 
-    List<P> findBySex(Person.Sex sex);
+    List<P> findByGender(Person.Gender sex);
+
+    List<P> findByGenderIn(List<Person.Gender> list);
 
     List<P> findByFirstNameIs(String name);
 

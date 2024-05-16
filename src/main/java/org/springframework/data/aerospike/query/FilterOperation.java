@@ -126,7 +126,7 @@ public enum FilterOperation {
                         .getFilterExp()
                 ).toArray(Exp[]::new);
 
-                return Exp.or(arrElementsExp);
+                return arrElementsExp.length > 1 ? Exp.or(arrElementsExp) : arrElementsExp[0];
             });
         }
 
@@ -150,7 +150,7 @@ public enum FilterOperation {
                         .getFilterExp()
                 ).toArray(Exp[]::new);
 
-                return Exp.and(arrElementsExp);
+                return arrElementsExp.length > 1 ? Exp.and(arrElementsExp) : arrElementsExp[0];
             });
         }
 

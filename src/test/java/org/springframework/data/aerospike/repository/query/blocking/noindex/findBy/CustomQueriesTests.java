@@ -289,7 +289,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier sexEqFemale = Qualifier.builder()
             .setBinName("sex")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get(Person.Sex.FEMALE))
+            .setValue(Value.get(Person.Gender.FEMALE))
             .build();
         assertThat(repository.findUsingQuery(new Query(sexEqFemale))).containsOnly(alicia);
     }
