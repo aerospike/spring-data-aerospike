@@ -84,6 +84,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     @BeforeAll
     public void beforeAllSetUp() {
         deleteOneByOne(allPersons);
+        deleteOneByOne(allPersons, OVERRIDE_SET_NAME);
 
         // batch write operations are supported starting with Server version 6.0+
         if (serverVersionSupport.isBatchWriteSupported()) {
