@@ -18,9 +18,11 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -42,11 +44,22 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @BeforeEach
     public void beforeEach() {
         template.deleteAll(Person.class);
+        template.deleteAll(OVERRIDE_SET_NAME);
+        template.deleteAll(CustomCollectionClass.class);
+        template.deleteAll(DocumentWithByteArray.class);
+        template.deleteAll(VersionedClass.class);
+    }
+
+    @AfterAll
+    public void afterAll() {
+        template.deleteAll(Person.class);
+        template.deleteAll(OVERRIDE_SET_NAME);
         template.deleteAll(CustomCollectionClass.class);
         template.deleteAll(DocumentWithByteArray.class);
         template.deleteAll(VersionedClass.class);
