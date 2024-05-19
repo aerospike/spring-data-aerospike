@@ -49,20 +49,14 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @BeforeEach
     public void beforeEach() {
-        template.deleteAll(Person.class);
-        template.deleteAll(OVERRIDE_SET_NAME);
-        template.deleteAll(CustomCollectionClass.class);
-        template.deleteAll(DocumentWithByteArray.class);
-        template.deleteAll(VersionedClass.class);
+        deleteAll(Person.class, CustomCollectionClass.class, DocumentWithByteArray.class, VersionedClass.class,
+            OVERRIDE_SET_NAME);
     }
 
     @AfterAll
     public void afterAll() {
-        template.deleteAll(Person.class);
-        template.deleteAll(OVERRIDE_SET_NAME);
-        template.deleteAll(CustomCollectionClass.class);
-        template.deleteAll(DocumentWithByteArray.class);
-        template.deleteAll(VersionedClass.class);
+        deleteAll(Person.class, CustomCollectionClass.class, DocumentWithByteArray.class, VersionedClass.class,
+            OVERRIDE_SET_NAME);
     }
 
     @Test
