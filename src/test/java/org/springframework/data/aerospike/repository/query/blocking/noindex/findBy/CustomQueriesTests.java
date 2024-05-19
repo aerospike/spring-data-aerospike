@@ -190,6 +190,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
+            .setValueAsObj("value")
             .setSecondValueAsObj(1L)
             .build())))
             .isInstanceOf(IllegalArgumentException.class)

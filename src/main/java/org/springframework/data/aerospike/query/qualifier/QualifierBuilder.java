@@ -3,7 +3,9 @@ package org.springframework.data.aerospike.query.qualifier;
 import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -20,7 +22,7 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
-     * Set bin name.
+     * Set bin name. Mandatory parameter for bin query.
      */
     public QualifierBuilder setBinName(String field) {
         this.map.put(BIN_NAME, field);
@@ -28,7 +30,7 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
-     * Set bin name.
+     * Set bin type.
      */
     public QualifierBuilder setBinType(Exp.Type type) {
         this.map.put(BIN_TYPE, type);
@@ -36,7 +38,7 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
-     * Set full path from bin name to required element
+     * Set full path from bin name to required element.
      */
     public QualifierBuilder setDotPath(List<String> dotPath) {
         this.map.put(DOT_PATH, dotPath);
@@ -82,7 +84,8 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
-     * Set value.
+     * Set value. Mandatory parameter for bin query for all operations except {@link FilterOperation#IS_NOT_NULL} and
+     * {@link FilterOperation#IS_NULL}.
      * <p>
      * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
      * value into a {@link Value} object.
@@ -118,5 +121,21 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     public QualifierBuilder setServerVersionSupport(ServerVersionSupport serverVersionSupport) {
         this.map.put(SERVER_VERSION_SUPPORT, serverVersionSupport);
         return this;
+    }
+
+    protected void validate() {
+        if (!StringUtils.hasText(this.getBinName())) {
+            throw new IllegalArgumentException("Expecting bin name parameter to be provided");
+        }
+
+        if (this.getFilterOperation() == null) {
+            throw new IllegalArgumentException("Expecting filter operation parameter to be provided");
+        }
+
+        if (this.getValue() == null
+            && this.getFilterOperation() != FilterOperation.IS_NULL
+            && this.getFilterOperation() != FilterOperation.IS_NOT_NULL) {
+            throw new IllegalArgumentException("Expecting value parameter to be provided");
+        }
     }
 }
