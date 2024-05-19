@@ -18,9 +18,11 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -42,14 +44,19 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @BeforeEach
     public void beforeEach() {
-        template.deleteAll(Person.class);
-        template.deleteAll(CustomCollectionClass.class);
-        template.deleteAll(DocumentWithByteArray.class);
-        template.deleteAll(VersionedClass.class);
+        deleteAll(Person.class, CustomCollectionClass.class, DocumentWithByteArray.class, VersionedClass.class,
+            OVERRIDE_SET_NAME);
+    }
+
+    @AfterAll
+    public void afterAll() {
+        deleteAll(Person.class, CustomCollectionClass.class, DocumentWithByteArray.class, VersionedClass.class,
+            OVERRIDE_SET_NAME);
     }
 
     @Test
@@ -77,7 +84,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .strings(Arrays.asList("a", "b", "c"))
             .friend(new Person(null, "Anna", 43))
             .isActive(true)
-            .sex(Person.Sex.MALE)
+            .gender(Person.Gender.MALE)
             .dateOfBirth(new Date())
             .build();
         template.insert(customer);
@@ -99,7 +106,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
             .strings(Arrays.asList("a", "b", "c"))
             .friend(new Person(null, "Anna", 43))
             .isActive(true)
-            .sex(Person.Sex.MALE)
+            .gender(Person.Gender.MALE)
             .dateOfBirth(new Date())
             .build();
         template.insert(customer, OVERRIDE_SET_NAME);

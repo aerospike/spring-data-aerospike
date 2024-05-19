@@ -287,12 +287,12 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
 
     @Test
     void findBySimplePropertyEquals_Enum() {
-        Qualifier sexEqFemale = Qualifier.builder()
-            .setBinName("sex")
+        Qualifier genderEqFemale = Qualifier.builder()
+            .setBinName("gender")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get(Person.Sex.FEMALE))
+            .setValue(Value.get(Person.Gender.FEMALE))
             .build();
-        assertThat(repository.findUsingQuery(new Query(sexEqFemale))).containsOnly(alicia);
+        assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
     }
 }
 

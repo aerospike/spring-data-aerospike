@@ -75,7 +75,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             .strings(Arrays.asList("a", "b", "c"))
             .friend(new Person(null, "Anna", 43))
             .isActive(true)
-            .sex(Person.Sex.MALE)
+            .gender(Person.Gender.MALE)
             .dateOfBirth(new Date())
             .build();
 
@@ -100,7 +100,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
             .strings(Arrays.asList("a", "b", "c"))
             .friend(new Person(null, "Anna", 43))
             .isActive(true)
-            .sex(Person.Sex.MALE)
+            .gender(Person.Gender.MALE)
             .dateOfBirth(new Date())
             .build();
 
