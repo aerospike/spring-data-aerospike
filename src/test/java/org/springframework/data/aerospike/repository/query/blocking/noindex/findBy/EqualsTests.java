@@ -55,7 +55,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
     void findBySimplePropertyEquals_Enum() {
-        List<Person> result = repository.findBySex(Person.Sex.FEMALE);
+        List<Person> result = repository.findByGender(Person.Gender.FEMALE);
         assertThat(result).containsOnly(alicia);
     }
 

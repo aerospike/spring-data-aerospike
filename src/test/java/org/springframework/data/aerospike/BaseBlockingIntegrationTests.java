@@ -168,4 +168,21 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
 
         throw new IllegalArgumentException("The result of conversion is not a Map, expecting only a POJO argument");
     }
+
+    /**
+     * Delete all entities of a class or a set.
+     *
+     * @param objectsToDelete Each of the objects must be either a Class or a String.
+     */
+    protected void deleteAll(Object... objectsToDelete) {
+        for (Object toDelete : objectsToDelete) {
+            if (toDelete instanceof Class<?>) {
+                template.deleteAll((Class<?>) toDelete);
+            } else if (toDelete instanceof String) {
+                template.deleteAll((String) toDelete);
+            } else {
+                throw new IllegalArgumentException("Expecting either a Class<?> or a String");
+            }
+        }
+    }
 }

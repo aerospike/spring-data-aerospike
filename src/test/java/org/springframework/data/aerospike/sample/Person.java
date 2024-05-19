@@ -49,7 +49,7 @@ public class Person {
     private BigInteger ageBigInteger;
     private BigDecimal ageBigDecimal;
     private int waist;
-    private Sex sex;
+    private Gender gender;
     private Map<String, String> stringMap;
     private Map<String, Integer> intMap;
     private Map<Long, Integer> longIntMap;
@@ -100,7 +100,7 @@ public class Person {
             .build();
     }
 
-    public enum Sex {
+    public enum Gender {
         MALE, FEMALE
     }
 }

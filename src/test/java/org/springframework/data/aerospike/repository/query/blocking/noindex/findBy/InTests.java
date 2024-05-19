@@ -36,6 +36,19 @@ public class InTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByEnumIn() {
+        List<Person> result;
+        result = repository.findByGenderIn(List.of(Person.Gender.FEMALE, Person.Gender.MALE));
+        assertThat(result).contains(alicia);
+
+        result = repository.findByGenderIn(List.of(Person.Gender.FEMALE));
+        assertThat(result).contains(alicia);
+
+        result = repository.findByGenderIn(List.of(Person.Gender.MALE));
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void findByCollectionIn() {
         if (serverVersionSupport.isFindByCDTSupported()) {
             dave.setInts(List.of(1, 2, 3, 4));
