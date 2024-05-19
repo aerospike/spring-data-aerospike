@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.query.qualifier;
 
+import com.aerospike.client.Value;
 import org.springframework.data.aerospike.query.FilterOperation;
 
 import java.util.Collections;
@@ -23,6 +24,9 @@ abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implement
         return (FilterOperation) map.get(OPERATION);
     }
 
+    /**
+     * Set filter operation. Mandatory parameter.
+     */
     public T setFilterOperation(FilterOperation filterOperation) {
         map.put(OPERATION, filterOperation);
         return (T) this;
@@ -38,6 +42,10 @@ abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implement
 
     public boolean hasValue() {
         return map.get(VALUE) != null;
+    }
+
+    public Value getValue() {
+        return (Value) map.get(VALUE);
     }
 
     public boolean hasSecondValue() {

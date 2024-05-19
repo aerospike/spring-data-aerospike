@@ -20,6 +20,9 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
         return (CriteriaDefinition.AerospikeMetadata) map.get(METADATA_FIELD);
     }
 
+    /**
+     * Set metadata field. Mandatory parameter for metadata query.
+     */
     public MetadataQualifierBuilder setMetadataField(CriteriaDefinition.AerospikeMetadata metadataField) {
         this.map.put(METADATA_FIELD, metadataField);
         return this;
@@ -38,6 +41,9 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
         return this.map.get(VALUE);
     }
 
+    /**
+     * Set value as Object. Mandatory parameter for metadata query.
+     */
     public MetadataQualifierBuilder setValueAsObj(Object object) {
         this.map.put(VALUE, object);
         return this;
@@ -52,32 +58,42 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
         return this;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void validate() {
-        // metadata query
+        // metadata query validation
         if (this.getMetadataField() != null) {
             if (this.getBinName() == null) {
-                FilterOperation operation = this.getFilterOperation();
-                switch (operation) {
-                    case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(getValueAsObj() instanceof Long,
-                        operation.name() + ": value1 is expected to be set as Long");
-                    case BETWEEN -> {
-                        Assert.isTrue(getValueAsObj() instanceof Long,
-                            "BETWEEN: value1 is expected to be set as Long");
-                        Assert.isTrue(getSecondValueAsObj() instanceof Long,
-                            "BETWEEN: value2 is expected to be set as Long");
-                    }
-                    case NOT_IN, IN -> Assert.isTrue(getValueAsObj() instanceof Collection
-                            && !((Collection<Object>) getValueAsObj()).isEmpty()
-                            && ((Collection<Object>) getValueAsObj()).toArray()[0] instanceof Long,
-                        operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
-                    default -> throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
-                        "metadataField");
+                if (this.getValueAsObj() != null) {
+                    validateValueAsObj();
+                } else {
+                    throw new IllegalArgumentException("Expecting valueAsObj parameter to be provided");
                 }
             } else {
-                throw new IllegalArgumentException("Either a field or a metadataField must be set, not both");
+                throw new IllegalArgumentException("Unexpected parameter: bin name (unnecessary for metadata query)");
             }
+        } else {
+            throw new IllegalArgumentException("Expecting metadataField parameter to be provided");
+        }
+    }
+
+    private void validateValueAsObj() {
+        FilterOperation operation = this.getFilterOperation();
+        switch (operation) {
+            case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(getValueAsObj() instanceof Long,
+                operation.name() + ": value1 is expected to be set as Long");
+            case BETWEEN -> {
+                Assert.isTrue(getValueAsObj() instanceof Long,
+                    "BETWEEN: value1 is expected to be set as Long");
+                Assert.isTrue(getSecondValueAsObj() instanceof Long,
+                    "BETWEEN: value2 is expected to be set as Long");
+            }
+            case NOT_IN, IN -> //noinspection unchecked
+                Assert.isTrue(getValueAsObj() instanceof Collection
+                        && !((Collection<Object>) getValueAsObj()).isEmpty()
+                        && ((Collection<Object>) getValueAsObj()).toArray()[0] instanceof Long,
+                    operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
+            default -> throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
+                "metadataField");
         }
     }
 }
