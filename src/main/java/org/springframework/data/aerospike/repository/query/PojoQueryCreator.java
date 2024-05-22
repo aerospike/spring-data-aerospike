@@ -4,7 +4,6 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
-import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
@@ -88,7 +87,7 @@ public class PojoQueryCreator implements IAerospikeQueryCreator {
     @Override
     public Qualifier process() {
         Qualifier qualifier;
-        QualifierBuilder qb = Qualifier.builder();
+        QueryQualifierBuilder qb = new QueryQualifierBuilder();
         FilterOperation op = filterOperation;
         List<String> dotPath = null;
 

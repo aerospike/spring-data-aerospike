@@ -227,7 +227,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // find records having a map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setBinName("friend") // bin name
+            .setPath("friend") // bin name
             .setBinType(MAP) // bin type
             .setCtx("address") // context path from the bin to the nested map, exclusive
             .setKey(Value.get("zipCode")) // nested key
@@ -290,7 +290,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // find records having a map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setBinName("friend") // bin name
+            .setPath("friend") // bin name
             .setBinType(MAP) // bin type
             // context path from the bin to the nested map, exclusive
             .setCtx("friend.friend.friend.friend.friend.friend.friend.bestFriend.address")
@@ -326,7 +326,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // find records having a map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setBinName("friend") // bin name
+            .setPath("friend") // bin name
             .setBinType(MAP) // bin type
             // context path from the bin to the nested map, exclusive
             .setCtx("friend.friend.friend.friend.friend.friend.friend.bestFriend.address")
@@ -362,7 +362,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
                 // find records having a map with a key that equals a value
                 // POJOs are saved as Maps
                 .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-                .setBinName("friend") // bin name
+                .setPath("friend") // bin name
                 .setBinType(MAP) // bin type
                 // context path from the bin to the nested map, exclusive
                 .setCtx("friend.friend.friend.friend.friend.friend.friend.bestFriend")

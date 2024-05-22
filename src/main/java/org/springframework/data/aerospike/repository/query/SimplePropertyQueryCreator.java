@@ -6,7 +6,6 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
-import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
@@ -115,7 +114,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
 
     @Override
     public Qualifier process() {
-        QualifierBuilder qb = Qualifier.builder();
+        QueryQualifierBuilder qb = new QueryQualifierBuilder();
 
         if (isBooleanQuery) {
             // setting the value for a boolean query without arguments

@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.core.AerospikeOperations;
+import org.springframework.data.aerospike.repository.query.SimpleAerospikeRepository;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
 import org.springframework.data.domain.Page;

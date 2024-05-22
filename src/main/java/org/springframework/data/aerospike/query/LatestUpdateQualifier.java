@@ -38,7 +38,7 @@ public class LatestUpdateQualifier extends Qualifier {
 
     public LatestUpdateQualifier(FilterOperation op, Value value) {
         super(Qualifier.builder()
-            .setBinName("latest_update_time")
+            .setPath("latest_update_time")
             .setFilterOperation(op)
             .setValue(value)
         );

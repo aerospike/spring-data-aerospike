@@ -95,4 +95,11 @@ public class AerospikeIndexResolverUtils {
         return str.length() > 2 && (str.charAt(0) == '"' || str.charAt(0) == '\'')
             && (str.charAt(str.length() - 1) == '"' || str.charAt(str.length() - 1) == '\'');
     }
+
+    /**
+     * Check whether CTX's id is the same as in {@link CTX#mapKey(Value)}
+     */
+    public static boolean isCtxMapKey(CTX ctx) {
+        return ctx.id == 0x22;
+    }
 }

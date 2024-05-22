@@ -56,8 +56,8 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     protected Qualifier(Qualifier qualifier) {
-        if (!qualifier.getMap().isEmpty()) {
-            internalMap.putAll(qualifier.getMap());
+        if (!qualifier.getImmutableMap().isEmpty()) {
+            internalMap.putAll(qualifier.getImmutableMap());
         }
     }
 
@@ -71,7 +71,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return this.getBinName();
     }
 
-    private Map<QualifierKey, Object> getMap() {
+    private Map<QualifierKey, Object> getImmutableMap() {
         return Collections.unmodifiableMap(this.internalMap);
     }
 
@@ -89,6 +89,10 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     public String getBinName() {
         return (String) internalMap.get(BIN_NAME);
+    }
+
+    public String getPath() {
+        return (String) internalMap.get(PATH);
     }
 
     public CriteriaDefinition.AerospikeMetadata getMetadataField() {

@@ -48,7 +48,7 @@ public class LoggingTests {
     void binIsIndexed() {
         IndexesCache indexesCacheMock = Mockito.mock(IndexesCache.class);
         Qualifier qualifier = Qualifier.builder()
-            .setBinName("testField")
+            .setPath("testField")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("testValue1"))
             .build();

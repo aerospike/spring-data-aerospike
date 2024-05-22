@@ -20,7 +20,7 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Value;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
-import org.springframework.data.aerospike.repository.support.SimpleAerospikeRepository;
+import org.springframework.data.aerospike.repository.query.SimpleAerospikeRepository;
 
 import java.io.Serial;
 
@@ -44,7 +44,7 @@ public class KeyQualifier extends Qualifier {
 
     public KeyQualifier(Value value) {
         super(Qualifier.builder()
-            .setBinName(QueryEngine.Meta.KEY.toString())
+            .setPath(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
             .setValue(value)
         );
@@ -52,7 +52,7 @@ public class KeyQualifier extends Qualifier {
 
     public KeyQualifier(byte[] digest) {
         super(Qualifier.builder()
-            .setBinName(QueryEngine.Meta.KEY.toString())
+            .setPath(QueryEngine.Meta.KEY.toString())
             .setFilterOperation(FilterOperation.EQ)
             .setValue(null)
         );

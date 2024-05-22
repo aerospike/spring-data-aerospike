@@ -7,16 +7,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.BIN_NAME;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.CTX_PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DOT_PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.OPERATION;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
 @SuppressWarnings("unchecked")
-abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements IQualifierBuilder {
+public abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements IQualifierBuilder {
 
     protected final Map<QualifierKey, Object> map = new HashMap<>();
 
@@ -32,8 +32,8 @@ abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implement
         return (T) this;
     }
 
-    public String getBinName() {
-        return (String) map.get(BIN_NAME);
+    public String getPath() {
+        return (String) map.get(PATH);
     }
 
     public boolean hasKey() {

@@ -34,7 +34,7 @@ class UsersTests extends BaseQueryEngineTests {
     @Test
     void usersInNorthRegion() {
         Qualifier qualifier = Qualifier.builder()
-            .setBinName("region")
+            .setPath("region")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("n"))
             .build();

@@ -5,6 +5,7 @@ package org.springframework.data.aerospike.query.qualifier;
  */
 public enum QualifierKey {
 
+    PATH,
     BIN_NAME,
     BIN_TYPE,
     METADATA_FIELD,
@@ -13,6 +14,7 @@ public enum QualifierKey {
     DOT_PATH,
     CTX_PATH,
     CTX_LIST,
+    CTX_ARRAY,
     IGNORE_CASE,
     KEY,
     NESTED_KEY,

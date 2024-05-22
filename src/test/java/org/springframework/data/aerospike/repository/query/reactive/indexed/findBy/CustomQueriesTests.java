@@ -72,14 +72,14 @@ public class CustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTest
 
         // creating an expression "firsName is equal to Petra"
         Qualifier firstNameEqPetra = Qualifier.builder()
-            .setBinName("firstName")
+            .setPath("firstName")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("Petra"))
             .build();
 
         // creating an expression "age is equal to 34"
         Qualifier ageEq34 = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(34))
             .build();
@@ -89,7 +89,7 @@ public class CustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTest
         // creating an expression "age is greater than 34"
         Qualifier ageGt34 = Qualifier.builder()
             .setFilterOperation(FilterOperation.GT)
-            .setBinName("age")
+            .setPath("age")
             .setValue(Value.get(34))
             .build();
         result = reactiveRepository.findUsingQuery(new Query(ageGt34)).collectList().block();

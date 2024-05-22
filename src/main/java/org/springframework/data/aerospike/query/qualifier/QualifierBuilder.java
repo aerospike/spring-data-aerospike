@@ -1,15 +1,13 @@
 package org.springframework.data.aerospike.query.qualifier;
 
 import com.aerospike.client.Value;
-import com.aerospike.client.command.ParticleType;
-import com.aerospike.client.exp.Exp;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PATH;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
 public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
@@ -22,64 +20,10 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
     }
 
     /**
-     * Set bin name. Mandatory parameter for bin query.
+     * Set full path. Mandatory parameter for bin query.
      */
-    public QualifierBuilder setBinName(String field) {
-        this.map.put(BIN_NAME, field);
-        return this;
-    }
-
-    /**
-     * Set bin type.
-     */
-    public QualifierBuilder setBinType(Exp.Type type) {
-        this.map.put(BIN_TYPE, type);
-        return this;
-    }
-
-    /**
-     * Set full path from bin name to required element.
-     */
-    public QualifierBuilder setDotPath(List<String> dotPath) {
-        this.map.put(DOT_PATH, dotPath);
-        return this;
-    }
-
-    /**
-     * Set context path.
-     */
-    public QualifierBuilder setCtx(String ctx) {
-        this.map.put(CTX_PATH, ctx);
-        return this;
-    }
-
-    /**
-     * Set context path.
-     */
-    public QualifierBuilder setCtxList(List<String> ctxList) {
-        this.map.put(CTX_LIST, ctxList);
-        return this;
-    }
-
-    /**
-     * Set Map key.
-     * <p>
-     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
-     * key into a {@link Value} object.
-     */
-    public QualifierBuilder setKey(Value key) {
-        this.map.put(KEY, key);
-        return this;
-    }
-
-    /**
-     * For "find by one level nested map containing" queries. Set nested Map key.
-     * <p>
-     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
-     * key into a {@link Value} object.
-     */
-    public QualifierBuilder setNestedKey(Value key) {
-        this.map.put(NESTED_KEY, key);
+    public QualifierBuilder setPath(String field) {
+        this.map.put(PATH, field);
         return this;
     }
 
@@ -106,25 +50,8 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
         return this;
     }
 
-    /**
-     * For "find by one level nested map containing" queries. Set the type of the nested map value using
-     * {@link ParticleType}.
-     */
-    public QualifierBuilder setNestedType(int type) {
-        this.map.put(NESTED_TYPE, type);
-        return this;
-    }
-
-    /**
-     * Set server version support.
-     */
-    public QualifierBuilder setServerVersionSupport(ServerVersionSupport serverVersionSupport) {
-        this.map.put(SERVER_VERSION_SUPPORT, serverVersionSupport);
-        return this;
-    }
-
     protected void validate() {
-        if (!StringUtils.hasText(this.getBinName())) {
+        if (!StringUtils.hasText(this.getPath())) {
             throw new IllegalArgumentException("Expecting bin name parameter to be provided");
         }
 

@@ -119,7 +119,7 @@ public enum FilterOperation {
                 Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
                 Exp[] arrElementsExp = collection.stream().map(item ->
                     Qualifier.builder()
-                        .setBinName(getBinName(qualifierMap))
+                        .setPath(getBinName(qualifierMap))
                         .setFilterOperation(FilterOperation.EQ)
                         .setValue(Value.get(item))
                         .build()
@@ -143,7 +143,7 @@ public enum FilterOperation {
                 Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
                 Exp[] arrElementsExp = collection.stream().map(item ->
                     Qualifier.builder()
-                        .setBinName(getBinName(qualifierMap))
+                        .setPath(getBinName(qualifierMap))
                         .setFilterOperation(FilterOperation.NOTEQ)
                         .setValue(Value.get(item))
                         .build()
@@ -501,9 +501,9 @@ public enum FilterOperation {
             Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
             Exp[] arrElementsExp = collection.stream().map(item ->
                 Qualifier.builder()
-                    .setBinName(getBinName(qualifierMap))
+                    .setPath(getBinName(qualifierMap))
                     .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
-                    .setKey(getKey(qualifierMap))
+                    .setPath(getKeyAsString(qualifierMap))
                     .setValue(Value.get(item))
                     .build()
                     .getFilterExp()
@@ -524,9 +524,9 @@ public enum FilterOperation {
             Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
             Exp[] arrElementsExp = collection.stream().map(item ->
                 Qualifier.builder()
-                    .setBinName(getBinName(qualifierMap))
+                    .setPath(getBinName(qualifierMap))
                     .setFilterOperation(FilterOperation.MAP_VAL_NOTEQ_BY_KEY)
-                    .setKey(getKey(qualifierMap))
+                    .setPath(getKeyAsString(qualifierMap))
                     .setValue(Value.get(item))
                     .build()
                     .getFilterExp()
@@ -1677,8 +1677,8 @@ public enum FilterOperation {
         return Value.get(qualifierMap.get(KEY));
     }
 
-    protected static Object getKeyAsObject(Map<QualifierKey, Object> qualifierMap) {
-        return qualifierMap.get(KEY);
+    protected static String getKeyAsString(Map<QualifierKey, Object> qualifierMap) {
+        return (String) qualifierMap.get(KEY);
     }
 
     protected static Value getNestedKey(Map<QualifierKey, Object> qualifierMap) {

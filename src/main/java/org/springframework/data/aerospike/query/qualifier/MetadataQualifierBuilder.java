@@ -62,7 +62,7 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
     protected void validate() {
         // metadata query validation
         if (this.getMetadataField() != null) {
-            if (this.getBinName() == null) {
+            if (this.getPath() == null) {
                 if (this.getValueAsObj() != null) {
                     validateValueAsObj();
                 } else {

@@ -58,7 +58,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
         // Ages range from 25 -> 29. We expected to only get back values with age < 26
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Qualifier qualifier = Qualifier.builder()
-                .setBinName("age")
+                .setPath("age")
                 .setFilterOperation(LT)
                 .setValue(Value.get(26))
                 .build();
@@ -90,7 +90,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age <= 26
             Qualifier qualifier = Qualifier.builder()
-                .setBinName("age")
+                .setPath("age")
                 .setFilterOperation(LTEQ)
                 .setValue(Value.get(26))
                 .build();
@@ -125,7 +125,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age == 26
             Qualifier qualifier = Qualifier.builder()
-                .setBinName("age")
+                .setPath("age")
                 .setFilterOperation(EQ)
                 .setValue(Value.get(26))
                 .build();
@@ -149,7 +149,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age >= 28
             Qualifier qualifier = Qualifier.builder()
-                .setBinName("age")
+                .setPath("age")
                 .setFilterOperation(GTEQ)
                 .setValue(Value.get(28))
                 .build();
@@ -184,7 +184,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             // Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
             Qualifier qualifier = Qualifier.builder()
-                .setBinName("age")
+                .setPath("age")
                 .setFilterOperation(GT)
                 .setValue(Value.get(28))
                 .build();
@@ -207,7 +207,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectOnIndexedStringEQQualifier() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
             Qualifier qualifier = Qualifier.builder()
-                .setBinName("color")
+                .setPath("color")
                 .setFilterOperation(EQ)
                 .setValue(Value.get(ORANGE))
                 .build();
@@ -230,7 +230,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectWithBlueColorQuery() {
         withIndex(namespace, INDEXED_SET_NAME, "age_index", "age", IndexType.NUMERIC, () -> {
             Qualifier qual1 = Qualifier.builder()
-                .setBinName("color")
+                .setPath("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue(Value.get(BLUE))
                 .build();
@@ -254,12 +254,12 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
     public void selectWithQualifiersOnly() {
         withIndex(namespace, INDEXED_SET_NAME, "color_index", "color", IndexType.STRING, () -> {
             Qualifier qual1 = Qualifier.builder()
-                .setBinName("color")
+                .setPath("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setValue(Value.get(GREEN))
                 .build();
             Qualifier qual2 = Qualifier.builder()
-                .setBinName("age")
+                .setPath("age")
                 .setFilterOperation(FilterOperation.BETWEEN)
                 .setValue(Value.get(28))
                 .setValue(Value.get(29))
@@ -291,7 +291,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                     + "\"coordinates\": [[%.8f, %.8f], %f] }",
                 lon, lat, radius);
             Qualifier qualifier = Qualifier.builder()
-                .setBinName(GEO_BIN_NAME)
+                .setPath(GEO_BIN_NAME)
                 .setFilterOperation(GEO_WITHIN)
                 .setValue(Value.getAsGeoJSON(rgnstr))
                 .build();

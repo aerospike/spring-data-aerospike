@@ -32,7 +32,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
             // find records having a nested map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setBinName("friend") // bin name
+            .setPath("friend") // bin name
             .setBinType(MAP) // bin type
             .setCtx("address") // context path from the bin to the nested map, exclusive
             .setKey(Value.get("zipCode")) // nested key
@@ -57,7 +57,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
             // find records having a nested map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
-            .setBinName("addressesList") // bin name
+            .setPath("addressesList") // bin name
             .setBinType(LIST) // bin type
             .setCtx("[0]") // context path from the bin to the nested map, exclusive // list index
             // to a string
@@ -87,7 +87,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
             // find records having a nested map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setBinName("friend") // bin name
+            .setPath("friend") // bin name
             .setBinType(MAP) // bin type
             .setCtx("bestFriend.address") // context path from the bin to the nested map, exclusive
             .setKey(Value.get("zipCode")) // nested key
@@ -112,7 +112,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
 
         Qualifier nestedApartmentEq = Qualifier.builder()
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setBinName("friend") // bin name
+            .setPath("friend") // bin name
             .setBinType(MAP) // bin type
             .setCtx("bestFriend.address") // context path from the bin to the nested map, exclusive
             .setKey(Value.get("apartment")) // nested key
@@ -141,7 +141,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
             // find records having a map with a key between given values
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN_BY_KEY) // POJOs are saved as Maps
-            .setBinName("bestFriend") // bin name
+            .setPath("bestFriend") // bin name
             .setBinType(MAP) // bin type
             .setCtx("friend.address") // context path from the bin to the nested map, exclusive
             .setKey(Value.get("apartment")) // nested key

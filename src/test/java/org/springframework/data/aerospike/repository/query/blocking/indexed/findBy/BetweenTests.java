@@ -13,7 +13,6 @@ import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
 
-import static com.aerospike.client.exp.Exp.Type.MAP;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -91,10 +90,12 @@ public class BetweenTests extends IndexedPersonRepositoryQueryTests {
             // find records having a map with a key between given values
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN_BY_KEY) // POJOs are saved as Maps
-            .setBinName("bestFriend") // bin name
-            .setBinType(MAP) // bin type
-            .setCtx("friend.address") // context path from the bin to the nested map, exclusive
-            .setKey(Value.get("apartment")) // nested key
+//            .setOperation(FilterOperation.BETWEEN) // POJOs are saved as Maps
+//            .setBinName("bestFriend.friend.address.apartment") // bin name
+            .setPath("bestFriend.friend.address.apartment") // full path
+//            .setBinType(MAP) // bin type
+//            .setCtx("friend.address") // context path from the bin to the nested map, exclusive
+//            .setKey(Value.get("apartment")) // nested key
             .setValue(Value.get(1)) // lower limit for the value of the nested key
             .setSecondValue(Value.get(3)) // lower limit for the value of the nested key
             .build();
