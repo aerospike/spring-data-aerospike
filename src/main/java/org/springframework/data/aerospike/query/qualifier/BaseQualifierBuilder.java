@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FILTER_OPERATION;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
@@ -16,6 +17,10 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VA
 public abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements IQualifierBuilder {
 
     protected final Map<QualifierKey, Object> map = new HashMap<>();
+
+    public boolean getIgnoreCase() {
+        return Boolean.parseBoolean(map.get(IGNORE_CASE).toString());
+    }
 
     public FilterOperation getFilterOperation() {
         return (FilterOperation) map.get(FILTER_OPERATION);

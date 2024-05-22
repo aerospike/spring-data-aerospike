@@ -133,7 +133,6 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         );
 
         assertThat(template.count(query2, Person.class)).isEqualTo(1);
-
         assertThat(template.count(null, Person.class)).isEqualTo(3);
 
         template.delete(template.findById(id, Person.class));

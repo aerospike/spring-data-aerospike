@@ -159,9 +159,10 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
             throw new IllegalStateException("Cannot initialize QueryQualifierBuilder", e.getCause());
         }
         setInnerQbOrFail(innerQb, externalBuilder.getPath());
-        innerQb.setValue(externalBuilder.getValue());
-        innerQb.setSecondValue(externalBuilder.getSecondValue());
         innerQb.setInnerQbFilterOperation(externalBuilder.getFilterOperation());
+        innerQb.setValue(externalBuilder.getValue());
+        if (externalBuilder.getSecondValue() != null) innerQb.setSecondValue(externalBuilder.getSecondValue());
+        if (externalBuilder.getIgnoreCase()) innerQb.setIgnoreCase(true);
         return innerQb;
     }
 
