@@ -262,7 +262,7 @@ public class ReactiveIndexedQualifierTests extends BaseReactiveQueryEngineTests 
                 .setPath("age")
                 .setFilterOperation(FilterOperation.BETWEEN)
                 .setValue(Value.get(28))
-                .setValue(Value.get(29))
+                .setSecondValue(Value.get(29))
                 .build();
 
             Flux<KeyRecord> flux = reactiveQueryEngine.select(namespace, INDEXED_SET_NAME, null,
