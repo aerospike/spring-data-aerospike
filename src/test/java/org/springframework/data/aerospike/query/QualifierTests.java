@@ -59,7 +59,7 @@ class QualifierTests extends BaseQueryEngineTests {
         queryEngine.setScansEnabled(false);
         try {
             Qualifier qualifier = Qualifier.builder()
-                .setPath("age")
+                .setPath("age") // bin name
                 .setFilterOperation(FilterOperation.LT)
                 .setValue(Value.get(26)).build();
 
@@ -76,9 +76,7 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void selectOneWitKey() {
         KeyQualifier kq = new KeyQualifier(Value.get("selector-test:3"));
-
         KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(kq));
-
         assertThat(iterator).toIterable().hasSize(1);
     }
 
@@ -86,16 +84,13 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void selectOneWitKeyNonExisting() {
         KeyQualifier kq = new KeyQualifier(Value.get("selector-test:unknown"));
-
         KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(kq));
-
         assertThat(iterator).toIterable().isEmpty();
     }
 
     @Test
     void selectAll() {
         KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, null);
-
         assertThat(iterator).toIterable().hasSize(RECORD_COUNT);
     }
 
@@ -103,7 +98,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void lTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age < 26
         Qualifier qualifier = Qualifier.builder()
-            .setPath("age")
+            .setPath("age") // bin name
             .setFilterOperation(FilterOperation.LT)
             .setValue(Value.get(26))
             .build();
@@ -121,7 +116,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void numericLTEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age <= 26
         Qualifier qualifier = Qualifier.builder()
-            .setPath("age")
+            .setPath("age") // bin name
             .setFilterOperation(FilterOperation.LTEQ)
             .setValue(Value.get(26))
             .build();
@@ -142,7 +137,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void numericEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age == 26
         Qualifier qualifier = Qualifier.builder()
-            .setPath("age")
+            .setPath("age") // bin name
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(26))
             .build();
@@ -160,7 +155,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void numericGTEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age >= 28
         Qualifier qualifier = Qualifier.builder()
-            .setPath("age")
+            .setPath("age") // bin name
             .setFilterOperation(FilterOperation.GTEQ)
             .setValue(Value.get(28))
             .build();
@@ -181,7 +176,7 @@ class QualifierTests extends BaseQueryEngineTests {
     void numericGTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
         Qualifier qualifier = Qualifier.builder()
-            .setPath("age")
+            .setPath("age") // bin name
             .setFilterOperation(FilterOperation.GT)
             .setValue(Value.get(28))
             .build();
@@ -700,23 +695,23 @@ class QualifierTests extends BaseQueryEngineTests {
     @Test
     void selectWithBetweenAndOrQualifiers() {
         Qualifier colorIsGreen = Qualifier.builder()
-            .setPath("color")
+            .setPath("color") // bin name
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(GREEN))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
-            .setPath("age")
+            .setPath("age") // bin name
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setKey(Value.get(28))
-            .setValue(Value.get(29))
+            .setValue(Value.get(28))
+            .setSecondValue(Value.get(29))
             .build();
         Qualifier ageIs25 = Qualifier.builder()
-            .setPath("age")
+            .setPath("age") // bin name
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(25))
             .build();
         Qualifier nameIs696 = Qualifier.builder()
-            .setPath("name")
+            .setPath("name") // bin name
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("name:696"))
             .build();
@@ -749,12 +744,12 @@ class QualifierTests extends BaseQueryEngineTests {
     void selectWithOrQualifiers() {
         // We are expecting to get back all records where color == blue or (age == 28 || age == 29)
         Qualifier colorIsBlue = Qualifier.builder()
-            .setPath("color")
+            .setPath("color") // bin name
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(BLUE))
             .build();
         Qualifier ageBetween28And29 = Qualifier.builder()
-            .setPath("age")
+            .setPath("age") // bin name
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(28))
             .setSecondValue(Value.get(30)) // + 1 as upper limit is exclusive

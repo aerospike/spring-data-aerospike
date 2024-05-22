@@ -19,8 +19,8 @@ import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.aerospike.core.AerospikeOperations;
-import org.springframework.data.aerospike.repository.query.SimpleAerospikeRepository;
 import org.springframework.data.aerospike.repository.support.AerospikeRepositoryFactoryBean;
+import org.springframework.data.aerospike.repository.support.SimpleAerospikeRepository;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 

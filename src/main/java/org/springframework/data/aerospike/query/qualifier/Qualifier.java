@@ -84,7 +84,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     public FilterOperation getOperation() {
-        return (FilterOperation) internalMap.get(OPERATION);
+        return (FilterOperation) internalMap.get(FILTER_OPERATION);
     }
 
     public String getBinName() {
@@ -127,6 +127,10 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return this.hasSingleId() ? internalMap.get(SINGLE_ID_FIELD) : internalMap.get(MULTIPLE_IDS_FIELD);
     }
 
+    public FilterOperation getFilterOperation() {
+        return (FilterOperation) internalMap.get(FILTER_OPERATION);
+    }
+
     public Qualifier[] getQualifiers() {
         return (Qualifier[]) internalMap.get(QUALIFIERS);
     }
@@ -146,11 +150,6 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     @SuppressWarnings("unchecked")
     public List<String> getDotPath() {
         return (List<String>) internalMap.get(DOT_PATH);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<String> getCtxPath() {
-        return (List<String>) internalMap.get(CTX_PATH);
     }
 
     public Filter getSecondaryIndexFilter() {

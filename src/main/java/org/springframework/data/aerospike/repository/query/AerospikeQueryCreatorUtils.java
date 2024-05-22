@@ -29,10 +29,10 @@ import static org.springframework.util.ClassUtils.isAssignableValue;
 
 public class AerospikeQueryCreatorUtils {
 
-        protected static Qualifier setQualifier(QueryQualifierBuilder qb, String fieldName, FilterOperation op, Part part,
-                                                List<String> dotPath, ServerVersionSupport versionSupport) {
-        qb.setBinName(fieldName)
-            .setFilterOperation(op)
+    protected static Qualifier setQualifier(QueryQualifierBuilder qb, String binName, FilterOperation op, Part part,
+                                            List<String> dotPath, ServerVersionSupport versionSupport) {
+        qb.setBinName(binName)
+            .setInnerQbFilterOperation(op)
             .setIgnoreCase(ignoreCaseToBoolean(part));
         if (dotPath != null && !qb.hasDotPath()) {
             qb.setDotPath(dotPath);

@@ -69,7 +69,7 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
                     throw new IllegalArgumentException("Expecting valueAsObj parameter to be provided");
                 }
             } else {
-                throw new IllegalArgumentException("Unexpected parameter: bin name (unnecessary for metadata query)");
+                throw new IllegalArgumentException("Unexpected parameter: path (unnecessary for metadata query)");
             }
         } else {
             throw new IllegalArgumentException("Expecting metadataField parameter to be provided");

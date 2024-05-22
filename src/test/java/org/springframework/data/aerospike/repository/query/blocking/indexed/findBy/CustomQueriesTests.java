@@ -14,8 +14,6 @@ import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
 
-import static com.aerospike.client.exp.Exp.Type.LIST;
-import static com.aerospike.client.exp.Exp.Type.MAP;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
@@ -32,10 +30,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
             // find records having a nested map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setPath("friend") // bin name
-            .setBinType(MAP) // bin type
-            .setCtx("address") // context path from the bin to the nested map, exclusive
-            .setKey(Value.get("zipCode")) // nested key
+            .setPath("friend.address.zipCode") // path includes bin name, context and the required map key
             .setValue(Value.get(zipCode)) // value of the nested key
             .build();
 
@@ -57,11 +52,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
             // find records having a nested map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
-            .setPath("addressesList") // bin name
-            .setBinType(LIST) // bin type
-            .setCtx("[0]") // context path from the bin to the nested map, exclusive // list index
-            // to a string
-            .setKey(Value.get("zipCode")) // nested key
+            .setPath("addressesList.[0].zipCode") // path: bin name, context (list index) and the required map key
             .setValue(Value.get(zipCode)) // value of the nested key
             .build();
 
@@ -87,10 +78,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
             // find records having a nested map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setPath("friend") // bin name
-            .setBinType(MAP) // bin type
-            .setCtx("bestFriend.address") // context path from the bin to the nested map, exclusive
-            .setKey(Value.get("zipCode")) // nested key
+            .setPath("friend.bestFriend.address.zipCode") // path includes bin name, context and the required map key
             .setValue(Value.get(zipCode)) // value of the nested key
             .build();
 
@@ -112,10 +100,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
 
         Qualifier nestedApartmentEq = Qualifier.builder()
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setPath("friend") // bin name
-            .setBinType(MAP) // bin type
-            .setCtx("bestFriend.address") // context path from the bin to the nested map, exclusive
-            .setKey(Value.get("apartment")) // nested key
+            .setPath("friend.bestFriend.address.apartment") // path includes bin name, context and the required map key
             .setValue(Value.get(apartment)) // value of the nested key
             .build();
 
@@ -141,10 +126,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
             // find records having a map with a key between given values
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN_BY_KEY) // POJOs are saved as Maps
-            .setPath("bestFriend") // bin name
-            .setBinType(MAP) // bin type
-            .setCtx("friend.address") // context path from the bin to the nested map, exclusive
-            .setKey(Value.get("apartment")) // nested key
+            .setPath("bestFriend.friend.address.apartment") // path includes bin name, context and the required map key
             .setValue(Value.get(1)) // lower limit for the value of the nested key
             .setSecondValue(Value.get(3)) // lower limit for the value of the nested key
             .build();

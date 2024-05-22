@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike.repository.query;
+package org.springframework.data.aerospike.repository.support;
 
-import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.query.IndexType;
 import org.springframework.data.aerospike.core.AerospikeOperations;
-import org.springframework.data.aerospike.index.AerospikeIndexResolverUtils;
-import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -29,15 +27,10 @@ import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.function.Predicate.not;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.isCtxMapKey;
 
 public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, ID> {
 
@@ -165,54 +158,6 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     }
 
     public Iterable<T> findUsingQuery(Query query) {
-        Qualifier qualifier = query.getCriteriaObject();
-//        String path = qualifier.getPath();
-//        qualifier.setBinType(getBinType(path));
-//        qualifier.setFilterOperation(getFilterOperation(path)); // ?
-        // TODO: validate and either call setBinName(), setBinType(), setCtx() and setKey() or throw an Exception
-//        qualifier
-        QueryQualifierBuilder innerQb = getInnerQb(qualifier);
         return operations.find(query, entityInformation.getJavaType()).toList();
     }
-
-    private QueryQualifierBuilder getInnerQb(Qualifier qualifier) {
-        QueryQualifierBuilder innerQb = new QueryQualifierBuilder();
-        setInnerQbOrFail(innerQb, qualifier.getPath());
-        return null;
-    }
-
-    private void setInnerQbOrFail(QueryQualifierBuilder innerQb, String path) {
-        CTX[] ctxArr = resolveCtxPath(path);
-
-        if (ctxArr.length == 1) {
-            if (!isCtxMapKey(ctxArr[0])) {
-                throw new IllegalArgumentException(String.format("Cannot resolve the given path '%s', expecting " +
-                    "simple String", path));
-            }
-            innerQb.setBinName(ctxArr[0].value.toString());
-        } else if (ctxArr.length > 1) {
-            CTX lastElement = ctxArr[ctxArr.length - 1];
-            if (!isCtxMapKey(lastElement)) {
-                throw new UnsupportedOperationException(String.format("Unsupported path '%s', expecting the last element to be a Map key", path));
-            }
-            if (ctxArr.length > 2) {
-                innerQb.setCtxArray(Arrays.copyOfRange(ctxArr, 1, ctxArr.length));
-            } else { // length == 2
-                innerQb.setKey(lastElement.value);
-            }
-        } else {
-            throw new IllegalArgumentException(String.format("Cannot resolve the given path '%s'", path));
-        }
-    }
-
-    private CTX[] resolveCtxPath(String path) {
-        if (path == null) return null;
-
-        return Arrays.stream(path.split("\\."))
-            .filter(not(String::isEmpty))
-            .map(AerospikeIndexResolverUtils::toCtx)
-            .filter(Objects::nonNull)
-            .toArray(CTX[]::new);
-    }
-
 }

@@ -2,6 +2,17 @@ package org.springframework.data.aerospike.index;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
+import com.aerospike.client.exp.Exp;
+
+import java.util.List;
+
+import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.LIST_INDEX;
+import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.LIST_RANK;
+import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.LIST_VALUE;
+import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.MAP_INDEX;
+import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.MAP_KEY;
+import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.MAP_RANK;
+import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.MAP_VALUE;
 
 public class AerospikeIndexResolverUtils {
 
@@ -97,9 +108,51 @@ public class AerospikeIndexResolverUtils {
     }
 
     /**
-     * Check whether CTX's id is the same as in {@link CTX#mapKey(Value)}
+     * Check whether context element's id is the same as in {@link CTX#mapKey(Value)}
      */
     public static boolean isCtxMapKey(CTX ctx) {
-        return ctx.id == 0x22;
+        return ctx.id == MAP_KEY.getId();
+    }
+
+    /**
+     * Check whether context element's id is the same as in {@link CTX#mapValue(Value)}
+     */
+    public static boolean isCtxMapValue(CTX ctx) {
+        return ctx.id == MAP_VALUE.getId();
+    }
+
+    /**
+     * Check whether context element's id is the same as in {@link CTX#mapKey(Value)}
+     */
+    public static Exp.Type getCtxType(CTX ctx) {
+        List<Integer> listIds = List.of(LIST_INDEX.getId(), LIST_RANK.getId(), LIST_VALUE.getId());
+        List<Integer> mapIds = List.of(MAP_INDEX.getId(), MAP_RANK.getId(), MAP_KEY.getId(), MAP_VALUE.getId());
+        if (listIds.contains(ctx.id)) {
+            return Exp.Type.LIST;
+        } else if (mapIds.contains(ctx.id)) {
+            return Exp.Type.MAP;
+        } else {
+            throw new IllegalStateException("Unexpected CTX element id");
+        }
+    }
+
+    enum CtxType {
+        LIST_INDEX(0x10),
+        LIST_RANK(0x11),
+        LIST_VALUE(0x13),
+        MAP_INDEX(0x20),
+        MAP_RANK(0x21),
+        MAP_KEY(0x22),
+        MAP_VALUE(0x23);
+
+        private final int id;
+
+        CtxType(int id) {
+            this.id = id;
+        }
+
+        public int getId() {
+            return id;
+        }
     }
 }

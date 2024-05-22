@@ -17,7 +17,6 @@ import org.springframework.data.aerospike.util.TestUtils;
 import java.util.List;
 import java.util.Map;
 
-import static com.aerospike.client.exp.Exp.Type.MAP;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.query.QueryParam.of;
@@ -227,10 +226,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // find records having a map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setPath("friend") // bin name
-            .setBinType(MAP) // bin type
-            .setCtx("address") // context path from the bin to the nested map, exclusive
-            .setKey(Value.get("zipCode")) // nested key
+            .setPath("friend.address.zipCode") // path includes bin name, context and the required map key
             .setValue(Value.get(zipCode)) // value of the nested key
             .build();
 
@@ -290,11 +286,8 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // find records having a map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setPath("friend") // bin name
-            .setBinType(MAP) // bin type
-            // context path from the bin to the nested map, exclusive
-            .setCtx("friend.friend.friend.friend.friend.friend.friend.bestFriend.address")
-            .setKey(Value.get("zipCode")) // nested key
+            // path includes bin name, context and the required map key
+            .setPath("friend.friend.friend.friend.friend.friend.friend.friend.bestFriend.address.zipCode")
             .setValue(Value.get(zipCode)) // value of the nested key
             .build();
 
@@ -326,11 +319,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // find records having a map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setPath("friend") // bin name
-            .setBinType(MAP) // bin type
-            // context path from the bin to the nested map, exclusive
-            .setCtx("friend.friend.friend.friend.friend.friend.friend.bestFriend.address")
-            .setKey(Value.get("apartment")) // nested key
+            .setPath("friend.friend.friend.friend.friend.friend.friend.friend.bestFriend.address.apartment") // path
             .setValue(Value.get(apartment)) // value of the nested key
             .build();
 
@@ -362,11 +351,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
                 // find records having a map with a key that equals a value
                 // POJOs are saved as Maps
                 .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-                .setPath("friend") // bin name
-                .setBinType(MAP) // bin type
-                // context path from the bin to the nested map, exclusive
-                .setCtx("friend.friend.friend.friend.friend.friend.friend.bestFriend")
-                .setKey(Value.get("address")) // nested key
+                .setPath("friend.friend.friend.friend.friend.friend.friend.friend.bestFriend.address") // path
                 .setValue(Value.get(pojoToMap(address))) // value of the nested key
                 .build();
 

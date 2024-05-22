@@ -20,7 +20,7 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Value;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
-import org.springframework.data.aerospike.repository.query.SimpleAerospikeRepository;
+import org.springframework.data.aerospike.repository.support.SimpleAerospikeRepository;
 
 import java.io.Serial;
 

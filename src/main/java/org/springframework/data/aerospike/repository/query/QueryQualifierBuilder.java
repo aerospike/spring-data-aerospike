@@ -8,7 +8,6 @@ import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.BaseQualifierBuilder;
 import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -17,6 +16,14 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
 public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
     QueryQualifierBuilder() {
+    }
+
+    /**
+     * Set FilterOperation for qualifier. Mandatory parameter.
+     */
+    public QueryQualifierBuilder setInnerQbFilterOperation(FilterOperation operationType) {
+        map.put(FILTER_OPERATION, operationType);
+        return this;
     }
 
     public QueryQualifierBuilder setIgnoreCase(boolean ignoreCase) {
@@ -49,15 +56,7 @@ public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder
     }
 
     /**
-     * Set context path.
-     */
-    public QueryQualifierBuilder setCtx(String ctx) {
-        this.map.put(CTX_PATH, ctx);
-        return this;
-    }
-
-    /**
-     * Set context path.
+     * Set context path as a list of Strings.
      */
     public QueryQualifierBuilder setCtxList(List<String> ctxList) {
         this.map.put(CTX_LIST, ctxList);
@@ -134,19 +133,7 @@ public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder
         return this;
     }
 
-    protected void validate() {
-        if (!StringUtils.hasText(this.getPath())) {
-            throw new IllegalArgumentException("Expecting bin name parameter to be provided");
-        }
-
-        if (this.getFilterOperation() == null) {
-            throw new IllegalArgumentException("Expecting filter operation parameter to be provided");
-        }
-
-        if (this.getValue() == null
-            && this.getFilterOperation() != FilterOperation.IS_NULL
-            && this.getFilterOperation() != FilterOperation.IS_NOT_NULL) {
-            throw new IllegalArgumentException("Expecting value parameter to be provided");
-        }
+    public boolean hasDotPath() {
+        return map.get(DOT_PATH) != null;
     }
 }
