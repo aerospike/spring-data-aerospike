@@ -19,7 +19,8 @@ public abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> im
     protected final Map<QualifierKey, Object> map = new HashMap<>();
 
     public boolean getIgnoreCase() {
-        return Boolean.parseBoolean(map.get(IGNORE_CASE).toString());
+        Object ignoreCase = map.get(IGNORE_CASE);
+        return ignoreCase != null && Boolean.parseBoolean(ignoreCase.toString());
     }
 
     public FilterOperation getFilterOperation() {
