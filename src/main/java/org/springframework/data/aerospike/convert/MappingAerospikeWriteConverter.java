@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.aerospike.client.ResultCode.OP_NOT_APPLICABLE;
@@ -159,7 +160,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
                                                   ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
         Map<String, Object> target;
-        if (!settings.isWriteKeyOrderedMaps()) {
+        if (!settings.isWriteTreeMaps()) {
             target = new HashMap<>();
         } else {
             target = new TreeMap<>();
@@ -240,7 +241,14 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         Assert.notNull(source, "Given map must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
-        return source.entrySet().stream().collect(TreeMap::new, (m, e) -> {
+        Supplier<Map<Object, Object>> mapSupplier;
+        if (!settings.isWriteTreeMaps()) {
+            mapSupplier = HashMap::new;
+        } else {
+            mapSupplier = TreeMap::new;
+        }
+        Map<Object, Object> map = mapSupplier.get();
+        for (Map.Entry<Object, Object> e : source.entrySet()) {
             Object key = e.getKey();
             Object value = e.getValue();
             if (key == null) {
@@ -266,8 +274,9 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
             Object convertedValue = getValueToWrite(value, type.getMapValueType());
             if (simpleKey instanceof byte[]) simpleKey = ByteBuffer.wrap((byte[]) simpleKey);
-            m.put(simpleKey, convertedValue);
-        }, TreeMap::putAll);
+            map.put(simpleKey, convertedValue);
+        }
+        return map;
     }
 
     private Map<String, Object> convertCustomType(Object source, TypeInformation<?> type) {

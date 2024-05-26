@@ -37,5 +37,6 @@ public class AerospikeDataSettings {
     // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
     // true - preserve original type if supported
     boolean keepOriginalKeyTypes = false;
-    boolean writeKeyOrderedMaps = true;
+    // Define how Maps are written: true - as TreeMaps (default), false - as HashMaps
+    boolean writeTreeMaps = true;
 }
