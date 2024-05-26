@@ -20,6 +20,7 @@ import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
+import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
@@ -56,8 +57,8 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     protected Qualifier(Qualifier qualifier) {
-        if (!qualifier.getMap().isEmpty()) {
-            internalMap.putAll(qualifier.getMap());
+        if (!qualifier.getImmutableMap().isEmpty()) {
+            internalMap.putAll(qualifier.getImmutableMap());
         }
     }
 
@@ -71,24 +72,30 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return this.getBinName();
     }
 
-    private Map<QualifierKey, Object> getMap() {
+    private Map<QualifierKey, Object> getImmutableMap() {
         return Collections.unmodifiableMap(this.internalMap);
     }
 
+    @Beta
     public static QualifierBuilder builder() {
         return new QualifierBuilder();
     }
 
+    @Beta
     public static MetadataQualifierBuilder metadataBuilder() {
         return new MetadataQualifierBuilder();
     }
 
     public FilterOperation getOperation() {
-        return (FilterOperation) internalMap.get(OPERATION);
+        return (FilterOperation) internalMap.get(FILTER_OPERATION);
     }
 
     public String getBinName() {
         return (String) internalMap.get(BIN_NAME);
+    }
+
+    public String getPath() {
+        return (String) internalMap.get(PATH);
     }
 
     public CriteriaDefinition.AerospikeMetadata getMetadataField() {
@@ -123,6 +130,10 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return this.hasSingleId() ? internalMap.get(SINGLE_ID_FIELD) : internalMap.get(MULTIPLE_IDS_FIELD);
     }
 
+    public FilterOperation getFilterOperation() {
+        return (FilterOperation) internalMap.get(FILTER_OPERATION);
+    }
+
     public Qualifier[] getQualifiers() {
         return (Qualifier[]) internalMap.get(QUALIFIERS);
     }
@@ -142,11 +153,6 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     @SuppressWarnings("unchecked")
     public List<String> getDotPath() {
         return (List<String>) internalMap.get(DOT_PATH);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<String> getCtxPath() {
-        return (List<String>) internalMap.get(CTX_PATH);
     }
 
     public Filter getSecondaryIndexFilter() {

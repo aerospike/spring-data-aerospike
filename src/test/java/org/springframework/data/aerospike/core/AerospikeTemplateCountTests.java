@@ -62,7 +62,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         long vasyaCount = template.count(
             new Query(Qualifier.builder()
                 .setFilterOperation(FilterOperation.EQ)
-                .setBinName("firstName")
+                .setPath("firstName")
                 .setValue(Value.get("vasili"))
                 .build()
             ),
@@ -73,13 +73,13 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
 
         Qualifier qbIs1 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
-            .setBinName("firstName")
+            .setPath("firstName")
             .setValue(Value.get("vasili"))
             .build();
 
         Qualifier qbIs2 = Qualifier.builder()
             .setFilterOperation(FilterOperation.EQ)
-            .setBinName("age")
+            .setPath("age")
             .setValue(Value.get(51))
             .build();
 
@@ -92,7 +92,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         long petyaCount = template.count(
             new Query(Qualifier.builder()
                 .setFilterOperation(FilterOperation.EQ)
-                .setBinName("firstName")
+                .setPath("firstName")
                 .setValue(Value.get("petya"))
                 .build()
             ),
@@ -116,7 +116,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         template.insert(new Person(id3, "vasili", 52));
 
         Query query1 = new Query(Qualifier.builder()
-            .setBinName("firstName")
+            .setPath("firstName")
             .setValue(Value.get("vas"))
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(true)
@@ -125,7 +125,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         assertThat(template.count(query1, Person.class)).isEqualTo(3);
 
         Query query2 = new Query(Qualifier.builder()
-            .setBinName("firstName")
+            .setPath("firstName")
             .setValue(Value.get("VaS"))
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(false)
@@ -133,7 +133,6 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
         );
 
         assertThat(template.count(query2, Person.class)).isEqualTo(1);
-
         assertThat(template.count(null, Person.class)).isEqualTo(3);
 
         template.delete(template.findById(id, Person.class));
@@ -145,7 +144,7 @@ public class AerospikeTemplateCountTests extends BaseBlockingIntegrationTests {
     public void countReturnsZeroIfNoDocumentsByProvidedCriteriaIsFound() {
         Query query1 = new Query
             (Qualifier.builder()
-                .setBinName("firstName")
+                .setPath("firstName")
                 .setValue(Value.get("nastyushka"))
                 .setFilterOperation(FilterOperation.STARTS_WITH)
                 .build()

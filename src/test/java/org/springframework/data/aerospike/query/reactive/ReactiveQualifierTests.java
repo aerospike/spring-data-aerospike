@@ -66,7 +66,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         reactiveQueryEngine.setScansEnabled(false);
         try {
             Qualifier qualifier = Qualifier.builder()
-                .setBinName("age")
+                .setPath("age")
                 .setFilterOperation(FilterOperation.LT)
                 .setValue(Value.get(26))
                 .build();
@@ -85,7 +85,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void lTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age < 26
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.LT)
             .setValue(Value.get(26))
             .build();
@@ -109,7 +109,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void numericLTEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age <= 26
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.LTEQ)
             .setValue(Value.get(26))
             .build();
@@ -140,7 +140,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void numericEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age == 26
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(26))
             .build();
@@ -161,7 +161,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void numericGTEQQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age >= 28
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.GTEQ)
             .setValue(Value.get(28))
             .build();
@@ -192,7 +192,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void numericGTQualifier() {
         // Ages range from 25 -> 29. We expected to only get back values with age > 28 or equivalently == 29
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.GT)
             .setValue(Value.get(28))
             .build();
@@ -211,7 +211,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void stringEQQualifier() {
         Qualifier stringEqQualifier = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(ORANGE))
             .build();
@@ -230,7 +230,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void stringEQQualifierCaseSensitive() {
         Qualifier stringEqQualifier = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(true)
             .setValue(Value.get(ORANGE.toUpperCase()))
@@ -252,7 +252,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String bluePrefix = "blu";
 
         Qualifier stringEqQualifier = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue(Value.get("blu"))
             .build();
@@ -271,7 +271,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void stringStartWithEntireWordQualifier() {
         Qualifier stringEqQualifier = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue(Value.get(BLUE))
             .build();
@@ -292,7 +292,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String blue = "blu";
 
         Qualifier stringEqQualifier = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setIgnoreCase(true)
             .setValue(Value.get("BLU"))
@@ -314,7 +314,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String greenEnding = GREEN.substring(2);
 
         Qualifier stringEqQualifier = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue(Value.get(greenEnding))
             .build();
@@ -333,7 +333,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void stringEndsWithEntireWordQualifier() {
         Qualifier stringEqQualifier = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue(Value.get(GREEN))
             .build();
@@ -353,7 +353,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     public void betweenQualifier() {
         // Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(26))
             .setSecondValue(Value.get(29)) // + 1 as upper limit is exclusive
@@ -391,7 +391,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.CONTAINING)
             .setValue(Value.get("l"))
             .build();
@@ -415,7 +415,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             .collect(Collectors.toMap(c -> c, color -> queryEngineTestDataPopulator.colourCounts.get(color)));
 
         Qualifier qualifier = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.IN)
             .setValue(Value.get(inColours))
             .build();
@@ -439,7 +439,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String binName = "colorList";
 
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName(binName)
+            .setPath(binName)
             .setFilterOperation(FilterOperation.COLLECTION_VAL_CONTAINING)
             .setValue(Value.get(searchColor))
             .build();
@@ -469,7 +469,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String binName = "colorAgeMap";
 
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName(binName)
+            .setPath(binName)
             .setFilterOperation(FilterOperation.MAP_KEYS_CONTAIN)
             .setValue(Value.get(searchColor))
             .build();
@@ -498,7 +498,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String binName = "ageColorMap";
 
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName(binName)
+            .setPath(binName)
             .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
             .setValue(Value.get(searchColor))
             .build();
@@ -523,7 +523,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void testContainingDoesNotUseSpecialCharacterQualifier() {
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName(SPECIAL_CHAR_BIN)
+            .setPath(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.CONTAINING)
             .setValue(Value.get(".*"))
             .build();
@@ -543,7 +543,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void testStartWithDoesNotUseSpecialCharacterQualifier() {
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName(SPECIAL_CHAR_BIN)
+            .setPath(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.STARTS_WITH)
             .setValue(Value.get(".*"))
             .build();
@@ -566,7 +566,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void testEndWithDoesNotUseSpecialCharacterQualifier() {
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName(SPECIAL_CHAR_BIN)
+            .setPath(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.ENDS_WITH)
             .setValue(Value.get(".*"))
             .build();
@@ -589,7 +589,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void testEQICaseDoesNotUseSpecialCharacter() {
         Qualifier ageRangeQualifier = Qualifier.builder()
-            .setBinName(SPECIAL_CHAR_BIN)
+            .setPath(SPECIAL_CHAR_BIN)
             .setFilterOperation(FilterOperation.EQ)
             .setIgnoreCase(true)
             .setValue(Value.get(".*"))
@@ -606,7 +606,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
         String[] specialStrings = new String[]{"[", "$", "\\", "^"};
         for (String specialString : specialStrings) {
             Qualifier ageRangeQualifier = Qualifier.builder()
-                .setBinName(SPECIAL_CHAR_BIN)
+                .setPath(SPECIAL_CHAR_BIN)
                 .setFilterOperation(FilterOperation.CONTAINING)
                 .setIgnoreCase(true)
                 .setValue(Value.get(specialString))
@@ -636,7 +636,7 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
             String expectedColor = "blue";
 
             Qualifier caseInsensitiveQual = Qualifier.builder()
-                .setBinName("color")
+                .setPath("color")
                 .setFilterOperation(FilterOperation.EQ)
                 .setIgnoreCase(ignoreCase)
                 .setValue(Value.get("BlUe"))
@@ -663,12 +663,12 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
 
         // We are  expecting to get back all records where color == blue or (age == 28 || age == 29)
         Qualifier qual1 = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(expectedColor))
             .build();
         Qualifier qual2 = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(28))
             .setSecondValue(Value.get(30)) // + 1 as upper limit is exclusive
@@ -706,23 +706,23 @@ public class ReactiveQualifierTests extends BaseReactiveQueryEngineTests {
     @Test
     public void selectWithBetweenAndOrQualifiers() {
         Qualifier qualColorIsGreen = Qualifier.builder()
-            .setBinName("color")
+            .setPath("color")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("green"))
             .build();
         Qualifier qualAgeBetween28And29 = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(Value.get(28))
             .setSecondValue(Value.get(30)) // + 1 as upper limit is exclusive
             .build();
         Qualifier qualAgeIs25 = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(25))
             .build();
         Qualifier qualNameIs696 = Qualifier.builder()
-            .setBinName("name")
+            .setPath("name")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("name:696"))
             .build();

@@ -112,10 +112,10 @@ public @interface Indexed {
      *     <td> a.55 </td> <td> [mapKey("a"), mapKey(55)] </td>
      *   </tr>
      *   <tr>
-     *     <td> a.aa.{=222} </td> <td> [mapKey("a"), mapKey("aa"),mapValue(222)] </td>
+     *     <td> a.aa.{=222} </td> <td> [mapKey("a"), mapKey("aa"), mapValue(222)] </td>
      *   </tr>
      *   <tr>
-     *     <td> ab.cd.[-1]."10" </td> <td> [mapKey("ab"), mapKey("cd"),listIndex(-1), mapKey("10")] </td>
+     *     <td> ab.cd.[-1]."10" </td> <td> [mapKey("ab"), mapKey("cd"), listIndex(-1), mapKey("10")] </td>
      *   </tr>
      * </table>
      */

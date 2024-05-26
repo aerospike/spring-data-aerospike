@@ -2,11 +2,6 @@ package org.springframework.data.aerospike.repository.query.blocking.noindex.fin
 
 import com.aerospike.client.Value;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.config.AerospikeDataSettings;
-import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
-import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
-import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
-import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -44,6 +39,31 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findBySimplePropertyEquals_Enum() {
+        Qualifier genderEqFemale = Qualifier.builder()
+            .setPath("gender")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(Value.get(Person.Gender.FEMALE))
+            .build();
+        assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
+    }
+
+    @Test
+    void findBySimplePropertyEquals_String() {
+        String email = "alicia@test.com";
+        alicia.setEmailAddress(email);
+        repository.save(alicia);
+
+        Qualifier genderEqFemale = Qualifier.builder()
+            // custom bin name has been set to "email" via @Field annotation
+            .setPath("email")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(Value.get(email))
+            .build();
+        assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
+    }
+
+    @Test
     void findPersonsByQuery() {
         Iterable<Person> result;
 
@@ -73,14 +93,14 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
 
         // creating an expression "firstName is equal to Carter"
         Qualifier firstNameEqCarter = Qualifier.builder()
-            .setBinName("firstName")
+            .setPath("firstName")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("Carter"))
             .build();
 
         // creating an expression "age is equal to 49"
         Qualifier ageEq49 = Qualifier.builder()
-            .setBinName("age")
+            .setPath("age")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get(49))
             .build();
@@ -89,7 +109,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
 
         // creating an expression "firstName is equal to Leroi" with sorting by age and limiting by 1 row
         Qualifier firstNameEqLeroi = Qualifier.builder()
-            .setBinName("firstName")
+            .setPath("firstName")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("Leroi"))
             .build();
@@ -102,7 +122,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         // creating an expression "age is greater than 49"
         Qualifier ageGt49 = Qualifier.builder()
             .setFilterOperation(FilterOperation.GT)
-            .setBinName("age")
+            .setPath("age")
             .setValue(Value.get(49))
             .build();
         result = repository.findUsingQuery(new Query(ageGt49));
@@ -257,7 +277,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         assertThat(boyd.getStringMap().get("key1")).isEqualTo(valueToSearch);
 
         Qualifier stringMapValuesContainString = Qualifier.builder()
-            .setBinName("stringMap")
+            .setPath("stringMap")
             .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
             .setValue(Value.get(valueToSearch))
             .build();
@@ -267,32 +287,13 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         assertThat(carter.getIntMap().get(keyExactMatch)).isLessThan(valueToSearchLessThan);
 
         // it cannot be easily combined using boolean logic
-        // because in fact it is a "less than" Exp that uses the result of another Exp "MapExp.getByKey",
-        // so it requires new logic if exposed to users
+        // because in fact it is a "less than" Exp that uses the result of another Exp "MapExp.getByKey"
         Qualifier intMapWithExactKeyAndValueLt100 = Qualifier.builder()
-            .setBinName("intMap") // Map bin name
+            .setPath("intMap." + keyExactMatch) // Map bin name
             .setFilterOperation(FilterOperation.MAP_VAL_LT_BY_KEY)
-            .setKey(Value.get(keyExactMatch)) // Map key
             .setValue(Value.get(valueToSearchLessThan)) // Map value to compare with
             .build();
         assertThat(repository.findUsingQuery(new Query(intMapWithExactKeyAndValueLt100))).containsOnly(carter);
-    }
-
-    private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
-        MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor(), new AerospikeDataSettings());
-        converter.afterPropertiesSet();
-        return converter;
-    }
-
-    @Test
-    void findBySimplePropertyEquals_Enum() {
-        Qualifier genderEqFemale = Qualifier.builder()
-            .setBinName("gender")
-            .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get(Person.Gender.FEMALE))
-            .build();
-        assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
     }
 }
 

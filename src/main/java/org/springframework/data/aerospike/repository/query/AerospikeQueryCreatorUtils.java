@@ -1,11 +1,12 @@
 package org.springframework.data.aerospike.repository.query;
 
 import com.aerospike.client.Value;
+import com.aerospike.client.cdt.CTX;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
-import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.Utils;
@@ -18,10 +19,12 @@ import org.springframework.util.StringUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.function.Predicate.not;
 import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion.NULL_PARAM;
@@ -30,20 +33,29 @@ import static org.springframework.util.ClassUtils.isAssignableValue;
 
 public class AerospikeQueryCreatorUtils {
 
-    protected static Qualifier setQualifier(QualifierBuilder qb, String fieldName, FilterOperation op, Part part,
+    protected static Qualifier setQualifier(QueryQualifierBuilder qb, String binName, FilterOperation op, Part part,
                                             List<String> dotPath, ServerVersionSupport versionSupport) {
-        qb.setBinName(fieldName)
-            .setFilterOperation(op)
+        qb.setBinName(binName)
+            .setInnerQbFilterOperation(op)
             .setIgnoreCase(ignoreCaseToBoolean(part));
         if (dotPath != null && !qb.hasDotPath()) {
             qb.setDotPath(dotPath);
             String[] dotPathArr = getDotPathArray(dotPath);
             if (dotPathArr != null && dotPathArr.length > 2) {
-                qb.setCtxList(getCtxFromDotPathArray(dotPathArr));
+                List<String> ctxList = getCtxFromDotPathArray(dotPathArr);
+                qb.setCtxArray(resolveCtxList(ctxList));
             }
         }
         qb.setServerVersionSupport(versionSupport);
         return qb.build();
+    }
+
+    private static CTX[] resolveCtxList(List<String> ctxList) {
+        return ctxList.stream()
+            .filter(not(String::isEmpty))
+            .map(AerospikeContextDslResolverUtils::toCtx)
+            .filter(Objects::nonNull)
+            .toArray(CTX[]::new);
     }
 
     public static String[] getDotPathArray(List<String> dotPathList) {
@@ -97,14 +109,14 @@ public class AerospikeQueryCreatorUtils {
     }
 
     protected static Qualifier qualifierAndConcatenated(ServerVersionSupport versionSupport, List<Object> params,
-                                                        QualifierBuilder qb,
+                                                        QueryQualifierBuilder qb,
                                                         Part part, String fieldName, FilterOperation op,
                                                         List<String> dotPath) {
         return qualifierAndConcatenated(versionSupport, params, qb, part, fieldName, op, dotPath, false);
     }
 
     protected static Qualifier qualifierAndConcatenated(ServerVersionSupport versionSupport, List<Object> params,
-                                                        QualifierBuilder qb,
+                                                        QueryQualifierBuilder qb,
                                                         Part part, String fieldName, FilterOperation op,
                                                         List<String> dotPath, boolean containingMapKeyValuePairs) {
         Qualifier[] qualifiers;
@@ -139,7 +151,7 @@ public class AerospikeQueryCreatorUtils {
         return segmentName;
     }
 
-    protected static void setQbValuesForMapByKey(QualifierBuilder qb, Object key, Object value) {
+    protected static void setQbValuesForMapByKey(QueryQualifierBuilder qb, Object key, Object value) {
         qb.setKey(Value.get(value)); // contains value
         qb.setValue(Value.get(key)); // contains key
     }
@@ -164,19 +176,19 @@ public class AerospikeQueryCreatorUtils {
         return Value.get(convertNullParameter(queryParameter));
     }
 
-    protected static void setQualifierBuilderKey(QualifierBuilder qb, Object key) {
+    protected static void setQualifierBuilderKey(QueryQualifierBuilder qb, Object key) {
         qb.setKey(getValueOfQueryParameter(key));
     }
 
-    protected static void setQualifierBuilderSecondKey(QualifierBuilder qb, Object key) {
+    protected static void setQualifierBuilderSecondKey(QueryQualifierBuilder qb, Object key) {
         qb.setNestedKey(getValueOfQueryParameter(key));
     }
 
-    protected static void setQualifierBuilderValue(QualifierBuilder qb, Object value) {
+    protected static void setQualifierBuilderValue(QueryQualifierBuilder qb, Object value) {
         qb.setValue(getValueOfQueryParameter(value));
     }
 
-    protected static void setQualifierBuilderSecondValue(QualifierBuilder qb, Object value) {
+    protected static void setQualifierBuilderSecondValue(QueryQualifierBuilder qb, Object value) {
         qb.setSecondValue(getValueOfQueryParameter(value));
     }
 

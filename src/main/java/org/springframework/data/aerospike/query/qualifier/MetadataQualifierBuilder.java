@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.query.qualifier;
 
+import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.util.Assert;
@@ -11,6 +12,7 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.ME
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
+@Beta
 public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQualifierBuilder> {
 
     MetadataQualifierBuilder() {
@@ -62,14 +64,14 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
     protected void validate() {
         // metadata query validation
         if (this.getMetadataField() != null) {
-            if (this.getBinName() == null) {
+            if (this.getPath() == null) {
                 if (this.getValueAsObj() != null) {
                     validateValueAsObj();
                 } else {
                     throw new IllegalArgumentException("Expecting valueAsObj parameter to be provided");
                 }
             } else {
-                throw new IllegalArgumentException("Unexpected parameter: bin name (unnecessary for metadata query)");
+                throw new IllegalArgumentException("Unexpected parameter: path (unnecessary for metadata query)");
             }
         } else {
             throw new IllegalArgumentException("Expecting metadataField parameter to be provided");

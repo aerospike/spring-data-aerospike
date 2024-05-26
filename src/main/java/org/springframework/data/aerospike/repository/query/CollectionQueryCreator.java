@@ -5,7 +5,6 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
-import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
@@ -132,7 +131,7 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
 
     @Override
     public Qualifier process() {
-        QualifierBuilder qb = Qualifier.builder();
+        QueryQualifierBuilder qb = new QueryQualifierBuilder();
         FilterOperation op = filterOperation;
 
         if (filterOperation == BETWEEN || filterOperation == IN || filterOperation == NOT_IN) {

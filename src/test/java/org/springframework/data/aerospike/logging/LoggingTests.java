@@ -48,7 +48,7 @@ public class LoggingTests {
     void binIsIndexed() {
         IndexesCache indexesCacheMock = Mockito.mock(IndexesCache.class);
         Qualifier qualifier = Qualifier.builder()
-            .setBinName("testField")
+            .setPath("testField")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(Value.get("testValue1"))
             .build();
@@ -75,7 +75,7 @@ public class LoggingTests {
         creator.createQuery();
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
-        String msg = "Created query: field = firstName, operation = EQ, key = , value = TestName, value2 = ";
+        String msg = "Created query: bin name = firstName, operation = EQ, key = , value = TestName, value2 = ";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }

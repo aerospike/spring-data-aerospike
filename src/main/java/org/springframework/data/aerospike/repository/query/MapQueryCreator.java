@@ -6,7 +6,6 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
-import org.springframework.data.aerospike.query.qualifier.QualifierBuilder;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeQueryCriterion;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.mapping.PropertyPath;
@@ -189,7 +188,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     @Override
     public Qualifier process() {
         Qualifier qualifier = null;
-        QualifierBuilder qb = Qualifier.builder();
+        QueryQualifierBuilder qb = new QueryQualifierBuilder();
         int paramsSize = queryParameters.size();
         List<String> dotPath = null;
         FilterOperation op = filterOperation;
@@ -244,7 +243,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         return qualifier;
     }
 
-    private Qualifier processMapTwoParams(QualifierBuilder qb, Part part, List<Object> params, FilterOperation op,
+    private Qualifier processMapTwoParams(QueryQualifierBuilder qb, Part part, List<Object> params, FilterOperation op,
                                           String fieldName) {
         Qualifier qualifier;
         if (op == FilterOperation.CONTAINING) {
@@ -260,7 +259,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         return qualifier;
     }
 
-    private Qualifier processMapContaining(QualifierBuilder qb, Part part, String fieldName, FilterOperation keysOp,
+    private Qualifier processMapContaining(QueryQualifierBuilder qb, Part part, String fieldName, FilterOperation keysOp,
                                            FilterOperation valuesOp, FilterOperation byKeyOp) {
         FilterOperation op = byKeyOp;
         if (queryParameters.get(0) instanceof AerospikeQueryCriterion queryCriterion) {
@@ -279,7 +278,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         return setQualifier(qb, fieldName, op, part, null, versionSupport);
     }
 
-    private Qualifier processMapOtherThanContaining(QualifierBuilder qb, Part part, List<Object> queryParameters,
+    private Qualifier processMapOtherThanContaining(QueryQualifierBuilder qb, Part part, List<Object> queryParameters,
                                                     FilterOperation op,
                                                     String fieldName) {
         Object param1 = queryParameters.get(0);
@@ -294,7 +293,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         return setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
     }
 
-    private Qualifier processMapMultipleParams(QualifierBuilder qb) {
+    private Qualifier processMapMultipleParams(QueryQualifierBuilder qb) {
         if (filterOperation == FilterOperation.CONTAINING || filterOperation == FilterOperation.NOT_CONTAINING) {
             return processMapMultipleParamsContaining(qb, part, queryParameters, filterOperation, fieldName, isNested);
         } else {
@@ -302,7 +301,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
         }
     }
 
-    private Qualifier processMapMultipleParamsContaining(QualifierBuilder qb, Part part, List<Object> params,
+    private Qualifier processMapMultipleParamsContaining(QueryQualifierBuilder qb, Part part, List<Object> params,
                                                          FilterOperation op, String fieldName, boolean isNested) {
         List<String> dotPath;
         AerospikeQueryCriterion queryCriterion;
