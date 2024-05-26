@@ -12,7 +12,6 @@ public enum QualifierKey {
     SINGLE_ID_FIELD,
     MULTIPLE_IDS_FIELD,
     DOT_PATH,
-    CTX_LIST,
     CTX_ARRAY,
     IGNORE_CASE,
     KEY,

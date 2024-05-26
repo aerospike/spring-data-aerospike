@@ -1,7 +1,9 @@
 package org.springframework.data.aerospike.repository.query;
 
 import com.aerospike.client.Value;
+import com.aerospike.client.cdt.CTX;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
+import org.springframework.data.aerospike.index.AerospikeIndexResolverUtils;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
@@ -17,10 +19,12 @@ import org.springframework.util.StringUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.function.Predicate.not;
 import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion.NULL_PARAM;
@@ -38,11 +42,20 @@ public class AerospikeQueryCreatorUtils {
             qb.setDotPath(dotPath);
             String[] dotPathArr = getDotPathArray(dotPath);
             if (dotPathArr != null && dotPathArr.length > 2) {
-                qb.setCtxList(getCtxFromDotPathArray(dotPathArr));
+                List<String> ctxList = getCtxFromDotPathArray(dotPathArr);
+                qb.setCtxArray(resolveCtxList(ctxList));
             }
         }
         qb.setServerVersionSupport(versionSupport);
         return qb.build();
+    }
+
+    private static CTX[] resolveCtxList(List<String> ctxList) {
+        return ctxList.stream()
+            .filter(not(String::isEmpty))
+            .map(AerospikeIndexResolverUtils::toCtx)
+            .filter(Objects::nonNull)
+            .toArray(CTX[]::new);
     }
 
     public static String[] getDotPathArray(List<String> dotPathList) {

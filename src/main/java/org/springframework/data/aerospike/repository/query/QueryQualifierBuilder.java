@@ -56,14 +56,6 @@ public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder
     }
 
     /**
-     * Set context path as a list of Strings.
-     */
-    public QueryQualifierBuilder setCtxList(List<String> ctxList) {
-        this.map.put(CTX_LIST, ctxList);
-        return this;
-    }
-
-    /**
      * Set CTX[].
      */
     public QueryQualifierBuilder setCtxArray(CTX[] ctxArray) {

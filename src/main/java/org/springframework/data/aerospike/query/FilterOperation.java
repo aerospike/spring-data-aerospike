@@ -26,7 +26,6 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
-import org.springframework.data.aerospike.index.AerospikeIndexResolverUtils;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierKey;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
@@ -38,7 +37,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -49,7 +47,6 @@ import static com.aerospike.client.command.ParticleType.INTEGER;
 import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.STRING;
-import static java.util.function.Predicate.not;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getDotPathArray;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getContaining;
@@ -1620,14 +1617,6 @@ public enum FilterOperation {
         return operator.apply(binExp.apply(field), exp);
     }
 
-    private static CTX[] resolveCtxList(List<String> ctxList) {
-        return ctxList.stream()
-            .filter(not(String::isEmpty))
-            .map(AerospikeIndexResolverUtils::toCtx)
-            .filter(Objects::nonNull)
-            .toArray(CTX[]::new);
-    }
-
     private static Exp toExp(Object value) {
         Exp res;
         if (value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long) {
@@ -1711,16 +1700,13 @@ public enum FilterOperation {
 
     @SuppressWarnings("unchecked")
     protected static CTX[] getCtxArr(Map<QualifierKey, Object> qualifierMap) {
-        CTX[] ctxArr = (CTX[]) qualifierMap.get(CTX_ARRAY);
-        List<String> ctxList = (List<String>) qualifierMap.get(CTX_LIST);
-        return (ctxList == null) ? ctxArr : resolveCtxList(ctxList);
+        return (CTX[]) qualifierMap.get(CTX_ARRAY);
     }
 
     @SuppressWarnings("unchecked")
     protected static String getCtxArrAsString(Map<QualifierKey, Object> qualifierMap) {
         CTX[] ctxArr = (CTX[]) qualifierMap.get(CTX_ARRAY);
-        List<String> ctxList = (List<String>) qualifierMap.get(CTX_LIST);
-        return (ctxList == null) ? ctxArrToString(ctxArr) : String.join(".", ctxList);
+        return ctxArrToString(ctxArr);
     }
 
     private static String ctxArrToString(CTX[] ctxArr) {

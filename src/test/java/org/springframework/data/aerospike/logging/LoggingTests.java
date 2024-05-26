@@ -75,7 +75,8 @@ public class LoggingTests {
         creator.createQuery();
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
-        String msg = "Created query: field = firstName, operation = EQ, key = , value = TestName, value2 = ";
+        String msg = "Created qualifier-based query: bin name = firstName, operation = EQ, key = , value = TestName, " +
+            "value2 = ";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }

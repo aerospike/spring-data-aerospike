@@ -212,14 +212,11 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         String field = (StringUtils.hasLength(qualifier.getBinName()) ? qualifier.getBinName() : "");
         String operation = qualifier.getOperation().toString();
         operation = (StringUtils.hasLength(operation) ? operation : "N/A");
-        Value k = qualifier.getKey();
-        String key = printValue(k);
-        Value val = qualifier.getValue();
-        String value = printValue(val);
-        Value val2 = qualifier.getSecondValue();
-        String value2 = printValue(val2);
+        String key = printValue(qualifier.getKey());
+        String value = printValue(qualifier.getValue());
+        String value2 = printValue(qualifier.getSecondValue());
 
-        LOG.debug("Created query: field = {}, operation = {}, key = {}, value = {}, value2 = {}",
+        LOG.debug("Created qualifier-based query: bin name = {}, operation = {}, key = {}, value = {}, value2 = {}",
             field, operation, key, value, value2);
     }
 
