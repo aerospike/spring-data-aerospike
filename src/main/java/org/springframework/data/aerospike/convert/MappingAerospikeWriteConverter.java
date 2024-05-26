@@ -160,10 +160,10 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
                                                   ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
         Map<String, Object> target;
-        if (!settings.isWriteTreeMaps()) {
-            target = new HashMap<>();
-        } else {
+        if (settings.isWriteTreeMaps()) {
             target = new TreeMap<>();
+        } else {
+            target = new HashMap<>();
         }
         typeMapper.writeType(type, target);
         entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property -> {
@@ -242,10 +242,10 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         Assert.notNull(type, "Given type must not be null!");
 
         Supplier<Map<Object, Object>> mapSupplier;
-        if (!settings.isWriteTreeMaps()) {
-            mapSupplier = HashMap::new;
-        } else {
+        if (settings.isWriteTreeMaps()) {
             mapSupplier = TreeMap::new;
+        } else {
+            mapSupplier = HashMap::new;
         }
         Map<Object, Object> map = mapSupplier.get();
         for (Map.Entry<Object, Object> e : source.entrySet()) {
