@@ -502,7 +502,6 @@ public enum FilterOperation {
 
             Exp[] arrElementsExp = collection.stream().map(item ->
                 Qualifier.builder()
-                    .setPath(getBinName(qualifierMap))
                     .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
                     .setPath(path)
                     .setValue(Value.get(item))
@@ -1281,8 +1280,7 @@ public enum FilterOperation {
         Exp[] listElementsExp = listOfLongs.stream().map(item ->
             Qualifier.metadataBuilder()
                 .setMetadataField(getMetadataField(qualifierMap))
-//                .setFilterOperation(filterOperation)
-                .setFilterOperation(FilterOperation.EQ)
+                .setFilterOperation(filterOperation)
                 .setValueAsObj(item)
                 .build()
                 .getFilterExp()
