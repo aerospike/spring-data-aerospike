@@ -37,6 +37,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -157,7 +158,12 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
     private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
                                                   ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
-        Map<String, Object> target = new TreeMap<>();
+        Map<String, Object> target;
+        if (!settings.isWriteKeyOrderedMaps()) {
+            target = new HashMap<>();
+        } else {
+            target = new TreeMap<>();
+        }
         typeMapper.writeType(type, target);
         entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property -> {
 
