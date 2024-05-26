@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.query.qualifier;
 
+import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.util.Assert;
@@ -11,6 +12,7 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.ME
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
+@Beta
 public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQualifierBuilder> {
 
     MetadataQualifierBuilder() {

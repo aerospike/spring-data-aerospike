@@ -527,7 +527,6 @@ public enum FilterOperation {
             String path = String.join(".", getBinName(qualifierMap), pathPart);
             Exp[] arrElementsExp = collection.stream().map(item ->
                 Qualifier.builder()
-                    .setPath(getBinName(qualifierMap))
                     .setFilterOperation(FilterOperation.MAP_VAL_NOTEQ_BY_KEY)
                     .setPath(path)
                     .setValue(Value.get(item))

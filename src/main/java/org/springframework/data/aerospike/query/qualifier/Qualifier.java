@@ -20,6 +20,7 @@ import com.aerospike.client.Value;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
+import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
@@ -75,10 +76,12 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return Collections.unmodifiableMap(this.internalMap);
     }
 
+    @Beta
     public static QualifierBuilder builder() {
         return new QualifierBuilder();
     }
 
+    @Beta
     public static MetadataQualifierBuilder metadataBuilder() {
         return new MetadataQualifierBuilder();
     }

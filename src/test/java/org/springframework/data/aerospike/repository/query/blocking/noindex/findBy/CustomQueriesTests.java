@@ -39,6 +39,31 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findBySimplePropertyEquals_Enum() {
+        Qualifier genderEqFemale = Qualifier.builder()
+            .setPath("gender")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(Value.get(Person.Gender.FEMALE))
+            .build();
+        assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
+    }
+
+    @Test
+    void findBySimplePropertyEquals_String() {
+        String email = "alicia@test.com";
+        alicia.setEmailAddress(email);
+        repository.save(alicia);
+
+        Qualifier genderEqFemale = Qualifier.builder()
+            // custom bin name has been set to "email" via @Field annotation
+            .setPath("email")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(Value.get(email))
+            .build();
+        assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
+    }
+
+    @Test
     void findPersonsByQuery() {
         Iterable<Person> result;
 
@@ -266,20 +291,9 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier intMapWithExactKeyAndValueLt100 = Qualifier.builder()
             .setPath("intMap." + keyExactMatch) // Map bin name
             .setFilterOperation(FilterOperation.MAP_VAL_LT_BY_KEY)
-//            .setKey(Value.get(keyExactMatch)) // Map key
             .setValue(Value.get(valueToSearchLessThan)) // Map value to compare with
             .build();
         assertThat(repository.findUsingQuery(new Query(intMapWithExactKeyAndValueLt100))).containsOnly(carter);
-    }
-
-    @Test
-    void findBySimplePropertyEquals_Enum() {
-        Qualifier genderEqFemale = Qualifier.builder()
-            .setPath("gender")
-            .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get(Person.Gender.FEMALE))
-            .build();
-        assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
     }
 }
 

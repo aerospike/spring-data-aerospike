@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.query.qualifier;
 
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
+import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.index.AerospikeIndexResolverUtils;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.query.QueryQualifierBuilder;
@@ -22,6 +23,7 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PA
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
+@Beta
 public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
     QualifierBuilder() {

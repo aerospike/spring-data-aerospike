@@ -35,11 +35,11 @@ public class AerospikeIndexResolverUtils {
     private static CTX processSingleCtx(String singleCtx, AerospikeIndexResolver.CtxType ctxType) {
         int length = singleCtx.length();
         if (length < 3) {
-            throw new IllegalArgumentException("@Indexed annotation: context string '" + singleCtx +
+            throw new IllegalArgumentException("Context DSL: string '" + singleCtx +
                 "' has no content");
         }
         if (singleCtx.charAt(length - 1) != ctxType.closingChar) {
-            throw new IllegalArgumentException("@Indexed annotation: brackets mismatch, " +
+            throw new IllegalArgumentException("Context DSL: brackets mismatch, " +
                 "expecting '" + ctxType.closingChar + "', got '" + singleCtx.charAt(length - 1) + "' instead");
         }
 
@@ -86,7 +86,7 @@ public class AerospikeIndexResolverUtils {
         try {
             return Integer.parseInt(substring);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("@Indexed annotation " + ctxType + " " + parameterName + ": " +
+            throw new IllegalArgumentException("Context DSL " + ctxType + " " + parameterName + ": " +
                 "expecting only integer values, got '" + substring + "' instead");
         }
     }
