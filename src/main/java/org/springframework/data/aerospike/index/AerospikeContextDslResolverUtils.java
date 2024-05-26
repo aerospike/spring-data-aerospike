@@ -6,15 +6,15 @@ import com.aerospike.client.exp.Exp;
 
 import java.util.List;
 
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.LIST_INDEX;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.LIST_RANK;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.LIST_VALUE;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.MAP_INDEX;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.MAP_KEY;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.MAP_RANK;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.CtxType.MAP_VALUE;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.CtxType.LIST_INDEX;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.CtxType.LIST_RANK;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.CtxType.LIST_VALUE;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.CtxType.MAP_INDEX;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.CtxType.MAP_KEY;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.CtxType.MAP_RANK;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.CtxType.MAP_VALUE;
 
-public class AerospikeIndexResolverUtils {
+public class AerospikeContextDslResolverUtils {
 
     public static CTX toCtx(String singleCtx) {
         switch (singleCtx.charAt(0)) {
@@ -35,12 +35,11 @@ public class AerospikeIndexResolverUtils {
     private static CTX processSingleCtx(String singleCtx, AerospikeIndexResolver.CtxType ctxType) {
         int length = singleCtx.length();
         if (length < 3) {
-            throw new IllegalArgumentException("Context DSL: string '" + singleCtx +
-                "' has no content");
+            throw new IllegalArgumentException(String.format("Context DSL: string '%s' has no content", singleCtx));
         }
         if (singleCtx.charAt(length - 1) != ctxType.closingChar) {
-            throw new IllegalArgumentException("Context DSL: brackets mismatch, " +
-                "expecting '" + ctxType.closingChar + "', got '" + singleCtx.charAt(length - 1) + "' instead");
+            throw new IllegalArgumentException(String.format("Context DSL: brackets mismatch, expecting '%s', " +
+                "got '%s' instead", ctxType.closingChar, singleCtx.charAt(length - 1)));
         }
 
         CTX result;
@@ -86,8 +85,8 @@ public class AerospikeIndexResolverUtils {
         try {
             return Integer.parseInt(substring);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Context DSL " + ctxType + " " + parameterName + ": " +
-                "expecting only integer values, got '" + substring + "' instead");
+            throw new IllegalArgumentException(String.format("Context DSL %s %s: expecting only integer values, " +
+                "got '%s' instead", ctxType, parameterName, substring));
         }
     }
 

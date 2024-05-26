@@ -3,7 +3,7 @@ package org.springframework.data.aerospike.query.qualifier;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import org.springframework.data.aerospike.annotation.Beta;
-import org.springframework.data.aerospike.index.AerospikeIndexResolverUtils;
+import org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.repository.query.QueryQualifierBuilder;
 import org.springframework.util.StringUtils;
@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.Objects;
 
 import static java.util.function.Predicate.not;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.getCtxType;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.isCtxMapKey;
-import static org.springframework.data.aerospike.index.AerospikeIndexResolverUtils.isCtxMapValue;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.getCtxType;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.isCtxMapKey;
+import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.isCtxMapValue;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
@@ -213,7 +213,7 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
         return Arrays.stream(path.split("\\."))
             .filter(not(String::isEmpty))
-            .map(AerospikeIndexResolverUtils::toCtx)
+            .map(AerospikeContextDslResolverUtils::toCtx)
             .filter(Objects::nonNull)
             .toArray(CTX[]::new);
     }

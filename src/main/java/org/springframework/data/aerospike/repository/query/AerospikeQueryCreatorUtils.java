@@ -3,7 +3,7 @@ package org.springframework.data.aerospike.repository.query;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
-import org.springframework.data.aerospike.index.AerospikeIndexResolverUtils;
+import org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
@@ -53,7 +53,7 @@ public class AerospikeQueryCreatorUtils {
     private static CTX[] resolveCtxList(List<String> ctxList) {
         return ctxList.stream()
             .filter(not(String::isEmpty))
-            .map(AerospikeIndexResolverUtils::toCtx)
+            .map(AerospikeContextDslResolverUtils::toCtx)
             .filter(Objects::nonNull)
             .toArray(CTX[]::new);
     }
