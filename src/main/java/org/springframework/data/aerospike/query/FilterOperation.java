@@ -26,7 +26,6 @@ import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.RegexFlag;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
-import org.springframework.data.aerospike.index.AerospikeIndexResolverUtils;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.query.qualifier.QualifierKey;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
@@ -38,7 +37,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -49,7 +47,6 @@ import static com.aerospike.client.command.ParticleType.INTEGER;
 import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.STRING;
-import static java.util.function.Predicate.not;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getDotPathArray;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getContaining;
@@ -119,7 +116,7 @@ public enum FilterOperation {
                 Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
                 Exp[] arrElementsExp = collection.stream().map(item ->
                     Qualifier.builder()
-                        .setBinName(getBinName(qualifierMap))
+                        .setPath(getBinName(qualifierMap))
                         .setFilterOperation(FilterOperation.EQ)
                         .setValue(Value.get(item))
                         .build()
@@ -143,7 +140,7 @@ public enum FilterOperation {
                 Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
                 Exp[] arrElementsExp = collection.stream().map(item ->
                     Qualifier.builder()
-                        .setBinName(getBinName(qualifierMap))
+                        .setPath(getBinName(qualifierMap))
                         .setFilterOperation(FilterOperation.NOTEQ)
                         .setValue(Value.get(item))
                         .build()
@@ -474,11 +471,11 @@ public enum FilterOperation {
                         yield null;
                     }
                     yield Filter.contains(getBinName(qualifierMap), IndexCollectionType.MAPVALUES,
-                        getValue(qualifierMap).toString(), getCtx(getCtxList(qualifierMap)));
+                        getValue(qualifierMap).toString(), getCtxArr(qualifierMap));
                 }
                 case INTEGER -> Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES,
                     getValue(qualifierMap).toLong(), getValue(qualifierMap).toLong(),
-                    getCtx(getCtxList(qualifierMap)));
+                    getCtxArr(qualifierMap));
                 default -> null;
             };
         }
@@ -499,11 +496,14 @@ public enum FilterOperation {
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
             // Convert IN to EQ with logical OR as there is no direct support for IN query
             Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
+            String pathPart = getKey(qualifierMap).toString();
+            if (getCtxArr(qualifierMap) != null) pathPart = getCtxArrAsString(qualifierMap) + pathPart;
+            String path = String.join(".", getBinName(qualifierMap), pathPart);
+
             Exp[] arrElementsExp = collection.stream().map(item ->
                 Qualifier.builder()
-                    .setBinName(getBinName(qualifierMap))
                     .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
-                    .setKey(getKey(qualifierMap))
+                    .setPath(path)
                     .setValue(Value.get(item))
                     .build()
                     .getFilterExp()
@@ -522,11 +522,13 @@ public enum FilterOperation {
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
             // Convert NOT_IN to NOTEQ with logical AND as there is no direct support for NOT_IN query
             Collection<?> collection = getValueAsCollectionOrFail(qualifierMap);
+            String pathPart = getKey(qualifierMap).toString();
+            if (getCtxArr(qualifierMap) != null) pathPart = getCtxArrAsString(qualifierMap) + pathPart;
+            String path = String.join(".", getBinName(qualifierMap), pathPart);
             Exp[] arrElementsExp = collection.stream().map(item ->
                 Qualifier.builder()
-                    .setBinName(getBinName(qualifierMap))
                     .setFilterOperation(FilterOperation.MAP_VAL_NOTEQ_BY_KEY)
-                    .setKey(getKey(qualifierMap))
+                    .setPath(path)
                     .setValue(Value.get(item))
                     .build()
                     .getFilterExp()
@@ -558,7 +560,7 @@ public enum FilterOperation {
 
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES,
                 getKey(qualifierMap).toLong() + 1,
-                Long.MAX_VALUE, getCtx(getCtxList(qualifierMap)));
+                Long.MAX_VALUE, getCtxArr(qualifierMap));
         }
     },
     MAP_VAL_GTEQ_BY_KEY {
@@ -576,7 +578,7 @@ public enum FilterOperation {
                 return null;
             }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES,
-                getKey(qualifierMap).toLong(), Long.MAX_VALUE, getCtx(getCtxList(qualifierMap)));
+                getKey(qualifierMap).toLong(), Long.MAX_VALUE, getCtxArr(qualifierMap));
         }
     },
     MAP_VAL_LT_BY_KEY {
@@ -595,7 +597,7 @@ public enum FilterOperation {
                 return null;
             }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
-                getKey(qualifierMap).toLong() - 1, getCtx(getCtxList(qualifierMap)));
+                getKey(qualifierMap).toLong() - 1, getCtxArr(qualifierMap));
         }
     },
     MAP_VAL_LTEQ_BY_KEY {
@@ -613,13 +615,13 @@ public enum FilterOperation {
                 return null;
             }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES, Long.MIN_VALUE,
-                getValue(qualifierMap).toLong(), getCtx(getCtxList(qualifierMap)));
+                getValue(qualifierMap).toLong(), getCtxArr(qualifierMap));
         }
     },
     MAP_VAL_BETWEEN_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            List<String> ctxList = getCtxList(qualifierMap);
+            CTX[] ctxArr = getCtxArr(qualifierMap);
             Exp lowerLimit;
             Exp upperLimit;
             Exp.Type type;
@@ -649,7 +651,7 @@ public enum FilterOperation {
                         getValue(qualifierMap).getClass().getSimpleName());
             }
 
-            return mapValBetweenByKey(qualifierMap, ctxList, type, lowerLimit, upperLimit);
+            return mapValBetweenByKey(qualifierMap, ctxArr, type, lowerLimit, upperLimit);
         }
 
         /**
@@ -662,7 +664,7 @@ public enum FilterOperation {
             }
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.MAPVALUES,
                 getValue(qualifierMap).toLong(), getSecondValue(qualifierMap).toLong(),
-                getCtx(getCtxList(qualifierMap)));
+                getCtxArr(qualifierMap));
         }
     },
     MAP_VAL_STARTS_WITH_BY_KEY {
@@ -1385,14 +1387,14 @@ public enum FilterOperation {
         };
     }
 
-    private static Exp mapValBetweenByKey(Map<QualifierKey, Object> qualifierMap, List<String> ctxList,
+    private static Exp mapValBetweenByKey(Map<QualifierKey, Object> qualifierMap, CTX[] ctxArr,
                                           Exp.Type type,
                                           Exp lowerLimit,
                                           Exp upperLimit) {
         Exp mapExp;
-        if (ctxList != null) {
+        if (ctxArr != null && ctxArr.length > 0) {
             mapExp = MapExp.getByKey(MapReturnType.VALUE, type, Exp.val(getKey(qualifierMap).toString()),
-                Exp.mapBin(getBinName(qualifierMap)), resolveCtxList(ctxList));
+                Exp.mapBin(getBinName(qualifierMap)), ctxArr);
         } else {
             mapExp = MapExp.getByKey(MapReturnType.VALUE, type, Exp.val(getKey(qualifierMap).toString()),
                 Exp.mapBin(getBinName(qualifierMap)));
@@ -1481,27 +1483,27 @@ public enum FilterOperation {
 
     private static Exp getFilterExpMapValOrFail(Map<QualifierKey, Object> qualifierMap, BinaryOperator<Exp> operator,
                                                 String opName) {
-        List<String> ctxList = getCtxList(qualifierMap);
+        CTX[] ctxArr = getCtxArr(qualifierMap);
 
         return switch (getValue(qualifierMap).getType()) {
-            case INTEGER -> operator.apply(getMapExp(qualifierMap, ctxList, Exp.Type.INT),
+            case INTEGER -> operator.apply(getMapExp(qualifierMap, ctxArr, Exp.Type.INT),
                 Exp.val(getValue(qualifierMap).toLong()));
-            case STRING -> operator.apply(getMapExp(qualifierMap, ctxList, Exp.Type.STRING),
+            case STRING -> operator.apply(getMapExp(qualifierMap, ctxArr, Exp.Type.STRING),
                 Exp.val(getValue(qualifierMap).toString()));
-            case LIST -> operator.apply(getMapExp(qualifierMap, ctxList, Exp.Type.LIST),
+            case LIST -> operator.apply(getMapExp(qualifierMap, ctxArr, Exp.Type.LIST),
                 Exp.val((List<?>) getValue(qualifierMap).getObject()));
-            case MAP -> operator.apply(getMapExp(qualifierMap, ctxList, Exp.Type.MAP),
+            case MAP -> operator.apply(getMapExp(qualifierMap, ctxArr, Exp.Type.MAP),
                 Exp.val((Map<?, ?>) getValue(qualifierMap).getObject()));
             default -> throw new UnsupportedOperationException(
                 opName + " FilterExpression unsupported type: " + getValue(qualifierMap).getClass().getSimpleName());
         };
     }
 
-    private static Exp getMapExp(Map<QualifierKey, Object> qualifierMap, List<String> ctxList, Exp.Type expType) {
+    private static Exp getMapExp(Map<QualifierKey, Object> qualifierMap, CTX[] ctxArr, Exp.Type expType) {
         Exp mapKeyExp = getMapKeyExp(getKey(qualifierMap).getObject(), keepOriginalKeyTypes(qualifierMap));
-        if (ctxList != null) {
+        if (ctxArr != null) {
             return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
-                Exp.mapBin(getBinName(qualifierMap)), resolveCtxList(ctxList));
+                Exp.mapBin(getBinName(qualifierMap)), ctxArr);
         } else {
             return MapExp.getByKey(MapReturnType.VALUE, expType, mapKeyExp,
                 Exp.mapBin(getBinName(qualifierMap)));
@@ -1548,7 +1550,7 @@ public enum FilterOperation {
 
     private static Exp getMapValEqOrFail(Map<QualifierKey, Object> qualifierMap, BinaryOperator<Exp> operator,
                                          String opName) {
-        List<String> ctxList = getCtxList(qualifierMap);
+        CTX[] ctxArr = getCtxArr(qualifierMap);
 
         // boolean values are read as BoolIntValue (INTEGER ParticleType) if Value.UseBoolBin == false
         // so converting to BooleanValue to process correctly
@@ -1558,35 +1560,34 @@ public enum FilterOperation {
 
         Value value = getValue(qualifierMap);
         return switch (value.getType()) {
-            case INTEGER -> getMapValEqExp(qualifierMap, Exp.Type.INT, value.toLong(), ctxList, operator);
+            case INTEGER -> getMapValEqExp(qualifierMap, Exp.Type.INT, value.toLong(), ctxArr, operator);
             case STRING -> {
                 if (ignoreCase(qualifierMap)) {
                     throw new UnsupportedOperationException(
                         opName + " FilterExpression: case insensitive comparison is not supported");
                 }
-                yield getMapValEqExp(qualifierMap, Exp.Type.STRING, value.toString(), ctxList, operator);
+                yield getMapValEqExp(qualifierMap, Exp.Type.STRING, value.toString(), ctxArr, operator);
             }
-            case BOOL -> getMapValEqExp(qualifierMap, Exp.Type.BOOL, value.getObject(), ctxList, operator);
-            case LIST -> getMapValEqExp(qualifierMap, Exp.Type.LIST, value.getObject(), ctxList, operator);
-            case MAP -> getMapValEqExp(qualifierMap, Exp.Type.MAP, value.getObject(), ctxList, operator);
+            case BOOL -> getMapValEqExp(qualifierMap, Exp.Type.BOOL, value.getObject(), ctxArr, operator);
+            case LIST -> getMapValEqExp(qualifierMap, Exp.Type.LIST, value.getObject(), ctxArr, operator);
+            case MAP -> getMapValEqExp(qualifierMap, Exp.Type.MAP, value.getObject(), ctxArr, operator);
             default -> throw new UnsupportedOperationException(
                 opName + " FilterExpression unsupported type: " + value.getClass().getSimpleName());
         };
     }
 
     private static Exp getMapValEqExp(Map<QualifierKey, Object> qualifierMap, Exp.Type expType, Object value,
-                                      List<String> ctxList,
-                                      BinaryOperator<Exp> operator) {
-        Exp mapExp = getMapValEq(qualifierMap, expType, ctxList);
+                                      CTX[] ctxArr, BinaryOperator<Exp> operator) {
+        Exp mapExp = getMapValEq(qualifierMap, expType, ctxArr);
         return operator.apply(mapExp, toExp(value));
     }
 
-    private static Exp getMapValEq(Map<QualifierKey, Object> qualifierMap, Exp.Type expType, List<String> ctxList) {
+    private static Exp getMapValEq(Map<QualifierKey, Object> qualifierMap, Exp.Type expType, CTX[] ctxArr) {
         Exp bin = getBin(getBinName(qualifierMap), getBinType(qualifierMap), "MAP_VAL_EQ");
-        if (ctxList != null) {
+        if (ctxArr != null && ctxArr.length > 0) {
             return MapExp.getByKey(MapReturnType.VALUE, expType,
                 getValueExpOrFail(getKey(qualifierMap), "MAP_VAL_EQ: unsupported type"),
-                bin, resolveCtxList(ctxList));
+                bin, ctxArr);
         } else {
             return MapExp.getByKey(MapReturnType.VALUE, expType,
                 getValueExpOrFail(getKey(qualifierMap), "MAP_VAL_EQ: unsupported type"),
@@ -1611,14 +1612,6 @@ public enum FilterOperation {
     private static Exp getFilterExp(Exp exp, String field,
                                     BinaryOperator<Exp> operator, Function<String, Exp> binExp) {
         return operator.apply(binExp.apply(field), exp);
-    }
-
-    private static CTX[] resolveCtxList(List<String> ctxList) {
-        return ctxList.stream()
-            .filter(not(String::isEmpty))
-            .map(AerospikeIndexResolverUtils::toCtx)
-            .filter(Objects::nonNull)
-            .toArray(CTX[]::new);
     }
 
     private static Exp toExp(Object value) {
@@ -1662,7 +1655,7 @@ public enum FilterOperation {
     }
 
     protected static FilterOperation getOperation(Map<QualifierKey, Object> qualifierMap) {
-        return (FilterOperation) qualifierMap.get(OPERATION);
+        return (FilterOperation) qualifierMap.get(FILTER_OPERATION);
     }
 
     protected static Boolean ignoreCase(Map<QualifierKey, Object> qualifierMap) {
@@ -1677,8 +1670,8 @@ public enum FilterOperation {
         return Value.get(qualifierMap.get(KEY));
     }
 
-    protected static Object getKeyAsObject(Map<QualifierKey, Object> qualifierMap) {
-        return qualifierMap.get(KEY);
+    protected static String getKeyAsString(Map<QualifierKey, Object> qualifierMap) {
+        return (String) qualifierMap.get(KEY);
     }
 
     protected static Value getNestedKey(Map<QualifierKey, Object> qualifierMap) {
@@ -1703,22 +1696,18 @@ public enum FilterOperation {
     }
 
     @SuppressWarnings("unchecked")
-    protected static List<String> getCtxList(Map<QualifierKey, Object> qualifierMap) {
-        String ctxPath = (String) qualifierMap.get(CTX_PATH);
-        List<String> ctxList = (List<String>) qualifierMap.get(CTX_LIST);
-        return (ctxList == null) ? getCtxList(ctxPath) : ctxList;
+    protected static CTX[] getCtxArr(Map<QualifierKey, Object> qualifierMap) {
+        return (CTX[]) qualifierMap.get(CTX_ARRAY);
     }
 
-    protected static List<String> getCtxList(String ctxPath) {
-        if (ctxPath == null) return null;
-
-        return Arrays.stream(ctxPath.split("\\."))
-            .filter(not(String::isEmpty))
-            .collect(Collectors.toList());
+    @SuppressWarnings("unchecked")
+    protected static String getCtxArrAsString(Map<QualifierKey, Object> qualifierMap) {
+        CTX[] ctxArr = (CTX[]) qualifierMap.get(CTX_ARRAY);
+        return ctxArrToString(ctxArr);
     }
 
-    private static CTX[] getCtx(List<String> ctxList) {
-        return ctxList != null ? resolveCtxList(ctxList) : null;
+    private static String ctxArrToString(CTX[] ctxArr) {
+        return Arrays.stream(ctxArr).map(ctx -> ctx.value.toString()).collect(Collectors.joining("."));
     }
 
     protected static ServerVersionSupport getServerVersionSupport(Map<QualifierKey, Object> qualifierMap) {
@@ -1735,9 +1724,9 @@ public enum FilterOperation {
         return switch (valType) {
             // TODO: Add Bytes and Double Support (will fail on old mode - no results)
             case INTEGER -> Filter.contains(getBinName(qualifierMap), collectionType, val.toLong(),
-                getCtx(getCtxList(qualifierMap)));
+                getCtxArr(qualifierMap));
             case STRING -> Filter.contains(getBinName(qualifierMap), collectionType, val.toString(),
-                getCtx(getCtxList(qualifierMap)));
+                getCtxArr(qualifierMap));
             default -> null;
         };
     }

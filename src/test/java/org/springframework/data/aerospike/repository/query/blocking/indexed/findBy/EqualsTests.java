@@ -15,7 +15,6 @@ import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
 
-import static com.aerospike.client.exp.Exp.Type.MAP;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -114,10 +113,7 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
             // find records having a map with a key that equals a value
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setBinName("friend") // bin name
-            .setBinType(MAP) // bin type
-            .setCtx("address") // context path from the bin to the nested map, exclusive
-            .setKey(Value.get("zipCode")) // nested key
+            .setPath("friend.address.zipCode") // path
             .setValue(Value.get(zipCode)) // value of the nested key
             .build();
 
@@ -144,10 +140,7 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
         // An alternative way to perform the same using a custom query
         Qualifier nestedZipCodeEq = Qualifier.builder()
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setBinName("friend") // bin name
-            .setBinType(MAP) // bin type
-            .setCtx("bestFriend.address") // context path from the bin to the nested map, exclusive
-            .setKey(Value.get("zipCode")) // nested key
+            .setPath("friend.bestFriend.address.zipCode") // path
             .setValue(Value.get(zipCode)) // value of the nested key
             .build();
 
@@ -174,10 +167,7 @@ public class EqualsTests extends IndexedPersonRepositoryQueryTests {
         // An alternative way to perform the same using a custom query
         Qualifier nestedApartmentEq = Qualifier.builder()
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
-            .setBinName("friend") // bin name
-            .setBinType(MAP) // bin type
-            .setCtx("bestFriend.address") // context - path from the bin to the nested map, exclusive
-            .setKey(Value.get("apartment")) // nested key
+            .setPath("friend.bestFriend.address.apartment") // path
             .setValue(Value.get(apartment)) // value of the nested key
             .build();
 

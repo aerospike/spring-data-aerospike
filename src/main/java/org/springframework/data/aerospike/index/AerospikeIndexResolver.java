@@ -93,7 +93,7 @@ public class AerospikeIndexResolver implements EnvironmentAware {
         String[] ctxTokens = ctxString.split("\\.");
         CTX[] ctxArr = Arrays.stream(ctxTokens)
             .filter(not(String::isEmpty))
-            .map(AerospikeIndexResolverUtils::toCtx)
+            .map(AerospikeContextDslResolverUtils::toCtx)
             .filter(Objects::nonNull)
             .toArray(CTX[]::new);
 

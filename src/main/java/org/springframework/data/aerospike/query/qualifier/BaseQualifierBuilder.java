@@ -7,62 +7,49 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.BIN_NAME;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.CTX_PATH;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.DOT_PATH;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.OPERATION;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.FILTER_OPERATION;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
+import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
 @SuppressWarnings("unchecked")
-abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements IQualifierBuilder {
+public abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements IQualifierBuilder {
 
     protected final Map<QualifierKey, Object> map = new HashMap<>();
 
+    public boolean getIgnoreCase() {
+        Object ignoreCase = map.get(IGNORE_CASE);
+        return ignoreCase != null && Boolean.parseBoolean(ignoreCase.toString());
+    }
+
     public FilterOperation getFilterOperation() {
-        return (FilterOperation) map.get(OPERATION);
+        return (FilterOperation) map.get(FILTER_OPERATION);
     }
 
     /**
-     * Set filter operation. Mandatory parameter.
+     * Set FilterOperation for qualifier. Mandatory parameter.
      */
-    public T setFilterOperation(FilterOperation filterOperation) {
-        map.put(OPERATION, filterOperation);
+    public T setFilterOperation(FilterOperation operationType) {
+        map.put(FILTER_OPERATION, operationType);
         return (T) this;
     }
 
-    public String getBinName() {
-        return (String) map.get(BIN_NAME);
-    }
-
-    public boolean hasKey() {
-        return map.get(KEY) != null;
-    }
-
-    public boolean hasValue() {
-        return map.get(VALUE) != null;
+    public String getPath() {
+        return (String) map.get(PATH);
     }
 
     public Value getValue() {
         return (Value) map.get(VALUE);
     }
 
-    public boolean hasSecondValue() {
-        return map.get(SECOND_VALUE) != null;
-    }
-
-    public boolean hasDotPath() {
-        return map.get(DOT_PATH) != null;
-    }
-
-    public boolean hasCtxPath() {
-        return map.get(CTX_PATH) != null;
+    public Value getSecondValue() {
+        return (Value) map.get(SECOND_VALUE);
     }
 
     public Qualifier build() {
         validate();
-        return new Qualifier(this);
+        return new Qualifier(process(this));
     }
 
     public Map<QualifierKey, Object> getMap() {
@@ -71,5 +58,10 @@ abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implement
 
     protected void validate() {
         // do nothing
+    }
+
+    protected IQualifierBuilder process(BaseQualifierBuilder<T> builder) {
+        // do nothing
+        return this;
     }
 }

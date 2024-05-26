@@ -38,7 +38,7 @@ public class ExpiryQualifier extends Qualifier {
 
     public ExpiryQualifier(FilterOperation op, Value value) {
         super(Qualifier.builder()
-            .setBinName(QueryEngine.Meta.EXPIRATION.toString())
+            .setPath(QueryEngine.Meta.EXPIRATION.toString())
             .setFilterOperation(op)
             .setValue(value)
         );
