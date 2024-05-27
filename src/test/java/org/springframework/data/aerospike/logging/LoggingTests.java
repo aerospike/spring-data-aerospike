@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.aerospike.client.Value;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,11 @@ public class LoggingTests {
         logger.setLevel(Level.DEBUG);
         logger.addAppender(memoryAppender);
         memoryAppender.start();
+    }
+
+    @BeforeEach
+    public void beforeEach() {
+        memoryAppender.reset();
     }
 
     @Test
