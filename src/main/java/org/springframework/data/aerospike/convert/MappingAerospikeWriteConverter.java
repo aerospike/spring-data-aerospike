@@ -247,11 +247,10 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         } else {
             mapSupplier = HashMap::new;
         }
-        Map<Object, Object> map = mapSupplier.get();
-        for (Map.Entry<Object, Object> e : source.entrySet()) {
+        return source.entrySet().stream().collect(mapSupplier, (m, e) -> {
             Object key = e.getKey();
             Object value = e.getValue();
-            if (key == null) {
+            if (key == null && !settings.isWriteTreeMaps()) {
                 throw new UnsupportedOperationException("Key of a map cannot be null");
             }
 
@@ -274,9 +273,8 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
             Object convertedValue = getValueToWrite(value, type.getMapValueType());
             if (simpleKey instanceof byte[]) simpleKey = ByteBuffer.wrap((byte[]) simpleKey);
-            map.put(simpleKey, convertedValue);
-        }
-        return map;
+            m.put(simpleKey, convertedValue);
+        }, Map::putAll);
     }
 
     private Map<String, Object> convertCustomType(Object source, TypeInformation<?> type) {
