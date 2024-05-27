@@ -250,7 +250,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         return source.entrySet().stream().collect(mapSupplier, (m, e) -> {
             Object key = e.getKey();
             Object value = e.getValue();
-            if (key == null && !settings.isWriteTreeMaps()) {
+            if (key == null && settings.isWriteTreeMaps()) {
                 throw new UnsupportedOperationException("Key of a map cannot be null");
             }
 
