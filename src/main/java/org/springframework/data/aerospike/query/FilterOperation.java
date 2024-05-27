@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static com.aerospike.client.command.ParticleType.BOOL;
 import static com.aerospike.client.command.ParticleType.INTEGER;
@@ -54,6 +53,7 @@ import static org.springframework.data.aerospike.util.FilterOperationRegexpBuild
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getNotContaining;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getStartsWith;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getStringEquals;
+import static org.springframework.data.aerospike.util.Utils.ctxArrToString;
 import static org.springframework.data.aerospike.util.Utils.getExpType;
 import static org.springframework.data.aerospike.util.Utils.getValueExpOrFail;
 
@@ -1266,21 +1266,21 @@ public enum FilterOperation {
     @SuppressWarnings("unchecked")
     private static Exp processMetadataFieldInOrNot(Map<QualifierKey, Object> qualifierMap, boolean notIn) {
         FilterOperation filterOperation = notIn ? NOTEQ : EQ;
-        Object value = getValueAsObject(qualifierMap);
+        Object obj = getValue(qualifierMap).getObject();
 
         Collection<Long> listOfLongs;
         try {
-            listOfLongs = (Collection<Long>) value; // previously validated
+            listOfLongs = (Collection<Long>) obj; // previously validated
         } catch (Exception e) {
             String operation = notIn ? "NOT_IN" : "IN";
-            throw new IllegalStateException("FilterOperation." + operation + " metadata query: expecting value with " +
-                "type List<Long>");
+            throw new IllegalStateException("FilterOperation." + operation + " metadata query: expecting value as " +
+                "a Collection<Long>");
         }
         Exp[] listElementsExp = listOfLongs.stream().map(item ->
             Qualifier.metadataBuilder()
                 .setMetadataField(getMetadataField(qualifierMap))
                 .setFilterOperation(filterOperation)
-                .setValueAsObj(item)
+                .setValue(Value.get(item))
                 .build()
                 .getFilterExp()
         ).toArray(Exp[]::new);
@@ -1331,13 +1331,13 @@ public enum FilterOperation {
                     return Optional.of(
                         operationFunction.apply(
                             mapMetadataExp(metadataField, getServerVersionSupport(qualifierMap)),
-                            Exp.val(getValueAsLongOrFail(getValueAsObject(qualifierMap)))
+                            Exp.val(getValue(qualifierMap).toLong()) // previously validated
                         )
                     );
                 }
                 case BETWEEN -> {
                     Exp metadata = mapMetadataExp(metadataField, getServerVersionSupport(qualifierMap));
-                    Exp value = Exp.val(getValue(qualifierMap).toLong());
+                    Exp value = Exp.val(getValue(qualifierMap).toLong()); // previously validated
                     Exp secondValue = Exp.val(getSecondValue(qualifierMap).toLong());
                     return Optional.of(Exp.and(Exp.ge(metadata, value), Exp.lt(metadata, secondValue)));
                 }
@@ -1351,15 +1351,6 @@ public enum FilterOperation {
             }
         }
         return Optional.empty();
-    }
-
-    // expecting value always be of type Long
-    private static Long getValueAsLongOrFail(Object value) {
-        try {
-            return (Long) value;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Expecting value to be of type Long");
-        }
     }
 
     private static Exp mapMetadataExp(CriteriaDefinition.AerospikeMetadata metadataField,
@@ -1682,10 +1673,6 @@ public enum FilterOperation {
         return Value.get(qualifierMap.get(VALUE));
     }
 
-    protected static Object getValueAsObject(Map<QualifierKey, Object> qualifierMap) {
-        return qualifierMap.get(VALUE);
-    }
-
     protected static Value getSecondValue(Map<QualifierKey, Object> qualifierMap) {
         return Value.get(qualifierMap.get(SECOND_VALUE));
     }
@@ -1704,10 +1691,6 @@ public enum FilterOperation {
     protected static String getCtxArrAsString(Map<QualifierKey, Object> qualifierMap) {
         CTX[] ctxArr = (CTX[]) qualifierMap.get(CTX_ARRAY);
         return ctxArrToString(ctxArr);
-    }
-
-    private static String ctxArrToString(CTX[] ctxArr) {
-        return Arrays.stream(ctxArr).map(ctx -> ctx.value.toString()).collect(Collectors.joining("."));
     }
 
     protected static ServerVersionSupport getServerVersionSupport(Map<QualifierKey, Object> qualifierMap) {

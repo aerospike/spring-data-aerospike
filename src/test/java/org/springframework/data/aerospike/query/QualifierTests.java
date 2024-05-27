@@ -195,7 +195,7 @@ class QualifierTests extends BaseQueryEngineTests {
         Qualifier qualifier = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValueAsObj(1L)
+            .setValue(1L)
             .build();
 
         KeyRecordIterator iterator = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));

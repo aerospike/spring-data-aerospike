@@ -7,10 +7,7 @@ import org.springframework.util.Assert;
 
 import java.util.Collection;
 
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.KEY;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.METADATA_FIELD;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
 @Beta
 public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQualifierBuilder> {
@@ -30,72 +27,48 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
         return this;
     }
 
-    public Object getKeyAsObj() {
-        return this.map.get(KEY);
-    }
-
-    public MetadataQualifierBuilder setKeyAsObj(Object object) {
-        this.map.put(KEY, object);
-        return this;
-    }
-
-    public Object getValueAsObj() {
-        return this.map.get(VALUE);
-    }
-
-    /**
-     * Set value as Object. Mandatory parameter for metadata query.
-     */
-    public MetadataQualifierBuilder setValueAsObj(Object object) {
-        this.map.put(VALUE, object);
-        return this;
-    }
-
-    public Object getSecondValueAsObj() {
-        return this.map.get(SECOND_VALUE);
-    }
-
-    public MetadataQualifierBuilder setSecondValueAsObj(Object object) {
-        this.map.put(SECOND_VALUE, object);
-        return this;
-    }
-
     @Override
     protected void validate() {
         // metadata query validation
         if (this.getMetadataField() != null) {
             if (this.getPath() == null) {
-                if (this.getValueAsObj() != null) {
-                    validateValueAsObj();
+                if (this.getValue() != null) {
+                    validateValues();
                 } else {
-                    throw new IllegalArgumentException("Expecting valueAsObj parameter to be provided");
+                    throw new IllegalArgumentException("Expecting value parameter to be provided");
                 }
             } else {
-                throw new IllegalArgumentException("Unexpected parameter: path (unnecessary for metadata query)");
+                throw new IllegalArgumentException("Unexpected parameter for metadata query: path");
             }
         } else {
             throw new IllegalArgumentException("Expecting metadataField parameter to be provided");
         }
     }
 
-    private void validateValueAsObj() {
+    private void validateValues() {
         FilterOperation operation = this.getFilterOperation();
         switch (operation) {
-            case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(getValueAsObj() instanceof Long,
-                operation.name() + ": value1 is expected to be set as Long");
+            case EQ, NOTEQ, LT, LTEQ, GT, GTEQ -> Assert.isTrue(getValue().getObject() instanceof Long,
+                operation.name() + ": value is expected to be set as Long");
             case BETWEEN -> {
-                Assert.isTrue(getValueAsObj() instanceof Long,
-                    "BETWEEN: value1 is expected to be set as Long");
-                Assert.isTrue(getSecondValueAsObj() instanceof Long,
-                    "BETWEEN: value2 is expected to be set as Long");
+                Assert.isTrue(getSecondValue() != null, "BETWEEN: expecting secondValue to be provided");
+                Assert.isTrue(getValue().getObject() instanceof Long,
+                    "BETWEEN: value is expected to be set as Long");
+                Assert.isTrue(getSecondValue().getObject() instanceof Long,
+                    "BETWEEN: secondValue is expected to be set as Long");
             }
-            case NOT_IN, IN -> //noinspection unchecked
-                Assert.isTrue(getValueAsObj() instanceof Collection
-                        && !((Collection<Object>) getValueAsObj()).isEmpty()
-                        && ((Collection<Object>) getValueAsObj()).toArray()[0] instanceof Long,
+            case NOT_IN, IN ->
+            {
+                Object obj = getValue().getObject();
+                //noinspection unchecked
+                Assert.isTrue(obj instanceof Collection
+                        && !((Collection<Object>) obj).isEmpty()
+                        && ((Collection<Object>) obj).toArray()[0] instanceof Long,
                     operation.name() + ": value1 is expected to be a non-empty Collection<Long>");
+            }
             default -> throw new IllegalArgumentException("Operation " + operation + " cannot be applied to " +
                 "metadataField");
         }
     }
+
 }

@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
+import static org.springframework.data.aerospike.util.Utils.logQualifierDetails;
 
 /**
  * @author peter
@@ -39,7 +40,7 @@ import static org.springframework.data.aerospike.query.QualifierUtils.queryCrite
  */
 public class StatementBuilder {
 
-    private static final Logger log = LoggerFactory.getLogger(StatementBuilder.class);
+    private static final Logger logger = LoggerFactory.getLogger(StatementBuilder.class);
     private final IndexesCache indexesCache;
 
     public StatementBuilder(IndexesCache indexesCache) {
@@ -58,7 +59,12 @@ public class StatementBuilder {
             stmt.setBinNames(binNames);
         }
         if (queryCriteriaIsNotNull(query)) {
-            // statement's filter is set based on the first processed qualifier's filter
+            // logging query
+            if (logger.isDebugEnabled()) {
+                logQualifierDetails(query.getCriteriaObject(), logger);
+            }
+            // statement's filter is set based either on cardinality (the lowest bin values ratio)
+            // or on order (the first processed filter)
             setStatementFilterFromQualifiers(stmt, query.getCriteriaObject());
         }
         return stmt;
@@ -67,6 +73,7 @@ public class StatementBuilder {
     private void setStatementFilterFromQualifiers(Statement stmt, Qualifier qualifier) {
         // No qualifier, no need to set statement filter
         if (qualifier == null) {
+            logger.debug("Secondary index filter is not set");
             return;
         }
 
@@ -76,6 +83,11 @@ public class StatementBuilder {
             setFilterFromMultipleQualifiers(stmt, qualifier);
         } else if (isIndexedBin(stmt, qualifier)) { // Single qualifier
             setFilterFromSingleQualifier(stmt, qualifier);
+        }
+        if (stmt.getFilter() != null) {
+            logger.debug(String.format("Secondary index filter is set on the bin '%s'", stmt.getFilter().getName()));
+        } else {
+            logger.debug("Secondary index filter is not set");
         }
     }
 
@@ -129,8 +141,8 @@ public class StatementBuilder {
             );
         }
 
-        if (log.isDebugEnabled() && hasField) {
-            log.debug("Bin {}.{}.{} has secondary index: {}",
+        if (logger.isDebugEnabled() && hasField) {
+            logger.debug("Bin {}.{}.{} has secondary index: {}",
                 stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndex);
         }
         return hasIndex;

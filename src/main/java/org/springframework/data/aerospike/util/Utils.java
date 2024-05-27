@@ -20,11 +20,15 @@ import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Info;
 import com.aerospike.client.ResultCode;
 import com.aerospike.client.Value;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import lombok.experimental.UtilityClass;
+import org.slf4j.Logger;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -34,6 +38,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.temporal.Temporal;
+import java.util.Arrays;
 import java.util.Currency;
 import java.util.Date;
 import java.util.List;
@@ -43,6 +48,7 @@ import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.aerospike.client.command.ParticleType.BOOL;
 import static com.aerospike.client.command.ParticleType.DOUBLE;
@@ -51,6 +57,7 @@ import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.STRING;
 import static org.springframework.util.ClassUtils.isPrimitiveOrWrapper;
+import static org.springframework.util.StringUtils.hasLength;
 
 /**
  * Utility class containing useful methods for interacting with Aerospike across the entire implementation
@@ -168,5 +175,55 @@ public class Utils {
                 Locale.class == type ||
                 Pattern.class == type ||
                 Class.class == type));
+    }
+
+    public static String ctxArrToString(CTX[] ctxArr) {
+        return Arrays.stream(ctxArr).map(ctx -> ctx.value.toString()).collect(Collectors.joining("."));
+    }
+
+    public static void logQualifierDetails(CriteriaDefinition criteria, Logger logger) {
+        if (criteria == null) return;
+        Qualifier qualifier = criteria.getCriteriaObject();
+        Qualifier[] qualifiers = qualifier.getQualifiers();
+        if (qualifiers != null && qualifiers.length > 0) {
+            Arrays.stream(qualifiers).forEach(innerQualifier -> logQualifierDetails(innerQualifier, logger));
+        }
+
+        String operation = qualifier.getOperation().toString();
+        operation = (hasLength(operation) ? operation : "N/A");
+
+        String values = "";
+        String value = valueToString(qualifier.getValue());
+        String value2 = valueToString(qualifier.getSecondValue());
+        values = hasLength(value) ? String.format("value = %s", value) : "";
+        values = hasLength(value2) ? String.format("%s, value2 = %s", values, value2) : values;
+
+        String path = "";
+        if (isBinQualifier(qualifier)) { // bin qualifier
+            path = (hasLength(qualifier.getBinName()) ? qualifier.getBinName() : "");
+            if (qualifier.getCtxArray() != null && qualifier.getCtxArray().length > 0) {
+                path += "." + ctxArrToString(qualifier.getCtxArray());
+            }
+            if (qualifier.getKey() != null && hasLength(qualifier.getKey().getObject().toString())) {
+                path += "." + qualifier.getKey().getObject().toString();
+            }
+        } else if (isMetadataQualifier(qualifier)) {
+            path = qualifier.getMetadataField().toString();
+        }
+
+        logger.debug("Created query: path = {}, operation = {}, {}", path, operation, values);
+    }
+
+    private static boolean isBinQualifier(Qualifier qualifier) {
+        return qualifier.getBinName() != null;
+    }
+
+    private static boolean isMetadataQualifier(Qualifier qualifier) {
+        return qualifier.getMetadataField() != null;
+    }
+
+    public static String valueToString(Value value) {
+        if (value != null && hasLength(value.toString())) return value.toString();
+        return value == Value.getAsNull() ? "null" : "";
     }
 }

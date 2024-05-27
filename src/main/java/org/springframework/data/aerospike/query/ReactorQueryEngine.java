@@ -108,7 +108,7 @@ public class ReactorQueryEngine {
         }
         Statement statement = statementBuilder.build(namespace, set, query, binNames);
         statement.setMaxRecords(queryMaxRecords);
-        QueryPolicy localQueryPolicy = getQueryPolicy(query, true);
+        QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, true);
 
         if (!scansEnabled && statement.getFilter() == null) {
             return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
@@ -128,7 +128,8 @@ public class ReactorQueryEngine {
     public Flux<KeyRecord> selectForCount(String namespace, String set, @Nullable Query query) {
         Statement statement = statementBuilder.build(namespace, set, query);
         statement.setMaxRecords(queryMaxRecords);
-        QueryPolicy localQueryPolicy = getQueryPolicy(query, false);
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
+        QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, false);
 
         if (!scansEnabled && statement.getFilter() == null) {
             return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
@@ -137,9 +138,9 @@ public class ReactorQueryEngine {
         return client.query(localQueryPolicy, statement);
     }
 
-    private QueryPolicy getQueryPolicy(Query query, boolean includeBins) {
+    private QueryPolicy getQueryPolicy(Qualifier qualifier, boolean includeBins) {
         QueryPolicy queryPolicy = new QueryPolicy(client.getQueryPolicyDefault());
-        queryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        queryPolicy.filterExp = filterExpressionsBuilder.build(qualifier);
         queryPolicy.includeBinData = includeBins;
         return queryPolicy;
     }

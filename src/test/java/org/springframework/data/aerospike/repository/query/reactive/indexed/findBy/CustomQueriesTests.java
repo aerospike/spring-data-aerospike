@@ -24,7 +24,7 @@ public class CustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTest
         Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
-            .setValueAsObj(50000L)
+            .setValue(50000L)
             .build();
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds)).collectList().block())
             .containsAll(allIndexedPersons);
@@ -33,8 +33,8 @@ public class CustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTest
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValueAsObj(1L)
-            .setSecondValueAsObj(50000L)
+            .setValue(1L)
+            .setSecondValue(50000L)
             .build();
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeBetween1And50000)).collectList().block())
             .containsAll(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds)).collectList()
@@ -50,14 +50,14 @@ public class CustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTest
         Qualifier sinceUpdateTimeGt1 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValueAsObj(1L)
+            .setValue(1L)
             .build();
 
         // creating an expression "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
-            .setValueAsObj(50000L)
+            .setValue(50000L)
             .build();
         assertThat(reactiveRepository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds)).collectList().block())
             .containsAll(allIndexedPersons);
@@ -66,8 +66,8 @@ public class CustomQueriesTests extends ReactiveIndexedPersonRepositoryQueryTest
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValueAsObj(1L)
-            .setSecondValueAsObj(50000L)
+            .setValue(1L)
+            .setSecondValue(50000L)
             .build();
 
         // creating an expression "firsName is equal to Petra"
