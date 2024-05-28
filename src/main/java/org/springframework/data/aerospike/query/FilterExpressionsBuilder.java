@@ -17,21 +17,22 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.Expression;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 
 import static org.springframework.data.aerospike.query.FilterOperation.dualFilterOperations;
 
+@Slf4j
 public class FilterExpressionsBuilder {
-
-    private static final Logger logger = LoggerFactory.getLogger(FilterExpressionsBuilder.class);
 
     public Expression build(Qualifier qualifier) {
         if (qualifier != null && requiresFilterExp(qualifier)) {
             Exp exp = qualifier.getFilterExp();
-            if (exp == null) logger.debug("FilterExp is not set");
-            logger.debug("FilterExp is set");
+            if (exp == null) {
+                log.debug("FilterExp is not set");
+            } else {
+                log.debug("FilterExp is set");
+            }
             return Exp.build(exp);
         }
         return null;

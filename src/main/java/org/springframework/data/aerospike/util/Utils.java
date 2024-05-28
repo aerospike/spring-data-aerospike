@@ -182,7 +182,7 @@ public class Utils {
     }
 
     public static void logQualifierDetails(CriteriaDefinition criteria, Logger logger) {
-        if (criteria == null) return;
+        if (criteria == null || !logger.isDebugEnabled()) return;
         Qualifier qualifier = criteria.getCriteriaObject();
         Qualifier[] qualifiers = qualifier.getQualifiers();
         if (qualifiers != null && qualifiers.length > 0) {
