@@ -211,7 +211,7 @@ public class Utils {
             path = qualifier.getMetadataField().toString();
         }
 
-        logger.debug("Created query: path = {}, operation = {}, {}", path, operation, values);
+        logger.debug("Created query #{}: path = {}, operation = {}, {}", qualifier.hashCode(), path, operation, values);
     }
 
     private static boolean isBinQualifier(Qualifier qualifier) {

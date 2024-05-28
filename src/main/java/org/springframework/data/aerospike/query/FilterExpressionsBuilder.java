@@ -29,9 +29,9 @@ public class FilterExpressionsBuilder {
         if (qualifier != null && requiresFilterExp(qualifier)) {
             Exp exp = qualifier.getFilterExp();
             if (exp == null) {
-                log.debug("FilterExp is not set");
+                log.debug("Query #{}, filterExp is not set", qualifier.hashCode());
             } else {
-                log.debug("FilterExp is set");
+                log.debug("Query #{}, filterExp is set", qualifier.hashCode());
             }
             return Exp.build(exp);
         }

@@ -54,7 +54,7 @@ public class LoggingTests {
 
         // 3 events: Created query, Bin has secondary index, Secondary index filter is not set
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(3);
-        String msg = "Bin TEST.testSet.testField has secondary index: false";
+        String msg = "bin TEST.testSet.testField has secondary index: false";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }
@@ -68,7 +68,7 @@ public class LoggingTests {
         statementBuilder.build("TEST", "Person", query, null);
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
-        String msg = "Created query: path = firstName, operation = EQ, value = TestName";
+        String msg = "path = firstName, operation = EQ, value = TestName";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }
@@ -84,7 +84,7 @@ public class LoggingTests {
         statementBuilder.build("TEST", "Person", query, null);
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
-        String msg = "Created query: path = firstName, operation = EQ, value = TestName";
+        String msg = "path = firstName, operation = EQ, value = TestName";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }

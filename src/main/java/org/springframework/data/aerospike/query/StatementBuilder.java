@@ -70,7 +70,7 @@ public class StatementBuilder {
     private void setStatementFilterFromQualifiers(Statement stmt, Qualifier qualifier) {
         // No qualifier, no need to set statement filter
         if (qualifier == null) {
-            log.debug("Secondary index filter is not set");
+            log.debug("Query #{}, secondary index filter is not set", qualifier.hashCode());
             return;
         }
 
@@ -82,9 +82,10 @@ public class StatementBuilder {
             setFilterFromSingleQualifier(stmt, qualifier);
         }
         if (stmt.getFilter() != null) {
-            log.debug("Secondary index filter is set on the bin '{}'", stmt.getFilter().getName());
+            log.debug("Query #{}, secondary index filter is set on the bin '{}'", qualifier.hashCode(),
+                stmt.getFilter().getName());
         } else {
-            log.debug("Secondary index filter is not set");
+            log.debug("Query #{}, secondary index filter is not set", qualifier.hashCode());
         }
     }
 
@@ -139,8 +140,8 @@ public class StatementBuilder {
         }
 
         if (log.isDebugEnabled() && hasField) {
-            log.debug("Bin {}.{}.{} has secondary index: {}",
-                stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndex);
+            log.debug("Query #{}, bin {}.{}.{} has secondary index: {}",
+                qualifier.hashCode(), stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndex);
         }
         return hasIndex;
     }

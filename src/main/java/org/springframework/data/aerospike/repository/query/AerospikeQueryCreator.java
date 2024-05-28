@@ -15,8 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -52,7 +50,6 @@ import static org.springframework.data.aerospike.repository.query.AerospikeQuery
  */
 public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaDefinition> {
 
-    private static final Logger logger = LoggerFactory.getLogger(AerospikeQueryCreator.class);
     private final AerospikeMappingContext context;
     private final MappingAerospikeConverter converter;
     private final ServerVersionSupport versionSupport;
