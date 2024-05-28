@@ -37,6 +37,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -157,7 +158,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
     private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
                                                   ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
-        Map<String, Object> target = new TreeMap<>();
+        Map<String, Object> target = settings.isWriteSortedMaps() ? new TreeMap<>() : new HashMap<>();
         typeMapper.writeType(type, target);
         entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property -> {
 
@@ -234,10 +235,10 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         Assert.notNull(source, "Given map must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
-        return source.entrySet().stream().collect(TreeMap::new, (m, e) -> {
+        return source.entrySet().stream().collect(settings.isWriteSortedMaps() ? TreeMap::new : HashMap::new, (m, e) -> {
             Object key = e.getKey();
             Object value = e.getValue();
-            if (key == null) {
+            if (key == null && settings.isWriteSortedMaps()) {
                 throw new UnsupportedOperationException("Key of a map cannot be null");
             }
 
@@ -261,7 +262,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
             Object convertedValue = getValueToWrite(value, type.getMapValueType());
             if (simpleKey instanceof byte[]) simpleKey = ByteBuffer.wrap((byte[]) simpleKey);
             m.put(simpleKey, convertedValue);
-        }, TreeMap::putAll);
+        }, Map::putAll);
     }
 
     private Map<String, Object> convertCustomType(Object source, TypeInformation<?> type) {
