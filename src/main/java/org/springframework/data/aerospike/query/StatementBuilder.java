@@ -140,7 +140,7 @@ public class StatementBuilder {
         }
 
         if (log.isDebugEnabled() && hasField) {
-            log.debug("Query #{}, bin {}.{}.{} has secondary index: {}",
+            log.debug("Qualifier #{}, bin {}.{}.{} has secondary index: {}",
                 qualifier.hashCode(), stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndex);
         }
         return hasIndex;

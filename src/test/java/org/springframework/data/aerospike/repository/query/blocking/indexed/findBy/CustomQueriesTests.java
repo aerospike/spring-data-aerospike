@@ -29,9 +29,9 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
         Qualifier nestedZipCodeEq = Qualifier.builder()
             // find records having a nested map with a key that equals a value
             // POJOs are saved as Maps
-            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // where address's key 'zipCode' has value "C0123"
             .setPath("friend.address.zipCode") // path includes bin name, context and the required map key
-            .setValue(Value.get(zipCode)) // value of the nested key
+            .setValue(zipCode) // value of the nested key
             .build();
 
         assertQueryHasSecIndexFilter(new Query(nestedZipCodeEq), IndexedPerson.class);
@@ -51,7 +51,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
         Qualifier nestedZipCodeEq = Qualifier.builder()
             // find records having a nested map with a key that equals a value
             // POJOs are saved as Maps
-            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // where list element 'zipCode' has value "ZipCode"
             .setPath("addressesList.[0].zipCode") // path: bin name, context (list index) and the required map key
             .setValue(Value.get(zipCode)) // value of the nested key
             .build();
@@ -77,7 +77,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
         Qualifier nestedZipCodeEq = Qualifier.builder()
             // find records having a nested map with a key that equals a value
             // POJOs are saved as Maps
-            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // where address's key 'zipCode' has value "C0123"
             .setPath("friend.bestFriend.address.zipCode") // path includes bin name, context and the required map key
             .setValue(Value.get(zipCode)) // value of the nested key
             .build();
@@ -99,7 +99,7 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
         repository.save(peter);
 
         Qualifier nestedApartmentEq = Qualifier.builder()
-            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
+            .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // where address's key 'apartment' has value 1
             .setPath("friend.bestFriend.address.apartment") // path includes bin name, context and the required map key
             .setValue(Value.get(apartment)) // value of the nested key
             .build();
@@ -125,7 +125,8 @@ public class CustomQueriesTests extends IndexedPersonRepositoryQueryTests {
         Qualifier nestedApartmentBetween = Qualifier.builder()
             // find records having a map with a key between given values
             // POJOs are saved as Maps
-            .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN_BY_KEY) // POJOs are saved as Maps
+            // where address's key 'apartment' has value between 1 and 3
+            .setFilterOperation(FilterOperation.MAP_VAL_BETWEEN_BY_KEY)
             .setPath("bestFriend.friend.address.apartment") // path includes bin name, context and the required map key
             .setValue(Value.get(1)) // lower limit for the value of the nested key
             .setSecondValue(Value.get(3)) // lower limit for the value of the nested key

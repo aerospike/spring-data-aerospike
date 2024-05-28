@@ -24,6 +24,7 @@ import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import org.slf4j.Logger;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
@@ -195,12 +196,12 @@ public class Utils {
         String values = "";
         String value = valueToString(qualifier.getValue());
         String value2 = valueToString(qualifier.getSecondValue());
-        values = hasLength(value) ? String.format("value = %s", value) : "";
+        values = hasLength(value) ? String.format(", value = %s", value) : "";
         values = hasLength(value2) ? String.format("%s, value2 = %s", values, value2) : values;
 
         String path = "";
         if (isBinQualifier(qualifier)) { // bin qualifier
-            path = (hasLength(qualifier.getBinName()) ? qualifier.getBinName() : "");
+            path = (hasLength(qualifier.getBinName()) ? String.format(" path = %s,", qualifier.getBinName()) : "");
             if (qualifier.getCtxArray() != null && qualifier.getCtxArray().length > 0) {
                 path += "." + ctxArrToString(qualifier.getCtxArray());
             }
@@ -211,7 +212,18 @@ public class Utils {
             path = qualifier.getMetadataField().toString();
         }
 
-        logger.debug("Created query #{}: path = {}, operation = {}, {}", qualifier.hashCode(), path, operation, values);
+        String qualifiersStr = (qualifier.getQualifiers() != null && qualifier.getQualifiers().length > 0)
+            ? String.format(", qualifiers = %s,", qualifiersHashesToString(qualifier.getQualifiers()))
+            : "";
+
+        logger.debug("Created qualifier #{}:{} operation = {}{}{}", qualifier.hashCode(), path, operation, values,
+            qualifiersStr);
+    }
+
+    private static String qualifiersHashesToString(@NonNull Qualifier[] qualifiers) {
+        return "[" + String.join(",",
+            Arrays.stream(qualifiers).map(qualifier -> String.valueOf(qualifier.hashCode())).toList())
+            + "]";
     }
 
     private static boolean isBinQualifier(Qualifier qualifier) {
