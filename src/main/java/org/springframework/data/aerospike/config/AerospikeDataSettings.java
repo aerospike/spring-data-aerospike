@@ -38,5 +38,5 @@ public class AerospikeDataSettings {
     // true - preserve original type if supported
     boolean keepOriginalKeyTypes = false;
     // Define how Maps are written: true - as TreeMaps (default), false - as HashMaps
-    boolean writeTreeMaps = true;
+    boolean writeSortedMaps = true;
 }

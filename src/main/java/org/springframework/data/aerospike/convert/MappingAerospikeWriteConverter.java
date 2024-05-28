@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.aerospike.client.ResultCode.OP_NOT_APPLICABLE;
@@ -159,12 +158,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
     private Map<String, Object> convertProperties(TypeInformation<?> type, AerospikePersistentEntity<?> entity,
                                                   ConvertingPropertyAccessor<?> accessor, boolean isCustomType) {
-        Map<String, Object> target;
-        if (settings.isWriteTreeMaps()) {
-            target = new TreeMap<>();
-        } else {
-            target = new HashMap<>();
-        }
+        Map<String, Object> target = settings.isWriteSortedMaps() ? new TreeMap<>() : new HashMap<>();
         typeMapper.writeType(type, target);
         entity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property -> {
 
@@ -241,16 +235,10 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
         Assert.notNull(source, "Given map must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
-        Supplier<Map<Object, Object>> mapSupplier;
-        if (settings.isWriteTreeMaps()) {
-            mapSupplier = TreeMap::new;
-        } else {
-            mapSupplier = HashMap::new;
-        }
-        return source.entrySet().stream().collect(mapSupplier, (m, e) -> {
+        return source.entrySet().stream().collect(settings.isWriteSortedMaps() ? TreeMap::new : HashMap::new, (m, e) -> {
             Object key = e.getKey();
             Object value = e.getValue();
-            if (key == null && settings.isWriteTreeMaps()) {
+            if (key == null && settings.isWriteSortedMaps()) {
                 throw new UnsupportedOperationException("Key of a map cannot be null");
             }
 
