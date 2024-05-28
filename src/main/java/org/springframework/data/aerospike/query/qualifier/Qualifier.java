@@ -17,6 +17,7 @@
 package org.springframework.data.aerospike.query.qualifier;
 
 import com.aerospike.client.Value;
+import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
 import com.aerospike.client.query.Filter;
@@ -94,8 +95,16 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return (String) internalMap.get(BIN_NAME);
     }
 
+    public boolean hasPath() {
+        return internalMap.containsKey(PATH);
+    }
+
     public String getPath() {
         return (String) internalMap.get(PATH);
+    }
+
+    public boolean hasMetadataField() {
+        return internalMap.containsKey(METADATA_FIELD);
     }
 
     public CriteriaDefinition.AerospikeMetadata getMetadataField() {
@@ -130,8 +139,11 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return this.hasSingleId() ? internalMap.get(SINGLE_ID_FIELD) : internalMap.get(MULTIPLE_IDS_FIELD);
     }
 
-    public FilterOperation getFilterOperation() {
-        return (FilterOperation) internalMap.get(FILTER_OPERATION);
+    /**
+     * Set CTX[].
+     */
+    public CTX[] getCtxArray() {
+        return (CTX[]) internalMap.get(CTX_ARRAY);
     }
 
     public Qualifier[] getQualifiers() {
@@ -140,6 +152,10 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     public Value getKey() {
         return (Value) internalMap.get(KEY);
+    }
+
+    public boolean hasValue() {
+        return internalMap.containsKey(VALUE);
     }
 
     public Value getValue() {

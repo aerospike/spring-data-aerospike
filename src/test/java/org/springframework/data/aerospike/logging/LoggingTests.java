@@ -5,27 +5,18 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import com.aerospike.client.Value;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.aerospike.config.AerospikeDataSettings;
-import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
-import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
-import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
-import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
-import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
 import org.springframework.data.aerospike.repository.query.Query;
-import org.springframework.data.aerospike.repository.query.StubParameterAccessor;
-import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.MemoryAppender;
-import org.springframework.data.repository.query.parser.PartTree;
-
-import java.util.Collections;
+import org.springframework.data.aerospike.util.QueryUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,6 +35,11 @@ public class LoggingTests {
         memoryAppender.start();
     }
 
+    @BeforeEach
+    public void beforeEach() {
+        memoryAppender.reset();
+    }
+
     @Test
     void binIsIndexed() {
         IndexesCache indexesCacheMock = Mockito.mock(IndexesCache.class);
@@ -56,34 +52,40 @@ public class LoggingTests {
         StatementBuilder statementBuilder = new StatementBuilder(indexesCacheMock);
         statementBuilder.build("TEST", "testSet", new Query(qualifier));
 
-        assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(1);
-        String msg = "Bin TEST.testSet.testField has secondary index: false";
+        // 3 events: Created query, Bin has secondary index, Secondary index filter is not set
+        assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(3);
+        String msg = "bin TEST.testSet.testField has secondary index: false";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }
 
     @Test
-    void queryIsCreated() {
-        AerospikeMappingContext context = new AerospikeMappingContext();
-        AerospikeCustomConversions conversions = new AerospikeCustomConversions(Collections.emptyList());
-        MappingAerospikeConverter converter = getMappingAerospikeConverter(conversions);
+    void queryIsCreated_RepositoryQuery() {
+        StatementBuilder statementBuilder = new StatementBuilder(Mockito.mock(IndexesCache.class));
         ServerVersionSupport serverVersionSupport = Mockito.mock(ServerVersionSupport.class);
 
-        PartTree tree = new PartTree("findByFirstName", Person.class);
-        AerospikeQueryCreator creator = new AerospikeQueryCreator(
-            tree, new StubParameterAccessor("TestName"), context, converter, serverVersionSupport);
-        creator.createQuery();
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "TestName");
+        statementBuilder.build("TEST", "Person", query, null);
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
-        String msg = "Created query: bin name = firstName, operation = EQ, key = , value = TestName, value2 = ";
+        String msg = "path = firstName, operation = EQ, value = TestName";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }
 
-    private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
-        MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor(), new AerospikeDataSettings());
-        converter.afterPropertiesSet();
-        return converter;
+    @Test
+    void queryIsCreated_CustomQuery() {
+        StatementBuilder statementBuilder = new StatementBuilder(Mockito.mock(IndexesCache.class));
+        Query query = new Query(Qualifier.builder()
+            .setPath("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(Value.get("TestName"))
+            .build());
+        statementBuilder.build("TEST", "Person", query, null);
+
+        assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
+        String msg = "path = firstName, operation = EQ, value = TestName";
+        assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
+        assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }
 }

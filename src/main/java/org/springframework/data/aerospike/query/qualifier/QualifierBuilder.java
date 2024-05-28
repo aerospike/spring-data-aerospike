@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.query.qualifier;
 
-import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils;
@@ -20,8 +19,6 @@ import static org.springframework.data.aerospike.index.AerospikeContextDslResolv
 import static org.springframework.data.aerospike.index.AerospikeContextDslResolverUtils.isCtxMapValue;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IGNORE_CASE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PATH;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
-import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
 
 @Beta
 public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
@@ -102,29 +99,6 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
         return this;
     }
 
-    /**
-     * Set value. Mandatory parameter for bin query for all operations except {@link FilterOperation#IS_NOT_NULL} and
-     * {@link FilterOperation#IS_NULL}.
-     * <p>
-     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
-     * value into a {@link Value} object.
-     */
-    public QualifierBuilder setValue(Value value) {
-        this.map.put(VALUE, value);
-        return this;
-    }
-
-    /**
-     * Set second value.
-     * <p>
-     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
-     * second value into a {@link Value} object.
-     */
-    public QualifierBuilder setSecondValue(Value secondValue) {
-        this.map.put(SECOND_VALUE, secondValue);
-        return this;
-    }
-
     protected void validate() {
         if (!StringUtils.hasText(this.getPath())) {
             throw new IllegalArgumentException("Expecting path parameter to be provided");
@@ -142,8 +116,9 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
 
         List<FilterOperation> betweenList = List.of(FilterOperation.BETWEEN, FilterOperation.MAP_VAL_BETWEEN_BY_KEY,
             FilterOperation.MAP_VAL_BETWEEN, FilterOperation.MAP_KEYS_BETWEEN, FilterOperation.COLLECTION_VAL_BETWEEN);
-        if (betweenList.contains(this.getFilterOperation()) &&
-            (this.getValue() == null || this.getSecondValue() == null)) {
+        if (betweenList.contains(this.getFilterOperation())
+            && ((this.getValue() == null || this.getSecondValue() == null)
+                || (this.getValue().getObject() == null || this.getSecondValue().getObject() == null))) {
             throw new IllegalArgumentException(this.getFilterOperation() + ": expecting both value and secondValue " +
                 "to be provided");
         }
@@ -217,4 +192,5 @@ public class QualifierBuilder extends BaseQualifierBuilder<QualifierBuilder> {
             .filter(Objects::nonNull)
             .toArray(CTX[]::new);
     }
+
 }

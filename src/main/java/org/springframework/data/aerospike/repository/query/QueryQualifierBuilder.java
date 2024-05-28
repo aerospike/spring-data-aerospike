@@ -86,29 +86,6 @@ public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder
     }
 
     /**
-     * Set value. Mandatory parameter for bin query for all operations except {@link FilterOperation#IS_NOT_NULL} and
-     * {@link FilterOperation#IS_NULL}.
-     * <p>
-     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
-     * value into a {@link Value} object.
-     */
-    public QueryQualifierBuilder setValue(Value value) {
-        this.map.put(VALUE, value);
-        return this;
-    }
-
-    /**
-     * Set second value.
-     * <p>
-     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
-     * second value into a {@link Value} object.
-     */
-    public QueryQualifierBuilder setSecondValue(Value secondValue) {
-        this.map.put(SECOND_VALUE, secondValue);
-        return this;
-    }
-
-    /**
      * For "find by one level nested map containing" queries. Set the type of the nested map value using
      * {@link ParticleType}.
      */
@@ -128,4 +105,5 @@ public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder
     public boolean hasDotPath() {
         return map.get(DOT_PATH) != null;
     }
+
 }

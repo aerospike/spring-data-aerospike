@@ -28,10 +28,37 @@ public abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> im
     }
 
     /**
-     * Set FilterOperation for qualifier. Mandatory parameter.
+     * Set FilterOperation. Mandatory parameter.
      */
     public T setFilterOperation(FilterOperation operationType) {
         map.put(FILTER_OPERATION, operationType);
+        return (T) this;
+    }
+
+    /**
+     * Set value. Mandatory parameter for bin or metadata query for all operations
+     * except {@link FilterOperation#IS_NOT_NULL} and {@link FilterOperation#IS_NULL}.
+     * <p>
+     *
+     * @param value The provided object will be read into a {@link Value},
+     *              so its type must be recognizable by {@link Value#get(Object)}.
+     */
+    public T setValue(Object value) {
+        this.map.put(VALUE, Value.get(value));
+        return (T) this;
+    }
+
+    /**
+     * Set second value.
+     * <p>
+     * Use one of the Value get() methods ({@link Value#get(int)}, {@link Value#get(String)} etc.) to firstly read the
+     * second value into a {@link Value} object.
+     *
+     * @param secondValue The provided object will be read into a {@link Value},
+     *              so its type must be recognizable by {@link Value#get(Object)}.
+     * */
+    public T setSecondValue(Object secondValue) {
+        this.map.put(SECOND_VALUE, Value.get(secondValue));
         return (T) this;
     }
 
