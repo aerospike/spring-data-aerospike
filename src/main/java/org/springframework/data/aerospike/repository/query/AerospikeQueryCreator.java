@@ -15,9 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.client.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -32,7 +29,6 @@ import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +50,6 @@ import static org.springframework.data.aerospike.repository.query.AerospikeQuery
  */
 public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaDefinition> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AerospikeQueryCreator.class);
     private final AerospikeMappingContext context;
     private final MappingAerospikeConverter converter;
     private final ServerVersionSupport versionSupport;
@@ -88,11 +83,6 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     @Override
     protected Query complete(CriteriaDefinition criteria, Sort sort) {
         Query query = criteria == null ? null : new Query(criteria).with(sort);
-
-        if (LOG.isDebugEnabled() && criteria != null) {
-            logQualifierDetails(criteria);
-        }
-
         return query;
     }
 
@@ -200,28 +190,5 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
         parametersIterator.forEachRemaining(param -> params.add(convertIfNecessary(param, converter)));
         // null parameters are not allowed, instead AerospikeNullQueryCriteria.NULL_PARAM should be used
         return params.stream().filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    private void logQualifierDetails(CriteriaDefinition criteria) {
-        Qualifier qualifier = criteria.getCriteriaObject();
-        Qualifier[] qualifiers = qualifier.getQualifiers();
-        if (qualifiers != null && qualifiers.length > 0) {
-            Arrays.stream(qualifiers).forEach(this::logQualifierDetails);
-        }
-
-        String binName = (StringUtils.hasLength(qualifier.getBinName()) ? qualifier.getBinName() : "");
-        String operation = qualifier.getOperation().toString();
-        operation = (StringUtils.hasLength(operation) ? operation : "N/A");
-        String key = printValue(qualifier.getKey());
-        String value = printValue(qualifier.getValue());
-        String value2 = printValue(qualifier.getSecondValue());
-
-        LOG.debug("Created query: bin name = {}, operation = {}, key = {}, value = {}, value2 = {}",
-            binName, operation, key, value, value2);
-    }
-
-    private String printValue(Value value) {
-        if (value != null && StringUtils.hasLength(value.toString())) return value.toString();
-        return value == Value.getAsNull() ? "null" : "";
     }
 }

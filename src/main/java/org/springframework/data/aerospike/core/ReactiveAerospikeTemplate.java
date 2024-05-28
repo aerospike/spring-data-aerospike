@@ -875,7 +875,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             Policy policy = null;
             if (queryCriteriaIsNotNull(query)) {
                 policy = new Policy(reactorClient.getReadPolicyDefault());
-                policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(query);
+                Qualifier qualifier = query.getCriteriaObject();
+                policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(qualifier);
             }
             return reactorClient.get(policy, key, binNames)
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
@@ -1010,7 +1011,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private BatchPolicy getBatchPolicyFilterExp(Query query) {
         if (queryCriteriaIsNotNull(query)) {
             BatchPolicy policy = new BatchPolicy(reactorClient.getAerospikeClient().getBatchPolicyDefault());
-            policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(query);
+            Qualifier qualifier = query.getCriteriaObject();
+            policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(qualifier);
             return policy;
         }
         return null;
@@ -1267,7 +1269,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .expiration(expiration);
 
         if (queryCriteriaIsNotNull(query)) {
-            writePolicyBuilder.filterExp(reactorQueryEngine.getFilterExpressionsBuilder().build(query));
+            Qualifier qualifier = query.getCriteriaObject();
+            writePolicyBuilder.filterExp(reactorQueryEngine.getFilterExpressionsBuilder().build(qualifier));
         }
         WritePolicy writePolicy = writePolicyBuilder.build();
 

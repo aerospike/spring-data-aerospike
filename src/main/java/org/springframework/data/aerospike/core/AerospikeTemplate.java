@@ -786,7 +786,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private BatchPolicy getBatchPolicyFilterExp(Query query) {
         if (queryCriteriaIsNotNull(query)) {
             BatchPolicy policy = new BatchPolicy(getAerospikeClient().getBatchPolicyDefault());
-            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(query);
+            Qualifier qualifier = query.getCriteriaObject();
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifier);
             return policy;
         }
         return null;
@@ -815,7 +816,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private Policy getPolicyFilterExp(Query query) {
         if (queryCriteriaIsNotNull(query)) {
             Policy policy = new Policy(getAerospikeClient().getReadPolicyDefault());
-            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(query);
+            Qualifier qualifier = query.getCriteriaObject();
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifier);
             return policy;
         }
         return null;
@@ -826,7 +828,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             .expiration(expiration);
 
         if (queryCriteriaIsNotNull(query)) {
-            writePolicyBuilder.filterExp(queryEngine.getFilterExpressionsBuilder().build(query));
+            Qualifier qualifier = query.getCriteriaObject();
+            writePolicyBuilder.filterExp(queryEngine.getFilterExpressionsBuilder().build(qualifier));
         }
         WritePolicy writePolicy = writePolicyBuilder.build();
 
@@ -1424,7 +1427,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
 
         KeyRecordIterator recIterator;
-
         if (targetClass != null) {
             String[] binNames = getBinNamesFromTargetClass(targetClass, mappingContext);
             recIterator = queryEngine.select(namespace, setName, binNames, query);

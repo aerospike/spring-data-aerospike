@@ -77,4 +77,5 @@ class IdQualifierBuilder extends BaseQualifierBuilder<IdQualifierBuilder> {
         this.map.put(MULTIPLE_IDS_FIELD, ids);
         return this;
     }
+
 }

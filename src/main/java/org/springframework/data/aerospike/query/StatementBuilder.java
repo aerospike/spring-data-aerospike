@@ -17,8 +17,7 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.query.Filter;
 import com.aerospike.client.query.Statement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexedField;
@@ -32,14 +31,15 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
+import static org.springframework.data.aerospike.util.Utils.logQualifierDetails;
 
 /**
  * @author peter
  * @author Anastasiia Smirnova
  */
+@Slf4j
 public class StatementBuilder {
 
-    private static final Logger log = LoggerFactory.getLogger(StatementBuilder.class);
     private final IndexesCache indexesCache;
 
     public StatementBuilder(IndexesCache indexesCache) {
@@ -58,7 +58,10 @@ public class StatementBuilder {
             stmt.setBinNames(binNames);
         }
         if (queryCriteriaIsNotNull(query)) {
-            // statement's filter is set based on the first processed qualifier's filter
+            // logging query
+            logQualifierDetails(query.getCriteriaObject(), log);
+            // statement's filter is set based either on cardinality (the lowest bin values ratio)
+            // or on order (the first processed filter)
             setStatementFilterFromQualifiers(stmt, query.getCriteriaObject());
         }
         return stmt;
@@ -67,6 +70,7 @@ public class StatementBuilder {
     private void setStatementFilterFromQualifiers(Statement stmt, Qualifier qualifier) {
         // No qualifier, no need to set statement filter
         if (qualifier == null) {
+            log.debug("Query #{}, secondary index filter is not set", qualifier.hashCode());
             return;
         }
 
@@ -76,6 +80,12 @@ public class StatementBuilder {
             setFilterFromMultipleQualifiers(stmt, qualifier);
         } else if (isIndexedBin(stmt, qualifier)) { // Single qualifier
             setFilterFromSingleQualifier(stmt, qualifier);
+        }
+        if (stmt.getFilter() != null) {
+            log.debug("Query #{}, secondary index filter is set on the bin '{}'", qualifier.hashCode(),
+                stmt.getFilter().getName());
+        } else {
+            log.debug("Query #{}, secondary index filter is not set", qualifier.hashCode());
         }
     }
 
@@ -130,8 +140,8 @@ public class StatementBuilder {
         }
 
         if (log.isDebugEnabled() && hasField) {
-            log.debug("Bin {}.{}.{} has secondary index: {}",
-                stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndex);
+            log.debug("Query #{}, bin {}.{}.{} has secondary index: {}",
+                qualifier.hashCode(), stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndex);
         }
         return hasIndex;
     }

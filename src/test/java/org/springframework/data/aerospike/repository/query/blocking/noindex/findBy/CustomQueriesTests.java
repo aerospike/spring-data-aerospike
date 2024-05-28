@@ -23,7 +23,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
-            .setValueAsObj(50000L)
+            .setValue(50000L)
             .build();
         assertThat(repository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds))).containsAll(allPersons);
 
@@ -31,8 +31,8 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValueAsObj(1L)
-            .setSecondValueAsObj(50000L)
+            .setValue(1L)
+            .setSecondValue(50000L)
             .build();
         assertThat(repository.findUsingQuery(new Query(sinceUpdateTimeBetween1And50000)))
             .containsAll(repository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds)));
@@ -71,14 +71,14 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier sinceUpdateTimeGt1 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValueAsObj(1L)
+            .setValue(1L)
             .build();
 
         // creating an expression "since_update_time metadata value is less than 50 seconds"
         Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
-            .setValueAsObj(50000L)
+            .setValue(50000L)
             .build();
         assertThat(repository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds))).containsAll(allPersons);
 
@@ -86,8 +86,8 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier sinceUpdateTimeBetween1And50000 = Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValueAsObj(1L)
-            .setSecondValueAsObj(50000L)
+            .setValue(1L)
+            .setSecondValue(50000L)
             .build();
         assertThat(repository.findUsingQuery(new Query(sinceUpdateTimeBetween1And50000))).containsAll(allPersons);
 
@@ -202,48 +202,57 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValueAsObj(1L)
+            .setValue(1L)
             .build())))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("BETWEEN: value2 is expected to be set as Long");
+            .hasMessage("BETWEEN: expecting secondValue to be provided");
 
         assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.BETWEEN)
-            .setValueAsObj("value")
-            .setSecondValueAsObj(1L)
+            .setValue(1L)
+            .setSecondValue(null)
             .build())))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("BETWEEN: value1 is expected to be set as Long");
+            .hasMessage("BETWEEN: secondValue is expected to be set as Long");
+
+        assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
+            .setMetadataField(SINCE_UPDATE_TIME)
+            .setFilterOperation(FilterOperation.BETWEEN)
+            .setValue("value")
+            .setSecondValue(1L)
+            .build())))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("BETWEEN: value is expected to be set as Long");
 
         assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.GT)
-            .setValueAsObj(1)
+            .setValue(1)
             .build())))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("GT: value1 is expected to be set as Long");
+            .hasMessage("GT: value is expected to be set as Long");
 
         assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LT)
-            .setValueAsObj(1)
+            .setValue(1)
             .build())))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("LT: value1 is expected to be set as Long");
+            .hasMessage("LT: value is expected to be set as Long");
 
         assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.LTEQ)
-            .setValueAsObj(1)
+            .setValue(1)
             .build())))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("LTEQ: value1 is expected to be set as Long");
+            .hasMessage("LTEQ: value is expected to be set as Long");
 
         assertThatThrownBy(() -> repository.findUsingQuery(new Query(Qualifier.metadataBuilder()
             .setMetadataField(SINCE_UPDATE_TIME)
             .setFilterOperation(FilterOperation.STARTS_WITH)
-            .setValueAsObj(1L)
+            .setValue(1L)
             .build())))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Operation STARTS_WITH cannot be applied to metadataField");

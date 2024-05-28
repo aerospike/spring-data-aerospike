@@ -26,6 +26,8 @@ import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
 import lombok.Getter;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -41,6 +43,7 @@ import static org.springframework.data.aerospike.query.QualifierUtils.queryCrite
  */
 public class QueryEngine {
 
+    private static final Logger logger = LoggerFactory.getLogger(QueryEngine.class);
     public static final String SCANS_DISABLED_MESSAGE =
         "Query without a filter will initiate a scan. Since scans are potentially dangerous operations, they are " +
             "disabled by default in spring-data-aerospike. " +
@@ -116,7 +119,7 @@ public class QueryEngine {
         }
         Statement statement = statementBuilder.build(namespace, set, query, binNames);
         statement.setMaxRecords(queryMaxRecords);
-        QueryPolicy localQueryPolicy = getQueryPolicy(query, true);
+        QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, true);
 
         if (!scansEnabled && statement.getFilter() == null) {
             throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
@@ -137,7 +140,8 @@ public class QueryEngine {
     public KeyRecordIterator selectForCount(String namespace, String set, @Nullable Query query) {
         Statement statement = statementBuilder.build(namespace, set, query);
         statement.setMaxRecords(queryMaxRecords);
-        QueryPolicy localQueryPolicy = getQueryPolicy(query, false);
+        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
+        QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, false);
 
         if (!scansEnabled && statement.getFilter() == null) {
             throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
@@ -155,9 +159,9 @@ public class QueryEngine {
         return client.get(policy, key, binNames);
     }
 
-    private QueryPolicy getQueryPolicy(Query query, boolean includeBins) {
+    private QueryPolicy getQueryPolicy(Qualifier qualifier, boolean includeBins) {
         QueryPolicy queryPolicy = new QueryPolicy(client.getQueryPolicyDefault());
-        queryPolicy.filterExp = filterExpressionsBuilder.build(query);
+        queryPolicy.filterExp = filterExpressionsBuilder.build(qualifier);
         queryPolicy.includeBinData = includeBins;
         return queryPolicy;
     }
