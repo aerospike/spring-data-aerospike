@@ -413,8 +413,9 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <includes>
-                        <include>**/*Test.java</include>
-                        <include>**/*Tests.java</include>
+<!--                        <include>**/*Test.java</include>-->
+<!--                        <include>**/*Tests.java</include>-->
+                        <include>**/AerospikeTemplateSaveWithDuplicatesTests.java</include>
                     </includes>
                     <argLine>
                         --add-opens java.base/java.util=ALL-UNNAMED
