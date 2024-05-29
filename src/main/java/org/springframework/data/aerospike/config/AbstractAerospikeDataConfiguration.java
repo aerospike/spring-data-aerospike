@@ -64,6 +64,9 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         long queryMaxRecords = settings.getDataSettings().getQueryMaxRecords();
         log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
         queryEngine.setQueryMaxRecords(queryMaxRecords);
+        if (!settings.getDataSettings().isWriteSortedMaps()) {
+            log.debug("AerospikeDataSettings.writeSortedMaps: false");
+        }
         return queryEngine;
     }
 

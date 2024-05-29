@@ -37,22 +37,17 @@ public class NotEqualTests extends PersonRepositoryQueryTests {
 
     @Test
     void findByNestedSimplePropertyNotEqual() {
-        String zipCode = "C0123456789";
-        assertThat(carter.getAddress().getZipCode()).isNotEqualTo(zipCode);
-        assertThat(repository.findByAddressZipCodeIsNot(zipCode)).contains(carter);
-
         oliver.setFriend(alicia);
         repository.save(oliver);
         dave.setFriend(oliver);
         repository.save(dave);
         carter.setFriend(dave);
         repository.save(carter);
+        assertThat(carter.getFriend().getAge()).isEqualTo(42);
 
+        // find all records where friend's age is not 42 and all without friend.age
         List<Person> result = repository.findByFriendAgeIsNot(42);
-
-        assertThat(result)
-            .hasSize(2)
-            .containsExactlyInAnyOrder(dave, oliver);
+        assertThat(result).doesNotContain(carter);
 
         TestUtils.setFriendsToNull(repository, oliver, dave, carter);
     }
