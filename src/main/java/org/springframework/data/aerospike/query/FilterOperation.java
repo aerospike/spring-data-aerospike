@@ -244,7 +244,6 @@ public enum FilterOperation {
                         value.getClass().getSimpleName());
                 };
                 return Exp.or(Exp.not(Exp.binExists(getBinName(qualifierMap))), ne);
-
             });
         }
 

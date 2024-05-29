@@ -65,7 +65,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
         queryEngine.setQueryMaxRecords(queryMaxRecords);
         if (!settings.getDataSettings().isWriteSortedMaps()) {
-            log.debug("AerospikeDataSettings.writeSortedMaps: false");
+            log.debug("AerospikeDataSettings.writeSortedMaps is set to false, " +
+                "Maps and POJOs will be written as unsorted Maps (decrease in performance compared with sorted Maps)");
         }
         return queryEngine;
     }
