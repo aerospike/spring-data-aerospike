@@ -59,14 +59,14 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder,
             settings.getDataSettings());
         boolean scansEnabled = settings.getDataSettings().isScansEnabled();
-        log.debug("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
+        log.info("AerospikeDataSettings.scansEnabled: {}", scansEnabled);
         queryEngine.setScansEnabled(scansEnabled);
         long queryMaxRecords = settings.getDataSettings().getQueryMaxRecords();
-        log.debug("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
+        log.info("AerospikeDataSettings.queryMaxRecords: {}", queryMaxRecords);
         queryEngine.setQueryMaxRecords(queryMaxRecords);
         if (!settings.getDataSettings().isWriteSortedMaps()) {
             log.info("AerospikeDataSettings.writeSortedMaps is set to false, " +
-                "Maps and POJOs will be written as unsorted Maps (degrades performance of Map-related operations ," +
+                "Maps and POJOs will be written as unsorted Maps (degrades performance of Map-related operations," +
                 " does not allow comparing Maps)");
         }
         return queryEngine;
@@ -78,7 +78,7 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         AerospikeIndexResolver aerospikeIndexResolver,
         ObjectProvider<AerospikeTemplate> template, AerospikeSettings settings) {
         boolean indexesOnStartup = settings.getDataSettings().isCreateIndexesOnStartup();
-        log.debug("AerospikeDataSettings.indexesOnStartup: {}", indexesOnStartup);
+        log.info("AerospikeDataSettings.indexesOnStartup: {}", indexesOnStartup);
         return new AerospikePersistenceEntityIndexCreator(aerospikeMappingContext, indexesOnStartup,
             aerospikeIndexResolver, template);
     }
@@ -91,7 +91,7 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         refresher.refreshIndexes();
         int refreshFrequency = settings.getDataSettings().getIndexCacheRefreshSeconds();
         processCacheRefreshFrequency(refreshFrequency, refresher);
-        log.debug("AerospikeDataSettings.indexCacheRefreshSeconds: {}", refreshFrequency);
+        log.info("AerospikeDataSettings.indexCacheRefreshSeconds: {}", refreshFrequency);
         return refresher;
     }
 

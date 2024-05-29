@@ -37,6 +37,8 @@ public class AerospikeDataSettings {
     // Define how @Id fields (primary keys) and Map keys are stored: false - always as String,
     // true - preserve original type if supported
     boolean keepOriginalKeyTypes = false;
-    // Define how Maps are written: true - as TreeMaps (default), false - as HashMaps
+    // Define how Maps and POJOs are written: true - as sorted maps (TreeMaps, default), false - as unsorted (HashMaps)
+    // Writing unsorted maps (false) degrades performance of Map-related operations and does not allow comparing Maps,
+    // strongly recommended not to use except during upgrade from older versions of Spring Data Aerospike (if required)
     boolean writeSortedMaps = true;
 }

@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>4.7.1</version>
+    <version>4.8.0</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>3.2.4</version>
+        <version>3.3.0</version>
     </parent>
 
     <properties>
@@ -24,23 +24,23 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.2.4</springdata.commons>
-        <springdata.keyvalue>3.2.4</springdata.keyvalue>
-        <springdata.spring-boot>3.2.3</springdata.spring-boot>
-        <spring-boot-starter-test>3.2.3</spring-boot-starter-test>
-        <spring-cloud-starter-bootstrap>4.1.1</spring-cloud-starter-bootstrap>
+        <springdata.commons>3.3.0</springdata.commons>
+        <springdata.keyvalue>3.3.0</springdata.keyvalue>
+        <springdata.spring-boot>3.3.0</springdata.spring-boot>
+        <spring-boot-starter-test>3.3.0</spring-boot-starter-test>
+        <spring-cloud-starter-bootstrap>4.1.2</spring-cloud-starter-bootstrap>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike-client>7.2.1</aerospike-client>
         <aerospike-reactor-client>7.1.0</aerospike-reactor-client>
         <reactor-test>3.6.1</reactor-test>
-        <embedded-aerospike>3.1.5</embedded-aerospike>
+        <embedded-aerospike>3.1.6</embedded-aerospike>
         <jodatime>2.12.7</jodatime>
-        <lombok>1.18.30</lombok>
+        <lombok>1.18.32</lombok>
         <awaitility>4.2.1</awaitility>
-        <logback.test>1.5.3</logback.test>
+        <logback.test>1.5.6</logback.test>
         <hibernate.validator>8.0.1.Final</hibernate.validator>
-        <netty.version>4.1.107.Final</netty.version>
+        <netty.version>4.1.110.Final</netty.version>
     </properties>
 
     <licenses>
