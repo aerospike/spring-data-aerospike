@@ -177,7 +177,6 @@ It has precedence over reading from application.properties. Here is an example:
 @EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
-
     @Override
     public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setScansEnabled(false);
@@ -210,7 +209,6 @@ It has precedence over reading from application.properties. Here is an example:
 @EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
-
     @Override
     public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setCreateIndexesOnStartup(true);
@@ -239,7 +237,6 @@ It has precedence over reading from application.properties. Here is an example:
 // overriding method
 @EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
-
 
     @Override
     public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
@@ -270,7 +267,6 @@ It has precedence over reading from application.properties. Here is an example:
 @EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
-
     @Override
     public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setServerVersionRefreshSeconds(3600);
@@ -300,7 +296,6 @@ It has precedence over reading from application.properties. Here is an example:
 @EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
-
     @Override
     public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setQueryMaxRecords(10000L);
@@ -329,7 +324,6 @@ It has precedence over reading from application.properties. Here is an example:
 // overriding method
 @EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
-
 
     @Override
     public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
@@ -386,7 +380,6 @@ It has precedence over reading from application.properties. Here is an example:
 @EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
-
     @Override
     public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setKeepOriginalKeyTypes(false);
@@ -408,7 +401,8 @@ spring-data-aerospike.data.writeSortedMaps=true
 Define how Maps and POJOs are written: `true` - as sorted maps (`TreeMap`, default), `false` - as unsorted (`HashMap`).
 
 Writing as unsorted maps (`false`) degrades performance of Map-related operations and does not allow comparing Maps,
-so it can be used only during upgrade from older versions of Spring Data Aerospike.
+so it is strongly recommended to change the default value only if required during upgrade from older versions
+of Spring Data Aerospike.
 
 NOTE: Another way of defining the parameter is overriding the `configureDataSettings()` method.
 It has precedence over reading from application.properties. Here is an example:
@@ -418,7 +412,6 @@ It has precedence over reading from application.properties. Here is an example:
 // overriding method
 @EnableAerospikeRepositories(basePackageClasses = TestRepository.class)
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
-
 
     @Override
     public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
