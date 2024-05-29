@@ -508,8 +508,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> has value equal to a given object". The Map can be a whole
-     * bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also POJOs.
+     * For use in queries "find records where Map key <...> has value equal to a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_EQ_BY_KEY {
         @Override
@@ -538,9 +541,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> has value not equal to a given object". The Map can be a
-     * whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also
-     * POJOs.
+     * For use in queries "find records where Map key <...> has value not equal to a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_NOTEQ_BY_KEY {
         @Override
@@ -555,8 +560,11 @@ public enum FilterOperation {
     },
     /**
      * For use in queries "find records where Map key <...> has value equal to one of the objects in a given
-     * Collection". The Map can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in
-     * the database represent also POJOs.
+     * Collection".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_IN_BY_KEY {
         @Override
@@ -586,8 +594,11 @@ public enum FilterOperation {
     },
     /**
      * For use in queries "find records where Map key <...> has value equal to neither of the objects in a given
-     * Collection". The Map can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in
-     * the database represent also POJOs.
+     * Collection".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_NOT_IN_BY_KEY {
         @Override
@@ -618,8 +629,9 @@ public enum FilterOperation {
      * For use in queries "find records where Map key <...> has value greater than a given object".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Map can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database
-     * represent also POJOs.
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_GT_BY_KEY {
         @Override
@@ -644,10 +656,11 @@ public enum FilterOperation {
     },
     /**
      * For use in queries "find records where Map key <...> has value greater than a given object or equal to it".
-     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Map can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database
-     * represent also POJOs.
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_GTEQ_BY_KEY {
         @Override
@@ -671,8 +684,9 @@ public enum FilterOperation {
      * For use in queries "find records where Map key <...> has value less than a given object".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Map can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database
-     * represent also POJOs.
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_LT_BY_KEY {
         @Override
@@ -697,8 +711,9 @@ public enum FilterOperation {
      * For use in queries "find records where Map key <...> has value less than a given object or equal to it".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Map can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database
-     * represent also POJOs.
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_LTEQ_BY_KEY {
         @Override
@@ -722,8 +737,9 @@ public enum FilterOperation {
      * For use in queries "find records where Map key <...> has value between two given objects".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Map can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database
-     * represent also POJOs.
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_BETWEEN_BY_KEY {
         @Override
@@ -775,9 +791,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> has value that starts with a given String". The Map can be a
-     * whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also
-     * POJOs.
+     * For use in queries "find records where Map key <...> has value that starts with a given String".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_STARTS_WITH_BY_KEY {
         @Override
@@ -796,9 +814,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> has value that is like a given String". The Map can be a
-     * whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also
-     * POJOs.
+     * For use in queries "find records where Map key <...> has value that is like a given String".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_LIKE_BY_KEY {
         @Override
@@ -819,9 +839,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> has value that ends with a given String". The Map can be a
-     * whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also
-     * POJOs.
+     * For use in queries "find records where Map key <...> has value that ends with a given String".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_ENDS_WITH_BY_KEY {
         @Override
@@ -840,9 +862,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> has value that contains a given object". The Map can be a
-     * whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also
-     * POJOs.
+     * For use in queries "find records where Map key <...> has value that contains a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_CONTAINING_BY_KEY {
         @Override
@@ -891,9 +915,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> does not have value that contains a given object". The Map
-     * can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent
-     * also POJOs.
+     * For use in queries "find records where Map key <...> does not have value that contains a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_NOT_CONTAINING_BY_KEY {
         @Override
@@ -947,8 +973,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> has existing value". The Map can be a whole bin or part of
-     * it (nested inside one or more Lists or other Maps). Maps in the database represent also POJOs.
+     * For use in queries "find records where Map key <...> has existing value".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_EXISTS_BY_KEY {
         @Override
@@ -962,8 +991,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> does not have existing value". The Map can be a whole bin or
-     * part of it (nested inside one or more Lists or other Maps). Maps in the database represent also POJOs.
+     * For use in queries "find records where Map key <...> does not have existing value".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_NOT_EXISTS_BY_KEY {
         @Override
@@ -977,9 +1009,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> has value that is not null (i.e. exists)". The Map can be a
-     * whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also
-     * POJOs.
+     * For use in queries "find records where Map key <...> has value that is not null (i.e. exists)".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_IS_NOT_NULL_BY_KEY {
         @Override
@@ -1002,9 +1036,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where Map key <...> has value that is null (i.e. does not exist)". The Map can
-     * be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also
-     * POJOs.
+     * For use in queries "find records where Map key <...> has value that is null (i.e. does not exist)".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_IS_NULL_BY_KEY {
         @Override
@@ -1027,8 +1063,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where keys of Map <...> contain a given object". The Map can be a whole bin or
-     * part of it (nested inside one or more Lists or other Maps). Maps in the database represent also POJOs.
+     * For use in queries "find records where keys of Map <...> contain a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_KEYS_CONTAIN {
         @Override
@@ -1042,8 +1081,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where keys of Map <...> do not contain a given object". The Map can be a whole
-     * bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also POJOs.
+     * For use in queries "find records where keys of Map <...> do not contain a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_KEYS_NOT_CONTAIN {
         @Override
@@ -1057,8 +1099,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where values of Map <...> contain a given object". The Map can be a whole bin or
-     * part of it (nested inside one or more Lists or other Maps). Maps in the database represent also POJOs.
+     * For use in queries "find records where values of Map <...> contain a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VALUES_CONTAIN {
         @Override
@@ -1072,8 +1117,11 @@ public enum FilterOperation {
         }
     },
     /**
-     * For use in queries "find records where values of Map <...> do not contain a given object". The Map can be a whole
-     * bin or part of it (nested inside one or more Lists or other Maps). Maps in the database represent also POJOs.
+     * For use in queries "find records where values of Map <...> do not contain a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VALUES_NOT_CONTAIN {
         @Override
@@ -1090,8 +1138,9 @@ public enum FilterOperation {
      * For use in queries "find records where keys of Map <...> are between two given objects".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Map can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database
-     * represent also POJOs.
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_KEYS_BETWEEN {
         @Override
@@ -1125,8 +1174,9 @@ public enum FilterOperation {
      * For use in queries "find records where values of Map <...> are between two given objects".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Map can be a whole bin or part of it (nested inside one or more Lists or other Maps). Maps in the database
-     * represent also POJOs.
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
      */
     MAP_VAL_BETWEEN {
         @Override
@@ -1237,7 +1287,7 @@ public enum FilterOperation {
      * For use in queries "find records where Collection <...> contains values greater than a given object".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Collection can be a whole bin or part of it (nested inside one or more Lists or Maps).
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
      */
     COLLECTION_VAL_GT {
         @Override
@@ -1287,7 +1337,7 @@ public enum FilterOperation {
      * it".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Collection can be a whole bin or part of it (nested inside one or more Lists or Maps).
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
      */
     COLLECTION_VAL_GTEQ {
         @Override
@@ -1321,7 +1371,7 @@ public enum FilterOperation {
      * For use in queries "find records where Collection <...> contains values less than a given object".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Collection can be a whole bin or part of it (nested inside one or more Lists or Maps).
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
      */
     COLLECTION_VAL_LT {
         @Override
@@ -1365,7 +1415,7 @@ public enum FilterOperation {
      * it".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Collection can be a whole bin or part of it (nested inside one or more Lists or Maps).
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
      */
     COLLECTION_VAL_LTEQ {
         @Override
@@ -1413,7 +1463,7 @@ public enum FilterOperation {
      * For use in queries "find records where Collection <...> contains values between two given objects".
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
      * <br>
-     * The Collection can be a whole bin or part of it (nested inside one or more Lists or Maps).
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
      */
     COLLECTION_VAL_BETWEEN {
         @Override
