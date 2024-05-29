@@ -58,6 +58,9 @@ import static org.springframework.data.aerospike.util.Utils.getExpType;
 import static org.springframework.data.aerospike.util.Utils.getValueExpOrFail;
 
 public enum FilterOperation {
+    /**
+     * Conjunction of two or more Qualifiers using logical AND.
+     */
     AND {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -83,6 +86,9 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * Conjunction of two or more Qualifiers using logical OR.
+     */
     OR {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -108,6 +114,9 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * For use in queries "find by <...> in a given Collection".
+     */
     IN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -132,6 +141,9 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * For use in queries "find by <...> not in a given Collection".
+     */
     NOT_IN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -156,6 +168,9 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * For use in queries "find by <...> equals a given object".
+     */
     EQ {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -200,6 +215,9 @@ public enum FilterOperation {
             };
         }
     },
+    /**
+     * For use in queries "find by <...> not equal to a given object".
+     */
     NOTEQ {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -241,6 +259,10 @@ public enum FilterOperation {
             return null; // not supported in the secondary index filter
         }
     },
+    /**
+     * For use in queries "find by <...> greater than a given object".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     */
     GT {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -269,6 +291,10 @@ public enum FilterOperation {
             return Filter.range(getBinName(qualifierMap), getValue(qualifierMap).toLong() + 1, Long.MAX_VALUE);
         }
     },
+    /**
+     * For use in queries "find by <...> greater than a given object or equal to it".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     */
     GTEQ {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -295,6 +321,10 @@ public enum FilterOperation {
             return Filter.range(getBinName(qualifierMap), getValue(qualifierMap).toLong(), Long.MAX_VALUE);
         }
     },
+    /**
+     * For use in queries "find by <...> less than a given object".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     */
     LT {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -322,6 +352,10 @@ public enum FilterOperation {
             return Filter.range(getBinName(qualifierMap), Long.MIN_VALUE, getValue(qualifierMap).toLong() - 1);
         }
     },
+    /**
+     * For use in queries "find by <...> less than a given object or equal to it".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     */
     LTEQ {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -348,6 +382,10 @@ public enum FilterOperation {
             return Filter.range(getBinName(qualifierMap), Long.MIN_VALUE, getValue(qualifierMap).toLong());
         }
     },
+    /**
+     * For use in queries "find by <...> between two given objects".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     */
     BETWEEN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -388,6 +426,9 @@ public enum FilterOperation {
                 getSecondValue(qualifierMap).toLong());
         }
     },
+    /**
+     * For use in queries "find by <...> starts with a given String".
+     */
     STARTS_WITH {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -400,6 +441,9 @@ public enum FilterOperation {
             return null; // String secondary index does not support "starts with" queries
         }
     },
+    /**
+     * For use in queries "find by <...> ends with a given String".
+     */
     ENDS_WITH {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -412,6 +456,9 @@ public enum FilterOperation {
             return null; // String secondary index does not support "ends with" queries
         }
     },
+    /**
+     * For use in queries "find by <...> containing a given object".
+     */
     CONTAINING {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -425,6 +472,9 @@ public enum FilterOperation {
             return null; // String secondary index does not support "contains" queries
         }
     },
+    /**
+     * For use in queries "find by <...> not containing a given object".
+     */
     NOT_CONTAINING {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -439,6 +489,9 @@ public enum FilterOperation {
             return null; // String secondary index does not support "contains" queries
         }
     },
+    /**
+     * For use in queries "find by <...> like a given String".
+     */
     LIKE {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -454,6 +507,13 @@ public enum FilterOperation {
             return null; // not supported
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value equal to a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_EQ_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -480,6 +540,13 @@ public enum FilterOperation {
             };
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value not equal to a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_NOTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -491,6 +558,14 @@ public enum FilterOperation {
             return null; // not supported
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value equal to one of the objects in a given
+     * Collection".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_IN_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -517,6 +592,14 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value equal to neither of the objects in a given
+     * Collection".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_NOT_IN_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -542,6 +625,14 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value greater than a given object".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_GT_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -563,6 +654,14 @@ public enum FilterOperation {
                 Long.MAX_VALUE, getCtxArr(qualifierMap));
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value greater than a given object or equal to it".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_GTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -581,6 +680,14 @@ public enum FilterOperation {
                 getKey(qualifierMap).toLong(), Long.MAX_VALUE, getCtxArr(qualifierMap));
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value less than a given object".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_LT_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -600,6 +707,14 @@ public enum FilterOperation {
                 getKey(qualifierMap).toLong() - 1, getCtxArr(qualifierMap));
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value less than a given object or equal to it".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_LTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -618,6 +733,14 @@ public enum FilterOperation {
                 getValue(qualifierMap).toLong(), getCtxArr(qualifierMap));
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value between two given objects".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_BETWEEN_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -667,6 +790,13 @@ public enum FilterOperation {
                 getCtxArr(qualifierMap));
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value that starts with a given String".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_STARTS_WITH_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -683,6 +813,13 @@ public enum FilterOperation {
             return null; // String secondary index does not support "starts with" queries
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value that is like a given String".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_LIKE_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -701,6 +838,13 @@ public enum FilterOperation {
             return null; // not supported
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value that ends with a given String".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_ENDS_WITH_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -717,6 +861,13 @@ public enum FilterOperation {
             return null; // String secondary index does not support "ends with" queries
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value that contains a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -763,6 +914,13 @@ public enum FilterOperation {
             return null; // String secondary index does not support "contains" queries
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> does not have value that contains a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_NOT_CONTAINING_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -814,6 +972,13 @@ public enum FilterOperation {
             return null; // String secondary index does not support "contains" queries
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has existing value".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_EXISTS_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -825,6 +990,13 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> does not have existing value".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_NOT_EXISTS_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -836,6 +1008,13 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value that is not null (i.e. exists)".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_IS_NOT_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -856,6 +1035,13 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * For use in queries "find records where Map key <...> has value that is null (i.e. does not exist)".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_IS_NULL_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -876,6 +1062,13 @@ public enum FilterOperation {
             return null;
         }
     },
+    /**
+     * For use in queries "find records where keys of Map <...> contain a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_KEYS_CONTAIN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -887,6 +1080,13 @@ public enum FilterOperation {
             return collectionContains(IndexCollectionType.MAPKEYS, qualifierMap);
         }
     },
+    /**
+     * For use in queries "find records where keys of Map <...> do not contain a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_KEYS_NOT_CONTAIN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -898,6 +1098,13 @@ public enum FilterOperation {
             return null; // currently not supported
         }
     },
+    /**
+     * For use in queries "find records where values of Map <...> contain a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VALUES_CONTAIN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -909,6 +1116,13 @@ public enum FilterOperation {
             return collectionContains(IndexCollectionType.MAPVALUES, qualifierMap);
         }
     },
+    /**
+     * For use in queries "find records where values of Map <...> do not contain a given object".
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VALUES_NOT_CONTAIN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -920,6 +1134,14 @@ public enum FilterOperation {
             return null; // currently not supported
         }
     },
+    /**
+     * For use in queries "find records where keys of Map <...> are between two given objects".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_KEYS_BETWEEN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -948,6 +1170,14 @@ public enum FilterOperation {
             return collectionRange(IndexCollectionType.MAPKEYS, qualifierMap);
         }
     },
+    /**
+     * For use in queries "find records where values of Map <...> are between two given objects".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * Map can be a whole bin or a part of it (nested inside one or more Lists or other Maps).
+     * <br>
+     * Maps in Aerospike DB represent not only Java Maps, but also POJOs.
+     */
     MAP_VAL_BETWEEN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -979,6 +1209,9 @@ public enum FilterOperation {
             return collectionRange(IndexCollectionType.MAPVALUES, qualifierMap);
         }
     },
+    /**
+     * For use in queries "find by Geo <...> within a given GeoJSON".
+     */
     GEO_WITHIN {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -990,6 +1223,10 @@ public enum FilterOperation {
             return geoWithinRadius(IndexCollectionType.DEFAULT, qualifierMap);
         }
     },
+    /**
+     * For use in queries "find by Collection <...> containing a given object". The Collection can be a whole bin or
+     * part of it (nested inside one or more Lists or Maps).
+     */
     COLLECTION_VAL_CONTAINING {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -1016,6 +1253,10 @@ public enum FilterOperation {
             return collectionContains(IndexCollectionType.LIST, qualifierMap);
         }
     },
+    /**
+     * For use in queries "find by Collection <...> not containing a given object". The Collection can be a whole bin or
+     * part of it (nested inside one or more Lists or Maps).
+     */
     COLLECTION_VAL_NOT_CONTAINING {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -1041,38 +1282,13 @@ public enum FilterOperation {
             return null; // currently not supported
         }
     },
-    COLLECTION_VAL_BETWEEN {
-        @Override
-        public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            Pair<Exp, Exp> twoValues = switch (getValue(qualifierMap).getType()) {
-                case INTEGER ->
-                    Pair.of(Exp.val(getValue(qualifierMap).toLong()), Exp.val(getSecondValue(qualifierMap).toLong()));
-                case STRING -> Pair.of(Exp.val(getValue(qualifierMap).toString()),
-                    Exp.val(getSecondValue(qualifierMap).toString()));
-                case LIST -> Pair.of(Exp.val((List<?>) getValue(qualifierMap).getObject()),
-                    Exp.val((List<?>) getSecondValue(qualifierMap).getObject()));
-                case MAP -> Pair.of(Exp.val((Map<?, ?>) getValue(qualifierMap).getObject()),
-                    Exp.val((Map<?, ?>) getSecondValue(qualifierMap).getObject()));
-                default -> throw new UnsupportedOperationException(
-                    "COLLECTION_VAL_BETWEEN FilterExpression unsupported type: got "
-                        + getValue(qualifierMap).getClass().getSimpleName());
-            };
 
-            return Exp.gt(
-                ListExp.getByValueRange(ListReturnType.COUNT, twoValues.getFirst(), twoValues.getSecond(),
-                    Exp.listBin(getBinName(qualifierMap))),
-                Exp.val(0));
-        }
-
-        @Override
-        public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            if (getValue(qualifierMap).getType() != INTEGER || getSecondValue(qualifierMap).getType() != INTEGER) {
-                return null;
-            }
-
-            return collectionRange(IndexCollectionType.LIST, qualifierMap); // both limits are inclusive
-        }
-    },
+    /**
+     * For use in queries "find records where Collection <...> contains values greater than a given object".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
+     */
     COLLECTION_VAL_GT {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -1116,6 +1332,13 @@ public enum FilterOperation {
                 getValue(qualifierMap).toLong() + 1, Long.MAX_VALUE);
         }
     },
+    /**
+     * For use in queries "find records where Collection <...> contains values greater than a given object or equal to
+     * it".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
+     */
     COLLECTION_VAL_GTEQ {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -1144,6 +1367,12 @@ public enum FilterOperation {
                 Long.MAX_VALUE);
         }
     },
+    /**
+     * For use in queries "find records where Collection <...> contains values less than a given object".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
+     */
     COLLECTION_VAL_LT {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -1181,6 +1410,13 @@ public enum FilterOperation {
                 getValue(qualifierMap).toLong() - 1);
         }
     },
+    /**
+     * For use in queries "find records where Collection <...> contains values less than a given object or equal to
+     * it".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
+     */
     COLLECTION_VAL_LTEQ {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
@@ -1222,7 +1458,49 @@ public enum FilterOperation {
             return Filter.range(getBinName(qualifierMap), IndexCollectionType.LIST, Long.MIN_VALUE,
                 getValue(qualifierMap).toLong());
         }
-    }, IS_NOT_NULL {
+    },
+    /**
+     * For use in queries "find records where Collection <...> contains values between two given objects".
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering">Information about ordering</a>.
+     * <br>
+     * The Collection can be a whole bin or a part of it (nested inside one or more Lists or Maps).
+     */
+    COLLECTION_VAL_BETWEEN {
+        @Override
+        public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
+            Pair<Exp, Exp> twoValues = switch (getValue(qualifierMap).getType()) {
+                case INTEGER ->
+                    Pair.of(Exp.val(getValue(qualifierMap).toLong()), Exp.val(getSecondValue(qualifierMap).toLong()));
+                case STRING -> Pair.of(Exp.val(getValue(qualifierMap).toString()),
+                    Exp.val(getSecondValue(qualifierMap).toString()));
+                case LIST -> Pair.of(Exp.val((List<?>) getValue(qualifierMap).getObject()),
+                    Exp.val((List<?>) getSecondValue(qualifierMap).getObject()));
+                case MAP -> Pair.of(Exp.val((Map<?, ?>) getValue(qualifierMap).getObject()),
+                    Exp.val((Map<?, ?>) getSecondValue(qualifierMap).getObject()));
+                default -> throw new UnsupportedOperationException(
+                    "COLLECTION_VAL_BETWEEN FilterExpression unsupported type: got "
+                        + getValue(qualifierMap).getClass().getSimpleName());
+            };
+
+            return Exp.gt(
+                ListExp.getByValueRange(ListReturnType.COUNT, twoValues.getFirst(), twoValues.getSecond(),
+                    Exp.listBin(getBinName(qualifierMap))),
+                Exp.val(0));
+        }
+
+        @Override
+        public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
+            if (getValue(qualifierMap).getType() != INTEGER || getSecondValue(qualifierMap).getType() != INTEGER) {
+                return null;
+            }
+
+            return collectionRange(IndexCollectionType.LIST, qualifierMap); // both limits are inclusive
+        }
+    },
+    /**
+     * For use in queries "find records where <...> is not null (i.e. exists)".
+     */
+    IS_NOT_NULL {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
             return Exp.binExists(getBinName(qualifierMap));
@@ -1232,7 +1510,11 @@ public enum FilterOperation {
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
             return null;
         }
-    }, IS_NULL {
+    },
+    /**
+     * For use in queries "find records where <...> is null (i.e. does not exist)".
+     */
+    IS_NULL {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
             // with value set to null a bin becomes non-existing
@@ -1260,7 +1542,7 @@ public enum FilterOperation {
      */
     protected static final List<FilterOperation> dualFilterOperations = Arrays.asList(
         MAP_VAL_EQ_BY_KEY, MAP_VAL_GT_BY_KEY, MAP_VAL_GTEQ_BY_KEY, MAP_VAL_LT_BY_KEY, MAP_VAL_LTEQ_BY_KEY,
-        MAP_VAL_BETWEEN_BY_KEY
+        MAP_VAL_BETWEEN_BY_KEY, MAP_KEYS_BETWEEN, MAP_VAL_BETWEEN
     );
 
     @SuppressWarnings("unchecked")
