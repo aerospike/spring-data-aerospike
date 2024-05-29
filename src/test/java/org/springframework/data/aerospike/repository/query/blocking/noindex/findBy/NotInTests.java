@@ -32,7 +32,8 @@ public class NotInTests extends PersonRepositoryQueryTests {
     void findByNestedSimplePropertyNotIn_String() {
         assertThat(carter.getAddress().getZipCode()).isEqualTo("C0124");
         assertThat(dave.getAddress().getZipCode()).isEqualTo("C0123");
-        assertThat(repository.findByAddressZipCodeNotIn(List.of("C0123", "C0125"))).containsOnly(carter);
+        // find all records where address' zipCode is not C0123 or C0125, and all without address.zipCode
+        assertThat(repository.findByAddressZipCodeNotIn(List.of("C0123", "C0125"))).doesNotContain(dave);
     }
 
     @Test
