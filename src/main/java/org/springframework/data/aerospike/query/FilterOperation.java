@@ -223,27 +223,19 @@ public enum FilterOperation {
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
             return getMetadataExp(qualifierMap).orElseGet(() -> {
                 Value value = getValue(qualifierMap);
-                return switch (value.getType()) {
+                Exp ne = switch (value.getType()) {
                     // FMWK-175: Exp.ne() does not return null bins, so Exp.not(Exp.binExists()) is added
-                    case INTEGER -> {
-                        Exp ne = Exp.ne(Exp.intBin(getBinName(qualifierMap)), Exp.val(value.toLong()));
-                        yield Exp.or(Exp.not(Exp.binExists(getBinName(qualifierMap))), ne);
-                    }
+                    case INTEGER -> Exp.ne(Exp.intBin(getBinName(qualifierMap)), Exp.val(value.toLong()));
                     case STRING -> {
                         if (ignoreCase(qualifierMap)) {
                             String equalsRegexp = getStringEquals(value.toString());
-                            Exp regexCompare = Exp.not(Exp.regexCompare(equalsRegexp, RegexFlag.ICASE,
+                            yield Exp.not(Exp.regexCompare(equalsRegexp, RegexFlag.ICASE,
                                 Exp.stringBin(getBinName(qualifierMap))));
-                            yield Exp.or(Exp.not(Exp.binExists(getBinName(qualifierMap))), regexCompare);
                         } else {
-                            Exp ne = Exp.ne(Exp.stringBin(getBinName(qualifierMap)), Exp.val(value.toString()));
-                            yield Exp.or(Exp.not(Exp.binExists(getBinName(qualifierMap))), ne);
+                            yield Exp.ne(Exp.stringBin(getBinName(qualifierMap)), Exp.val(value.toString()));
                         }
                     }
-                    case BOOL -> {
-                        Exp ne = Exp.ne(Exp.boolBin(getBinName(qualifierMap)), Exp.val((Boolean) value.getObject()));
-                        yield Exp.or(Exp.not(Exp.binExists(getBinName(qualifierMap))), ne);
-                    }
+                    case BOOL -> Exp.ne(Exp.boolBin(getBinName(qualifierMap)), Exp.val((Boolean) value.getObject()));
                     case MAP -> getFilterExp(Exp.val((Map<?, ?>) value.getObject()), getBinName(qualifierMap), Exp::ne,
                         Exp::mapBin);
                     case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getBinName(qualifierMap), Exp::ne,
@@ -251,6 +243,7 @@ public enum FilterOperation {
                     default -> throw new IllegalArgumentException("NOTEQ FilterExpression unsupported particle type: " +
                         value.getClass().getSimpleName());
                 };
+                return Exp.or(Exp.not(Exp.binExists(getBinName(qualifierMap))), ne);
             });
         }
 
@@ -550,7 +543,8 @@ public enum FilterOperation {
     MAP_VAL_NOTEQ_BY_KEY {
         @Override
         public Exp filterExp(Map<QualifierKey, Object> qualifierMap) {
-            return getFilterExpMapValNotEqOrFail(qualifierMap, Exp::ne);
+            Exp binIsNull = Exp.not(Exp.binExists(getBinName(qualifierMap)));
+            return Exp.or(binIsNull, getFilterExpMapValNotEqOrFail(qualifierMap, Exp::ne));
         }
 
         @Override
