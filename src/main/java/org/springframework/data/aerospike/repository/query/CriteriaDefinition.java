@@ -45,11 +45,29 @@ public interface CriteriaDefinition {
     }
 
     enum AerospikeMetadata {
-        SINCE_UPDATE_TIME, // Exp.sinceUpdate(), milliseconds
-        LAST_UPDATE_TIME, // Exp.lastUpdate(), nanoseconds since epoch
-        VOID_TIME, // Exp.voidTime(), nanoseconds since epoch
-        TTL, // Exp.ttl(), integer seconds
-        RECORD_SIZE_ON_DISK, // Exp.deviceSize(), bytes
-        RECORD_SIZE_IN_MEMORY // Exp.memorySize(), bytes
+        /**
+         * Exp.sinceUpdate(), milliseconds
+         */
+        SINCE_UPDATE_TIME,
+        /**
+         * Exp.lastUpdate(), nanoseconds since epoch
+         */
+        LAST_UPDATE_TIME,
+        /**
+         * Exp.voidTime(), nanoseconds since epoch
+         */
+        VOID_TIME,
+        /**
+         * Exp.ttl(), integer seconds
+         */
+        TTL,
+        /**
+         * Exp.recordSize() (Exp.deviceSize() for Server ver. < 7.0), bytes
+         */
+        RECORD_SIZE_ON_DISK,
+        /**
+         * Exp.recordSize() (Exp.memorySize() for Server ver. < 7.0), bytes
+         */
+        RECORD_SIZE_IN_MEMORY
     }
 }
