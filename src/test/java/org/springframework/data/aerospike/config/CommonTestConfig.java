@@ -65,7 +65,7 @@ public class CommonTestConfig {
     public CacheManager anotherCacheManager(IAerospikeClient aerospikeClient,
                                             MappingAerospikeConverter aerospikeConverter) {
         AerospikeCacheConfiguration defaultCacheConfiguration = new AerospikeCacheConfiguration(namespace,
-            BaseIntegrationTests.DEFAULT_SET_NAME);
+            BaseIntegrationTests.DIFFERENT_SET_NAME);
         return new AerospikeCacheManager(aerospikeClient, aerospikeConverter, defaultCacheConfiguration);
     }
 
