@@ -27,7 +27,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.util.AwaitilityUtils;
-import org.springframework.data.annotation.Id;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
@@ -64,6 +63,25 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         assertThat(response2).isNotNull();
         assertThat(response2.getValue()).isEqualTo(VALUE);
         assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheInDifferentSet() {
+        CachedObject response1 = cachingComponent.cacheableMethodDifferentExistingCache(KEY);
+        CachedObject response2 = cachingComponent.cacheableMethodDifferentExistingCache(KEY);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+        assertThat(aerospikeOperations.count(DIFFERENT_SET_NAME)).isEqualTo(1);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+
+        CachedObject response3 = cachingComponent.cacheableMethod(KEY);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(2);
+        assertThat(aerospikeOperations.count(DIFFERENT_SET_NAME)).isEqualTo(1);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
     }
 
     @Test
@@ -180,21 +198,27 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         }
 
         @Cacheable("TEST")
-        public CachedObject cacheableMethod(String param) {
+        public CachedObject cacheableMethod(String key) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable("DIFFERENT-EXISTING-CACHE")
+        public CachedObject cacheableMethodDifferentExistingCache(String key) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
         }
 
         @Cacheable(value = "CACHE-WITH-TTL")
-        public CachedObject cacheableMethodWithTTL(String param) {
+        public CachedObject cacheableMethodWithTTL(String key) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
         }
 
         @Cacheable(value = "TEST", cacheManager = "anotherCacheManager")
         public CachedObject cacheableMethodWithAnotherCacheManager(String param) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
         }
 
         @CacheEvict("TEST")
@@ -202,15 +226,15 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         }
 
         @CachePut("TEST")
-        public CachedObject cachePutMethod(String param) {
+        public CachedObject cachePutMethod(String key) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
         }
 
-        @Cacheable(value = "TEST", condition = "#param.startsWith('abc')")
-        public CachedObject cacheableWithCondition(String param) {
+        @Cacheable(value = "TEST", condition = "#key.startsWith('abc')")
+        public CachedObject cacheableWithCondition(String key) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
         }
 
         public int getNoOfCalls() {
@@ -221,8 +245,6 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     @AllArgsConstructor
     public static class CachedObject {
 
-        @Id
-        private final String id;
         private final String value;
 
         public String getValue() {

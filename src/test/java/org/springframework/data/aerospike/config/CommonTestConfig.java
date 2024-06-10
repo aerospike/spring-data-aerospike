@@ -51,7 +51,7 @@ public class CommonTestConfig {
         AerospikeCacheConfiguration defaultCacheConfiguration = new AerospikeCacheConfiguration(namespace,
             BaseIntegrationTests.DEFAULT_SET_NAME);
         AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace,
-            "different-set");
+            BaseIntegrationTests.DIFFERENT_SET_NAME);
         AerospikeCacheConfiguration configurationWithTTL = new AerospikeCacheConfiguration(namespace,
             BaseIntegrationTests.DEFAULT_SET_NAME, 2);
         Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
