@@ -66,7 +66,21 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     @Test
-    public void shouldCacheInDifferentSet() {
+    public void shouldCacheUsingDefaultSet() {
+        // default cache configuration is used for cache names not pre-configured via AerospikeCacheManager
+        CachedObject response1 = cachingComponent.cacheableMethodDefaultCache(KEY);
+        CachedObject response2 = cachingComponent.cacheableMethod(KEY);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheUsingDifferentSet() {
         CachedObject response1 = cachingComponent.cacheableMethodDifferentExistingCache(KEY);
         CachedObject response2 = cachingComponent.cacheableMethodDifferentExistingCache(KEY);
 
@@ -79,6 +93,8 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
 
         CachedObject response3 = cachingComponent.cacheableMethod(KEY);
+        assertThat(response3).isNotNull();
+        assertThat(response3.getValue()).isEqualTo(VALUE);
         assertThat(cachingComponent.getNoOfCalls()).isEqualTo(2);
         assertThat(aerospikeOperations.count(DIFFERENT_SET_NAME)).isEqualTo(1);
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
@@ -181,7 +197,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     public void shouldNotClearCacheClearingDifferentCache() {
         CachedObject response1 = cachingComponent.cacheableMethod(KEY);
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
-        aerospikeCacheManager.getCache("DIFFERENT-EXISTING-CACHE").clear();
+        aerospikeCacheManager.getCache(DIFFERENT_EXISTING_CACHE).clear();
         AwaitilityUtils.awaitTwoSecondsUntil(() -> {
             assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
             assertThat(response1).isNotNull();
@@ -203,13 +219,19 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
             return new CachedObject(VALUE);
         }
 
-        @Cacheable("DIFFERENT-EXISTING-CACHE")
+        @Cacheable("TEST12345ABC")
+        public CachedObject cacheableMethodDefaultCache(String key) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable(DIFFERENT_EXISTING_CACHE)
         public CachedObject cacheableMethodDifferentExistingCache(String key) {
             noOfCalls++;
             return new CachedObject(VALUE);
         }
 
-        @Cacheable(value = "CACHE-WITH-TTL")
+        @Cacheable(value = CACHE_WITH_TTL)
         public CachedObject cacheableMethodWithTTL(String key) {
             noOfCalls++;
             return new CachedObject(VALUE);

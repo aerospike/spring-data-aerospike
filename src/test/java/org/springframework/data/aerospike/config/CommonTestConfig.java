@@ -50,13 +50,13 @@ public class CommonTestConfig {
     public CacheManager cacheManager(IAerospikeClient aerospikeClient, MappingAerospikeConverter aerospikeConverter) {
         AerospikeCacheConfiguration defaultCacheConfiguration = new AerospikeCacheConfiguration(namespace,
             BaseIntegrationTests.DEFAULT_SET_NAME);
-        AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace,
-            BaseIntegrationTests.DIFFERENT_SET_NAME);
         AerospikeCacheConfiguration configurationWithTTL = new AerospikeCacheConfiguration(namespace,
             BaseIntegrationTests.DEFAULT_SET_NAME, 2);
+        AerospikeCacheConfiguration differentCacheConfiguration = new AerospikeCacheConfiguration(namespace,
+            BaseIntegrationTests.DIFFERENT_SET_NAME);
         Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
-        aerospikeCacheConfigurationMap.put("DIFFERENT-EXISTING-CACHE", aerospikeCacheConfiguration);
-        aerospikeCacheConfigurationMap.put("CACHE-WITH-TTL", configurationWithTTL);
+        aerospikeCacheConfigurationMap.put(BaseIntegrationTests.CACHE_WITH_TTL, configurationWithTTL);
+        aerospikeCacheConfigurationMap.put(BaseIntegrationTests.DIFFERENT_EXISTING_CACHE, differentCacheConfiguration);
         return new AerospikeCacheManager(aerospikeClient, aerospikeConverter, defaultCacheConfiguration,
             aerospikeCacheConfigurationMap);
     }
