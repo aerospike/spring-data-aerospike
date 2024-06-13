@@ -198,8 +198,8 @@ public class AerospikeCache implements Cache {
 
     private Key getKey(Object key) {
         int userKey = (key instanceof SimpleKey && key.equals(SimpleKey.EMPTY))
-            // return hash code of key's class (hash code of key itself can be equal to 1) when no arguments are given
-            ? key.getClass().hashCode()
+            // return hash code of key.toString() (hash code of key itself can be equal to 1) when key is empty
+            ? key.toString().hashCode()
             : key.hashCode();
         return new Key(cacheConfiguration.getNamespace(), cacheConfiguration.getSet(), userKey);
     }
