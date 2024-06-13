@@ -67,7 +67,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
             Long.hashCode(NUMERIC_PARAM),
             MAP_PARAM.hashCode(),
             new SimpleKey(STRING_PARAM, NUMERIC_PARAM, MAP_PARAM).hashCode(),
-            SimpleKey.class.hashCode(),
+            SimpleKey.EMPTY.toString().hashCode(),
             CachingComponent.class.hashCode(),
             CachingComponent.class.getMethod("cacheableMethodWithMethodNameKey").hashCode()
         );
