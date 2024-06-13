@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
@@ -54,18 +55,22 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     AerospikeCacheManager aerospikeCacheManager;
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws NoSuchMethodException {
         cachingComponent.reset();
         deleteRecords();
     }
 
-    private void deleteRecords() {
+    private void deleteRecords() throws NoSuchMethodException {
         List<Integer> hashCodes = List.of(
             STRING_PARAM.hashCode(),
             STRING_PARAM_THAT_MATCHES_CONDITION.hashCode(),
             Long.hashCode(NUMERIC_PARAM),
             MAP_PARAM.hashCode(),
-            new SimpleKey(STRING_PARAM, NUMERIC_PARAM, MAP_PARAM).hashCode());
+            new SimpleKey(STRING_PARAM, NUMERIC_PARAM, MAP_PARAM).hashCode(),
+            SimpleKey.class.hashCode(),
+            CachingComponent.class.hashCode(),
+            CachingComponent.class.getMethod("cacheableMethodWithMethodNameKey").hashCode()
+        );
         for (int hash : hashCodes) {
             client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, hash));
         }
@@ -118,6 +123,73 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
             MAP_PARAM);
         CachedObject response2 = cachingComponent.cacheableMethodWithMultipleParams(STRING_PARAM, NUMERIC_PARAM,
             MAP_PARAM);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithNthParam() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithNthParam(STRING_PARAM, NUMERIC_PARAM,
+            MAP_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethodWithNthParam(STRING_PARAM, NUMERIC_PARAM,
+            MAP_PARAM);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithNoParams() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithNoParams();
+        CachedObject response2 = cachingComponent.cacheableMethodWithNoParams();
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldNotCacheDifferentMethodsWithNoParamsByDefault_NegativeTest() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithNoParams();
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+
+        // any two methods with no arguments will have the same cache key by default,
+        // to change it set the necessary Cacheable annotation parameters (e.g. "key")
+        assertThatThrownBy(() -> cachingComponent.anotherMethodWithNoParams())
+            .isInstanceOf(ClassCastException.class)
+            .hasMessageMatching(".+CachedObject cannot be cast to class .+AnotherCachedObject.*");
+    }
+
+    @Test
+    public void shouldCacheWithTargetClassKey() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithTargetClassKey();
+        CachedObject response2 = cachingComponent.cacheableMethodWithTargetClassKey();
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithMethodNameKey() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithMethodNameKey();
+        CachedObject response2 = cachingComponent.cacheableMethodWithMethodNameKey();
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
@@ -317,6 +389,36 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
             return new CachedObject(VALUE);
         }
 
+        @Cacheable(value = "TEST", key = "#root.args[1]")
+        public CachedObject cacheableMethodWithNthParam(String param1, long param2, Map<String, String> param3) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable("TEST")
+        public CachedObject cacheableMethodWithNoParams() {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable("TEST")
+        public AnotherCachedObject anotherMethodWithNoParams() {
+            noOfCalls++;
+            return new AnotherCachedObject(NUMERIC_PARAM);
+        }
+
+        @Cacheable(value = "TEST", key = "#root.targetClass")
+        public CachedObject cacheableMethodWithTargetClassKey() {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable(value = "TEST", key = "#root.method")
+        public CachedObject cacheableMethodWithMethodNameKey() {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
         @Cacheable("TEST12345ABC") // Cache name not pre-configured in AerospikeCacheManager, so it goes to default set
         public CachedObject cacheableMethodDefaultCache(String param) {
             noOfCalls++;
@@ -369,6 +471,16 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
 
         public Object getValue() {
             return value;
+        }
+    }
+
+    @AllArgsConstructor
+    public static class AnotherCachedObject {
+
+        private final long number;
+
+        public long getNumber() {
+            return number;
         }
     }
 }

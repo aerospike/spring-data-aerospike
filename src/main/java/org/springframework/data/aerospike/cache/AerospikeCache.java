@@ -21,6 +21,7 @@ import com.aerospike.client.Record;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import org.springframework.cache.Cache;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.convert.AerospikeReadData;
@@ -196,7 +197,10 @@ public class AerospikeCache implements Cache {
     }
 
     private Key getKey(Object key) {
-        return new Key(cacheConfiguration.getNamespace(), cacheConfiguration.getSet(), key.hashCode());
+        int userKey = key.hashCode();
+        // when no arguments are given return hash code of key's class (hash code of key itself can be equal to 1)
+        if (key instanceof SimpleKey && key.equals(SimpleKey.EMPTY)) userKey = key.getClass().hashCode();
+        return new Key(cacheConfiguration.getNamespace(), cacheConfiguration.getSet(), userKey);
     }
 
     private void serializeAndPut(WritePolicy writePolicy, Object key, Object value) {
