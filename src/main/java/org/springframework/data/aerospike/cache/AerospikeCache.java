@@ -20,16 +20,21 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
+import com.esotericsoftware.kryo.Kryo;
+import org.objenesis.strategy.StdInstantiatorStrategy;
 import org.springframework.cache.Cache;
-import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.data.aerospike.convert.AerospikeConverter;
 import org.springframework.data.aerospike.convert.AerospikeReadData;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.core.WritePolicyBuilder;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 import java.util.concurrent.Callable;
+
+import static org.springframework.data.aerospike.cache.CacheUtils.serialize;
+import static org.springframework.data.aerospike.cache.CacheUtils.sha256;
 
 /**
  * A Cache {@link org.springframework.cache.Cache} implementation backed by Aerospike database as store. Create and
@@ -47,6 +52,7 @@ public class AerospikeCache implements Cache {
     private final AerospikeCacheConfiguration cacheConfiguration;
     private final WritePolicy createOnly;
     private final WritePolicy writePolicyForPut;
+    private final Kryo kryoInstance = new Kryo();
 
     public AerospikeCache(String name,
                           IAerospikeClient client,
@@ -63,6 +69,22 @@ public class AerospikeCache implements Cache {
         this.writePolicyForPut = WritePolicyBuilder.builder(client.getWritePolicyDefault())
             .expiration(cacheConfiguration.getExpirationInSeconds())
             .build();
+        configureKryo(kryoInstance);
+    }
+
+    /**
+     * Configuration for Kryo.
+     * <p>
+     * Classes of the objects to be cached can be pre-registered if required. Registering in advance is not necessary,
+     * however it can be done to increase serialization performance. If a class has been pre-registered, the first time
+     * it is encountered Kryo can just output a numeric reference to it instead of writing fully qualified class name.
+     *
+     * @param kryoInstance Instance of Kryo in use
+     */
+    public void configureKryo(Kryo kryoInstance) {
+        // setting to false means not requiring registration for all the classes of cached objects in advance
+        kryoInstance.setRegistrationRequired(false);
+        kryoInstance.setInstantiatorStrategy(new StdInstantiatorStrategy());
     }
 
     /**
@@ -197,11 +219,15 @@ public class AerospikeCache implements Cache {
     }
 
     private Key getKey(Object key) {
-        int userKey = (key instanceof SimpleKey && key.equals(SimpleKey.EMPTY))
-            // return hash code of key.toString() (hash code of key itself can be equal to 1) when key is empty
-            ? key.toString().hashCode()
-            : key.hashCode();
-        return new Key(cacheConfiguration.getNamespace(), cacheConfiguration.getSet(), userKey);
+        return new Key(cacheConfiguration.getNamespace(), cacheConfiguration.getSet(), serializeAndHash(key));
+    }
+
+    private String serializeAndHash(Object key) {
+        try {
+            return sha256(serialize(key, kryoInstance));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void serializeAndPut(WritePolicy writePolicy, Object key, Object value) {

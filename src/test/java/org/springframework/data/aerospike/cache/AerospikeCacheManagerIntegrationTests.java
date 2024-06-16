@@ -17,9 +17,12 @@ package org.springframework.data.aerospike.cache;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
+import com.esotericsoftware.kryo.Kryo;
 import lombok.AllArgsConstructor;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.objenesis.strategy.StdInstantiatorStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -29,11 +32,14 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.util.AwaitilityUtils;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.springframework.data.aerospike.cache.CacheUtils.serialize;
+import static org.springframework.data.aerospike.cache.CacheUtils.sha256;
 import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
 public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
@@ -44,6 +50,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     private static final Map<String, String> MAP_PARAM =
         Map.of("1", "val1", "2", "val2", "3", "val3", "4", "val4");
     private static final String VALUE = "bar";
+    private static final Kryo kryoInstance = new Kryo();
 
     @Autowired
     IAerospikeClient client;
@@ -54,6 +61,13 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     @Autowired
     AerospikeCacheManager aerospikeCacheManager;
 
+    @BeforeAll
+    public static void beforeAll() {
+        // setting to false means not requiring registration for all the classes of cached objects in advance
+        kryoInstance.setRegistrationRequired(false);
+        kryoInstance.setInstantiatorStrategy(new StdInstantiatorStrategy());
+    }
+
     @BeforeEach
     public void setup() throws NoSuchMethodException {
         cachingComponent.reset();
@@ -61,20 +75,28 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     private void deleteRecords() throws NoSuchMethodException {
-        List<Integer> hashCodes = List.of(
-            STRING_PARAM.hashCode(),
-            STRING_PARAM_THAT_MATCHES_CONDITION.hashCode(),
-            Long.hashCode(NUMERIC_PARAM),
-            MAP_PARAM.hashCode(),
-            new SimpleKey(STRING_PARAM, NUMERIC_PARAM, MAP_PARAM).hashCode(),
-            SimpleKey.EMPTY.toString().hashCode(),
-            CachingComponent.class.hashCode(),
-            CachingComponent.class.getMethod("cacheableMethodWithMethodNameKey").hashCode()
+        List<Object> params = List.of(
+            STRING_PARAM,
+            STRING_PARAM_THAT_MATCHES_CONDITION,
+            NUMERIC_PARAM,
+            MAP_PARAM,
+            new SimpleKey(STRING_PARAM, NUMERIC_PARAM, MAP_PARAM),
+            SimpleKey.EMPTY,
+            CachingComponent.class,
+            CachingComponent.class.getMethod("cacheableMethodWithMethodNameKey")
         );
-        for (int hash : hashCodes) {
-            client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, hash));
+        for (Object param : params) {
+            client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, serializeAndHash(param)));
         }
-        client.delete(null, new Key(getNameSpace(), DIFFERENT_SET_NAME, STRING_PARAM.hashCode()));
+        client.delete(null, new Key(getNameSpace(), DIFFERENT_SET_NAME, serializeAndHash(STRING_PARAM)));
+    }
+
+    private String serializeAndHash(Object param) {
+        try {
+            return sha256(serialize(param, kryoInstance));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Test
@@ -321,6 +343,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     @Test
     public void shouldNotClearCacheClearingDifferentCache() {
         assertThat(aerospikeOperations.count(DIFFERENT_SET_NAME)).isEqualTo(0);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
         CachedObject response1 = cachingComponent.cacheableMethod(STRING_PARAM);
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
         aerospikeCacheManager.getCache(DIFFERENT_EXISTING_CACHE).clear();
