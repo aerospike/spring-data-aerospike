@@ -42,6 +42,7 @@ import static org.springframework.data.aerospike.cache.CacheUtils.serialize;
 import static org.springframework.data.aerospike.cache.CacheUtils.sha256;
 import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
+@SuppressWarnings("NewObjectEquality")
 public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
 
     private static final String STRING_PARAM = "foo";
@@ -117,6 +118,25 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
         CachedObject response1 = cachingComponent.cacheableMethodWithNumericParam(NUMERIC_PARAM);
         CachedObject response2 = cachingComponent.cacheableMethodWithNumericParam('d');
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    @SuppressWarnings("StringEquality")
+    public void shouldCacheInstances() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        String stringInstance1 = new String(STRING_PARAM.toCharArray());
+        String stringInstance2 = new String(STRING_PARAM.toCharArray());
+        // assert that variables are referencing different objects in memory
+        assertThat(stringInstance1 != stringInstance2).isTrue();
+
+        CachedObject response1 = cachingComponent.cacheableMethod(stringInstance1);
+        CachedObject response2 = cachingComponent.cacheableMethod(stringInstance2);
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
