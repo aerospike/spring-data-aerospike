@@ -20,7 +20,7 @@ public class AerospikeCacheKey {
      * Instantiate AerospikeCacheKey instance with a String.
      *
      * @param string String parameter
-     * @return AerospikeCacheKey
+     * @return new instance of AerospikeCacheKey initialized with the given parameter
      */
     public static AerospikeCacheKey of(String string) {
         return new AerospikeCacheKey(string);
@@ -30,7 +30,7 @@ public class AerospikeCacheKey {
      * Instantiate AerospikeCacheKey instance with a long number.
      *
      * @param number long number
-     * @return AerospikeCacheKey
+     * @return new instance of AerospikeCacheKey initialized with the given parameter
      */
     public static AerospikeCacheKey of(long number) {
         return new AerospikeCacheKey(number);
