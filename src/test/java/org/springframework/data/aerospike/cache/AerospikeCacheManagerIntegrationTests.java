@@ -17,12 +17,9 @@ package org.springframework.data.aerospike.cache;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
-import com.esotericsoftware.kryo.Kryo;
 import lombok.AllArgsConstructor;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.objenesis.strategy.StdInstantiatorStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -32,26 +29,23 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.util.AwaitilityUtils;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.cache.CacheUtils.serialize;
-import static org.springframework.data.aerospike.cache.CacheUtils.sha256;
 import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
 @SuppressWarnings("NewObjectEquality")
 public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
 
+    private final AerospikeCacheKeyProcessor cacheKeyProcessor = new AerospikeCacheKeyProcessor();
     private static final String STRING_PARAM = "foo";
     private static final String STRING_PARAM_THAT_MATCHES_CONDITION = "abcdef";
     private static final long NUMERIC_PARAM = 100L;
     private static final Map<String, String> MAP_PARAM =
         Map.of("1", "val1", "2", "val2", "3", "val3", "4", "val4");
     private static final String VALUE = "bar";
-    private static final Kryo kryoInstance = new Kryo();
 
     @Autowired
     IAerospikeClient client;
@@ -61,13 +55,6 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     AerospikeOperations aerospikeOperations;
     @Autowired
     AerospikeCacheManager aerospikeCacheManager;
-
-    @BeforeAll
-    public static void beforeAll() {
-        // setting to false means not requiring registration for all the classes of cached objects in advance
-        kryoInstance.setRegistrationRequired(false);
-        kryoInstance.setInstantiatorStrategy(new StdInstantiatorStrategy());
-    }
 
     @BeforeEach
     public void setup() throws NoSuchMethodException {
@@ -87,17 +74,11 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
             CachingComponent.class.getMethod("cacheableMethodWithMethodNameKey")
         );
         for (Object param : params) {
-            client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, serializeAndHash(param)));
+            AerospikeCacheKey cacheKey = cacheKeyProcessor.serializeAndHash(param);
+            client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, cacheKey.getValue()));
         }
-        client.delete(null, new Key(getNameSpace(), DIFFERENT_SET_NAME, serializeAndHash(STRING_PARAM)));
-    }
-
-    private String serializeAndHash(Object param) {
-        try {
-            return sha256(serialize(param, kryoInstance));
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException(e);
-        }
+        client.delete(null, new Key(getNameSpace(), DIFFERENT_SET_NAME,
+            cacheKeyProcessor.serializeAndHash(STRING_PARAM).getValue()));
     }
 
     @Test
