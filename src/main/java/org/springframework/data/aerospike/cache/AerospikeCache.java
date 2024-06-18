@@ -115,15 +115,17 @@ public class AerospikeCache implements Cache {
     @SuppressWarnings({"NullableProblems"})
     public <T> T get(Object key, Callable<T> valueLoader) {
         Key dbKey = getKey(key);
-        Record record;
-        synchronized (this) {
-            record = client.get(null, dbKey);
-            if (record == null) {
-                T value = callValueLoader(valueLoader, key);
-                if (Objects.nonNull(value)) {
-                    put(key, value);
+        Record record = client.get(null, dbKey);
+        if (record == null && valueLoader != null) {
+            synchronized (this) {
+                record = client.get(null, dbKey);
+                if (record == null) {
+                    T value = callValueLoader(valueLoader, key);
+                    if (Objects.nonNull(value)) {
+                        put(key, value);
+                    }
+                    return value;
                 }
-                return value;
             }
         }
         if (record.getValue(VALUE) != null) {
