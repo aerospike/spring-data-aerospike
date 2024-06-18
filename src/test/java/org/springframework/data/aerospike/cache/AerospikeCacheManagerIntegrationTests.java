@@ -67,6 +67,35 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     @Test
+    public void testCacheableMethodSync() throws InterruptedException {
+        assertThat(cachingComponent.getNoOfCalls() == 0).isTrue();
+
+        // Creating two threads that will call cacheableMethod concurrently
+        Thread thread1 = new Thread(() -> {
+            CachedObject response = cachingComponent.cacheableMethodSynchronized(KEY);
+            assertThat(response).isNotNull();
+            assertThat(response.getValue()).isEqualTo(VALUE);
+        });
+
+        Thread thread2 = new Thread(() -> {
+            CachedObject response = cachingComponent.cacheableMethodSynchronized(KEY);
+            assertThat(response).isNotNull();
+            assertThat(response.getValue()).isEqualTo(VALUE);
+        });
+
+        // Starting both threads
+        thread1.start();
+        thread2.start();
+
+        // Waiting for both threads to complete
+        thread1.join();
+        thread2.join();
+
+        // Expecting method to be called only once due to synchronization
+        assertThat(cachingComponent.getNoOfCalls() == 1).isTrue();
+    }
+
+    @Test
     public void shouldEvictCache() {
         CachedObject response1 = cachingComponent.cacheableMethod(KEY);
         cachingComponent.cacheEvictMethod(KEY);
@@ -181,6 +210,12 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
 
         @Cacheable("TEST")
         public CachedObject cacheableMethod(String param) {
+            noOfCalls++;
+            return new CachedObject("id", VALUE);
+        }
+
+        @Cacheable(value = "TEST", sync = true)
+        public CachedObject cacheableMethodSynchronized(String param) {
             noOfCalls++;
             return new CachedObject("id", VALUE);
         }
