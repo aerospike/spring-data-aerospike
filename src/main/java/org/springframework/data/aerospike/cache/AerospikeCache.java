@@ -112,29 +112,29 @@ public class AerospikeCache implements Cache {
      * @return The value (bins) to which this cache maps the specified key.
      */
     @Override
-    @SuppressWarnings({"NullableProblems"})
+    @SuppressWarnings("NullableProblems")
     public <T> T get(Object key, Callable<T> valueLoader) {
         Key dbKey = getKey(key);
         Record record = client.get(null, dbKey);
-        if (record == null && valueLoader != null) {
-            synchronized (this) {
-                record = client.get(null, dbKey);
-                if (record == null) {
-                    T value = callValueLoader(valueLoader, key);
-                    if (Objects.nonNull(value)) {
-                        put(key, value);
+        if (valueLoader != null) {
+            if (record == null) {
+                synchronized (this) {
+                    record = client.get(null, dbKey);
+                    if (record == null) {
+                        T value = callValueLoader(valueLoader, key);
+                        if (Objects.nonNull(value)) {
+                            put(key, value);
+                        }
+                        return value;
                     }
-                    return value;
                 }
+            } else if (record.getValue(VALUE) != null) {
+                AerospikeReadData data = AerospikeReadData.forRead(dbKey, record);
+                Class<T> type = getValueType(valueLoader); // determine the class of T
+                return aerospikeConverter.read(type, data);
             }
         }
-        if (record.getValue(VALUE) != null) {
-            AerospikeReadData data = AerospikeReadData.forRead(dbKey, record);
-            Class<T> type = getValueType(valueLoader); // determine the class of T
-            return aerospikeConverter.read(type, data);
-        } else {
-            return null;
-        }
+        return null;
     }
 
     private <T> T callValueLoader(Callable<T> valueLoader, Object key) {
