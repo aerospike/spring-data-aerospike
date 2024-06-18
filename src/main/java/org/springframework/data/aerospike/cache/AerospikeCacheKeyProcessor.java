@@ -2,11 +2,10 @@ package org.springframework.data.aerospike.cache;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-import net.jpountz.xxhash.XXHash64;
-import net.jpountz.xxhash.XXHashFactory;
+import org.apache.commons.codec.digest.MurmurHash3;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
-import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class AerospikeCacheKeyProcessor {
 
@@ -66,9 +65,7 @@ public class AerospikeCacheKeyProcessor {
      * @param data Byte array to be hashed
      * @return AerospikeCacheKey instantiated with either a String or a long number
      */
-    public static AerospikeCacheKey calculateHash(byte[] data) {
-        XXHash64 xxHash64 = XXHashFactory.fastestInstance().hash64();
-        ByteBuffer buffer = ByteBuffer.wrap(data);
-        return AerospikeCacheKey.of(xxHash64.hash(buffer, 0, data.length, 0));
+    public AerospikeCacheKey calculateHash(byte[] data) {
+        return AerospikeCacheKey.of(Arrays.toString(MurmurHash3.hash128(data)));
     }
 }

@@ -42,7 +42,7 @@
         <hibernate.validator>8.0.1.Final</hibernate.validator>
         <netty.version>4.1.110.Final</netty.version>
         <kryo.version>5.6.0</kryo.version>
-        <xxhash.version>1.8.0</xxhash.version>
+        <apacheCommonsCodec.version>1.17.0</apacheCommonsCodec.version>
     </properties>
 
     <licenses>
@@ -218,9 +218,9 @@
                 <version>${kryo.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.lz4</groupId>
-                <artifactId>lz4-java</artifactId>
-                <version>${xxhash.version}</version>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${apacheCommonsCodec.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -260,8 +260,8 @@
             <artifactId>kryo</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.lz4</groupId>
-            <artifactId>lz4-java</artifactId>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
