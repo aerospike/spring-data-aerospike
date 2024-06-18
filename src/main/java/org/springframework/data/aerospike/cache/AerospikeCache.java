@@ -114,9 +114,9 @@ public class AerospikeCache implements Cache {
     @Override
     @SuppressWarnings("NullableProblems")
     public <T> T get(Object key, Callable<T> valueLoader) {
-        Key dbKey = getKey(key);
-        Record record = client.get(null, dbKey);
         if (valueLoader != null) {
+            Key dbKey = getKey(key);
+            Record record = client.get(null, dbKey);
             if (record == null) {
                 synchronized (this) {
                     record = client.get(null, dbKey);
@@ -128,7 +128,8 @@ public class AerospikeCache implements Cache {
                         return value;
                     }
                 }
-            } else if (record.getValue(VALUE) != null) {
+            }
+            if (record.getValue(VALUE) != null) {
                 AerospikeReadData data = AerospikeReadData.forRead(dbKey, record);
                 Class<T> type = getValueType(valueLoader); // determine the class of T
                 return aerospikeConverter.read(type, data);
