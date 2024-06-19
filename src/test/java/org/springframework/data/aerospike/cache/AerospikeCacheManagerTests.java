@@ -42,7 +42,8 @@ public class AerospikeCacheManagerTests extends BaseBlockingIntegrationTests {
     public void missingCache() {
         AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace,
             DEFAULT_SET_NAME);
-        AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration);
+        AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration,
+            cacheKeyProcessor);
         manager.afterPropertiesSet();
         Cache cache = manager.getCache("missing-cache");
 
@@ -56,7 +57,7 @@ public class AerospikeCacheManagerTests extends BaseBlockingIntegrationTests {
         Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
         aerospikeCacheConfigurationMap.put("default-cache", aerospikeCacheConfiguration);
         AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration,
-            aerospikeCacheConfigurationMap);
+            aerospikeCacheConfigurationMap, cacheKeyProcessor);
         manager.afterPropertiesSet();
         Cache cache = manager.getCache("default-cache");
 
@@ -70,7 +71,7 @@ public class AerospikeCacheManagerTests extends BaseBlockingIntegrationTests {
             "-set");
         aerospikeCacheConfigurationMap.put("default-cache", aerospikeCacheConfiguration);
         AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration,
-            aerospikeCacheConfigurationMap);
+            aerospikeCacheConfigurationMap, cacheKeyProcessor);
         manager.afterPropertiesSet();
         Cache cache = manager.getCache("default-cache");
 
@@ -81,7 +82,8 @@ public class AerospikeCacheManagerTests extends BaseBlockingIntegrationTests {
     public void transactionAwareCache() {
         AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace,
             DEFAULT_SET_NAME);
-        AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration);
+        AerospikeCacheManager manager = new AerospikeCacheManager(client, converter, aerospikeCacheConfiguration,
+            cacheKeyProcessor);
         manager.setTransactionAware(true);
         manager.afterPropertiesSet();
         Cache cache = manager.getCache("transaction-aware-cache");

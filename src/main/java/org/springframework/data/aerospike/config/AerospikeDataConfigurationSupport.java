@@ -26,6 +26,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
+import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessorImpl;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -71,6 +73,11 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean(name = "aerospikeIndexCache")
     public IndexesCacheHolder indexCache() {
         return new IndexesCacheHolder();
+    }
+
+    @Bean(name = "aerospikeCacheKeyProcessor")
+    public AerospikeCacheKeyProcessor cacheKeyProcessor() {
+        return new AerospikeCacheKeyProcessorImpl();
     }
 
     @Bean(name = "mappingAerospikeConverter")

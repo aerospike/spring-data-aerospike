@@ -46,12 +46,13 @@ public class AerospikeCache implements Cache {
     private final AerospikeCacheConfiguration cacheConfiguration;
     private final WritePolicy createOnly;
     private final WritePolicy writePolicyForPut;
-    private final AerospikeCacheKeyProcessor cacheKeyProcessor = new AerospikeCacheKeyProcessorImpl();
+    private final AerospikeCacheKeyProcessor cacheKeyProcessor;
 
     public AerospikeCache(String name,
                           IAerospikeClient client,
                           AerospikeConverter aerospikeConverter,
-                          AerospikeCacheConfiguration cacheConfiguration) {
+                          AerospikeCacheConfiguration cacheConfiguration,
+                          AerospikeCacheKeyProcessor cacheKeyProcessor) {
         this.name = name;
         this.client = client;
         this.aerospikeConverter = aerospikeConverter;
@@ -63,6 +64,7 @@ public class AerospikeCache implements Cache {
         this.writePolicyForPut = WritePolicyBuilder.builder(client.getWritePolicyDefault())
             .expiration(cacheConfiguration.getExpirationInSeconds())
             .build();
+        this.cacheKeyProcessor = cacheKeyProcessor;
     }
 
     /**

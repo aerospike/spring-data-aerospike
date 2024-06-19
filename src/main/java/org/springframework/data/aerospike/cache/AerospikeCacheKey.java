@@ -6,7 +6,7 @@ import lombok.Getter;
 public class AerospikeCacheKey {
 
     @Getter
-    private Value value;
+    private final Value value;
 
     private AerospikeCacheKey(String string) {
         this.value = new Value.StringValue(string);
