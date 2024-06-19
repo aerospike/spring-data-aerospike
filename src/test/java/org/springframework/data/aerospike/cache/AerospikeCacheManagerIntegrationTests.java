@@ -39,7 +39,7 @@ import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSe
 @SuppressWarnings("NewObjectEquality")
 public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
 
-    private final AerospikeCacheKeyProcessor cacheKeyProcessor = new AerospikeCacheKeyProcessor();
+    private final AerospikeCacheKeyProcessor cacheKeyProcessor = new AerospikeCacheKeyProcessorImpl();
     private static final String STRING_PARAM = "foo";
     private static final String STRING_PARAM_THAT_MATCHES_CONDITION = "abcdef";
     private static final long NUMERIC_PARAM = 100L;

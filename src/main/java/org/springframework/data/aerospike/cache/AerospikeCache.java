@@ -46,7 +46,7 @@ public class AerospikeCache implements Cache {
     private final AerospikeCacheConfiguration cacheConfiguration;
     private final WritePolicy createOnly;
     private final WritePolicy writePolicyForPut;
-    private final AerospikeCacheKeyProcessor cacheKeyProcessor = new AerospikeCacheKeyProcessor();
+    private final AerospikeCacheKeyProcessor cacheKeyProcessor = new AerospikeCacheKeyProcessorImpl();
 
     public AerospikeCache(String name,
                           IAerospikeClient client,
