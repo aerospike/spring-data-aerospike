@@ -70,6 +70,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
             MAP_PARAM,
             new SimpleKey(STRING_PARAM, NUMERIC_PARAM, MAP_PARAM),
             SimpleKey.EMPTY,
+            new SimpleKey((Object) null),
             CachingComponent.class,
             CachingComponent.class.getMethod("cacheableMethodWithMethodNameKey")
         );
@@ -174,6 +175,19 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
         CachedObject response1 = cachingComponent.cacheableMethodWithNoParams();
         CachedObject response2 = cachingComponent.cacheableMethodWithNoParams();
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithNullParam() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethod(null);
+        CachedObject response2 = cachingComponent.cacheableMethod(null);
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
