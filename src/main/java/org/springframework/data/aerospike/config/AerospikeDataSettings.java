@@ -41,5 +41,4 @@ public class AerospikeDataSettings {
     // Writing unsorted maps (false) degrades performance of Map-related operations and does not allow comparing Maps,
     // strongly recommended not to use except during upgrade from older versions of Spring Data Aerospike (if required)
     boolean writeSortedMaps = true;
-    boolean useCustomCacheKeyProcessor = false;
 }
