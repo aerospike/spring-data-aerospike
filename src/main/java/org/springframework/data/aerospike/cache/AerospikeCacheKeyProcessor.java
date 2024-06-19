@@ -18,7 +18,7 @@ interface AerospikeCacheKeyProcessor {
      * @param key Object to be serialized
      * @return byte[]
      */
-    public byte[] serialize(Object key);
+    byte[] serialize(Object key);
 
     /**
      * Calculate hash based on the given byte array.
@@ -28,5 +28,5 @@ interface AerospikeCacheKeyProcessor {
      * @param data Byte array to be hashed
      * @return AerospikeCacheKey instantiated with either a String or a long number
      */
-    public AerospikeCacheKey calculateHash(byte[] data);
+    AerospikeCacheKey calculateHash(byte[] data);
 }
