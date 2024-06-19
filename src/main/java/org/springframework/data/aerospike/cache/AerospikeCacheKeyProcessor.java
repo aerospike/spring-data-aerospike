@@ -23,7 +23,7 @@ interface AerospikeCacheKeyProcessor {
     /**
      * Calculate hash based on the given byte array.
      * <p>
-     * The default implementation is 64 bit xxHash.
+     * The default implementation uses 128 bit Murmur3 hashing.
      *
      * @param data Byte array to be hashed
      * @return AerospikeCacheKey instantiated with either a String or a long number
