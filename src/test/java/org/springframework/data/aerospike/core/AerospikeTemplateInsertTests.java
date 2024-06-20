@@ -18,18 +18,23 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
+import lombok.Data;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
+import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
 import org.springframework.data.aerospike.util.AsyncUtils;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -142,12 +147,38 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKey() {
-        VersionedClass document = new VersionedClass(id, "any", 5L);
+        VersionedClass document = new VersionedClass(id, "any", 5);
         // initially given versions are ignored
         // RecordExistsAction.CREATE_ONLY is used
         template.insert(document);
 
         assertThat(document.getVersion()).isEqualTo(1);
+    }
+
+
+    @Data
+    @Document(collection = "versioned-set")
+    public static class ClassWithLongVersion {
+
+        @Version
+        private long version; // must be integer
+        private String field;
+        @Id
+        private String id;
+
+        public ClassWithLongVersion(String id, String field, long version) {
+            this.id = id;
+            this.field = field;
+            this.version = version;
+        }
+    }
+
+    @Test
+    public void mustUseIntegerVersion() {
+        ClassWithLongVersion document = new ClassWithLongVersion(id, "any", Long.MAX_VALUE);
+        assertThatThrownBy(() -> template.insert(document))
+            .isInstanceOf(ConversionFailedException.class)
+            .hasMessageContaining("Failed to convert from type [java.lang.Long] to type [java.lang.Integer]");
     }
 
     @Test
@@ -161,7 +192,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void throwsExceptionForDuplicateIdForVersionedDocument() {
-        VersionedClass document = new VersionedClass(id, "any", 5L);
+        VersionedClass document = new VersionedClass(id, "any", 5);
 
         template.insert(document);
         assertThatThrownBy(() -> template.insert(document))
@@ -275,8 +306,8 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
         // batch write operations are supported starting with Server version 6.0+
         if (serverVersionSupport.isBatchWriteSupported()) {
             VersionedClass first = new VersionedClass(id, "foo");
-            VersionedClass second = new VersionedClass(nextId(), "foo", 1L);
-            VersionedClass third = new VersionedClass(nextId(), "foo", 2L);
+            VersionedClass second = new VersionedClass(nextId(), "foo", 1);
+            VersionedClass third = new VersionedClass(nextId(), "foo", 2);
 
             // initially given versions are ignored
             // RecordExistsAction.CREATE_ONLY is used

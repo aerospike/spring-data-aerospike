@@ -62,7 +62,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
         Key key = new Key(getNameSpace(), template.getSetName(VersionedClass.class), id);
         additionalAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
 
-        template.save(new VersionedClass(id, "foo2", 2L));
+        template.save(new VersionedClass(id, "foo2", 2));
 
         Record aeroRecord = client.get(new Policy(), key);
         assertThat(aeroRecord.bins.get("notPresent")).isNull();
@@ -126,9 +126,9 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     @Test
     public void shouldSaveDocumentWithEqualVersion() {
         // if an object has version property, GenerationPolicy.EXPECT_GEN_EQUAL is used
-        VersionedClass first = new VersionedClass(id, "foo", 0L);
-        VersionedClass second = new VersionedClass(id, "foo", 1L);
-        VersionedClass third = new VersionedClass(id, "foo", 2L);
+        VersionedClass first = new VersionedClass(id, "foo", 0);
+        VersionedClass second = new VersionedClass(id, "foo", 1);
+        VersionedClass third = new VersionedClass(id, "foo", 2);
 
         template.save(first);
         template.save(second);
@@ -141,7 +141,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldFailSaveNewDocumentWithVersionGreaterThanZero() {
-        assertThatThrownBy(() -> template.save(new VersionedClass(nextId(), "foo", 5L)))
+        assertThatThrownBy(() -> template.save(new VersionedClass(nextId(), "foo", 5)))
             .isInstanceOf(OptimisticLockingFailureException.class);
     }
 

@@ -384,7 +384,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     public void shouldNotWriteVersionToBins(int converterOption) {
         MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
-        aerospikeConverter.write(new VersionedClass("id", "data", 42L), forWrite);
+        aerospikeConverter.write(new VersionedClass("id", "data", 42), forWrite);
 
         assertThat(forWrite.getBins()).containsOnly(
             new Bin("@_class", VersionedClass.class.getName()),

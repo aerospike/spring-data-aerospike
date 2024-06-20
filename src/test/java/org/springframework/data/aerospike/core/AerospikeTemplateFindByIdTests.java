@@ -43,7 +43,7 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
 
     @Test
     public void findById_shouldReadVersionedClassWithAllArgsConstructor() {
-        VersionedClassWithAllArgsConstructor inserted = new VersionedClassWithAllArgsConstructor(id, "foobar", 0L);
+        VersionedClassWithAllArgsConstructor inserted = new VersionedClassWithAllArgsConstructor(id, "foobar", 0);
         template.insert(inserted);
         assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class).getVersion()).isEqualTo(1L);
         template.update(new VersionedClassWithAllArgsConstructor(id, "foobar1", inserted.getVersion()));
@@ -54,7 +54,7 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
 
     @Test
     public void findById_shouldReadVersionedClassWithAllArgsConstructorAndSetName() {
-        VersionedClassWithAllArgsConstructor inserted = new VersionedClassWithAllArgsConstructor(id, "foobar", 0L);
+        VersionedClassWithAllArgsConstructor inserted = new VersionedClassWithAllArgsConstructor(id, "foobar", 0);
         template.insert(inserted, OVERRIDE_SET_NAME);
         assertThat(template.findById(id, VersionedClassWithAllArgsConstructor.class, OVERRIDE_SET_NAME)
             .getVersion()).isEqualTo(1L);

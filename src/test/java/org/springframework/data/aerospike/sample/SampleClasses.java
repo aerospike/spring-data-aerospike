@@ -196,7 +196,7 @@ public class SampleClasses {
         DocumentExample id;
         long counter;
         @Version
-        long version;
+        int version; // must be integer
         @Field("update")
         Long timestamp;
     }
@@ -564,12 +564,12 @@ public class SampleClasses {
     public static class VersionedClass {
 
         @Version
-        private long version;
+        private int version; // must be integer
         private String field;
         @Id
         private String id;
 
-        public VersionedClass(String id, String field, long version) {
+        public VersionedClass(String id, String field, int version) {
             this.id = id;
             this.field = field;
             this.version = version;
@@ -590,10 +590,10 @@ public class SampleClasses {
         @Id
         private String id;
         @Version
-        private long version;
+        private int version; // must be integer
 
         @PersistenceCreator
-        public VersionedClassWithAllArgsConstructor(String id, String field, long version) {
+        public VersionedClassWithAllArgsConstructor(String id, String field, int version) {
             this.id = id;
             this.field = field;
             this.version = version;
@@ -722,7 +722,7 @@ public class SampleClasses {
         private int field;
 
         @Version
-        private long version;
+        private int version; // must be integer
 
         public DocumentWithTouchOnRead(String id) {
             this(id, 0);
@@ -755,10 +755,10 @@ public class SampleClasses {
         String id;
 
         @Expiration
-        Long expiration;
+        int expiration;
 
         @PersistenceCreator
-        public DocumentWithExpirationAnnotationAndPersistenceConstructor(String id, Long expiration) {
+        public DocumentWithExpirationAnnotationAndPersistenceConstructor(String id, int expiration) {
             this.id = id;
             this.expiration = expiration;
         }
@@ -831,7 +831,7 @@ public class SampleClasses {
         @Id
         private String id;
         @Version
-        private long version;
+        private int version; // must be integer
 
         @PersistenceCreator
         public DocumentWithExpirationOneDay(String id) {
@@ -847,7 +847,7 @@ public class SampleClasses {
         @Id
         private String id;
         @Expiration
-        private long expiration;
+        private int expiration;
     }
 
     @Document(collection = DocumentWithExpressionInCollection.COLLECTION_PREFIX + "${setSuffix}")
@@ -901,7 +901,7 @@ public class SampleClasses {
     public static class ObjectWithIntegerArray {
 
         @Version
-        private Long version;
+        private int version; // must be integer
         Integer[] array;
 
         public ObjectWithIntegerArray(Integer[] array) {

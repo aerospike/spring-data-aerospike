@@ -496,8 +496,8 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             VersionedClass first = new VersionedClass("id1", "foo");
 
             // In this case non-zero versions get explicitly passed to the constructor
-            VersionedClass second = new VersionedClass("id2", "foo", 1L);
-            VersionedClass third = new VersionedClass("id3", "foo", 2L);
+            VersionedClass second = new VersionedClass("id2", "foo", 1);
+            VersionedClass third = new VersionedClass("id3", "foo", 2);
 
             // Insert multiple versioned documents to create new DB records
             template.insertAll(List.of(first, second, third));
