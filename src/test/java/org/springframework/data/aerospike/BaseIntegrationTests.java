@@ -11,6 +11,9 @@ public abstract class BaseIntegrationTests {
 
     public static final String DEFAULT_SET_NAME = "aerospike";
     public static final String OVERRIDE_SET_NAME = "testSet1";
+    public static final String DIFFERENT_SET_NAME = "different-set";
+    public static final String CACHE_WITH_TTL = "CACHE-WITH-TTL";
+    public static final String DIFFERENT_EXISTING_CACHE = "DIFFERENT-EXISTING-CACHE";
     protected static final int MILLIS_TO_NANO = 1_000_000;
 
     @Value("${spring-data-aerospike.connection.namespace}")

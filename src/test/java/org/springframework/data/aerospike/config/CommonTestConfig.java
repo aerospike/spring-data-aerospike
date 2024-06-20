@@ -26,6 +26,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.aerospike.BaseIntegrationTests;
 import org.springframework.data.aerospike.cache.AerospikeCacheConfiguration;
+import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
 import org.springframework.data.aerospike.cache.AerospikeCacheManager;
 import org.springframework.data.aerospike.cache.AerospikeCacheManagerIntegrationTests.CachingComponent;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -47,26 +48,29 @@ public class CommonTestConfig {
 
     @Bean
     @Primary
-    public CacheManager cacheManager(IAerospikeClient aerospikeClient, MappingAerospikeConverter aerospikeConverter) {
+    public CacheManager cacheManager(IAerospikeClient aerospikeClient, MappingAerospikeConverter aerospikeConverter,
+                                     AerospikeCacheKeyProcessor cacheKeyProcessor) {
         AerospikeCacheConfiguration defaultCacheConfiguration = new AerospikeCacheConfiguration(namespace,
             BaseIntegrationTests.DEFAULT_SET_NAME);
-        AerospikeCacheConfiguration aerospikeCacheConfiguration = new AerospikeCacheConfiguration(namespace,
-            "different-set");
         AerospikeCacheConfiguration configurationWithTTL = new AerospikeCacheConfiguration(namespace,
             BaseIntegrationTests.DEFAULT_SET_NAME, 2);
+        AerospikeCacheConfiguration differentCacheConfiguration = new AerospikeCacheConfiguration(namespace,
+            BaseIntegrationTests.DIFFERENT_SET_NAME);
         Map<String, AerospikeCacheConfiguration> aerospikeCacheConfigurationMap = new HashMap<>();
-        aerospikeCacheConfigurationMap.put("DIFFERENT-EXISTING-CACHE", aerospikeCacheConfiguration);
-        aerospikeCacheConfigurationMap.put("CACHE-WITH-TTL", configurationWithTTL);
+        aerospikeCacheConfigurationMap.put(BaseIntegrationTests.CACHE_WITH_TTL, configurationWithTTL);
+        aerospikeCacheConfigurationMap.put(BaseIntegrationTests.DIFFERENT_EXISTING_CACHE, differentCacheConfiguration);
         return new AerospikeCacheManager(aerospikeClient, aerospikeConverter, defaultCacheConfiguration,
-            aerospikeCacheConfigurationMap);
+            aerospikeCacheConfigurationMap, cacheKeyProcessor);
     }
 
     @Bean
     public CacheManager anotherCacheManager(IAerospikeClient aerospikeClient,
-                                            MappingAerospikeConverter aerospikeConverter) {
+                                            MappingAerospikeConverter aerospikeConverter,
+                                            AerospikeCacheKeyProcessor cacheKeyProcessor) {
         AerospikeCacheConfiguration defaultCacheConfiguration = new AerospikeCacheConfiguration(namespace,
-            BaseIntegrationTests.DEFAULT_SET_NAME);
-        return new AerospikeCacheManager(aerospikeClient, aerospikeConverter, defaultCacheConfiguration);
+            BaseIntegrationTests.DIFFERENT_SET_NAME);
+        return new AerospikeCacheManager(aerospikeClient, aerospikeConverter, defaultCacheConfiguration,
+            cacheKeyProcessor);
     }
 
     @Bean

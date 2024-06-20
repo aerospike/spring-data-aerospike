@@ -45,6 +45,7 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
     private final AerospikeConverter aerospikeConverter;
     private final AerospikeCacheConfiguration defaultCacheConfiguration;
     private final Map<String, AerospikeCacheConfiguration> initialPerCacheConfiguration;
+    private final AerospikeCacheKeyProcessor cacheKeyProcessor;
 
     /**
      * Create a new {@link AerospikeCacheManager} instance - Specifying a default cache configuration.
@@ -55,8 +56,9 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
      */
     public AerospikeCacheManager(IAerospikeClient aerospikeClient,
                                  AerospikeConverter aerospikeConverter,
-                                 AerospikeCacheConfiguration defaultCacheConfiguration) {
-        this(aerospikeClient, aerospikeConverter, defaultCacheConfiguration, new LinkedHashMap<>());
+                                 AerospikeCacheConfiguration defaultCacheConfiguration,
+                                 AerospikeCacheKeyProcessor cacheKeyProcessor) {
+        this(aerospikeClient, aerospikeConverter, defaultCacheConfiguration, new LinkedHashMap<>(), cacheKeyProcessor);
     }
 
     /**
@@ -71,7 +73,8 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
     public AerospikeCacheManager(IAerospikeClient aerospikeClient,
                                  AerospikeConverter aerospikeConverter,
                                  AerospikeCacheConfiguration defaultCacheConfiguration,
-                                 Map<String, AerospikeCacheConfiguration> initialPerCacheConfiguration) {
+                                 Map<String, AerospikeCacheConfiguration> initialPerCacheConfiguration,
+                                 AerospikeCacheKeyProcessor cacheKeyProcessor) {
         Assert.notNull(aerospikeClient, "The aerospike client must not be null");
         Assert.notNull(aerospikeConverter, "The aerospike converter must not be null");
         Assert.notNull(defaultCacheConfiguration, "The default cache configuration must not be null");
@@ -80,6 +83,7 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
         this.aerospikeConverter = aerospikeConverter;
         this.defaultCacheConfiguration = defaultCacheConfiguration;
         this.initialPerCacheConfiguration = initialPerCacheConfiguration;
+        this.cacheKeyProcessor = cacheKeyProcessor;
     }
 
     @Override
@@ -105,11 +109,12 @@ public class AerospikeCacheManager extends AbstractTransactionSupportingCacheMan
     }
 
     private AerospikeCache createCache(String name) {
-        return new AerospikeCache(name, aerospikeClient, aerospikeConverter, defaultCacheConfiguration);
+        return new AerospikeCache(name, aerospikeClient, aerospikeConverter, defaultCacheConfiguration,
+            cacheKeyProcessor);
     }
 
     private AerospikeCache createCache(String name, AerospikeCacheConfiguration cacheConfiguration) {
-        return new AerospikeCache(name, aerospikeClient, aerospikeConverter, cacheConfiguration);
+        return new AerospikeCache(name, aerospikeClient, aerospikeConverter, cacheConfiguration, cacheKeyProcessor);
     }
 
     private boolean isCacheAlreadyDecorated(Cache cache) {

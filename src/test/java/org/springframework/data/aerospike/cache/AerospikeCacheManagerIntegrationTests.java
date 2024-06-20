@@ -18,24 +18,32 @@ package org.springframework.data.aerospike.cache;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import lombok.AllArgsConstructor;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.util.AwaitilityUtils;
-import org.springframework.data.annotation.Id;
+
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.util.AwaitilityUtils.awaitTenSecondsUntil;
 
+@SuppressWarnings("NewObjectEquality")
 public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrationTests {
 
-    private static final String KEY = "foo";
-    private static final String KEY_THAT_MATCHES_CONDITION = "abcdef";
+    private static final String STRING_PARAM = "foo";
+    private static final String STRING_PARAM_THAT_MATCHES_CONDITION = "abcdef";
+    private static final long NUMERIC_PARAM = 100L;
+    private static final Map<String, String> MAP_PARAM =
+        Map.of("1", "val1", "2", "val2", "3", "val3", "4", "val4");
     private static final String VALUE = "bar";
 
     @Autowired
@@ -47,17 +55,37 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     @Autowired
     AerospikeCacheManager aerospikeCacheManager;
 
-    @AfterEach
-    public void tearDown() {
+    @BeforeEach
+    public void setup() throws NoSuchMethodException {
         cachingComponent.reset();
-        client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, KEY));
-        client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, KEY_THAT_MATCHES_CONDITION));
+        deleteRecords();
+    }
+
+    private void deleteRecords() throws NoSuchMethodException {
+        List<Object> params = List.of(
+            STRING_PARAM,
+            STRING_PARAM_THAT_MATCHES_CONDITION,
+            NUMERIC_PARAM,
+            MAP_PARAM,
+            new SimpleKey(STRING_PARAM, NUMERIC_PARAM, MAP_PARAM),
+            SimpleKey.EMPTY,
+            new SimpleKey((Object) null),
+            CachingComponent.class,
+            CachingComponent.class.getMethod("cacheableMethodWithMethodNameKey")
+        );
+        for (Object param : params) {
+            AerospikeCacheKey cacheKey = cacheKeyProcessor.serializeAndHash(param);
+            client.delete(null, new Key(getNameSpace(), DEFAULT_SET_NAME, cacheKey.getValue()));
+        }
+        client.delete(null, new Key(getNameSpace(), DIFFERENT_SET_NAME,
+            cacheKeyProcessor.serializeAndHash(STRING_PARAM).getValue()));
     }
 
     @Test
     public void shouldCache() {
-        CachedObject response1 = cachingComponent.cacheableMethod(KEY);
-        CachedObject response2 = cachingComponent.cacheableMethod(KEY);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethod(STRING_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethod(STRING_PARAM);
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
@@ -67,18 +95,173 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     @Test
+    public void shouldCacheWithNumericParam() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithNumericParam(NUMERIC_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethodWithNumericParam('d');
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    @SuppressWarnings("StringEquality")
+    public void shouldCacheInstances() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        String stringInstance1 = new String(STRING_PARAM.toCharArray());
+        String stringInstance2 = new String(STRING_PARAM.toCharArray());
+        // assert that variables are referencing different objects in memory
+        assertThat(stringInstance1 != stringInstance2).isTrue();
+
+        CachedObject response1 = cachingComponent.cacheableMethod(stringInstance1);
+        CachedObject response2 = cachingComponent.cacheableMethod(stringInstance2);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithMapParam() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithMapParam(MAP_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethodWithMapParam(MAP_PARAM);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithMultipleParams() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithMultipleParams(STRING_PARAM, NUMERIC_PARAM,
+            MAP_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethodWithMultipleParams(STRING_PARAM, NUMERIC_PARAM,
+            MAP_PARAM);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithNthParam() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithNthParam(STRING_PARAM, NUMERIC_PARAM,
+            MAP_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethodWithNthParam(STRING_PARAM, NUMERIC_PARAM,
+            MAP_PARAM);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithNoParams() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithNoParams();
+        CachedObject response2 = cachingComponent.cacheableMethodWithNoParams();
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithNullParam() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethod(null);
+        CachedObject response2 = cachingComponent.cacheableMethod(null);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldNotCacheDifferentMethodsWithNoParamsByDefault_NegativeTest() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithNoParams();
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+
+        // any two methods with no arguments will have the same cache key by default,
+        // to change it set the necessary Cacheable annotation parameters (e.g. "key")
+        assertThatThrownBy(() -> cachingComponent.anotherMethodWithNoParams())
+            .isInstanceOf(ClassCastException.class)
+            .hasMessageMatching(".+CachedObject cannot be cast to class .+AnotherCachedObject.*");
+    }
+
+    @Test
+    public void shouldCacheWithTargetClassKey() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithTargetClassKey();
+        CachedObject response2 = cachingComponent.cacheableMethodWithTargetClassKey();
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheWithMethodNameKey() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithMethodNameKey();
+        CachedObject response2 = cachingComponent.cacheableMethodWithMethodNameKey();
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldCacheUsingDefaultSet() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        // default cache configuration is used for all cache names not pre-configured via AerospikeCacheManager
+        CachedObject response1 = cachingComponent.cacheableMethodDefaultCache(STRING_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethod(STRING_PARAM);
+
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
+    }
+
+    @Test
     public void testCacheableMethodSync() throws InterruptedException {
         assertThat(cachingComponent.getNoOfCalls() == 0).isTrue();
 
         // Creating two threads that will call cacheableMethod concurrently
         Thread thread1 = new Thread(() -> {
-            CachedObject response = cachingComponent.cacheableMethodSynchronized(KEY);
+            CachedObject response = cachingComponent.cacheableMethodSynchronized(STRING_PARAM);
             assertThat(response).isNotNull();
             assertThat(response.getValue()).isEqualTo(VALUE);
         });
 
         Thread thread2 = new Thread(() -> {
-            CachedObject response = cachingComponent.cacheableMethodSynchronized(KEY);
+            CachedObject response = cachingComponent.cacheableMethodSynchronized(STRING_PARAM);
             assertThat(response).isNotNull();
             assertThat(response.getValue()).isEqualTo(VALUE);
         });
@@ -97,9 +280,10 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
 
     @Test
     public void shouldEvictCache() {
-        CachedObject response1 = cachingComponent.cacheableMethod(KEY);
-        cachingComponent.cacheEvictMethod(KEY);
-        CachedObject response2 = cachingComponent.cacheableMethod(KEY);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethod(STRING_PARAM);
+        cachingComponent.cacheEvictMethod(STRING_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethod(STRING_PARAM);
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
@@ -109,10 +293,11 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     }
 
     @Test
-    public void shouldNotEvictCacheEvictingDifferentKey() {
-        CachedObject response1 = cachingComponent.cacheableMethod(KEY);
-        cachingComponent.cacheEvictMethod("not-the-relevant-key");
-        CachedObject response2 = cachingComponent.cacheableMethod(KEY);
+    public void shouldNotEvictCacheEvictingDifferentParam() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethod(STRING_PARAM);
+        cachingComponent.cacheEvictMethod("not-the-relevant-param");
+        CachedObject response2 = cachingComponent.cacheableMethod(STRING_PARAM);
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
@@ -123,20 +308,27 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
 
     @Test
     public void shouldCacheUsingCachePut() {
-        CachedObject response1 = cachingComponent.cachePutMethod(KEY);
-        CachedObject response2 = cachingComponent.cacheableMethod(KEY);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cachePutMethod(STRING_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethod(STRING_PARAM);
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
         assertThat(response2).isNotNull();
         assertThat(response2.getValue()).isEqualTo(VALUE);
         assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+
+        CachedObject response3 = cachingComponent.cachePutMethod(STRING_PARAM);
+        assertThat(response3).isNotNull();
+        assertThat(response3.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(2);
     }
 
     @Test
     public void shouldCacheKeyMatchesCondition() {
-        CachedObject response1 = cachingComponent.cacheableWithCondition(KEY_THAT_MATCHES_CONDITION);
-        CachedObject response2 = cachingComponent.cacheableWithCondition(KEY_THAT_MATCHES_CONDITION);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableWithCondition(STRING_PARAM_THAT_MATCHES_CONDITION);
+        CachedObject response2 = cachingComponent.cacheableWithCondition(STRING_PARAM_THAT_MATCHES_CONDITION);
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
@@ -147,8 +339,9 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
 
     @Test
     public void shouldNotCacheKeyDoesNotMatchCondition() {
-        CachedObject response1 = cachingComponent.cacheableWithCondition(KEY);
-        CachedObject response2 = cachingComponent.cacheableWithCondition(KEY);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableWithCondition(STRING_PARAM);
+        CachedObject response2 = cachingComponent.cacheableWithCondition(STRING_PARAM);
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
@@ -159,8 +352,9 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
 
     @Test
     public void shouldCacheWithConfiguredTTL() {
-        CachedObject response1 = cachingComponent.cacheableMethodWithTTL(KEY);
-        CachedObject response2 = cachingComponent.cacheableMethodWithTTL(KEY);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithTTL(STRING_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethodWithTTL(STRING_PARAM);
 
         assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
         assertThat(response1).isNotNull();
@@ -169,7 +363,7 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         assertThat(response2.getValue()).isEqualTo(VALUE);
 
         awaitTenSecondsUntil(() -> {
-            CachedObject response3 = cachingComponent.cacheableMethodWithTTL(KEY);
+            CachedObject response3 = cachingComponent.cacheableMethodWithTTL(STRING_PARAM);
             assertThat(cachingComponent.getNoOfCalls()).isEqualTo(2);
             assertThat(response3).isNotNull();
             assertThat(response3.getValue()).isEqualTo(VALUE);
@@ -178,8 +372,9 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
 
     @Test
     public void shouldCacheUsingAnotherCacheManager() {
-        CachedObject response1 = cachingComponent.cacheableMethodWithAnotherCacheManager(KEY);
-        CachedObject response2 = cachingComponent.cacheableMethodWithAnotherCacheManager(KEY);
+        assertThat(aerospikeOperations.count(DIFFERENT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethodWithAnotherCacheManager(STRING_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethodWithAnotherCacheManager(STRING_PARAM);
 
         assertThat(response1).isNotNull();
         assertThat(response1.getValue()).isEqualTo(VALUE);
@@ -190,14 +385,42 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
 
     @Test
     public void shouldNotClearCacheClearingDifferentCache() {
-        CachedObject response1 = cachingComponent.cacheableMethod(KEY);
+        assertThat(aerospikeOperations.count(DIFFERENT_SET_NAME)).isEqualTo(0);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        CachedObject response1 = cachingComponent.cacheableMethod(STRING_PARAM);
         assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
-        aerospikeCacheManager.getCache("DIFFERENT-EXISTING-CACHE").clear();
+        aerospikeCacheManager.getCache(DIFFERENT_EXISTING_CACHE).clear();
         AwaitilityUtils.awaitTwoSecondsUntil(() -> {
             assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
             assertThat(response1).isNotNull();
             assertThat(response1.getValue()).isEqualTo(VALUE);
         });
+    }
+
+    @Test
+    public void shouldCacheUsingDifferentSet() {
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+        assertThat(aerospikeOperations.count(DIFFERENT_SET_NAME)).isEqualTo(0);
+
+        CachedObject response1 = cachingComponent.cacheableMethodDifferentExistingCache(STRING_PARAM);
+        CachedObject response2 = cachingComponent.cacheableMethodDifferentExistingCache(STRING_PARAM);
+        assertThat(response1).isNotNull();
+        assertThat(response1.getValue()).isEqualTo(VALUE);
+        assertThat(response2).isNotNull();
+        assertThat(response2.getValue()).isEqualTo(VALUE);
+        AwaitilityUtils.awaitTwoSecondsUntil(() -> {
+            assertThat(aerospikeOperations.count(DIFFERENT_SET_NAME)).isEqualTo(1);
+            assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(0);
+            assertThat(cachingComponent.getNoOfCalls()).isEqualTo(1);
+        });
+
+
+        CachedObject response3 = cachingComponent.cacheableMethod(STRING_PARAM);
+        assertThat(response3).isNotNull();
+        assertThat(response3.getValue()).isEqualTo(VALUE);
+        assertThat(cachingComponent.getNoOfCalls()).isEqualTo(2);
+        assertThat(aerospikeOperations.count(DIFFERENT_SET_NAME)).isEqualTo(1);
+        assertThat(aerospikeOperations.count(DEFAULT_SET_NAME)).isEqualTo(1);
     }
 
     public static class CachingComponent {
@@ -208,28 +431,88 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
             noOfCalls = 0;
         }
 
-        @Cacheable("TEST")
+        @Cacheable("TEST") // "TEST" is a cache name not pre-configured in AerospikeCacheManager, so goes to default set
         public CachedObject cacheableMethod(String param) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable("TEST")
+        public CachedObject cacheableMethodWithNumericParam(long param) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable("TEST")
+        public CachedObject cacheableMethodWithMapParam(Map<String, String> param) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable("TEST")
+        public CachedObject cacheableMethodWithMultipleParams(String param1, long param2, Map<String, String> param3) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable(value = "TEST", key = "#root.args[1]")
+        public CachedObject cacheableMethodWithNthParam(String param1, long param2, Map<String, String> param3) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable("TEST")
+        public CachedObject cacheableMethodWithNoParams() {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable("TEST")
+        public AnotherCachedObject anotherMethodWithNoParams() {
+            noOfCalls++;
+            return new AnotherCachedObject(NUMERIC_PARAM);
+        }
+
+        @Cacheable(value = "TEST", key = "#root.targetClass")
+        public CachedObject cacheableMethodWithTargetClassKey() {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable(value = "TEST", key = "#root.method")
+        public CachedObject cacheableMethodWithMethodNameKey() {
+            noOfCalls++;
+            return new CachedObject(VALUE);
         }
 
         @Cacheable(value = "TEST", sync = true)
         public CachedObject cacheableMethodSynchronized(String param) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
         }
 
-        @Cacheable(value = "CACHE-WITH-TTL")
+        @Cacheable("TEST12345ABC") // Cache name not pre-configured in AerospikeCacheManager, so it goes to default set
+        public CachedObject cacheableMethodDefaultCache(String param) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable(DIFFERENT_EXISTING_CACHE)
+        public CachedObject cacheableMethodDifferentExistingCache(String param) {
+            noOfCalls++;
+            return new CachedObject(VALUE);
+        }
+
+        @Cacheable(value = CACHE_WITH_TTL)
         public CachedObject cacheableMethodWithTTL(String param) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
         }
 
         @Cacheable(value = "TEST", cacheManager = "anotherCacheManager")
         public CachedObject cacheableMethodWithAnotherCacheManager(String param) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
         }
 
         @CacheEvict("TEST")
@@ -239,13 +522,13 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
         @CachePut("TEST")
         public CachedObject cachePutMethod(String param) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
         }
 
         @Cacheable(value = "TEST", condition = "#param.startsWith('abc')")
         public CachedObject cacheableWithCondition(String param) {
             noOfCalls++;
-            return new CachedObject("id", VALUE);
+            return new CachedObject(VALUE);
         }
 
         public int getNoOfCalls() {
@@ -256,12 +539,20 @@ public class AerospikeCacheManagerIntegrationTests extends BaseBlockingIntegrati
     @AllArgsConstructor
     public static class CachedObject {
 
-        @Id
-        private final String id;
-        private final String value;
+        private final Object value;
 
-        public String getValue() {
+        public Object getValue() {
             return value;
+        }
+    }
+
+    @AllArgsConstructor
+    public static class AnotherCachedObject {
+
+        private final long number;
+
+        public long getNumber() {
+            return number;
         }
     }
 }

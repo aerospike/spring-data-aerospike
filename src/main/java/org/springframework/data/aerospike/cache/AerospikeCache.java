@@ -46,11 +46,13 @@ public class AerospikeCache implements Cache {
     private final AerospikeCacheConfiguration cacheConfiguration;
     private final WritePolicy createOnly;
     private final WritePolicy writePolicyForPut;
+    private final AerospikeCacheKeyProcessor cacheKeyProcessor;
 
     public AerospikeCache(String name,
                           IAerospikeClient client,
                           AerospikeConverter aerospikeConverter,
-                          AerospikeCacheConfiguration cacheConfiguration) {
+                          AerospikeCacheConfiguration cacheConfiguration,
+                          AerospikeCacheKeyProcessor cacheKeyProcessor) {
         this.name = name;
         this.client = client;
         this.aerospikeConverter = aerospikeConverter;
@@ -62,6 +64,7 @@ public class AerospikeCache implements Cache {
         this.writePolicyForPut = WritePolicyBuilder.builder(client.getWritePolicyDefault())
             .expiration(cacheConfiguration.getExpirationInSeconds())
             .build();
+        this.cacheKeyProcessor = cacheKeyProcessor;
     }
 
     /**
@@ -225,12 +228,16 @@ public class AerospikeCache implements Cache {
     }
 
     private Key getKey(Object key) {
-        return new Key(cacheConfiguration.getNamespace(), cacheConfiguration.getSet(), key.toString());
+        AerospikeCacheKey cacheKey = cacheKeyProcessor.serializeAndHash(key);
+        return new Key(cacheConfiguration.getNamespace(), cacheConfiguration.getSet(),
+            cacheKey.getValue());
     }
 
     private void serializeAndPut(WritePolicy writePolicy, Object key, Object value) {
-        AerospikeWriteData data = AerospikeWriteData.forWrite(getKey(key).namespace);
+        AerospikeWriteData data = AerospikeWriteData.forWrite(cacheConfiguration.getNamespace());
+        Key aerospikeKey = getKey(key);
+        data.setKey(aerospikeKey); // Set the key on the data object
         aerospikeConverter.write(value, data);
-        client.put(writePolicy, getKey(key), data.getBinsAsArray());
+        client.put(writePolicy, aerospikeKey, data.getBinsAsArray());
     }
 }

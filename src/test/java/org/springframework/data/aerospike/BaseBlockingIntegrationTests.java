@@ -6,6 +6,7 @@ import org.junit.jupiter.api.TestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
+import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
 import org.springframework.data.aerospike.config.BlockingTestConfig;
 import org.springframework.data.aerospike.config.CommonTestConfig;
 import org.springframework.data.aerospike.config.IndexedBinsAnnotationsProcessor;
@@ -63,6 +64,8 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     protected Environment env;
     @Autowired
     protected MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext;
+    @Autowired
+    protected AerospikeCacheKeyProcessor cacheKeyProcessor;
 
     protected <T> void deleteOneByOne(Collection<T> collection) {
         collection.forEach(item -> template.delete(item));
