@@ -62,7 +62,7 @@ The MappingAerospikeConverter can use metadata to drive the mapping of objects t
 
 * `@Id` - applied at the field level to mark the field used for identity purposes.
 * `@Field` - applied at the field level, describes the name of the field as it will be represented in the AerospikeDB BSON document thus allowing the name to be different from the field name of the class.
-* `@Version` - applied at the field level to mark record modification count. Must be effectively not larger than integer.
+* `@Version` - applied at the field level to mark record modification count. The value must be effectively integer.
 
 In Spring Data Aerospike, documents come in two forms – non-versioned and versioned.
 Documents with an `@Version` annotation have a version field populated by the corresponding record’s generation count. Version can be passed to a constructor or not (in that case it stays equal to zero).

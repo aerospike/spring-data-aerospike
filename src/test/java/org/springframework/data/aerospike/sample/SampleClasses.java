@@ -196,7 +196,7 @@ public class SampleClasses {
         DocumentExample id;
         long counter;
         @Version
-        int version; // must be integer
+        int version; // the value must be effectively integer
         @Field("update")
         Long timestamp;
     }
@@ -564,7 +564,7 @@ public class SampleClasses {
     public static class VersionedClass {
 
         @Version
-        private int version; // must be integer
+        private int version; // the value must be effectively integer
         private String field;
         @Id
         private String id;
@@ -590,7 +590,7 @@ public class SampleClasses {
         @Id
         private String id;
         @Version
-        private int version; // must be integer
+        private int version; // the value must be effectively integer
 
         @PersistenceCreator
         public VersionedClassWithAllArgsConstructor(String id, String field, int version) {
@@ -722,7 +722,7 @@ public class SampleClasses {
         private int field;
 
         @Version
-        private int version; // must be integer
+        private int version; // the value must be effectively integer
 
         public DocumentWithTouchOnRead(String id) {
             this(id, 0);
@@ -744,7 +744,7 @@ public class SampleClasses {
         private String id;
 
         @Expiration
-        private Integer expiration;
+        private Integer expiration; // the value must be effectively integer
     }
 
     @Value
@@ -755,7 +755,7 @@ public class SampleClasses {
         String id;
 
         @Expiration
-        int expiration;
+        int expiration; // the value must be effectively integer
 
         @PersistenceCreator
         public DocumentWithExpirationAnnotationAndPersistenceConstructor(String id, int expiration) {
@@ -831,7 +831,7 @@ public class SampleClasses {
         @Id
         private String id;
         @Version
-        private int version; // must be integer
+        private long version; // the value must be effectively integer
 
         @PersistenceCreator
         public DocumentWithExpirationOneDay(String id) {
@@ -847,7 +847,7 @@ public class SampleClasses {
         @Id
         private String id;
         @Expiration
-        private int expiration;
+        private int expiration; // the value must be effectively integer
     }
 
     @Document(collection = DocumentWithExpressionInCollection.COLLECTION_PREFIX + "${setSuffix}")
@@ -901,7 +901,7 @@ public class SampleClasses {
     public static class ObjectWithIntegerArray {
 
         @Version
-        private int version; // must be integer
+        private Integer version; // the value must be effectively integer
         Integer[] array;
 
         public ObjectWithIntegerArray(Integer[] array) {
