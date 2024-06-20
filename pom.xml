@@ -29,7 +29,7 @@
         <springdata.spring-boot>3.3.0</springdata.spring-boot>
         <spring-boot-starter-test>3.3.0</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.1.2</spring-cloud-starter-bootstrap>
-        <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
+        <maven.javadoc.plugin>3.7.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike-client>7.2.1</aerospike-client>
         <aerospike-reactor-client>7.1.0</aerospike-reactor-client>
