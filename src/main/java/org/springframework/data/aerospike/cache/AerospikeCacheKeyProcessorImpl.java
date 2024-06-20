@@ -11,7 +11,7 @@ import java.util.Arrays;
 public class AerospikeCacheKeyProcessorImpl implements AerospikeCacheKeyProcessor {
 
     @Getter
-    private static final Kryo kryoInstance = new Kryo();
+    private final Kryo kryoInstance = new Kryo();
 
     public AerospikeCacheKeyProcessorImpl() {
         configureKryo();

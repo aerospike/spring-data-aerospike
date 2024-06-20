@@ -1,5 +1,8 @@
 package org.springframework.data.aerospike.cache;
 
+/**
+ * Interface that provides methods used in caching
+ */
 public interface AerospikeCacheKeyProcessor {
 
     /**

@@ -3,6 +3,9 @@ package org.springframework.data.aerospike.cache;
 import com.aerospike.client.Value;
 import lombok.Getter;
 
+/**
+ * Wrapper class used for caching with methods that receive either a String or a long number
+ */
 public class AerospikeCacheKey {
 
     @Getter
