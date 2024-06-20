@@ -4,7 +4,7 @@ import com.aerospike.client.Value;
 import lombok.Getter;
 
 /**
- * Wrapper class used for caching with methods that receive either a String or a long number
+ * Wrapper class used in caching. Receives hash of the cache key as a String, a long number or a byte array.
  */
 public class AerospikeCacheKey {
 
@@ -17,6 +17,10 @@ public class AerospikeCacheKey {
 
     private AerospikeCacheKey(long number) {
         this.value = new Value.LongValue(number);
+    }
+
+    private AerospikeCacheKey(byte[] data) {
+        this.value = new Value.BytesValue(data);
     }
 
     /**
@@ -38,4 +42,15 @@ public class AerospikeCacheKey {
     public static AerospikeCacheKey of(long number) {
         return new AerospikeCacheKey(number);
     }
+
+    /**
+     * Instantiate AerospikeCacheKey instance with a byte array.
+     *
+     * @param data byte array
+     * @return new instance of AerospikeCacheKey initialized with the given parameter
+     */
+    public static AerospikeCacheKey of(byte[] data) {
+        return new AerospikeCacheKey(data);
+    }
+
 }
