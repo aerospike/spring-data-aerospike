@@ -552,7 +552,7 @@ public class SampleClasses {
     }
 
     @Data
-    public static class idAndAddressesList {
+    public static class IdAndAddressesList {
 
         @Id
         final String id;
