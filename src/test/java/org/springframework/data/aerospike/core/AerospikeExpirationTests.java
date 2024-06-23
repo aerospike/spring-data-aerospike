@@ -153,12 +153,12 @@ public class AerospikeExpirationTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void shouldSaveAndGetDocumentWithImmutableExpiration() {
-        template.insert(new DocumentWithExpirationAnnotationAndPersistenceConstructor(id, 60L));
+        template.insert(new DocumentWithExpirationAnnotationAndPersistenceConstructor(id, 60));
 
         DocumentWithExpirationAnnotationAndPersistenceConstructor doc = template.findById(id,
             DocumentWithExpirationAnnotationAndPersistenceConstructor.class);
         assertThat(doc).isNotNull();
-        assertThat(doc.getExpiration()).isCloseTo(60L, Offset.offset(10L));
+        assertThat(doc.getExpiration()).isCloseTo(60, Offset.offset(10));
     }
 
     @Test

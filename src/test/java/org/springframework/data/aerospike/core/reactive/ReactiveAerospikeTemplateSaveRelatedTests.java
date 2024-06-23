@@ -48,10 +48,10 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
 
     @Test
     public void save_shouldNotSaveDocumentIfItAlreadyExistsWithZeroVersion() {
-        reactiveTemplate.save(new VersionedClass(id, "foo", 0L))
+        reactiveTemplate.save(new VersionedClass(id, "foo", 0))
             .subscribeOn(Schedulers.parallel()).block();
 
-        StepVerifier.create(reactiveTemplate.save(new VersionedClass(id, "foo", 0L))
+        StepVerifier.create(reactiveTemplate.save(new VersionedClass(id, "foo", 0))
                 .subscribeOn(Schedulers.parallel()))
             .expectError(OptimisticLockingFailureException.class)
             .verify();
@@ -61,13 +61,13 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
     public void save_shouldSaveDocumentWithEqualVersion() {
         reactiveTemplate.save(new VersionedClass(id, "foo")).subscribeOn(Schedulers.parallel()).block();
 
-        reactiveTemplate.save(new VersionedClass(id, "foo", 1L)).subscribeOn(Schedulers.parallel()).block();
-        reactiveTemplate.save(new VersionedClass(id, "foo", 2L)).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.save(new VersionedClass(id, "foo", 1)).subscribeOn(Schedulers.parallel()).block();
+        reactiveTemplate.save(new VersionedClass(id, "foo", 2)).subscribeOn(Schedulers.parallel()).block();
     }
 
     @Test
     public void save_shouldFailSaveNewDocumentWithVersionGreaterThanZero() {
-        StepVerifier.create(reactiveTemplate.save(new VersionedClass(id, "foo", 5L))
+        StepVerifier.create(reactiveTemplate.save(new VersionedClass(id, "foo", 5))
                 .subscribeOn(Schedulers.parallel()))
             .expectError(OptimisticLockingFailureException.class)
             .verify();
@@ -234,7 +234,7 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
         reactiveTemplate.save(first).subscribeOn(Schedulers.parallel()).block();
         additionalAerospikeTestOperations.addNewFieldToSavedDataInAerospike(key);
 
-        reactiveTemplate.save(new VersionedClass(id, "foo2", 2L))
+        reactiveTemplate.save(new VersionedClass(id, "foo2", 2))
             .subscribeOn(Schedulers.parallel()).block();
 
         StepVerifier.create(reactorClient.get(new Policy(), key))

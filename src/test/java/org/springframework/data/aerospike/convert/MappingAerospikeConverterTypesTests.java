@@ -763,7 +763,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             new Address(new Street("Street1", 1), 1),
             new Address(new Street("Street2", 2), 2)
         );
-        SampleClasses.idAndAddressesList testObj = new idAndAddressesList("testId", addressesList);
+        IdAndAddressesList testObj = new IdAndAddressesList("testId", addressesList);
         converter.write(testObj, forWrite);
 
         assertThat(forWrite.getBins()).containsOnly(
@@ -774,9 +774,9 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         );
 
         AerospikeReadData forRead = AerospikeReadData.forRead(forWrite.getKey(), aeroRecord(forWrite.getBins()));
-        SampleClasses.idAndAddressesList actual = converter.read(idAndAddressesList.class, forRead);
+        IdAndAddressesList actual = converter.read(IdAndAddressesList.class, forRead);
 
-        assertThat(actual).isEqualTo(new idAndAddressesList("testId", addressesList));
+        assertThat(actual).isEqualTo(new IdAndAddressesList("testId", addressesList));
     }
 
     private <T> void assertWriteAndRead(int converterOption,

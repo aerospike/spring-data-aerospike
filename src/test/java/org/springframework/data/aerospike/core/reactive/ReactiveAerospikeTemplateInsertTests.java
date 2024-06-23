@@ -140,7 +140,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKey() {
-        VersionedClass document = new VersionedClass(id, "any", 5L);
+        VersionedClass document = new VersionedClass(id, "any", 5);
         reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
 
         assertThat(document.getVersion()).isEqualTo(1);
@@ -148,7 +148,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertsDocumentWithVersionGreaterThanZeroIfThereIsNoDocumentWithSameKeyAndSetName() {
-        VersionedClass document = new VersionedClass(id, "any", 5L);
+        VersionedClass document = new VersionedClass(id, "any", 5);
         reactiveTemplate.insert(document, OVERRIDE_SET_NAME).subscribeOn(Schedulers.parallel()).block();
 
         assertThat(document.getVersion()).isEqualTo(1);
@@ -177,7 +177,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void throwsExceptionForDuplicateIdForVersionedDocument() {
-        VersionedClass document = new VersionedClass(id, "any", 5L);
+        VersionedClass document = new VersionedClass(id, "any", 5);
 
         reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()).block();
         StepVerifier.create(reactiveTemplate.insert(document).subscribeOn(Schedulers.parallel()))

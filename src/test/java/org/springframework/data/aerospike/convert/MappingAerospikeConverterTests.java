@@ -376,7 +376,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
 
         DocumentWithExpirationAnnotationAndPersistenceConstructor document =
             aerospikeConverter.read(DocumentWithExpirationAnnotationAndPersistenceConstructor.class, forRead);
-        assertThat(document.getExpiration()).isCloseTo(TimeUnit.MINUTES.toSeconds(1), Offset.offset(100L));
+        assertThat(document.getExpiration()).isCloseTo((int) TimeUnit.MINUTES.toSeconds(1), Offset.offset(100));
     }
 
     @ParameterizedTest()
@@ -384,7 +384,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     public void shouldNotWriteVersionToBins(int converterOption) {
         MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
-        aerospikeConverter.write(new VersionedClass("id", "data", 42L), forWrite);
+        aerospikeConverter.write(new VersionedClass("id", "data", 42), forWrite);
 
         assertThat(forWrite.getBins()).containsOnly(
             new Bin("@_class", VersionedClass.class.getName()),
