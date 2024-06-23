@@ -95,7 +95,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
 
         AerospikePersistentProperty versionProperty = entity.getVersionProperty();
         if (versionProperty != null) {
-            // version is read as Integer because Record.generation is integer
+            // version is read as Integer because Java client's Record.generation is integer
             Integer version = accessor.getProperty(versionProperty, Integer.class);
             data.setVersion(version);
         }
