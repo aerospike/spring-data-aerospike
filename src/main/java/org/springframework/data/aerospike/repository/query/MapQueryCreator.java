@@ -12,6 +12,7 @@ import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.util.TypeInformation;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -262,11 +263,14 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
     private Qualifier processMapContaining(QueryQualifierBuilder qb, Part part, String fieldName, FilterOperation keysOp,
                                            FilterOperation valuesOp, FilterOperation byKeyOp) {
         FilterOperation op = byKeyOp;
+        List<String> dotPath = new ArrayList<>();
+        dotPath.add(part.getProperty().toDotPath());
         if (queryParameters.get(0) instanceof AerospikeQueryCriterion queryCriterion) {
             switch (queryCriterion) {
                 case KEY -> {
                     op = keysOp;
                     setQualifierBuilderValue(qb, queryParameters.get(1));
+                    dotPath.add("mapKeyPlaceholder");
                 }
                 case VALUE -> {
                     op = valuesOp;
@@ -275,7 +279,7 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 default -> throw new UnsupportedOperationException("Unsupported parameter: " + queryCriterion);
             }
         }
-        return setQualifier(qb, fieldName, op, part, null, versionSupport);
+        return setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
     }
 
     private Qualifier processMapOtherThanContaining(QueryQualifierBuilder qb, Part part, List<Object> queryParameters,
