@@ -66,10 +66,10 @@ The MappingAerospikeConverter can use metadata to drive the mapping of objects t
 In Spring Data Aerospike, documents come in two forms – non-versioned and versioned.
 Documents with an `@Version` annotation have a version field populated by the corresponding record’s generation count.
 Version can be passed to a constructor or not (in that case it stays equal to zero).
-* `@Expiration` - applied at the field level to mark a property to be used as expiration field. The value must be effectively integer.
-Expiration can be specified in two flavors: as an offset in seconds from the current time or
-as an absolute Unix timestamp. Client system time must be synchronized with Aerospike server system time,
-otherwise expiration behaviour will be unpredictable.
+* `@Expiration` - applied at the field level to mark a property to be used as expiration field.
+Expiration can be specified in two flavors: as an offset in seconds from the current time (then field value must be
+effectively integer) or as an absolute Unix timestamp. Client system time must be synchronized
+with Aerospike server system time, otherwise expiration behaviour will be unpredictable.
 
 The mapping metadata infrastructure is defined in a separate spring-data-commons project that is technology-agnostic. Specific subclasses are used in the AerospikeDB support to support annotation-based metadata. Other strategies are also possible to put in place if there is demand.
 
