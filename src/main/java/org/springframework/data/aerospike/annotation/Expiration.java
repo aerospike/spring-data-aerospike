@@ -23,8 +23,8 @@ import java.lang.annotation.Target;
 
 /**
  * Demarcates a property to be used as expiration field. Expiration can be specified in two flavors: as an offset in
- * seconds from the current time or as an absolute Unix time stamp. <br/><br/> Client system time must be synchronized
- * with aerospike server system time, otherwise expiration behaviour will be unpredictable.
+ * seconds from the current time or as an absolute Unix timestamp. <br/><br/> Client system time must be synchronized
+ * with Aerospike server system time, otherwise expiration behaviour will be unpredictable.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
