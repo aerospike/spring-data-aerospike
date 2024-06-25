@@ -126,7 +126,7 @@ public class Utils {
      * @param errMsg Error message to use
      * @return Exp instance
      */
-    public static Exp getValueExpOrFail(Value value, String errMsg) {
+    public static Exp getExpValOrFail(Value value, String errMsg) {
         return switch (value.getType()) {
             case INTEGER -> Exp.val(value.toLong());
             case BOOL -> Exp.val((Boolean) value.getObject());
