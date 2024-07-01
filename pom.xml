@@ -32,7 +32,7 @@
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike-client>7.2.1</aerospike-client>
-        <aerospike-reactor-client>7.1.0</aerospike-reactor-client>
+        <aerospike-reactor-client>8.1.2</aerospike-reactor-client>
         <reactor-test>3.6.1</reactor-test>
         <embedded-aerospike>3.1.6</embedded-aerospike>
         <jodatime>2.12.7</jodatime>
