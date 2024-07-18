@@ -16,7 +16,6 @@
 package org.springframework.data.aerospike.config;
 
 import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.reactor.AerospikeReactorClient;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
@@ -99,13 +98,10 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
         return new AerospikeReactorClient(aerospikeClient);
     }
 
-    @Bean
-    protected abstract EventLoops eventLoops();
-
     @Override
     protected ClientPolicy getClientPolicy() {
         ClientPolicy clientPolicy = super.getClientPolicy(); // applying default values first
-        clientPolicy.eventLoops = eventLoops();
+        // set particular clientPolicy fields if needed
         return clientPolicy;
     }
 

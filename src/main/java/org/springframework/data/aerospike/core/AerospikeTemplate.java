@@ -78,6 +78,7 @@ import static org.springframework.data.aerospike.core.TemplateUtils.getBinNamesF
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
+import static org.springframework.data.aerospike.util.InfoCommandUtils.sendInfoCommand;
 
 /**
  * Primary implementation of {@link AerospikeOperations}.
@@ -1148,11 +1149,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         try {
             Node[] nodes = client.getNodes();
-
-            int replicationFactor = Utils.getReplicationFactor(nodes, namespace);
+            int replicationFactor = Utils.getReplicationFactor(client, nodes, namespace);
 
             long totalObjects = Arrays.stream(nodes)
-                .mapToLong(node -> Utils.getObjectsCount(node, namespace, setName))
+                .mapToLong(node -> Utils.getObjectsCount(client, node, namespace, setName))
                 .sum();
 
             return (nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects;
@@ -1308,7 +1308,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         try {
             Node[] nodes = client.getNodes();
             for (Node node : nodes) {
-                String response = Info.request(node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
+                String response = sendInfoCommand(client, node,
+                    "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
                 if (response == null) throw new AerospikeException("Null node response");
 
                 if (response.equalsIgnoreCase("true")) {

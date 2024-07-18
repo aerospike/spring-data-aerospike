@@ -57,6 +57,7 @@ import static com.aerospike.client.command.ParticleType.INTEGER;
 import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.STRING;
+import static org.springframework.data.aerospike.util.InfoCommandUtils.sendInfoCommand;
 import static org.springframework.util.ClassUtils.isPrimitiveOrWrapper;
 import static org.springframework.util.StringUtils.hasLength;
 
@@ -86,10 +87,10 @@ public class Utils {
         return messages;
     }
 
-    public static int getReplicationFactor(Node[] nodes, String namespace) {
+    public static int getReplicationFactor(IAerospikeClient client, Node[] nodes, String namespace) {
         Node randomNode = getRandomNode(nodes);
-
-        String response = Info.request(randomNode, "get-config:context=namespace;id=" + namespace);
+        String response = sendInfoCommand(client, randomNode, "get-config:context=namespace;id=" + namespace
+        );
         if (response.equalsIgnoreCase("ns_type=unknown")) {
             throw new InvalidDataAccessResourceUsageException("Namespace: " + namespace + " does not exist");
         }
@@ -111,8 +112,8 @@ public class Utils {
         throw new AerospikeException.InvalidNode("Command failed because no active nodes found.");
     }
 
-    public static long getObjectsCount(Node node, String namespace, String setName) {
-        String infoString = Info.request(node, "sets/" + namespace + "/" + setName);
+    public static long getObjectsCount(IAerospikeClient client, Node node, String namespace, String setName) {
+        String infoString = sendInfoCommand(client, node, "sets/" + namespace + "/" + setName);
         if (infoString.isEmpty()) { // set is not present
             return 0L;
         }
