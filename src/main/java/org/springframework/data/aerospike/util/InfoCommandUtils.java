@@ -34,7 +34,7 @@ public class InfoCommandUtils {
 
             @Override
             public void onFailure(AerospikeException ae) {
-                throw ae;
+                stringValueFuture.completeExceptionally(ae);
             }
         };
 
@@ -44,7 +44,7 @@ public class InfoCommandUtils {
         try {
             value = listener.getValueFuture().join();
         } catch (CompletionException ce) {
-            throw new AerospikeException(String.format("Info command %s failed", command), ce);
+            throw new AerospikeException(String.format("Info command %s failed", command), ce.getCause());
         }
         return value == null ? "" : value;
     }
