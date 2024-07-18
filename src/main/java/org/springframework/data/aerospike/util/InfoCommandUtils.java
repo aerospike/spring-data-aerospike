@@ -5,6 +5,7 @@ import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.listener.InfoListener;
 import com.aerospike.client.policy.InfoPolicy;
+import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 @Slf4j
+@UtilityClass
 public class InfoCommandUtils {
 
     public static String sendInfoCommand(IAerospikeClient client, Node node, String command) {
@@ -38,15 +40,23 @@ public class InfoCommandUtils {
             }
         };
 
-        client.info(client.getCluster().eventLoops.next(), listener, infoPolicy, node, command);
+        try {
+            client.info(client.getCluster().eventLoops.next(), listener, infoPolicy, node, command);
+        } catch (AerospikeException ae) {
+            fail(command, ae);
+        }
 
-        String value;
+        String value = null;
         try {
             value = listener.getValueFuture().join();
         } catch (CompletionException ce) {
-            throw new AerospikeException(String.format("Info command %s failed", command), ce.getCause());
+            fail(command, ce.getCause());
         }
         return value == null ? "" : value;
+    }
+
+    private static void fail(String command, Throwable t) {
+        throw new AerospikeException(String.format("Info command %s failed", command), t);
     }
 
     interface InfoListenerWithStringValue extends InfoListener {
