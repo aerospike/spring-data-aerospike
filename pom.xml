@@ -35,7 +35,7 @@
         <aerospike-reactor-client>8.1.2</aerospike-reactor-client>
         <aerospike-proxy-client>8.1.2</aerospike-proxy-client>
         <reactor-test>3.6.1</reactor-test>
-        <embedded-aerospike>3.1.6</embedded-aerospike>
+        <embedded-aerospike>3.1.7</embedded-aerospike>
         <jodatime>2.12.7</jodatime>
         <lombok>1.18.32</lombok>
         <awaitility>4.2.1</awaitility>
