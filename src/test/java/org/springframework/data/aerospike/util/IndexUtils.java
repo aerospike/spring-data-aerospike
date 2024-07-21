@@ -44,8 +44,7 @@ public class IndexUtils {
 
     public static List<Index> getIndexes(IAerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
         Node node = client.getCluster().getRandomNode();
-        String response = InfoCommandUtils.request(client, node, "sindex-list:ns=" + namespace + ";b64=true"
-        );
+        String response = InfoCommandUtils.request(client, node, "sindex-list:ns=" + namespace + ";b64=true");
         return Arrays.stream(response.split(";"))
             .map(indexInfoParser::parse)
             .collect(Collectors.toList());
@@ -57,8 +56,7 @@ public class IndexUtils {
      */
     public static boolean indexExists(IAerospikeClient client, String namespace, String indexName) {
         Node node = client.getCluster().getRandomNode();
-        String response = InfoCommandUtils.request(client, node, "sindex/" + namespace + '/' + indexName
-        );
+        String response = InfoCommandUtils.request(client, node, "sindex/" + namespace + '/' + indexName);
         return !response.startsWith("FAIL:201");
     }
 
