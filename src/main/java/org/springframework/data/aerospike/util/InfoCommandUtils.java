@@ -32,7 +32,11 @@ public class InfoCommandUtils {
 
             @Override
             public void onSuccess(Map<String, String> map) {
-                stringValueFuture.complete(map.get(command));
+                try {
+                    stringValueFuture.complete(map.get(command));
+                } catch (Exception e) {
+                    stringValueFuture.completeExceptionally(commandFailed(command, e));
+                }
             }
 
             @Override
@@ -44,20 +48,20 @@ public class InfoCommandUtils {
         try {
             client.info(client.getCluster().eventLoops.next(), listener, infoPolicy, node, command);
         } catch (AerospikeException ae) {
-            fail(command, ae);
+            throw commandFailed(command, ae);
         }
 
-        String value = null;
+        String value;
         try {
             value = listener.getValueFuture().orTimeout(infoPolicy.timeout, TimeUnit.MILLISECONDS).join();
         } catch (CompletionException ce) {
-            fail(command, ce.getCause());
+            throw commandFailed(command, ce.getCause());
         }
         return value == null ? "" : value;
     }
 
-    private static void fail(String command, Throwable t) {
-        throw new AerospikeException(String.format("Info command %s failed", command), t);
+    private static AerospikeException commandFailed(String command, Throwable t) {
+        return new AerospikeException(String.format("Info command %s failed", command), t);
     }
 
     interface InfoListenerWithStringValue extends InfoListener {
