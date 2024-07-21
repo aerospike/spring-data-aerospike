@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static org.springframework.data.aerospike.util.InfoCommandUtils.sendInfoCommand;
-
 public class IndexUtils {
 
     static void dropIndex(IAerospikeClient client, ServerVersionSupport serverVersionSupport, String namespace,
@@ -46,7 +44,7 @@ public class IndexUtils {
 
     public static List<Index> getIndexes(IAerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
         Node node = client.getCluster().getRandomNode();
-        String response = sendInfoCommand(client, node, "sindex-list:ns=" + namespace + ";b64=true"
+        String response = InfoCommandUtils.request(client, node, "sindex-list:ns=" + namespace + ";b64=true"
         );
         return Arrays.stream(response.split(";"))
             .map(indexInfoParser::parse)
@@ -59,7 +57,7 @@ public class IndexUtils {
      */
     public static boolean indexExists(IAerospikeClient client, String namespace, String indexName) {
         Node node = client.getCluster().getRandomNode();
-        String response = sendInfoCommand(client, node, "sindex/" + namespace + '/' + indexName
+        String response = InfoCommandUtils.request(client, node, "sindex/" + namespace + '/' + indexName
         );
         return !response.startsWith("FAIL:201");
     }

@@ -21,6 +21,7 @@ import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.aerospike.util.InfoCommandUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +30,6 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toMap;
-import static org.springframework.data.aerospike.util.InfoCommandUtils.sendInfoCommand;
 
 /**
  * Internal index related operations used by ReactorIndexRefresher and IndexRefresher.
@@ -80,7 +80,7 @@ public class InternalIndexOperations {
                                       String namespace, String indexName) {
         if (serverVersionSupport.isSIndexCardinalitySupported()) {
             try {
-                String indexStatData = sendInfoCommand(client, client.getCluster().getRandomNode(),
+                String indexStatData = InfoCommandUtils.request(client, client.getCluster().getRandomNode(),
                     String.format("sindex-stat:ns=%s;indexname=%s", namespace, indexName));
 
                 return Integer.parseInt(

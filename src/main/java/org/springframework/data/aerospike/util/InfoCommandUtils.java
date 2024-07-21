@@ -16,11 +16,11 @@ import java.util.concurrent.CompletionException;
 @UtilityClass
 public class InfoCommandUtils {
 
-    public static String sendInfoCommand(IAerospikeClient client, Node node, String command) {
-        return sendInfoCommand(client, client.getInfoPolicyDefault(), node, command);
+    public static String request(IAerospikeClient client, Node node, String command) {
+        return request(client, client.getInfoPolicyDefault(), node, command);
     }
 
-    public static String sendInfoCommand(IAerospikeClient client, InfoPolicy infoPolicy, Node node, String command) {
+    public static String request(IAerospikeClient client, InfoPolicy infoPolicy, Node node, String command) {
         InfoListenerWithStringValue listener = new InfoListenerWithStringValue() {
 
             private final CompletableFuture<String> stringValueFuture = new CompletableFuture<>();

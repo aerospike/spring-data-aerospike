@@ -3,13 +3,12 @@ package org.springframework.data.aerospike.server.version;
 import com.aerospike.client.IAerospikeClient;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.aerospike.util.InfoCommandUtils;
 
 import java.lang.module.ModuleDescriptor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static org.springframework.data.aerospike.util.InfoCommandUtils.sendInfoCommand;
 
 @Slf4j
 public class ServerVersionSupport {
@@ -41,7 +40,7 @@ public class ServerVersionSupport {
     }
 
     private String findServerVersion() {
-        String fullVersionString = sendInfoCommand(client, client.getCluster().getRandomNode(),
+        String fullVersionString = InfoCommandUtils.request(client, client.getCluster().getRandomNode(),
             "version");
 
         String versionString = fullVersionString.substring(fullVersionString.lastIndexOf(' ') + 1);

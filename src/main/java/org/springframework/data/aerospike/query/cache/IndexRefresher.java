@@ -28,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import static org.springframework.data.aerospike.util.InfoCommandUtils.sendInfoCommand;
+import static org.springframework.data.aerospike.util.InfoCommandUtils.request;
 
 /**
  * @author Anastasiia Smirnova
@@ -66,7 +66,7 @@ public class IndexRefresher {
             .filter(Node::isActive)
             .findAny() // we do want to send info request to the random node (sending request to the first node may
             // lead to uneven request distribution)
-            .map(node -> sendInfoCommand(client, infoPolicy, node, indexOperations.buildGetIndexesCommand()))
+            .map(node -> request(client, infoPolicy, node, indexOperations.buildGetIndexesCommand()))
             .map(response -> {
                 IndexesInfo indexesInfo = indexOperations.parseIndexesInfo(response);
                 indexOperations.enrichIndexesWithCardinality(client, indexesInfo.indexes, serverVersionSupport);

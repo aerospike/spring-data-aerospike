@@ -48,6 +48,7 @@ import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.aerospike.util.InfoCommandUtils;
 import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
@@ -84,7 +85,6 @@ import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQua
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
-import static org.springframework.data.aerospike.util.InfoCommandUtils.sendInfoCommand;
 
 /**
  * Primary implementation of {@link ReactiveAerospikeOperations}.
@@ -1199,7 +1199,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         try {
             Node[] nodes = reactorClient.getAerospikeClient().getNodes();
             for (Node node : nodes) {
-                String response = sendInfoCommand(reactorClient.getAerospikeClient(), node,
+                String response = InfoCommandUtils.request(reactorClient.getAerospikeClient(), node,
                     "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
                 if (response == null) throw new AerospikeException("Null node response");
 
