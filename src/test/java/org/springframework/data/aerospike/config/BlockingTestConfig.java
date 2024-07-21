@@ -41,9 +41,13 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
     @Override
     protected ClientPolicy getClientPolicy() {
         ClientPolicy clientPolicy = super.getClientPolicy(); // applying default values first
+        clientPolicy.readPolicyDefault.totalTimeout = 2000;
         clientPolicy.readPolicyDefault.maxRetries = 3;
-        clientPolicy.writePolicyDefault.totalTimeout = 1000;
-        clientPolicy.infoPolicyDefault.timeout = 1000;
+        clientPolicy.writePolicyDefault.totalTimeout = 2000;
+        clientPolicy.writePolicyDefault.maxRetries = 3;
+        clientPolicy.batchPolicyDefault.totalTimeout = 2000;
+        clientPolicy.batchPolicyDefault.maxRetries = 3;
+        clientPolicy.infoPolicyDefault.timeout = 2000;
         return clientPolicy;
     }
 
