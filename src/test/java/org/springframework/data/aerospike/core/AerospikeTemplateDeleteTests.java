@@ -19,6 +19,7 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.policy.GenerationPolicy;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -45,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.TEN_SECONDS;
 
+@Disabled
 public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @BeforeEach

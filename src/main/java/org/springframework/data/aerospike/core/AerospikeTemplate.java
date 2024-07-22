@@ -44,7 +44,6 @@ import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.data.aerospike.util.InfoCommandUtils;
 import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.StreamUtils;
@@ -1308,8 +1307,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         try {
             Node[] nodes = client.getNodes();
             for (Node node : nodes) {
-                String response = InfoCommandUtils.request(client, node,
-                    "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
+//                String response = InfoCommandUtils.request(client, node, "sindex-exists:ns=" + namespace +
+//                    ";indexname=" + indexName);
+                String response = Info.request(node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
                 if (response == null) throw new AerospikeException("Null node response");
 
                 if (response.equalsIgnoreCase("true")) {

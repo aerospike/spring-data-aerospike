@@ -16,13 +16,13 @@
 package org.springframework.data.aerospike.query.cache;
 
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.Info;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.InfoPolicy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.data.aerospike.util.InfoCommandUtils;
 
 import java.util.Arrays;
 import java.util.concurrent.Executors;
@@ -65,7 +65,8 @@ public class IndexRefresher {
             .filter(Node::isActive)
             .findAny() // we do want to send info request to the random node (sending request to the first node may
             // lead to uneven request distribution)
-            .map(node -> InfoCommandUtils.request(client, infoPolicy, node, indexOperations.buildGetIndexesCommand()))
+//            .map(node -> InfoCommandUtils.request(client, infoPolicy, node, indexOperations.buildGetIndexesCommand()))
+            .map(node -> Info.request(infoPolicy, node, indexOperations.buildGetIndexesCommand()))
             .map(response -> {
                 IndexesInfo indexesInfo = indexOperations.parseIndexesInfo(response);
                 indexOperations.enrichIndexesWithCardinality(client, indexesInfo.indexes, serverVersionSupport);

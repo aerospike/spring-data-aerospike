@@ -88,8 +88,9 @@ public class Utils {
 
     public static int getReplicationFactor(IAerospikeClient client, Node[] nodes, String namespace) {
         Node randomNode = getRandomNode(nodes);
-        String response = InfoCommandUtils.request(client, randomNode, "get-config:context=namespace;id=" + namespace
-        );
+//        String response = InfoCommandUtils.request(client, randomNode, "get-config:context=namespace;id=" + namespace);
+        String response = Info.request(randomNode, "get-config:context=namespace;id=" + namespace);
+
         if (response.equalsIgnoreCase("ns_type=unknown")) {
             throw new InvalidDataAccessResourceUsageException("Namespace: " + namespace + " does not exist");
         }
@@ -112,7 +113,8 @@ public class Utils {
     }
 
     public static long getObjectsCount(IAerospikeClient client, Node node, String namespace, String setName) {
-        String infoString = InfoCommandUtils.request(client, node, "sets/" + namespace + "/" + setName);
+//        String infoString = InfoCommandUtils.request(client, node, "sets/" + namespace + "/" + setName);
+        String infoString = Info.request(node, "sets/" + namespace + "/" + setName);
         if (infoString.isEmpty()) { // set is not present
             return 0L;
         }
