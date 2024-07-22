@@ -414,6 +414,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                <properties>
+                    <configurationParameters>
+                        junit.jupiter.extensions.autodetection.enabled = true
+                    </configurationParameters>
+                </properties>
                     <includes>
                         <include>**/*Test.java</include>
                         <include>**/*Tests.java</include>
@@ -425,11 +430,6 @@
                         --add-opens java.base/java.util.concurrent.atomic=ALL-UNNAMED
                         --add-opens java.base/java.lang.reflect=ALL-UNNAMED
                     </argLine>
-                    <properties>
-                        <configurationParameters>
-                            junit.jupiter.extensions.autodetection.enabled = true
-                        </configurationParameters>
-                    </properties>
                 </configuration>
             </plugin>
         </plugins>
