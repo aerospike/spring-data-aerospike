@@ -403,7 +403,7 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
             assertThat(newFirst.getVersion()).isSameAs(0);
             assertThat(newSecond.getVersion()).isSameAs(0);
 
-            template.saveAll(List.of(newFirst, newSecond));
+            template.saveAll(List.of(newFirst, newSecond)); // OptimisticLockingFailure Failed to save the record with ID 'newId2' due to versions mismatch
             assertThat(newFirst.getVersion()).isSameAs(1);
             assertThat(newSecond.getVersion()).isSameAs(1);
 
