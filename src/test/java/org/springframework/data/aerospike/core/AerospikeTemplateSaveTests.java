@@ -19,7 +19,6 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.dao.ConcurrencyFailureException;
@@ -367,7 +366,6 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
-    @Disabled
     public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfDuplicatesWithinOneBatch() {
         // batch write operations are supported starting with Server version 6.0+
         if (serverVersionSupport.isBatchWriteSupported()) {
@@ -389,7 +387,13 @@ public class AerospikeTemplateSaveTests extends BaseBlockingIntegrationTests {
 
             template.delete(first); // cleanup
             template.delete(second); // cleanup
+        }
+    }
 
+    @Test
+    public void shouldSaveAllVersionedDocumentsIfDuplicatesNotWithinOneBatch() {
+        // batch write operations are supported starting with Server version 6.0+
+        if (serverVersionSupport.isBatchWriteSupported()) {
             // The same versioned documents can be saved if they are not in the same batch.
             // This way, the generation counts of the corresponding database records can be used
             // to update the documents’ versions each time.
