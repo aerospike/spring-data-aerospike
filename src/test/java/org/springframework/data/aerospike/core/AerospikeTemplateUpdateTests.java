@@ -433,7 +433,8 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
             // RecordExistsAction.UPDATE_ONLY
             assertThatThrownBy(() -> template.updateAll(List.of(firstPerson, secondPerson)))
                 .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Batch failed");
+//                .hasMessageContaining("Batch failed");
+                .hasMessageContaining("Errors during batch update");
 
             assertThat(template.findById(firstPerson.getId(), Person.class)).isEqualTo(firstPerson);
             assertThat(template.findById(secondPerson.getId(), Person.class)).isNull();
