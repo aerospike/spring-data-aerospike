@@ -2,7 +2,6 @@ package org.springframework.data.aerospike.util;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.Info;
 import com.aerospike.client.ResultCode;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
@@ -45,8 +44,7 @@ public class IndexUtils {
 
     public static List<Index> getIndexes(IAerospikeClient client, String namespace, IndexInfoParser indexInfoParser) {
         Node node = client.getCluster().getRandomNode();
-        String response = Info.request(client.getInfoPolicyDefault(),
-            node, "sindex-list:ns=" + namespace + ";b64=true");
+        String response = InfoCommandUtils.request(client, node, "sindex-list:ns=" + namespace + ";b64=true");
         return Arrays.stream(response.split(";"))
             .map(indexInfoParser::parse)
             .collect(Collectors.toList());
@@ -58,8 +56,7 @@ public class IndexUtils {
      */
     public static boolean indexExists(IAerospikeClient client, String namespace, String indexName) {
         Node node = client.getCluster().getRandomNode();
-        String response = Info.request(client.getInfoPolicyDefault(),
-            node, "sindex/" + namespace + '/' + indexName);
+        String response = InfoCommandUtils.request(client, node, "sindex/" + namespace + '/' + indexName);
         return !response.startsWith("FAIL:201");
     }
 

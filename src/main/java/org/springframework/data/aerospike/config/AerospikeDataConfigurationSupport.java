@@ -18,7 +18,16 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.async.EventLoops;
+import com.aerospike.client.async.EventPolicy;
+import com.aerospike.client.async.NettyEventLoops;
 import com.aerospike.client.policy.ClientPolicy;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -52,6 +61,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -132,6 +142,25 @@ public abstract class AerospikeDataConfigurationSupport {
         return new FilterExpressionsBuilder();
     }
 
+    @Bean
+    public EventLoops eventLoops() {
+        int nThreads = Math.max(2, Runtime.getRuntime().availableProcessors() * 2);
+        String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
+
+        EventLoopGroup eventLoopGroup;
+        if (os.contains("nux") && Epoll.isAvailable()) {
+            eventLoopGroup = new EpollEventLoopGroup(nThreads);
+        } else if (os.contains("mac") && KQueue.isAvailable()) {
+            eventLoopGroup = new KQueueEventLoopGroup(nThreads);
+        } else {
+            eventLoopGroup = new NioEventLoopGroup(nThreads);
+        }
+
+        EventPolicy eventPolicy = new EventPolicy();
+        eventPolicy.maxCommandsInProcess = 40;
+        eventPolicy.maxCommandsInQueue = 1024;
+        return new NettyEventLoops(eventPolicy, eventLoopGroup);
+    }
 
     @Bean(name = "aerospikeIndexResolver")
     public AerospikeIndexResolver aerospikeIndexResolver() {
@@ -233,6 +262,7 @@ public abstract class AerospikeDataConfigurationSupport {
         clientPolicy.batchWritePolicyDefault.sendKey = sendKey;
         clientPolicy.queryPolicyDefault.sendKey = sendKey;
         clientPolicy.scanPolicyDefault.sendKey = sendKey;
+        clientPolicy.eventLoops = eventLoops();
         return clientPolicy;
     }
 

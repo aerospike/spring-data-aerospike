@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.core;
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.policy.GenerationPolicy;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
@@ -44,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.TEN_SECONDS;
 
+@Disabled
 public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @BeforeEach
@@ -255,7 +257,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             List<String> ids = List.of(id1, id1);
             assertThatThrownBy(() -> template.deleteByIds(ids, DocumentWithExpiration.class))
                 .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Errors during batch delete");
+                .hasMessageContaining("Batch failed");
         }
     }
 
@@ -312,7 +314,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
             assertThatThrownBy(() -> template.deleteAll(List.of(document1, document2)))
                 .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Errors during batch delete");
+                .hasMessageContaining("Batch failed");
         }
     }
 

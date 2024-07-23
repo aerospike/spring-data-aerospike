@@ -43,19 +43,19 @@ public class InfoResponseUtils {
             .findFirst()
             .map(objectsStr -> objectsStr.split("="))
             .orElseThrow(() -> new IllegalStateException(
-                "Failed to parse server response. Could not to find property: " + propertyName + " in response: " +
-                    response));
+                String.format("Failed to parse server response. Cannot find property '%s' in response '%s'",
+                    propertyName, response)));
 
         if (keyValuePair.length != 2) {
-            throw new IllegalStateException("Failed to parse server response. Expected property: " + propertyName +
-                " to have length 2 in response: " + response);
+            throw new IllegalStateException(String.format("Failed to parse server response. Expected property '%s' " +
+                "to have length 2 in response '%s'", propertyName, response));
         }
         String valueStr = keyValuePair[1];
         try {
             return mapper.apply(valueStr);
         } catch (Exception e) {
-            throw new IllegalStateException(
-                "Failed to parse value: " + valueStr + " for property: " + propertyName + " in response: " + response);
+            throw new IllegalStateException(String.format("Failed to parse value '%s' for property '%s' " +
+                "in response '%s'", valueStr, propertyName, response));
         }
     }
 }

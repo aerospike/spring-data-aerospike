@@ -55,7 +55,10 @@ public interface ReactivePersonRepository extends ReactiveAerospikeRepository<Pe
 
 Right now this interface simply serves typing purposes but we will add additional methods to it later.
 
-For Java configuration, use the `@EnableReactiveAerospikeRepositories` annotation. The annotation carries the base packages attribute. These base packages are to be scanned for interfaces extending `ReactiveAerospikeRepository` and create Spring beans for each of them found. If no base package is configured, the infrastructure scans the package of the annotated configuration class.
+For Java configuration, use the `@EnableReactiveAerospikeRepositories` annotation. The annotation carries the base
+packages attribute. These base packages are to be scanned for interfaces extending `ReactiveAerospikeRepository`
+and create Spring beans for each of them found. If no base package is configured, the infrastructure scans the package
+of the annotated configuration class.
 
 The following listing shows how to use Java configuration for a repository:
 

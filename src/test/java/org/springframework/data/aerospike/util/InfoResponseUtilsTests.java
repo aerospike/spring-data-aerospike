@@ -57,7 +57,7 @@ class InfoResponseUtilsTests {
         assertThatThrownBy(() -> InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor",
             Integer::parseInt))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageStartingWith("Failed to parse value: factor for property: replication-factor");
+            .hasMessageStartingWith("Failed to parse value 'factor' for property 'replication-factor' in response");
     }
 
     @Test
@@ -67,8 +67,8 @@ class InfoResponseUtilsTests {
         assertThatThrownBy(() -> InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor",
             Integer::parseInt))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageStartingWith("Failed to parse server response. Expected property: replication-factor to have " +
-                "length 2 in response");
+            .hasMessageStartingWith("Failed to parse server response. Expected property 'replication-factor' " +
+                "to have length 2 in response");
     }
 
     @Test
@@ -78,8 +78,8 @@ class InfoResponseUtilsTests {
         assertThatThrownBy(() -> InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor",
             Integer::parseInt))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageStartingWith("Failed to parse server response. Could not to find property: replication-factor " +
-                "in response");
+            .hasMessageStartingWith("Failed to parse server response. Cannot find property 'replication-factor' in " +
+                "response");
     }
 
     @Test
@@ -89,7 +89,7 @@ class InfoResponseUtilsTests {
         assertThatThrownBy(() -> InfoResponseUtils.getPropertyFromConfigResponse(response, "replication-factor",
             Integer::parseInt))
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageStartingWith("Failed to parse server response. Could not to find property: replication-factor " +
-                "in response");
+            .hasMessageStartingWith("Failed to parse server response. Cannot find property " +
+                "'replication-factor' in response ''");
     }
 }

@@ -15,8 +15,15 @@
  */
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.AerospikeException;
+import com.aerospike.client.BatchRecord;
+import com.aerospike.client.BatchResults;
+import com.aerospike.client.Bin;
+import com.aerospike.client.Key;
+import com.aerospike.client.Operation;
 import com.aerospike.client.Record;
-import com.aerospike.client.*;
+import com.aerospike.client.ResultCode;
+import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.cluster.Node;
 import com.aerospike.client.policy.BatchPolicy;
@@ -41,6 +48,7 @@ import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.aerospike.util.InfoCommandUtils;
 import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
@@ -1082,10 +1090,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private long countSet(String setName) {
         Node[] nodes = reactorClient.getAerospikeClient().getNodes();
 
-        int replicationFactor = Utils.getReplicationFactor(nodes, namespace);
+        int replicationFactor = Utils.getReplicationFactor(reactorClient.getAerospikeClient(), nodes, namespace);
 
         long totalObjects = Arrays.stream(nodes)
-            .mapToLong(node -> Utils.getObjectsCount(node, namespace, setName))
+            .mapToLong(node -> Utils.getObjectsCount(reactorClient.getAerospikeClient(), node, namespace, setName))
             .sum();
 
         return (nodes.length > 1) ? (totalObjects / replicationFactor) : totalObjects;
@@ -1191,8 +1199,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         try {
             Node[] nodes = reactorClient.getAerospikeClient().getNodes();
             for (Node node : nodes) {
-                String response = Info.request(reactorClient.getAerospikeClient().getInfoPolicyDefault(),
-                    node, "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
+                String response = InfoCommandUtils.request(reactorClient.getAerospikeClient(), node,
+                    "sindex-exists:ns=" + namespace + ";indexname=" + indexName);
                 if (response == null) throw new AerospikeException("Null node response");
 
                 if (response.equalsIgnoreCase("true")) {

@@ -16,12 +16,12 @@
 package org.springframework.data.aerospike.query.cache;
 
 import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.Info;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.model.IndexesInfo;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.aerospike.util.InfoCommandUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,7 +41,6 @@ public class InternalIndexOperations {
 
     // Base64 will return index context as a base64 response
     private static final String SINDEX_WITH_BASE64 = "sindex-list:;b64=true";
-
     private final IndexInfoParser indexInfoParser;
 
     public InternalIndexOperations(IndexInfoParser indexInfoParser) {
@@ -81,7 +80,7 @@ public class InternalIndexOperations {
                                       String namespace, String indexName) {
         if (serverVersionSupport.isSIndexCardinalitySupported()) {
             try {
-                String indexStatData = Info.request(client.getInfoPolicyDefault(), client.getCluster().getRandomNode(),
+                String indexStatData = InfoCommandUtils.request(client, client.getCluster().getRandomNode(),
                     String.format("sindex-stat:ns=%s;indexname=%s", namespace, indexName));
 
                 return Integer.parseInt(
