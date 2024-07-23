@@ -143,7 +143,7 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean
-    protected EventLoops eventLoops() {
+    public EventLoops eventLoops() {
         int nThreads = Math.max(2, Runtime.getRuntime().availableProcessors() * 2);
         String os = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
 
