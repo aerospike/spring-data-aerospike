@@ -6,14 +6,12 @@ import com.aerospike.client.cluster.Node;
 import com.aerospike.client.listener.InfoListener;
 import com.aerospike.client.policy.InfoPolicy;
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
-@Slf4j
 @UtilityClass
 public class InfoCommandUtils {
 
