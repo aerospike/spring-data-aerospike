@@ -76,14 +76,11 @@ public class Utils {
      * @return An "Info" value for the given variable from all the nodes in the cluster.
      */
     @SuppressWarnings("UnusedReturnValue")
-    public static String[] infoAll(IAerospikeClient client,
-                                   String infoString) {
-        String[] messages = new String[client.getNodes().length];
-        int index = 0;
-        for (Node node : client.getNodes()) {
-            messages[index] = Info.request(client.getInfoPolicyDefault(), node, infoString);
-        }
-        return messages;
+    public static String[] infoAll(IAerospikeClient client, String infoString) {
+        return Arrays.stream(client.getNodes())
+            .filter(Node::isActive)
+            .map(node -> Info.request(client.getInfoPolicyDefault(), node, infoString))
+            .toArray(String[]::new);
     }
 
     public static int getReplicationFactor(IAerospikeClient client, Node[] nodes, String namespace) {
