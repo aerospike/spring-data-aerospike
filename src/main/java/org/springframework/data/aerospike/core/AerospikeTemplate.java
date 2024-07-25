@@ -1308,6 +1308,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         try {
             Node[] nodes = client.getNodes();
             for (Node node : nodes) {
+                if (!node.isActive()) continue;
                 String response = InfoCommandUtils.request(client, node, "sindex-exists:ns=" + namespace +
                     ";indexname=" + indexName);
                 if (response == null) throw new AerospikeException("Null node response");
