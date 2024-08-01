@@ -42,7 +42,7 @@ public class AerospikeReactiveTransaction {
      */
     public void commitTransaction() {
         failIfNoTransaction();
-        resourceHolder.getClient().commit(resourceHolder.getTransaction());
+        resourceHolder.getClient().getAerospikeClient().commit(resourceHolder.getTransaction());
     }
 
     /**
@@ -50,6 +50,6 @@ public class AerospikeReactiveTransaction {
      */
     public void abortTransaction() {
         failIfNoTransaction();
-        resourceHolder.getClient().abort(resourceHolder.getTransaction());
+        resourceHolder.getClient().getAerospikeClient().abort(resourceHolder.getTransaction());
     }
 }

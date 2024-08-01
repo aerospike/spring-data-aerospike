@@ -817,7 +817,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             aeroRecord = getAndTouch(key, entity.getExpiration(), binNames, query);
         } else {
             Policy policy = getPolicyFilterExp(query);
-            aeroRecord = getAerospikeClient().get(policy, key, binNames);
+            aeroRecord = getAerospikeClient().get(checkForTransaction(client, policy), key, binNames);
         }
         return mapToEntity(key, targetClass, aeroRecord);
     }
@@ -922,7 +922,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private GroupedEntities findGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
-        Record[] aeroRecords = client.get(null, entitiesKeys.getKeys());
+        BatchPolicy bPolicy = (BatchPolicy) checkForTransaction(client, client.getBatchPolicyDefault());
+        Record[] aeroRecords = client.get(bPolicy, entitiesKeys.getKeys());
 
         return toGroupedEntities(entitiesKeys, aeroRecords);
     }
@@ -978,6 +979,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 .toArray(Key[]::new);
 
             BatchPolicy policy = getBatchPolicyFilterExp(query);
+            policy = (BatchPolicy) checkForTransaction(client, policy);
 
             Class<?> target;
             Record[] aeroRecords;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike.core;
+package org.springframework.data.aerospike.transaction.sync;
 
 import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
@@ -28,14 +28,15 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
-import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
@@ -48,6 +49,9 @@ public class AerospikeTemplateInsertInTransactionTests extends BaseBlockingInteg
 
     @Autowired
     TransactionTemplate transactionTemplate;
+
+    AerospikeTransactionManager mockTxManager = mock(AerospikeTransactionManager.class);
+    TransactionTemplate mockTxTemplate = new TransactionTemplate(mockTxManager);
 
     @BeforeEach
     public void beforeEach() {
@@ -63,15 +67,24 @@ public class AerospikeTemplateInsertInTransactionTests extends BaseBlockingInteg
 
     @Test
     public void insertInTransaction_verifyCommit_unitTest() {
-        AerospikeTransactionManager mockTxManager = mock(AerospikeTransactionManager.class);
-        TransactionTemplate mockTxTemplate = new TransactionTemplate(mockTxManager);
-
         mockTxTemplate.executeWithoutResult(status -> {
             template.insert(new SampleClasses.DocumentWithPrimitiveIntId(100));
         });
 
         // verify that commit() has been called
         verify(mockTxManager).commit(null);
+    }
+
+    @Test
+    public void insertInTransaction_verifyHasTran_unitTest() {
+        transactionTemplate.executeWithoutResult(status -> {
+            template.insert(new SampleClasses.DocumentWithPrimitiveIntId(100));
+        });
+
+        AerospikeTransactionResourceHolder rHolder =
+            (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
+
+        assertThat(rHolder.hasTransaction()).isTrue();
     }
 
     @Test

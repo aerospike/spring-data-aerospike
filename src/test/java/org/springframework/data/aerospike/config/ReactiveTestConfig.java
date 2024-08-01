@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.config;
 
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.reactor.IAerospikeReactorClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -48,7 +49,7 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     }
 
     @Bean
-    public AerospikeReactiveTransactionManager aerospikeReactiveTransactionManager(IAerospikeClient client) {
+    public AerospikeReactiveTransactionManager aerospikeReactiveTransactionManager(IAerospikeReactorClient client) {
         return new AerospikeReactiveTransactionManager(client);
     }
 

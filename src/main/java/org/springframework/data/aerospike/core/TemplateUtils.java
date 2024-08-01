@@ -2,12 +2,14 @@ package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.Policy;
+import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.transaction.reactive.AerospikeReactiveTransactionResourceHolder;
 import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionResourceHolder;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
@@ -120,6 +122,16 @@ public class TemplateUtils {
         if (TransactionSynchronizationManager.hasResource(client)) {
             AerospikeTransactionResourceHolder resourceHolder =
                 (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
+            policy.tran = resourceHolder.getTransaction();
+            return policy;
+        }
+        return policy;
+    }
+
+    public static Policy checkForReactiveTransaction(IAerospikeReactorClient client, Policy policy) {
+        if (TransactionSynchronizationManager.hasResource(client)) {
+            AerospikeReactiveTransactionResourceHolder resourceHolder =
+                (AerospikeReactiveTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
             policy.tran = resourceHolder.getTransaction();
             return policy;
         }

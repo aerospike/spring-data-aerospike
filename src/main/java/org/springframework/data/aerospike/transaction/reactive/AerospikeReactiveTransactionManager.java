@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike.transaction.reactive;
 
-import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.Getter;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.TransactionDefinition;
@@ -15,12 +15,12 @@ import reactor.core.publisher.Mono;
 @Getter
 public class AerospikeReactiveTransactionManager extends AbstractReactiveTransactionManager {
 
-    private final IAerospikeClient client;
+    private final IAerospikeReactorClient client;
 
     /**
      * Create a new instance of {@link AerospikeReactiveTransactionManager}
      */
-    public AerospikeReactiveTransactionManager(IAerospikeClient client) {
+    public AerospikeReactiveTransactionManager(IAerospikeReactorClient client) {
         this.client = client;
     }
 
@@ -49,19 +49,19 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     protected Mono<Void> doBegin(TransactionSynchronizationManager synchronizationManager, Object transaction,
                                  TransactionDefinition definition) {
         return Mono.defer(() -> {
-            AerospikeReactiveTransaction mongoTransactionObject = toAerospikeTransaction(transaction);
+            AerospikeReactiveTransaction aerospikeTransaction = toAerospikeTransaction(transaction);
             // create new resourceHolder with a new Tran, de facto start transaction
             Mono<AerospikeReactiveTransactionResourceHolder> resourceHolder = createResourceHolder(client);
 
             return resourceHolder
-                .doOnNext(mongoTransactionObject::setResourceHolder)
+                .doOnNext(aerospikeTransaction::setResourceHolder)
                 .onErrorMap(e -> new TransactionSystemException("Could not start transaction", e))
                 .doOnSuccess(rHolder -> synchronizationManager.bindResource(client, rHolder))
                 .then();
         });
     }
 
-    private Mono<AerospikeReactiveTransactionResourceHolder> createResourceHolder(IAerospikeClient client) {
+    private Mono<AerospikeReactiveTransactionResourceHolder> createResourceHolder(IAerospikeReactorClient client) {
         return Mono.just(new AerospikeReactiveTransactionResourceHolder(client));
     }
 
@@ -92,7 +92,8 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     }
 
     @Override
-    protected Mono<Object> doSuspend(TransactionSynchronizationManager synchronizationManager, Object transaction) throws TransactionException {
+    protected Mono<Object> doSuspend(TransactionSynchronizationManager synchronizationManager, Object transaction)
+        throws TransactionException {
         return Mono.fromSupplier(() -> {
             AerospikeReactiveTransaction aerospikeTransaction = toAerospikeTransaction(transaction);
             aerospikeTransaction.setResourceHolder(null);
@@ -125,11 +126,11 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     protected Mono<Void> doCleanupAfterCompletion(TransactionSynchronizationManager synchronizationManager,
                                                   Object transaction) {
         return Mono.fromRunnable(() -> {
-                AerospikeReactiveTransaction mongoTransactionObject = toAerospikeTransaction(transaction);
+                AerospikeReactiveTransaction aerospikeTransaction = toAerospikeTransaction(transaction);
 
                 // Remove the value (resource holder) from the thread.
                 synchronizationManager.unbindResource(client);
-                mongoTransactionObject.getRequiredResourceHolder().clear();
+                aerospikeTransaction.getRequiredResourceHolder().clear();
             }).onErrorMap(e -> new TransactionSystemException("Could not resume transaction", e))
             .then();
     }
