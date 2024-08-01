@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.transaction;
+package org.springframework.data.aerospike.transaction.sync;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Tran;

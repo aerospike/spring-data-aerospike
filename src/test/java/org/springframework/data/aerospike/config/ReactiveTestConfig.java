@@ -11,7 +11,10 @@ import org.springframework.data.aerospike.repository.config.EnableReactiveAerosp
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.aerospike.transaction.reactive.AerospikeReactiveTransactionManager;
 import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
+import org.springframework.transaction.reactive.TransactionalOperator;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;
@@ -42,5 +45,15 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
                                                                  ServerVersionSupport serverVersionSupport) {
         return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, aerospike, template,
             serverVersionSupport);
+    }
+
+    @Bean
+    public AerospikeReactiveTransactionManager aerospikeReactiveTransactionManager(IAerospikeClient client) {
+        return new AerospikeReactiveTransactionManager(client);
+    }
+
+    @Bean
+    public TransactionalOperator reactiveTransactionalOperator(AerospikeReactiveTransactionManager reactiveTransactionManager) {
+        return TransactionalOperator.create(reactiveTransactionManager, new DefaultTransactionDefinition());
     }
 }

@@ -28,7 +28,7 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
-import org.springframework.data.aerospike.transaction.AerospikeTransactionManager;
+import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 

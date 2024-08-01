@@ -1,12 +1,14 @@
-package org.springframework.data.aerospike.transaction;
+package org.springframework.data.aerospike.transaction.reactive;
 
+import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionResourceHolder;
 import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
-public class AerospikeTransaction {
+public class AerospikeReactiveTransaction {
 
-    private @Nullable AerospikeTransactionResourceHolder resourceHolder;
+    private @Nullable AerospikeReactiveTransactionResourceHolder resourceHolder;
 
-    AerospikeTransaction(@Nullable AerospikeTransactionResourceHolder resourceHolder) {
+    AerospikeReactiveTransaction(@Nullable AerospikeReactiveTransactionResourceHolder resourceHolder) {
         this.resourceHolder = resourceHolder;
     }
 
@@ -17,12 +19,17 @@ public class AerospikeTransaction {
         return resourceHolder != null;
     }
 
+    AerospikeReactiveTransactionResourceHolder getRequiredResourceHolder() {
+        Assert.state(resourceHolder != null, "Reactive resourceHolder is required to be not null");
+        return resourceHolder;
+    }
+
     /**
      * Set corresponding {@link AerospikeTransactionResourceHolder}
      *
      * @param resourceHolder can be {@literal null}.
      */
-    void setResourceHolder(@Nullable AerospikeTransactionResourceHolder resourceHolder) {
+    void setResourceHolder(@Nullable AerospikeReactiveTransactionResourceHolder resourceHolder) {
         this.resourceHolder = resourceHolder;
     }
 

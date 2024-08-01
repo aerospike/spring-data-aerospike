@@ -8,7 +8,7 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
-import org.springframework.data.aerospike.transaction.AerospikeTransactionResourceHolder;
+import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionResourceHolder;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
