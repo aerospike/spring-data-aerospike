@@ -46,7 +46,6 @@ public class AerospikeTransactionManager extends AbstractPlatformTransactionMana
 
     @Override
     protected Object doGetTransaction() throws TransactionException {
-
         AerospikeTransactionResourceHolder resourceHolder =
             (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(getClient());
         return new AerospikeTransaction(resourceHolder);

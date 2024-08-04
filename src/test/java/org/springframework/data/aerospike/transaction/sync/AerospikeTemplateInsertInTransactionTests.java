@@ -19,15 +19,15 @@ import com.aerospike.client.Bin;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.WritePolicy;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
-import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionClass;
-import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithByteArray;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -37,9 +37,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateInsertInTransactionTests extends BaseBlockingIntegrationTests {
@@ -55,14 +55,20 @@ public class AerospikeTemplateInsertInTransactionTests extends BaseBlockingInteg
 
     @BeforeEach
     public void beforeEach() {
-        deleteAll(Person.class, CustomCollectionClass.class, DocumentWithByteArray.class, VersionedClass.class,
-            OVERRIDE_SET_NAME);
+        deleteAll(Person.class, SampleClasses.DocumentWithPrimitiveIntId.class,
+            SampleClasses.DocumentWithIntegerId.class);
+    }
+
+    @AfterEach
+    void verifyTransactionResourcesReleased() {
+        assertThat(TransactionSynchronizationManager.getResourceMap().isEmpty()).isTrue();
+        assertThat(TransactionSynchronizationManager.isSynchronizationActive()).isFalse();
     }
 
     @AfterAll
     public void afterAll() {
-        deleteAll(Person.class, CustomCollectionClass.class, DocumentWithByteArray.class, VersionedClass.class,
-            OVERRIDE_SET_NAME);
+        deleteAll(Person.class, SampleClasses.DocumentWithPrimitiveIntId.class,
+            SampleClasses.DocumentWithIntegerId.class);
     }
 
     @Test
@@ -71,48 +77,84 @@ public class AerospikeTemplateInsertInTransactionTests extends BaseBlockingInteg
             template.insert(new SampleClasses.DocumentWithPrimitiveIntId(100));
         });
 
-        // verify that commit() has been called
+        // verify that commit() was called
         verify(mockTxManager).commit(null);
+
+        // resource holder must be already released
+        assertThat(TransactionSynchronizationManager.getResource(client)).isNull();
     }
 
     @Test
-    public void insertInTransaction_verifyHasTran_unitTest() {
+    public void insertInTransaction_multipleWrites() {
+        // Multi-record transactions are supported starting with Server version 8.0+
         transactionTemplate.executeWithoutResult(status -> {
-            template.insert(new SampleClasses.DocumentWithPrimitiveIntId(100));
+            assertThat(status.isNewTransaction()).isTrue();
+            template.insert(new SampleClasses.DocumentWithIntegerId(100, "test1"));
+            template.save(new SampleClasses.DocumentWithIntegerId(100, "test2"));
         });
 
-        AerospikeTransactionResourceHolder rHolder =
-            (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
-
-        assertThat(rHolder.hasTransaction()).isTrue();
+        var result = template.findById(100, SampleClasses.DocumentWithIntegerId.class);
+        assertThat(result.getContent().equals("test2")).isTrue();
     }
 
     @Test
     public void insertAllInTransaction_insertsAllDocuments() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        if (serverVersionSupport.isMRTSupported()) {
-            List<Person> persons = IntStream.range(1, 10)
-                .mapToObj(age -> Person.builder().id(nextId())
-                    .firstName("Gregor")
-                    .age(age).build())
-                .collect(Collectors.toList());
+//        if (serverVersionSupport.isMRTSupported()) { // TODO: uncomment when server 8 is released, maybe as annotation
+        List<Person> persons = IntStream.range(1, 10)
+            .mapToObj(age -> Person.builder().id(nextId())
+                .firstName("Gregor")
+                .age(age).build())
+            .collect(Collectors.toList());
 
-            transactionTemplate.executeWithoutResult(status -> {
-                template.insertAll(persons);
-//                assertThat(status.isNewTransaction()).isTrue();
-            });
-        }
+        transactionTemplate.executeWithoutResult(status -> {
+            assertThat(status.isNewTransaction()).isTrue();
+            template.insertAll(persons);
+        });
+
+        var results = template.findAll(Person.class);
+        assertThat(results.toList()).containsAll(persons);
+//        }
     }
 
     @Test
     @Transactional
     public void test() {
-        template.insertAll(null); // TODO
+        template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(100))); // TODO: test
+    }
+
+    @Test
+    public void insertInTransaction_rollbackWorks() {
+        template.insert(new SampleClasses.DocumentWithPrimitiveIntId(100));
+
+        assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status ->
+            template.insert(new SampleClasses.DocumentWithPrimitiveIntId(100))))
+            .isInstanceOf(DuplicateKeyException.class)
+            .hasMessageContaining("Key already exists");
+
+//        var results = template.findAll(SampleClasses.DocumentWithPrimitiveIntId.class); // TODO: check
+//        assertThat(results.toList()).size().isEqualTo(1);
+        var result = template.findById(100, SampleClasses.DocumentWithPrimitiveIntId.class);
+        assertThat(result.getId()).isEqualTo(100);
+    }
+
+    @Test
+    public void multipleWritesInTransaction_rollbackWorks() {
+        assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
+                template.insert(new SampleClasses.DocumentWithPrimitiveIntId(100));
+                template.insert(new SampleClasses.DocumentWithPrimitiveIntId(100));
+            }
+            ))
+            .isInstanceOf(DuplicateKeyException.class)
+            .hasMessageContaining("Key already exists");
+
+        // No record was written because all writes were in the same transaction
+        assertThat(template.findById(100, SampleClasses.DocumentWithPrimitiveIntId.class)).isNull();
     }
 
     @Test
     @Transactional
-    public void test2() { // TODO
+    public void test2() { // TODO: direct calls to client within a transaction
         WritePolicy wp = client.copyWritePolicyDefault();
         wp.expiration = 1;
         // some specific configuration

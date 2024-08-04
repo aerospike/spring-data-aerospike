@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
+import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -52,6 +53,15 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         return clientPolicy;
     }
 
+    @Override
+    @Bean(name = "aerospikeClient", destroyMethod = "close")
+    public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
+        ClientPolicy policy = getClientPolicy();
+        policy.user = "tester";
+        policy.password = "psw";
+        return new AerospikeClient(policy, settings.getConnectionSettings().getHostsArray());
+    }
+
     @Bean
     public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template, IAerospikeClient client,
                                                                  GenericContainer<?> aerospike,
@@ -60,10 +70,14 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
             serverVersionSupport);
     }
 
-    @Override
-    @Bean(name = "aerospikeClient", destroyMethod = "close")
-    public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
-        return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
+    @Bean
+    public org.testcontainers.containers.GenericContainer<?> genericContainer() {
+        return new GenericContainer<>();
+    }
+
+    @Bean
+    public AerospikeTestOperations aerospikeTestOperations(GenericContainer<?> aerospike) {
+        return new AerospikeTestOperations(null, aerospike);
     }
 
     @Bean
