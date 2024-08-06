@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.config;
 
-import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
 import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
@@ -51,15 +50,6 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         clientPolicy.infoPolicyDefault.timeout = totalTimeout;
         clientPolicy.readPolicyDefault.maxRetries = 3;
         return clientPolicy;
-    }
-
-    @Override
-    @Bean(name = "aerospikeClient", destroyMethod = "close")
-    public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
-        ClientPolicy policy = getClientPolicy();
-        policy.user = "tester";
-        policy.password = "psw";
-        return new AerospikeClient(policy, settings.getConnectionSettings().getHostsArray());
     }
 
     @Bean

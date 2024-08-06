@@ -1,9 +1,11 @@
 package org.springframework.data.aerospike.transaction.sync;
 
 import org.springframework.lang.Nullable;
+import org.springframework.transaction.support.SmartTransactionObject;
+import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import org.springframework.util.Assert;
 
-public class AerospikeTransaction {
+public class AerospikeTransaction implements SmartTransactionObject {
 
     private @Nullable AerospikeTransactionResourceHolder resourceHolder;
 
@@ -18,7 +20,7 @@ public class AerospikeTransaction {
         return resourceHolder != null;
     }
 
-    AerospikeTransactionResourceHolder getRequiredResourceHolder() {
+    AerospikeTransactionResourceHolder getResourceHolderOrFail() {
         Assert.state(resourceHolder != null, "ResourceHolder is required to be not null");
         return resourceHolder;
     }
@@ -50,5 +52,15 @@ public class AerospikeTransaction {
     public void abortTransaction() {
         failIfNoTransaction();
         resourceHolder.getClient().abort(resourceHolder.getTransaction());
+    }
+
+    @Override
+    public boolean isRollbackOnly() {
+        return this.resourceHolder != null && this.resourceHolder.isRollbackOnly();
+    }
+
+    @Override
+    public void flush() {
+        TransactionSynchronizationUtils.triggerFlush();
     }
 }

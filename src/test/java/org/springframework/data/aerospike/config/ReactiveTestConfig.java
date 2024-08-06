@@ -2,6 +2,7 @@ package org.springframework.data.aerospike.config;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -46,6 +47,16 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
                                                                  ServerVersionSupport serverVersionSupport) {
         return new ReactiveBlockingAerospikeTestOperations(new IndexInfoParser(), client, aerospike, template,
             serverVersionSupport);
+    }
+
+    @Bean
+    public org.testcontainers.containers.GenericContainer<?> genericContainer() {
+        return new GenericContainer<>();
+    }
+
+    @Bean
+    public AerospikeTestOperations aerospikeTestOperations(GenericContainer<?> aerospike) {
+        return new AerospikeTestOperations(null, aerospike);
     }
 
     @Bean

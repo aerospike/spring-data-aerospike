@@ -27,10 +27,17 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     private static AerospikeReactiveTransaction toAerospikeTransaction(Object transaction) {
         Assert.isInstanceOf(AerospikeReactiveTransaction.class, transaction,
             () -> String.format("Expected to find instance of %s but instead found %s",
-                AerospikeReactiveTransaction.class,
-                transaction.getClass()));
+                AerospikeReactiveTransaction.class, transaction.getClass()));
 
         return (AerospikeReactiveTransaction) transaction;
+    }
+
+    private static AerospikeReactiveTransaction getTransaction(GenericReactiveTransaction status) {
+        Assert.isInstanceOf(AerospikeReactiveTransaction.class, status.getTransaction(),
+            () -> String.format("Expected to find instance of %s but instead found %s",
+                AerospikeReactiveTransaction.class, status.getTransaction().getClass()));
+
+        return (AerospikeReactiveTransaction) status.getTransaction();
     }
 
     @Override
@@ -56,7 +63,10 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
             return resourceHolder
                 .doOnNext(aerospikeTransaction::setResourceHolder)
                 .onErrorMap(e -> new TransactionSystemException("Could not start transaction", e))
-                .doOnSuccess(rHolder -> synchronizationManager.bindResource(client, rHolder))
+                .doOnSuccess(rHolder -> {
+                    rHolder.setSynchronizedWithTransaction(true);
+                    synchronizationManager.bindResource(client, rHolder);
+                })
                 .then();
         });
     }
@@ -69,7 +79,7 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     protected Mono<Void> doCommit(TransactionSynchronizationManager synchronizationManager,
                                   GenericReactiveTransaction status) {
         return Mono.defer(() -> {
-            AerospikeReactiveTransaction transaction = toAerospikeTransaction(status);
+            AerospikeReactiveTransaction transaction = getTransaction(status);
             transaction.commitTransaction();
 
             return Mono.empty()
@@ -82,7 +92,7 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     protected Mono<Void> doRollback(TransactionSynchronizationManager synchronizationManager,
                                     GenericReactiveTransaction status) {
         return Mono.defer(() -> {
-            AerospikeReactiveTransaction transaction = toAerospikeTransaction(status);
+            AerospikeReactiveTransaction transaction = getTransaction(status);
             transaction.abortTransaction();
 
             return Mono.empty()

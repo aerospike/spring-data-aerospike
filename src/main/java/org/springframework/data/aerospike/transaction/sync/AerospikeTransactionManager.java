@@ -89,6 +89,8 @@ public class AerospikeTransactionManager extends AbstractPlatformTransactionMana
     @Override
     protected void doRollback(DefaultTransactionStatus status) throws TransactionException {
         AerospikeTransaction transaction = getTransaction(status); // get transaction with associated resourceHolder
+        System.out.printf("About to rollback transaction with Tran id %d%n",
+            transaction.getResourceHolderOrFail().getTransaction().getId());
         transaction.abortTransaction();
     }
 
@@ -116,7 +118,7 @@ public class AerospikeTransactionManager extends AbstractPlatformTransactionMana
     protected void doSetRollbackOnly(DefaultTransactionStatus status) throws TransactionException {
         try {
             AerospikeTransaction transaction = getTransaction(status);
-            transaction.getRequiredResourceHolder().setRollbackOnly();
+            transaction.getResourceHolderOrFail().setRollbackOnly();
         } catch (Exception e) {
             throw new TransactionSystemException("Could not set rollback only for a transaction", e);
         }
@@ -126,8 +128,8 @@ public class AerospikeTransactionManager extends AbstractPlatformTransactionMana
     protected void doCleanupAfterCompletion(Object transaction) {
         AerospikeTransaction aerospikeTransaction = toAerospikeTransaction(transaction);
 
-        // Remove the value (resource holder) from the thread.
+        // Remove the value (resource holder) from the thread
         TransactionSynchronizationManager.unbindResource(client);
-        aerospikeTransaction.getRequiredResourceHolder().clear();
+        aerospikeTransaction.getResourceHolderOrFail().clear();
     }
 }

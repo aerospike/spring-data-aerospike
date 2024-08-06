@@ -1358,6 +1358,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private Record doPersistAndHandleError(AerospikeWriteData data, WritePolicy policy, Operation[] operations) {
         try {
             WritePolicy wPolicy = (WritePolicy) checkForTransaction(client, policy);
+            if (policy.tran != null) {
+                System.out.printf("About to write using wPolicy.tran with id %d%n", wPolicy.tran.getId()); // TODO: temp
+            }
             return client.operate(wPolicy, data.getKey(), operations);
         } catch (AerospikeException e) {
             throw translateError(e);
