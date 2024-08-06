@@ -55,7 +55,7 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
         CustomCollectionClass initial = new CustomCollectionClass(id, "data0");
         reactiveTemplate.insert(initial).block();
 
-        StepVerifier.create(reactorClient.get(new Policy(), new Key(getNameSpace(), "custom-set", id)))
+        StepVerifier.create(reactiveClient.get(new Policy(), new Key(getNameSpace(), "custom-set", id)))
             .assertNext(keyRecord -> assertThat(keyRecord.record.getString("data")).isEqualTo("data0"))
             .verifyComplete();
         CustomCollectionClass result = findById(id, CustomCollectionClass.class);

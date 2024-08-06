@@ -208,7 +208,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         reactiveTemplate.update(document).block();
         reactiveTemplate.update(document).block();
 
-        StepVerifier.create(reactorClient.get(new Policy(), new Key(getNameSpace(), "versioned-set", id)))
+        StepVerifier.create(reactiveClient.get(new Policy(), new Key(getNameSpace(), "versioned-set", id)))
             .assertNext(keyRecord -> assertThat(keyRecord.record.generation).isEqualTo(3))
             .verifyComplete();
         VersionedClass actual = findById(id, VersionedClass.class);
@@ -222,7 +222,7 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
         reactiveTemplate.update(document, OVERRIDE_SET_NAME).block();
         reactiveTemplate.update(document, OVERRIDE_SET_NAME).block();
 
-        StepVerifier.create(reactorClient.get(new Policy(), new Key(getNameSpace(), OVERRIDE_SET_NAME, id)))
+        StepVerifier.create(reactiveClient.get(new Policy(), new Key(getNameSpace(), OVERRIDE_SET_NAME, id)))
             .assertNext(keyRecord -> assertThat(keyRecord.record.generation).isEqualTo(3))
             .verifyComplete();
         VersionedClass actual = findById(id, VersionedClass.class, OVERRIDE_SET_NAME);

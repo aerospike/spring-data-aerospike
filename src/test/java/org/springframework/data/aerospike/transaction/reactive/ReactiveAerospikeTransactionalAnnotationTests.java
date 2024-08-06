@@ -21,16 +21,16 @@ public class ReactiveAerospikeTransactionalAnnotationTests extends BaseReactiveI
     @Test
     @Transactional
     public void test2() { // TODO: direct calls to client within a transaction
-        WritePolicy wp = reactorClient.getWritePolicyDefault();
+        WritePolicy wp = reactiveClient.getWritePolicyDefault();
         wp.expiration = 1;
         // some specific configuration
         Key key = new Key("TEST", "testSet", "newKey1");
-        reactorClient.put(wp, key, new Bin("bin1", "val1"));
+        reactiveClient.put(wp, key, new Bin("bin1", "val1"));
 
-        WritePolicy wp2 = reactorClient.getWritePolicyDefault();
+        WritePolicy wp2 = reactiveClient.getWritePolicyDefault();
         wp.durableDelete = true;
         // some specific configuration
         Key key2 = new Key("TEST", "testSet", "existingKey2");
-        reactorClient.delete(wp2, key2);
+        reactiveClient.delete(wp2, key2);
     }
 }

@@ -24,15 +24,15 @@ public class ReactiveAerospikeTemplateMiscTests extends BaseReactiveIntegrationT
     public void execute_shouldTranslateException() {
         Key key = new Key(getNameSpace(), "shouldTranslateException", "reactiveShouldTranslateException");
         Bin bin = new Bin("bin_name", "bin_value");
-        StepVerifier.create(reactorClient.add(null, key, bin))
+        StepVerifier.create(reactiveClient.add(null, key, bin))
             .expectNext(key)
             .verifyComplete();
 
         StepVerifier.create(reactiveTemplate.execute(() -> {
-                WritePolicy writePolicy = WritePolicyBuilder.builder(reactorClient.getWritePolicyDefault())
+                WritePolicy writePolicy = WritePolicyBuilder.builder(reactiveClient.getWritePolicyDefault())
                     .recordExistsAction(RecordExistsAction.CREATE_ONLY)
                     .build();
-                return reactorClient.add(writePolicy, key, bin).subscribeOn(Schedulers.parallel()).block();
+                return reactiveClient.add(writePolicy, key, bin).subscribeOn(Schedulers.parallel()).block();
             }))
             .expectError(DuplicateKeyException.class)
             .verify();

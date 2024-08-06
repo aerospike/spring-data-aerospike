@@ -50,7 +50,7 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     @Autowired
     protected ReactiveAerospikeTemplate reactiveTemplate;
     @Autowired
-    protected IAerospikeReactorClient reactorClient;
+    protected IAerospikeReactorClient reactiveClient;
     @Autowired
     protected ServerVersionSupport serverVersionSupport;
     @Autowired

@@ -76,7 +76,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
         verify(mockTxManager).commit(null);
 
         // resource holder must be already released
-        assertThat(TransactionSynchronizationManager.getResource(reactorClient)).isNull();
+        assertThat(TransactionSynchronizationManager.getResource(reactiveClient)).isNull();
     }
 
     @Test
