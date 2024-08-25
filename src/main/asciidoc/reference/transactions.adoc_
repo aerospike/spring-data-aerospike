@@ -1,0 +1,149 @@
+[[transactions]]
+= Transactions
+
+In the context of database operations, a transaction is a sequence of statements that are executed as a single unit of work. Transactions typically follow the A.C.I.D. principle:
+[arabic]
+. **Atomicity** ensures that a transaction is treated as a single, indivisible unit; either all operations within the
+transaction are completed successfully, or none of them are applied.
+. **Consistency** ensures that a transaction brings the database from one valid state to another, maintaining all
+predefined rules and constraints.
+. **Isolation** ensures that transactions operate independently of one another, so that intermediate states of a
+transaction are not visible to others.
+. **Durability** guarantees that once a transaction has been committed, its changes are permanent.
+
+== Choosing Transaction Management Model
+
+Spring offers two models of transaction management: **declarative** and **programmatic**. When choosing between them,
+consider the complexity and requirements of your application.
+
+**Declarative transaction management** is typically preferred for its simplicity and ease of maintenance, as it allows
+to define transaction boundaries using annotations without altering the business logic code.
+This model suits for most applications where transaction boundaries are straightforward and the business logic
+does not require intricate transaction control.
+
+**Programmatic transaction management** is chosen when you need more fine-grained control over transactions,
+such as handling complex transaction scenarios.
+This approach is useful in situations where specific transaction behavior needs to be dynamically adjusted
+or when integrating with legacy code that requires explicit transaction management. When using this approach,
+it is possible to explicitly start, commit, and rollback transactions within the code if needed.
+
+In general, declarative management is more straightforward and reduces boilerplate code,
+while programmatic management offers more control but at the cost of increased complexity.
+
+== Declarative Transaction Management
+
+Declarative transaction management uses annotations to define transaction boundaries and behavior without changing
+the business logic code. It’s usually more common in Spring applications due to its simplicity and ease of use.
+
+You can annotate methods and/or classes with `@Transactional` to automatically handle transactions, including
+committing or rolling back based on execution.
+
+Couple other things needed to start working with transactions using declarative approach:
+[arabic]
+. A transaction manager must be specified in your Spring Configuration.
+. Spring Configuration must be annotated with the `@EnableTransactionManagement` annotation.
+
+=== Example
+
+Here is an example that shows applying `@Transactional` to a method.
+It ensures that the entire method runs within a transaction context, and Spring manages the transaction lifecycle
+(automatically committing the transaction if the method succeeds or rolling back if it encounters an exception).
+
+[source,java]
+----
+@Configuration
+@EnableTransactionManagement
+public class Config {
+
+    @Bean
+    public AerospikeTransactionManager aerospikeTransactionManager(IAerospikeClient client) {
+        return new AerospikeTransactionManager(client);
+    }
+
+    // Other configuration
+}
+
+@Service
+public class MyService {
+
+    @Transactional
+    public void performDatabaseOperations() {
+        // Perform database operations
+    }
+}
+----
+
+== Programmatic Transaction Management
+
+Programmatic transaction management gives developers fine-grained control over transactions through code.
+This approach involves manually managing transactions using Spring’s API.
+
+The Spring Framework offers two ways for programmatic transaction management:
+
+[arabic]
+. Using `TransactionTemplate` or `TransactionalOperator` which use callback approach
+(for programmatic transaction management in imperative code it is typically recommended to use `TransactionTemplate`;
+for reactive code, `TransactionalOperator` is preferred).
+. Directly using a `TransactionManager` implementation.
+
+=== Example
+
+Here is an example that shows using a programmatic transaction in a method.
+You would use `TransactionTemplate` to wrap your database operations in a transaction block,
+ensuring the transaction is automatically committed if successful or rolled back if an exception occurs.
+
+[source,java]
+----
+@Configuration
+public class Config {
+
+    @Bean
+    public AerospikeTransactionManager aerospikeTransactionManager(IAerospikeClient client) {
+        return new AerospikeTransactionManager(client);
+    }
+
+    @Bean
+    public TransactionTemplate transactionTemplate(AerospikeTransactionManager transactionManager) {
+        return new TransactionTemplate(transactionManager);
+    }
+
+    // Other configuration
+}
+
+@Service
+public class MyService {
+
+    @Autowired
+    TransactionTemplate transactionTemplate;
+
+    public void performDatabaseOperations() {
+        transactionTemplate.executeWithoutResult(status -> {
+            // Perform database operations
+        });
+    }
+}
+----
+
+== Aerospike Operations Support
+
+Behind the curtains Aerospike transaction manager uses MRTs (multi-record transactions)
+which is an Aerospike feature allowing to group together multiple Aerospike operation requests
+into a single transaction.
+
+NOTE: Not all of the Aerospike operations can participate in transactions.
+
+Here is a list of Aerospike operations that participate in transactions:
+
+[arabic]
+. all single record operations (`insert`, `save`, `update`, `add`, `append`, `persist`, `findById`, `exists`, `delete`)
+. all batch operations without query (`insertAll`, `saveAll`, `findByIds`, `deleteAll`)
+. queries that include `id` (e.g., repository queries like `findByIdAndName`)
+
+The following operations do not participate in transactions
+(will not become part of a transaction if included into it):
+
+[arabic]
+. `truncate`
+. queries that do not include `id` (e.g., repository queries like `findByName`)
+. operations that perform info commands (e.g., `indexExists`)
+. operations that perform scans (using ScanPolicy)

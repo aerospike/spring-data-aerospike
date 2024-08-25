@@ -34,7 +34,7 @@ public abstract class BaseReactiveQueryEngineTests extends BaseReactiveIntegrati
     }
 
     protected void tryDropIndex(String namespace, String setName, String indexName) {
-        reactorClient.dropIndex(null, namespace, setName, indexName)
+        reactiveClient.dropIndex(null, namespace, setName, indexName)
             .onErrorResume(throwable -> throwable instanceof AerospikeException
                     && ((AerospikeException) throwable).getResultCode() == ResultCode.INDEX_NOTFOUND,
                 throwable -> Mono.empty())
@@ -51,7 +51,7 @@ public abstract class BaseReactiveQueryEngineTests extends BaseReactiveIntegrati
     protected void tryCreateIndex(String namespace, String setName, String indexName, String binName,
                                   IndexType indexType,
                                   IndexCollectionType collectionType) {
-        reactorClient.createIndex(null, namespace, setName, indexName, binName, indexType, collectionType)
+        reactiveClient.createIndex(null, namespace, setName, indexName, binName, indexType, collectionType)
             .onErrorResume(throwable -> throwable instanceof AerospikeException
                     && ((AerospikeException) throwable).getResultCode() == ResultCode.INDEX_ALREADY_EXISTS,
                 throwable -> Mono.empty())

@@ -50,14 +50,14 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     @Autowired
     protected ReactiveAerospikeTemplate reactiveTemplate;
     @Autowired
-    protected IAerospikeReactorClient reactorClient;
+    protected IAerospikeReactorClient reactiveClient;
     @Autowired
     protected ServerVersionSupport serverVersionSupport;
     @Autowired
     protected
     ReactorQueryEngine reactiveQueryEngine;
     @Autowired
-    protected ReactorIndexRefresher reactorIndexRefresher;
+    protected ReactorIndexRefresher reactiveIndexRefresher;
     @Autowired
     protected IndexesCache indexesCache;
     @Autowired
@@ -149,5 +149,22 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
         Statement statement = reactiveQueryEngine.getStatementBuilder().build(namespace, setName, query, binNames);
         // Checking that the statement has secondary index filter (which means it will be used)
         return statement.getFilter() != null;
+    }
+
+    /**
+     * Delete all entities of a class or a set.
+     *
+     * @param objectsToDelete Each of the objects must be either a Class or a String.
+     */
+    protected void deleteAll(Object... objectsToDelete) {
+        for (Object toDelete : objectsToDelete) {
+            if (toDelete instanceof Class<?>) {
+                reactiveTemplate.deleteAll((Class<?>) toDelete).block();
+            } else if (toDelete instanceof String) {
+                reactiveTemplate.deleteAll((String) toDelete).block();
+            } else {
+                throw new IllegalArgumentException("Expecting either a Class<?> or a String");
+            }
+        }
     }
 }

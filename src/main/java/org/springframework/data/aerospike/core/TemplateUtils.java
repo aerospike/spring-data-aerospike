@@ -1,13 +1,17 @@
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.policy.Policy;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.transactions.sync.AerospikeTransactionResourceHolder;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -112,4 +116,13 @@ public class TemplateUtils {
         return binNamesList.toArray(new String[0]);
     }
 
+    public static Policy checkForTransaction(IAerospikeClient client, Policy policy) {
+        if (TransactionSynchronizationManager.hasResource(client)) {
+            AerospikeTransactionResourceHolder resourceHolder =
+                (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
+            policy.txn = resourceHolder.getTransaction();
+            return policy;
+        }
+        return policy;
+    }
 }

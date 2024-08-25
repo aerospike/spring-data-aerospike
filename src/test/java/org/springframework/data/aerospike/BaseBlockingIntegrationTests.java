@@ -21,6 +21,7 @@ import org.springframework.data.aerospike.query.model.IndexedField;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.aerospike.transactions.sync.AerospikeTransactionResourceHolder;
 import org.springframework.data.aerospike.util.QueryUtils;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.util.TypeInformation;
@@ -187,5 +188,10 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
                 throw new IllegalArgumentException("Expecting either a Class<?> or a String");
             }
         }
+    }
+
+    protected AerospikeTransactionResourceHolder createResourceHolder(IAerospikeClient client) {
+        AerospikeTransactionResourceHolder resourceHolder = new AerospikeTransactionResourceHolder(client);
+        return resourceHolder;
     }
 }

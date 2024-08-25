@@ -684,7 +684,7 @@ public interface AerospikeOperations {
     <T> T prepend(T document, String setName, String binName, String value);
 
     /**
-     * Execute an operation against underlying store.
+     * Execute an operation against underlying datastore.
      *
      * @param supplier must not be {@literal null}.
      * @return The resulting document.

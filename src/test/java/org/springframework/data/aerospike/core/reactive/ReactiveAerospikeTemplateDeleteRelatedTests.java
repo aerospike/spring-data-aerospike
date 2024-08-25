@@ -45,7 +45,7 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
 
     @Test
     public void deleteByObject_ignoresVersionEvenIfDefaultGenerationPolicyIsSet() {
-        WritePolicy writePolicyDefault = reactorClient.getWritePolicyDefault();
+        WritePolicy writePolicyDefault = reactiveClient.getWritePolicyDefault();
         GenerationPolicy initialGenerationPolicy = writePolicyDefault.generationPolicy;
         writePolicyDefault.generationPolicy = GenerationPolicy.EXPECT_GEN_EQUAL;
         try {
