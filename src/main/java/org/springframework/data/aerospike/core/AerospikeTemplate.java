@@ -48,6 +48,7 @@ import org.springframework.data.aerospike.util.InfoCommandUtils;
 import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.StreamUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
@@ -78,6 +79,7 @@ import static org.springframework.data.aerospike.core.TemplateUtils.checkForTran
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getBinNamesFromTargetClass;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+import static org.springframework.data.aerospike.core.TemplateUtils.getPolicyFilterExpOrDefault;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
@@ -786,13 +788,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return (S) findByIdUsingQuery(id, entityClass, targetClass, setName, null);
     }
 
-    private Record getRecord(AerospikePersistentEntity<?> entity, Key key, Query query) {
+    private Record getRecord(AerospikePersistentEntity<?> entity, Key key, @Nullable Query query) {
         Record aeroRecord;
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
             aeroRecord = getAndTouch(key, entity.getExpiration(), null, null);
         } else {
-            Policy policy = checkForTransaction(client, getPolicyFilterExp(query));
+            Policy policy = checkForTransaction(client, getPolicyFilterExpOrDefault(client, queryEngine, query));
             aeroRecord = client.get(policy, key);
         }
         return aeroRecord;
@@ -815,30 +817,20 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private <S> Object getRecordMapToTargetClass(AerospikePersistentEntity<?> entity, Key key, Class<S> targetClass,
-                                                 Query query) {
+                                                 @Nullable Query query) {
         Record aeroRecord;
         String[] binNames = getBinNamesFromTargetClass(targetClass, mappingContext);
         if (entity.isTouchOnRead()) {
             Assert.state(!entity.hasExpirationProperty(), "Touch on read is not supported for expiration property");
             aeroRecord = getAndTouch(key, entity.getExpiration(), binNames, query);
         } else {
-            Policy policy = checkForTransaction(client, getPolicyFilterExp(query));
+            Policy policy = checkForTransaction(client, getPolicyFilterExpOrDefault(client, queryEngine, query));
             aeroRecord = client.get(policy, key, binNames);
         }
         return mapToEntity(key, targetClass, aeroRecord);
     }
 
-    private Policy getPolicyFilterExp(Query query) {
-        if (queryCriteriaIsNotNull(query)) {
-            Policy policy = new Policy(getAerospikeClient().getReadPolicyDefault());
-            Qualifier qualifier = query.getCriteriaObject();
-            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifier);
-            return policy;
-        }
-        return null;
-    }
-
-    private Record getAndTouch(Key key, int expiration, String[] binNames, Query query) {
+    private Record getAndTouch(Key key, int expiration, String[] binNames, @Nullable Query query) {
         WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(client.getWritePolicyDefault())
             .expiration(expiration);
 
@@ -944,7 +936,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T, S> Object findByIdUsingQuery(Object id, Class<T> entityClass, Class<S> targetClass, String setName,
-                                            Query query) {
+                                            @Nullable Query query) {
         Assert.notNull(id, "Id must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");

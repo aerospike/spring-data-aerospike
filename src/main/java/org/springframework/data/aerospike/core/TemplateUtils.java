@@ -7,7 +7,9 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.transactions.sync.AerospikeTransactionResourceHolder;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.data.mapping.context.MappingContext;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 import static org.springframework.data.aerospike.query.qualifier.Qualifier.and;
 import static org.springframework.data.aerospike.query.qualifier.Qualifier.or;
 
@@ -124,5 +127,20 @@ public class TemplateUtils {
             return policy;
         }
         return policy;
+    }
+
+    private static Policy getPolicyFilterExp(IAerospikeClient client, QueryEngine queryEngine, Query query) {
+        if (queryCriteriaIsNotNull(query)) {
+            Policy policy = new Policy(client.getReadPolicyDefault());
+            Qualifier qualifier = query.getCriteriaObject();
+            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifier);
+            return policy;
+        }
+        return null;
+    }
+
+    static Policy getPolicyFilterExpOrDefault(IAerospikeClient client, QueryEngine queryEngine, Query query) {
+        Policy policy = getPolicyFilterExp(client, queryEngine, query);
+        return checkForTransaction(client, policy != null ? policy : client.getReadPolicyDefault());
     }
 }
