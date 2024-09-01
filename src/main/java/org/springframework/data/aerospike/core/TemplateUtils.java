@@ -106,8 +106,12 @@ public class TemplateUtils {
 
         List<String> binNamesList = new ArrayList<>();
 
-        targetEntity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property
-            -> binNamesList.add(property.getFieldName()));
+        targetEntity.doWithProperties(
+            (PropertyHandler<AerospikePersistentProperty>) property -> {
+                if (!property.isIdProperty()) {
+                    binNamesList.add(property.getFieldName());
+                }
+            });
 
         return binNamesList.toArray(new String[0]);
     }

@@ -18,6 +18,7 @@ package org.springframework.data.aerospike.core.sync;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
@@ -65,11 +66,32 @@ public class AerospikeTemplateFindAllTests extends AerospikeTemplateFindByQueryT
         Stream<Person> result = template.findAll(Person.class);
         assertThat(result).isEmpty();
 
+        // bring records back
         // batch write operations are supported starting with Server version 6.0+
         if (serverVersionSupport.isBatchWriteSupported()) {
             template.insertAll(allPersons);
         } else {
             allPersons.forEach(person -> template.insert(person));
         }
+    }
+
+    @Test
+    public void findAll_findIdOnlyRecord() {
+        var id = 100;
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(id); // id-only document
+        var clazz = SampleClasses.DocumentWithPrimitiveIntId.class;
+
+        var existingDoc = template.findById(id, clazz);
+        assertThat(existingDoc).withFailMessage("The same record already exists").isNull();
+
+        template.insert(doc);
+        var resultsFindById = template.findById(id, clazz);
+        assertThat(resultsFindById).withFailMessage("findById error").isEqualTo(doc);
+        var resultsFindAll = template.findAll(clazz);
+        // findAll() must correctly find the record that contains id and no bins
+        assertThat(resultsFindAll.toList()).size().withFailMessage("findAll error").isEqualTo(1);
+
+        // cleanup
+        template.delete(doc);
     }
 }

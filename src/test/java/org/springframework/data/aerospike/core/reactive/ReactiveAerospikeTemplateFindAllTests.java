@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.core.reactive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.SampleClasses;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
@@ -51,5 +52,25 @@ public class ReactiveAerospikeTemplateFindAllTests extends ReactiveAerospikeTemp
             .collectList().block();
 
         assertThat(actual).isEmpty();
+    }
+
+    @Test
+    public void findAll_findIdOnlyRecord() {
+        var id = 100;
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(id); // id-only document
+        var clazz = SampleClasses.DocumentWithPrimitiveIntId.class;
+
+        var existingDoc = reactiveTemplate.findById(id, clazz).block();
+        assertThat(existingDoc).withFailMessage("The same record already exists").isNull();
+
+        reactiveTemplate.insert(doc).block();
+        var resultsFindById = reactiveTemplate.findById(id, clazz).block();
+        assertThat(resultsFindById).withFailMessage("findById error").isEqualTo(doc);
+        var resultsFindAll = reactiveTemplate.findAll(clazz).collectList().block();
+        // findAll() must correctly find the record that contains id and no bins
+        assertThat(resultsFindAll).size().withFailMessage("findAll error").isEqualTo(1);
+
+        // cleanup
+        reactiveTemplate.delete(doc);
     }
 }
