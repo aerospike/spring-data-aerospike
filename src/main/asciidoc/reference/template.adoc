@@ -75,7 +75,7 @@ long count = template.count
                 (new QualifierBuilder()
                     .setFilterOperation(FilterOperation.EQ)
                     .setField("firstName")
-                    .setValue1(Value.get("John"))
+                    .setValue("John")
                     .build()
                 ),
             Person.class

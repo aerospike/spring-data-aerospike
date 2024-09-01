@@ -43,7 +43,7 @@ Below is an example of different variations:
     Qualifier firstNameEqJohn = Qualifier.builder()
         .setField("firstName")
         .setFilterOperation(FilterOperation.EQ)
-        .setValue1(Value.get("John"))
+        .setValue("John")
         .build();
     result = repository.findUsingQuery(new Query(firstNameEqJohn));
     assertThat(result).containsOnly(john);
@@ -57,7 +57,7 @@ Below is an example of different variations:
     Qualifier sinceUpdateTimeLt50Seconds = Qualifier.metadataBuilder()
         .setMetadataField(SINCE_UPDATE_TIME)
         .setFilterOperation(FilterOperation.LT)
-        .setValue1AsObj(50000L)
+        .setValue(50000L)
         .build();
     result = repository.findUsingQuery(new Query(sinceUpdateTimeLt50Seconds));
     assertThat(result).contains(john);

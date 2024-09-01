@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.core.reactive;
 
-import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,18 +28,6 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
     public void beforeAllSetUp() {
         reactiveTemplate.deleteAll(Person.class).block();
         reactiveTemplate.deleteAll(OVERRIDE_SET_NAME).block();
-        additionalAerospikeTestOperations.createIndex(
-            Person.class, "person_age_index", "age", IndexType.NUMERIC);
-        additionalAerospikeTestOperations.createIndex(
-            Person.class, "person_last_name_index", "lastName", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndex(
-            Person.class, "person_first_name_index", "firstName", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndex(
-            OVERRIDE_SET_NAME, "person_age_index" + OVERRIDE_SET_NAME, "age", IndexType.NUMERIC);
-        additionalAerospikeTestOperations.createIndex(
-            OVERRIDE_SET_NAME, "person_last_name_index" + OVERRIDE_SET_NAME, "lastName", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndex(
-            OVERRIDE_SET_NAME, "person_first_name_index" + OVERRIDE_SET_NAME, "firstName", IndexType.STRING);
     }
 
     @Override
@@ -53,12 +40,6 @@ public class ReactiveAerospikeTemplateFindByQueryProjectionTest extends BaseReac
 
     @AfterAll
     public void afterAll() {
-        additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
-        additionalAerospikeTestOperations.dropIndex(Person.class, "person_last_name_index");
-        additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
-        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_age_index" + OVERRIDE_SET_NAME);
-        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_last_name_index" + OVERRIDE_SET_NAME);
-        additionalAerospikeTestOperations.dropIndex(OVERRIDE_SET_NAME, "person_first_name_index" + OVERRIDE_SET_NAME);
         reactiveTemplate.deleteAll(Person.class).block();
         reactiveTemplate.deleteAll(OVERRIDE_SET_NAME).block();
     }

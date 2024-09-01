@@ -127,7 +127,7 @@ public enum FilterOperation {
                     Qualifier.builder()
                         .setPath(getBinName(qualifierMap))
                         .setFilterOperation(FilterOperation.EQ)
-                        .setValue(Value.get(item))
+                        .setValue(item)
                         .build()
                         .getFilterExp()
                 ).toArray(Exp[]::new);
@@ -154,7 +154,7 @@ public enum FilterOperation {
                     Qualifier.builder()
                         .setPath(getBinName(qualifierMap))
                         .setFilterOperation(FilterOperation.NOTEQ)
-                        .setValue(Value.get(item))
+                        .setValue(item)
                         .build()
                         .getFilterExp()
                 ).toArray(Exp[]::new);
@@ -576,7 +576,7 @@ public enum FilterOperation {
                 Qualifier.builder()
                     .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY)
                     .setPath(path)
-                    .setValue(Value.get(item))
+                    .setValue(item)
                     .build()
                     .getFilterExp()
             ).toArray(Exp[]::new);
@@ -609,7 +609,7 @@ public enum FilterOperation {
                 Qualifier.builder()
                     .setFilterOperation(FilterOperation.MAP_VAL_NOTEQ_BY_KEY)
                     .setPath(path)
-                    .setValue(Value.get(item))
+                    .setValue(item)
                     .build()
                     .getFilterExp()
             ).toArray(Exp[]::new);
@@ -1559,7 +1559,7 @@ public enum FilterOperation {
             Qualifier.metadataBuilder()
                 .setMetadataField(getMetadataField(qualifierMap))
                 .setFilterOperation(filterOperation)
-                .setValue(Value.get(item))
+                .setValue(item)
                 .build()
                 .getFilterExp()
         ).toArray(Exp[]::new);

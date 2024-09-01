@@ -153,7 +153,7 @@ public class AerospikeQueryCreatorUtils {
 
     protected static void setQbValuesForMapByKey(QueryQualifierBuilder qb, Object key, Object value) {
         qb.setKey(Value.get(value)); // contains value
-        qb.setValue(Value.get(key)); // contains key
+        qb.setValue(key); // contains key
     }
 
     protected static Object convertIfNecessary(Object obj, MappingAerospikeConverter converter) {

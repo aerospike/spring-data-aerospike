@@ -1,6 +1,5 @@
 package org.springframework.data.aerospike.repository.query.blocking.noindex.findBy;
 
-import com.aerospike.client.Value;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
@@ -43,7 +42,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier genderEqFemale = Qualifier.builder()
             .setPath("gender")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get(Person.Gender.FEMALE))
+            .setValue(Person.Gender.FEMALE)
             .build();
         assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
     }
@@ -58,7 +57,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
             // custom bin name has been set to "email" via @Field annotation
             .setPath("email")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get(email))
+            .setValue(email)
             .build();
         assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
     }
@@ -95,14 +94,14 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier firstNameEqCarter = Qualifier.builder()
             .setPath("firstName")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get("Carter"))
+            .setValue("Carter")
             .build();
 
         // creating an expression "age is equal to 49"
         Qualifier ageEq49 = Qualifier.builder()
             .setPath("age")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get(49))
+            .setValue(49)
             .build();
         result = repository.findUsingQuery(new Query(ageEq49));
         assertThat(result).containsOnly(carter);
@@ -111,7 +110,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier firstNameEqLeroi = Qualifier.builder()
             .setPath("firstName")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get("Leroi"))
+            .setValue("Leroi")
             .build();
         Query query = new Query(firstNameEqLeroi);
         query.setSort(Sort.by("age"));
@@ -123,7 +122,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier ageGt49 = Qualifier.builder()
             .setFilterOperation(FilterOperation.GT)
             .setPath("age")
-            .setValue(Value.get(49))
+            .setValue(49)
             .build();
         result = repository.findUsingQuery(new Query(ageGt49));
         assertThat(result).doesNotContain(carter);
@@ -288,7 +287,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier stringMapValuesContainString = Qualifier.builder()
             .setPath("stringMap")
             .setFilterOperation(FilterOperation.MAP_VALUES_CONTAIN)
-            .setValue(Value.get(valueToSearch))
+            .setValue(valueToSearch)
             .build();
         assertThat(repository.findUsingQuery(new Query(stringMapValuesContainString))).containsOnly(donny, boyd);
 
@@ -300,7 +299,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         Qualifier intMapWithExactKeyAndValueLt100 = Qualifier.builder()
             .setPath("intMap." + keyExactMatch) // Map bin name
             .setFilterOperation(FilterOperation.MAP_VAL_LT_BY_KEY)
-            .setValue(Value.get(valueToSearchLessThan)) // Map value to compare with
+            .setValue(valueToSearchLessThan) // Map value to compare with
             .build();
         assertThat(repository.findUsingQuery(new Query(intMapWithExactKeyAndValueLt100))).containsOnly(carter);
     }

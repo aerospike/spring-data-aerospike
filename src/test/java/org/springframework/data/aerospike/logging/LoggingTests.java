@@ -3,7 +3,6 @@ package org.springframework.data.aerospike.logging;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import com.aerospike.client.Value;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +45,7 @@ public class LoggingTests {
         Qualifier qualifier = Qualifier.builder()
             .setPath("testField")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get("testValue1"))
+            .setValue("testValue1")
             .build();
 
         StatementBuilder statementBuilder = new StatementBuilder(indexesCacheMock);
@@ -79,7 +78,7 @@ public class LoggingTests {
         Query query = new Query(Qualifier.builder()
             .setPath("firstName")
             .setFilterOperation(FilterOperation.EQ)
-            .setValue(Value.get("TestName"))
+            .setValue("TestName")
             .build());
         statementBuilder.build("TEST", "Person", query, null);
 
