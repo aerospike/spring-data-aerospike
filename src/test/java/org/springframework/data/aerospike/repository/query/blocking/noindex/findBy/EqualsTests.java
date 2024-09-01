@@ -227,7 +227,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
             .setPath("friend.address.zipCode") // path includes bin name, context and the required map key
-            .setValue(Value.get(zipCode)) // value of the nested key
+            .setValue(zipCode) // value of the nested key
             .build();
 
         Iterable<Person> result2 = repository.findUsingQuery(new Query(nestedZipCodeEq));
@@ -288,7 +288,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
             // path includes bin name, context and the required map key
             .setPath("friend.friend.friend.friend.friend.friend.friend.friend.bestFriend.address.zipCode")
-            .setValue(Value.get(zipCode)) // value of the nested key
+            .setValue(zipCode) // value of the nested key
             .build();
 
         Iterable<Person> result2 = repository.findUsingQuery(new Query(nestedZipCodeEq));
@@ -320,7 +320,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // POJOs are saved as Maps
             .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
             .setPath("friend.friend.friend.friend.friend.friend.friend.friend.bestFriend.address.apartment") // path
-            .setValue(Value.get(apartment)) // value of the nested key
+            .setValue(apartment) // value of the nested key
             .build();
 
         Iterable<Person> result2 = repository.findUsingQuery(new Query(nestedApartmentEq));
@@ -352,7 +352,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
                 // POJOs are saved as Maps
                 .setFilterOperation(FilterOperation.MAP_VAL_EQ_BY_KEY) // POJOs are saved as Maps
                 .setPath("friend.friend.friend.friend.friend.friend.friend.friend.bestFriend.address") // path
-                .setValue(Value.get(pojoToMap(address))) // value of the nested key
+                .setValue(pojoToMap(address)) // value of the nested key
                 .build();
 
             Iterable<Person> result2 = repository.findUsingQuery(new Query(nestedAddressEq));

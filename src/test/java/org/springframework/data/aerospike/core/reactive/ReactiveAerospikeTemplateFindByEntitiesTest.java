@@ -1,9 +1,9 @@
 package org.springframework.data.aerospike.core.reactive;
 
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
-import org.springframework.data.aerospike.core.AbstractFindByEntitiesTest;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
+import org.springframework.data.aerospike.core.sync.AbstractFindByEntitiesTest;
 import reactor.core.scheduler.Schedulers;
 
 public class ReactiveAerospikeTemplateFindByEntitiesTest

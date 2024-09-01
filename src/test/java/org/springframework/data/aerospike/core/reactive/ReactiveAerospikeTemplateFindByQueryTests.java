@@ -1,7 +1,5 @@
 package org.springframework.data.aerospike.core.reactive;
 
-import com.aerospike.client.query.IndexType;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,12 +35,6 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
     public void beforeAllSetUp() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class, OVERRIDE_SET_NAME);
-        additionalAerospikeTestOperations.createIndex(Person.class, "person_age_index",
-            "age", IndexType.NUMERIC);
-        additionalAerospikeTestOperations.createIndex(Person.class, "person_last_name_index",
-            "lastName", IndexType.STRING);
-        additionalAerospikeTestOperations.createIndex(Person.class, "person_first_name_index",
-            "firstName", IndexType.STRING);
     }
 
     @Override
@@ -51,129 +43,6 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class, OVERRIDE_SET_NAME);
         super.setUp();
-    }
-
-    @AfterAll
-    public void afterAll() {
-        additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
-        additionalAerospikeTestOperations.dropIndex(Person.class, "person_last_name_index");
-        additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class, OVERRIDE_SET_NAME);
-    }
-
-    @Test
-    public void findAll_findAllExistingDocuments() {
-        List<Person> persons = IntStream.rangeClosed(1, 10)
-            .mapToObj(age -> Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(age).build())
-            .collect(Collectors.toList());
-        reactiveTemplate.insertAll(persons).blockLast();
-
-        List<Person> result = reactiveTemplate.findAll(Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .collectList().block();
-        assertThat(result).hasSameElementsAs(persons);
-
-        deleteAll(persons); // cleanup
-    }
-
-    @Test
-    public void findAllWithSetName_findAllExistingDocuments() {
-        List<Person> persons = IntStream.rangeClosed(1, 10)
-            .mapToObj(age -> Person.builder().id(nextId()).firstName("Dave").lastName("Matthews").age(age).build())
-            .collect(Collectors.toList());
-        reactiveTemplate.insertAll(persons, OVERRIDE_SET_NAME).blockLast();
-
-        List<Person> result = reactiveTemplate.findAll(Person.class, OVERRIDE_SET_NAME)
-            .subscribeOn(Schedulers.parallel())
-            .collectList().block();
-        assertThat(result).hasSameElementsAs(persons);
-
-        deleteAll(persons, OVERRIDE_SET_NAME); // cleanup
-    }
-
-    @Test
-    public void findAll_findNothing() {
-        List<Person> actual = reactiveTemplate.findAll(Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .collectList().block();
-
-        assertThat(actual).isEmpty();
-    }
-
-    @Test
-    public void findInRange_shouldFindLimitedNumberOfDocuments() {
-        List<Person> allUsers = IntStream.range(20, 27)
-            .mapToObj(id -> new Person(nextId(), "Firstname", "Lastname")).collect(Collectors.toList());
-        reactiveTemplate.insertAll(allUsers).blockLast();
-
-        List<Person> actual = reactiveTemplate.findInRange(0, 5, Sort.unsorted(), Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .collectList().block();
-        assertThat(actual)
-            .hasSize(5)
-            .containsAnyElementsOf(allUsers);
-
-        deleteAll(allUsers); // cleanup
-    }
-
-    @Test
-    public void findInRange_shouldFindLimitedNumberOfDocumentsAndSkip() {
-        List<Person> allUsers = IntStream.range(20, 27)
-            .mapToObj(id -> new Person(nextId(), "Firstname", "Lastname")).collect(Collectors.toList());
-        reactiveTemplate.insertAll(allUsers).blockLast();
-
-        List<Person> actual = reactiveTemplate.findInRange(0, 5, Sort.unsorted(), Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .collectList().block();
-
-        assertThat(actual)
-            .hasSize(5)
-            .containsAnyElementsOf(allUsers);
-
-        deleteAll(allUsers); // cleanup
-    }
-
-    @Test
-    public void findInRangeWithSetName_shouldFindLimitedNumberOfDocumentsAndSkip() {
-        List<Person> allUsers = IntStream.range(20, 27)
-            .mapToObj(id -> new Person(nextId(), "Firstname", "Lastname")).collect(Collectors.toList());
-        reactiveTemplate.insertAll(allUsers, OVERRIDE_SET_NAME).blockLast();
-
-        List<Person> actual = reactiveTemplate.findInRange(0, 5, Sort.unsorted(), Person.class, OVERRIDE_SET_NAME)
-            .subscribeOn(Schedulers.parallel())
-            .collectList().block();
-
-        assertThat(actual)
-            .hasSize(5)
-            .containsAnyElementsOf(allUsers);
-
-        deleteAll(allUsers, OVERRIDE_SET_NAME); // cleanup
-    }
-
-    @Test
-    public void findInRange_shouldFindLimitedNumberOfDocumentsWithOrderBy() {
-        List<Person> persons = new ArrayList<>();
-        persons.add(new Person(nextId(), "Dave", "Matthews"));
-        persons.add(new Person(nextId(), "Josh", "Matthews"));
-        persons.add(new Person(nextId(), "Chris", "Yes"));
-        persons.add(new Person(nextId(), "Kate", "New"));
-        persons.add(new Person(nextId(), "Nicole", "Joshua"));
-        reactiveTemplate.insertAll(persons).blockLast();
-
-        int skip = 0;
-        int limit = 3;
-        Sort sort = Sort.by(asc("firstName"));
-
-        List<Person> result = reactiveTemplate.findInRange(skip, limit, sort, Person.class)
-            .subscribeOn(Schedulers.parallel())
-            .collectList().block();
-
-        assertThat(Objects.requireNonNull(result).stream().map(Person::getFirstName).collect(Collectors.toList()))
-            .hasSize(3)
-            .containsExactly("Chris", "Dave", "Josh");
-
-        deleteAll(persons); // cleanup
     }
 
     @Test
