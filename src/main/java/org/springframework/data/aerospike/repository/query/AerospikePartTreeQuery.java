@@ -28,6 +28,7 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,15 +63,12 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         // queries that include id have their own processing flow
         if (parameters != null && parameters.length > 0) {
             Qualifier criteria = query.getCriteriaObject();
-            List<Object> ids;
             if (criteria.hasSingleId()) {
-                ids = getIdValue(criteria);
-                return operations.findByIdsUsingQuery(ids, entityClass, targetClass, null);
+                return runQueryWithIds(targetClass, getIdValue(criteria), null);
             } else {
                 Qualifier idQualifier;
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
-                    ids = getIdValue(idQualifier);
-                    return operations.findByIdsUsingQuery(ids, entityClass, targetClass,
+                    return runQueryWithIds(targetClass, getIdValue(idQualifier),
                         new Query(excludeIdQualifier(criteria)));
                 }
             }
@@ -85,9 +83,29 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         } else if (queryMethod.isQueryForEntity()) {
             Stream<?> result = findByQuery(query, targetClass);
             return result.findFirst().orElse(null);
+        } else if (isExistsQuery(queryMethod)) {
+            return operations.exists(query, queryMethod.getEntityInformation().getJavaType());
+        } else if (isCountQuery(queryMethod)) {
+            return operations.count(query, queryMethod.getEntityInformation().getJavaType());
+        } else if (isDeleteQuery(queryMethod)) {
+            operations.delete(query, queryMethod.getEntityInformation().getJavaType());
+            return Optional.empty();
         }
         throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " is not " +
             "supported");
+    }
+
+    protected Object runQueryWithIds(Class<?> targetClass, List<Object> ids, Query query) {
+        if (isExistsQuery(queryMethod)) {
+            return operations.existsByIdsUsingQuery(ids, entityClass, query);
+        } else if (isCountQuery(queryMethod)) {
+            return operations.countByIdsUsingQuery(ids, entityClass, query);
+        } else if (isDeleteQuery(queryMethod)) {
+            operations.deleteByIdsUsingQuery(ids, entityClass, query);
+            return Optional.empty();
+        } else {
+            return operations.findByIdsUsingQuery(ids, entityClass, targetClass, query);
+        }
     }
 
     private Object processPaginatedQuery(Class<?> targetClass, Pageable pageable, Query query) {

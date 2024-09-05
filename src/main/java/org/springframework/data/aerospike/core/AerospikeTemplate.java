@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -449,6 +450,51 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             return client.delete(ignoreGenerationPolicy(), key);
         } catch (AerospikeException e) {
             throw translateError(e);
+        }
+    }
+
+    public <T> void delete(Query query, Class<T> entityClass, String setName) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(entityClass, "Target class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        List<T> findQueryResults = find(query, entityClass, setName).filter(Objects::nonNull).toList();
+
+        if (!findQueryResults.isEmpty()) {
+            if (serverVersionSupport.isBatchWriteSupported()) {
+                deleteAll(findQueryResults);
+            } else {
+                findQueryResults.forEach(this::delete);
+            }
+        }
+    }
+
+    @Override
+    public <T> void delete(Query query, Class<T> entityClass) {
+        Assert.notNull(query, "Query passed in to exist can't be null");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        delete(query, entityClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+        deleteByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+    }
+
+    @Override
+    public <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
+        List<Object> findQueryResults = findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toUnmodifiableList());
+
+        if (!findQueryResults.isEmpty()) {
+            if (serverVersionSupport.isBatchWriteSupported()) {
+                deleteAll(findQueryResults);
+            } else {
+                findQueryResults.forEach(this::delete);
+            }
         }
     }
 
@@ -1122,19 +1168,33 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> boolean existsByQuery(Query query, Class<T> entityClass) {
+    public <T> boolean exists(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
-        return existsByQuery(query, entityClass, getSetName(entityClass));
+        return exists(query, entityClass, getSetName(entityClass));
     }
 
     @Override
-    public <T> boolean existsByQuery(Query query, Class<T> entityClass, String setName) {
+    public <T> boolean exists(Query query, Class<T> entityClass, String setName) {
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
         return find(query, entityClass, setName).findAny().isPresent();
+    }
+
+    @Override
+    public <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+        return existsByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+    }
+
+    @Override
+    public <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
+        long findQueryResults = findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+            .stream()
+            .filter(Objects::nonNull)
+            .count();
+        return findQueryResults > 0;
     }
 
     @Override
@@ -1196,6 +1256,19 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                     log.error("Caught exception while closing query", e);
                 }
             });
+    }
+
+    @Override
+    public <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+        return countByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+    }
+
+    @Override
+    public <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
+        return findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+            .stream()
+            .filter(Objects::nonNull)
+            .count();
     }
 
     @Override

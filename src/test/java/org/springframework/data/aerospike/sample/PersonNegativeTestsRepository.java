@@ -257,12 +257,62 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
     /**
      * Invalid number of arguments: expecting two
      */
+    boolean existsByIntsBetween();
+
+    /**
+     * Invalid number of arguments: expecting two
+     */
+    long countByIntsBetween();
+
+    /**
+     * Invalid number of arguments: expecting two
+     */
+    void deleteByIntsBetween();
+
+    /**
+     * Invalid number of arguments: expecting two
+     */
     List<P> findByIntsBetween(int number1);
+
+    /**
+     * Invalid number of arguments: expecting two
+     */
+    boolean existsByIntsBetween(int number1);
+
+    /**
+     * Invalid number of arguments: expecting two
+     */
+    long countByIntsBetween(int number1);
+
+    /**
+     * Invalid number of arguments: expecting two
+     */
+    void deleteByIntsBetween(int number1);
 
     /**
      * Type mismatch, expecting one of the following types: Number, Collection
      */
     List<P> findByIntsBetween(Map<Integer, Integer> map1, Map<Integer, Integer> map2);
+
+    /**
+     * Type mismatch, expecting one of the following types: Number, Collection
+     */
+    boolean existsByIntsBetween(Map<Integer, Integer> map1, Map<Integer, Integer> map2);
+
+    /**
+     * Type mismatch, expecting one of the following types: Number, Collection
+     */
+    long countByIntsBetween(Map<Integer, Integer> map1, Map<Integer, Integer> map2);
+
+    /**
+     * Type mismatch, expecting one of the following types: Number, Collection
+     */
+    long existsBycountByIntsBetween(Map<Integer, Integer> map1, Map<Integer, Integer> map2);
+
+    /**
+     * Type mismatch, expecting one of the following types: Number, Collection
+     */
+    void deleteByIntsBetween(Map<Integer, Integer> map1, Map<Integer, Integer> map2);
 
     /**
      * Invalid number of arguments: expecting one POJO

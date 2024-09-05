@@ -438,6 +438,62 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .onErrorMap(this::translateError);
     }
 
+    public <T> Mono<Void> delete(Query query, Class<T> entityClass, String setName) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(entityClass, "Target class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        Mono<List<T>> findQueryResults = find(query, entityClass, setName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toUnmodifiableList());
+
+        return findQueryResults.flatMap(list -> {
+                if (!list.isEmpty()) {
+                    if (serverVersionSupport.isBatchWriteSupported()) {
+                        return deleteAll(list);
+                    } else {
+                        list.forEach(this::delete);
+                        return Mono.empty();
+                    }
+                }
+                return Mono.empty();
+            }
+        );
+    }
+
+    @Override
+    public <T> Mono<Void> delete(Query query, Class<T> entityClass) {
+        Assert.notNull(query, "Query passed in to exist can't be null");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        return delete(query, entityClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+        return deleteByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+    }
+
+    @Override
+    public <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
+        Mono<List<Object>> findQueryResults = findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toUnmodifiableList());
+
+        return findQueryResults.flatMap(list -> {
+                if (!list.isEmpty()) {
+                    if (serverVersionSupport.isBatchWriteSupported()) {
+                        return deleteAll(list);
+                    } else {
+                        list.forEach(this::delete);
+                        return Mono.empty();
+                    }
+                }
+                return Mono.empty();
+            }
+        );
+    }
+
     @Override
     public <T> Mono<Boolean> deleteById(Object id, Class<T> entityClass) {
         Assert.notNull(id, "Id must not be null!");
@@ -1055,18 +1111,32 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass) {
+    public <T> Mono<Boolean> exists(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
-        return existsByQuery(query, entityClass, getSetName(entityClass));
+        return exists(query, entityClass, getSetName(entityClass));
     }
 
     @Override
-    public <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass, String setName) {
+    public <T> Mono<Boolean> exists(Query query, Class<T> entityClass, String setName) {
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
         return find(query, entityClass, setName).hasElements();
+    }
+
+    @Override
+    public <T> Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+        return existsByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+    }
+
+    @Override
+    public <T> Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName,
+                                                   Query query) {
+        return findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+            .filter(Objects::nonNull)
+            .count()
+            .map(count -> count > 0);
     }
 
     @Override
@@ -1085,6 +1155,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         } catch (AerospikeException e) {
             throw translateError(e);
         }
+    }
+
+    @Override
+    public <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+        return countByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+    }
+
+    @Override
+    public <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
+        return findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+            .filter(Objects::nonNull)
+            .count();
     }
 
     private long countSet(String setName) {
