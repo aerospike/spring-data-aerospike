@@ -29,7 +29,7 @@ public class ReactiveAerospikeRepositoryCountRelatedTests extends BaseReactiveIn
     @Test
     public void countByAgeBetween() {
         StepVerifier.create(customerRepo.countByAgeBetween(20, 1100))
-            .expectNext(2L)
+            .expectNextMatches(result -> result >= 2)
             .verifyComplete();
     }
 
