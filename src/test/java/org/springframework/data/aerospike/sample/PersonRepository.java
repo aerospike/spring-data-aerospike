@@ -76,8 +76,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIdAndFirstName(QueryParam ids, QueryParam firstName);
 
     /**
-     * Find if there are entities that satisfy the condition "have primary key in the given list and first name equal to the
-     * specified string".
+     * Find if there are entities that satisfy the condition "have primary key in the given list and first name equal to
+     * the specified string".
      *
      * @param ids       List of primary keys
      * @param firstName String to compare with
@@ -719,8 +719,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     boolean existsByFriendAgeBetween(int from, int to);
 
     /**
-     * Count entities that satisfy the condition "have a friend with the age in the given range" (find by
-     * POJO field)
+     * Count entities that satisfy the condition "have a friend with the age in the given range" (find by POJO field)
      *
      * @param from lower limit, inclusive
      * @param to   upper limit, exclusive
@@ -728,8 +727,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     long countByFriendAgeBetween(int from, int to);
 
     /**
-     * Delete entities that satisfy the condition "have a friend with the age in the given range" (find by
-     * POJO field)
+     * Delete entities that satisfy the condition "have a friend with the age in the given range" (find by POJO field)
      *
      * @param from lower limit, inclusive
      * @param to   upper limit, exclusive
@@ -839,8 +837,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     boolean existsByAddressZipCodeBetween(String lowerLimit, String upperLimit);
 
     /**
-     * Count entities that satisfy the condition "have address with zipCode between the given arguments"
-     * (find by nested simple property)
+     * Count entities that satisfy the condition "have address with zipCode between the given arguments" (find by nested
+     * simple property)
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
@@ -850,8 +848,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     long countByAddressZipCodeBetween(String lowerLimit, String upperLimit);
 
     /**
-     * Delete entities that satisfy the condition "have address with zipCode between the given arguments"
-     * (find by nested simple property)
+     * Delete entities that satisfy the condition "have address with zipCode between the given arguments" (find by
+     * nested simple property)
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
