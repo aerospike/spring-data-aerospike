@@ -76,6 +76,42 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIdAndFirstName(QueryParam ids, QueryParam firstName);
 
     /**
+     * Find if there are entities that satisfy the condition "have primary key in the given list and first name equal to the
+     * specified string".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare with
+     */
+    boolean existsByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    /**
+     * Count all entities that satisfy the condition "have primary key in the given list and first name equal to the
+     * specified string".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare with
+     */
+    long countByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    /**
+     * Delete all entities that satisfy the condition "have primary key in the given list and first name equal to the
+     * specified string".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare with
+     */
+    void deleteByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    /**
+     * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
+     * specified string".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare with
+     */
+    List<P> findAllByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    /**
      * Find all entities that satisfy the condition "have primary key in the given list and either first name equal to
      * the specified string or age equal to the specified integer".
      *
@@ -86,6 +122,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIdAndFirstNameAndAge(QueryParam ids, QueryParam firstName, QueryParam age);
 
     List<P> findByIdAndFirstNameOrAge(QueryParam ids, QueryParam firstName, QueryParam age);
+
+    boolean existsByIdAndFirstNameOrAge(QueryParam ids, QueryParam firstName, QueryParam age);
+
+    long countByIdAndFirstNameOrAge(QueryParam ids, QueryParam firstName, QueryParam age);
 
     Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 
@@ -321,11 +361,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     @SuppressWarnings("UnusedReturnValue")
     long countByLastName(String lastName);
 
-    int countByFirstName(String firstName);
-
     long someCountQuery(String lastName);
 
     List<P> findByFirstNameIgnoreCase(String firstName);
+
+    long countByFirstNameIgnoreCase(String firstName);
+
+    void deleteByFirstNameIgnoreCase(String firstName);
 
     List<P> findByFirstNameNotIgnoreCase(String firstName);
 
@@ -1507,6 +1549,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstName(String name);
 
+    boolean existsByFirstName(String name);
+
+    boolean existsByFirstNameIgnoreCase(String name);
+
+    long countByFirstName(String name);
+
+    void deleteByFirstName(String name);
+
     List<P> readByFirstName(String name);
 
     List<P> getByFirstName(String name);
@@ -1522,6 +1572,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByGenderIn(List<Person.Gender> list);
 
     List<P> findByFirstNameIs(String name);
+
+    boolean existsByFirstNameIs(String name);
+
+    long countByFirstNameIs(String name);
 
     List<P> findByFirstNameEquals(String name);
 

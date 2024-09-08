@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import reactor.core.publisher.Flux;
@@ -169,5 +170,39 @@ public class ReactiveAerospikeRepositoryDeleteRelatedTests extends BaseReactiveI
 
         StepVerifier.create(customerRepo.findById(customer1.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(customerRepo.findById(customer2.getId())).expectNextCount(0).verifyComplete();
+    }
+
+    @Test
+    public void deleteByIdAndFirstNameIn() {
+        StepVerifier.create(customerRepo.saveAll(Flux.just(customer1, customer2)))
+            .expectNextCount(2)
+            .verifyComplete();
+
+        StepVerifier.create(customerRepo.findAllById(List.of(customer1.getId(), customer2.getId())).collectList())
+            .expectNextMatches(list -> list.size() == 2 && list.contains(customer1) && list.contains(customer2))
+            .verifyComplete();
+
+        QueryParam ids = QueryParam.of(List.of(customer1.getId(), customer2.getId()));
+        QueryParam firstNames = QueryParam.of(List.of("FirstName"));
+        // no records satisfying the condition
+        StepVerifier.create(customerRepo.deleteByIdAndFirstNameIn(ids, firstNames))
+            .expectComplete()
+            .verify();
+
+        // no records get deleted
+        StepVerifier.create(customerRepo.findAllById(List.of(customer1.getId(), customer2.getId())).collectList())
+            .expectNextMatches(list -> list.size() == 2 && list.contains(customer1) && list.contains(customer2))
+            .verifyComplete();
+
+        // 2 records satisfying the condition
+        firstNames = QueryParam.of(List.of(customer1.getFirstName(), customer2.getFirstName(), "FirstName"));
+        StepVerifier.create(customerRepo.deleteByIdAndFirstNameIn(ids, firstNames))
+            .expectComplete()
+            .verify();
+
+        // 2 records get deleted
+        StepVerifier.create(customerRepo.findAllById(List.of(customer1.getId(), customer2.getId())).collectList())
+            .expectNextMatches(List::isEmpty)
+            .verifyComplete();
     }
 }
