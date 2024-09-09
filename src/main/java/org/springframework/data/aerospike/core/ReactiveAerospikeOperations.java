@@ -418,7 +418,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Count existing records by ids and a query using the given entityClass.
      * <p>
-     * The records will be mapped to the given targetClass.
+     * The records will be mapped to the given targetClass. The results are not processed (no pagination).
      *
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -431,7 +431,7 @@ public interface ReactiveAerospikeOperations {
     /**
      * Count existing records by ids and a query using the given entityClass within the set.
      * <p>
-     * The records will be mapped to the given targetClass.
+     * The records will be mapped to the given targetClass. The results are not processed (no pagination).
      *
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
