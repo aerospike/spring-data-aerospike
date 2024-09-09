@@ -1074,12 +1074,11 @@ public interface AerospikeOperations {
     /**
      * Check using a query if any matching records exist within the given set.
      *
-     * @param query       The query to check if any matching records exist. Must not be {@literal null}.
-     * @param entityClass The class to translate to returned records into. Must not be {@literal null}.
-     * @param setName     Set name to use. Must not be {@literal null}.
+     * @param query   The query to check if any matching records exist. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
      * @return whether any matching records exist.
      */
-    <T> boolean exists(Query query, Class<T> entityClass, String setName);
+    boolean exists(Query query, String setName);
 
     /**
      * Find if there are existing records by ids and a query using the given entityClass.

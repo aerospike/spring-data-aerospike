@@ -440,7 +440,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     public <T> Mono<Void> delete(Query query, Class<T> entityClass, String setName) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Target class must not be null!");
+        Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
         Mono<List<T>> findQueryResults = find(query, entityClass, setName)
@@ -982,6 +982,22 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record));
     }
 
+    private Flux<?> findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query) {
+        Assert.notNull(ids, "Ids must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        if (ids.isEmpty()) {
+            return Flux.empty();
+        }
+
+        BatchPolicy policy = getBatchPolicyFilterExp(query);
+
+        return Flux.fromIterable(ids)
+            .map(id -> getKey(id, setName))
+            .flatMap(key -> getFromClient(policy, key, null))
+            .filter(keyRecord -> nonNull(keyRecord.record));
+    }
+
     @Override
     public <T> Flux<T> find(Query query, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
@@ -1114,15 +1130,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Mono<Boolean> exists(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
-        return exists(query, entityClass, getSetName(entityClass));
+        return exists(query, getSetName(entityClass));
     }
 
     @Override
-    public <T> Mono<Boolean> exists(Query query, Class<T> entityClass, String setName) {
+    public Mono<Boolean> exists(Query query, String setName) {
         Assert.notNull(query, "Query passed in to exist can't be null");
-        Assert.notNull(entityClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        return find(query, entityClass, setName).hasElements();
+        return findKeyRecordsUsingQuery(setName, query).hasElements();
     }
 
     @Override
@@ -1133,10 +1148,9 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public <T> Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName,
                                                    Query query) {
-        return findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+        return findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
-            .count()
-            .map(count -> count > 0);
+            .hasElements();
     }
 
     @Override
@@ -1159,12 +1173,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
-        return countByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+        return countByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
-        return findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+    public Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, Query query) {
+        return findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .count();
     }
@@ -1192,10 +1206,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public Mono<Long> count(Query query, String setName) {
         Assert.notNull(setName, "Set for count must not be null!");
 
-        return countRecordsUsingQuery(setName, query).count();
+        return findKeyRecordsUsingQuery(setName, query).count();
     }
 
-    private Flux<KeyRecord> countRecordsUsingQuery(String setName, Query query) {
+    private Flux<KeyRecord> findKeyRecordsUsingQuery(String setName, Query query) {
         Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;

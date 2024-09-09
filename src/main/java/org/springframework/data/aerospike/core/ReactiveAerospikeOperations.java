@@ -1055,11 +1055,10 @@ public interface ReactiveAerospikeOperations {
      * Reactively check using a query if any matching records exist within the given set.
      *
      * @param query       The query to check if any matching records exist. Must not be {@literal null}.
-     * @param entityClass The class to translate to returned records into. Must not be {@literal null}.
      * @param setName     Set name to use. Must not be {@literal null}.
      * @return A Mono of whether matching records exist.
      */
-    <T> Mono<Boolean> exists(Query query, Class<T> entityClass, String setName);
+    Mono<Boolean> exists(Query query, String setName);
 
     /**
      * Find if there are existing records by ids and a query using the given entityClass.
@@ -1141,13 +1140,12 @@ public interface ReactiveAerospikeOperations {
      * The records will be mapped to the given targetClass.
      *
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @param setName     Set name to use. Must not be {@literal null}.
      * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return The matching records mapped to targetClass's type if provided (otherwise to entityClass's type), or an
      * empty list if no documents found.
      */
-    <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, @Nullable Query query);
+    Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
      * Reactively create an index with the specified name in Aerospike.

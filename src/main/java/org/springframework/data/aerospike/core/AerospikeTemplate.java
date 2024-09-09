@@ -455,7 +455,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     public <T> void delete(Query query, Class<T> entityClass, String setName) {
         Assert.notNull(query, "Query must not be null!");
-        Assert.notNull(entityClass, "Target class must not be null!");
+        Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
         List<T> findQueryResults = find(query, entityClass, setName).filter(Objects::nonNull).toList();
@@ -1036,6 +1036,31 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
+    public IntStream findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query) {
+        Assert.notNull(setName, "Set name must not be null!");
+
+        try {
+            Key[] keys;
+            if (ids == null || ids.isEmpty()) {
+                keys = new Key[0];
+            } else {
+                keys = ids.stream()
+                    .map(id -> getKey(id, setName))
+                    .toArray(Key[]::new);
+            }
+
+            BatchPolicy policy = getBatchPolicyFilterExp(query);
+
+            Record[] aeroRecords;
+            aeroRecords = getAerospikeClient().get(policy, keys);
+
+            return IntStream.range(0, keys.length)
+                .filter(index -> aeroRecords[index] != null);
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
     @Override
     public <T> Stream<T> find(Query query, Class<T> entityClass) {
         return find(query, entityClass, getSetName(entityClass));
@@ -1171,16 +1196,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T> boolean exists(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
-        return exists(query, entityClass, getSetName(entityClass));
+        return exists(query, getSetName(entityClass));
     }
 
     @Override
-    public <T> boolean exists(Query query, Class<T> entityClass, String setName) {
+    public boolean exists(Query query, String setName) {
         Assert.notNull(query, "Query passed in to exist can't be null");
-        Assert.notNull(entityClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return find(query, entityClass, setName).findAny().isPresent();
+        return findKeyRecordsUsingQuery(setName, query).findAny().isPresent();
     }
 
     @Override
@@ -1190,8 +1214,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
-        long findQueryResults = findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
-            .stream()
+        long findQueryResults = findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .count();
         return findQueryResults > 0;
@@ -1229,11 +1252,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public long count(Query query, String setName) {
-        Stream<KeyRecord> results = countRecordsUsingQuery(setName, query);
-        return results.count();
+        return findKeyRecordsUsingQuery(setName, query).count();
     }
 
-    private Stream<KeyRecord> countRecordsUsingQuery(String setName, Query query) {
+    private Stream<KeyRecord> findKeyRecordsUsingQuery(String setName, Query query) {
         Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
@@ -1265,8 +1287,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
-        return findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
-            .stream()
+        return findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .count();
     }
