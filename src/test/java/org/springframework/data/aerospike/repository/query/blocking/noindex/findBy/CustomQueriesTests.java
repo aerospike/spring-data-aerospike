@@ -53,13 +53,13 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         alicia.setEmailAddress(email);
         repository.save(alicia);
 
-        Qualifier genderEqFemale = Qualifier.builder()
-            // custom bin name has been set to "email" via @Field annotation
+        Qualifier emailEquals = Qualifier.builder()
+            // custom bin name has been set to "email " via @Field annotation
             .setPath("email")
             .setFilterOperation(FilterOperation.EQ)
             .setValue(email)
             .build();
-        assertThat(repository.findUsingQuery(new Query(genderEqFemale))).containsOnly(alicia);
+        assertThat(repository.findUsingQuery(new Query(emailEquals))).containsOnly(alicia);
     }
 
     @Test

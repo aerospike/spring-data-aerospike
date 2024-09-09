@@ -53,6 +53,7 @@ import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PropertyHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -470,12 +471,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+    public <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
         return deleteByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
     }
 
     @Override
-    public <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
+    public <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName,
+                                                @Nullable Query query) {
         Mono<List<Object>> findQueryResults = findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
             .filter(Objects::nonNull)
             .collect(Collectors.toUnmodifiableList());
@@ -951,13 +953,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                              Query query) {
+                                              @Nullable Query query) {
         return findByIdsUsingQuery(ids, entityClass, targetClass, getSetName(entityClass), query);
     }
 
     @Override
     public <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                              String setName, Query query) {
+                                              String setName, @Nullable Query query) {
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
@@ -1143,12 +1145,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+    public <T> Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
         return existsByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, String setName, Query query) {
+    public Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
         return findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .hasElements();
@@ -1173,12 +1175,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+    public <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
         return countByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, Query query) {
+    public Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
         return findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .count();

@@ -74,7 +74,14 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             }
         }
 
-        if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
+        if (isExistsQuery(queryMethod)) {
+            return operations.exists(query, queryMethod.getEntityInformation().getJavaType());
+        } else if (isCountQuery(queryMethod)) {
+            return operations.count(query, queryMethod.getEntityInformation().getJavaType());
+        } else if (isDeleteQuery(queryMethod)) {
+            operations.delete(query, queryMethod.getEntityInformation().getJavaType());
+            return Optional.empty();
+        } else if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
             Pageable pageable = accessor.getPageable();
             Flux<?> unprocessedResults = operations.findUsingQueryWithoutPostProcessing(entityClass, targetClass,
                 query);
@@ -93,13 +100,6 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                 }
                 return getPage(unprocessedResults, size, pageable, query);
             });
-        } else if (isExistsQuery(queryMethod)) {
-            return operations.exists(query, queryMethod.getEntityInformation().getJavaType());
-        } else if (isCountQuery(queryMethod)) {
-            return operations.count(query, queryMethod.getEntityInformation().getJavaType());
-        } else if (isDeleteQuery(queryMethod)) {
-            operations.delete(query, queryMethod.getEntityInformation().getJavaType());
-            return Optional.empty();
         }
         return findByQuery(query, targetClass);
     }

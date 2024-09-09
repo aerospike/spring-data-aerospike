@@ -48,6 +48,7 @@ import org.springframework.data.aerospike.util.InfoCommandUtils;
 import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.StreamUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
@@ -478,12 +479,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+    public <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
         deleteByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
     }
 
     @Override
-    public <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
+    public <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName,
+                                          @Nullable Query query) {
         List<Object> findQueryResults = findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
             .stream()
             .filter(Objects::nonNull)
@@ -1209,12 +1211,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+    public <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
         return existsByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public boolean existsByIdsUsingQuery(Collection<?> ids, String setName, Query query) {
+    public boolean existsByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
         long findQueryResults = findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .count();
@@ -1282,12 +1284,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
+    public <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
         return countByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public long countByIdsUsingQuery(Collection<?> ids, String setName, Query query) {
+    public long countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
         return findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .count();

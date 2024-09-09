@@ -74,7 +74,14 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             }
         }
 
-        if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
+        if (isExistsQuery(queryMethod)) {
+            return operations.exists(query, queryMethod.getEntityInformation().getJavaType());
+        } else if (isCountQuery(queryMethod)) {
+            return operations.count(query, queryMethod.getEntityInformation().getJavaType());
+        } else if (isDeleteQuery(queryMethod)) {
+            operations.delete(query, queryMethod.getEntityInformation().getJavaType());
+            return Optional.empty();
+        } else if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
             return processPaginatedQuery(targetClass, accessor.getPageable(), query);
         } else if (queryMethod.isStreamQuery()) {
             return findByQuery(query, targetClass);
@@ -83,13 +90,6 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         } else if (queryMethod.isQueryForEntity()) {
             Stream<?> result = findByQuery(query, targetClass);
             return result.findFirst().orElse(null);
-        } else if (isExistsQuery(queryMethod)) {
-            return operations.exists(query, queryMethod.getEntityInformation().getJavaType());
-        } else if (isCountQuery(queryMethod)) {
-            return operations.count(query, queryMethod.getEntityInformation().getJavaType());
-        } else if (isDeleteQuery(queryMethod)) {
-            operations.delete(query, queryMethod.getEntityInformation().getJavaType());
-            return Optional.empty();
         }
         throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " is not " +
             "supported");

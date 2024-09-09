@@ -24,6 +24,8 @@ import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses.CollectionOfObjects;
@@ -31,6 +33,7 @@ import org.springframework.data.aerospike.sample.SampleClasses.CustomCollectionC
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithExpiration;
 import org.springframework.data.aerospike.sample.SampleClasses.VersionedClass;
 import org.springframework.data.aerospike.util.AwaitilityUtils;
+import org.springframework.data.domain.Sort;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -428,5 +431,35 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
                 .isInstanceOf(OptimisticLockingFailureException.class)
                 .hasMessageContaining("Failed to delete the record with ID 'id2' due to versions mismatch");
         }
+    }
+
+    @Test
+    public void deleteByIdsUsingQuery_Paginated() {
+        Person person1 = new Person("id1", "Alicia", 100);
+        Person person2 = new Person("id2", "Jenny", 100);
+        template.save(person1);
+        template.save(person2);
+        List<String> ids = List.of(person1.getId(), person2.getId());
+
+        Qualifier ageEq100 = Qualifier.builder()
+            // custom bin name has been set to "email" via @Field annotation
+            .setPath("age")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(100)
+            .build();
+        Query ageEq100Query = new Query(ageEq100);
+
+        assertThat(template.findByIdsUsingQuery(ids, Person.class, Person.class, ageEq100Query)).hasSize(2);
+
+        // creating another query, we are going to add de facto pagination
+        Query ageEq100QueryPaginated = new Query(ageEq100);
+        ageEq100QueryPaginated.setSort(Sort.by("firstName")); // sorting
+        ageEq100QueryPaginated.setOffset(1); // start with index 1
+        ageEq100QueryPaginated.limit(1); // page length is 1
+
+        template.deleteByIdsUsingQuery(ids, Person.class, ageEq100QueryPaginated);
+
+        // only one record was deleted
+        assertThat(template.findByIdsUsingQuery(ids, Person.class, Person.class, ageEq100Query)).hasSize(1);
     }
 }

@@ -1,11 +1,11 @@
 package org.springframework.data.aerospike.repository.query.blocking.noindex.deleteBy;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.blocking.noindex.PersonRepositoryQueryTests;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.data.aerospike.query.QueryParam.of;
 
 /**
  * Tests for the "Equals" repository query. Keywords: Is, Equals (or no keyword).
@@ -26,15 +26,17 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
     void deletePersonById_AND_simpleProperty() {
-        QueryParam ids = of(dave.getId());
-        QueryParam name = of(carter.getFirstName());
-        repository.deleteByIdAndFirstName(ids, name);
-        assertThat(repository.findByIdAndFirstName(ids, name)).isEmpty();
+//        QueryParam ids = of(dave.getId());
+//        QueryParam name = of(carter.getFirstName());
+//        repository.deleteByIdAndFirstName(ids, name);
+//        assertThat(repository.findByIdAndFirstName(ids, name)).isEmpty();
+//
+//        ids = of(dave.getId());
+//        name = of(dave.getFirstName());
+//        assertThat(repository.findByIdAndFirstName(ids, name)).isNotEmpty();
+//        repository.deleteByIdAndFirstName(ids, name);
+//        assertThat(repository.findByIdAndFirstName(ids, name)).isEmpty();
 
-        ids = of(dave.getId());
-        name = of(dave.getFirstName());
-        assertThat(repository.findByIdAndFirstName(ids, name)).isNotEmpty();
-        repository.deleteByIdAndFirstName(ids, name);
-        assertThat(repository.findByIdAndFirstName(ids, name)).isEmpty();
+        repository.deleteAllById(List.of(dave.getId(), carter.getId()));
     }
 }

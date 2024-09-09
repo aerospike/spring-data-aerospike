@@ -170,5 +170,4 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     protected boolean isDeleteQuery(QueryMethod queryMethod) {
         return queryMethod.getName().startsWith("deleteBy") || queryMethod.getName().startsWith("removeBy");
     }
-
 }

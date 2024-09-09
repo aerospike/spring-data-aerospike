@@ -397,6 +397,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
 
     /**
+     * Delete entities with age greater than the given numeric parameter
+     *
+     * @param age      integer to compare with
+     * @param pageable Pageable
+     */
+    Slice<Void> deleteByAgeGreaterThan(int age, Pageable pageable);
+
+    /**
      * Find all entities with age less than the given numeric parameter
      *
      * @param age      integer to compare with
