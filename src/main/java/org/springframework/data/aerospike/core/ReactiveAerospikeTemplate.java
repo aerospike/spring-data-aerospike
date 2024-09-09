@@ -975,11 +975,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             target = entityClass;
         }
 
-        return Flux.fromIterable(ids)
+        Flux<?> results = Flux.fromIterable(ids)
             .map(id -> getKey(id, setName))
             .flatMap(key -> getFromClient(policy, key, targetClass))
             .filter(keyRecord -> nonNull(keyRecord.record))
             .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record));
+
+        return applyPostProcessingOnResults(results, query);
     }
 
     private Flux<?> findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query) {
@@ -1142,12 +1144,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T> Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
-        return existsByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+        return existsByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public <T> Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName,
-                                                   Query query) {
+    public Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, String setName, Query query) {
         return findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .hasElements();
@@ -1454,16 +1455,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, Query query) {
-        if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator<T> comparator = getComparator(query);
-            results = results.sort(comparator);
-        }
+        if (query != null) {
+            if (query.getSort() != null && query.getSort().isSorted()) {
+                Comparator<T> comparator = getComparator(query);
+                results = results.sort(comparator);
+            }
 
-        if (query.hasOffset()) {
-            results = results.skip(query.getOffset());
-        }
-        if (query.hasRows()) {
-            results = results.take(query.getRows());
+            if (query.hasOffset()) {
+                results = results.skip(query.getOffset());
+            }
+            if (query.hasRows()) {
+                results = results.take(query.getRows());
+            }
         }
         return results;
     }

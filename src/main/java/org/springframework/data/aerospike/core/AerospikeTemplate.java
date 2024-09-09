@@ -1027,10 +1027,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 target = entityClass;
             }
 
-            return IntStream.range(0, keys.length)
+            Stream<?> results = IntStream.range(0, keys.length)
                 .filter(index -> aeroRecords[index] != null)
-                .mapToObj(index -> mapToEntity(keys[index], target, aeroRecords[index]))
-                .collect(Collectors.toList());
+                .mapToObj(index -> mapToEntity(keys[index], target, aeroRecords[index]));
+
+            return applyPostProcessingOnResults(results, query).collect(Collectors.toList());
         } catch (AerospikeException e) {
             throw translateError(e);
         }
@@ -1209,11 +1210,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
-        return existsByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+        return existsByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
+    public boolean existsByIdsUsingQuery(Collection<?> ids, String setName, Query query) {
         long findQueryResults = findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .count();
@@ -1282,11 +1283,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Query query) {
-        return countByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+        return countByIdsUsingQuery(ids, getSetName(entityClass), query);
     }
 
     @Override
-    public <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, Query query) {
+    public long countByIdsUsingQuery(Collection<?> ids, String setName, Query query) {
         return findByIdsUsingQueryWithoutMapping(ids, setName, query)
             .filter(Objects::nonNull)
             .count();
@@ -1481,15 +1482,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
-        if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator<T> comparator = getComparator(query);
-            results = results.sorted(comparator);
-        }
-        if (query.hasOffset()) {
-            results = results.skip(query.getOffset());
-        }
-        if (query.hasRows()) {
-            results = results.limit(query.getRows());
+        if (query != null) {
+            if (query.getSort() != null && query.getSort().isSorted()) {
+                Comparator<T> comparator = getComparator(query);
+                results = results.sorted(comparator);
+            }
+            if (query.hasOffset()) {
+                results = results.skip(query.getOffset());
+            }
+            if (query.hasRows()) {
+                results = results.limit(query.getRows());
+            }
         }
 
         return results;

@@ -1083,7 +1083,7 @@ public interface AerospikeOperations {
     /**
      * Find if there are existing records by ids and a query using the given entityClass.
      * <p>
-     * The records will be mapped to the given targetClass.
+     * The records will not be mapped to the given entityClass. The results are not processed (no pagination).
      *
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -1096,16 +1096,15 @@ public interface AerospikeOperations {
     /**
      * Find if there are existing records by ids and a query using the given entityClass within the set.
      * <p>
-     * The records will be mapped to the given targetClass.
+     * The records will not be mapped to a Java class. The results are not processed (no pagination).
      *
-     * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @param setName     Set name to use. Must not be {@literal null}.
-     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
+     * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return The matching records mapped to targetClass's type if provided (otherwise to entityClass's type), or an
      * empty list if no documents found.
      */
-    <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, @Nullable Query query);
+    boolean existsByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
      * Return the amount of records in the set determined by the given entityClass.
@@ -1144,7 +1143,7 @@ public interface AerospikeOperations {
     /**
      * Count existing records by ids and a query using the given entityClass.
      * <p>
-     * The records will be mapped to the given targetClass.
+     * The records will not be mapped to the given entityClass. The results are not processed (no pagination).
      *
      * @param ids         The ids of the documents to find. Must not be {@literal null}.
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
@@ -1157,16 +1156,15 @@ public interface AerospikeOperations {
     /**
      * Count existing records by ids and a query using the given entityClass within the set.
      * <p>
-     * The records will be mapped to the given targetClass.
+     * The records will not be mapped to a Java class. The results are not processed (no pagination).
      *
-     * @param ids         The ids of the documents to find. Must not be {@literal null}.
-     * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @param setName     Set name to use. Must not be {@literal null}.
-     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
+     * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
      * @return The matching records mapped to targetClass's type if provided (otherwise to entityClass's type), or an
      * empty list if no documents found.
      */
-    <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, @Nullable Query query);
+    long countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
      * Execute query, apply statement's aggregation function, and return result iterator.
