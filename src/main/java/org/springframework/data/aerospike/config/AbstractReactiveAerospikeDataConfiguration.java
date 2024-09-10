@@ -21,6 +21,7 @@ import com.aerospike.client.reactor.AerospikeReactorClient;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -49,6 +50,7 @@ import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 public abstract class AbstractReactiveAerospikeDataConfiguration extends AerospikeDataConfigurationSupport {
 
     @Bean(name = "reactiveAerospikeTemplate")
+    @Primary
     public ReactiveAerospikeTemplate reactiveAerospikeTemplate(MappingAerospikeConverter mappingAerospikeConverter,
                                                                AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
@@ -58,6 +60,20 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                ServerVersionSupport serverVersionSupport,
                                                                AerospikeSettings settings) {
         return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getConnectionSettings().getNamespace(),
+            mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
+            reactorQueryEngine, reactorIndexRefresher, serverVersionSupport);
+    }
+
+    @Bean(name = "reactiveAerospikeTemplate1")
+    public ReactiveAerospikeTemplate reactiveAerospikeTemplate1(MappingAerospikeConverter mappingAerospikeConverter,
+                                                               AerospikeMappingContext aerospikeMappingContext,
+                                                               AerospikeExceptionTranslator aerospikeExceptionTranslator,
+                                                               @Qualifier("aerospikeReactorClient1") IAerospikeReactorClient aerospikeReactorClient1,
+                                                               ReactorQueryEngine reactorQueryEngine,
+                                                               ReactorIndexRefresher reactorIndexRefresher,
+                                                               ServerVersionSupport serverVersionSupport,
+                                                               AerospikeSettings settings) {
+        return new ReactiveAerospikeTemplate(aerospikeReactorClient1, settings.getConnectionSettings().getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
             reactorQueryEngine, reactorIndexRefresher, serverVersionSupport);
     }
@@ -101,7 +117,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     }
 
     @Bean(name = "aerospikeReactorClient1")
-    public IAerospikeReactorClient aerospikeReactorClient1(IAerospikeClient aerospikeClient) {
+    public IAerospikeReactorClient aerospikeReactorClient1(@Qualifier("aerospikeClient1") IAerospikeClient aerospikeClient) {
         return new AerospikeReactorClient(aerospikeClient);
     }
 
