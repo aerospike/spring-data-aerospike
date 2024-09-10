@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -94,6 +95,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
     }
 
     @Bean(name = "aerospikeReactorClient")
+    @Primary
     public IAerospikeReactorClient aerospikeReactorClient(IAerospikeClient aerospikeClient) {
         return new AerospikeReactorClient(aerospikeClient);
     }
