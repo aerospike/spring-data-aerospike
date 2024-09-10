@@ -48,6 +48,7 @@ import org.springframework.data.aerospike.util.InfoCommandUtils;
 import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.util.StreamUtils;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
@@ -59,6 +60,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -449,6 +451,52 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             return client.delete(ignoreGenerationPolicy(), key);
         } catch (AerospikeException e) {
             throw translateError(e);
+        }
+    }
+
+    public <T> void delete(Query query, Class<T> entityClass, String setName) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(entityClass, "Entity class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        List<T> findQueryResults = find(query, entityClass, setName).filter(Objects::nonNull).toList();
+
+        if (!findQueryResults.isEmpty()) {
+            if (serverVersionSupport.isBatchWriteSupported()) {
+                deleteAll(findQueryResults);
+            } else {
+                findQueryResults.forEach(this::delete);
+            }
+        }
+    }
+
+    @Override
+    public <T> void delete(Query query, Class<T> entityClass) {
+        Assert.notNull(query, "Query passed in to exist can't be null");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        delete(query, entityClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
+        deleteByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+    }
+
+    @Override
+    public <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName,
+                                          @Nullable Query query) {
+        List<Object> findQueryResults = findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toUnmodifiableList());
+
+        if (!findQueryResults.isEmpty()) {
+            if (serverVersionSupport.isBatchWriteSupported()) {
+                deleteAll(findQueryResults);
+            } else {
+                findQueryResults.forEach(this::delete);
+            }
         }
     }
 
@@ -981,10 +1029,36 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                 target = entityClass;
             }
 
-            return IntStream.range(0, keys.length)
+            Stream<?> results = IntStream.range(0, keys.length)
                 .filter(index -> aeroRecords[index] != null)
-                .mapToObj(index -> mapToEntity(keys[index], target, aeroRecords[index]))
-                .collect(Collectors.toList());
+                .mapToObj(index -> mapToEntity(keys[index], target, aeroRecords[index]));
+
+            return applyPostProcessingOnResults(results, query).collect(Collectors.toList());
+        } catch (AerospikeException e) {
+            throw translateError(e);
+        }
+    }
+
+    public IntStream findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query) {
+        Assert.notNull(setName, "Set name must not be null!");
+
+        try {
+            Key[] keys;
+            if (ids == null || ids.isEmpty()) {
+                keys = new Key[0];
+            } else {
+                keys = ids.stream()
+                    .map(id -> getKey(id, setName))
+                    .toArray(Key[]::new);
+            }
+
+            BatchPolicy policy = getBatchPolicyFilterExp(query);
+
+            Record[] aeroRecords;
+            aeroRecords = getAerospikeClient().get(policy, keys);
+
+            return IntStream.range(0, keys.length)
+                .filter(index -> aeroRecords[index] != null);
         } catch (AerospikeException e) {
             throw translateError(e);
         }
@@ -1122,19 +1196,31 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public <T> boolean existsByQuery(Query query, Class<T> entityClass) {
+    public <T> boolean exists(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
-        return existsByQuery(query, entityClass, getSetName(entityClass));
+        return exists(query, getSetName(entityClass));
     }
 
     @Override
-    public <T> boolean existsByQuery(Query query, Class<T> entityClass, String setName) {
+    public boolean exists(Query query, String setName) {
         Assert.notNull(query, "Query passed in to exist can't be null");
-        Assert.notNull(entityClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        return find(query, entityClass, setName).findAny().isPresent();
+        return findKeyRecordsUsingQuery(setName, query).findAny().isPresent();
+    }
+
+    @Override
+    public <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
+        return existsByIdsUsingQuery(ids, getSetName(entityClass), query);
+    }
+
+    @Override
+    public boolean existsByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
+        long findQueryResults = findByIdsUsingQueryWithoutMapping(ids, setName, query)
+            .filter(Objects::nonNull)
+            .count();
+        return findQueryResults > 0;
     }
 
     @Override
@@ -1169,11 +1255,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public long count(Query query, String setName) {
-        Stream<KeyRecord> results = countRecordsUsingQuery(setName, query);
-        return results.count();
+        return findKeyRecordsUsingQuery(setName, query).count();
     }
 
-    private Stream<KeyRecord> countRecordsUsingQuery(String setName, Query query) {
+    private Stream<KeyRecord> findKeyRecordsUsingQuery(String setName, Query query) {
         Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
@@ -1196,6 +1281,18 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                     log.error("Caught exception while closing query", e);
                 }
             });
+    }
+
+    @Override
+    public <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
+        return countByIdsUsingQuery(ids, getSetName(entityClass), query);
+    }
+
+    @Override
+    public long countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
+        return findByIdsUsingQueryWithoutMapping(ids, setName, query)
+            .filter(Objects::nonNull)
+            .count();
     }
 
     @Override
@@ -1387,15 +1484,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
-        if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator<T> comparator = getComparator(query);
-            results = results.sorted(comparator);
-        }
-        if (query.hasOffset()) {
-            results = results.skip(query.getOffset());
-        }
-        if (query.hasRows()) {
-            results = results.limit(query.getRows());
+        if (query != null) {
+            if (query.getSort() != null && query.getSort().isSorted()) {
+                Comparator<T> comparator = getComparator(query);
+                results = results.sorted(comparator);
+            }
+            if (query.hasOffset()) {
+                results = results.skip(query.getOffset());
+            }
+            if (query.hasRows()) {
+                results = results.limit(query.getRows());
+            }
         }
 
         return results;

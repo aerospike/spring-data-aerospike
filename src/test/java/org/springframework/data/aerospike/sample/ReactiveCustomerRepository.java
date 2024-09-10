@@ -64,6 +64,8 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByAgeBetween(long from, long to);
 
+    Mono<Long> countByAgeBetween(long from, long to);
+
     Flux<Customer> findByFirstNameContains(String firstName);
 
     Flux<Customer> findByFirstNameContainingIgnoreCase(String firstName);
@@ -73,4 +75,22 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
     Flux<Customer> findByAgeBetweenOrderByFirstNameDesc(long i, long j);
 
     Flux<Customer> findByGroup(char group);
+
+    Flux<Customer> findByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
+
+    Flux<Customer> readByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
+
+    Flux<Customer> getByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
+
+    Flux<Customer> queryByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
+
+    Flux<Customer> searchByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
+
+    Flux<Customer> streamByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
+
+    Mono<Boolean> existsByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
+
+    Mono<Long> countByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
+
+    Mono<Void> deleteByIdAndFirstNameIn(QueryParam ids, QueryParam firstNames);
 }

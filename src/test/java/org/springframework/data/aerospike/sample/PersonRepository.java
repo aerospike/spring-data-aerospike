@@ -76,6 +76,42 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIdAndFirstName(QueryParam ids, QueryParam firstName);
 
     /**
+     * Find if there are entities that satisfy the condition "have primary key in the given list and first name equal to
+     * the specified string".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare with
+     */
+    boolean existsByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    /**
+     * Count all entities that satisfy the condition "have primary key in the given list and first name equal to the
+     * specified string".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare with
+     */
+    long countByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    /**
+     * Delete all entities that satisfy the condition "have primary key in the given list and first name equal to the
+     * specified string".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare with
+     */
+    void deleteByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    /**
+     * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
+     * specified string".
+     *
+     * @param ids       List of primary keys
+     * @param firstName String to compare with
+     */
+    List<P> findAllByIdAndFirstName(QueryParam ids, QueryParam firstName);
+
+    /**
      * Find all entities that satisfy the condition "have primary key in the given list and either first name equal to
      * the specified string or age equal to the specified integer".
      *
@@ -86,6 +122,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIdAndFirstNameAndAge(QueryParam ids, QueryParam firstName, QueryParam age);
 
     List<P> findByIdAndFirstNameOrAge(QueryParam ids, QueryParam firstName, QueryParam age);
+
+    boolean existsByIdAndFirstNameOrAge(QueryParam ids, QueryParam firstName, QueryParam age);
+
+    long countByIdAndFirstNameOrAge(QueryParam ids, QueryParam firstName, QueryParam age);
 
     Page<P> findByLastNameStartsWithOrderByAgeAsc(String prefix, Pageable pageable);
 
@@ -154,6 +194,30 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByAgeBetween(int from, int to);
 
     /**
+     * Find if there are existing entities that satisfy the condition "have age in the given range"
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    boolean existsByAgeBetween(int from, int to);
+
+    /**
+     * Count existing entities that satisfy the condition "have age in the given range"
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    long countByAgeBetween(int from, int to);
+
+    /**
+     * Delete entities that satisfy the condition "have age in the given range"
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    void deleteByAgeBetween(int from, int to);
+
+    /**
      * Find all entities that satisfy the condition "have the first name in the given range"
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
@@ -162,6 +226,36 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit for the map value, exclusive
      */
     List<P> findByFirstNameBetween(String from, String to);
+
+    /**
+     * Find if there are existing entities  that satisfy the condition "have the first name in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
+     */
+    boolean existsByFirstNameBetween(String from, String to);
+
+    /**
+     * Count existing entities  that satisfy the condition "have the first name in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
+     */
+    long countByFirstNameBetween(String from, String to);
+
+    /**
+     * Delete entities  that satisfy the condition "have the first name in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param from lower limit for the map value, inclusive
+     * @param to   upper limit for the map value, exclusive
+     */
+    void deleteByFirstNameBetween(String from, String to);
 
     List<P> findByIntsExists();
 
@@ -234,6 +328,12 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByDateOfBirthAfter(Date date);
 
+    boolean existsByDateOfBirthAfter(Date date);
+
+    long countByDateOfBirthAfter(Date date);
+
+    void deleteByDateOfBirthAfter(Date date);
+
     List<P> findByRegDate(LocalDate date);
 
     List<P> findByRegDateBefore(LocalDate date);
@@ -261,11 +361,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     @SuppressWarnings("UnusedReturnValue")
     long countByLastName(String lastName);
 
-    int countByFirstName(String firstName);
-
     long someCountQuery(String lastName);
 
     List<P> findByFirstNameIgnoreCase(String firstName);
+
+    long countByFirstNameIgnoreCase(String firstName);
+
+    void deleteByFirstNameIgnoreCase(String firstName);
 
     List<P> findByFirstNameNotIgnoreCase(String firstName);
 
@@ -293,6 +395,14 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param pageable Pageable
      */
     Slice<P> findByAgeGreaterThan(int age, Pageable pageable);
+
+    /**
+     * Delete entities with age greater than the given numeric parameter
+     *
+     * @param age      integer to compare with
+     * @param pageable Pageable
+     */
+    Slice<Void> deleteByAgeGreaterThan(int age, Pageable pageable);
 
     /**
      * Find all entities with age less than the given numeric parameter
@@ -327,7 +437,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringsEquals(Collection<String> strings);
 
     /**
-     * Find all entities that satisfy the condition "have strings list equal to the given argument" (find by Collection)
+     * Find all entities that satisfy the condition "have strings list equal to the given argument" (find by
+     * Collection)
      *
      * @param strings Collection to compare strings with, subsequently gets converted to a List
      */
@@ -351,8 +462,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByStringsLessThan(Collection<String> strings);
 
     /**
-     * Find all entities that satisfy the condition "have ints list with more elements or with a corresponding
-     * element higher in ordering than in the given argument" (find by Collection).
+     * Find all entities that satisfy the condition "have ints list with more elements or with a corresponding element
+     * higher in ordering than in the given argument" (find by Collection).
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
      *
@@ -547,8 +658,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntMapBetween(Map<String, Integer> from, Map<String, Integer> to);
 
     /**
-     * Find all entities that satisfy the condition "have intMap equal to one of the values in the given list"
-     * (find by Map)
+     * Find all entities that satisfy the condition "have intMap equal to one of the values in the given list" (find by
+     * Map)
      *
      * @param list - list of possible values
      */
@@ -605,6 +716,31 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit, exclusive
      */
     List<P> findByFriendAgeBetween(int from, int to);
+
+    /**
+     * Find if there are entities that satisfy the condition "have a friend with the age in the given range" (find by
+     * POJO field)
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    boolean existsByFriendAgeBetween(int from, int to);
+
+    /**
+     * Count entities that satisfy the condition "have a friend with the age in the given range" (find by POJO field)
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    long countByFriendAgeBetween(int from, int to);
+
+    /**
+     * Delete entities that satisfy the condition "have a friend with the age in the given range" (find by POJO field)
+     *
+     * @param from lower limit, inclusive
+     * @param to   upper limit, exclusive
+     */
+    void deleteByFriendAgeBetween(int from, int to);
 
     /**
      * Find all entities that satisfy the condition "have address with zipCode (find by nested simple property)"
@@ -696,6 +832,39 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param upperLimit - upper limit, exclusive
      */
     List<P> findByAddressZipCodeBetween(String lowerLimit, String upperLimit);
+
+    /**
+     * Find if there are entities that satisfy the condition "have address with zipCode between the given arguments"
+     * (find by nested simple property)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param lowerLimit - lower limit, inclusive
+     * @param upperLimit - upper limit, exclusive
+     */
+    boolean existsByAddressZipCodeBetween(String lowerLimit, String upperLimit);
+
+    /**
+     * Count entities that satisfy the condition "have address with zipCode between the given arguments" (find by nested
+     * simple property)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param lowerLimit - lower limit, inclusive
+     * @param upperLimit - upper limit, exclusive
+     */
+    long countByAddressZipCodeBetween(String lowerLimit, String upperLimit);
+
+    /**
+     * Delete entities that satisfy the condition "have address with zipCode between the given arguments" (find by
+     * nested simple property)
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
+     *
+     * @param lowerLimit - lower limit, inclusive
+     * @param upperLimit - upper limit, exclusive
+     */
+    void deleteByAddressZipCodeBetween(String lowerLimit, String upperLimit);
 
     /**
      * Find all entities that satisfy the condition "have address with zipCode equal to one of the values in the given
@@ -1210,8 +1379,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntsContaining(int integer);
 
     /**
-     * Find all entities that satisfy the condition "have ints list equal to one of the values in the given list"
-     * (find by Collection)
+     * Find all entities that satisfy the condition "have ints list equal to one of the values in the given list" (find
+     * by Collection)
      *
      * @param list - list of possible values, each of them subsequently gets converted to a List
      */
@@ -1295,6 +1464,36 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByIntSetBetween(Collection<Integer> from, Collection<Integer> to);
 
     /**
+     * Find if there are entities that satisfy the condition "have intSet in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive, subsequently gets converted to a List
+     * @param to   upper limit, exclusive, subsequently gets converted to a List
+     */
+    boolean existsByIntSetBetween(Collection<Integer> from, Collection<Integer> to);
+
+    /**
+     * Count entities that satisfy the condition "have intSet in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive, subsequently gets converted to a List
+     * @param to   upper limit, exclusive, subsequently gets converted to a List
+     */
+    long countByIntSetBetween(Collection<Integer> from, Collection<Integer> to);
+
+    /**
+     * Find all entities that satisfy the condition "have intSet in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive, subsequently gets converted to a List
+     * @param to   upper limit, exclusive, subsequently gets converted to a List
+     */
+    void deleteByIntSetBetween(Collection<Integer> from, Collection<Integer> to);
+
+    /**
      * Find all entities that satisfy the condition "have ints list in the given range"
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
@@ -1303,6 +1502,36 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param to   upper limit, exclusive, subsequently gets converted to a List
      */
     List<P> findByIntsBetween(Collection<Integer> from, Collection<Integer> to);
+
+    /**
+     * Find if there are entities that satisfy the condition "have ints list in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive, subsequently gets converted to a List
+     * @param to   upper limit, exclusive, subsequently gets converted to a List
+     */
+    boolean existsByIntsBetween(Collection<Integer> from, Collection<Integer> to);
+
+    /**
+     * Count entities that satisfy the condition "have ints list in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive, subsequently gets converted to a List
+     * @param to   upper limit, exclusive, subsequently gets converted to a List
+     */
+    long countByIntsBetween(Collection<Integer> from, Collection<Integer> to);
+
+    /**
+     * Delete entities that satisfy the condition "have ints list in the given range"
+     * <p>
+     * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
+     *
+     * @param from lower limit, inclusive, subsequently gets converted to a List
+     * @param to   upper limit, exclusive, subsequently gets converted to a List
+     */
+    void deleteByIntsBetween(Collection<Integer> from, Collection<Integer> to);
 
     /**
      * Find all entities that satisfy the condition "have strings list in the given range"
@@ -1326,11 +1555,33 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstName(String name);
 
+    boolean existsByFirstName(String name);
+
+    boolean existsByFirstNameIgnoreCase(String name);
+
+    long countByFirstName(String name);
+
+    void deleteByFirstName(String name);
+
+    List<P> readByFirstName(String name);
+
+    List<P> getByFirstName(String name);
+
+    List<P> queryByFirstName(String name);
+
+    List<P> searchByFirstName(String name);
+
+    List<P> streamByFirstName(String name);
+
     List<P> findByGender(Person.Gender gender);
 
     List<P> findByGenderIn(List<Person.Gender> list);
 
     List<P> findByFirstNameIs(String name);
+
+    boolean existsByFirstNameIs(String name);
+
+    long countByFirstNameIs(String name);
 
     List<P> findByFirstNameEquals(String name);
 

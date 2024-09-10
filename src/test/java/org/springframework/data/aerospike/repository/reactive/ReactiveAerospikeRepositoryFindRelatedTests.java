@@ -15,6 +15,7 @@ import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
+import reactor.test.StepVerifier;
 
 import java.util.List;
 
@@ -298,5 +299,48 @@ public class ReactiveAerospikeRepositoryFindRelatedTests extends BaseReactiveInt
             .subscribeOn(Schedulers.parallel()).collectList().block();
 
         assertThat(results).containsOnly(customer2, customer3);
+    }
+
+    @Test
+    public void findByIdAndFirstNameIn() {
+        QueryParam ids = QueryParam.of(List.of(customer1.getId(), customer2.getId()));
+        QueryParam firstNames = QueryParam.of(List.of(customer1.getFirstName(), customer2.getFirstName(), "FirstName"));
+        StepVerifier.create(customerRepo.findByIdAndFirstNameIn(ids, firstNames).collectList())
+            .expectNextMatches(list -> list.size() == 2 && list.contains(customer1) && list.contains(customer2))
+            .verifyComplete();
+
+        firstNames = QueryParam.of(List.of("FirstName"));
+        StepVerifier.create(customerRepo.findByIdAndFirstNameIn(ids, firstNames))
+            .expectComplete()
+            .verify();
+    }
+
+    @Test
+    public void findByIdAndFirstNameIn_Synonyms() {
+        QueryParam ids = QueryParam.of(List.of(customer1.getId(), customer2.getId()));
+        QueryParam firstNames = QueryParam.of(List.of(customer1.getFirstName(), customer2.getFirstName(), "FirstName"));
+        StepVerifier.create(customerRepo.readByIdAndFirstNameIn(ids, firstNames).collectList())
+            .expectNextMatches(list -> list.size() == 2 && list.contains(customer1) && list.contains(customer2))
+            .verifyComplete();
+
+        StepVerifier.create(customerRepo.readByIdAndFirstNameIn(ids, firstNames).collectList())
+            .expectNextMatches(list -> list.size() == 2 && list.contains(customer1) && list.contains(customer2))
+            .verifyComplete();
+
+        StepVerifier.create(customerRepo.getByIdAndFirstNameIn(ids, firstNames).collectList())
+            .expectNextMatches(list -> list.size() == 2 && list.contains(customer1) && list.contains(customer2))
+            .verifyComplete();
+
+        StepVerifier.create(customerRepo.queryByIdAndFirstNameIn(ids, firstNames).collectList())
+            .expectNextMatches(list -> list.size() == 2 && list.contains(customer1) && list.contains(customer2))
+            .verifyComplete();
+
+        StepVerifier.create(customerRepo.searchByIdAndFirstNameIn(ids, firstNames).collectList())
+            .expectNextMatches(list -> list.size() == 2 && list.contains(customer1) && list.contains(customer2))
+            .verifyComplete();
+
+        StepVerifier.create(customerRepo.streamByIdAndFirstNameIn(ids, firstNames).collectList())
+            .expectNextMatches(list -> list.size() == 2 && list.contains(customer1) && list.contains(customer2))
+            .verifyComplete();
     }
 }

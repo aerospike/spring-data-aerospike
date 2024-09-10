@@ -413,6 +413,45 @@ public interface AerospikeOperations {
      */
     <T> boolean delete(T document, String setName);
 
+    /**
+     * Delete records using a query using the set associated with the given entityClass.
+     *
+     * @param query       The query to check if any matching records exist. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     */
+    <T> void delete(Query query, Class<T> entityClass);
+
+    /**
+     * Delete records using a query within the given set.
+     *
+     * @param query       The query to check if any matching records exist. Must not be {@literal null}.
+     * @param entityClass The class to translate to returned records into. Must not be {@literal null}.
+     * @param setName     Set name to use. Must not be {@literal null}.
+     */
+    <T> void delete(Query query, Class<T> entityClass, String setName);
+
+    /**
+     * Count existing records by ids and a query using the given entityClass.
+     * <p>
+     * The records will be mapped to the given entityClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     */
+    <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+
+    /**
+     * Count existing records by ids and a query using the given entityClass within the set.
+     * <p>
+     * The records will be mapped to the given entityClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @param setName     Set name to use. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     */
+    <T> void deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName, @Nullable Query query);
 
     /**
      * Delete multiple records in one batch request. The policies are analogous to {@link #delete(Object)}.
@@ -1026,17 +1065,40 @@ public interface AerospikeOperations {
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @return whether any matching records exist.
      */
-    <T> boolean existsByQuery(Query query, Class<T> entityClass);
+    <T> boolean exists(Query query, Class<T> entityClass);
 
     /**
      * Check using a query if any matching records exist within the given set.
      *
-     * @param query       The query to check if any matching records exist. Must not be {@literal null}.
-     * @param entityClass The class to translate to returned records into. Must not be {@literal null}.
-     * @param setName     Set name to use. Must not be {@literal null}.
+     * @param query   The query to check if any matching records exist. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
      * @return whether any matching records exist.
      */
-    <T> boolean existsByQuery(Query query, Class<T> entityClass, String setName);
+    boolean exists(Query query, String setName);
+
+    /**
+     * Find if there are existing records by ids and a query using the given entityClass.
+     * <p>
+     * The records will not be mapped to the given entityClass. The results are not processed (no pagination).
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return True if matching records exist, otherwise false.
+     */
+    <T> boolean existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+
+    /**
+     * Find if there are existing records by ids and a query using the given entityClass within the set.
+     * <p>
+     * The records will not be mapped to a Java class. The results are not processed (no pagination).
+     *
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
+     * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return True if matching records exist, otherwise false.
+     */
+    boolean existsByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
      * Return the amount of records in the set determined by the given entityClass.
@@ -1071,6 +1133,30 @@ public interface AerospikeOperations {
      * @return amount of documents matching the given query and set.
      */
     long count(Query query, String setName);
+
+    /**
+     * Count existing records by ids and a query using the given entityClass.
+     * <p>
+     * The records will not be mapped to the given entityClass. The results are not processed (no pagination).
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return quantity of matching records.
+     */
+    <T> long countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+
+    /**
+     * Count existing records by ids and a query using the given entityClass within the set.
+     * <p>
+     * The records will not be mapped to a Java class. The results are not processed (no pagination).
+     *
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
+     * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return quantity of matching records.
+     */
+    long countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
      * Execute query, apply statement's aggregation function, and return result iterator.

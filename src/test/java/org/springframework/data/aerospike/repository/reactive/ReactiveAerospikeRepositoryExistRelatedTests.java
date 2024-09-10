@@ -4,11 +4,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.sample.Customer;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
+
+import java.util.List;
 
 /**
  * @author Igor Ermolenko
@@ -56,5 +59,19 @@ public class ReactiveAerospikeRepositoryExistRelatedTests extends BaseReactiveIn
         StepVerifier.create(customerRepo.existsById(Flux.just(customer1.getId(), "non-existent-id"))
                 .subscribeOn(Schedulers.parallel()))
             .expectNext(true).verifyComplete();
+    }
+
+    @Test
+    public void existsByIdAndFirstNameIn() {
+        QueryParam ids = QueryParam.of(List.of(customer1.getId(), customer2.getId()));
+        QueryParam firstNames = QueryParam.of(List.of(customer1.getFirstName(), customer2.getFirstName(), "FirstName"));
+        StepVerifier.create(customerRepo.existsByIdAndFirstNameIn(ids, firstNames))
+            .expectNext(true)
+            .verifyComplete();
+
+        firstNames = QueryParam.of(List.of("FirstName"));
+        StepVerifier.create(customerRepo.existsByIdAndFirstNameIn(ids, firstNames))
+            .expectNext(false)
+            .verifyComplete();
     }
 }

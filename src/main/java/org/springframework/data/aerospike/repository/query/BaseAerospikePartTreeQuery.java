@@ -35,6 +35,7 @@ import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
 import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -154,5 +155,19 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         boolean ignoreCase = true;
         boolean ascending = order.getDirection().isAscending();
         return new PropertyComparator<>(order.getProperty(), ignoreCase, ascending);
+    }
+
+    protected abstract Object runQueryWithIds(Class<?> targetClass, List<Object> ids, Query query);
+
+    protected boolean isExistsQuery(QueryMethod queryMethod) {
+        return queryMethod.getName().startsWith("existsBy");
+    }
+
+    protected boolean isCountQuery(QueryMethod queryMethod) {
+        return queryMethod.getName().startsWith("countBy");
+    }
+
+    protected boolean isDeleteQuery(QueryMethod queryMethod) {
+        return queryMethod.getName().startsWith("deleteBy") || queryMethod.getName().startsWith("removeBy");
     }
 }

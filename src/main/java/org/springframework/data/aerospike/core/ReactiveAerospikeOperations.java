@@ -399,6 +399,47 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Boolean> delete(T document, String setName);
 
     /**
+     * Delete records using a query using the set associated with the given entityClass.
+     *
+     * @param query       The query to check if any matching records exist. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     */
+    <T> Mono<Void> delete(Query query, Class<T> entityClass);
+
+    /**
+     * Delete records using a query within the given set.
+     *
+     * @param query       The query to check if any matching records exist. Must not be {@literal null}.
+     * @param entityClass The class to translate to returned records into. Must not be {@literal null}.
+     * @param setName     Set name to use. Must not be {@literal null}.
+     */
+    <T> Mono<Void> delete(Query query, Class<T> entityClass, String setName);
+
+    /**
+     * Count existing records by ids and a query using the given entityClass.
+     * <p>
+     * The records will be mapped to the given entityClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     */
+    <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+
+    /**
+     * Count existing records by ids and a query using the given entityClass within the set.
+     * <p>
+     * The records will be mapped to the given entityClass.
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @param setName     Set name to use. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     */
+    <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName,
+                                         @Nullable Query query);
+
+    /**
      * Reactively delete multiple records in one batch request. The policies are analogous to {@link #delete(Object)}.
      * <p>
      * The execution order is NOT preserved.
@@ -1005,17 +1046,40 @@ public interface ReactiveAerospikeOperations {
      * @param entityClass The class to extract set name from. Must not be {@literal null}.
      * @return A Mono of whether matching records exist.
      */
-    <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass);
+    <T> Mono<Boolean> exists(Query query, Class<T> entityClass);
 
     /**
      * Reactively check using a query if any matching records exist within the given set.
      *
-     * @param query       The query to check if any matching records exist. Must not be {@literal null}.
-     * @param entityClass The class to translate to returned records into. Must not be {@literal null}.
-     * @param setName     Set name to use. Must not be {@literal null}.
+     * @param query   The query to check if any matching records exist. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
      * @return A Mono of whether matching records exist.
      */
-    <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass, String setName);
+    Mono<Boolean> exists(Query query, String setName);
+
+    /**
+     * Find if there are existing records by ids and a query using the given entityClass.
+     * <p>
+     * The records will not be mapped to the given entityClass. The results are not processed (no pagination).
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return True if matching records exist, otherwise false.
+     */
+    <T> Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+
+    /**
+     * Find if there are existing records by ids and a query using the given entityClass within the set.
+     * <p>
+     * The records will not be mapped to a Java class. The results are not processed (no pagination).
+     *
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
+     * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return True if matching records exist, otherwise false.
+     */
+    Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
      * Reactively return the amount of records in the set determined by the given entityClass.
@@ -1050,6 +1114,30 @@ public interface ReactiveAerospikeOperations {
      * @return A Mono of the amount of records matching the given query and set name.
      */
     Mono<Long> count(Query query, String setName);
+
+    /**
+     * Count existing records by ids and a query using the given entityClass.
+     * <p>
+     * The records will not be mapped to the given entityClass. The results are not processed (no pagination).
+     *
+     * @param ids         The ids of the documents to find. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @param query       The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return Quantity of matching queries.
+     */
+    <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query);
+
+    /**
+     * Count existing records by ids and a query using the given entityClass within the set.
+     * <p>
+     * The records will not be mapped to a Java class. The results are not processed (no pagination).
+     *
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to use. Must not be {@literal null}.
+     * @param query   The {@link Query} to filter results. Optional argument (null if no filtering required).
+     * @return Quantity of matching queries.
+     */
+    Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query);
 
     /**
      * Reactively create an index with the specified name in Aerospike.

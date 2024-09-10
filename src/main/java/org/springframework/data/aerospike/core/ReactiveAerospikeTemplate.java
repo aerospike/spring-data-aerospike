@@ -53,6 +53,7 @@ import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PropertyHandler;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -436,6 +437,63 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .delete(ignoreGenerationPolicy(), data.getKey())
             .hasElement()
             .onErrorMap(this::translateError);
+    }
+
+    public <T> Mono<Void> delete(Query query, Class<T> entityClass, String setName) {
+        Assert.notNull(query, "Query must not be null!");
+        Assert.notNull(entityClass, "Entity class must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        Mono<List<T>> findQueryResults = find(query, entityClass, setName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toUnmodifiableList());
+
+        return findQueryResults.flatMap(list -> {
+                if (!list.isEmpty()) {
+                    if (serverVersionSupport.isBatchWriteSupported()) {
+                        return deleteAll(list);
+                    } else {
+                        list.forEach(this::delete);
+                        return Mono.empty();
+                    }
+                }
+                return Mono.empty();
+            }
+        );
+    }
+
+    @Override
+    public <T> Mono<Void> delete(Query query, Class<T> entityClass) {
+        Assert.notNull(query, "Query passed in to exist can't be null");
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        return delete(query, entityClass, getSetName(entityClass));
+    }
+
+    @Override
+    public <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
+        return deleteByIdsUsingQuery(ids, entityClass, getSetName(entityClass), query);
+    }
+
+    @Override
+    public <T> Mono<Void> deleteByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, String setName,
+                                                @Nullable Query query) {
+        Mono<List<Object>> findQueryResults = findByIdsUsingQuery(ids, entityClass, entityClass, setName, query)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toUnmodifiableList());
+
+        return findQueryResults.flatMap(list -> {
+                if (!list.isEmpty()) {
+                    if (serverVersionSupport.isBatchWriteSupported()) {
+                        return deleteAll(list);
+                    } else {
+                        list.forEach(this::delete);
+                        return Mono.empty();
+                    }
+                }
+                return Mono.empty();
+            }
+        );
     }
 
     @Override
@@ -895,13 +953,13 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                              Query query) {
+                                              @Nullable Query query) {
         return findByIdsUsingQuery(ids, entityClass, targetClass, getSetName(entityClass), query);
     }
 
     @Override
     public <T, S> Flux<?> findByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, Class<S> targetClass,
-                                              String setName, Query query) {
+                                              String setName, @Nullable Query query) {
         Assert.notNull(ids, "Ids must not be null!");
         Assert.notNull(entityClass, "Entity class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
@@ -919,11 +977,29 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             target = entityClass;
         }
 
-        return Flux.fromIterable(ids)
+        Flux<?> results = Flux.fromIterable(ids)
             .map(id -> getKey(id, setName))
             .flatMap(key -> getFromClient(policy, key, targetClass))
             .filter(keyRecord -> nonNull(keyRecord.record))
             .map(keyRecord -> mapToEntity(keyRecord.key, target, keyRecord.record));
+
+        return applyPostProcessingOnResults(results, query);
+    }
+
+    private Flux<?> findByIdsUsingQueryWithoutMapping(Collection<?> ids, String setName, Query query) {
+        Assert.notNull(ids, "Ids must not be null!");
+        Assert.notNull(setName, "Set name must not be null!");
+
+        if (ids.isEmpty()) {
+            return Flux.empty();
+        }
+
+        BatchPolicy policy = getBatchPolicyFilterExp(query);
+
+        return Flux.fromIterable(ids)
+            .map(id -> getKey(id, setName))
+            .flatMap(key -> getFromClient(policy, key, null))
+            .filter(keyRecord -> nonNull(keyRecord.record));
     }
 
     @Override
@@ -1055,18 +1131,29 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass) {
+    public <T> Mono<Boolean> exists(Query query, Class<T> entityClass) {
         Assert.notNull(query, "Query passed in to exist can't be null");
         Assert.notNull(entityClass, "Class must not be null!");
-        return existsByQuery(query, entityClass, getSetName(entityClass));
+        return exists(query, getSetName(entityClass));
     }
 
     @Override
-    public <T> Mono<Boolean> existsByQuery(Query query, Class<T> entityClass, String setName) {
+    public Mono<Boolean> exists(Query query, String setName) {
         Assert.notNull(query, "Query passed in to exist can't be null");
-        Assert.notNull(entityClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
-        return find(query, entityClass, setName).hasElements();
+        return findKeyRecordsUsingQuery(setName, query).hasElements();
+    }
+
+    @Override
+    public <T> Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
+        return existsByIdsUsingQuery(ids, getSetName(entityClass), query);
+    }
+
+    @Override
+    public Mono<Boolean> existsByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
+        return findByIdsUsingQueryWithoutMapping(ids, setName, query)
+            .filter(Objects::nonNull)
+            .hasElements();
     }
 
     @Override
@@ -1085,6 +1172,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         } catch (AerospikeException e) {
             throw translateError(e);
         }
+    }
+
+    @Override
+    public <T> Mono<Long> countByIdsUsingQuery(Collection<?> ids, Class<T> entityClass, @Nullable Query query) {
+        return countByIdsUsingQuery(ids, getSetName(entityClass), query);
+    }
+
+    @Override
+    public Mono<Long> countByIdsUsingQuery(Collection<?> ids, String setName, @Nullable Query query) {
+        return findByIdsUsingQueryWithoutMapping(ids, setName, query)
+            .filter(Objects::nonNull)
+            .count();
     }
 
     private long countSet(String setName) {
@@ -1110,10 +1209,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public Mono<Long> count(Query query, String setName) {
         Assert.notNull(setName, "Set for count must not be null!");
 
-        return countRecordsUsingQuery(setName, query).count();
+        return findKeyRecordsUsingQuery(setName, query).count();
     }
 
-    private Flux<KeyRecord> countRecordsUsingQuery(String setName, Query query) {
+    private Flux<KeyRecord> findKeyRecordsUsingQuery(String setName, Query query) {
         Assert.notNull(setName, "Set name must not be null!");
 
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
@@ -1358,16 +1457,18 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private <T> Flux<T> applyPostProcessingOnResults(Flux<T> results, Query query) {
-        if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator<T> comparator = getComparator(query);
-            results = results.sort(comparator);
-        }
+        if (query != null) {
+            if (query.getSort() != null && query.getSort().isSorted()) {
+                Comparator<T> comparator = getComparator(query);
+                results = results.sort(comparator);
+            }
 
-        if (query.hasOffset()) {
-            results = results.skip(query.getOffset());
-        }
-        if (query.hasRows()) {
-            results = results.take(query.getRows());
+            if (query.hasOffset()) {
+                results = results.skip(query.getOffset());
+            }
+            if (query.hasRows()) {
+                results = results.take(query.getRows());
+            }
         }
         return results;
     }

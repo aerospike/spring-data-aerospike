@@ -125,42 +125,65 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
     void findPersonById_AND_simpleProperty() {
-        QueryParam ids = of(List.of(dave.getId(), boyd.getId()));
-        QueryParam names = of(carter.getFirstName());
-        List<Person> persons = repository.findByIdAndFirstName(ids, names);
+        QueryParam ids = of(dave.getId());
+        QueryParam name = of(carter.getFirstName());
+        List<Person> persons = repository.findByIdAndFirstName(ids, name);
         assertThat(persons).isEmpty();
 
+        ids = of(dave.getId());
+        name = of(dave.getFirstName());
+        persons = repository.findByIdAndFirstName(ids, name);
+        assertThat(persons).containsOnly(dave);
+
         ids = of(List.of(boyd.getId(), dave.getId(), carter.getId()));
-        names = of(dave.getFirstName());
-        persons = repository.findByIdAndFirstName(ids, names);
+        name = of(dave.getFirstName());
+        // when in a combined query, "findById" part can receive multiple ids wrapped in QueryParam
+        persons = repository.findByIdAndFirstName(ids, name);
         assertThat(persons).containsOnly(dave);
 
         ids = of(List.of(leroi.getId(), leroi2.getId(), carter.getId()));
-        QueryParam firstNames = of(leroi.getFirstName());
-        QueryParam ages = of(leroi2.getAge());
-        List<Person> persons2 = repository.findByIdAndFirstNameAndAge(ids, firstNames, ages);
+        QueryParam firstName = of(leroi.getFirstName());
+        QueryParam age = of(leroi2.getAge());
+        List<Person> persons2 = repository.findByIdAndFirstNameAndAge(ids, firstName, age);
         assertThat(persons2).containsOnly(leroi2);
 
         // "findByIdOr..." will return empty list because primary keys are used to firstly narrow down the results.parts
         // In a combined id query "OR" can be put only between the non-id fields like shown below,
         // and the results are limited by the given ids
-        ids = of(List.of(leroi.getId(), leroi2.getId(),
-            carter.getId()));
-        firstNames = of(leroi.getFirstName());
-        ages = of(leroi2.getAge());
-        List<Person> persons3 = repository.findByIdAndFirstNameOrAge(ids, firstNames, ages);
+        ids = of(List.of(leroi.getId(), leroi2.getId(), carter.getId()));
+        firstName = of(leroi.getFirstName());
+        age = of(leroi2.getAge());
+        List<Person> persons3 = repository.findByIdAndFirstNameOrAge(ids, firstName, age);
         assertThat(persons3).containsOnly(leroi, leroi2);
 
-        ids = of(List.of(leroi.getId(), leroi2.getId(),
-            carter.getId()));
-        firstNames = of(leroi.getFirstName());
-        ages = of(stefan.getAge());
-        List<Person> persons4 = repository.findByIdAndFirstNameOrAge(ids, firstNames, ages);
+        ids = of(List.of(leroi.getId(), leroi2.getId(), carter.getId()));
+        firstName = of(leroi.getFirstName());
+        age = of(stefan.getAge());
+        List<Person> persons4 = repository.findByIdAndFirstNameOrAge(ids, firstName, age);
         assertThat(persons4).containsOnly(leroi, leroi2);
     }
 
     @Test
-    void findById_dynamicProjection() {
+    void findAllByIds() {
+        Iterable<Person> result = repository.findAllById(List.of(dave.getId(), carter.getId()));
+        assertThat(result).containsExactlyInAnyOrder(dave, carter);
+    }
+
+    @Test
+    void findAllPersonByIds_AND_simpleProperty() {
+        QueryParam ids1 = of(List.of(dave.getId(), boyd.getId()));
+        QueryParam name1 = of(dave.getFirstName());
+        List<Person> persons1 = repository.findAllByIdAndFirstName(ids1, name1);
+        assertThat(persons1).contains(dave);
+
+        QueryParam ids2 = of(List.of(dave.getId(), boyd.getId()));
+        QueryParam name2 = of(carter.getFirstName());
+        List<Person> persons2 = repository.findAllByIdAndFirstName(ids2, name2);
+        assertThat(persons2).isEmpty();
+    }
+
+    @Test
+    void findByIds_dynamicProjection() {
         List<PersonSomeFields> result = repository.findById(dave.getId(), PersonSomeFields.class);
         assertThat(result).containsOnly(dave.toPersonSomeFields());
     }
@@ -174,32 +197,32 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     @Test
     void findById_AND_simpleProperty_dynamicProjection() {
         QueryParam ids = of(List.of(boyd.getId(), dave.getId(), carter.getId()));
-        QueryParam lastNames = of(carter.getLastName());
-        List<PersonSomeFields> result = repository.findByIdAndLastName(ids, lastNames, PersonSomeFields.class);
+        QueryParam lastName = of(carter.getLastName());
+        List<PersonSomeFields> result = repository.findByIdAndLastName(ids, lastName, PersonSomeFields.class);
         assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
     void findById_AND_simpleProperty_DynamicProjection_EmptyResult() {
         QueryParam ids = of(List.of(carter.getId(), boyd.getId()));
-        QueryParam lastNames = of(dave.getLastName());
-        List<PersonSomeFields> result = repository.findByIdAndLastName(ids, lastNames, PersonSomeFields.class);
+        QueryParam lastName = of(dave.getLastName());
+        List<PersonSomeFields> result = repository.findByIdAndLastName(ids, lastName, PersonSomeFields.class);
         assertThat(result).isEmpty();
     }
 
     @Test
     void findBySimpleProperty_AND_id_dynamicProjection() {
-        QueryParam ids = of(dave.getId());
-        QueryParam lastNames = of(dave.getLastName());
-        List<PersonSomeFields> result = repository.findByLastNameAndId(lastNames, ids, PersonSomeFields.class);
+        QueryParam id = of(dave.getId());
+        QueryParam lastName = of(dave.getLastName());
+        List<PersonSomeFields> result = repository.findByLastNameAndId(lastName, id, PersonSomeFields.class);
         assertThat(result).containsOnly(dave.toPersonSomeFields());
     }
 
     @Test
     void findBySimpleProperty_AND_simpleProperty_DynamicProjection() {
-        QueryParam firstNames = of(carter.getFirstName());
-        QueryParam lastNames = of(carter.getLastName());
-        List<PersonSomeFields> result = repository.findByFirstNameAndLastName(firstNames, lastNames,
+        QueryParam firstName = of(carter.getFirstName());
+        QueryParam lastName = of(carter.getLastName());
+        List<PersonSomeFields> result = repository.findByFirstNameAndLastName(firstName, lastName,
             PersonSomeFields.class);
         assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
