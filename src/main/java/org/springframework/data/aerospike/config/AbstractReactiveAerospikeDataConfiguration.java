@@ -98,6 +98,11 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
         return new AerospikeReactorClient(aerospikeClient);
     }
 
+    @Bean(name = "aerospikeReactorClient1")
+    public IAerospikeReactorClient aerospikeReactorClient1(IAerospikeClient aerospikeClient) {
+        return new AerospikeReactorClient(aerospikeClient);
+    }
+
     @Override
     protected ClientPolicy getClientPolicy() {
         ClientPolicy clientPolicy = super.getClientPolicy(); // applying default values first
