@@ -60,7 +60,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
     }
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setScansEnabled(false);
         aerospikeDataSettings.setCreateIndexesOnStartup(true);
         aerospikeDataSettings.setIndexCacheRefreshSeconds(3600);
