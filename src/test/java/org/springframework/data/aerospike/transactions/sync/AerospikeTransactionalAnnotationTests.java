@@ -16,8 +16,8 @@
 package org.springframework.data.aerospike.transactions.sync;
 
 import com.aerospike.client.Txn;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +26,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,13 +38,14 @@ import static org.springframework.data.aerospike.transactions.sync.AerospikeTran
 import static org.springframework.data.aerospike.transactions.sync.AerospikeTransactionTestUtils.getTransaction;
 import static org.springframework.data.aerospike.transactions.sync.AerospikeTransactionTestUtils.getTransaction2;
 
+@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrationTests {
 
     @BeforeAll
     public void beforeAll() {
-        Assumptions.assumeTrue(serverVersionSupport.isMRTSupported(),
-            "Skipping transactions tests because Aerospike Server 8.0.0+ is required");
+        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
     }
 
     @BeforeEach

@@ -1,5 +1,7 @@
 package org.springframework.data.aerospike.util;
 
+import org.junit.jupiter.api.Assumptions;
+import org.slf4j.Logger;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.aerospike.sample.IndexedPerson;
@@ -21,6 +23,13 @@ public class TestUtils {
             person.setFriend(null);
             person.setBestFriend(null);
             repository.save(person);
+        }
+    }
+
+    public static void checkAssumption(boolean condition, String message, Logger logger) {
+        if (!condition) {
+            logger.warn(message);
+            Assumptions.assumeTrue(condition);
         }
     }
 }

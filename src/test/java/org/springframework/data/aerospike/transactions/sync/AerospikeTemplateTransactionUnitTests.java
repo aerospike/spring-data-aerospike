@@ -16,9 +16,9 @@
 package org.springframework.data.aerospike.transactions.sync;
 
 import com.aerospike.client.Txn;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +29,7 @@ import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
+import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.NestedTransactionNotSupportedException;
 import org.springframework.transaction.TransactionSystemException;
@@ -50,11 +51,9 @@ import static org.springframework.transaction.TransactionDefinition.PROPAGATION_
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_SUPPORTS;
 
+@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrationTests {
-
-    @Autowired
-    AerospikeTransactionManager transactionManager;
 
     @Autowired
     TransactionTemplate transactionTemplate;
@@ -63,8 +62,8 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
 
     @BeforeAll
     public void beforeAll() {
-        Assumptions.assumeTrue(serverVersionSupport.isMRTSupported(),
-            "Skipping transactions tests because Aerospike Server 8.0.0+ is required");
+        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
         utils = new AerospikeTransactionTestUtils(client, template);
     }
 

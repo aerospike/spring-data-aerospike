@@ -16,9 +16,9 @@
 package org.springframework.data.aerospike.transactions.reactive;
 
 import com.aerospike.client.policy.WritePolicy;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +30,7 @@ import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
+import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.reactive.GenericReactiveTransaction;
@@ -56,6 +57,7 @@ import static org.springframework.transaction.TransactionDefinition.PROPAGATION_
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_SUPPORTS;
 import static org.springframework.transaction.reactive.TransactionSynchronizationManager.forCurrentTransaction;
 
+@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveIntegrationTests {
 
@@ -72,8 +74,8 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @BeforeAll
     public void beforeAll() {
-        Assumptions.assumeTrue(serverVersionSupport.isMRTSupported(),
-            "Skipping transactions tests because Aerospike Server 8.0.0+ is required");
+        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
         when(mockTxManager.getReactiveTransaction(any()))
             .thenReturn(Mono.just(
                 new GenericReactiveTransaction("name", new AerospikeReactiveTransaction(null),
@@ -277,7 +279,6 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
         Mono<Boolean> action = reactiveTemplate.delete(document);
 
         performTxVerifyCommit(document, action);
-
     }
 
     @Test

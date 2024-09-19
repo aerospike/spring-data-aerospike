@@ -15,9 +15,9 @@
  */
 package org.springframework.data.aerospike.transactions.sync;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +29,7 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
 import org.springframework.data.aerospike.util.AsyncUtils;
+import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.UnexpectedRollbackException;
@@ -48,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTests {
 
@@ -59,8 +61,8 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @BeforeAll
     public void beforeAll() {
-        Assumptions.assumeTrue(serverVersionSupport.isMRTSupported(),
-            "Skipping transactions tests because Aerospike Server 8.0.0+ is required");
+        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
     }
 
     @BeforeEach
