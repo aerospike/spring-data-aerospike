@@ -33,14 +33,14 @@ public class AerospikeTransactionTestUtils {
         this.template = template;
     }
 
-    protected void verifyTwoWritesInEachOngoingTransactionWithPropagation(int propagationType,
+    protected void verifyTwoWritesEachInOngoingTransactionWithPropagation(int propagationType,
                                                                           int numberOfCommitCalls,
                                                                           int numberOfSuspendCalls) {
-        verifyTwoWritesInEachOngoingTransactionWithPropagation(propagationType, numberOfCommitCalls,
+        verifyTwoWritesEachInOngoingTransactionWithPropagation(propagationType, numberOfCommitCalls,
             numberOfSuspendCalls, false);
     }
 
-    protected void verifyTwoWritesInEachOngoingTransactionWithPropagation(int propagationType,
+    protected void verifyTwoWritesEachInOngoingTransactionWithPropagation(int propagationType,
                                                                           int numberOfCommitCalls,
                                                                           int numberOfSuspendCalls,
                                                                           boolean isPropagationNested) {

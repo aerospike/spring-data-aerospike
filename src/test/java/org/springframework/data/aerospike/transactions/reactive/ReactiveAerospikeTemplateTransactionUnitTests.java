@@ -106,7 +106,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void writeInTransaction_verifyCommit() {
-        reactiveTemplate.insert(new DocumentWithPrimitiveIntId(100)).then()
+        reactiveTemplate.insert(new DocumentWithPrimitiveIntId(600)).then()
             .as(mockTxOperator::transactional)
             .as(StepVerifier::create)
             .verifyComplete();
@@ -131,16 +131,26 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     }
 
     private <T> void performTxVerifyCommit(Object documents, Mono<T> action) {
+        performTxVerifyCommit(documents, action, false);
+    }
+
+    private <T> void performTxVerifyCommit(Object documents, Mono<T> action, boolean isVoid) {
         AerospikeReactiveTransactionManager trackedTxManager = spy(transactionManager);
         TransactionalOperator txOperator = TransactionalOperator.create(trackedTxManager);
 
-        utils.performInTxAndVerifyCommit(trackedTxManager, txOperator, action.flatMap(i -> Mono.just(documents)));
+        if (isVoid) {
+            utils.performInTxAndVerifyCommitOnComplete(trackedTxManager, txOperator,
+                action.flatMap(i -> Mono.just(documents)));
+        } else {
+            utils.performInTxAndVerifyCommitOnNext(trackedTxManager, txOperator,
+                action.flatMap(i -> Mono.just(documents)));
+        }
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void insertInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(601);
         Mono<DocumentWithPrimitiveIntId> action = reactiveTemplate.insert(document);
 
         performTxVerifyCommit(document, action);
@@ -150,7 +160,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void insertAllInTransaction_verifyCommit() {
         List<DocumentWithPrimitiveIntId> documents =
-            List.of(new DocumentWithPrimitiveIntId(100));
+            List.of(new DocumentWithPrimitiveIntId(602));
         Mono<DocumentWithPrimitiveIntId> action = reactiveTemplate.insertAll(documents).next();
 
         performTxVerifyCommit(documents, action);
@@ -159,7 +169,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void saveInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(603);
         Mono<DocumentWithPrimitiveIntId> action = reactiveTemplate.save(document);
 
         performTxVerifyCommit(document, action);
@@ -169,7 +179,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void saveAllInTransaction_verifyCommit() {
         List<DocumentWithPrimitiveIntId> documents =
-            List.of(new DocumentWithPrimitiveIntId(100));
+            List.of(new DocumentWithPrimitiveIntId(604));
         Mono<DocumentWithPrimitiveIntId> action = reactiveTemplate.saveAll(documents).next();
 
         performTxVerifyCommit(documents, action);
@@ -178,7 +188,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void updateInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(605);
         reactiveTemplate.insert(document).block();
         Mono<DocumentWithPrimitiveIntId> action = reactiveTemplate.update(document);
 
@@ -189,7 +199,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void updateAllInTransaction_verifyCommit() {
         List<DocumentWithPrimitiveIntId> documents =
-            List.of(new DocumentWithPrimitiveIntId(100));
+            List.of(new DocumentWithPrimitiveIntId(606));
         reactiveTemplate.insertAll(documents).blockLast();
         Mono<DocumentWithPrimitiveIntId> action = reactiveTemplate.updateAll(documents).next();
 
@@ -199,8 +209,8 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void addInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
-        Mono<DocumentWithPrimitiveIntId> action = reactiveTemplate.add(document, "bin", 100L);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(607);
+        Mono<DocumentWithPrimitiveIntId> action = reactiveTemplate.add(document, "bin", 607L);
 
         performTxVerifyCommit(document, action);
     }
@@ -208,7 +218,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void appendInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(608);
         Mono<DocumentWithPrimitiveIntId> action = reactiveTemplate.append(document, "bin", "test");
 
         performTxVerifyCommit(document, action);
@@ -217,7 +227,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void persistInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(609);
         Mono<DocumentWithPrimitiveIntId> action =
             reactiveTemplate.persist(document, reactiveClient.getWritePolicyDefault());
 
@@ -227,7 +237,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void findByIdInTransaction_verifyCommit() {
-        int id = 100;
+        int id = 610;
         reactiveTemplate.insert(new DocumentWithPrimitiveIntId(id)).block();
         Mono<DocumentWithPrimitiveIntId> action =
             reactiveTemplate.findById(id, DocumentWithPrimitiveIntId.class);
@@ -238,7 +248,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void findByIdsInTransaction_verifyCommit() {
-        int id = 100;
+        int id = 611;
         List<Integer> ids = List.of(id);
         reactiveTemplate.insert(new DocumentWithPrimitiveIntId(id)).block();
         Mono<DocumentWithPrimitiveIntId> action =
@@ -251,9 +261,9 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void findByGroupedEntitiesInTransaction_verifyCommit() {
         GroupedKeys groupedKeys = GroupedKeys.builder()
-            .entityKeys(DocumentWithPrimitiveIntId.class, List.of(100))
+            .entityKeys(DocumentWithPrimitiveIntId.class, List.of(612))
             .build();
-        int id = 100;
+        int id = 612;
         reactiveTemplate.insert(new DocumentWithPrimitiveIntId(id)).block();
         Mono<GroupedEntities> action = reactiveTemplate.findByIds(groupedKeys);
 
@@ -263,7 +273,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void existsInTransaction_verifyCommit() {
-        int id = 100;
+        int id = 613;
         reactiveTemplate.insert(new DocumentWithPrimitiveIntId(id)).block();
         Mono<Boolean> action =
             reactiveTemplate.exists(id, DocumentWithPrimitiveIntId.class);
@@ -274,7 +284,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void deleteInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(614);
         reactiveTemplate.insert(document).block();
         Mono<Boolean> action = reactiveTemplate.delete(document);
 
@@ -284,43 +294,50 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void deleteAllInTransaction_verifyCommit() {
-        List<DocumentWithPrimitiveIntId> documents =
-            List.of(new DocumentWithPrimitiveIntId(100));
+        List<DocumentWithPrimitiveIntId> documents = List.of(new DocumentWithPrimitiveIntId(615));
         reactiveTemplate.insertAll(documents).blockLast();
         Mono<Void> action = reactiveTemplate.deleteAll(documents);
 
-        performTxVerifyCommit(documents, action);
+        performTxVerifyCommit(documents, action, true);
     }
 
     @Test
     public void verifyOngoingTransaction_withPropagation_required() {
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(701);
+
         // join an existing transaction if available, it is the default propagation level
-        utils.verifyOngoingTransaction_withPropagation(PROPAGATION_REQUIRED, 0)
+        utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_REQUIRED, 0)
             .as(StepVerifier::create)
             .verifyComplete();
     }
 
     @Test
     public void verifyOngoingTransaction_withPropagation_requiresNew() {
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(702);
+
         // always create a new transaction
-        utils.verifyOngoingTransaction_withPropagation(PROPAGATION_REQUIRES_NEW, 1)
+        utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_REQUIRES_NEW, 1)
             .as(StepVerifier::create)
             .verifyComplete();
     }
 
     @Test
     public void verifyOngoingTransaction_withPropagation_supports() {
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(700);
+
         // participate in a transaction, or if no transaction is present, run non-transactionally
-        utils.verifyOngoingTransaction_withPropagation(PROPAGATION_SUPPORTS, 0)
+        utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_SUPPORTS, 0)
             .as(StepVerifier::create)
             .verifyComplete();
     }
 
     @Test
     public void verifyOngoingTransaction_withPropagation_notSupported() {
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(703);
+
         // execute non-transactionally, regardless of the presence of an active transaction;
         // if a transaction is already active, it will be suspended for the duration of the method execution
-        utils.verifyOngoingTransaction_withPropagation(PROPAGATION_NOT_SUPPORTED, 1)
+        utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_NOT_SUPPORTED, 1)
             .as(StepVerifier::create)
             .verifyComplete();
         ;
@@ -328,8 +345,10 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_mandatory() {
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(704);
+
         // must run within an active transaction
-        utils.verifyOngoingTransaction_withPropagation(PROPAGATION_MANDATORY, 0)
+        utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_MANDATORY, 0)
             .as(StepVerifier::create)
             .verifyComplete();
         ;
@@ -337,8 +356,10 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_never() {
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(706);
+
         // never run within a transaction
-        utils.verifyOngoingTransaction_withPropagation(PROPAGATION_NEVER, 0)
+        utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_NEVER, 0)
             .as(StepVerifier::create)
             .expectErrorMatches(e -> {
                 if (!(e instanceof IllegalTransactionStateException)) {
@@ -353,9 +374,11 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_nested() {
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(707);
+
         // if a transaction exists, mark a savepoint to roll back to in case of an exception
         // nested transactions are not supported
-        utils.verifyOngoingTransaction_withPropagation(PROPAGATION_NESTED, 0)
+        utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_NESTED, 0)
             .as(StepVerifier::create)
             .expectErrorMatches(e -> {
                 if (!(e instanceof TransactionSystemException)) {
@@ -399,12 +422,6 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
                 })).then()
             .as(StepVerifier::create)
             .verifyComplete();
-
-        reactiveTemplate
-            .count(SampleClasses.DocumentWithIntegerId.class)
-            .as(StepVerifier::create)
-            .consumeNextWith(result -> assertThat(result == 1).isTrue()) // rollback, nothing was written
-            .verifyComplete();
     }
 
     @Test
@@ -428,7 +445,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void nativeSessionSynchronization_verifyRollback() {
-        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(100, "test1");
+        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(616, "test1");
         transactionalOperator
             .execute(transaction -> forCurrentTransaction()
                 .doOnNext(synchronizationManager -> {

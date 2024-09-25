@@ -90,16 +90,16 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
     @Transactional()
     @Rollback(value = false)
     // only for testing purposes as performing one write in a transaction lacks sense
-    public void verifyTransaction_oneWrite() {
+    public void verifyTransaction_oneInsert() {
         var testSync = new TestTransactionSynchronization(() -> {
-            var result = template.findById(100, SampleClasses.DocumentWithPrimitiveIntId.class);
-            assertThat(result.getId()).isEqualTo(100);
+            var result = template.findById(300, SampleClasses.DocumentWithPrimitiveIntId.class);
+            assertThat(result.getId()).isEqualTo(300);
             System.out.println("Verified");
         });
         // Register the action to perform after transaction is completed
         testSync.register();
 
-        template.insert(new SampleClasses.DocumentWithPrimitiveIntId(100));
+        template.insert(new SampleClasses.DocumentWithPrimitiveIntId(300));
     }
 
     @Test
@@ -108,17 +108,17 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
     // just for testing purposes as performing only one write in a transactions lacks sense
     public void verifyTransaction_batchInsert() {
         var testSync = new TestTransactionSynchronization(() -> {
-            var result1 = template.findById(100, SampleClasses.DocumentWithPrimitiveIntId.class);
-            var result2 = template.findById(200, SampleClasses.DocumentWithPrimitiveIntId.class);
-            assertThat(result1.getId()).isEqualTo(100);
-            assertThat(result2.getId()).isEqualTo(200);
+            var result1 = template.findById(301, SampleClasses.DocumentWithPrimitiveIntId.class);
+            var result2 = template.findById(401, SampleClasses.DocumentWithPrimitiveIntId.class);
+            assertThat(result1.getId()).isEqualTo(301);
+            assertThat(result2.getId()).isEqualTo(401);
             System.out.println("Verified");
         });
         // Register the action to perform after transaction is completed
         testSync.register();
 
-        template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(100),
-            new SampleClasses.DocumentWithPrimitiveIntId(200)));
+        template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(301),
+            new SampleClasses.DocumentWithPrimitiveIntId(401)));
     }
 
     public void transactional_multipleInserts(Object document1, Object document2) {
@@ -131,17 +131,17 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
     @Rollback(value = false)
     public void verifyTransaction_multipleWrites() {
         var testSync = new TestTransactionSynchronization(() -> {
-            var result1 = template.findById(100, SampleClasses.DocumentWithPrimitiveIntId.class);
-            var result2 = template.findById(200, SampleClasses.DocumentWithPrimitiveIntId.class);
-            assertThat(result1.getId()).isEqualTo(100);
-            assertThat(result2.getId()).isEqualTo(200);
+            var result1 = template.findById(302, SampleClasses.DocumentWithPrimitiveIntId.class);
+            var result2 = template.findById(402, SampleClasses.DocumentWithPrimitiveIntId.class);
+            assertThat(result1.getId()).isEqualTo(302);
+            assertThat(result2.getId()).isEqualTo(402);
             System.out.println("Verified");
         });
         // Register the action to perform after transaction is completed
         testSync.register();
 
-        transactional_multipleInserts(new SampleClasses.DocumentWithPrimitiveIntId(100),
-            new SampleClasses.DocumentWithPrimitiveIntId(200));
+        transactional_multipleInserts(new SampleClasses.DocumentWithPrimitiveIntId(302),
+            new SampleClasses.DocumentWithPrimitiveIntId(402));
     }
 
 
@@ -150,7 +150,7 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
     @Rollback() // rollback is set to true to simulate propagating exception that rolls back transaction
     public void verifyTransaction_multipleWrites_rollback() {
         var testSync = new TestTransactionSynchronization(() -> {
-            var result = template.findById(100, SampleClasses.DocumentWithPrimitiveIntId.class);
+            var result = template.findById(303, SampleClasses.DocumentWithPrimitiveIntId.class);
             assertThat(result).isNull();
             System.out.println("Verified");
         });
@@ -158,9 +158,27 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
         testSync.register();
 
         assertThatThrownBy(() ->
-            transactional_multipleInserts(new SampleClasses.DocumentWithPrimitiveIntId(100),
-                new SampleClasses.DocumentWithPrimitiveIntId(100)))
+            transactional_multipleInserts(new SampleClasses.DocumentWithPrimitiveIntId(303),
+                new SampleClasses.DocumentWithPrimitiveIntId(303)))
             .isInstanceOf(DuplicateKeyException.class)
             .hasMessageContaining("Key already exists");
+    }
+
+    @Test
+    @Transactional()
+    @Rollback(value = false)
+    // only for testing purposes as performing one write in a transaction lacks sense
+    public void verifyTransaction_oneDelete() {
+        var testSync = new TestTransactionSynchronization(() -> {
+            var result = template.findById(1004, SampleClasses.DocumentWithPrimitiveIntId.class);
+            assertThat(result.getId()).isNull();
+            System.out.println("Verified");
+        });
+        // Register the action to perform after transaction is completed
+        testSync.register();
+
+        var doc = new SampleClasses.DocumentWithPrimitiveIntId(1004);
+        template.insert(doc);
+        template.delete(doc);
     }
 }

@@ -32,10 +32,9 @@ public class ReactiveAerospikeTransactionTestUtils {
         this.txManager = txManager;
     }
 
-    protected Mono<Void> verifyOngoingTransaction_withPropagation(int propagationType, int numberOfSuspendCalls) {
+    protected Mono<Void> verifyOngoingTransaction_withPropagation(SampleClasses.DocumentWithPrimitiveIntId document,
+                                                                  int propagationType, int numberOfSuspendCalls) {
         // Multi-record transactions are supported starting with Server version 8.0+
-        var document1 = new SampleClasses.DocumentWithIntegerId(100, "test1");
-
         var trackedTxManager = spy(txManager);
         var tranDefinition = new DefaultTransactionDefinition();
         tranDefinition.setPropagationBehavior(propagationType);
@@ -45,12 +44,12 @@ public class ReactiveAerospikeTransactionTestUtils {
             .flatMap(trSyncManager -> {
                 var rHolder = new AerospikeReactiveTransactionResourceHolder(client);
                 trSyncManager.bindResource(client, rHolder);
-                return txOperator.execute(transaction -> template.insert(document1)).then();
+                return txOperator.execute(transaction -> template.insert(document)).then();
             })
             .contextWrite(TransactionContextManager.getOrCreateContext())
             .contextWrite(TransactionContextManager.getOrCreateContextHolder())
             .doOnNext(ignored -> verify(trackedTxManager, times(numberOfSuspendCalls)).doSuspend(any(), any()))
-            .doOnNext(ignored -> template.count(SampleClasses.DocumentWithIntegerId.class)
+            .doOnNext(ignored -> template.count(SampleClasses.DocumentWithPrimitiveIntId.class)
                 .map(count -> assertThat(count)
                     .withFailMessage("Record was not written")
                     .isEqualTo(1)))
@@ -70,8 +69,8 @@ public class ReactiveAerospikeTransactionTestUtils {
                 Mono.empty());
     }
 
-    protected <T> Mono<Void> performInTxAndVerifyCommit(ReactiveTransactionManager txManager,
-                                                        TransactionalOperator txOperator, Mono<T> action) {
+    protected <T> Mono<Void> performInTxAndVerifyCommitOnNext(ReactiveTransactionManager txManager,
+                                                              TransactionalOperator txOperator, Mono<T> action) {
         action
             .as(txOperator::transactional)
             .as(StepVerifier::create)
@@ -79,6 +78,20 @@ public class ReactiveAerospikeTransactionTestUtils {
                 // verify that commit() was called
                 verify(txManager).commit(any());
             })
+            .verifyComplete();
+
+        return Mono.empty();
+    }
+
+    protected <T> Mono<Void> performInTxAndVerifyCommitOnComplete(ReactiveTransactionManager txManager,
+                                                              TransactionalOperator txOperator, Mono<T> action) {
+        action
+            .as(txOperator::transactional)
+            .doOnSuccess(i -> {
+                // verify that commit() was called
+                verify(txManager).commit(any());
+            })
+            .as(StepVerifier::create)
             .verifyComplete();
 
         return Mono.empty();

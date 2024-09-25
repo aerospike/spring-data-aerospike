@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.config;
 
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import com.playtika.testcontainer.aerospike.AerospikeTestOperations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,21 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     @Bean
     public AerospikeTestOperations aerospikeTestOperations(GenericContainer<?> aerospike) {
         return new AerospikeTestOperations(null, aerospike);
+    }
+
+    @Override
+    protected ClientPolicy getClientPolicy() {
+        ClientPolicy clientPolicy = super.getClientPolicy(); // applying default values first
+        int totalTimeout = 2000;
+        clientPolicy.readPolicyDefault.totalTimeout = totalTimeout;
+        clientPolicy.writePolicyDefault.totalTimeout = totalTimeout;
+        clientPolicy.batchPolicyDefault.totalTimeout = totalTimeout;
+        clientPolicy.infoPolicyDefault.timeout = totalTimeout;
+        clientPolicy.readPolicyDefault.maxRetries = 3;
+        clientPolicy.writePolicyDefault.durableDelete = true;
+        clientPolicy.batchWritePolicyDefault.durableDelete = true;
+        clientPolicy.batchDeletePolicyDefault.durableDelete = true;
+        return clientPolicy;
     }
 
     @Bean

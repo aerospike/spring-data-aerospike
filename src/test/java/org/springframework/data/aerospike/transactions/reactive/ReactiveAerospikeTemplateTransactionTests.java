@@ -83,7 +83,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
     @Test
     public void verifyOneWriteInTransaction() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(100, "test1");
+        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(500, "test1");
 
         // only for testing purposes as performing one write in a transaction lacks sense
         reactiveTemplate.insert(document)
@@ -94,7 +94,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
             .verifyComplete();
 
         reactiveTemplate
-            .findById(100, SampleClasses.DocumentWithIntegerId.class)
+            .findById(500, SampleClasses.DocumentWithIntegerId.class)
             .as(StepVerifier::create)
             .consumeNextWith(result -> assertThat(result.getContent().equals("test1")).isTrue())
             .verifyComplete();
@@ -103,8 +103,8 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
     @Test
     public void verifyMultipleWritesInTransaction() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(100, "test1");
-        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(100, "test2");
+        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(501, "test1");
+        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(501, "test2");
 
         reactiveTemplate.insert(document1)
             .then(reactiveTemplate.save(document2))
@@ -114,7 +114,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
             .verifyComplete();
 
         reactiveTemplate
-            .findById(100, SampleClasses.DocumentWithIntegerId.class)
+            .findById(501, SampleClasses.DocumentWithIntegerId.class)
             .as(StepVerifier::create)
             .consumeNextWith(result -> assertThat(result.getContent().equals("test2")).isTrue())
             .verifyComplete();
@@ -123,14 +123,14 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
     @Test
     public void oneWriteInTransaction_manual_transactional() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(100, "test1");
+        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(502, "test1");
 
         transactionalOperator.transactional(reactiveTemplate.insert(document)).then()
             .as(StepVerifier::create)
             .verifyComplete();
 
         reactiveTemplate
-            .findById(100, SampleClasses.DocumentWithIntegerId.class)
+            .findById(502, SampleClasses.DocumentWithIntegerId.class)
             .as(StepVerifier::create)
             .consumeNextWith(result -> assertThat(result.getContent().equals("test1")).isTrue())
             .verifyComplete();
@@ -139,7 +139,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
     @Test
     public void oneWriteInTransaction_manual_execute() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(100, "test1");
+        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(503, "test1");
 
         // Manually manage the transaction by using transactionalOperator.execute()
         transactionalOperator.execute(transaction -> {
@@ -152,7 +152,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
             .verifyComplete();
 
         reactiveTemplate
-            .findById(100, SampleClasses.DocumentWithIntegerId.class)
+            .findById(503, SampleClasses.DocumentWithIntegerId.class)
             .as(StepVerifier::create)
             .consumeNextWith(result -> assertThat(result.getContent().equals("test1")).isTrue())
             .verifyComplete();
@@ -161,8 +161,8 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
     @Test
     public void multipleWritesInTransaction_manual_execute() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(100, "test1");
-        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(101, "test2");
+        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(504, "test1");
+        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(505, "test2");
 
         // Manually manage the transaction by using transactionalOperator.execute()
         transactionalOperator.execute(transaction -> {
@@ -184,7 +184,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
     @Test
     public void verifyRepeatingCommit() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(100, "test1");
+        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(506, "test1");
 
         // Manually manage the transaction by using transactionalOperator.execute()
         transactionalOperator.execute(transaction -> {
@@ -199,16 +199,18 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
             .expectError(IllegalTransactionStateException.class);
 
         reactiveTemplate
-            .count(SampleClasses.DocumentWithIntegerId.class)
+            .findById(506, SampleClasses.DocumentWithIntegerId.class)
+            .doOnSuccess(result -> {
+                assertThat(result).isNull(); // rollback, nothing was written
+            })
             .as(StepVerifier::create)
-            .consumeNextWith(result -> assertThat(result == 0).isTrue()) // rollback, nothing was written
             .verifyComplete();
     }
 
     @Test
     public void verifyTransactionRollback() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(100, "test1");
+        SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(507, "test1");
 
         reactiveTemplate.insert(document).then(reactiveTemplate.insert(document))
             .as(transactionalOperator::transactional) // Apply transactional context
@@ -231,7 +233,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
         AsyncUtils.executeConcurrently(threadsNumber, () -> {
             int counterValue = counter.incrementAndGet();
             reactiveTemplate
-                .insert(new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test" + counterValue))
+                .insert(new SampleClasses.DocumentWithIntegerId(508 + counterValue, "test" + counterValue))
                 .then()
                 .as(transactionalOperator::transactional)
                 .as(StepVerifier::create)
@@ -253,9 +255,9 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
         AsyncUtils.executeConcurrently(threadsNumber, () -> {
             int counterValue = counter.incrementAndGet();
             reactiveTemplate
-                .insert(new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test" + counterValue))
+                .insert(new SampleClasses.DocumentWithIntegerId(509 + counterValue, "test" + counterValue))
                 .then(reactiveTemplate.insert( // duplicate insert causes transaction rollback due to an exception
-                    new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test" + counterValue)))
+                    new SampleClasses.DocumentWithIntegerId(509 + counterValue, "test" + counterValue)))
                 .then()
                 .as(transactionalOperator::transactional)
                 .as(StepVerifier::create)
@@ -276,9 +278,9 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
         AsyncUtils.executeConcurrently(threadsNumber, () -> {
             int counterValue = counter.incrementAndGet();
             reactiveTemplate
-                .insert(new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test" + counterValue))
+                .insert(new SampleClasses.DocumentWithIntegerId(510 + counterValue, "test" + counterValue))
                 .then(reactiveTemplate.save(
-                    new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test" + counterValue)))
+                    new SampleClasses.DocumentWithIntegerId(510 + counterValue, "test" + counterValue)))
                 .then()
                 .as(transactionalOperator::transactional)
                 .as(StepVerifier::create)

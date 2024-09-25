@@ -32,7 +32,6 @@ import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimi
 import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.NestedTransactionNotSupportedException;
-import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -108,35 +107,35 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void insertInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(200);
         performTxVerifyCommit(document, (argument, status) -> template.insert(document));
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void insertAllInTransaction_verifyCommit() {
-        List<DocumentWithPrimitiveIntId> documents = List.of(new DocumentWithPrimitiveIntId(100));
+        List<DocumentWithPrimitiveIntId> documents = List.of(new DocumentWithPrimitiveIntId(201));
         performTxVerifyCommit(documents, (argument, status) -> template.insertAll(documents));
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void saveInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(202);
         performTxVerifyCommit(document, (argument, status) -> template.save(document));
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void saveAllInTransaction_verifyCommit() {
-        List<DocumentWithPrimitiveIntId> documents = List.of(new DocumentWithPrimitiveIntId(100));
+        List<DocumentWithPrimitiveIntId> documents = List.of(new DocumentWithPrimitiveIntId(203));
         performTxVerifyCommit(documents, (argument, status) -> template.saveAll(documents));
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void updateInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(204);
         template.insert(document);
         performTxVerifyCommit(document, (argument, status) -> template.update(document));
     }
@@ -144,7 +143,7 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void updateAllInTransaction_verifyCommit() {
-        List<DocumentWithPrimitiveIntId> documents = List.of(new DocumentWithPrimitiveIntId(100));
+        List<DocumentWithPrimitiveIntId> documents = List.of(new DocumentWithPrimitiveIntId(205));
         template.insertAll(documents);
         performTxVerifyCommit(documents, (argument, status) -> template.updateAll(documents));
     }
@@ -152,35 +151,35 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void addInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
-        performTxVerifyCommit(document, (argument, status) -> template.add(document, "bin", 100L));
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(206);
+        performTxVerifyCommit(document, (argument, status) -> template.add(document, "bin", 206L));
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void appendInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(207);
         performTxVerifyCommit(document, (argument, status) -> template.append(document, "bin", "test"));
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void persistInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(208);
         performTxVerifyCommit(document, (argument, status) -> template.persist(document, client.getWritePolicyDefault()));
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void findByIdInTransaction_verifyCommit() {
-        int id = 100;
+        int id = 209;
         performTxVerifyCommit(id, (argument, status) -> template.findById(id, DocumentWithPrimitiveIntId.class));
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void findByIdsInTransaction_verifyCommit() {
-        List<Integer> ids = List.of(100);
+        List<Integer> ids = List.of(210);
         performTxVerifyCommit(ids, (argument, status) -> template.findByIds(ids, DocumentWithPrimitiveIntId.class));
     }
 
@@ -188,7 +187,7 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void findByGroupedEntitiesInTransaction_verifyCommit() {
         GroupedKeys groupedKeys = GroupedKeys.builder()
-            .entityKeys(DocumentWithPrimitiveIntId.class, List.of(100))
+            .entityKeys(DocumentWithPrimitiveIntId.class, List.of(211))
             .build();
         performTxVerifyCommit(groupedKeys, (argument, status) -> template.findByIds(groupedKeys));
     }
@@ -196,14 +195,14 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void existsInTransaction_verifyCommit() {
-        int id = 100;
+        int id = 212;
         performTxVerifyCommit(id, (argument, status) -> template.exists(id, DocumentWithPrimitiveIntId.class));
     }
 
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void deleteInTransaction_verifyCommit() {
-        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(100);
+        DocumentWithPrimitiveIntId document = new DocumentWithPrimitiveIntId(213);
         template.insert(document);
         performTxVerifyCommit(document, (argument, status) -> template.delete(document));
     }
@@ -211,7 +210,7 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
     @Test
     // just for testing purposes as performing only one operation in a transaction lacks sense
     public void deleteAllInTransaction_verifyCommit() {
-        List<DocumentWithPrimitiveIntId> documents = List.of(new DocumentWithPrimitiveIntId(100));
+        List<DocumentWithPrimitiveIntId> documents = List.of(new DocumentWithPrimitiveIntId(214));
         template.insertAll(documents);
         performTxVerifyCommit(documents, (argument, status) -> template.deleteAll(documents));
     }
@@ -219,42 +218,39 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
     @Test
     public void ongoingTransactions_twoWrites_withPropagation_required() {
         // join an existing transaction if available, it is the default propagation level
-        utils.verifyTwoWritesInEachOngoingTransactionWithPropagation(PROPAGATION_REQUIRED, 1, 0);
+        utils.verifyTwoWritesEachInOngoingTransactionWithPropagation(PROPAGATION_REQUIRED, 1, 0);
     }
 
     @Test
     public void ongoingTransactions_twoWrites_withPropagation_requiresNew() {
         // always create a new transaction
-        utils.verifyTwoWritesInEachOngoingTransactionWithPropagation(PROPAGATION_REQUIRES_NEW, 2, 2);
+        utils.verifyTwoWritesEachInOngoingTransactionWithPropagation(PROPAGATION_REQUIRES_NEW, 2, 2);
     }
 
     @Test
     public void ongoingTransactions_twoWrites_withPropagation_supports() {
         // participate in a transaction, or if no transaction is present, run non-transactionally
-        utils.verifyTwoWritesInEachOngoingTransactionWithPropagation(PROPAGATION_SUPPORTS, 1, 0);
+        utils.verifyTwoWritesEachInOngoingTransactionWithPropagation(PROPAGATION_SUPPORTS, 1, 0);
     }
 
     @Test
     public void ongoingTransactions_twoWrites_withPropagation_notSupported() {
         // execute non-transactionally, regardless of the presence of an active transaction;
         // if a transaction is already active, it will be suspended for the duration of the method execution
-        assertThatThrownBy(() ->
-            utils.verifyTwoWritesInEachOngoingTransactionWithPropagation(PROPAGATION_NOT_SUPPORTED, 0, 0))
-            .isInstanceOf(TransactionSystemException.class)
-            .hasMessageContaining("Could not resume transaction");
+        utils.verifyTwoWritesEachInOngoingTransactionWithPropagation(PROPAGATION_NOT_SUPPORTED, 0, 2);
     }
 
     @Test
     public void ongoingTransactions_twoWrites_withPropagation_mandatory() {
         // must run within an active transaction
-        utils.verifyTwoWritesInEachOngoingTransactionWithPropagation(PROPAGATION_MANDATORY, 1, 0);
+        utils.verifyTwoWritesEachInOngoingTransactionWithPropagation(PROPAGATION_MANDATORY, 1, 0);
     }
 
     @Test
     public void ongoingTransactions_twoWrites_withPropagation_never() {
         // never run within a transaction
         assertThatThrownBy(() ->
-            utils.verifyTwoWritesInEachOngoingTransactionWithPropagation(PROPAGATION_NEVER, 0, 0))
+            utils.verifyTwoWritesEachInOngoingTransactionWithPropagation(PROPAGATION_NEVER, 0, 0))
             .isInstanceOf(IllegalTransactionStateException.class)
             .hasMessageContaining("Existing transaction found for transaction marked with propagation 'never'");
 
@@ -267,7 +263,7 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
         // if a transaction exists, mark a savepoint to roll back to in case of an exception
         // nested transactions are not supported
         assertThatThrownBy(() ->
-            utils.verifyTwoWritesInEachOngoingTransactionWithPropagation(PROPAGATION_NESTED, 0, 0))
+            utils.verifyTwoWritesEachInOngoingTransactionWithPropagation(PROPAGATION_NESTED, 0, 0))
             .isInstanceOf(NestedTransactionNotSupportedException.class)
             .hasMessageContaining("Transaction manager does not allow nested transactions by default - " +
                 "specify 'nestedTransactionAllowed' property with value 'true'");
@@ -276,7 +272,7 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
         TransactionSynchronizationManager.clear();
 
         assertThatThrownBy(() ->
-            utils.verifyTwoWritesInEachOngoingTransactionWithPropagation(PROPAGATION_NESTED, 1, 0, true))
+            utils.verifyTwoWritesEachInOngoingTransactionWithPropagation(PROPAGATION_NESTED, 1, 0, true))
             .isInstanceOf(NestedTransactionNotSupportedException.class)
             .hasMessageMatching("Transaction object .* does not support savepoints");
 

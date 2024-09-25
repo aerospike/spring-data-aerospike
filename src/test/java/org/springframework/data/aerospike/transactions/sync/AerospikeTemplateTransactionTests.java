@@ -89,10 +89,10 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         // Multi-record transactions are supported starting with Server version 8.0+
         transactionTemplate.executeWithoutResult(status -> {
             assertThat(status.isNewTransaction()).isTrue();
-            template.insert(new SampleClasses.DocumentWithIntegerId(100, "test1"));
+            template.insert(new SampleClasses.DocumentWithIntegerId(107, "test1"));
         });
 
-        SampleClasses.DocumentWithIntegerId result = template.findById(100, SampleClasses.DocumentWithIntegerId.class);
+        SampleClasses.DocumentWithIntegerId result = template.findById(107, SampleClasses.DocumentWithIntegerId.class);
         assertThat(result.getContent().equals("test1")).isTrue();
     }
 
@@ -101,11 +101,11 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         // Multi-record transactions are supported starting with Server version 8.0+
         transactionTemplate.executeWithoutResult(status -> {
             assertThat(status.isNewTransaction()).isTrue();
-            template.insert(new SampleClasses.DocumentWithIntegerId(100, "test1"));
-            template.save(new SampleClasses.DocumentWithIntegerId(100, "test2"));
+            template.insert(new SampleClasses.DocumentWithIntegerId(101, "test1"));
+            template.save(new SampleClasses.DocumentWithIntegerId(101, "test2"));
         });
 
-        SampleClasses.DocumentWithIntegerId result = template.findById(100, SampleClasses.DocumentWithIntegerId.class);
+        SampleClasses.DocumentWithIntegerId result = template.findById(101, SampleClasses.DocumentWithIntegerId.class);
         assertThat(result.getContent().equals("test2")).isTrue();
     }
 
@@ -130,29 +130,29 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void oneWriteInTransaction_rollback() {
-        template.insert(new DocumentWithPrimitiveIntId(100));
+        template.insert(new DocumentWithPrimitiveIntId(102));
 
         assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status ->
-            template.insert(new DocumentWithPrimitiveIntId(100))))
+            template.insert(new DocumentWithPrimitiveIntId(102))))
             .isInstanceOf(DuplicateKeyException.class)
             .hasMessageContaining("Key already exists");
 
-        DocumentWithPrimitiveIntId result = template.findById(100,
+        DocumentWithPrimitiveIntId result = template.findById(102,
             DocumentWithPrimitiveIntId.class);
-        assertThat(result.getId()).isEqualTo(100);
+        assertThat(result.getId()).isEqualTo(102);
     }
 
     @Test
     public void multipleWritesInTransaction_rollback() {
         assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
-            template.insert(new DocumentWithPrimitiveIntId(100));
-            template.insert(new DocumentWithPrimitiveIntId(100));
+            template.insert(new DocumentWithPrimitiveIntId(103));
+            template.insert(new DocumentWithPrimitiveIntId(103));
         }))
             .isInstanceOf(DuplicateKeyException.class)
             .hasMessageContaining("Key already exists");
 
         // No record is written because all inserts were in the same transaction
-        assertThat(template.findById(100, DocumentWithPrimitiveIntId.class)).isNull();
+        assertThat(template.findById(103, DocumentWithPrimitiveIntId.class)).isNull();
     }
 
     @Test
@@ -165,12 +165,12 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                template.insert(new DocumentWithPrimitiveIntId(100));
+                template.insert(new DocumentWithPrimitiveIntId(104));
             }
         });
 
         transactionManager.commit(transactionStatus);
-        assertThat(template.findById(100, DocumentWithPrimitiveIntId.class)).isNotNull();
+        assertThat(template.findById(104, DocumentWithPrimitiveIntId.class)).isNotNull();
     }
 
     @Test
@@ -182,7 +182,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                template.insert(new DocumentWithPrimitiveIntId(100));
+                template.insert(new DocumentWithPrimitiveIntId(105));
             }
         });
 
@@ -191,7 +191,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         assertThatThrownBy(() -> transactionManager.commit(transactionStatus))
             .isInstanceOf(IllegalTransactionStateException.class)
             .hasMessageContaining("Transaction is already completed");
-        assertThat(template.findById(100, DocumentWithPrimitiveIntId.class)).isNotNull();
+        assertThat(template.findById(105, DocumentWithPrimitiveIntId.class)).isNotNull();
     }
 
     @Test
@@ -211,7 +211,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                template.insert(new DocumentWithPrimitiveIntId(100));
+                template.insert(new DocumentWithPrimitiveIntId(106));
             }
         });
 
@@ -220,8 +220,8 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         // doBegin() and doCommit() are not called automatically waiting to participate in the ongoing transaction
         when(transactionStatus.isNewTransaction()).thenReturn(true);
         transactionManager.commit(transactionStatus);
-        assertThat(template.findById(100, DocumentWithPrimitiveIntId.class).getId())
-            .isEqualTo(100);
+        assertThat(template.findById(106, DocumentWithPrimitiveIntId.class).getId())
+            .isEqualTo(106);
     }
 
     @Test
@@ -234,14 +234,14 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                template.insert(new DocumentWithPrimitiveIntId(100));
+                template.insert(new DocumentWithPrimitiveIntId(108));
                 status.setRollbackOnly(); // set rollbackOnly
             }
         });
 
         assertThatThrownBy(() -> transactionManager.commit(transactionStatus))
             .isInstanceOf(UnexpectedRollbackException.class);
-        assertThat(template.findById(100, DocumentWithPrimitiveIntId.class)).isNull();
+        assertThat(template.findById(108, DocumentWithPrimitiveIntId.class)).isNull();
     }
 
     @Test
@@ -254,12 +254,12 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                template.insert(new DocumentWithPrimitiveIntId(100));
+                template.insert(new DocumentWithPrimitiveIntId(109));
             }
         });
 
         transactionManager.rollback(transactionStatus);
-        assertThat(template.findById(100, DocumentWithPrimitiveIntId.class)).isNull();
+        assertThat(template.findById(109, DocumentWithPrimitiveIntId.class)).isNull();
     }
 
     @Test
@@ -272,7 +272,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                template.insert(new DocumentWithPrimitiveIntId(100));
+                template.insert(new DocumentWithPrimitiveIntId(110));
             }
         });
 
@@ -280,7 +280,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         assertThatThrownBy(() -> transactionManager.rollback(transactionStatus))
             .isInstanceOf(IllegalTransactionStateException.class)
             .hasMessageContaining("Transaction is already completed");
-        assertThat(template.findById(100, DocumentWithPrimitiveIntId.class)).isNull();
+        assertThat(template.findById(110, DocumentWithPrimitiveIntId.class)).isNull();
     }
 
     @Test
@@ -293,7 +293,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
             transactionTemplate.executeWithoutResult(status -> {
                 assertThat(status.isNewTransaction()).isTrue();
                 template.insert(
-                    new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test" + counterValue));
+                    new SampleClasses.DocumentWithIntegerId(111 + counterValue, "test" + counterValue));
             });
         });
 
@@ -310,8 +310,8 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
         AsyncUtils.executeConcurrently(threadsNumber, () -> {
             int counterValue = counter.incrementAndGet();
             assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
-                template.insert(new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test" + counterValue));
-                template.insert(new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test" + counterValue));
+                template.insert(new SampleClasses.DocumentWithIntegerId(112 + counterValue, "test" + counterValue));
+                template.insert(new SampleClasses.DocumentWithIntegerId(112 + counterValue, "test" + counterValue));
             }))
                 .isInstanceOf(DuplicateKeyException.class)
                 .hasMessageContaining("Key already exists");
@@ -332,14 +332,30 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
             transactionTemplate.executeWithoutResult(status -> {
                 assertThat(status.isNewTransaction()).isTrue();
                 template.insert(
-                    new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test" + counterValue));
+                    new SampleClasses.DocumentWithIntegerId(113 + counterValue, "test" + counterValue));
                 template.save(
-                    new SampleClasses.DocumentWithIntegerId(100 + counterValue, "test_`" + counterValue));
+                    new SampleClasses.DocumentWithIntegerId(113 + counterValue, "test_`" + counterValue));
             });
         });
 
         List<SampleClasses.DocumentWithIntegerId> results =
             template.findAll(SampleClasses.DocumentWithIntegerId.class).toList();
         assertThat(results.size() == threadsNumber).isTrue();
+    }
+
+    @Test
+    // just for testing purposes as performing only one write in a transaction lacks sense
+    public void deleteInTransaction() {
+        DocumentWithPrimitiveIntId doc = new SampleClasses.DocumentWithPrimitiveIntId(1000);
+        template.insert(doc);
+        // Multi-record transactions are supported starting with Server version 8.0+
+        transactionTemplate.executeWithoutResult(status -> {
+            assertThat(status.isNewTransaction()).isTrue();
+            template.delete(doc);
+        });
+
+        SampleClasses.DocumentWithPrimitiveIntId result =
+            template.findById(1000, SampleClasses.DocumentWithPrimitiveIntId.class);
+        assertThat(result).isNull();
     }
 }
