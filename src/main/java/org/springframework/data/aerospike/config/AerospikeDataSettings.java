@@ -17,9 +17,13 @@ package org.springframework.data.aerospike.config;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import static org.springframework.data.aerospike.config.AerospikeDataConfigurationSupport.CONFIG_PREFIX_DATA;
 
 @Setter
 @Getter
+@ConfigurationProperties(prefix = CONFIG_PREFIX_DATA)
 public class AerospikeDataSettings {
 
     // Enable scan operation

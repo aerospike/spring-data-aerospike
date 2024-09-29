@@ -30,7 +30,6 @@ import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
@@ -71,9 +70,9 @@ import java.util.Set;
 @Configuration
 public abstract class AerospikeDataConfigurationSupport {
 
-    protected static final String CONFIG_PREFIX = "spring-data-aerospike";
-    protected static final String CONFIG_PREFIX_DATA = CONFIG_PREFIX + ".data";
-    protected static final String CONFIG_PREFIX_CONNECTION = CONFIG_PREFIX + ".connection";
+    public static final String CONFIG_PREFIX = "spring.aerospike";
+    public static final String CONFIG_PREFIX_DATA = CONFIG_PREFIX + ".data";
+    public static final String CONFIG_PREFIX_CONNECTION = CONFIG_PREFIX + ".connection";
 
     @Bean(name = "aerospikeStatementBuilder")
     public StatementBuilder statementBuilder(IndexesCache indexesCache) {
@@ -267,13 +266,11 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean
-    @ConfigurationProperties(prefix = CONFIG_PREFIX_DATA)
     public AerospikeDataSettings readAerospikeDataSettings() {
         return new AerospikeDataSettings();
     }
 
     @Bean
-    @ConfigurationProperties(prefix = CONFIG_PREFIX_CONNECTION)
     public AerospikeConnectionSettings readAerospikeSettings() {
         return new AerospikeConnectionSettings();
     }

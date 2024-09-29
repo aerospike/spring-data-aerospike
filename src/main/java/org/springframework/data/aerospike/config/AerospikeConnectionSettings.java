@@ -18,9 +18,13 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.Host;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import static org.springframework.data.aerospike.config.AerospikeDataConfigurationSupport.CONFIG_PREFIX_CONNECTION;
 
 @Setter
 @Getter
+@ConfigurationProperties(prefix = CONFIG_PREFIX_CONNECTION)
 public class AerospikeConnectionSettings {
 
     // String of hosts separated by ',' in form of hostname1[:tlsName1]:port1,...
