@@ -16,7 +16,7 @@ public abstract class BaseIntegrationTests {
     public static final String DIFFERENT_EXISTING_CACHE = "DIFFERENT-EXISTING-CACHE";
     protected static final int MILLIS_TO_NANO = 1_000_000;
 
-    @Value("${spring-data-aerospike.connection.namespace}")
+    @Value("${spring.aerospike.connection.namespace}")
     protected String namespace;
 
     protected String id;
