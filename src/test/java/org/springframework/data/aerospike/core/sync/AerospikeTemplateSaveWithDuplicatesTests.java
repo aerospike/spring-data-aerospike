@@ -49,8 +49,8 @@ public class AerospikeTemplateSaveWithDuplicatesTests extends BaseBlockingIntegr
     public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfDuplicatesWithinOneBatch() {
         // batch write operations are supported starting with Server version 6.0+
         if (serverVersionSupport.isBatchWriteSupported()) {
-            VersionedClass first = new VersionedClass("newId1", "foo");
-            VersionedClass second = new VersionedClass("newId2", "foo");
+            VersionedClass first = new VersionedClass("newId100", "foo");
+            VersionedClass second = new VersionedClass("newId200", "foo");
 
             // The documents’ versions are equal to zero, meaning the documents have not been saved to the database yet
             assertThat(first.getVersion()).isSameAs(0);
