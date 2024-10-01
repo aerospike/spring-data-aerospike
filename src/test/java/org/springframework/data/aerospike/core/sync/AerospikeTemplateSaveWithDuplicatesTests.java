@@ -67,7 +67,7 @@ public class AerospikeTemplateSaveWithDuplicatesTests extends BaseBlockingIntegr
                 .hasMessageFindingMatch("Failed to save the record with ID .* due to versions mismatch");
 
             // The documents' versions get updated after they are read from the corresponding database records
-            assertThat(first.getVersion()).isSameAs(1); // TODO: fix "0 instead of 1" assertion error
+            assertThat(first.getVersion()).isSameAs(1);
             assertThat(second.getVersion()).isSameAs(1);
 
             template.delete(first); // cleanup
@@ -88,7 +88,7 @@ public class AerospikeTemplateSaveWithDuplicatesTests extends BaseBlockingIntegr
             assertThat(newFirst.getVersion()).isSameAs(0);
             assertThat(newSecond.getVersion()).isSameAs(0);
 
-            template.saveAll(List.of(newFirst, newSecond)); // TODO: OptimisticLockingFailure
+            template.saveAll(List.of(newFirst, newSecond));
             // Failed to save the record with ID 'newId2' due to versions mismatch
             assertThat(newFirst.getVersion()).isSameAs(1);
             assertThat(newSecond.getVersion()).isSameAs(1);
