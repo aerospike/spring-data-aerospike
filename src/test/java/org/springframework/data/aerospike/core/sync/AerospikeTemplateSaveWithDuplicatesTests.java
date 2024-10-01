@@ -82,8 +82,8 @@ public class AerospikeTemplateSaveWithDuplicatesTests extends BaseBlockingIntegr
             // The same versioned documents can be saved if they are not in the same batch.
             // This way, the generation counts of the corresponding database records can be used
             // to update the documents’ versions each time.
-            VersionedClass newFirst = new VersionedClass("newId1", "foo");
-            VersionedClass newSecond = new VersionedClass("newId2", "bar");
+            VersionedClass newFirst = new VersionedClass("newId300", "foo");
+            VersionedClass newSecond = new VersionedClass("newId400", "bar");
 
             assertThat(newFirst.getVersion()).isSameAs(0);
             assertThat(newSecond.getVersion()).isSameAs(0);
