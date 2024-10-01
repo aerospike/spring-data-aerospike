@@ -57,12 +57,7 @@ public class AerospikeTemplateSaveWithDuplicatesTests extends BaseBlockingIntegr
             assertThat(second.getVersion()).isSameAs(0);
 
             // An attempt to save the same versioned documents in one batch results in getting an exception
-            assertThatThrownBy(() -> template.saveAll(List.of(first, first)))
-                .isInstanceOf(OptimisticLockingFailureException.class)
-                .hasMessageFindingMatch("Failed to save the record with ID .* due to versions mismatch");
-
-            // An attempt to save the same versioned documents in one batch results in getting an exception
-            assertThatThrownBy(() -> template.saveAll(List.of(second, second)))
+            assertThatThrownBy(() -> template.saveAll(List.of(first, first, second, second)))
                 .isInstanceOf(OptimisticLockingFailureException.class)
                 .hasMessageFindingMatch("Failed to save the record with ID .* due to versions mismatch");
 
