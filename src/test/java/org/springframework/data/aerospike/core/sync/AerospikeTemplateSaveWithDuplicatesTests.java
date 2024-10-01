@@ -45,7 +45,6 @@ public class AerospikeTemplateSaveWithDuplicatesTests extends BaseBlockingIntegr
         template.deleteAll(OVERRIDE_SET_NAME);
     }
 
-    //    @Disabled // TODO: fix and enable
     @Test
     public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfDuplicatesWithinOneBatch() {
         // batch write operations are supported starting with Server version 6.0+
@@ -71,7 +70,6 @@ public class AerospikeTemplateSaveWithDuplicatesTests extends BaseBlockingIntegr
         }
     }
 
-    //    @Disabled // TODO: fix and enable
     @Test
     public void shouldSaveAllVersionedDocumentsIfDuplicatesNotWithinOneBatch() {
         // batch write operations are supported starting with Server version 6.0+
