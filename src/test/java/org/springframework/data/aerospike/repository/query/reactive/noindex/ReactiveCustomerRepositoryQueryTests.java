@@ -6,7 +6,6 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
-import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 
 import java.util.List;
@@ -38,7 +37,7 @@ public class ReactiveCustomerRepositoryQueryTests extends BaseReactiveIntegratio
 
     @BeforeAll
     void beforeAll() {
-        reactiveBlockingAerospikeTestOperations.deleteAllAndVerify(Person.class);
+        reactiveBlockingAerospikeTestOperations.deleteAllAndVerify(Customer.class);
         reactiveBlockingAerospikeTestOperations.saveAll(reactiveRepository, allCustomers);
     }
 
