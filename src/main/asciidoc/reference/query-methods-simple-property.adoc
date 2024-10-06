@@ -1,6 +1,8 @@
 [[aerospike.query_methods.simple_property]]
 = Simple Property Repository Queries
 
+NOTE: *Repository read queries without id* utilize `query()` operation of the underlying Java client.
+
 [width="100%",cols="<7%,<30%,<25%,<20%",options="header",]
 |===
 |Keyword |Repository query sample |Snippet |Notes
