@@ -16,6 +16,7 @@ import org.springframework.data.aerospike.util.TestUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,6 +40,12 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
         List<Person> result3 = repository.findByFirstNameEquals("leroi "); // another way to call the query method
         assertThat(result3).hasSize(0);
+    }
+
+    @Test
+    void findBySimpleProperty_String_projection() {
+        List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
+        assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
@@ -124,7 +131,14 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findPersonById_AND_simpleProperty() {
+    void findById() {
+        Optional<Person> result = repository.findById(dave.getId());
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(dave);
+    }
+
+    @Test
+    void findById_AND_simpleProperty() {
         QueryParam ids = of(dave.getId());
         QueryParam name = of(carter.getFirstName());
         List<Person> persons = repository.findByIdAndFirstName(ids, name);
@@ -164,34 +178,9 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findAllByIds() {
-        Iterable<Person> result = repository.findAllById(List.of(dave.getId(), carter.getId()));
-        assertThat(result).containsExactlyInAnyOrder(dave, carter);
-    }
-
-    @Test
-    void findAllPersonByIds_AND_simpleProperty() {
-        QueryParam ids1 = of(List.of(dave.getId(), boyd.getId()));
-        QueryParam name1 = of(dave.getFirstName());
-        List<Person> persons1 = repository.findAllByIdAndFirstName(ids1, name1);
-        assertThat(persons1).contains(dave);
-
-        QueryParam ids2 = of(List.of(dave.getId(), boyd.getId()));
-        QueryParam name2 = of(carter.getFirstName());
-        List<Person> persons2 = repository.findAllByIdAndFirstName(ids2, name2);
-        assertThat(persons2).isEmpty();
-    }
-
-    @Test
-    void findByIds_dynamicProjection() {
+    void findById_dynamicProjection() {
         List<PersonSomeFields> result = repository.findById(dave.getId(), PersonSomeFields.class);
         assertThat(result).containsOnly(dave.toPersonSomeFields());
-    }
-
-    @Test
-    void findBySimpleProperty_String_projection() {
-        List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
-        assertThat(result).containsOnly(carter.toPersonSomeFields());
     }
 
     @Test
@@ -225,6 +214,25 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         List<PersonSomeFields> result = repository.findByFirstNameAndLastName(firstName, lastName,
             PersonSomeFields.class);
         assertThat(result).containsOnly(carter.toPersonSomeFields());
+    }
+
+    @Test
+    void findAllByIds() {
+        Iterable<Person> result = repository.findAllById(List.of(dave.getId(), carter.getId()));
+        assertThat(result).containsExactlyInAnyOrder(dave, carter);
+    }
+
+    @Test
+    void findAllByIds_AND_simpleProperty() {
+        QueryParam ids1 = of(List.of(dave.getId(), boyd.getId()));
+        QueryParam name1 = of(dave.getFirstName());
+        List<Person> persons1 = repository.findAllByIdAndFirstName(ids1, name1);
+        assertThat(persons1).contains(dave);
+
+        QueryParam ids2 = of(List.of(dave.getId(), boyd.getId()));
+        QueryParam name2 = of(carter.getFirstName());
+        List<Person> persons2 = repository.findAllByIdAndFirstName(ids2, name2);
+        assertThat(persons2).isEmpty();
     }
 
     @Test

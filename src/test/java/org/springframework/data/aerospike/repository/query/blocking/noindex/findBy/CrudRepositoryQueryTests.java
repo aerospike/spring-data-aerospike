@@ -19,13 +19,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CrudRepositoryQueryTests extends PersonRepositoryQueryTests {
 
     @Test
-    void findPersonById() {
+    void findById() {
         Optional<Person> person = repository.findById(dave.getId());
 
         assertThat(person).hasValueSatisfying(actual -> {
             assertThat(actual).isInstanceOf(Person.class);
             assertThat(actual).isEqualTo(dave);
         });
+    }
+
+    @Test
+    void findAllByIds() {
+        Iterable<Person> result = repository.findAllById(List.of(dave.getId(), carter.getId()));
+        assertThat(result).containsExactlyInAnyOrder(dave, carter);
     }
 
     @Test
@@ -67,27 +73,5 @@ public class CrudRepositoryQueryTests extends PersonRepositoryQueryTests {
         } finally {
             repository.save(dave);
         }
-    }
-
-    @Test
-    void deletePersonById() {
-        repository.deleteById(dave.getId());
-
-        assertThat(repository.findById(dave.getId())).isEmpty();
-
-        repository.save(dave); // cleanup
-    }
-
-    @Test
-    void deleteAllPersonsFromList() {
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            // batch delete requires server ver. >= 6.0.0
-            repository.deleteAll(List.of(dave, carter));
-        } else {
-            List.of(dave, carter).forEach(repository::delete);
-        }
-        assertThat(repository.findAllById(List.of(dave.getId(), carter.getId()))).isEmpty();
-        repository.save(dave); // cleanup
-        repository.save(carter); // cleanup
     }
 }

@@ -26,6 +26,8 @@ Here are the references to the examples of repository queries:
 
 Below is an example of an interface with several query methods:
 
+NOTE: *Id repository read queries* (like `findById()`, `findByIds()`, `findByFirstNameAndId()`, `findAllById()`, `countById()`, `existsById()` etc.) utilize `get()` operation of the underlying Java client. *Repository read queries without id* (like `findByFirstName()`, `findByFirstNameAndLastName()`, `findAll()`  etc.) utilize `query()` operation of the underlying Java client.
+
 [source,java]
 ----
 public interface PersonRepository extends AerospikeRepository<Person, Long> {

@@ -27,7 +27,16 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void existsPersonById_AND_simpleProperty() {
+    void existsById() {
+        boolean result = repository.existsById(dave.getId());
+        assertThat(result).isTrue();
+
+        boolean result2 = repository.existsById(dave.getId() + "test1234__**");
+        assertThat(result2).isFalse();
+    }
+
+    @Test
+    void existsById_AND_simpleProperty() {
         QueryParam ids = of(dave.getId());
         QueryParam name = of(carter.getFirstName());
         boolean result = repository.existsByIdAndFirstName(ids, name);

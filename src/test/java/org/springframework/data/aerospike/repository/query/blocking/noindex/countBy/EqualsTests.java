@@ -27,7 +27,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void countPersonById_AND_simpleProperty() {
+    void countById_AND_simpleProperty() {
         QueryParam ids = of(dave.getId());
         QueryParam name = of(carter.getFirstName());
         long persons = repository.countByIdAndFirstName(ids, name);
