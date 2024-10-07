@@ -62,6 +62,12 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByLastNameAndAge(QueryParam lastName, QueryParam age);
 
+    Mono<Long> countByIdAndFirstName(QueryParam ids, QueryParam firstNames);
+
+    Mono<Void> deleteByIdAndFirstName(QueryParam ids, QueryParam firstNames);
+
+    Mono<Boolean> existsByIdAndFirstName(QueryParam ids, QueryParam firstNames);
+
     Flux<Customer> findByAgeBetween(long from, long to);
 
     Mono<Long> countByAgeBetween(long from, long to);

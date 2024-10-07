@@ -62,6 +62,8 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
     protected IndexesCache indexesCache;
     @Autowired
     protected MappingContext<BasicAerospikePersistentEntity<?>, AerospikePersistentProperty> mappingContext;
+    @Autowired
+    protected ReactiveBlockingAerospikeTestOperations reactiveBlockingAerospikeTestOperations;
 
     protected <T> T findById(Serializable id, Class<T> type) {
         return reactiveTemplate.findById(id, type).block();
