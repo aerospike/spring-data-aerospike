@@ -3,6 +3,7 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
@@ -50,7 +51,9 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
     }
 
     @Bean
-    public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template, IAerospikeClient client,
+    public AdditionalAerospikeTestOperations aerospikeOperations(AerospikeTemplate template,
+                                                                 @Qualifier("aerospikeClient")
+                                                                 IAerospikeClient client,
                                                                  GenericContainer<?> aerospike,
                                                                  ServerVersionSupport serverVersionSupport) {
         return new BlockingAerospikeTestOperations(new IndexInfoParser(), template, client, aerospike,
