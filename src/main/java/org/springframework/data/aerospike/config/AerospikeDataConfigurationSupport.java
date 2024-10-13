@@ -34,6 +34,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessorImpl;
@@ -128,7 +129,14 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeClient", destroyMethod = "close")
+    @Primary
     public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
+        // another implementation of IAerospikeClient can be instantiated here by overriding the bean
+        return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
+    }
+
+    @Bean(name = "aerospikeClient1", destroyMethod = "close")
+    public IAerospikeClient aerospikeClient1(AerospikeSettings settings) {
         // another implementation of IAerospikeClient can be instantiated here by overriding the bean
         return new AerospikeClient(getClientPolicy(), settings.getConnectionSettings().getHostsArray());
     }
