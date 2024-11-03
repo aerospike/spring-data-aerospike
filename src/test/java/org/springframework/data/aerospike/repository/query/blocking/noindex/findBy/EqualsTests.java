@@ -398,7 +398,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     @Test
     void findByNestedCollectionEquals() {
         if (serverVersionSupport.isFindByCDTSupported()) {
-            var ints = List.of(1, 2, 3, 4);
+            List<Integer> ints = List.of(1, 2, 3, 4);
             dave.setInts(ints);
             repository.save(dave);
 
@@ -430,7 +430,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     @Test
     void findByNestedMapEquals() {
         if (serverVersionSupport.isFindByCDTSupported()) {
-            var intMap = Map.of("1", 2, "3", 4);
+            Map<String, Integer> intMap = Map.of("1", 2, "3", 4);
             dave.setIntMap(intMap);
             repository.save(dave);
 

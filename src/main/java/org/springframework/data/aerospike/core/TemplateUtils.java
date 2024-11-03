@@ -123,7 +123,7 @@ public class TemplateUtils {
         if (TransactionSynchronizationManager.hasResource(client)) {
             AerospikeTransactionResourceHolder resourceHolder =
                 (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
-            policy.txn = resourceHolder.getTransaction();
+            if (resourceHolder != null) policy.txn = resourceHolder.getTransaction();
             return policy;
         }
         return policy;

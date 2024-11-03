@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.transactions.sync;
 
+import com.aerospike.client.AerospikeException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -24,11 +25,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
 import org.springframework.data.aerospike.util.AsyncUtils;
+import org.springframework.data.aerospike.util.AwaitilityUtils;
 import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.TransactionStatus;
@@ -44,6 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
@@ -110,6 +114,38 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
     }
 
     @Test
+    public void multipleWritesInTransactionWithTimeout() {
+        // Multi-record transactions are supported starting with Server version 8.0+
+        transactionTemplate.setTimeout(2); // timeout after the first command within a transaction
+        transactionTemplate.executeWithoutResult(status -> {
+            assertThat(status.isNewTransaction()).isTrue();
+            template.insert(new SampleClasses.DocumentWithIntegerId(114, "test1"));
+            AwaitilityUtils.wait(1, SECONDS); // timeout does not expire during this wait
+            template.save(new SampleClasses.DocumentWithIntegerId(114, "test2"));
+        });
+
+        SampleClasses.DocumentWithIntegerId result =
+            template.findById(114, SampleClasses.DocumentWithIntegerId.class);
+        assertThat(result.getContent().equals("test2")).isTrue();
+    }
+
+    @Test
+    public void multipleWritesInTransactionWithTimeoutExpired() {
+        // Multi-record transactions are supported starting with Server version 8.0+
+        transactionTemplate.setTimeout(2); // timeout after the first command within a transaction
+        assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
+            template.insert(new SampleClasses.DocumentWithIntegerId(115, "test1"));
+            AwaitilityUtils.wait(5, SECONDS); // timeout expires during this wait
+            template.save(new SampleClasses.DocumentWithIntegerId(115, "test2"));
+        }))
+            .isInstanceOf(RecoverableDataAccessException.class)
+            .hasMessageContaining("MRT expired");
+
+        SampleClasses.DocumentWithIntegerId result = template.findById(115, SampleClasses.DocumentWithIntegerId.class);
+        assertThat(result).isNull(); // No record is written because all commands were in the same transaction
+    }
+
+    @Test
     // just for testing purposes as performing only one write in a transaction lacks sense
     public void batchWriteInTransaction() {
         // Multi-record transactions are supported starting with Server version 8.0+
@@ -126,6 +162,44 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
         Stream<Person> results = template.findAll(Person.class);
         assertThat(results.toList()).containsAll(persons);
+    }
+
+    @Test
+    public void multipleBatchWritesInTransactionWithTimeout() {
+        // Multi-record transactions are supported starting with Server version 8.0+
+        transactionTemplate.setTimeout(2); // timeout after the first command within a transaction
+        transactionTemplate.executeWithoutResult(status -> {
+            assertThat(status.isNewTransaction()).isTrue();
+            template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(116),
+                new SampleClasses.DocumentWithPrimitiveIntId(117)));
+            AwaitilityUtils.wait(1, SECONDS); // timeout does not expire during this wait
+            template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(118),
+                new SampleClasses.DocumentWithPrimitiveIntId(119)));
+        });
+
+        assertThat(template.findById(116, SampleClasses.DocumentWithPrimitiveIntId.class)).isNotNull();
+        assertThat(template.findById(117, SampleClasses.DocumentWithPrimitiveIntId.class)).isNotNull();
+        assertThat(template.findById(118, SampleClasses.DocumentWithPrimitiveIntId.class)).isNotNull();
+        assertThat(template.findById(119, SampleClasses.DocumentWithPrimitiveIntId.class)).isNotNull();
+    }
+
+    @Test
+    public void multipleBatchWritesInTransactionWithTimeoutExpired() {
+        // Multi-record transactions are supported starting with Server version 8.0+
+        transactionTemplate.setTimeout(2); // timeout after the first command within a transaction
+        assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
+            template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(120),
+                new SampleClasses.DocumentWithPrimitiveIntId(121)));
+            AwaitilityUtils.wait(3, SECONDS); // timeout expires during this wait
+            template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(122),
+                new SampleClasses.DocumentWithPrimitiveIntId(123)));
+        }))
+            .isInstanceOf(AerospikeException.BatchRecordArray.class)
+            .hasMessageContaining("Batch failed");
+
+        SampleClasses.DocumentWithIntegerId result =
+            template.findById(120, SampleClasses.DocumentWithIntegerId.class);
+        assertThat(result).isNull(); // No record is written because all commands were in the same transaction
     }
 
     @Test
@@ -166,6 +240,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
                 template.insert(new DocumentWithPrimitiveIntId(104));
+                AwaitilityUtils.wait(5, SECONDS);
             }
         });
 

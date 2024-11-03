@@ -180,18 +180,18 @@ public class BetweenTests extends PersonRepositoryQueryTests {
             repository.save(leroi2);
 
             List<Person> persons;
-            var map1 = Map.of("0", List.of(100), "1", List.of(200));
-            var map2 = Map.of("3", List.of(3000), "4", List.of(4001));
+            Map<String, List<Integer>> map1 = Map.of("0", List.of(100), "1", List.of(200));
+            Map<String, List<Integer>> map2 = Map.of("3", List.of(3000), "4", List.of(4001));
             persons = repository.findByMapOfIntListsBetween(map1, map2);
             assertThat(persons).contains(stefan, douglas, matias, leroi2);
 
-            var map3 = Map.of("0", List.of(100), "1", List.of(200));
-            var map4 = Map.of("3", List.of(3000), "4", List.of(4000));
+            Map<String, List<Integer>> map3 = Map.of("0", List.of(100), "1", List.of(200));
+            Map<String, List<Integer>> map4 = Map.of("3", List.of(3000), "4", List.of(4000));
             persons = repository.findByMapOfIntListsBetween(map3, map4);
             assertThat(persons).contains(stefan, douglas, matias);
 
-            var map5 = Map.of("5", List.of(4001));
-            var map6 = Map.of("910", List.of(10000));
+            Map<String, List<Integer>> map5 = Map.of("5", List.of(4001));
+            Map<String, List<Integer>> map6 = Map.of("910", List.of(10000));
             persons = repository.findByMapOfIntListsBetween(map5, map6);
             assertThat(persons).isEmpty();
         }

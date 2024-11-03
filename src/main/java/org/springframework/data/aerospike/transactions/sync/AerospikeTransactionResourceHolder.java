@@ -19,6 +19,7 @@ public class AerospikeTransactionResourceHolder extends ResourceHolderSupport {
 
     void setTimeoutIfNotDefault(int seconds) {
         if (seconds != TransactionDefinition.TIMEOUT_DEFAULT) {
+            transaction.setTimeout(seconds);
             setTimeoutInSeconds(seconds);
         }
     }

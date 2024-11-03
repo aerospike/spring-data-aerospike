@@ -23,23 +23,31 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
 import org.springframework.data.aerospike.util.AsyncUtils;
+import org.springframework.data.aerospike.util.AwaitilityUtils;
 import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.throwable;
 import static org.mockito.Mockito.mock;
 
 @Slf4j
@@ -50,7 +58,12 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
     AerospikeReactiveTransactionManager transactionManager;
 
     @Autowired
+    @Qualifier("reactiveTransactionalOperator")
     TransactionalOperator transactionalOperator;
+
+    @Autowired
+    @Qualifier("reactiveTransactionalOperatorWithTimeout2")
+    TransactionalOperator transactionalOperatorWithTimeout2;
 
     AerospikeReactiveTransactionManager mockTxManager = mock(AerospikeReactiveTransactionManager.class);
     TransactionalOperator mockTxOperator =
@@ -118,6 +131,49 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
             .as(StepVerifier::create)
             .consumeNextWith(result -> assertThat(result.getContent().equals("test2")).isTrue())
             .verifyComplete();
+    }
+
+    @Test
+    public void verifyMultipleWritesInTransactionWithTimeout() {
+        // Multi-record transactions are supported starting with Server version 8.0+
+        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(501, "test1");
+        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(501, "test2");
+
+        reactiveTemplate.insert(document1)
+            // wait less than the specified timeout for this transactional operator
+            .delayElement(Duration.ofSeconds(1))
+            .then(reactiveTemplate.save(document2))
+            .then()
+            .as(transactionalOperatorWithTimeout2::transactional)
+            .as(StepVerifier::create)
+            .verifyComplete();
+
+        reactiveTemplate
+            .findById(501, SampleClasses.DocumentWithIntegerId.class)
+            .as(StepVerifier::create)
+            .consumeNextWith(result -> assertThat(result.getContent().equals("test2")).isTrue())
+            .verifyComplete();
+    }
+
+    @Test
+    public void verifyMultipleWritesInTransactionWithTimeoutExpired() {
+        // Multi-record transactions are supported starting with Server version 8.0+
+        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(501, "test1");
+        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(501, "test2");
+
+        reactiveTemplate.insert(document1)
+            // wait more than the specified timeout for this transactional operator
+            .delayElement(Duration.ofSeconds(3))
+            .then(reactiveTemplate.save(document2))
+            .then()
+            .as(transactionalOperatorWithTimeout2::transactional)
+            .as(StepVerifier::create)
+            .verifyErrorMatches(throwable -> {
+                if (throwable instanceof RecoverableDataAccessException) {
+                    return throwable.getMessage().contains("MRT expired");
+                }
+                return false;
+            });
     }
 
     @Test

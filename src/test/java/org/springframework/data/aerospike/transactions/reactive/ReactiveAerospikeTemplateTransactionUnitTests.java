@@ -303,7 +303,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_required() {
-        var doc = new SampleClasses.DocumentWithPrimitiveIntId(701);
+        DocumentWithPrimitiveIntId doc = new SampleClasses.DocumentWithPrimitiveIntId(701);
 
         // join an existing transaction if available, it is the default propagation level
         utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_REQUIRED, 0)
@@ -313,7 +313,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_requiresNew() {
-        var doc = new SampleClasses.DocumentWithPrimitiveIntId(702);
+        DocumentWithPrimitiveIntId doc = new SampleClasses.DocumentWithPrimitiveIntId(702);
 
         // always create a new transaction
         utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_REQUIRES_NEW, 1)
@@ -323,7 +323,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_supports() {
-        var doc = new SampleClasses.DocumentWithPrimitiveIntId(700);
+        DocumentWithPrimitiveIntId doc = new SampleClasses.DocumentWithPrimitiveIntId(700);
 
         // participate in a transaction, or if no transaction is present, run non-transactionally
         utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_SUPPORTS, 0)
@@ -333,7 +333,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_notSupported() {
-        var doc = new SampleClasses.DocumentWithPrimitiveIntId(703);
+        DocumentWithPrimitiveIntId doc = new SampleClasses.DocumentWithPrimitiveIntId(703);
 
         // execute non-transactionally, regardless of the presence of an active transaction;
         // if a transaction is already active, it will be suspended for the duration of the method execution
@@ -345,7 +345,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_mandatory() {
-        var doc = new SampleClasses.DocumentWithPrimitiveIntId(704);
+        DocumentWithPrimitiveIntId doc = new SampleClasses.DocumentWithPrimitiveIntId(704);
 
         // must run within an active transaction
         utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_MANDATORY, 0)
@@ -356,7 +356,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_never() {
-        var doc = new SampleClasses.DocumentWithPrimitiveIntId(706);
+        DocumentWithPrimitiveIntId doc = new SampleClasses.DocumentWithPrimitiveIntId(706);
 
         // never run within a transaction
         utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_NEVER, 0)
@@ -374,7 +374,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @Test
     public void verifyOngoingTransaction_withPropagation_nested() {
-        var doc = new SampleClasses.DocumentWithPrimitiveIntId(707);
+        DocumentWithPrimitiveIntId doc = new SampleClasses.DocumentWithPrimitiveIntId(707);
 
         // if a transaction exists, mark a savepoint to roll back to in case of an exception
         // nested transactions are not supported

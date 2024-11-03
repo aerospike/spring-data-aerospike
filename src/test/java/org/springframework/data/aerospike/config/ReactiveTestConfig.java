@@ -17,6 +17,7 @@ import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.transactions.reactive.AerospikeReactiveTransactionManager;
 import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
 import org.springframework.transaction.ReactiveTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -83,8 +84,19 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
         return new AerospikeReactiveTransactionManager(client);
     }
 
-    @Bean
-    public TransactionalOperator reactiveTransactionalOperator(AerospikeReactiveTransactionManager reactiveTransactionManager) {
+    @Bean(name = "reactiveTransactionalOperator")
+    public TransactionalOperator reactiveTransactionalOperator(
+        AerospikeReactiveTransactionManager reactiveTransactionManager
+    ) {
         return TransactionalOperator.create(reactiveTransactionManager, new DefaultTransactionDefinition());
+    }
+
+    @Bean(name = "reactiveTransactionalOperatorWithTimeout2")
+    public TransactionalOperator reactiveTransactionalOperatorWithTimeout2(
+        AerospikeReactiveTransactionManager reactiveTransactionManager
+    ) {
+        DefaultTransactionDefinition definition = new DefaultTransactionDefinition();
+        definition.setTimeout(2);
+        return TransactionalOperator.create(reactiveTransactionManager, definition);
     }
 }

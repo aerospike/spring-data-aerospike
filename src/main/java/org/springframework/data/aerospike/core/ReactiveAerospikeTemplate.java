@@ -1467,8 +1467,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(ctx -> {
                 AerospikeReactiveTransactionResourceHolder resourceHolder =
                     (AerospikeReactiveTransactionResourceHolder) ctx.getResources().get(reactiveClient);
-                policy.txn = resourceHolder != null ?
-                    resourceHolder.getTransaction() : null;
+                if (resourceHolder != null) policy.txn = resourceHolder.getTransaction();
                 return policy;
             })
             .onErrorResume(NoTransactionException.class, ignored ->

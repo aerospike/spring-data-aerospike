@@ -35,14 +35,15 @@ public class ReactiveAerospikeTransactionTestUtils {
     protected Mono<Void> verifyOngoingTransaction_withPropagation(SampleClasses.DocumentWithPrimitiveIntId document,
                                                                   int propagationType, int numberOfSuspendCalls) {
         // Multi-record transactions are supported starting with Server version 8.0+
-        var trackedTxManager = spy(txManager);
-        var tranDefinition = new DefaultTransactionDefinition();
+        AerospikeReactiveTransactionManager trackedTxManager = spy(txManager);
+        DefaultTransactionDefinition tranDefinition = new DefaultTransactionDefinition();
         tranDefinition.setPropagationBehavior(propagationType);
-        var txOperator = TransactionalOperator.create(trackedTxManager, tranDefinition);
+        TransactionalOperator txOperator = TransactionalOperator.create(trackedTxManager, tranDefinition);
 
         return forCurrentTransaction()
             .flatMap(trSyncManager -> {
-                var rHolder = new AerospikeReactiveTransactionResourceHolder(client);
+                AerospikeReactiveTransactionResourceHolder rHolder =
+                    new AerospikeReactiveTransactionResourceHolder(client);
                 trSyncManager.bindResource(client, rHolder);
                 return txOperator.execute(transaction -> template.insert(document)).then();
             })

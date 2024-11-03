@@ -189,9 +189,4 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
             }
         }
     }
-
-    protected AerospikeTransactionResourceHolder createResourceHolder(IAerospikeClient client) {
-        AerospikeTransactionResourceHolder resourceHolder = new AerospikeTransactionResourceHolder(client);
-        return resourceHolder;
-    }
 }

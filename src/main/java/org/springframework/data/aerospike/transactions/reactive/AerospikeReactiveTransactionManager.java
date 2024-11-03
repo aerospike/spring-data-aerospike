@@ -12,6 +12,8 @@ import org.springframework.transaction.reactive.TransactionSynchronizationManage
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 
+import static org.springframework.data.aerospike.transactions.reactive.AerospikeReactiveTransactionResourceHolder.determineTimeout;
+
 /**
  * A {@link org.springframework.transaction.ReactiveTransactionManager} implementation for managing transactions
  */
@@ -62,7 +64,7 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
         return Mono.defer(() -> {
             AerospikeReactiveTransaction aerospikeTransaction = toAerospikeTransaction(transaction);
             // create new resourceHolder with a new Tran, de facto start transaction
-            Mono<AerospikeReactiveTransactionResourceHolder> resourceHolder = createResourceHolder(client);
+            Mono<AerospikeReactiveTransactionResourceHolder> resourceHolder = createResourceHolder(client, definition);
 
             return resourceHolder
                 .doOnNext(aerospikeTransaction::setResourceHolder)
@@ -76,8 +78,12 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
         });
     }
 
-    private Mono<AerospikeReactiveTransactionResourceHolder> createResourceHolder(IAerospikeReactorClient client) {
-        return Mono.just(new AerospikeReactiveTransactionResourceHolder(client));
+    private Mono<AerospikeReactiveTransactionResourceHolder> createResourceHolder(IAerospikeReactorClient client,
+                                                                                  TransactionDefinition definition) {
+        AerospikeReactiveTransactionResourceHolder resourceHolder =
+            new AerospikeReactiveTransactionResourceHolder(client);
+        resourceHolder.setTimeoutIfNotDefault(determineTimeout(definition));
+        return Mono.just(resourceHolder);
     }
 
     @Override

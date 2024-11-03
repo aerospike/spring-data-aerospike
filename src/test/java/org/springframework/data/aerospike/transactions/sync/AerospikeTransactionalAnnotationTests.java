@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.transactions.sync;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Txn;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
@@ -23,15 +24,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
+import org.springframework.data.aerospike.util.AwaitilityUtils;
 import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.springframework.data.aerospike.transactions.sync.AerospikeTransactionTestUtils.callGetTransaction;
@@ -91,8 +95,9 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
     @Rollback(value = false)
     // only for testing purposes as performing one write in a transaction lacks sense
     public void verifyTransaction_oneInsert() {
-        var testSync = new TestTransactionSynchronization(() -> {
-            var result = template.findById(300, SampleClasses.DocumentWithPrimitiveIntId.class);
+        TestTransactionSynchronization testSync = new TestTransactionSynchronization(() -> {
+            SampleClasses.DocumentWithPrimitiveIntId result =
+                template.findById(300, SampleClasses.DocumentWithPrimitiveIntId.class);
             assertThat(result.getId()).isEqualTo(300);
             System.out.println("Verified");
         });
@@ -107,9 +112,11 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
     @Rollback(value = false)
     // just for testing purposes as performing only one write in a transactions lacks sense
     public void verifyTransaction_batchInsert() {
-        var testSync = new TestTransactionSynchronization(() -> {
-            var result1 = template.findById(301, SampleClasses.DocumentWithPrimitiveIntId.class);
-            var result2 = template.findById(401, SampleClasses.DocumentWithPrimitiveIntId.class);
+        TestTransactionSynchronization testSync = new TestTransactionSynchronization(() -> {
+            SampleClasses.DocumentWithPrimitiveIntId result1 =
+                template.findById(301, SampleClasses.DocumentWithPrimitiveIntId.class);
+            SampleClasses.DocumentWithPrimitiveIntId result2 =
+                template.findById(401, SampleClasses.DocumentWithPrimitiveIntId.class);
             assertThat(result1.getId()).isEqualTo(301);
             assertThat(result2.getId()).isEqualTo(401);
             System.out.println("Verified");
@@ -130,9 +137,11 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
     @Transactional
     @Rollback(value = false)
     public void verifyTransaction_multipleWrites() {
-        var testSync = new TestTransactionSynchronization(() -> {
-            var result1 = template.findById(302, SampleClasses.DocumentWithPrimitiveIntId.class);
-            var result2 = template.findById(402, SampleClasses.DocumentWithPrimitiveIntId.class);
+        TestTransactionSynchronization testSync = new TestTransactionSynchronization(() -> {
+            SampleClasses.DocumentWithPrimitiveIntId result1 =
+                template.findById(302, SampleClasses.DocumentWithPrimitiveIntId.class);
+            SampleClasses.DocumentWithPrimitiveIntId result2 =
+                template.findById(402, SampleClasses.DocumentWithPrimitiveIntId.class);
             assertThat(result1.getId()).isEqualTo(302);
             assertThat(result2.getId()).isEqualTo(402);
             System.out.println("Verified");
@@ -144,13 +153,45 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
             new SampleClasses.DocumentWithPrimitiveIntId(402));
     }
 
+    @Test
+    @Transactional(timeout = 2) // timeout after the first command within a transaction
+    @Rollback(value = false)
+    public void verifyTransaction_multipleInserts_withTimeout() {
+        TestTransactionSynchronization testSync = new TestTransactionSynchronization(() -> {
+            SampleClasses.DocumentWithPrimitiveIntId result1 =
+                template.findById(304, SampleClasses.DocumentWithPrimitiveIntId.class);
+            SampleClasses.DocumentWithPrimitiveIntId result2 =
+                template.findById(305, SampleClasses.DocumentWithPrimitiveIntId.class);
+            assertThat(result1.getId()).isEqualTo(304);
+            assertThat(result2.getId()).isEqualTo(305);
+            System.out.println("Verified");
+        });
+        // Register the action to perform after transaction is completed
+        testSync.register();
+
+        template.insert(new SampleClasses.DocumentWithPrimitiveIntId(304));
+        AwaitilityUtils.wait(1, SECONDS); // wait less than the given timeout
+        template.insert(new SampleClasses.DocumentWithPrimitiveIntId(305));
+    }
+
+    @Test
+    @Transactional(timeout = 2) // timeout after the first command within a transaction
+    @Rollback(value = false)
+    public void verifyTransaction_multipleInserts_withTimeoutExpired() {
+        template.insert(new SampleClasses.DocumentWithPrimitiveIntId(305));
+        AwaitilityUtils.wait(3, SECONDS); // wait more than the given timeout
+        assertThatThrownBy(() -> template.insert(new SampleClasses.DocumentWithPrimitiveIntId(306)))
+            .isInstanceOf(RecoverableDataAccessException.class)
+            .hasMessageContaining("MRT expired");
+    }
 
     @Test
     @Transactional
     @Rollback() // rollback is set to true to simulate propagating exception that rolls back transaction
     public void verifyTransaction_multipleWrites_rollback() {
-        var testSync = new TestTransactionSynchronization(() -> {
-            var result = template.findById(303, SampleClasses.DocumentWithPrimitiveIntId.class);
+        TestTransactionSynchronization testSync = new TestTransactionSynchronization(() -> {
+            SampleClasses.DocumentWithPrimitiveIntId result =
+                template.findById(303, SampleClasses.DocumentWithPrimitiveIntId.class);
             assertThat(result).isNull();
             System.out.println("Verified");
         });
@@ -165,19 +206,64 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
     }
 
     @Test
+    @Transactional(timeout = 2)
+    @Rollback(value = false)
+    public void verifyTransaction_multipleBatchInserts_withTimeout() {
+        TestTransactionSynchronization testSync = new TestTransactionSynchronization(() -> {
+            SampleClasses.DocumentWithPrimitiveIntId result1 =
+                template.findById(307, SampleClasses.DocumentWithPrimitiveIntId.class);
+            SampleClasses.DocumentWithPrimitiveIntId result2 =
+                template.findById(407, SampleClasses.DocumentWithPrimitiveIntId.class);
+            assertThat(result1.getId()).isEqualTo(307);
+            assertThat(result2.getId()).isEqualTo(407);
+            SampleClasses.DocumentWithPrimitiveIntId result3 =
+                template.findById(308, SampleClasses.DocumentWithPrimitiveIntId.class);
+            SampleClasses.DocumentWithPrimitiveIntId result4 =
+                template.findById(408, SampleClasses.DocumentWithPrimitiveIntId.class);
+            assertThat(result3.getId()).isEqualTo(308);
+            assertThat(result4.getId()).isEqualTo(408);
+            System.out.println("Verified");
+        });
+        // Register the action to perform after transaction is completed
+        testSync.register();
+
+        template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(307),
+            new SampleClasses.DocumentWithPrimitiveIntId(407)));
+        AwaitilityUtils.wait(1, SECONDS); // wait less than the given timeout
+        template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(308),
+            new SampleClasses.DocumentWithPrimitiveIntId(408)));
+    }
+
+    @Test
+    @Transactional(timeout = 2)
+    @Rollback(value = false)
+    public void verifyTransaction_multipleBatchInserts_withTimeoutExpired() {
+        template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(309),
+            new SampleClasses.DocumentWithPrimitiveIntId(409)));
+        AwaitilityUtils.wait(3, SECONDS); // wait more than the given timeout
+        try {
+            template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(310),
+                new SampleClasses.DocumentWithPrimitiveIntId(410)));
+        } catch (AerospikeException.BatchRecordArray e) {
+            System.out.println("MRT expired");
+        }
+    }
+
+    @Test
     @Transactional()
     @Rollback(value = false)
     // only for testing purposes as performing one write in a transaction lacks sense
     public void verifyTransaction_oneDelete() {
-        var testSync = new TestTransactionSynchronization(() -> {
-            var result = template.findById(1004, SampleClasses.DocumentWithPrimitiveIntId.class);
+        TestTransactionSynchronization testSync = new TestTransactionSynchronization(() -> {
+            SampleClasses.DocumentWithPrimitiveIntId result =
+                template.findById(1004, SampleClasses.DocumentWithPrimitiveIntId.class);
             assertThat(result.getId()).isNull();
             System.out.println("Verified");
         });
         // Register the action to perform after transaction is completed
         testSync.register();
 
-        var doc = new SampleClasses.DocumentWithPrimitiveIntId(1004);
+        SampleClasses.DocumentWithPrimitiveIntId doc = new SampleClasses.DocumentWithPrimitiveIntId(1004);
         template.insert(doc);
         template.delete(doc);
     }
