@@ -11,7 +11,6 @@ public class AerospikeReactiveTransactionResourceHolder extends ResourceHolderSu
 
     private final Txn transaction;
     private final IAerospikeReactorClient client;
-    private static final int TIMEOUT_DEFAULT = 10;
 
     public AerospikeReactiveTransactionResourceHolder(IAerospikeReactorClient client) {
         this.client = client;
@@ -29,6 +28,6 @@ public class AerospikeReactiveTransactionResourceHolder extends ResourceHolderSu
         if (definition.getTimeout() != TransactionDefinition.TIMEOUT_DEFAULT) {
             return definition.getTimeout();
         }
-        return TIMEOUT_DEFAULT;
+        return TransactionDefinition.TIMEOUT_DEFAULT;
     }
 }

@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
@@ -65,6 +66,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
     AerospikeReactiveTransactionManager transactionManager;
 
     @Autowired
+    @Qualifier("reactiveTransactionalOperator")
     TransactionalOperator transactionalOperator;
 
     AerospikeReactiveTransactionManager mockTxManager = mock(AerospikeReactiveTransactionManager.class);
