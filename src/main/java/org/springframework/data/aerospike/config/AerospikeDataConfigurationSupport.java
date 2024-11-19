@@ -130,8 +130,8 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean(name = "aerospikeClient", destroyMethod = "close")
     public IAerospikeClient aerospikeClient(AerospikeSettings settings) {
         ClientPolicy policy = getClientPolicy();
-        policy.user = "tester";
-        policy.password = "psw";
+//        policy.user = "tester";
+//        policy.password = "psw";
         // another implementation of IAerospikeClient can be instantiated here by overriding the bean
         return new AerospikeClient(policy, settings.getConnectionSettings().getHostsArray());
     }
