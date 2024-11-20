@@ -69,6 +69,8 @@ public final class DateConverters {
         converters.add(LongToJava8LocalDateConverter.INSTANCE);
         converters.add(DurationToStringConverter.INSTANCE);
         converters.add(StringToDurationConverter.INSTANCE);
+        converters.add(InstantToLongConverter.INSTANCE);
+        converters.add(LongToInstantConverter.INSTANCE);
 
         if (JODA_TIME_IS_PRESENT) {
             converters.add(LocalDateToLongConverter.INSTANCE);
@@ -293,6 +295,26 @@ public final class DateConverters {
             }
 
             return Duration.parse(source);
+        }
+    }
+
+    @WritingConverter
+    public enum InstantToLongConverter implements Converter<Instant, Long> {
+        INSTANCE;
+
+        @Override
+        public Long convert(Instant source) {
+            return source == null ? null : source.toEpochMilli();
+        }
+    }
+
+    @ReadingConverter
+    public enum LongToInstantConverter implements Converter<Long, Instant> {
+        INSTANCE;
+
+        @Override
+        public Instant convert(Long source) {
+            return source == null ? null : Instant.ofEpochMilli(source);
         }
     }
 }

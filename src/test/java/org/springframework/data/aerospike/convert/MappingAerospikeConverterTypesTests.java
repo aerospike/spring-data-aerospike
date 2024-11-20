@@ -16,12 +16,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
 import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
@@ -672,6 +675,23 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             new Bin("calendar", DateConverters.CalendarToMapConverter.INSTANCE.convert(calendar)));
     }
 
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1})
+    void objectWithInstantField(int converterOption) {
+        Instant instant = Instant.ofEpochMilli(Instant.now().toEpochMilli()); //to truncate nanos
+        DocumentWithInstant object = new DocumentWithInstant(id, instant);
+
+        BiConsumer<DocumentWithInstant, DocumentWithInstant> objectAssertFunction = (expected, actual) -> {
+            assertThat(expected.getId()).isEqualTo(actual.getId());
+            assertThat(expected.getInstant()).isCloseTo(actual.getInstant(), within(1, ChronoUnit.MILLIS));
+        };
+
+        assertWriteAndRead(converterOption, object,
+            "DocumentWithInstant", id, objectAssertFunction,
+            new Bin("@_class", DocumentWithInstant.class.getName()),
+            new Bin("instant", DateConverters.InstantToLongConverter.INSTANCE.convert(instant)));
+    }
+
     @ParameterizedTest()
     @ValueSource(ints = {0, 1})
     void objectWithDurationField(int converterOption) {
@@ -784,6 +804,17 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
                                         String expectedSet,
                                         Object expectedUserKey,
                                         Bin... expectedBins) {
+        BiConsumer<T,T> equalsAssertFunction = (a, b) -> assertThat(a).isEqualTo(b);
+        assertWriteAndRead(converterOption, object, expectedSet, expectedUserKey, equalsAssertFunction,
+            expectedBins);
+    }
+
+    private <T> void assertWriteAndRead(int converterOption,
+                                        T object,
+                                        String expectedSet,
+                                        Object expectedUserKey,
+                                        BiConsumer<T,T> objectAssertFunction,
+                                        Bin... expectedBins) {
         MappingAerospikeConverter aerospikeConverter = getAerospikeMappingConverterByOption(converterOption);
         AerospikeWriteData forWrite = AerospikeWriteData.forWrite(NAMESPACE);
 
@@ -808,7 +839,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         @SuppressWarnings("unchecked") T actual = (T) aerospikeConverter.read(object.getClass(), forRead);
 
-        assertThat(actual).isEqualTo(object);
+        objectAssertFunction.accept(actual, object);
     }
 
     private boolean compareMaps(AerospikeDataSettings settings, Bin expected, Bin actual) {
