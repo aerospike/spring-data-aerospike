@@ -26,6 +26,8 @@ import static org.springframework.data.aerospike.config.AerospikeDataConfigurati
 @ConfigurationProperties(prefix = CONFIG_PREFIX_DATA)
 public class AerospikeDataSettings {
 
+    // Namespace
+    String namespace;
     // Enable scan operation
     boolean scansEnabled = false;
     // Create secondary indexes specified using `@Indexed` annotation on startup
@@ -45,4 +47,8 @@ public class AerospikeDataSettings {
     // Writing unsorted maps (false) degrades performance of Map-related operations and does not allow comparing Maps,
     // strongly recommended not to use except during upgrade from older versions of Spring Data Aerospike (if required)
     boolean writeSortedMaps = true;
+    // Name for the bin to store entity's class
+    private String classKey = "@_class";
+    // Fully qualified name of the FieldNamingStrategy for entities
+    private Class<?> fieldNamingStrategy;
 }
