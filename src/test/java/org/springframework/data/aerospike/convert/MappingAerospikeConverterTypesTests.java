@@ -678,7 +678,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ParameterizedTest
     @ValueSource(ints = {0, 1})
     void objectWithInstantField(int converterOption) {
-        Instant instant = Instant.ofEpochMilli(Instant.now().toEpochMilli()); //to truncate nanos
+        Instant instant = Instant.now().truncatedTo(ChronoUnit.MILLIS);
         DocumentWithInstant object = new DocumentWithInstant(id, instant);
 
         BiConsumer<DocumentWithInstant, DocumentWithInstant> objectAssertFunction = (expected, actual) -> {
