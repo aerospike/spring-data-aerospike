@@ -39,6 +39,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -986,6 +987,16 @@ public class SampleClasses {
         private String id;
         @Field
         private Calendar calendar;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @Document
+    public static class DocumentWithInstant {
+        @Id
+        private String id;
+        @Field
+        private Instant instant;
     }
 
     @Data
