@@ -2,8 +2,7 @@ package org.springframework.data.aerospike.repository.query.reactive.find;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.reactive.ReactiveCustomerRepositoryQueryTests;
-import org.springframework.data.aerospike.sample.Customer;
-import reactor.core.scheduler.Schedulers;
+import reactor.test.StepVerifier;
 
 import java.util.List;
 
@@ -15,10 +14,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class NotEqualTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
-    public void findBySimplePropertyNot() {
-        List<Customer> results = reactiveRepository.findByLastNameNot("Simpson")
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+    public void findBySimplePropertyNotEqual_String() {
+        StepVerifier.create(reactiveRepository.findByLastNameNot("Simpson"))
+            .recordWith(List::of)
+            .consumeRecordedWith(customers -> {
+                assertThat(customers).containsExactlyInAnyOrderElementsOf(List.of(matt, leela, fry));
+            })
+            .expectComplete();
 
-        assertThat(results).contains(matt);
+        StepVerifier.create(reactiveRepository.findByFirstNameNotIgnoreCase("SimpSon"))
+            // this query returns Mono<Collection>
+            .expectNextMatches(customers -> {
+                assertThat(customers).containsExactlyInAnyOrderElementsOf(List.of(matt, leela, fry));
+                return false;
+            })
+            .expectComplete();
+
+        StepVerifier.create(reactiveRepository.findOneByLastNameNot("Simpson"))
+            // this query returns Mono<Customer>
+            .expectNextMatches(customer -> {
+                assertThat(customer).isIn(List.of(matt, leela, fry));
+                return false;
+            })
+            .expectComplete();
     }
 }

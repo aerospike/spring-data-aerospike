@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -39,6 +40,10 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
     <T> Flux<T> findByLastName(String lastName, Class<T> type);
 
     Flux<Customer> findByLastNameNot(String lastName);
+
+    Mono<Customer> findOneByLastNameNot(String lastName);
+
+    Mono<Collection<Customer>> findByFirstNameNotIgnoreCase(String lastName);
 
     Mono<Customer> findOneByLastName(String lastName);
 

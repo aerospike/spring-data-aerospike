@@ -55,6 +55,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     @Override
+    @SuppressWarnings({"NullableProblems"})
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
         Query query = prepareQuery(parameters, accessor);
@@ -100,8 +101,18 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                 }
                 return getPage(unprocessedResults, size, pageable, query);
             });
+        } else if (queryMethod.isStreamQuery()) {
+            throw new UnsupportedOperationException(
+                "Automatic converting of an async stream to a blocking sync Stream is not supported");
+        } else if (queryMethod.isCollectionQuery()) {
+            return findByQuery(query, targetClass).collectList();
         }
-        return findByQuery(query, targetClass);
+         else if (queryMethod.isQueryForEntity()) {
+            // Queries with Flux<Entity> and Mono<Entity> return types
+            return findByQuery(query, targetClass);
+        }
+        throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " is not " +
+            "supported");
     }
 
     protected Object runQueryWithIds(Class<?> targetClass, List<Object> ids, Query query) {
