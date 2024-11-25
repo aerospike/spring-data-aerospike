@@ -31,7 +31,7 @@
         <spring-cloud-starter-bootstrap>4.1.2</spring-cloud-starter-bootstrap>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike-client-jdk8>8.1.2</aerospike-client-jdk8>
+        <aerospike-client-jdk8>9.0.0</aerospike-client-jdk8>
         <aerospike-reactor-client>8.1.2</aerospike-reactor-client>
         <aerospike-proxy-client>8.1.2</aerospike-proxy-client>
         <reactor-test>3.6.8</reactor-test>
