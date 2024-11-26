@@ -107,8 +107,8 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         } else if (queryMethod.isCollectionQuery()) {
             return findByQuery(query, targetClass).collectList();
         }
-         else if (queryMethod.isQueryForEntity()) {
-            // Queries with Flux<Entity> and Mono<Entity> return types
+         else if (queryMethod.isQueryForEntity() || !isEntityAssignableFromReturnType(queryMethod)) {
+            // Queries with Flux<Entity> and Mono<Entity> return types including projection queries
             return findByQuery(query, targetClass);
         }
         throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " is not " +

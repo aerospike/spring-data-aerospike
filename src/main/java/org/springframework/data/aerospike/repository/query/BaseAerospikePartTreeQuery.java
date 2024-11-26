@@ -114,7 +114,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             return accessor.findDynamicProjection();
         }
         // DTO projection
-        if (queryMethod.getReturnedObjectType() != queryMethod.getEntityInformation().getJavaType()) {
+        if (!isEntityAssignableFromReturnType(queryMethod)) {
             return queryMethod.getReturnedObjectType();
         }
         // No projection - target class will be the entity class.
@@ -169,5 +169,16 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
     protected boolean isDeleteQuery(QueryMethod queryMethod) {
         return queryMethod.getName().startsWith("deleteBy") || queryMethod.getName().startsWith("removeBy");
+    }
+
+    /**
+     * Find whether entity domain class is assignable from query method's returned object class.
+     * Not assignable when using a detached DTO (data transfer object, e.g., for projections).
+     *
+     * @param queryMethod QueryMethod in use
+     * @return true when entity is assignable from query method's return class, otherwise false
+     */
+    protected boolean isEntityAssignableFromReturnType(QueryMethod queryMethod) {
+        return queryMethod.getEntityInformation().getJavaType().isAssignableFrom(queryMethod.getReturnedObjectType());
     }
 }

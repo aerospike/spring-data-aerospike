@@ -86,6 +86,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         } else if (queryMethod.isStreamQuery()) {
             return findByQuery(query, targetClass);
         } else if (queryMethod.isCollectionQuery()) {
+            // All queries with Collection return type including projections
             return findByQuery(query, targetClass).collect(Collectors.toList());
         } else if (queryMethod.isQueryForEntity()) {
             Stream<?> result = findByQuery(query, targetClass);
