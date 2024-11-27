@@ -66,9 +66,9 @@ public abstract class AdditionalAerospikeTestOperations {
 
     @SneakyThrows
     public List<ScanJob> getScans() {
-        String showCmd = "scan-show";
-        if (serverVersionSupport.isQueryShowSupported()) {
-            showCmd = "query-show";
+        String showCmd = "query-show";
+        if (!serverVersionSupport.isSIndexCardinalitySupported()) {
+            throw new UnsupportedOperationException("Minimal supported Aerospike Server version is 6.1");
         }
         Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", showCmd);
         String stdout = execResult.getStdout();
@@ -85,14 +85,6 @@ public abstract class AdditionalAerospikeTestOperations {
             .udfFunction(pairsMap.get("udf-function"))
             .status(pairsMap.get("status"))
             .build());
-    }
-
-    @SneakyThrows
-    public void killAllScans() {
-        Container.ExecResult execResult = aerospike.execInContainer("asinfo", "-v", "scan-abort-all:");
-        assertThat(execResult.getStdout())
-            .as("Scan jobs killed")
-            .contains("OK");
     }
 
     public void deleteAllAndVerify(Class<?>... entityClasses) {
@@ -145,7 +137,8 @@ public abstract class AdditionalAerospikeTestOperations {
     public void createIndex(String namespace, String setName, String indexName, String binName,
                             IndexType indexType, IndexCollectionType indexCollectionType, CTX... ctx) {
         IndexCollectionType collType = indexCollectionType == null ? DEFAULT : indexCollectionType;
-        IndexUtils.createIndex(client, serverVersionSupport, namespace, setName, indexName, binName, indexType, collType,
+        IndexUtils.createIndex(client, serverVersionSupport, namespace, setName, indexName, binName, indexType,
+            collType,
             ctx);
         indexesRefresher.refreshIndexesCache();
     }
@@ -180,25 +173,15 @@ public abstract class AdditionalAerospikeTestOperations {
     }
 
     public <T> void deleteAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            try {
-                repository.deleteAll(entities);
-            } catch (AerospikeException.BatchRecordArray ignored) {
-                // KEY_NOT_FOUND ResultCode causes exception if there are no entities
-            }
-        } else {
-            entities.forEach(repository::delete);
+        try {
+            repository.deleteAll(entities);
+        } catch (AerospikeException.BatchRecordArray ignored) {
+            // KEY_NOT_FOUND ResultCode causes exception if there are no entities
         }
     }
 
     public <T> void saveAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            repository.saveAll(entities);
-        } else {
-            entities.forEach(repository::save);
-        }
+        repository.saveAll(entities);
     }
 
     /**

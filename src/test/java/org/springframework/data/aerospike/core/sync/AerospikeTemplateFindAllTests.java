@@ -67,12 +67,7 @@ public class AerospikeTemplateFindAllTests extends AerospikeTemplateFindByQueryT
         assertThat(result).isEmpty();
 
         // bring records back
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            template.insertAll(allPersons);
-        } else {
-            allPersons.forEach(person -> template.insert(person));
-        }
+        template.insertAll(allPersons);
     }
 
     @Test
