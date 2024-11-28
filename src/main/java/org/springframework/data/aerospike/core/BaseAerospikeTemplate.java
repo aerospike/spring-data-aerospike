@@ -524,8 +524,8 @@ abstract class BaseAerospikeTemplate {
 
     protected void validateForBatchWrite(Object object, String objectName) {
         Assert.notNull(object, objectName + " must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with " +
-            "server version " + TemplateUtils.SERVER_VERSION_6);
+//        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with " +
+//            "server version " + TemplateUtils.SERVER_VERSION_6);
     }
 
     protected boolean batchWriteSizeMatch(int batchSize, int currentSize) {

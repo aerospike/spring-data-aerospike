@@ -367,24 +367,6 @@ public interface AerospikeOperations {
     <T> void updateAll(Iterable<T> documents, String setName);
 
     /**
-     * Truncate/Delete all records in the set determined by the given entityClass.
-     *
-     * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @deprecated since 4.6.0, use {@link AerospikeOperations#deleteAll(Class)} instead.
-     */
-    <T> void delete(Class<T> entityClass);
-
-    /**
-     * Delete a record by id, set name will be determined by the given entityClass.
-     *
-     * @param id          The id of the record to delete. Must not be {@literal null}.
-     * @param entityClass The class to extract set name from. Must not be {@literal null}.
-     * @return whether the record existed on server before deletion.
-     * @deprecated since 4.6.0, use {@link AerospikeOperations#deleteById(Object, Class)} instead.
-     */
-    <T> boolean delete(Object id, Class<T> entityClass);
-
-    /**
      * Delete a record using the document's id.
      * <p>
      * If the document has version property it will be compared with the corresponding record's version on server.
