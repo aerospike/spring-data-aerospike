@@ -450,7 +450,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         return findQueryResults.flatMap(list -> {
                 if (!list.isEmpty()) {
-                    deleteAll(list);
+                   return deleteAll(list);
                 }
                 return Mono.empty();
             }
@@ -479,7 +479,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         return findQueryResults.flatMap(list -> {
                 if (!list.isEmpty()) {
-                    deleteAll(list);
+                    return deleteAll(list);
                 }
                 return Mono.empty();
             }
