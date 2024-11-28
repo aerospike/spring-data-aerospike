@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
-import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY;
+import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY_DEFAULT;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion.NULL_PARAM;
 import static org.springframework.util.ClassUtils.isAssignable;
@@ -283,7 +283,7 @@ public class AerospikeQueryCreatorUtils {
      */
     protected static boolean isPojoMap(Object object, Class<?> propertyType) {
         if (object instanceof TreeMap<?, ?> treeMap) {
-            Object classKey = treeMap.get(CLASS_KEY);
+            Object classKey = treeMap.get(CLASS_KEY_DEFAULT);
             return classKey != null && classKey.equals(propertyType.getName());
         }
         return false;

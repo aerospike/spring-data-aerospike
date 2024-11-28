@@ -81,16 +81,9 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         template.deleteAll(Person.class);
         template.deleteAll(OVERRIDE_SET_NAME);
 
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            template.insertAll(allPersons);
-            template.insertAll(allPersons, OVERRIDE_SET_NAME);
-        } else {
-            allPersons.forEach(person -> {
-                template.insert(person);
-                template.insert(person, OVERRIDE_SET_NAME);
-            });
-        }
+        template.insertAll(allPersons);
+        template.insertAll(allPersons, OVERRIDE_SET_NAME);
+
         additionalAerospikeTestOperations.createIndex(Person.class, "person_first_name_index", "firstName",
             IndexType.STRING);
     }
@@ -103,14 +96,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
     @AfterAll
     public void afterAll() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            template.deleteAll(allPersons);
-            template.deleteAll(allPersons, OVERRIDE_SET_NAME);
-        } else {
-            deleteOneByOne(allPersons);
-            deleteOneByOne(allPersons, OVERRIDE_SET_NAME);
-        }
+        template.deleteAll(allPersons);
+        template.deleteAll(allPersons, OVERRIDE_SET_NAME);
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
     }
 

@@ -368,69 +368,60 @@ public class ReactiveAerospikeTemplateUpdateTests extends BaseReactiveIntegratio
 
     @Test
     public void updateAllIfDocumentsChanged() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            int age1 = 140335200;
-            int age2 = 177652800;
-            Person person1 = new Person(id, "Wolfgang", age1);
-            Person person2 = new Person(nextId(), "Johann", age2);
-            reactiveTemplate.insertAll(List.of(person1, person2)).blockLast();
+        int age1 = 140335200;
+        int age2 = 177652800;
+        Person person1 = new Person(id, "Wolfgang", age1);
+        Person person2 = new Person(nextId(), "Johann", age2);
+        reactiveTemplate.insertAll(List.of(person1, person2)).blockLast();
 
-            person1.setFirstName("Wolfgang M");
-            person2.setFirstName("Johann B");
-            reactiveTemplate.updateAll(List.of(person1, person2)).blockLast();
+        person1.setFirstName("Wolfgang M");
+        person2.setFirstName("Johann B");
+        reactiveTemplate.updateAll(List.of(person1, person2)).blockLast();
 
-            Person result1 = reactiveTemplate.findById(person1.getId(), Person.class).block();
-            Person result2 = reactiveTemplate.findById(person2.getId(), Person.class).block();
-            assertThat(result1.getAge()).isEqualTo(age1);
-            assertThat(result1.getFirstName()).isEqualTo("Wolfgang M");
-            assertThat(result2.getAge()).isEqualTo(age2);
-            assertThat(result2.getFirstName()).isEqualTo("Johann B");
+        Person result1 = reactiveTemplate.findById(person1.getId(), Person.class).block();
+        Person result2 = reactiveTemplate.findById(person2.getId(), Person.class).block();
+        assertThat(result1.getAge()).isEqualTo(age1);
+        assertThat(result1.getFirstName()).isEqualTo("Wolfgang M");
+        assertThat(result2.getAge()).isEqualTo(age2);
+        assertThat(result2.getFirstName()).isEqualTo("Johann B");
 
-            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            Iterable<Person> personsWithUpdate = persons.stream()
-                .peek(person -> person.setFirstName(person.getFirstName() + "_")).toList();
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        Iterable<Person> personsWithUpdate = persons.stream()
+            .peek(person -> person.setFirstName(person.getFirstName() + "_")).toList();
 
-            reactiveTemplate.updateAll(personsWithUpdate).blockLast();
-            personsWithUpdate.forEach(person ->
-                assertThat(reactiveTemplate.findById(person.getId(), Person.class).block().getFirstName()
-                    .equals(person.getFirstName())).isTrue());
-        }
+        reactiveTemplate.updateAll(personsWithUpdate).blockLast();
+        personsWithUpdate.forEach(person ->
+            assertThat(reactiveTemplate.findById(person.getId(), Person.class).block().getFirstName()
+                .equals(person.getFirstName())).isTrue());
     }
 
     @Test
     public void updateAllShouldThrowExceptionOnUpdateForNonExistingKey() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            Person person1 = new Person(id, "svenfirstName", 11);
-            Person person2 = new Person(nextId(), "svenfirstName", 11);
-            Person person3 = new Person(nextId(), "svenfirstName", 11);
-            reactiveTemplate.save(person3).block();
-            // RecordExistsAction.UPDATE_ONLY
-            assertThatThrownBy(() -> reactiveTemplate.updateAll(List.of(person1, person2)).blockLast())
-                .isInstanceOf(AerospikeException.BatchRecordArray.class);
+        Person person1 = new Person(id, "svenfirstName", 11);
+        Person person2 = new Person(nextId(), "svenfirstName", 11);
+        Person person3 = new Person(nextId(), "svenfirstName", 11);
+        reactiveTemplate.save(person3).block();
+        // RecordExistsAction.UPDATE_ONLY
+        assertThatThrownBy(() -> reactiveTemplate.updateAll(List.of(person1, person2)).blockLast())
+            .isInstanceOf(AerospikeException.BatchRecordArray.class);
 
-            assertThat(reactiveTemplate.findById(person1.getId(), Person.class).block()).isNull();
-            assertThat(reactiveTemplate.findById(person2.getId(), Person.class).block()).isNull();
-            assertThat(reactiveTemplate.findById(person3.getId(), Person.class).block()).isEqualTo(person3);
-        }
+        assertThat(reactiveTemplate.findById(person1.getId(), Person.class).block()).isNull();
+        assertThat(reactiveTemplate.findById(person2.getId(), Person.class).block()).isNull();
+        assertThat(reactiveTemplate.findById(person3.getId(), Person.class).block()).isEqualTo(person3);
     }
 
     @Test
     public void updateAllIfDocumentsNotChanged() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            int age1 = 140335200;
-            int age2 = 177652800;
-            Person person1 = new Person(id, "Wolfgang", age1);
-            Person person2 = new Person(nextId(), "Johann", age2);
-            reactiveTemplate.insertAll(List.of(person1, person2)).blockLast();
-            reactiveTemplate.updateAll(List.of(person1, person2)).blockLast();
+        int age1 = 140335200;
+        int age2 = 177652800;
+        Person person1 = new Person(id, "Wolfgang", age1);
+        Person person2 = new Person(nextId(), "Johann", age2);
+        reactiveTemplate.insertAll(List.of(person1, person2)).blockLast();
+        reactiveTemplate.updateAll(List.of(person1, person2)).blockLast();
 
-            Person result1 = reactiveTemplate.findById(person1.getId(), Person.class).block();
-            Person result2 = reactiveTemplate.findById(person2.getId(), Person.class).block();
-            assertThat(result1.getAge()).isEqualTo(age1);
-            assertThat(result2.getAge()).isEqualTo(age2);
-        }
+        Person result1 = reactiveTemplate.findById(person1.getId(), Person.class).block();
+        Person result2 = reactiveTemplate.findById(person2.getId(), Person.class).block();
+        assertThat(result1.getAge()).isEqualTo(age1);
+        assertThat(result2.getAge()).isEqualTo(age2);
     }
 }

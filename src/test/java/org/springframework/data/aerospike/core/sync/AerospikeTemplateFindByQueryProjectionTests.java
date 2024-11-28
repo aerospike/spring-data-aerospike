@@ -50,16 +50,8 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         deleteOneByOne(allPersons);
         deleteOneByOne(allPersons, OVERRIDE_SET_NAME);
 
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            template.insertAll(allPersons);
-            template.insertAll(allPersons, OVERRIDE_SET_NAME);
-        } else {
-            allPersons.forEach(person -> {
-                template.insert(person);
-                template.insert(person, OVERRIDE_SET_NAME);
-            });
-        }
+        template.insertAll(allPersons);
+        template.insertAll(allPersons, OVERRIDE_SET_NAME);
     }
 
     @Override
@@ -68,15 +60,8 @@ public class AerospikeTemplateFindByQueryProjectionTests extends BaseBlockingInt
         super.setUp();
         template.deleteAll(Person.class);
         template.deleteAll(OVERRIDE_SET_NAME);
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            template.insertAll(allPersons);
-            template.insertAll(allPersons, OVERRIDE_SET_NAME);
-        } else {
-            allPersons.forEach(person -> {
-                template.insert(person);
-                template.insert(person, OVERRIDE_SET_NAME);
-            });
-        }
+        template.insertAll(allPersons);
+        template.insertAll(allPersons, OVERRIDE_SET_NAME);
     }
 
     @AfterAll
