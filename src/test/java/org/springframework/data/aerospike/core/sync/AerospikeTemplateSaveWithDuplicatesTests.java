@@ -47,50 +47,44 @@ public class AerospikeTemplateSaveWithDuplicatesTests extends BaseBlockingIntegr
 
     @Test
     public void shouldSaveAllVersionedDocumentsAndSetVersionAndThrowExceptionIfDuplicatesWithinOneBatch() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            VersionedClass first = new VersionedClass("newId100", "foo");
-            VersionedClass second = new VersionedClass("newId200", "foo");
+        VersionedClass first = new VersionedClass("newId100", "foo");
+        VersionedClass second = new VersionedClass("newId200", "foo");
 
-            // The documents’ versions are equal to zero, meaning the documents have not been saved to the database yet
-            assertThat(first.getVersion()).isSameAs(0);
-            assertThat(second.getVersion()).isSameAs(0);
+        // The documents’ versions are equal to zero, meaning the documents have not been saved to the database yet
+        assertThat(first.getVersion()).isSameAs(0);
+        assertThat(second.getVersion()).isSameAs(0);
 
-            // An attempt to save the same versioned documents in one batch results in getting an exception
-            assertThatThrownBy(() -> template.saveAll(List.of(first, first, second, second)))
-                .isInstanceOf(OptimisticLockingFailureException.class)
-                .hasMessageFindingMatch("Failed to save the record with ID .* due to versions mismatch");
+        // An attempt to save the same versioned documents in one batch results in getting an exception
+        assertThatThrownBy(() -> template.saveAll(List.of(first, first, second, second)))
+            .isInstanceOf(OptimisticLockingFailureException.class)
+            .hasMessageFindingMatch("Failed to save the record with ID .* due to versions mismatch");
 
-            // The documents' versions get updated after they are read from the corresponding database records
-            assertThat(first.getVersion()).isSameAs(1);
-            assertThat(second.getVersion()).isSameAs(1);
+        // The documents' versions get updated after they are read from the corresponding database records
+        assertThat(first.getVersion()).isSameAs(1);
+        assertThat(second.getVersion()).isSameAs(1);
 
-            template.delete(first); // cleanup
-            template.delete(second); // cleanup
-        }
+        template.delete(first); // cleanup
+        template.delete(second); // cleanup
     }
 
     @Test
     public void shouldSaveAllVersionedDocumentsIfDuplicatesNotWithinOneBatch() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            // The same versioned documents can be saved if they are not in the same batch.
-            // This way, the generation counts of the corresponding database records can be used
-            // to update the documents’ versions each time.
-            VersionedClass newFirst = new VersionedClass("newId300", "foo");
-            VersionedClass newSecond = new VersionedClass("newId400", "bar");
+        // The same versioned documents can be saved if they are not in the same batch.
+        // This way, the generation counts of the corresponding database records can be used
+        // to update the documents’ versions each time.
+        VersionedClass newFirst = new VersionedClass("newId300", "foo");
+        VersionedClass newSecond = new VersionedClass("newId400", "bar");
 
-            assertThat(newFirst.getVersion()).isSameAs(0);
-            assertThat(newSecond.getVersion()).isSameAs(0);
+        assertThat(newFirst.getVersion()).isSameAs(0);
+        assertThat(newSecond.getVersion()).isSameAs(0);
 
-            template.saveAll(List.of(newFirst, newSecond));
-            // Failed to save the record with ID 'newId2' due to versions mismatch
-            assertThat(newFirst.getVersion()).isSameAs(1);
-            assertThat(newSecond.getVersion()).isSameAs(1);
+        template.saveAll(List.of(newFirst, newSecond));
+        // Failed to save the record with ID 'newId2' due to versions mismatch
+        assertThat(newFirst.getVersion()).isSameAs(1);
+        assertThat(newSecond.getVersion()).isSameAs(1);
 
-            template.saveAll(List.of(newFirst, newSecond));
-            assertThat(newFirst.getVersion()).isSameAs(2);
-            assertThat(newSecond.getVersion()).isSameAs(2);
-        }
+        template.saveAll(List.of(newFirst, newSecond));
+        assertThat(newFirst.getVersion()).isSameAs(2);
+        assertThat(newSecond.getVersion()).isSameAs(2);
     }
 }

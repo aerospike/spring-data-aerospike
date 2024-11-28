@@ -252,61 +252,49 @@ public class ReactiveAerospikeTemplateSaveRelatedTests extends BaseReactiveInteg
 
     @Test
     public void saveAll_shouldSaveAllDocuments() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            Person customer1 = new Person(nextId(), "Dave");
-            Person customer2 = new Person(nextId(), "James");
-            reactiveTemplate.saveAll(List.of(customer1, customer2)).blockLast();
+        Person customer1 = new Person(nextId(), "Dave");
+        Person customer2 = new Person(nextId(), "James");
+        reactiveTemplate.saveAll(List.of(customer1, customer2)).blockLast();
 
-            Person result1 = findById(customer1.getId(), Person.class);
-            Person result2 = findById(customer2.getId(), Person.class);
-            assertThat(result1).isEqualTo(customer1);
-            assertThat(result2).isEqualTo(customer2);
-            reactiveTemplate.delete(result1).block(); // cleanup
-            reactiveTemplate.delete(result2).block(); // cleanup
-        }
+        Person result1 = findById(customer1.getId(), Person.class);
+        Person result2 = findById(customer2.getId(), Person.class);
+        assertThat(result1).isEqualTo(customer1);
+        assertThat(result2).isEqualTo(customer2);
+        reactiveTemplate.delete(result1).block(); // cleanup
+        reactiveTemplate.delete(result2).block(); // cleanup
     }
 
     @Test
     public void saveAllWithSetName_shouldSaveAllDocuments() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            Person customer1 = new Person(nextId(), "Dave");
-            Person customer2 = new Person(nextId(), "James");
-            reactiveTemplate.saveAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
+        Person customer1 = new Person(nextId(), "Dave");
+        Person customer2 = new Person(nextId(), "James");
+        reactiveTemplate.saveAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
 
-            Person result1 = findById(customer1.getId(), Person.class, OVERRIDE_SET_NAME);
-            Person result2 = findById(customer2.getId(), Person.class, OVERRIDE_SET_NAME);
-            assertThat(result1).isEqualTo(customer1);
-            assertThat(result2).isEqualTo(customer2);
-            reactiveTemplate.delete(result1, OVERRIDE_SET_NAME).block(); // cleanup
-            reactiveTemplate.delete(result2, OVERRIDE_SET_NAME).block(); // cleanup
-        }
+        Person result1 = findById(customer1.getId(), Person.class, OVERRIDE_SET_NAME);
+        Person result2 = findById(customer2.getId(), Person.class, OVERRIDE_SET_NAME);
+        assertThat(result1).isEqualTo(customer1);
+        assertThat(result2).isEqualTo(customer2);
+        reactiveTemplate.delete(result1, OVERRIDE_SET_NAME).block(); // cleanup
+        reactiveTemplate.delete(result2, OVERRIDE_SET_NAME).block(); // cleanup
     }
 
     @Test
     public void saveAll_rejectsDuplicateId() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            VersionedClass first = new VersionedClass(id, "foo");
-            StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first)))
-                .expectError(OptimisticLockingFailureException.class)
-                .verify();
-            reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
-        }
+        VersionedClass first = new VersionedClass(id, "foo");
+        StepVerifier.create(reactiveTemplate.saveAll(List.of(first, first)))
+            .expectError(OptimisticLockingFailureException.class)
+            .verify();
+        reactiveTemplate.delete(findById(id, VersionedClass.class)).block(); // cleanup
     }
 
     @Test
     public void saveAllWithSetName_rejectsDuplicateId() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            VersionedClass second = new VersionedClass(id, "foo");
+        VersionedClass second = new VersionedClass(id, "foo");
 
-            StepVerifier.create(reactiveTemplate.saveAll(List.of(second, second), OVERRIDE_SET_NAME))
-                .expectError(OptimisticLockingFailureException.class)
-                .verify();
-            reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME)
-                .block(); // cleanup
-        }
+        StepVerifier.create(reactiveTemplate.saveAll(List.of(second, second), OVERRIDE_SET_NAME))
+            .expectError(OptimisticLockingFailureException.class)
+            .verify();
+        reactiveTemplate.delete(findById(id, VersionedClass.class, OVERRIDE_SET_NAME), OVERRIDE_SET_NAME)
+            .block(); // cleanup
     }
 }

@@ -157,246 +157,219 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
 
     @Test
     public void deleteByIds_ShouldDeleteAllDocuments() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            reactiveTemplate.save(new SampleClasses.VersionedClass(id1, "test1")).block();
-            reactiveTemplate.save(new SampleClasses.VersionedClass(id2, "test2")).block();
+        String id1 = nextId();
+        String id2 = nextId();
+        reactiveTemplate.save(new SampleClasses.VersionedClass(id1, "test1")).block();
+        reactiveTemplate.save(new SampleClasses.VersionedClass(id2, "test2")).block();
 
-            List<String> ids = List.of(id1, id2);
-            reactiveTemplate.deleteByIds(ids, SampleClasses.VersionedClass.class).block();
+        List<String> ids = List.of(id1, id2);
+        reactiveTemplate.deleteByIds(ids, SampleClasses.VersionedClass.class).block();
 
-            List<SampleClasses.VersionedClass> list = reactiveTemplate.findByIds(ids,
-                SampleClasses.VersionedClass.class).subscribeOn(Schedulers.parallel()).collectList().block();
-            assertThat(list).isEmpty();
+        List<SampleClasses.VersionedClass> list = reactiveTemplate.findByIds(ids,
+            SampleClasses.VersionedClass.class).subscribeOn(Schedulers.parallel()).collectList().block();
+        assertThat(list).isEmpty();
 
-            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            ids = persons.stream().map(Person::getId).toList();
-            reactiveTemplate.deleteByIds(ids, Person.class).block();
-            assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        ids = persons.stream().map(Person::getId).toList();
+        reactiveTemplate.deleteByIds(ids, Person.class).block();
+        assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
 
-            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
-            ids = persons2.stream().map(Person::getId).toList();
-            reactiveTemplate.deleteByIds(ids, Person.class).block();
-            assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
-        }
+        List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+        ids = persons2.stream().map(Person::getId).toList();
+        reactiveTemplate.deleteByIds(ids, Person.class).block();
+        assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
     }
 
     @Test
     public void deleteByIdsWithSetName_ShouldDeleteAllDocuments() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1), OVERRIDE_SET_NAME).block();
-            reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id2), OVERRIDE_SET_NAME).block();
+        String id1 = nextId();
+        String id2 = nextId();
+        reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id1), OVERRIDE_SET_NAME).block();
+        reactiveTemplate.save(new SampleClasses.DocumentWithExpiration(id2), OVERRIDE_SET_NAME).block();
 
-            List<String> ids = List.of(id1, id2);
-            reactiveTemplate.deleteByIds(ids, OVERRIDE_SET_NAME).block();
+        List<String> ids = List.of(id1, id2);
+        reactiveTemplate.deleteByIds(ids, OVERRIDE_SET_NAME).block();
 
-            List<SampleClasses.DocumentWithExpiration> list = reactiveTemplate.findByIds(ids,
-                    SampleClasses.DocumentWithExpiration.class, OVERRIDE_SET_NAME)
-                .subscribeOn(Schedulers.parallel()).collectList().block();
-            assertThat(list).isEmpty();
-        }
+        List<SampleClasses.DocumentWithExpiration> list = reactiveTemplate.findByIds(ids,
+                SampleClasses.DocumentWithExpiration.class, OVERRIDE_SET_NAME)
+            .subscribeOn(Schedulers.parallel()).collectList().block();
+        assertThat(list).isEmpty();
     }
 
     @Test
     public void deleteByIdsFromDifferentSets_ShouldDeleteAllDocuments() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            SampleClasses.DocumentWithExpiration entity1_1 = new SampleClasses.DocumentWithExpiration(id);
-            SampleClasses.DocumentWithExpiration entity1_2 = new SampleClasses.DocumentWithExpiration(nextId());
-            SampleClasses.VersionedClass entity2_1 = new SampleClasses.VersionedClass(nextId(), "test1");
-            SampleClasses.VersionedClass entity2_2 = new SampleClasses.VersionedClass(nextId(), "test2");
-            Person entity3_1 = Person.builder().id(nextId()).firstName("Name1").build();
-            Person entity3_2 = Person.builder().id(nextId()).firstName("Name2").build();
-            reactiveTemplate.save(entity1_1).block();
-            reactiveTemplate.save(entity1_2).block();
-            reactiveTemplate.save(entity2_1).block();
-            reactiveTemplate.save(entity2_2).block();
-            reactiveTemplate.save(entity3_1).block();
-            reactiveTemplate.save(entity3_2).block();
+        SampleClasses.DocumentWithExpiration entity1_1 = new SampleClasses.DocumentWithExpiration(id);
+        SampleClasses.DocumentWithExpiration entity1_2 = new SampleClasses.DocumentWithExpiration(nextId());
+        SampleClasses.VersionedClass entity2_1 = new SampleClasses.VersionedClass(nextId(), "test1");
+        SampleClasses.VersionedClass entity2_2 = new SampleClasses.VersionedClass(nextId(), "test2");
+        Person entity3_1 = Person.builder().id(nextId()).firstName("Name1").build();
+        Person entity3_2 = Person.builder().id(nextId()).firstName("Name2").build();
+        reactiveTemplate.save(entity1_1).block();
+        reactiveTemplate.save(entity1_2).block();
+        reactiveTemplate.save(entity2_1).block();
+        reactiveTemplate.save(entity2_2).block();
+        reactiveTemplate.save(entity3_1).block();
+        reactiveTemplate.save(entity3_2).block();
 
-            Map<Class<?>, Collection<?>> entitiesKeys = Map.of(
-                SampleClasses.DocumentWithExpiration.class, List.of(entity1_1.getId(), entity1_2.getId()),
-                SampleClasses.VersionedClass.class, List.of(entity2_1.getId(), entity2_2.getId()),
-                Person.class, List.of(entity3_1.getId(), entity3_2.getId())
-            );
-            GroupedKeys groupedKeys = GroupedKeys.builder().entitiesKeys(entitiesKeys).build();
-            reactiveTemplate.deleteByIds(groupedKeys).block();
+        Map<Class<?>, Collection<?>> entitiesKeys = Map.of(
+            SampleClasses.DocumentWithExpiration.class, List.of(entity1_1.getId(), entity1_2.getId()),
+            SampleClasses.VersionedClass.class, List.of(entity2_1.getId(), entity2_2.getId()),
+            Person.class, List.of(entity3_1.getId(), entity3_2.getId())
+        );
+        GroupedKeys groupedKeys = GroupedKeys.builder().entitiesKeys(entitiesKeys).build();
+        reactiveTemplate.deleteByIds(groupedKeys).block();
 
-            List<SampleClasses.DocumentWithExpiration> list1 = reactiveTemplate.findByIds(
-                List.of(entity1_1.getId(), entity1_2.getId()),
-                SampleClasses.DocumentWithExpiration.class
-            ).subscribeOn(Schedulers.parallel()).collectList().block();
-            assertThat(list1).isEmpty();
-            List<SampleClasses.VersionedClass> list2 = reactiveTemplate.findByIds(
-                List.of(entity2_1.getId(), entity2_2.getId()),
-                SampleClasses.VersionedClass.class
-            ).subscribeOn(Schedulers.parallel()).collectList().block();
-            assertThat(list2).isEmpty();
-            List<Person> list3 = reactiveTemplate.findByIds(
-                List.of(entity3_1.getId(), entity3_2.getId()),
-                Person.class
-            ).subscribeOn(Schedulers.parallel()).collectList().block();
-            assertThat(list3).isEmpty();
-        }
+        List<SampleClasses.DocumentWithExpiration> list1 = reactiveTemplate.findByIds(
+            List.of(entity1_1.getId(), entity1_2.getId()),
+            SampleClasses.DocumentWithExpiration.class
+        ).subscribeOn(Schedulers.parallel()).collectList().block();
+        assertThat(list1).isEmpty();
+        List<SampleClasses.VersionedClass> list2 = reactiveTemplate.findByIds(
+            List.of(entity2_1.getId(), entity2_2.getId()),
+            SampleClasses.VersionedClass.class
+        ).subscribeOn(Schedulers.parallel()).collectList().block();
+        assertThat(list2).isEmpty();
+        List<Person> list3 = reactiveTemplate.findByIds(
+            List.of(entity3_1.getId(), entity3_2.getId()),
+            Person.class
+        ).subscribeOn(Schedulers.parallel()).collectList().block();
+        assertThat(list3).isEmpty();
     }
 
     @Test
     public void deleteByIds_rejectsDuplicateIds() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
-            SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);
-            reactiveTemplate.save(document1).block();
-            reactiveTemplate.save(document2).block();
+        String id1 = nextId();
+        SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
+        SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);
+        reactiveTemplate.save(document1).block();
+        reactiveTemplate.save(document2).block();
 
-            List<String> ids = List.of(id1, id1);
-            StepVerifier.create(reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class))
-                .expectError(AerospikeException.BatchRecordArray.class)
-                .verify();
-        }
+        List<String> ids = List.of(id1, id1);
+        StepVerifier.create(reactiveTemplate.deleteByIds(ids, SampleClasses.DocumentWithExpiration.class))
+            .expectError(AerospikeException.BatchRecordArray.class)
+            .verify();
     }
 
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
-            SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id2);
-            reactiveTemplate.saveAll(List.of(document1, document2)).blockLast();
+        String id1 = nextId();
+        String id2 = nextId();
+        SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
+        SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id2);
+        reactiveTemplate.saveAll(List.of(document1, document2)).blockLast();
 
-            List<String> ids = List.of(id1, id2);
-            reactiveTemplate.deleteAll(List.of(document1, document2)).block();
+        List<String> ids = List.of(id1, id2);
+        reactiveTemplate.deleteAll(List.of(document1, document2)).block();
 
-            List<SampleClasses.VersionedClass> list = reactiveTemplate.findByIds(ids,
-                SampleClasses.VersionedClass.class).subscribeOn(Schedulers.parallel()).collectList().block();
-            assertThat(list).isEmpty();
+        List<SampleClasses.VersionedClass> list = reactiveTemplate.findByIds(ids,
+            SampleClasses.VersionedClass.class).subscribeOn(Schedulers.parallel()).collectList().block();
+        assertThat(list).isEmpty();
 
-            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            ids = persons.stream().map(Person::getId).toList();
-            reactiveTemplate.deleteAll(persons).block();
-            assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        ids = persons.stream().map(Person::getId).toList();
+        reactiveTemplate.deleteAll(persons).block();
+        assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
 
-            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
-            ids = persons2.stream().map(Person::getId).toList();
-            reactiveTemplate.deleteAll(persons2).block();
-            assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
-        }
+        List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+        ids = persons2.stream().map(Person::getId).toList();
+        reactiveTemplate.deleteAll(persons2).block();
+        assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
     }
 
     @Test
     public void deleteAllWithSetName_ShouldDeleteAllDocuments() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
-            SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id2);
-            reactiveTemplate.saveAll(List.of(document1, document2), OVERRIDE_SET_NAME).blockLast();
+        String id1 = nextId();
+        String id2 = nextId();
+        SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
+        SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id2);
+        reactiveTemplate.saveAll(List.of(document1, document2), OVERRIDE_SET_NAME).blockLast();
 
-            reactiveTemplate.deleteAll(List.of(document1, document2), OVERRIDE_SET_NAME).block();
-            List<String> ids = List.of(id1, id2);
-            List<SampleClasses.DocumentWithExpiration> list = reactiveTemplate.findByIds(ids,
-                    SampleClasses.DocumentWithExpiration.class, OVERRIDE_SET_NAME)
-                .subscribeOn(Schedulers.parallel()).collectList().block();
-            assertThat(list).isEmpty();
-        }
+        reactiveTemplate.deleteAll(List.of(document1, document2), OVERRIDE_SET_NAME).block();
+        List<String> ids = List.of(id1, id2);
+        List<SampleClasses.DocumentWithExpiration> list = reactiveTemplate.findByIds(ids,
+                SampleClasses.DocumentWithExpiration.class, OVERRIDE_SET_NAME)
+            .subscribeOn(Schedulers.parallel()).collectList().block();
+        assertThat(list).isEmpty();
     }
 
     @Test
     public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTime() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            SampleClasses.CollectionOfObjects document1 = new SampleClasses.CollectionOfObjects(id1, List.of("test1"));
-            SampleClasses.CollectionOfObjects document2 = new SampleClasses.CollectionOfObjects(id2, List.of("test2"));
+        String id1 = nextId();
+        String id2 = nextId();
+        SampleClasses.CollectionOfObjects document1 = new SampleClasses.CollectionOfObjects(id1, List.of("test1"));
+        SampleClasses.CollectionOfObjects document2 = new SampleClasses.CollectionOfObjects(id2, List.of("test2"));
 
-            reactiveTemplate.save(document1).block();
-            AwaitilityUtils.wait(1, MILLISECONDS);
+        reactiveTemplate.save(document1).block();
+        AwaitilityUtils.wait(1, MILLISECONDS);
 
-            Instant lastUpdateTime = Instant.now();
-            Instant inFuture = Instant.ofEpochMilli(lastUpdateTime.toEpochMilli() + 10000);
-            reactiveTemplate.save(document2).block();
+        Instant lastUpdateTime = Instant.now();
+        Instant inFuture = Instant.ofEpochMilli(lastUpdateTime.toEpochMilli() + 10000);
+        reactiveTemplate.save(document2).block();
 
-            // make sure document1 has lastUpdateTime less than specified millis
-            List<SampleClasses.CollectionOfObjects> resultsWithLutLtMillis =
-                runLastUpdateTimeQuery(lastUpdateTime.toEpochMilli(), FilterOperation.LT,
-                    SampleClasses.CollectionOfObjects.class);
-            assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
-            assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
-                .isEqualTo(document1.getCollection().iterator().next());
+        // make sure document1 has lastUpdateTime less than specified millis
+        List<SampleClasses.CollectionOfObjects> resultsWithLutLtMillis =
+            runLastUpdateTimeQuery(lastUpdateTime.toEpochMilli(), FilterOperation.LT,
+                SampleClasses.CollectionOfObjects.class);
+        assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
+        assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
+            .isEqualTo(document1.getCollection().iterator().next());
 
-            assertThatThrownBy(() ->
-                reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class, inFuture).block())
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageMatching("Last update time (.*) must be less than the current time");
+        assertThatThrownBy(() ->
+            reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class, inFuture).block())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageMatching("Last update time (.*) must be less than the current time");
 
-            reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class, lastUpdateTime).block();
-            assertThat(reactiveTemplate.findByIds(List.of(id1, id2), SampleClasses.CollectionOfObjects.class)
-                .collectList().block()).hasSize(1);
-            SampleClasses.CollectionOfObjects result = reactiveTemplate.findByIds(List.of(id1, id2),
-                SampleClasses.CollectionOfObjects.class).collectList().block().get(0);
-            assertThat(result.getId()).isEqualTo(document2.getId());
-            assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
+        reactiveTemplate.deleteAll(SampleClasses.CollectionOfObjects.class, lastUpdateTime).block();
+        assertThat(reactiveTemplate.findByIds(List.of(id1, id2), SampleClasses.CollectionOfObjects.class)
+            .collectList().block()).hasSize(1);
+        SampleClasses.CollectionOfObjects result = reactiveTemplate.findByIds(List.of(id1, id2),
+            SampleClasses.CollectionOfObjects.class).collectList().block().get(0);
+        assertThat(result.getId()).isEqualTo(document2.getId());
+        assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
 
-            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            AwaitilityUtils.wait(1, MILLISECONDS);
-            lastUpdateTime = Instant.now();
-            Person newPerson = new Person(nextId(), "testFirstName");
-            reactiveTemplate.save(newPerson).block();
-            persons.add(newPerson);
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        AwaitilityUtils.wait(1, MILLISECONDS);
+        lastUpdateTime = Instant.now();
+        Person newPerson = new Person(nextId(), "testFirstName");
+        reactiveTemplate.save(newPerson).block();
+        persons.add(newPerson);
 
-            reactiveTemplate.deleteAll(reactiveTemplate.getSetName(Person.class), lastUpdateTime).block();
-            List<String> personsIds = persons.stream().map(Person::getId).toList();
-            assertThat(reactiveTemplate.findByIds(personsIds, Person.class).collectList().block()).contains(newPerson);
+        reactiveTemplate.deleteAll(reactiveTemplate.getSetName(Person.class), lastUpdateTime).block();
+        List<String> personsIds = persons.stream().map(Person::getId).toList();
+        assertThat(reactiveTemplate.findByIds(personsIds, Person.class).collectList().block()).contains(newPerson);
 
-            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
-            reactiveTemplate.deleteAll(Person.class, lastUpdateTime)
-                .block(); // persons2 were saved after the given time
-            personsIds = persons2.stream().map(Person::getId).toList();
-            assertThat(reactiveTemplate.findByIds(personsIds, Person.class).collectList().block())
-                .containsExactlyInAnyOrderElementsOf(persons2);
-        }
+        List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+        reactiveTemplate.deleteAll(Person.class, lastUpdateTime)
+            .block(); // persons2 were saved after the given time
+        personsIds = persons2.stream().map(Person::getId).toList();
+        assertThat(reactiveTemplate.findByIds(personsIds, Person.class).collectList().block())
+            .containsExactlyInAnyOrderElementsOf(persons2);
     }
 
     @Test
     public void deleteAll_rejectsDuplicateIds() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
-            SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);
-            reactiveTemplate.saveAll(List.of(document1, document2)).blockLast();
+        String id1 = nextId();
+        SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
+        SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);
+        reactiveTemplate.saveAll(List.of(document1, document2)).blockLast();
 
-            StepVerifier.create(reactiveTemplate.deleteAll(List.of(document1, document2)))
-                .expectError(AerospikeException.BatchRecordArray.class)
-                .verify();
-        }
+        StepVerifier.create(reactiveTemplate.deleteAll(List.of(document1, document2)))
+            .expectError(AerospikeException.BatchRecordArray.class)
+            .verify();
     }
 
     @Test
     public void deleteAll_VersionsMismatch() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = "id1";
-            VersionedClass document1 = new VersionedClass(id1, "test1");
-            String id2 = "id2";
-            VersionedClass document2 = new VersionedClass(id2, "test2");
-            reactiveTemplate.save(document1).block();
-            reactiveTemplate.save(document2).block();
+        String id1 = "id1";
+        VersionedClass document1 = new VersionedClass(id1, "test1");
+        String id2 = "id2";
+        VersionedClass document2 = new VersionedClass(id2, "test2");
+        reactiveTemplate.save(document1).block();
+        reactiveTemplate.save(document2).block();
 
-            document2.setVersion(232);
-            assertThatThrownBy(() -> reactiveTemplate.deleteAll(List.of(document1, document2)).block())
-                .isInstanceOf(OptimisticLockingFailureException.class)
-                .hasMessageContaining("Failed to delete the record with ID 'id2' due to versions mismatch");
-        }
+        document2.setVersion(232);
+        assertThatThrownBy(() -> reactiveTemplate.deleteAll(List.of(document1, document2)).block())
+            .isInstanceOf(OptimisticLockingFailureException.class)
+            .hasMessageContaining("Failed to delete the record with ID 'id2' due to versions mismatch");
     }
 }

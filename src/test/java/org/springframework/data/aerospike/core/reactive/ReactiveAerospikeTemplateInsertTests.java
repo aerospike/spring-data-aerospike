@@ -229,67 +229,59 @@ public class ReactiveAerospikeTemplateInsertTests extends BaseReactiveIntegratio
 
     @Test
     public void insertAll_shouldInsertAllDocuments() {
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            Person customer1 = new Person(nextId(), "Dave");
-            Person customer2 = new Person(nextId(), "James");
-            reactiveTemplate.insertAll(List.of(customer1, customer2)).blockLast();
+        Person customer1 = new Person(nextId(), "Dave");
+        Person customer2 = new Person(nextId(), "James");
+        reactiveTemplate.insertAll(List.of(customer1, customer2)).blockLast();
 
-            Person result1 = findById(customer1.getId(), Person.class);
-            Person result2 = findById(customer2.getId(), Person.class);
-            assertThat(result1).isEqualTo(customer1);
-            assertThat(result2).isEqualTo(customer2);
-            reactiveTemplate.delete(result1).block(); // cleanup
-            reactiveTemplate.delete(result2).block(); // cleanup
+        Person result1 = findById(customer1.getId(), Person.class);
+        Person result2 = findById(customer2.getId(), Person.class);
+        assertThat(result1).isEqualTo(customer1);
+        assertThat(result2).isEqualTo(customer2);
+        reactiveTemplate.delete(result1).block(); // cleanup
+        reactiveTemplate.delete(result2).block(); // cleanup
 
-            Iterable<Person> personsToInsert = IntStream.range(0, 101)
-                .mapToObj(age -> Person.builder().id(nextId())
-                    .firstName("Gregor")
-                    .age(age).build())
-                .collect(Collectors.toList());
-            reactiveTemplate.insertAll(personsToInsert).blockLast();
+        Iterable<Person> personsToInsert = IntStream.range(0, 101)
+            .mapToObj(age -> Person.builder().id(nextId())
+                .firstName("Gregor")
+                .age(age).build())
+            .collect(Collectors.toList());
+        reactiveTemplate.insertAll(personsToInsert).blockLast();
 
-            @SuppressWarnings("CastCanBeRemovedNarrowingVariableType")
-            List<String> ids = ((List<Person>) personsToInsert).stream().map(Person::getId).toList();
-            List<Person> result = reactiveTemplate.findByIds(ids, Person.class).collectList().block();
-            assertThat(result).hasSameElementsAs(personsToInsert);
-        }
+        @SuppressWarnings("CastCanBeRemovedNarrowingVariableType")
+        List<String> ids = ((List<Person>) personsToInsert).stream().map(Person::getId).toList();
+        List<Person> result = reactiveTemplate.findByIds(ids, Person.class).collectList().block();
+        assertThat(result).hasSameElementsAs(personsToInsert);
     }
 
     @Test
     public void insertAllWithSetName_shouldInsertAllDocuments() {
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            Person customer1 = new Person(nextId(), "Dave");
-            Person customer2 = new Person(nextId(), "James");
-            reactiveTemplate.insertAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
+        Person customer1 = new Person(nextId(), "Dave");
+        Person customer2 = new Person(nextId(), "James");
+        reactiveTemplate.insertAll(List.of(customer1, customer2), OVERRIDE_SET_NAME).blockLast();
 
-            Person result1 = findById(customer1.getId(), Person.class, OVERRIDE_SET_NAME);
-            Person result2 = findById(customer2.getId(), Person.class, OVERRIDE_SET_NAME);
-            assertThat(result1).isEqualTo(customer1);
-            assertThat(result2).isEqualTo(customer2);
-        }
+        Person result1 = findById(customer1.getId(), Person.class, OVERRIDE_SET_NAME);
+        Person result2 = findById(customer2.getId(), Person.class, OVERRIDE_SET_NAME);
+        assertThat(result1).isEqualTo(customer1);
+        assertThat(result2).isEqualTo(customer2);
     }
 
     @Test
     public void insertAll_rejectsDuplicateId() {
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            Person person = new Person(id, "Amol");
-            person.setAge(28);
+        Person person = new Person(id, "Amol");
+        person.setAge(28);
 
-            StepVerifier.create(reactiveTemplate.insertAll(List.of(person, person)))
-                .expectError(AerospikeException.BatchRecordArray.class)
-                .verify();
-        }
+        StepVerifier.create(reactiveTemplate.insertAll(List.of(person, person)))
+            .expectError(AerospikeException.BatchRecordArray.class)
+            .verify();
     }
 
     @Test
     public void insertAllWithSetName_rejectsDuplicateId() {
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            Person person = new Person(id, "Amol");
-            person.setAge(28);
+        Person person = new Person(id, "Amol");
+        person.setAge(28);
 
-            StepVerifier.create(reactiveTemplate.insertAll(List.of(person, person), OVERRIDE_SET_NAME))
-                .expectError(AerospikeException.BatchRecordArray.class)
-                .verify();
-        }
+        StepVerifier.create(reactiveTemplate.insertAll(List.of(person, person), OVERRIDE_SET_NAME))
+            .expectError(AerospikeException.BatchRecordArray.class)
+            .verify();
     }
 }
