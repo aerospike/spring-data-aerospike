@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike.transactions.reactive;
+package org.springframework.data.aerospike.transaction.reactive;
 
 import com.aerospike.client.policy.WritePolicy;
 import lombok.extern.slf4j.Slf4j;

@@ -1,10 +1,14 @@
-package org.springframework.data.aerospike.transactions.reactive;
+package org.springframework.data.aerospike.transaction.reactive;
 
-import org.springframework.data.aerospike.transactions.sync.AerospikeTransactionResourceHolder;
+import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionResourceHolder;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.SmartTransactionObject;
 import org.springframework.util.Assert;
 
+/**
+ * A {@link SmartTransactionObject} implementation that has reactive transaction resource holder
+ * and basic transaction API
+ */
 public class AerospikeReactiveTransaction implements SmartTransactionObject {
 
     @Nullable
@@ -15,7 +19,7 @@ public class AerospikeReactiveTransaction implements SmartTransactionObject {
     }
 
     /**
-     * @return {@literal true} if {@link AerospikeTransactionResourceHolder} is set
+     * @return {@literal true} if {@link AerospikeReactiveTransactionResourceHolder} is set
      */
     final boolean hasResourceHolder() {
         return resourceHolder != null;
@@ -27,7 +31,7 @@ public class AerospikeReactiveTransaction implements SmartTransactionObject {
     }
 
     /**
-     * Set corresponding {@link AerospikeTransactionResourceHolder}
+     * Set corresponding {@link AerospikeReactiveTransactionResourceHolder}
      *
      * @param resourceHolder can be {@literal null}.
      */
@@ -42,7 +46,7 @@ public class AerospikeReactiveTransaction implements SmartTransactionObject {
     }
 
     /**
-     * Commit the transaction.
+     * Commit the transaction
      */
     public void commitTransaction() {
         failIfNoTransaction();
@@ -50,7 +54,7 @@ public class AerospikeReactiveTransaction implements SmartTransactionObject {
     }
 
     /**
-     * Rollback (abort) the transaction.
+     * Rollback (abort) the transaction
      */
     public void abortTransaction() {
         failIfNoTransaction();

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike.transactions.sync;
+package org.springframework.data.aerospike.transaction.sync;
 
 import com.aerospike.client.Txn;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
-import static org.springframework.data.aerospike.transactions.sync.AerospikeTransactionTestUtils.getTransaction;
+import static org.springframework.data.aerospike.transaction.sync.AerospikeTransactionTestUtils.getTransaction;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_MANDATORY;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NESTED;
 import static org.springframework.transaction.TransactionDefinition.PROPAGATION_NEVER;

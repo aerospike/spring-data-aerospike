@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.transactions.reactive;
+package org.springframework.data.aerospike.transaction.reactive;
 
 import com.aerospike.client.Txn;
 import com.aerospike.client.reactor.IAerospikeReactorClient;

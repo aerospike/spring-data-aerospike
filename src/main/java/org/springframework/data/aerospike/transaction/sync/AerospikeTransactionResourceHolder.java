@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.transactions.sync;
+package org.springframework.data.aerospike.transaction.sync;
 
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Txn;
@@ -6,6 +6,9 @@ import lombok.Getter;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.ResourceHolderSupport;
 
+/**
+ * Aerospike transaction resource holder for managing transaction resources, extends {@link ResourceHolderSupport}
+ */
 @Getter
 public class AerospikeTransactionResourceHolder extends ResourceHolderSupport {
 

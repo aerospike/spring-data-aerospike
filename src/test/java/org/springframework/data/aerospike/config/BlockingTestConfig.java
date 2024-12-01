@@ -14,7 +14,7 @@ import org.springframework.data.aerospike.sample.ContactRepository;
 import org.springframework.data.aerospike.sample.CustomerRepository;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.data.aerospike.transactions.sync.AerospikeTransactionManager;
+import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionManager;
 import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -51,10 +51,6 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         clientPolicy.batchPolicyDefault.totalTimeout = totalTimeout;
         clientPolicy.infoPolicyDefault.timeout = totalTimeout;
         clientPolicy.readPolicyDefault.maxRetries = 3;
-        // Durable delete is supported by Enterprise edition
-//        clientPolicy.writePolicyDefault.durableDelete = true;
-//        clientPolicy.batchWritePolicyDefault.durableDelete = true;
-//        clientPolicy.batchDeletePolicyDefault.durableDelete = true;
         return clientPolicy;
     }
 

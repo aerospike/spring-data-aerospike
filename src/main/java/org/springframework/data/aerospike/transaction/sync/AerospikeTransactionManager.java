@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.transactions.sync;
+package org.springframework.data.aerospike.transaction.sync;
 
 import com.aerospike.client.IAerospikeClient;
 import lombok.Getter;

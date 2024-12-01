@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike.transactions.reactive;
+package org.springframework.data.aerospike.transaction.reactive;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterAll;
@@ -31,23 +31,19 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
 import org.springframework.data.aerospike.util.AsyncUtils;
-import org.springframework.data.aerospike.util.AwaitilityUtils;
 import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.InstanceOfAssertFactories.throwable;
 import static org.mockito.Mockito.mock;
 
 @Slf4j
@@ -89,8 +85,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @AfterAll
     public void afterAll() {
-        deleteAll(Person.class, DocumentWithPrimitiveIntId.class,
-            SampleClasses.DocumentWithIntegerId.class);
+        deleteAll(Person.class, DocumentWithPrimitiveIntId.class, SampleClasses.DocumentWithIntegerId.class);
     }
 
     @Test

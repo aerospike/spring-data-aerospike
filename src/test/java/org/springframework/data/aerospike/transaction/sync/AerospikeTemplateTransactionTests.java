@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike.transactions.sync;
+package org.springframework.data.aerospike.transaction.sync;
 
 import com.aerospike.client.AerospikeException;
 import lombok.extern.slf4j.Slf4j;

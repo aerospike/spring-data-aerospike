@@ -1,10 +1,13 @@
-package org.springframework.data.aerospike.transactions.sync;
+package org.springframework.data.aerospike.transaction.sync;
 
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.SmartTransactionObject;
 import org.springframework.transaction.support.TransactionSynchronizationUtils;
 import org.springframework.util.Assert;
 
+/**
+ * A {@link SmartTransactionObject} implementation that has transaction resource holder and basic transaction API
+ */
 public class AerospikeTransaction implements SmartTransactionObject {
 
     @Nullable
@@ -42,7 +45,7 @@ public class AerospikeTransaction implements SmartTransactionObject {
     }
 
     /**
-     * Commit the transaction.
+     * Commit the transaction
      */
     public void commitTransaction() {
         failIfNoTransaction();
@@ -50,7 +53,7 @@ public class AerospikeTransaction implements SmartTransactionObject {
     }
 
     /**
-     * Rollback (abort) the transaction.
+     * Rollback (abort) the transaction
      */
     public void abortTransaction() {
         failIfNoTransaction();

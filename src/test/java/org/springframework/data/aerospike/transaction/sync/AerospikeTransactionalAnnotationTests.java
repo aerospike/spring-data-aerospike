@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.data.aerospike.transactions.sync;
+package org.springframework.data.aerospike.transaction.sync;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Txn;
@@ -38,9 +38,9 @@ import java.util.List;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.transactions.sync.AerospikeTransactionTestUtils.callGetTransaction;
-import static org.springframework.data.aerospike.transactions.sync.AerospikeTransactionTestUtils.getTransaction;
-import static org.springframework.data.aerospike.transactions.sync.AerospikeTransactionTestUtils.getTransaction2;
+import static org.springframework.data.aerospike.transaction.sync.AerospikeTransactionTestUtils.callGetTransaction;
+import static org.springframework.data.aerospike.transaction.sync.AerospikeTransactionTestUtils.getTransaction;
+import static org.springframework.data.aerospike.transaction.sync.AerospikeTransactionTestUtils.getTransaction2;
 
 @Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.transactions.reactive;
+package org.springframework.data.aerospike.transaction.reactive;
 
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import org.springframework.transaction.reactive.TransactionSynchronizationManage
 import org.springframework.util.Assert;
 import reactor.core.publisher.Mono;
 
-import static org.springframework.data.aerospike.transactions.reactive.AerospikeReactiveTransactionResourceHolder.determineTimeout;
+import static org.springframework.data.aerospike.transaction.reactive.AerospikeReactiveTransactionResourceHolder.determineTimeout;
 
 /**
  * A {@link org.springframework.transaction.ReactiveTransactionManager} implementation for managing transactions

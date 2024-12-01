@@ -1,4 +1,4 @@
-package org.springframework.data.aerospike.transactions.reactive;
+package org.springframework.data.aerospike.transaction.reactive;
 
 import com.aerospike.client.Txn;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
@@ -6,6 +6,10 @@ import lombok.Getter;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.ResourceHolderSupport;
 
+/**
+ * Aerospike reactive transaction resource holder for managing transaction resources,
+ * extends {@link ResourceHolderSupport}
+ */
 @Getter
 public class AerospikeReactiveTransactionResourceHolder extends ResourceHolderSupport {
 

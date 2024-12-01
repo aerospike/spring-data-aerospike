@@ -13,7 +13,7 @@ import org.springframework.data.aerospike.repository.config.EnableReactiveAerosp
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
-import org.springframework.data.aerospike.transactions.reactive.AerospikeReactiveTransactionManager;
+import org.springframework.data.aerospike.transaction.reactive.AerospikeReactiveTransactionManager;
 import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
 import org.springframework.transaction.ReactiveTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -61,10 +61,6 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
         clientPolicy.batchPolicyDefault.totalTimeout = totalTimeout;
         clientPolicy.infoPolicyDefault.timeout = totalTimeout;
         clientPolicy.readPolicyDefault.maxRetries = 3;
-        // Durable delete is supported by Enterprise edition
-//        clientPolicy.writePolicyDefault.durableDelete = true;
-//        clientPolicy.batchWritePolicyDefault.durableDelete = true;
-//        clientPolicy.batchDeletePolicyDefault.durableDelete = true;
         return clientPolicy;
     }
 
