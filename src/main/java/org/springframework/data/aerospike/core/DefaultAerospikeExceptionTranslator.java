@@ -24,7 +24,6 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
-import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
 
 /**
@@ -53,7 +52,6 @@ public class DefaultAerospikeExceptionTranslator implements AerospikeExceptionTr
                 case ResultCode.KEY_EXISTS_ERROR -> new DuplicateKeyException(msg, cause);
                 case ResultCode.KEY_NOT_FOUND_ERROR -> new DataRetrievalFailureException(msg, cause);
                 case ResultCode.INDEX_NOTFOUND -> new IndexNotFoundException(msg, cause);
-                case ResultCode.INDEX_ALREADY_EXISTS -> new IndexAlreadyExistsException(msg, cause);
                 case ResultCode.TIMEOUT, ResultCode.QUERY_TIMEOUT -> new QueryTimeoutException(msg, cause);
                 case ResultCode.DEVICE_OVERLOAD, ResultCode.NO_MORE_CONNECTIONS, ResultCode.KEY_BUSY ->
                     new TransientDataAccessResourceException(msg, cause);

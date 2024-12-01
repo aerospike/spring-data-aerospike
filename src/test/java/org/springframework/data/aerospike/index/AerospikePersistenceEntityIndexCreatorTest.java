@@ -4,7 +4,6 @@ import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
-import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.sample.AutoIndexedDocument;
 import org.springframework.data.aerospike.util.MockObjectProvider;
 
@@ -42,18 +41,6 @@ class AerospikePersistenceEntityIndexCreatorTest {
 
     @Test
     void shouldInstallIndex() {
-        Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
-
-        creator.installIndexes(indexes);
-
-        verify(template).createIndex(targetClass, name, fieldName, type, collectionType);
-    }
-
-    @Test
-    void shouldSkipInstallIndexOnAlreadyExists() {
-        doThrow(new IndexAlreadyExistsException("some message", new RuntimeException()))
-            .when(template).createIndex(targetClass, name, fieldName, type, collectionType);
-
         Set<AerospikeIndexDefinition> indexes = Collections.singleton(definition);
 
         creator.installIndexes(indexes);

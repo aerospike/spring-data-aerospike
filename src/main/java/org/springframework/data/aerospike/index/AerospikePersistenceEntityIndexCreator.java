@@ -18,7 +18,6 @@ package org.springframework.data.aerospike.index;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
-import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 
 import java.util.Set;
@@ -55,9 +54,6 @@ public class AerospikePersistenceEntityIndexCreator extends BaseAerospikePersist
                     index.getBin(), index.getType(), index.getCollectionType(), index.getCtx());
             }
             log.info("Installed aerospike index: {} successfully.", index);
-        } catch (IndexAlreadyExistsException e) {
-            log.info("Skipping index [{}] creation. Index with the same name already exists. {}", index,
-                e.getMessage());
         } catch (Exception e) {
             throw new IllegalStateException("Failed to install aerospike index: " + index, e);
         }
