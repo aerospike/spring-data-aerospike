@@ -239,33 +239,30 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void insertAll_insertsAllDocuments() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            List<Person> persons = IntStream.range(1, 10)
-                .mapToObj(age -> Person.builder().id(nextId())
-                    .firstName("Gregor")
-                    .age(age).build())
-                .collect(Collectors.toList());
-            template.insertAll(persons);
+        List<Person> persons = IntStream.range(1, 10)
+            .mapToObj(age -> Person.builder().id(nextId())
+                .firstName("Gregor")
+                .age(age).build())
+            .collect(Collectors.toList());
+        template.insertAll(persons);
 
-            List<Person> result = template.findByIds(persons.stream().map(Person::getId)
-                .collect(Collectors.toList()), Person.class);
-            assertThat(result).hasSameElementsAs(persons);
-            template.deleteAll(Person.class); // cleanup
+        List<Person> result = template.findByIds(persons.stream().map(Person::getId)
+            .collect(Collectors.toList()), Person.class);
+        assertThat(result).hasSameElementsAs(persons);
+        template.deleteAll(Person.class); // cleanup
 
-            Iterable<Person> personsToInsert = IntStream.range(0, 101)
-                .mapToObj(age -> Person.builder().id(nextId())
-                    .firstName("Gregor")
-                    .age(age).build())
-                .collect(Collectors.toList());
-            template.insertAll(personsToInsert);
+        Iterable<Person> personsToInsert = IntStream.range(0, 101)
+            .mapToObj(age -> Person.builder().id(nextId())
+                .firstName("Gregor")
+                .age(age).build())
+            .collect(Collectors.toList());
+        template.insertAll(personsToInsert);
 
-            @SuppressWarnings("CastCanBeRemovedNarrowingVariableType")
-            List<String> ids = ((List<Person>) personsToInsert).stream().map(Person::getId)
-                .collect(Collectors.toList());
-            result = template.findByIds(ids, Person.class);
-            assertThat(result).hasSameElementsAs(personsToInsert);
-        }
+        @SuppressWarnings("CastCanBeRemovedNarrowingVariableType")
+        List<String> ids = ((List<Person>) personsToInsert).stream().map(Person::getId)
+            .collect(Collectors.toList());
+        result = template.findByIds(ids, Person.class);
+        assertThat(result).hasSameElementsAs(personsToInsert);
     }
 
     @Test
@@ -276,12 +273,7 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
                 .age(age).build())
             .collect(Collectors.toList());
 
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            template.insertAll(persons, OVERRIDE_SET_NAME);
-        } else {
-            persons.forEach(person -> template.insert(person, OVERRIDE_SET_NAME));
-        }
+        template.insertAll(persons, OVERRIDE_SET_NAME);
 
         List<Person> result = template.findByIds(persons.stream().map(Person::getId)
             .collect(Collectors.toList()), Person.class, OVERRIDE_SET_NAME);
@@ -291,31 +283,25 @@ public class AerospikeTemplateInsertTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void insertAll_rejectsDuplicateIds() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            VersionedClass second = new VersionedClass("as-5440", "foo");
-            assertThatThrownBy(() -> template.insertAll(List.of(second, second)))
-                .isInstanceOf(OptimisticLockingFailureException.class)
-                .hasMessageContaining("Failed to insert the record with ID 'as-5440' due to versions mismatch");
-            Assertions.assertEquals(1, second.getVersion());
-        }
+        VersionedClass second = new VersionedClass("as-5440", "foo");
+        assertThatThrownBy(() -> template.insertAll(List.of(second, second)))
+            .isInstanceOf(OptimisticLockingFailureException.class)
+            .hasMessageContaining("Failed to insert the record with ID 'as-5440' due to versions mismatch");
+        Assertions.assertEquals(1, second.getVersion());
     }
 
     @Test
     public void shouldInsertAllVersionedDocuments() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            VersionedClass first = new VersionedClass(id, "foo");
-            VersionedClass second = new VersionedClass(nextId(), "foo", 1);
-            VersionedClass third = new VersionedClass(nextId(), "foo", 2);
+        VersionedClass first = new VersionedClass(id, "foo");
+        VersionedClass second = new VersionedClass(nextId(), "foo", 1);
+        VersionedClass third = new VersionedClass(nextId(), "foo", 2);
 
-            // initially given versions are ignored
-            // RecordExistsAction.CREATE_ONLY is used
-            assertThatNoException().isThrownBy(() -> template.insertAll(List.of(first, second, third)));
+        // initially given versions are ignored
+        // RecordExistsAction.CREATE_ONLY is used
+        assertThatNoException().isThrownBy(() -> template.insertAll(List.of(first, second, third)));
 
-            assertThat(first.getVersion() == 1).isTrue();
-            assertThat(second.getVersion() == 1).isTrue();
-            assertThat(third.getVersion() == 1).isTrue();
-        }
+        assertThat(first.getVersion() == 1).isTrue();
+        assertThat(second.getVersion() == 1).isTrue();
+        assertThat(third.getVersion() == 1).isTrue();
     }
 }

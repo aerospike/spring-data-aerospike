@@ -171,19 +171,17 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByGroupedKeys() {
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(5);
-            List<String> personsIds = persons.stream().map(Person::getId).toList();
-            List<Customer> customers = additionalAerospikeTestOperations.saveGeneratedCustomers(3);
-            List<String> customersIds = customers.stream().map(Customer::getId).toList();
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(5);
+        List<String> personsIds = persons.stream().map(Person::getId).toList();
+        List<Customer> customers = additionalAerospikeTestOperations.saveGeneratedCustomers(3);
+        List<String> customersIds = customers.stream().map(Customer::getId).toList();
 
-            GroupedKeys groupedKeys = getGroupedKeys(persons, customers);
+        GroupedKeys groupedKeys = getGroupedKeys(persons, customers);
 
-            template.deleteByIds(groupedKeys);
+        template.deleteByIds(groupedKeys);
 
-            assertThat(template.findByIds(personsIds, Person.class)).isEmpty();
-            assertThat(template.findByIds(customersIds, Customer.class)).isEmpty();
-        }
+        assertThat(template.findByIds(personsIds, Person.class)).isEmpty();
+        assertThat(template.findByIds(customersIds, Customer.class)).isEmpty();
     }
 
     GroupedKeys getGroupedKeys(Collection<Person> persons, Collection<Customer> customers) {
@@ -249,188 +247,164 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteByIds_rejectsDuplicateIds() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
-            DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
-            template.save(document1);
-            template.save(document2);
+        String id1 = nextId();
+        DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
+        DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
+        template.save(document1);
+        template.save(document2);
 
-            List<String> ids = List.of(id1, id1);
-            assertThatThrownBy(() -> template.deleteByIds(ids, DocumentWithExpiration.class))
-                .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Batch failed");
-        }
+        List<String> ids = List.of(id1, id1);
+        assertThatThrownBy(() -> template.deleteByIds(ids, DocumentWithExpiration.class))
+            .isInstanceOf(AerospikeException.BatchRecordArray.class)
+            .hasMessageContaining("Batch failed");
     }
 
     @Test
     public void deleteByIds_ShouldDeleteAllDocuments() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            template.save(new DocumentWithExpiration(id1));
-            template.save(new DocumentWithExpiration(id2));
+        String id1 = nextId();
+        String id2 = nextId();
+        template.save(new DocumentWithExpiration(id1));
+        template.save(new DocumentWithExpiration(id2));
 
-            List<String> ids = List.of(id1, id2);
-            template.deleteByIds(ids, DocumentWithExpiration.class);
-            assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
+        List<String> ids = List.of(id1, id2);
+        template.deleteByIds(ids, DocumentWithExpiration.class);
+        assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
 
-            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            ids = persons.stream().map(Person::getId).toList();
-            template.deleteByIds(ids, Person.class);
-            assertThat(template.findByIds(ids, Person.class)).isEmpty();
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        ids = persons.stream().map(Person::getId).toList();
+        template.deleteByIds(ids, Person.class);
+        assertThat(template.findByIds(ids, Person.class)).isEmpty();
 
-            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
-            ids = persons2.stream().map(Person::getId).toList();
-            template.deleteByIds(ids, Person.class);
-            assertThat(template.findByIds(ids, Person.class)).isEmpty();
-        }
+        List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+        ids = persons2.stream().map(Person::getId).toList();
+        template.deleteByIds(ids, Person.class);
+        assertThat(template.findByIds(ids, Person.class)).isEmpty();
     }
 
     @Test
     public void deleteByIds_ShouldDeleteAllDocumentsWithSetName() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            template.save(new DocumentWithExpiration(id1), OVERRIDE_SET_NAME);
-            template.save(new DocumentWithExpiration(id2), OVERRIDE_SET_NAME);
+        String id1 = nextId();
+        String id2 = nextId();
+        template.save(new DocumentWithExpiration(id1), OVERRIDE_SET_NAME);
+        template.save(new DocumentWithExpiration(id2), OVERRIDE_SET_NAME);
 
-            List<String> ids = List.of(id1, id2);
-            template.deleteByIds(ids, OVERRIDE_SET_NAME);
+        List<String> ids = List.of(id1, id2);
+        template.deleteByIds(ids, OVERRIDE_SET_NAME);
 
-            assertThat(template.findByIds(ids, DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
-        }
+        assertThat(template.findByIds(ids, DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
     }
 
     @Test
     public void deleteAll_rejectsDuplicateIds() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
-            DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
-            template.save(document1);
-            template.save(document2);
+        String id1 = nextId();
+        DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
+        DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
+        template.save(document1);
+        template.save(document2);
 
-            assertThatThrownBy(() -> template.deleteAll(List.of(document1, document2)))
-                .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Batch failed");
-        }
+        assertThatThrownBy(() -> template.deleteAll(List.of(document1, document2)))
+            .isInstanceOf(AerospikeException.BatchRecordArray.class)
+            .hasMessageContaining("Batch failed");
     }
 
     @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
-            DocumentWithExpiration document2 = new DocumentWithExpiration(id2);
-            template.save(document1);
-            template.save(document2);
+        String id1 = nextId();
+        String id2 = nextId();
+        DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
+        DocumentWithExpiration document2 = new DocumentWithExpiration(id2);
+        template.save(document1);
+        template.save(document2);
 
-            template.deleteAll(List.of(document1, document2));
-            assertThat(template.findByIds(List.of(id1, id2), DocumentWithExpiration.class)).isEmpty();
+        template.deleteAll(List.of(document1, document2));
+        assertThat(template.findByIds(List.of(id1, id2), DocumentWithExpiration.class)).isEmpty();
 
-            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            template.deleteAll(persons);
-            List<String> personsIds = persons.stream().map(Person::getId).toList();
-            assertThat(template.findByIds(personsIds, Person.class)).isEmpty();
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        template.deleteAll(persons);
+        List<String> personsIds = persons.stream().map(Person::getId).toList();
+        assertThat(template.findByIds(personsIds, Person.class)).isEmpty();
 
-            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
-            template.deleteAll(persons2);
-            personsIds = persons2.stream().map(Person::getId).toList();
-            assertThat(template.findByIds(personsIds, Person.class)).isEmpty();
-        }
+        List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+        template.deleteAll(persons2);
+        personsIds = persons2.stream().map(Person::getId).toList();
+        assertThat(template.findByIds(personsIds, Person.class)).isEmpty();
     }
 
     @Test
     public void deleteAll_ShouldDeleteAllDocumentsWithSetName() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
-            DocumentWithExpiration document2 = new DocumentWithExpiration(id2);
-            template.saveAll(List.of(document1, document2), OVERRIDE_SET_NAME);
+        String id1 = nextId();
+        String id2 = nextId();
+        DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
+        DocumentWithExpiration document2 = new DocumentWithExpiration(id2);
+        template.saveAll(List.of(document1, document2), OVERRIDE_SET_NAME);
 
-            template.deleteAll(List.of(document1, document2), OVERRIDE_SET_NAME);
+        template.deleteAll(List.of(document1, document2), OVERRIDE_SET_NAME);
 
-            assertThat(template.findByIds(List.of(id1, id2), DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
-        }
+        assertThat(template.findByIds(List.of(id1, id2), DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
     }
 
     @Test
     public void deleteAll_ShouldDeleteAllDocumentsBeforeGivenLastUpdateTime() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = nextId();
-            String id2 = nextId();
-            CollectionOfObjects document1 = new CollectionOfObjects(id1, List.of("test1"));
-            CollectionOfObjects document2 = new CollectionOfObjects(id2, List.of("test2"));
+        String id1 = nextId();
+        String id2 = nextId();
+        CollectionOfObjects document1 = new CollectionOfObjects(id1, List.of("test1"));
+        CollectionOfObjects document2 = new CollectionOfObjects(id2, List.of("test2"));
 
-            template.save(document1);
-            AwaitilityUtils.wait(1, MILLISECONDS);
+        template.save(document1);
+        AwaitilityUtils.wait(1, MILLISECONDS);
 
-            Instant lastUpdateTime = Instant.now();
-            Instant inFuture = Instant.ofEpochMilli(lastUpdateTime.toEpochMilli() + 10000);
-            template.save(document2);
+        Instant lastUpdateTime = Instant.now();
+        Instant inFuture = Instant.ofEpochMilli(lastUpdateTime.toEpochMilli() + 10000);
+        template.save(document2);
 
-            // make sure document1 has lastUpdateTime less than specified millis
-            List<CollectionOfObjects> resultsWithLutLtMillis =
-                runLastUpdateTimeQuery(lastUpdateTime.toEpochMilli(), FilterOperation.LT, CollectionOfObjects.class);
-            assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
-            assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
-                .isEqualTo(document1.getCollection().iterator().next());
+        // make sure document1 has lastUpdateTime less than specified millis
+        List<CollectionOfObjects> resultsWithLutLtMillis =
+            runLastUpdateTimeQuery(lastUpdateTime.toEpochMilli(), FilterOperation.LT, CollectionOfObjects.class);
+        assertThat(resultsWithLutLtMillis.get(0).getId()).isEqualTo(document1.getId());
+        assertThat(resultsWithLutLtMillis.get(0).getCollection().iterator().next())
+            .isEqualTo(document1.getCollection().iterator().next());
 
-            assertThatThrownBy(() -> template.deleteAll(CollectionOfObjects.class, inFuture))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageMatching("Last update time (.*) must be less than the current time");
+        assertThatThrownBy(() -> template.deleteAll(CollectionOfObjects.class, inFuture))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageMatching("Last update time (.*) must be less than the current time");
 
-            template.deleteAll(CollectionOfObjects.class, lastUpdateTime);
-            assertThat(template.findByIds(List.of(id1, id2), CollectionOfObjects.class)).hasSize(1);
-            CollectionOfObjects result = template.findByIds(List.of(id1, id2), CollectionOfObjects.class).get(0);
-            assertThat(result.getId()).isEqualTo(document2.getId());
-            assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
+        template.deleteAll(CollectionOfObjects.class, lastUpdateTime);
+        assertThat(template.findByIds(List.of(id1, id2), CollectionOfObjects.class)).hasSize(1);
+        CollectionOfObjects result = template.findByIds(List.of(id1, id2), CollectionOfObjects.class).get(0);
+        assertThat(result.getId()).isEqualTo(document2.getId());
+        assertThat(result.getCollection().iterator().next()).isEqualTo(document2.getCollection().iterator().next());
 
-            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            AwaitilityUtils.wait(1, MILLISECONDS);
-            lastUpdateTime = Instant.now();
-            AwaitilityUtils.wait(1, MILLISECONDS);
-            Person newPerson = new Person(nextId(), "testFirstName");
-            template.save(newPerson);
-            persons.add(newPerson);
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        AwaitilityUtils.wait(1, MILLISECONDS);
+        lastUpdateTime = Instant.now();
+        AwaitilityUtils.wait(1, MILLISECONDS);
+        Person newPerson = new Person(nextId(), "testFirstName");
+        template.save(newPerson);
+        persons.add(newPerson);
 
-            template.deleteAll(template.getSetName(Person.class), lastUpdateTime);
-            List<String> personsIds = persons.stream().map(Person::getId).toList();
-            assertThat(template.findByIds(personsIds, Person.class)).contains(newPerson);
+        template.deleteAll(template.getSetName(Person.class), lastUpdateTime);
+        List<String> personsIds = persons.stream().map(Person::getId).toList();
+        assertThat(template.findByIds(personsIds, Person.class)).contains(newPerson);
 
-            List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
-            template.deleteAll(Person.class, lastUpdateTime); // persons2 were saved after the given time
-            personsIds = persons2.stream().map(Person::getId).toList();
-            assertThat(template.findByIds(personsIds, Person.class)).containsExactlyElementsOf(persons2);
-        }
+        List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
+        template.deleteAll(Person.class, lastUpdateTime); // persons2 were saved after the given time
+        personsIds = persons2.stream().map(Person::getId).toList();
+        assertThat(template.findByIds(personsIds, Person.class)).containsExactlyElementsOf(persons2);
     }
 
     @Test
     public void deleteAll_VersionsMismatch() {
-        // batch delete operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            String id1 = "id1";
-            VersionedClass document1 = new VersionedClass(id1, "test1");
-            String id2 = "id2";
-            VersionedClass document2 = new VersionedClass(id2, "test2");
-            template.save(document1);
-            template.save(document2);
+        String id1 = "id1";
+        VersionedClass document1 = new VersionedClass(id1, "test1");
+        String id2 = "id2";
+        VersionedClass document2 = new VersionedClass(id2, "test2");
+        template.save(document1);
+        template.save(document2);
 
-            document2.setVersion(232);
-            assertThatThrownBy(() -> template.deleteAll(List.of(document1, document2)))
-                .isInstanceOf(OptimisticLockingFailureException.class)
-                .hasMessageContaining("Failed to delete the record with ID 'id2' due to versions mismatch");
-        }
+        document2.setVersion(232);
+        assertThatThrownBy(() -> template.deleteAll(List.of(document1, document2)))
+            .isInstanceOf(OptimisticLockingFailureException.class)
+            .hasMessageContaining("Failed to delete the record with ID 'id2' due to versions mismatch");
     }
 
     @Test

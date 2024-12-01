@@ -85,12 +85,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
     void deleteAll() {
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            // batch delete requires server ver. >= 6.0.0
-            repository.deleteAll(List.of(dave, carter));
-        } else {
-            List.of(dave, carter).forEach(repository::delete);
-        }
+        repository.deleteAll(List.of(dave, carter));
         assertThat(repository.findAllById(List.of(dave.getId(), carter.getId()))).isEmpty();
         // cleanup
         repository.save(dave);

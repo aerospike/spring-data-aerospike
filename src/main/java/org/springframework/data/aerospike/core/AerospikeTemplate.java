@@ -462,11 +462,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         List<T> findQueryResults = find(query, entityClass, setName).filter(Objects::nonNull).toList();
 
         if (!findQueryResults.isEmpty()) {
-            if (serverVersionSupport.isBatchWriteSupported()) {
-                deleteAll(findQueryResults);
-            } else {
-                findQueryResults.forEach(this::delete);
-            }
+            deleteAll(findQueryResults);
         }
     }
 
@@ -492,11 +488,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             .collect(Collectors.toUnmodifiableList());
 
         if (!findQueryResults.isEmpty()) {
-            if (serverVersionSupport.isBatchWriteSupported()) {
-                deleteAll(findQueryResults);
-            } else {
-                findQueryResults.forEach(this::delete);
-            }
+            deleteAll(findQueryResults);
         }
     }
 
