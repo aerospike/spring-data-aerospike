@@ -377,28 +377,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         applyBufferedBatchWrite(documents, setName, UPDATE_OPERATION);
     }
 
-    @Deprecated(since = "4.6.0", forRemoval = true)
-    @Override
-    public <T> void delete(Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        delete(getSetName(entityClass));
-    }
-
-    @Deprecated(since = "4.6.0", forRemoval = true)
-    @Override
-    public <T> boolean delete(Object id, Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-        Assert.notNull(id, "Id must not be null!");
-
-        try {
-            Key key = getKey(id, getSetName(entityClass));
-
-            return client.delete(ignoreGenerationPolicy(), key);
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
-    }
-
     @Override
     public <T> boolean delete(T document) {
         Assert.notNull(document, "Document must not be null!");

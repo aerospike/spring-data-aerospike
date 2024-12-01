@@ -50,16 +50,6 @@ public class IndexUtils {
             .collect(Collectors.toList());
     }
 
-    /**
-     * @deprecated since Aerospike Server ver. 6.1.0.1. Use
-     * {@link org.springframework.data.aerospike.core.AerospikeTemplate#indexExists(String)}
-     */
-    public static boolean indexExists(IAerospikeClient client, String namespace, String indexName) {
-        Node node = client.getCluster().getRandomNode();
-        String response = InfoCommandUtils.request(client, node, "sindex/" + namespace + '/' + indexName);
-        return !response.startsWith("FAIL:201");
-    }
-
     private static void waitTillComplete(Supplier<IndexTask> supplier) {
         IndexTask task = supplier.get();
         if (task == null) {
