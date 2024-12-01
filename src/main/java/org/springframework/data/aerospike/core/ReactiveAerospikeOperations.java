@@ -354,24 +354,6 @@ public interface ReactiveAerospikeOperations {
     <T> Flux<T> updateAll(Iterable<? extends T> documents, String setName);
 
     /**
-     * Reactively truncate/delete all records from the set determined by the given entityClass.
-     *
-     * @param entityClass The class to extract the Aerospike set name from. Must not be {@literal null}.
-     * @deprecated since 4.6.0, use {@link AerospikeOperations#deleteAll(Class)} instead.
-     */
-    <T> Mono<Void> delete(Class<T> entityClass);
-
-    /**
-     * Reactively delete a record by id, set name will be determined by the given entity class.
-     *
-     * @param id          The id of a record to be deleted. Must not be {@literal null}.
-     * @param entityClass The class to extract the Aerospike set name from. Must not be {@literal null}.
-     * @return A Mono of whether the document existed on server before deletion.
-     * @deprecated since 4.6.0, use {@link AerospikeOperations#deleteById(Object, Class)} instead.
-     */
-    <T> Mono<Boolean> delete(Object id, Class<T> entityClass);
-
-    /**
      * Reactively delete a record using the document's id.
      * <p>
      * If the document has version property it will be compared with the corresponding record's version on server.
