@@ -19,7 +19,7 @@ public class BetweenTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimplePropertyBetween() {
         List<Customer> results = reactiveRepository.findByAgeBetween(10, 40)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(marge, bart, leela);
     }
@@ -29,7 +29,7 @@ public class BetweenTests extends ReactiveCustomerRepositoryQueryTests {
         QueryParam ageBetween = of(30, 70);
         QueryParam lastName = of("Simpson");
         List<Customer> results = reactiveRepository.findByAgeBetweenAndLastName(ageBetween, lastName)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(homer, marge);
     }
@@ -37,7 +37,7 @@ public class BetweenTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimplePropertyBetween_OrderByFirstnameDesc() {
         List<Customer> results = reactiveRepository.findByAgeBetweenOrderByFirstNameDesc(30, 70)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsExactly(matt, marge, homer);
     }

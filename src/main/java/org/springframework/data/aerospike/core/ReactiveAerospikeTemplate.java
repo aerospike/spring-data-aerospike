@@ -1134,7 +1134,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         Key key = getKey(id, setName);
         return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().getReadPolicyDefault())
-            .map(policy -> reactorClient.exists(policy, key))
+            .flatMap(policy -> reactorClient.exists(policy, key))
             .map(Objects::nonNull)
             .defaultIfEmpty(false)
             .onErrorMap(this::translateError);
@@ -1416,7 +1416,12 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         List<String> binNamesList = new ArrayList<>();
 
         targetEntity.doWithProperties(
-            (PropertyHandler<AerospikePersistentProperty>) property -> binNamesList.add(property.getFieldName()));
+            (PropertyHandler<AerospikePersistentProperty>) property -> {
+                if (!property.isIdProperty()) {
+                    binNamesList.add(property.getFieldName());
+                }
+            }
+        );
 
         return binNamesList.toArray(new String[0]);
     }

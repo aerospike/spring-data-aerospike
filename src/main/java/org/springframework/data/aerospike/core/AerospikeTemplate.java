@@ -1491,15 +1491,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     private <T> Stream<T> applyPostProcessingOnResults(Stream<T> results, Query query) {
-        if (query.getSort() != null && query.getSort().isSorted()) {
-            Comparator<T> comparator = getComparator(query);
-            results = results.sorted(comparator);
-        }
-        if (query.hasOffset()) {
-            results = results.skip(query.getOffset());
-        }
-        if (query.hasRows()) {
-            results = results.limit(query.getRows());
+        if (query != null) {
+            if (query.getSort() != null && query.getSort().isSorted()) {
+                Comparator<T> comparator = getComparator(query);
+                results = results.sorted(comparator);
+            }
+            if (query.hasOffset()) {
+                results = results.skip(query.getOffset());
+            }
+            if (query.hasRows()) {
+                results = results.limit(query.getRows());
+            }
         }
 
         return results;

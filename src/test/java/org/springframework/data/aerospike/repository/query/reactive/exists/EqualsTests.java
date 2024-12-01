@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.reactive.ReactiveCustomerRepositoryQueryTests;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 /**
@@ -14,32 +13,32 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void existsById_ShouldReturnTrueWhenExists() {
-        StepVerifier.create(reactiveRepository.existsById(leela.getId()).subscribeOn(Schedulers.parallel()))
+        StepVerifier.create(reactiveRepository.existsById(leela.getId()))
             .expectNext(true).verifyComplete();
     }
 
     @Test
     public void existsById_ShouldReturnFalseWhenNotExists() {
-        StepVerifier.create(reactiveRepository.existsById("non-existent-id").subscribeOn(Schedulers.parallel()))
-            .expectNext(false).verifyComplete();
+        StepVerifier.create(reactiveRepository.existsById("non-existent-id"))
+            .expectNext(false)
+            .verifyComplete();
     }
 
     @Test
     public void existsByIdPublisher_ShouldReturnTrueWhenExists() {
-        StepVerifier.create(reactiveRepository.existsById(Flux.just(fry.getId())).subscribeOn(Schedulers.parallel()))
+        StepVerifier.create(reactiveRepository.existsById(Flux.just(fry.getId())))
             .expectNext(true).verifyComplete();
     }
 
     @Test
     public void existsByIdPublisher_ShouldReturnFalseWhenNotExists() {
-        StepVerifier.create(reactiveRepository.existsById(Flux.just("non-existent-id")).subscribeOn(Schedulers.parallel()))
+        StepVerifier.create(reactiveRepository.existsById(Flux.just("non-existent-id")))
             .expectNext(false).verifyComplete();
     }
 
     @Test
     public void existsByIdPublisher_ShouldCheckOnlyFirstElement() {
-        StepVerifier.create(reactiveRepository.existsById(Flux.just(fry.getId(), "non-existent-id"))
-                .subscribeOn(Schedulers.parallel()))
+        StepVerifier.create(reactiveRepository.existsById(Flux.just(fry.getId(), "non-existent-id")))
             .expectNext(true).verifyComplete();
     }
 

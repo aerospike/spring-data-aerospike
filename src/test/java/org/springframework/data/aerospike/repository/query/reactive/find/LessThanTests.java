@@ -19,7 +19,7 @@ public class LessThanTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findByAgeLessThan_ShouldWorkProperly() {
         List<Customer> results = reactiveRepository.findByAgeLessThan(40, Sort.by(asc("firstName")))
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsExactly(bart, leela, lisa, maggie, marge);
     }
