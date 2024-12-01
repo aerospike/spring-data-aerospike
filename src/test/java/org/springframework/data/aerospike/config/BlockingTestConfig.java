@@ -51,9 +51,10 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
         clientPolicy.batchPolicyDefault.totalTimeout = totalTimeout;
         clientPolicy.infoPolicyDefault.timeout = totalTimeout;
         clientPolicy.readPolicyDefault.maxRetries = 3;
-        clientPolicy.writePolicyDefault.durableDelete = true;
-        clientPolicy.batchWritePolicyDefault.durableDelete = true;
-        clientPolicy.batchDeletePolicyDefault.durableDelete = true;
+        // Durable delete is supported by Enterprise edition
+//        clientPolicy.writePolicyDefault.durableDelete = true;
+//        clientPolicy.batchWritePolicyDefault.durableDelete = true;
+//        clientPolicy.batchDeletePolicyDefault.durableDelete = true;
         return clientPolicy;
     }
 
