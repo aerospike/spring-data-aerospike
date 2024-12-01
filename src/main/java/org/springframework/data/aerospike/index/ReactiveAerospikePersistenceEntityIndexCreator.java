@@ -18,7 +18,6 @@ package org.springframework.data.aerospike.index;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
-import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -54,14 +53,7 @@ public class ReactiveAerospikePersistenceEntityIndexCreator extends BaseAerospik
         log.debug("Installing aerospike index: {}...", index);
         return template.getIfUnique().createIndex(index.getEntityClass(), index.getName(), index.getBin(),
                 index.getType(), index.getCollectionType())
-            .doOnSuccess(ignore -> log.info("Installed aerospike index: {} successfully.", index))
-            .onErrorResume(IndexAlreadyExistsException.class, e -> onIndexAlreadyExists(e, index))
+            .doOnSuccess(ignore -> log.info("Installed aerospike index: {} successfully", index))
             .doOnError(throwable -> log.error("Failed to install aerospike index: " + index, throwable));
-    }
-
-    private Mono<Void> onIndexAlreadyExists(Throwable throwable, AerospikeIndexDefinition indexDefinition) {
-        log.info("Skipping index [{}] creation. Index with the same name already exists. {}", indexDefinition,
-            throwable.getMessage());
-        return Mono.empty();
     }
 }

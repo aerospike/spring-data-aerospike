@@ -31,8 +31,6 @@ import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
-
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
 /**
@@ -90,15 +88,6 @@ public class ReactorQueryEngine {
      */
     public Flux<KeyRecord> select(String namespace, String set, String[] binNames, @Nullable Query query) {
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
-        /*
-         * singleton using primary key
-         */
-        // KeyQualifier is deprecated and marked for removal
-        if (qualifier instanceof KeyQualifier kq) {
-            Key key = kq.makeKey(namespace, set);
-            return Flux.from(getRecord(null, key, binNames))
-                .filter(keyRecord -> Objects.nonNull(keyRecord.record));
-        }
 
         /*
          *  query with filters

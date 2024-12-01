@@ -393,34 +393,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         return applyBufferedBatchWrite(documents, setName, UPDATE_OPERATION);
     }
 
-    @Deprecated(since = "4.6.0", forRemoval = true)
-    @Override
-    public <T> Mono<Void> delete(Class<T> entityClass) {
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        try {
-            String set = getSetName(entityClass);
-            return Mono.fromRunnable(
-                () -> reactorClient.getAerospikeClient().truncate(null, namespace, set, null));
-        } catch (AerospikeException e) {
-            throw translateError(e);
-        }
-    }
-
-    @Deprecated(since = "4.6.0", forRemoval = true)
-    @Override
-    public <T> Mono<Boolean> delete(Object id, Class<T> entityClass) {
-        Assert.notNull(id, "Id must not be null!");
-        Assert.notNull(entityClass, "Class must not be null!");
-
-        AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-
-        return reactorClient
-            .delete(ignoreGenerationPolicy(), getKey(id, entity))
-            .map(k -> true)
-            .onErrorMap(this::translateError);
-    }
-
     @Override
     public <T> Mono<Boolean> delete(T document) {
         return delete(document, getSetName(document));
