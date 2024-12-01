@@ -423,7 +423,7 @@ abstract class BaseAerospikeTemplate {
 
         if (bins.length == 0) {
             throw new AerospikeException(
-                "Cannot put and get header on a document with no bins and \"@_class\" bin disabled.");
+                "Cannot put and get header on a document with no bins and class bin disabled.");
         }
 
         return operations(bins, Operation::put, firstlyDeleteBins ? Operation.array(Operation.delete()) : null,
@@ -524,8 +524,6 @@ abstract class BaseAerospikeTemplate {
 
     protected void validateForBatchWrite(Object object, String objectName) {
         Assert.notNull(object, objectName + " must not be null!");
-        Assert.isTrue(batchWriteSupported(), "Batch write operations are supported starting with " +
-            "server version " + TemplateUtils.SERVER_VERSION_6);
     }
 
     protected boolean batchWriteSizeMatch(int batchSize, int currentSize) {
@@ -534,10 +532,6 @@ abstract class BaseAerospikeTemplate {
 
     protected boolean batchRecordFailed(BatchRecord batchRecord) {
         return batchRecord.resultCode != ResultCode.OK || batchRecord.record == null;
-    }
-
-    protected boolean batchWriteSupported() {
-        return serverVersionSupport.isBatchWriteSupported();
     }
 
     protected enum OperationType {

@@ -400,150 +400,138 @@ public class AerospikeTemplateUpdateTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void updateAllShouldThrowExceptionOnUpdateForNonExistingKey() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            // This class has a version field (class field annotated with @Version).
-            // The constructor does not receive the version, so it stays equal to zero
-            VersionedClass first = new VersionedClass("newId1", "foo");
-            VersionedClass second = new VersionedClass("newId2", "bar");
-            // The documents’ versions are equal to zero, meaning the documents have not been saved to the database yet
-            assertThat(first.getVersion() == 0).isTrue();
-            assertThat(second.getVersion() == 0).isTrue();
-            template.insert(first);
+        // This class has a version field (class field annotated with @Version).
+        // The constructor does not receive the version, so it stays equal to zero
+        VersionedClass first = new VersionedClass("newId1", "foo");
+        VersionedClass second = new VersionedClass("newId2", "bar");
+        // The documents’ versions are equal to zero, meaning the documents have not been saved to the database yet
+        assertThat(first.getVersion() == 0).isTrue();
+        assertThat(second.getVersion() == 0).isTrue();
+        template.insert(first);
 
-            // The document's version is equal to one meaning there is a corresponding DB record
-            assertThat(first.getVersion() == 1).isTrue();
+        // The document's version is equal to one meaning there is a corresponding DB record
+        assertThat(first.getVersion() == 1).isTrue();
 
-            // RecordExistsAction.UPDATE_ONLY
-            assertThatThrownBy(() -> template.updateAll(List.of(first, second))) // An attempt to update versioned
-                // documents without already existing DB records results in getting BatchRecordArray exception
-                .isInstanceOf(OptimisticLockingFailureException.class)
-                .hasMessageContaining("Failed to update the record with ID 'newId2' due to versions mismatch");
-            assertThat(first.getVersion() == 2).isTrue(); // This document's version gets updated after it is read
-            // from the corresponding DB record
-            assertThat(second.getVersion() == 0).isTrue(); // This document's version stays equal to zero as there is
-            // no corresponding DB record
+        // RecordExistsAction.UPDATE_ONLY
+        assertThatThrownBy(() -> template.updateAll(List.of(first, second))) // An attempt to update versioned
+            // documents without already existing DB records results in getting BatchRecordArray exception
+            .isInstanceOf(OptimisticLockingFailureException.class)
+            .hasMessageContaining("Failed to update the record with ID 'newId2' due to versions mismatch");
+        assertThat(first.getVersion() == 2).isTrue(); // This document's version gets updated after it is read
+        // from the corresponding DB record
+        assertThat(second.getVersion() == 0).isTrue(); // This document's version stays equal to zero as there is
+        // no corresponding DB record
 
-            assertThat(template.findById(first.getId(), VersionedClass.class)).isEqualTo(first);
-            assertThat(template.findById(second.getId(), VersionedClass.class)).isNull();
+        assertThat(template.findById(first.getId(), VersionedClass.class)).isEqualTo(first);
+        assertThat(template.findById(second.getId(), VersionedClass.class)).isNull();
 
-            Person firstPerson = new Person("newId1", "foo");
-            Person secondPerson = new Person("newId2", "bar"); //
-            template.insert(firstPerson);
-            // RecordExistsAction.UPDATE_ONLY
-            assertThatThrownBy(() -> template.updateAll(List.of(firstPerson, secondPerson)))
-                .isInstanceOf(AerospikeException.BatchRecordArray.class)
-                .hasMessageContaining("Batch failed");
+        Person firstPerson = new Person("newId1", "foo");
+        Person secondPerson = new Person("newId2", "bar"); //
+        template.insert(firstPerson);
+        // RecordExistsAction.UPDATE_ONLY
+        assertThatThrownBy(() -> template.updateAll(List.of(firstPerson, secondPerson)))
+            .isInstanceOf(AerospikeException.BatchRecordArray.class)
+            .hasMessageContaining("Batch failed");
 
-            assertThat(template.findById(firstPerson.getId(), Person.class)).isEqualTo(firstPerson);
-            assertThat(template.findById(secondPerson.getId(), Person.class)).isNull();
-        }
+        assertThat(template.findById(firstPerson.getId(), Person.class)).isEqualTo(firstPerson);
+        assertThat(template.findById(secondPerson.getId(), Person.class)).isNull();
     }
 
     @Test
     public void updateAllIfDocumentsNotChanged() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            int age1 = 140335200;
-            int age2 = 177652800;
-            Person person1 = new Person(id, "Wolfgang M", age1);
-            Person person2 = new Person(nextId(), "Johann B", age2);
-            template.insertAll(List.of(person1, person2));
-            template.updateAll(List.of(person1, person2));
+        int age1 = 140335200;
+        int age2 = 177652800;
+        Person person1 = new Person(id, "Wolfgang M", age1);
+        Person person2 = new Person(nextId(), "Johann B", age2);
+        template.insertAll(List.of(person1, person2));
+        template.updateAll(List.of(person1, person2));
 
-            Person result1 = template.findById(person1.getId(), Person.class);
-            Person result2 = template.findById(person2.getId(), Person.class);
-            assertThat(result1.getAge()).isEqualTo(age1);
-            assertThat(result2.getAge()).isEqualTo(age2);
-            template.delete(result1); // cleanup
-            template.delete(result2); // cleanup
-        }
+        Person result1 = template.findById(person1.getId(), Person.class);
+        Person result2 = template.findById(person2.getId(), Person.class);
+        assertThat(result1.getAge()).isEqualTo(age1);
+        assertThat(result2.getAge()).isEqualTo(age2);
+        template.delete(result1); // cleanup
+        template.delete(result2); // cleanup
     }
 
     @Test
     public void updateAllIfDocumentsChanged() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            int age1 = 140335200;
-            int age2 = 177652800;
-            Person person1 = new Person(id, "Wolfgang", age1);
-            Person person2 = new Person(nextId(), "Johann", age2);
-            template.insertAll(List.of(person1, person2));
+        int age1 = 140335200;
+        int age2 = 177652800;
+        Person person1 = new Person(id, "Wolfgang", age1);
+        Person person2 = new Person(nextId(), "Johann", age2);
+        template.insertAll(List.of(person1, person2));
 
-            person1.setFirstName("Wolfgang M");
-            person2.setFirstName("Johann B");
-            template.updateAll(List.of(person1, person2));
+        person1.setFirstName("Wolfgang M");
+        person2.setFirstName("Johann B");
+        template.updateAll(List.of(person1, person2));
 
-            Person result1 = template.findById(person1.getId(), Person.class);
-            Person result2 = template.findById(person2.getId(), Person.class);
-            assertThat(result1.getAge()).isEqualTo(age1);
-            assertThat(result1.getFirstName()).isEqualTo("Wolfgang M");
-            assertThat(result2.getAge()).isEqualTo(age2);
-            assertThat(result2.getFirstName()).isEqualTo("Johann B");
-            template.delete(result1); // cleanup
-            template.delete(result2); // cleanup
+        Person result1 = template.findById(person1.getId(), Person.class);
+        Person result2 = template.findById(person2.getId(), Person.class);
+        assertThat(result1.getAge()).isEqualTo(age1);
+        assertThat(result1.getFirstName()).isEqualTo("Wolfgang M");
+        assertThat(result2.getAge()).isEqualTo(age2);
+        assertThat(result2.getFirstName()).isEqualTo("Johann B");
+        template.delete(result1); // cleanup
+        template.delete(result2); // cleanup
 
-            List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
-            Iterable<Person> personsWithUpdate = persons.stream()
-                .peek(person -> person.setFirstName(person.getFirstName() + "_")).toList();
-            template.updateAll(personsWithUpdate);
-            personsWithUpdate.forEach(person ->
-                assertThat(template.findById(person.getId(), Person.class).getFirstName()
-                    .equals(person.getFirstName())).isTrue());
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        Iterable<Person> personsWithUpdate = persons.stream()
+            .peek(person -> person.setFirstName(person.getFirstName() + "_")).toList();
+        template.updateAll(personsWithUpdate);
+        personsWithUpdate.forEach(person ->
+            assertThat(template.findById(person.getId(), Person.class).getFirstName()
+                .equals(person.getFirstName())).isTrue());
 
-            // This document has a version (class field annotated with @Version).
-            // The constructor does not receive the version parameter, so it stays equal to zero
-            VersionedClass first = new VersionedClass("id1", "foo");
+        // This document has a version (class field annotated with @Version).
+        // The constructor does not receive the version parameter, so it stays equal to zero
+        VersionedClass first = new VersionedClass("id1", "foo");
 
-            // In this case non-zero versions get explicitly passed to the constructor
-            VersionedClass second = new VersionedClass("id2", "foo", 1);
-            VersionedClass third = new VersionedClass("id3", "foo", 2);
+        // In this case non-zero versions get explicitly passed to the constructor
+        VersionedClass second = new VersionedClass("id2", "foo", 1);
+        VersionedClass third = new VersionedClass("id3", "foo", 2);
 
-            // Insert multiple versioned documents to create new DB records
-            template.insertAll(List.of(first, second, third));
+        // Insert multiple versioned documents to create new DB records
+        template.insertAll(List.of(first, second, third));
 
-            assertThat(first.getVersion() == 1).isTrue();
-            // initial documents' versions are overridden by the versions from the created DB records
-            assertThat(second.getVersion() == 1).isTrue();
-            assertThat(third.getVersion() == 1).isTrue();
+        assertThat(first.getVersion() == 1).isTrue();
+        // initial documents' versions are overridden by the versions from the created DB records
+        assertThat(second.getVersion() == 1).isTrue();
+        assertThat(third.getVersion() == 1).isTrue();
 
-            first = new VersionedClass(first.getId(), "foobar1", first.getVersion());
-            second = new VersionedClass(second.getId(), "foobar2", second.getVersion());
-            third = new VersionedClass(third.getId(), "foobar3", third.getVersion());
-            template.updateAll(List.of(first, second, third));
+        first = new VersionedClass(first.getId(), "foobar1", first.getVersion());
+        second = new VersionedClass(second.getId(), "foobar2", second.getVersion());
+        third = new VersionedClass(third.getId(), "foobar3", third.getVersion());
+        template.updateAll(List.of(first, second, third));
 
-            assertThat(template.findById(first.getId(), VersionedClass.class)).satisfies(doc -> {
-                assertThat(doc.getField()).isEqualTo("foobar1");
-                assertThat(doc.getVersion()).isEqualTo(2);
-            });
-            assertThat(template.findById(second.getId(), VersionedClass.class)).satisfies(doc -> {
-                assertThat(doc.getField()).isEqualTo("foobar2");
-                assertThat(doc.getVersion()).isEqualTo(2);
-            });
-            assertThat(template.findById(third.getId(), VersionedClass.class)).satisfies(doc -> {
-                assertThat(doc.getField()).isEqualTo("foobar3");
-                assertThat(doc.getVersion()).isEqualTo(2);
-            });
-        }
+        assertThat(template.findById(first.getId(), VersionedClass.class)).satisfies(doc -> {
+            assertThat(doc.getField()).isEqualTo("foobar1");
+            assertThat(doc.getVersion()).isEqualTo(2);
+        });
+        assertThat(template.findById(second.getId(), VersionedClass.class)).satisfies(doc -> {
+            assertThat(doc.getField()).isEqualTo("foobar2");
+            assertThat(doc.getVersion()).isEqualTo(2);
+        });
+        assertThat(template.findById(third.getId(), VersionedClass.class)).satisfies(doc -> {
+            assertThat(doc.getField()).isEqualTo("foobar3");
+            assertThat(doc.getVersion()).isEqualTo(2);
+        });
     }
 
     @Test
     public void updateAllIfDocumentsNotChangedWithSetName() {
-        // batch write operations are supported starting with Server version 6.0+
-        if (serverVersionSupport.isBatchWriteSupported()) {
-            int age1 = 140335200;
-            int age2 = 177652800;
-            Person person1 = new Person(id, "Wolfgang", age1);
-            Person person2 = new Person(nextId(), "Johann", age2);
-            template.insertAll(List.of(person1, person2), OVERRIDE_SET_NAME);
-            template.updateAll(List.of(person1, person2), OVERRIDE_SET_NAME);
+        int age1 = 140335200;
+        int age2 = 177652800;
+        Person person1 = new Person(id, "Wolfgang", age1);
+        Person person2 = new Person(nextId(), "Johann", age2);
+        template.insertAll(List.of(person1, person2), OVERRIDE_SET_NAME);
+        template.updateAll(List.of(person1, person2), OVERRIDE_SET_NAME);
 
-            Person result1 = template.findById(person1.getId(), Person.class, OVERRIDE_SET_NAME);
-            Person result2 = template.findById(person2.getId(), Person.class, OVERRIDE_SET_NAME);
-            assertThat(result1.getAge()).isEqualTo(age1);
-            assertThat(result2.getAge()).isEqualTo(age2);
-            template.delete(result1, OVERRIDE_SET_NAME); // cleanup
-            template.delete(result2, OVERRIDE_SET_NAME); // cleanup
-        }
+        Person result1 = template.findById(person1.getId(), Person.class, OVERRIDE_SET_NAME);
+        Person result2 = template.findById(person2.getId(), Person.class, OVERRIDE_SET_NAME);
+        assertThat(result1.getAge()).isEqualTo(age1);
+        assertThat(result2.getAge()).isEqualTo(age2);
+        template.delete(result1, OVERRIDE_SET_NAME); // cleanup
+        template.delete(result2, OVERRIDE_SET_NAME); // cleanup
     }
 }

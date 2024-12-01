@@ -25,6 +25,7 @@ import java.util.function.BiConsumer;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
+import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY_DEFAULT;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClass.SIMPLESET;
 import static org.springframework.data.aerospike.sample.SampleClasses.SimpleClassWithPersistenceConstructor.SIMPLESET2;
 import static org.springframework.data.aerospike.sample.SampleClasses.User.SIMPLESET3;
@@ -50,7 +51,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithPrimitiveShortId object = new DocumentWithPrimitiveShortId((short) 5);
 
         assertWriteAndRead(converterOption, object, "DocumentWithPrimitiveShortId", (short) 5,
-            new Bin("@_class", DocumentWithPrimitiveShortId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithPrimitiveShortId.class.getName())
         );
     }
 
@@ -60,7 +61,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithPrimitiveIntId object = new DocumentWithPrimitiveIntId(5);
 
         assertWriteAndRead(converterOption, object, "DocumentWithPrimitiveIntId", 5,
-            new Bin("@_class", DocumentWithPrimitiveIntId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithPrimitiveIntId.class.getName())
         );
     }
 
@@ -70,7 +71,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithPrimitiveLongId object = new DocumentWithPrimitiveLongId(5L);
 
         assertWriteAndRead(converterOption, object, "DocumentWithPrimitiveLongId", 5L,
-            new Bin("@_class", DocumentWithPrimitiveLongId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithPrimitiveLongId.class.getName())
         );
     }
 
@@ -80,7 +81,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithPrimitiveCharId object = new DocumentWithPrimitiveCharId('a');
 
         assertWriteAndRead(converterOption, object, "DocumentWithPrimitiveCharId", 'a',
-            new Bin("@_class", DocumentWithPrimitiveCharId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithPrimitiveCharId.class.getName())
         );
     }
 
@@ -90,7 +91,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithPrimitiveByteId object = new DocumentWithPrimitiveByteId((byte) 100);
 
         assertWriteAndRead(converterOption, object, "DocumentWithPrimitiveByteId",
-            (byte) 100, new Bin("@_class", DocumentWithPrimitiveByteId.class.getName())
+            (byte) 100, new Bin(CLASS_KEY_DEFAULT, DocumentWithPrimitiveByteId.class.getName())
         );
     }
 
@@ -100,7 +101,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithShortId object = DocumentWithShortId.builder().id((short) 5).build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithShortId", (short) 5,
-            new Bin("@_class", DocumentWithShortId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithShortId.class.getName())
         );
     }
 
@@ -110,7 +111,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithIntegerId object = DocumentWithIntegerId.builder().id(5).build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithIntegerId", 5,
-            new Bin("@_class", DocumentWithIntegerId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithIntegerId.class.getName())
         );
     }
 
@@ -120,7 +121,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithLongId object = DocumentWithLongId.builder().id(5L).build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithLongId", 5L,
-            new Bin("@_class", DocumentWithLongId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithLongId.class.getName())
         );
     }
 
@@ -130,7 +131,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithCharacterId object = DocumentWithCharacterId.builder().id('a').build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithCharacterId", 'a',
-            new Bin("@_class", DocumentWithCharacterId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithCharacterId.class.getName())
         );
     }
 
@@ -140,7 +141,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithByteId object = DocumentWithByteId.builder().id(((byte) 100)).build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithByteId", (byte) 100,
-            new Bin("@_class", DocumentWithByteId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithByteId.class.getName())
         );
     }
 
@@ -150,7 +151,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithStringId object = DocumentWithStringId.builder().id("my-amazing-string-id").build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithStringId",
-            "my-amazing-string-id", new Bin("@_class", DocumentWithStringId.class.getName())
+            "my-amazing-string-id", new Bin(CLASS_KEY_DEFAULT, DocumentWithStringId.class.getName())
         );
     }
 
@@ -162,7 +163,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             .build();
 
         assertWriteAndRead(converterOption, object, "DocumentWithByteArrayId",
-            new byte[]{1, 0, 0, 1, 1, 1, 0, 0}, new Bin("@_class", DocumentWithByteArrayId.class.getName())
+            new byte[]{1, 0, 0, 1, 1, 1, 0, 0}, new Bin(CLASS_KEY_DEFAULT, DocumentWithByteArrayId.class.getName())
         );
     }
 
@@ -173,7 +174,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object, "SetWithSimpleValue", 1L,
             new Bin("collectionWithSimpleValues", list(null, "a", "b", "c")),
-            new Bin("@_class", SetWithSimpleValue.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, SetWithSimpleValue.class.getName())
         );
     }
 
@@ -186,7 +187,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object,
             MapWithShortId.class.getSimpleName(), 10L,
             new Bin("mapWithShortId", of((short) 1, "value1", (short) 2, "value2", (short) 3, null)),
-            new Bin("@_class", MapWithShortId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, MapWithShortId.class.getName())
         );
     }
 
@@ -199,7 +200,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object,
             MapWithIntegerId.class.getSimpleName(), 10L,
             new Bin("mapWithIntId", of(1, "value1", 2, "value2", 3, null)),
-            new Bin("@_class", MapWithIntegerId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, MapWithIntegerId.class.getName())
         );
     }
 
@@ -212,7 +213,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object,
             MapWithLongId.class.getSimpleName(), 10L,
             new Bin("mapWithLongId", of(1L, "value1", 2L, "value2", 3L, null)),
-            new Bin("@_class", MapWithLongId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, MapWithLongId.class.getName())
         );
     }
 
@@ -225,7 +226,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object,
             MapWithDoubleId.class.getSimpleName(), 10L,
             new Bin("mapWithDoubleId", of(100.25, "value1", 200.25, "value2", 300.25, null)),
-            new Bin("@_class", MapWithDoubleId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, MapWithDoubleId.class.getName())
         );
     }
 
@@ -238,7 +239,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object,
             MapWithByteId.class.getSimpleName(), 10L,
             new Bin("mapWithByteId", of((byte) 100, "value1", (byte) 200, "value2", (byte) 300, null)),
-            new Bin("@_class", MapWithByteId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, MapWithByteId.class.getName())
         );
     }
 
@@ -251,7 +252,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object,
             MapWithCharacterId.class.getSimpleName(), 10L,
             new Bin("mapWithCharacterId", of('a', "value1", 'b', "value2", 'c', null)),
-            new Bin("@_class", MapWithCharacterId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, MapWithCharacterId.class.getName())
         );
     }
 
@@ -264,7 +265,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object,
             MapWithStringValue.class.getSimpleName(), 10L,
             new Bin("mapWithStringValue", of("key1", "value1", "key2", "value2", "key3", null)),
-            new Bin("@_class", MapWithStringValue.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, MapWithStringValue.class.getName())
         );
     }
 
@@ -283,7 +284,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             new Bin("counter", 1L),
             new Bin("@_version", 1234567890),
             new Bin("update", 10L),
-            new Bin("@_class", DocumentExampleIdClass.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, DocumentExampleIdClass.class.getName())
         ))
             .isInstanceOf(org.springframework.core.convert.ConverterNotFoundException.class)
             .hasMessage("No converter found capable of converting from type " +
@@ -299,7 +300,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object,
             MapWithCollectionValue.class.getSimpleName(), 10L,
             new Bin("mapWithCollectionValue", of("key1", list(), "key2", list("a", "b", "c"))),
-            new Bin("@_class", MapWithCollectionValue.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, MapWithCollectionValue.class.getName())
         );
     }
 
@@ -312,11 +313,11 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object, MapWithGenericValue.class.getSimpleName(), 10L,
             new Bin("mapWithNonSimpleValue", of(
-                "key1", of("street", of("name", "Gogolya str.", "number", 15, "@_class", Street.class.getName()),
-                    "apartment", 567, "@_class", Address.class.getName()),
-                "key2", of("street", of("name", "Shakespeare str.", "number", 40, "@_class", Street.class.getName()),
-                    "apartment", 765, "@_class", Address.class.getName()))),
-            new Bin("@_class", MapWithGenericValue.class.getName())
+                "key1", of("street", of("name", "Gogolya str.", "number", 15, CLASS_KEY_DEFAULT, Street.class.getName()),
+                    "apartment", 567, CLASS_KEY_DEFAULT, Address.class.getName()),
+                "key2", of("street", of("name", "Shakespeare str.", "number", 40, CLASS_KEY_DEFAULT, Street.class.getName()),
+                    "apartment", 765, CLASS_KEY_DEFAULT, Address.class.getName()))),
+            new Bin(CLASS_KEY_DEFAULT, MapWithGenericValue.class.getName())
         );
     }
 
@@ -331,10 +332,10 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object, "CustomTypeWithListAndMap", id,
             new Bin("listOfObjects", list("firstItem",
                 of("keyInList", "valueInList"),
-                of("street", of("name", "Gogolya str.", "number", 15, "@_class", Street.class.getName()),
-                    "apartment", 567, "@_class", Address.class.getName()))),
+                of("street", of("name", "Gogolya str.", "number", 15, CLASS_KEY_DEFAULT, Street.class.getName()),
+                    "apartment", 567, CLASS_KEY_DEFAULT, Address.class.getName()))),
             new Bin("mapWithObjectValue", of("map", of("key", "value"))),
-            new Bin("@_class", CustomTypeWithListAndMap.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, CustomTypeWithListAndMap.class.getName())
         );
     }
 
@@ -348,13 +349,13 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object, "CustomTypeWithCustomType", id,
             new Bin("field", of(
-                "@_class", ImmutableListAndMap.class.getName(),
+                CLASS_KEY_DEFAULT, ImmutableListAndMap.class.getName(),
                 "listOfObjects", list("firstItem", of("keyInList", "valueInList")),
                 "mapWithObjectValue", of("map", of("key", "value"),
-                    "address", of("street", of("name", "Gogolya str.", "number", 15, "@_class", Street.class.getName()),
-                        "apartment", 567, "@_class", Address.class.getName()))
+                    "address", of("street", of("name", "Gogolya str.", "number", 15, CLASS_KEY_DEFAULT, Street.class.getName()),
+                        "apartment", 567, CLASS_KEY_DEFAULT, Address.class.getName()))
             )),
-            new Bin("@_class", CustomTypeWithCustomType.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, CustomTypeWithCustomType.class.getName())
         );
     }
 
@@ -368,7 +369,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         assertWriteAndRead(converterOption, object, "CustomTypeWithListAndMapImmutable", id,
             new Bin("listOfObjects", list("firstItem", of("keyInList", "valueInList"))),
             new Bin("mapWithObjectValue", of("map", of("key", "value"))),
-            new Bin("@_class", CustomTypeWithListAndMapImmutable.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, CustomTypeWithListAndMapImmutable.class.getName())
         );
     }
 
@@ -394,7 +395,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             new Bin("field11", (byte) 1),
             new Bin("field12", '3'),
             new Bin("field13", 'd'),
-            new Bin("@_class", "simpleclass")
+            new Bin(CLASS_KEY_DEFAULT, "simpleclass")
         );
     }
 
@@ -404,7 +405,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         SimpleClassWithPersistenceConstructor object = new SimpleClassWithPersistenceConstructor(17, "abyrvalg", 13);
 
         assertWriteAndRead(converterOption, object, SIMPLESET2, 17,
-            new Bin("@_class", SimpleClassWithPersistenceConstructor.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, SimpleClassWithPersistenceConstructor.class.getName()),
             new Bin("field1", "abyrvalg"),
             new Bin("field2", 13));
     }
@@ -417,13 +418,13 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         User object = new User(10, name, address);
 
         assertWriteAndRead(converterOption, object, SIMPLESET3, 10,
-            new Bin("@_class", User.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, User.class.getName()),
             new Bin("name",
-                of("firstName", "Vasya", "lastName", "Pupkin", "@_class", Name.class.getName())),
+                of("firstName", "Vasya", "lastName", "Pupkin", CLASS_KEY_DEFAULT, Name.class.getName())),
             new Bin("address",
                 of("street",
-                    of("name", "Gogolya street", "number", 24, "@_class", Street.class.getName()),
-                    "apartment", 777, "@_class", Address.class.getName()))
+                    of("name", "Gogolya street", "number", 24, CLASS_KEY_DEFAULT, Street.class.getName()),
+                    "apartment", 777, CLASS_KEY_DEFAULT, Address.class.getName()))
         );
     }
 
@@ -436,14 +437,14 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         Person object = new Person("kate-01", addresses);
 
         assertWriteAndRead(converterOption, object, "Person", "kate-01",
-            new Bin("@_class", Person.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, Person.class.getName()),
             new Bin("addresses", list(
                 of("street",
-                    of("name", "Southwark Street", "number", 110, "@_class", Street.class.getName()),
-                    "apartment", 876, "@_class", Address.class.getName()),
+                    of("name", "Southwark Street", "number", 110, CLASS_KEY_DEFAULT, Street.class.getName()),
+                    "apartment", 876, CLASS_KEY_DEFAULT, Address.class.getName()),
                 of("street",
-                    of("name", "Finsbury Pavement", "number", 125, "@_class", Street.class.getName()),
-                    "apartment", 13, "@_class", Address.class.getName())
+                    of("name", "Finsbury Pavement", "number", 125, CLASS_KEY_DEFAULT, Street.class.getName()),
+                    "apartment", 13, CLASS_KEY_DEFAULT, Address.class.getName())
             )));
     }
 
@@ -456,7 +457,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         ClassWithEnumProperties object = new ClassWithEnumProperties("id", TYPES.SECOND, list, set, map);
 
         assertWriteAndRead(converterOption, object, "ClassWithEnumProperties", "id",
-            new Bin("@_class", ClassWithEnumProperties.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, ClassWithEnumProperties.class.getName()),
             new Bin("type", "SECOND"),
             new Bin("list", list("FIRST", "SECOND")),
             new Bin("set", list("FIRST", "SECOND", "THIRD")),
@@ -471,7 +472,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         SortedMapWithSimpleValue object = new SortedMapWithSimpleValue(id, map);
 
         assertWriteAndRead(converterOption, object, "SortedMapWithSimpleValue", id,
-            new Bin("@_class", SortedMapWithSimpleValue.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, SortedMapWithSimpleValue.class.getName()),
             new Bin("map", of("a", "b", "c", "d"))
         );
     }
@@ -485,7 +486,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         NestedMapsWithSimpleValue object = new NestedMapsWithSimpleValue(id, map);
 
         assertWriteAndRead(converterOption, object, "NestedMapsWithSimpleValue", id,
-            new Bin("@_class", NestedMapsWithSimpleValue.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, NestedMapsWithSimpleValue.class.getName()),
             new Bin("nestedMaps", of(
                 "level-1", of("level-1-1", of("1", "2")),
                 "level-2", of("level-2-2", of("1", "2"))))
@@ -499,7 +500,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         @SuppressWarnings("unchecked") GenericType<GenericType<String>> object = new GenericType(id, "string");
 
         assertWriteAndRead(converterOption, object, "GenericType", id,
-            new Bin("@_class", GenericType.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, GenericType.class.getName()),
             new Bin("content", "string")
         );
     }
@@ -510,7 +511,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         ListOfLists object = new ListOfLists(id, list(list("a", "b", "c"), list("d", "e"), list()));
 
         assertWriteAndRead(converterOption, object, "ListOfLists", id,
-            new Bin("@_class", ListOfLists.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, ListOfLists.class.getName()),
             new Bin("listOfLists", list(list("a", "b", "c"), list("d", "e"), list()))
         );
     }
@@ -522,10 +523,10 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             new Name("Nastya", "Smirnova"))));
 
         assertWriteAndRead(converterOption, object, "ListOfMaps", id,
-            new Bin("@_class", ListOfMaps.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, ListOfMaps.class.getName()),
             new Bin("listOfMaps", list(
-                of("vasya", of("firstName", "Vasya", "lastName", "Pukin", "@_class", Name.class.getName())),
-                of("nastya", of("firstName", "Nastya", "lastName", "Smirnova", "@_class", Name.class.getName()))
+                of("vasya", of("firstName", "Vasya", "lastName", "Pukin", CLASS_KEY_DEFAULT, Name.class.getName())),
+                of("nastya", of("firstName", "Nastya", "lastName", "Smirnova", CLASS_KEY_DEFAULT, Name.class.getName()))
             )));
     }
 
@@ -536,9 +537,9 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             , "2"));
 
         assertWriteAndRead(converterOption, object, "ContainerOfCustomFieldNames", id,
-            new Bin("@_class", ContainerOfCustomFieldNames.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, ContainerOfCustomFieldNames.class.getName()),
             new Bin("property", "value"),
-            new Bin("customFieldNames", of("property1", 1, "property2", "2", "@_class",
+            new Bin("customFieldNames", of("property1", 1, "property2", "2", CLASS_KEY_DEFAULT,
                 CustomFieldNames.class.getName()))
         );
     }
@@ -549,7 +550,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         ClassWithComplexId object = new ClassWithComplexId(new ComplexId(10L));
 
         assertWriteAndRead(converterOption, object, ClassWithComplexId.class.getSimpleName(), "id::10",
-            new Bin("@_class", ClassWithComplexId.class.getName())
+            new Bin(CLASS_KEY_DEFAULT, ClassWithComplexId.class.getName())
         );
     }
 
@@ -560,9 +561,9 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
             of("key", new DocumentWithLongId(45L, "v")));
 
         assertWriteAndRead(converterOption, object, MapWithGenericValue.class.getSimpleName(), 788L,
-            new Bin("@_class", MapWithGenericValue.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, MapWithGenericValue.class.getName()),
             new Bin("mapWithNonSimpleValue",
-                of("key", of("id", 45L, "content", "v", "@_class", DocumentWithLongId.class.getName())))
+                of("key", of("id", 45L, "content", "v", CLASS_KEY_DEFAULT, DocumentWithLongId.class.getName())))
         );
     }
 
@@ -573,7 +574,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "DocumentWithByteArray", id,
-            new Bin("@_class", DocumentWithByteArray.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithByteArray.class.getName()),
             new Bin("array", new byte[]{1, 0, 0, 1, 1, 1, 0, 0}));
     }
 
@@ -585,7 +586,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "DocumentWithIntArray", id,
-            new Bin("@_class", DocumentWithIntArray.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithIntArray.class.getName()),
             new Bin("array", Arrays.stream(array).boxed().toList()));
     }
 
@@ -598,7 +599,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         DocumentWithAtomicFields readDoc = readObjectAfterWriting(converterOption, object,
             "DocumentWithAtomicFields", id,
-            new Bin("@_class", DocumentWithAtomicFields.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithAtomicFields.class.getName()),
             new Bin("atomicInteger",
                 AerospikeConverters.AtomicIntegerToIntegerConverter.INSTANCE.convert(atomicInteger)),
             new Bin("atomicLong", AerospikeConverters.AtomicLongToLongConverter.INSTANCE.convert(atomicLong)));
@@ -622,7 +623,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "DocumentWithURL", id,
-            new Bin("@_class", DocumentWithURL.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithURL.class.getName()),
             new Bin("url", AerospikeConverters.URLToStringConverter.INSTANCE.convert(url)));
     }
 
@@ -634,7 +635,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "DocumentWithUUID", id,
-            new Bin("@_class", DocumentWithUUID.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithUUID.class.getName()),
             new Bin("uuid", AerospikeConverters.UuidToStringConverter.INSTANCE.convert(uuid)));
     }
 
@@ -646,7 +647,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "DocumentWithCurrency", id,
-            new Bin("@_class", DocumentWithCurrency.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithCurrency.class.getName()),
             new Bin("currency", AerospikeConverters.CurrencyToStringConverter.INSTANCE.convert(currency)));
     }
 
@@ -658,7 +659,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "DocumentWithDate", id,
-            new Bin("@_class", DocumentWithDate.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithDate.class.getName()),
             new Bin("date", DateConverters.DateToLongConverter.INSTANCE.convert(date)));
     }
 
@@ -671,7 +672,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "DocumentWithCalendar", id,
-            new Bin("@_class", DocumentWithCalendar.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithCalendar.class.getName()),
             new Bin("calendar", DateConverters.CalendarToMapConverter.INSTANCE.convert(calendar)));
     }
 
@@ -688,7 +689,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "DocumentWithInstant", id, objectAssertFunction,
-            new Bin("@_class", DocumentWithInstant.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithInstant.class.getName()),
             new Bin("instant", DateConverters.InstantToLongConverter.INSTANCE.convert(instant)));
     }
 
@@ -700,7 +701,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "DocumentWithDuration", id,
-            new Bin("@_class", DocumentWithDuration.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithDuration.class.getName()),
             new Bin("duration", DateConverters.DurationToStringConverter.INSTANCE.convert(duration)));
     }
 
@@ -715,7 +716,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
 
         assertWriteAndRead(converterOption, object,
             "BigDecimalContainer", id,
-            new Bin("@_class", BigDecimalContainer.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, BigDecimalContainer.class.getName()),
             new Bin("collection", list("988687642340235")),
             new Bin("value", "999999999999999999999999998746"),
             new Bin("map", of("big-decimal-val", "767867678687678"))
@@ -728,7 +729,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
         DocumentWithByteArray object = new DocumentWithByteArray(id, new byte[]{1});
 
         assertWriteAndRead(converterOption, object, "DocumentWithByteArray", id,
-            new Bin("@_class", DocumentWithByteArray.class.getName()),
+            new Bin(CLASS_KEY_DEFAULT, DocumentWithByteArray.class.getName()),
             new Bin("array", new byte[]{1})
         );
     }
