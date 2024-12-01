@@ -16,6 +16,7 @@
 package org.springframework.data.aerospike.config;
 
 import com.aerospike.client.AerospikeClient;
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Host;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.async.EventLoops;
@@ -29,6 +30,8 @@ import io.netty.channel.kqueue.KQueue;
 import io.netty.channel.kqueue.KQueueEventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanInstantiationException;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -70,9 +73,9 @@ import java.util.Set;
 @Configuration
 public abstract class AerospikeDataConfigurationSupport {
 
-    public static final String CONFIG_PREFIX = "spring.aerospike";
-    public static final String CONFIG_PREFIX_DATA = CONFIG_PREFIX + ".data";
-    public static final String CONFIG_PREFIX_CONNECTION = CONFIG_PREFIX + ".connection";
+    public static final String CONFIG_PREFIX = "spring";
+    public static final String CONFIG_PREFIX_DATA = CONFIG_PREFIX + ".data.aerospike";
+    public static final String CONFIG_PREFIX_CONNECTION = CONFIG_PREFIX + ".aerospike";
 
     @Bean(name = "aerospikeStatementBuilder")
     public StatementBuilder statementBuilder(IndexesCache indexesCache) {
@@ -99,8 +102,11 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeTypeAliasAccessor")
-    public AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor() {
-        return new AerospikeTypeAliasAccessor();
+    public AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor(AerospikeDataSettings dataSettings) {
+        String classKey = dataSettings.getClassKey();
+        return StringUtils.hasText(classKey)
+            ? new AerospikeTypeAliasAccessor(classKey)
+            : new AerospikeTypeAliasAccessor();
     }
 
     @Bean(name = "aerospikeCustomConversions")
@@ -113,11 +119,26 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean(name = "aerospikeMappingContext")
-    public AerospikeMappingContext aerospikeMappingContext() throws ClassNotFoundException {
+    public AerospikeMappingContext aerospikeMappingContext(AerospikeDataSettings dataSettings)
+        throws AerospikeException
+    {
         AerospikeMappingContext context = new AerospikeMappingContext();
-        context.setInitialEntitySet(getInitialEntitySet());
+        try {
+            context.setInitialEntitySet(getInitialEntitySet());
+        } catch (ClassNotFoundException e) {
+            throw new AerospikeException("Cannot set initialEntitySet in AerospikeMappingContext", e);
+        }
         context.setSimpleTypeHolder(AerospikeSimpleTypes.HOLDER);
-        context.setFieldNamingStrategy(fieldNamingStrategy());
+        if (dataSettings.getFieldNamingStrategy() != null) {
+            try {
+                context.setFieldNamingStrategy(
+                    (FieldNamingStrategy) BeanUtils.instantiateClass(dataSettings.getFieldNamingStrategy()));
+            } catch (BeanInstantiationException e) {
+                throw new AerospikeException("Cannot set fieldNamingStrategy in AerospikeMappingContext", e);
+            }
+        } else {
+            context.setFieldNamingStrategy(fieldNamingStrategy());
+        }
         return context;
     }
 
@@ -294,7 +315,7 @@ public abstract class AerospikeDataConfigurationSupport {
 
         // nameSpace() has precedence over namespace parameter from application.properties
         String namespace;
-        if ((namespace = nameSpace()) != null) connectionSettings.setNamespace(namespace);
+        if ((namespace = nameSpace()) != null) dataSettings.setNamespace(namespace);
 
         return new AerospikeSettings(connectionSettings, dataSettings);
     }
