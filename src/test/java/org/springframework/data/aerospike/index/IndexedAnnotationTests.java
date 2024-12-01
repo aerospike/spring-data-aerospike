@@ -16,7 +16,7 @@ import org.springframework.test.context.TestPropertySource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
-@TestPropertySource(properties = {"spring.aerospike.data.create-indexes-on-startup=true"})
+@TestPropertySource(properties = {"spring.data.aerospike.create-indexes-on-startup=true"})
 // this test class requires secondary indexes created on startup
 public class IndexedAnnotationTests extends BaseBlockingIntegrationTests {
 
