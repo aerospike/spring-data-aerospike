@@ -199,7 +199,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
         SampleClasses.DocumentWithIntegerId result =
             template.findById(120, SampleClasses.DocumentWithIntegerId.class);
-        assertThat(result).isNull(); // No record is written because all commands were in the same transaction
+        assertThat(result).isNull(); // No record is written because of rollback of the transaction
     }
 
     @Test
