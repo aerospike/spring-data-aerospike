@@ -102,9 +102,10 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                 return getPage(unprocessedResults, size, pageable, query);
             });
         } else if (queryMethod.isStreamQuery()) {
-            throw new UnsupportedOperationException(
-                "Automatic converting of an async stream to a blocking sync Stream is not supported");
+            return findByQuery(query, targetClass).toStream();
         } else if (queryMethod.isCollectionQuery()) {
+            // Currently there seems to be no way to distinguish return type Collection from Mono<Collection> etc.,
+            // so a query method with return type Collection will compile but throw ClassCastException in runtime
             return findByQuery(query, targetClass).collectList();
         }
          else if (queryMethod.isQueryForEntity() || !isEntityAssignableFromReturnType(queryMethod)) {

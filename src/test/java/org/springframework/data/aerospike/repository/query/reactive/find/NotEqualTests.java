@@ -2,11 +2,14 @@ package org.springframework.data.aerospike.repository.query.reactive.find;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.repository.query.reactive.ReactiveCustomerRepositoryQueryTests;
+import org.springframework.data.aerospike.sample.Customer;
 import reactor.test.StepVerifier;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for the "Is not equal" reactive repository query. Keywords: Not, IsNot.
@@ -37,5 +40,12 @@ public class NotEqualTests extends ReactiveCustomerRepositoryQueryTests {
                 return false;
             })
             .expectComplete();
+
+        Stream<Customer> customersStream = reactiveRepository.findByFirstNameNot("Simpson");
+        assertThat(customersStream.toList()).containsExactlyInAnyOrderElementsOf(allCustomers);
+
+        assertThatThrownBy(() -> negativeTestsReactiveRepository.findByLastNameNotIgnoreCase("Simpson"))
+            .isInstanceOf(ClassCastException.class)
+            .hasMessageContaining("cannot be cast");
     }
 }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.aerospike.BaseReactiveIntegrationTests;
 import org.springframework.data.aerospike.sample.Customer;
+import org.springframework.data.aerospike.sample.ReactiveCustomerNegativeTestsRepository;
 import org.springframework.data.aerospike.sample.ReactiveCustomerRepository;
 
 import java.util.List;
@@ -34,6 +35,8 @@ public class ReactiveCustomerRepositoryQueryTests extends BaseReactiveIntegratio
 
     @Autowired
     protected ReactiveCustomerRepository reactiveRepository;
+    @Autowired
+    protected ReactiveCustomerNegativeTestsRepository negativeTestsReactiveRepository;
 
     @BeforeAll
     void beforeAll() {
