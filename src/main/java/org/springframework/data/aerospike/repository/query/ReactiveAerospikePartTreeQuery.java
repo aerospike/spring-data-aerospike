@@ -55,6 +55,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     @Override
+    @SuppressWarnings({"NullableProblems"})
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
         Query query = prepareQuery(parameters, accessor);
@@ -100,8 +101,19 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                 }
                 return getPage(unprocessedResults, size, pageable, query);
             });
+        } else if (queryMethod.isStreamQuery()) {
+            return findByQuery(query, targetClass).toStream();
+        } else if (queryMethod.isCollectionQuery()) {
+            // Currently there seems to be no way to distinguish return type Collection from Mono<Collection> etc.,
+            // so a query method with return type Collection will compile but throw ClassCastException in runtime
+            return findByQuery(query, targetClass).collectList();
         }
-        return findByQuery(query, targetClass);
+         else if (queryMethod.isQueryForEntity() || !isEntityAssignableFromReturnType(queryMethod)) {
+            // Queries with Flux<Entity> and Mono<Entity> return types including projection queries
+            return findByQuery(query, targetClass);
+        }
+        throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " is not " +
+            "supported");
     }
 
     protected Object runQueryWithIds(Class<?> targetClass, List<Object> ids, Query query) {

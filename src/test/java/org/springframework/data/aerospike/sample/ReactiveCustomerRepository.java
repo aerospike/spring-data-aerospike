@@ -21,7 +21,9 @@ import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Simple reactive repository interface managing {@link Customer}s.
@@ -39,6 +41,12 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
     <T> Flux<T> findByLastName(String lastName, Class<T> type);
 
     Flux<Customer> findByLastNameNot(String lastName);
+
+    Mono<Customer> findOneByLastNameNot(String lastName);
+
+    Stream<Customer> findByFirstNameNot(String lastName);
+
+    Mono<Collection<Customer>> findByFirstNameNotIgnoreCase(String lastName);
 
     Mono<Customer> findOneByLastName(String lastName);
 
