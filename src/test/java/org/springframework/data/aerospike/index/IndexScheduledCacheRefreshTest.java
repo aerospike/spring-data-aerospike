@@ -15,7 +15,7 @@ import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @ContextConfiguration
-@TestPropertySource(properties = {"spring.aerospike.data.index-cache-refresh-seconds=4"})
+@TestPropertySource(properties = {"spring.data.aerospike.index-cache-refresh-seconds=4"})
 public class IndexScheduledCacheRefreshTest extends BaseBlockingIntegrationTests {
 
     String setName = "scheduled";

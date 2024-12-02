@@ -56,7 +56,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                ReactorIndexRefresher reactorIndexRefresher,
                                                                ServerVersionSupport serverVersionSupport,
                                                                AerospikeSettings settings) {
-        return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getConnectionSettings().getNamespace(),
+        return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getDataSettings().getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
             reactorQueryEngine, reactorIndexRefresher, serverVersionSupport);
     }
@@ -105,8 +105,8 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
         return clientPolicy;
     }
 
-    @Bean(name = "reactiveAerospikePersistenceEntityIndexCreator")
-    public ReactiveAerospikePersistenceEntityIndexCreator reactiveAerospikePersistenceEntityIndexCreator(
+    @Bean
+    public ReactiveAerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
         ObjectProvider<ReactiveAerospikeTemplate> template, AerospikeSettings settings) {

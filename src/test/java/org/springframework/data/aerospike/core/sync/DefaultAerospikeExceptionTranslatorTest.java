@@ -25,7 +25,6 @@ import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.data.aerospike.core.DefaultAerospikeExceptionTranslator;
-import org.springframework.data.aerospike.exceptions.IndexAlreadyExistsException;
 import org.springframework.data.aerospike.exceptions.IndexNotFoundException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -92,9 +91,9 @@ public class DefaultAerospikeExceptionTranslatorTest {
 
     @Test
     public void shouldTranslateIndexAlreadyExistsError() {
-        AerospikeException cause = new AerospikeException(ResultCode.INDEX_ALREADY_EXISTS);
+        AerospikeException cause = new AerospikeException(ResultCode.INDEX_ALREADY_EXISTS); // legacy result code
         DataAccessException actual = translator.translateExceptionIfPossible(cause);
-        assertThat(actual).isExactlyInstanceOf(IndexAlreadyExistsException.class);
+        assertThat(actual).isExactlyInstanceOf(RecoverableDataAccessException.class);
     }
 
     @Test

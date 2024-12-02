@@ -14,7 +14,10 @@ import org.springframework.data.aerospike.sample.ContactRepository;
 import org.springframework.data.aerospike.sample.CustomerRepository;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
+import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionManager;
 import org.springframework.data.aerospike.util.AdditionalAerospikeTestOperations;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.GenericContainer;
 
 import java.util.Arrays;
@@ -25,6 +28,7 @@ import java.util.List;
  * @author Jean Mercier
  */
 @EnableAerospikeRepositories(basePackageClasses = {ContactRepository.class, CustomerRepository.class})
+@EnableTransactionManagement
 public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
 
     @Autowired
@@ -67,5 +71,15 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
     @Bean
     public IndexedBinsAnnotationsProcessor someAnnotationProcessor() {
         return new IndexedBinsAnnotationsProcessor();
+    }
+
+    @Bean
+    public AerospikeTransactionManager aerospikeTransactionManager(IAerospikeClient client) {
+        return new AerospikeTransactionManager(client);
+    }
+
+    @Bean
+    public TransactionTemplate transactionTemplate(AerospikeTransactionManager transactionManager) {
+        return new TransactionTemplate(transactionManager);
     }
 }

@@ -22,16 +22,14 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void findById_ShouldReturnExistent() {
-        Customer result = reactiveRepository.findById(marge.getId())
-            .subscribeOn(Schedulers.parallel()).block();
+        Customer result = reactiveRepository.findById(marge.getId()).block();
 
         assertThat(result).isEqualTo(marge);
     }
 
     @Test
     public void findById_ShouldNotReturnNonExistent() {
-        Customer result = reactiveRepository.findById("non-existent-id")
-            .subscribeOn(Schedulers.parallel()).block();
+        Customer result = reactiveRepository.findById("non-existent-id").block();
 
         assertThat(result).isNull();
     }
@@ -40,7 +38,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     public void findByIdPublisher_ShouldReturnFirst() {
         Publisher<String> ids = Flux.just(marge.getId(), matt.getId());
 
-        Customer result = reactiveRepository.findById(ids).subscribeOn(Schedulers.parallel()).block();
+        Customer result = reactiveRepository.findById(ids).block();
         assertThat(result).isEqualTo(marge);
     }
 
@@ -48,13 +46,13 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     public void findByIdPublisher_ShouldNotReturnFirstNonExistent() {
         Publisher<String> ids = Flux.just("non-existent-id", marge.getId(), matt.getId());
 
-        Customer result = reactiveRepository.findById(ids).subscribeOn(Schedulers.parallel()).block();
+        Customer result = reactiveRepository.findById(ids).block();
         assertThat(result).isNull();
     }
 
     @Test
     public void findAll_ShouldReturnAll() {
-        List<Customer> results = reactiveRepository.findAll().subscribeOn(Schedulers.parallel()).collectList().block();
+        List<Customer> results = reactiveRepository.findAll().collectList().block();
         assertThat(results).contains(homer, marge, bart, matt);
     }
 
@@ -63,7 +61,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         Iterable<String> ids = asList(marge.getId(), "non-existent-id", matt.getId());
 
         List<Customer> results = reactiveRepository.findAllById(ids)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(marge, matt);
     }
@@ -73,7 +71,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         Publisher<String> ids = Flux.just(homer.getId(), marge.getId(), matt.getId(), "non-existent-id");
 
         List<Customer> results = reactiveRepository.findAllById(ids)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(homer, marge, matt);
     }
@@ -81,7 +79,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimpleProperty() {
         List<Customer> results = reactiveRepository.findByLastName("Simpson")
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(homer, marge, bart, lisa, maggie);
     }
@@ -89,7 +87,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimpleProperty_Projection() {
         List<CustomerSomeFields> results = reactiveRepository.findCustomerSomeFieldsByLastName("Simpson")
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).contains(homer.toCustomerSomeFields(), marge.toCustomerSomeFields(),
             bart.toCustomerSomeFields(), lisa.toCustomerSomeFields(), maggie.toCustomerSomeFields());
@@ -99,7 +97,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     public void findDynamicTypeBySimpleProperty_DynamicProjection() {
         List<CustomerSomeFields> results = reactiveRepository
             .findByLastName("Simpson", CustomerSomeFields.class)
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(homer.toCustomerSomeFields(), marge.toCustomerSomeFields(),
             bart.toCustomerSomeFields(), lisa.toCustomerSomeFields(), maggie.toCustomerSomeFields());
@@ -107,8 +105,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void findOneBySimpleProperty() {
-        Customer result = reactiveRepository.findOneByLastName("Groening")
-            .subscribeOn(Schedulers.parallel()).block();
+        Customer result = reactiveRepository.findOneByLastName("Groening").block();
 
         assertThat(result).isEqualTo(matt);
     }
@@ -116,7 +113,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimpleProperty_OrderByAsc() {
         List<Customer> results = reactiveRepository.findByLastNameOrderByFirstNameAsc("Simpson")
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).contains(bart, homer, marge);
     }
@@ -124,7 +121,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimpleProperty_OrderByDesc() {
         List<Customer> results = reactiveRepository.findByLastNameOrderByFirstNameDesc("Simpson")
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).contains(marge, homer, bart);
     }
@@ -134,7 +131,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         QueryParam firstName = of("Bart");
         QueryParam lastName = of("Simpson");
         Customer result = reactiveRepository.findByFirstNameAndLastName(firstName, lastName)
-            .subscribeOn(Schedulers.parallel()).blockLast();
+            .blockLast();
 
         assertThat(result).isEqualTo(bart);
     }
@@ -144,7 +141,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         QueryParam lastName = of("Simpson");
         QueryParam age = of(10);
         Customer result = reactiveRepository.findByLastNameAndAge(lastName, age)
-            .subscribeOn(Schedulers.parallel()).blockLast();
+            .blockLast();
 
         assertThat(result).isEqualTo(bart);
     }
@@ -152,7 +149,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimpleProperty_Char() {
         List<Customer> results = reactiveRepository.findByGroup('b')
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(marge, bart);
     }

@@ -21,7 +21,6 @@ import com.aerospike.client.Key;
 import com.aerospike.client.Record;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.QueryPolicy;
-import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
 import lombok.Getter;
@@ -95,20 +94,6 @@ public class QueryEngine {
      */
     public KeyRecordIterator select(String namespace, String set, String[] binNames, @Nullable Query query) {
         Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
-        /*
-         * singleton using primary key
-         */
-        // KeyQualifier is deprecated and marked for removal
-        if (qualifier instanceof KeyQualifier kq) {
-            Key key = kq.makeKey(namespace, set);
-            Record record = getRecord(null, key, binNames);
-            if (record == null) {
-                return new KeyRecordIterator(namespace);
-            } else {
-                KeyRecord keyRecord = new KeyRecord(key, record);
-                return new KeyRecordIterator(namespace, keyRecord);
-            }
-        }
 
         /*
          *  query with filters
@@ -164,23 +149,5 @@ public class QueryEngine {
         queryPolicy.filterExp = filterExpressionsBuilder.build(qualifier);
         queryPolicy.includeBinData = includeBins;
         return queryPolicy;
-    }
-
-    @Deprecated(since = "4.6.0", forRemoval = true)
-    public enum Meta {
-        KEY,
-        TTL,
-        EXPIRATION,
-        GENERATION;
-
-        @Override
-        public String toString() {
-            return switch (this) {
-                case KEY -> "__key";
-                case EXPIRATION -> "__Expiration";
-                case GENERATION -> "__generation";
-                default -> throw new IllegalArgumentException();
-            };
-        }
     }
 }

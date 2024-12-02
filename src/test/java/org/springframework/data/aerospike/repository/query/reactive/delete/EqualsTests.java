@@ -22,7 +22,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void deleteById_ShouldDeleteExistent() {
-        StepVerifier.create(reactiveRepository.deleteById(marge.getId()).subscribeOn(Schedulers.parallel()))
+        StepVerifier.create(reactiveRepository.deleteById(marge.getId()))
             .verifyComplete();
 
         StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
@@ -35,7 +35,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void deleteById_ShouldSkipNonexistent() {
-        StepVerifier.create(reactiveRepository.deleteById("non-existent-id").subscribeOn(Schedulers.parallel()))
+        StepVerifier.create(reactiveRepository.deleteById("non-existent-id"))
             .verifyComplete();
     }
 
@@ -50,8 +50,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     public void deleteByIdPublisher_ShouldDeleteOnlyFirstElement() {
         StepVerifier.create(
             reactiveRepository
-                .deleteById(Flux.just(homer.getId(), marge.getId()))
-                .subscribeOn(Schedulers.parallel()))
+                .deleteById(Flux.just(homer.getId(), marge.getId())))
             .verifyComplete();
 
         StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
@@ -66,8 +65,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void deleteByIdPublisher_ShouldSkipNonexistent() {
-        StepVerifier.create(reactiveRepository.deleteById(Flux.just("non-existent-id"))
-                .subscribeOn(Schedulers.parallel()))
+        StepVerifier.create(reactiveRepository.deleteById(Flux.just("non-existent-id")))
             .verifyComplete();
     }
 
@@ -81,7 +79,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void delete_ShouldDeleteExistent() {
-        StepVerifier.create(reactiveRepository.delete(marge).subscribeOn(Schedulers.parallel())).verifyComplete();
+        StepVerifier.create(reactiveRepository.delete(marge)).verifyComplete();
 
         StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
 
@@ -96,7 +94,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         Customer nonExistentCustomer = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15)
             .build();
 
-        StepVerifier.create(reactiveRepository.delete(nonExistentCustomer).subscribeOn(Schedulers.parallel()))
+        StepVerifier.create(reactiveRepository.delete(nonExistentCustomer))
             .verifyComplete();
     }
 
@@ -110,7 +108,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void deleteAllIterable_ShouldDeleteExistent() {
-        reactiveRepository.deleteAll(asList(homer, marge)).subscribeOn(Schedulers.parallel()).block();
+        reactiveRepository.deleteAll(asList(homer, marge)).block();
 
         StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
@@ -141,13 +139,13 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     public void deleteAllIterable_ShouldRejectNullObject() {
         List<Customer> entities = asList(homer, null, marge);
 
-        assertThatThrownBy(() -> reactiveRepository.deleteAll(entities).subscribeOn(Schedulers.parallel()).block())
+        assertThatThrownBy(() -> reactiveRepository.deleteAll(entities).block())
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void deleteAllPublisher_ShouldDeleteExistent() {
-        reactiveRepository.deleteAll(Flux.just(homer, marge)).subscribeOn(Schedulers.parallel()).block();
+        reactiveRepository.deleteAll(Flux.just(homer, marge)).block();
 
         StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
         StepVerifier.create(reactiveRepository.findById(marge.getId())).expectNextCount(0).verifyComplete();
@@ -163,7 +161,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
         Customer nonExistentCustomer = Customer.builder().id(nextId()).firstName("Bart").lastName("Simpson").age(15)
             .build();
 
-        reactiveRepository.deleteAll(Flux.just(homer, nonExistentCustomer, marge)).subscribeOn(Schedulers.parallel())
+        reactiveRepository.deleteAll(Flux.just(homer, nonExistentCustomer, marge))
             .block();
 
         StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();
@@ -177,7 +175,7 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
 
     @Test
     public void deleteAllById_ShouldDelete() {
-        reactiveRepository.deleteAllById(asList(homer.getId(), marge.getId())).subscribeOn(Schedulers.parallel())
+        reactiveRepository.deleteAllById(asList(homer.getId(), marge.getId()))
             .block();
 
         StepVerifier.create(reactiveRepository.findById(homer.getId())).expectNextCount(0).verifyComplete();

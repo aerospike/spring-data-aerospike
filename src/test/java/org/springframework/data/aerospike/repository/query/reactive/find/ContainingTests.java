@@ -17,7 +17,7 @@ public class ContainingTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimplePropertyContaining() {
         List<Customer> results = reactiveRepository.findByFirstNameContains("ar")
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(marge, bart);
     }
@@ -25,7 +25,7 @@ public class ContainingTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimplePropertyContaining_IgnoreCase() {
         List<Customer> results = reactiveRepository.findByFirstNameContainingIgnoreCase("m")
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(homer, marge, matt, maggie);
     }

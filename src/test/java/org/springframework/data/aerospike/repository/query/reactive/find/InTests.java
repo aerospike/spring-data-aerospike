@@ -20,7 +20,7 @@ public class InTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findByFirstnameIn_ShouldWorkProperly() {
         List<Customer> results = reactiveRepository.findByFirstNameIn(asList("Matt", "Homer"))
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsOnly(homer, matt);
     }

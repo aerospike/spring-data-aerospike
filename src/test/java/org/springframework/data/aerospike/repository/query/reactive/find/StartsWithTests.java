@@ -18,7 +18,7 @@ public class StartsWithTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findByFirstnameStartsWithOrderByAgeAsc_ShouldWorkProperly() {
         List<Customer> results = reactiveRepository.findByFirstNameStartsWithOrderByAgeAsc("Ma")
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).containsExactly(maggie, marge, matt);
     }
@@ -27,7 +27,7 @@ public class StartsWithTests extends ReactiveCustomerRepositoryQueryTests {
     public void findCustomerSomeFieldsByFirstnameStartsWithOrderByAgeAsc_ShouldWorkProperly() {
         List<CustomerSomeFields> results =
             reactiveRepository.findCustomerSomeFieldsByFirstNameStartsWithOrderByFirstNameAsc("Ma")
-                .subscribeOn(Schedulers.parallel()).collectList().block();
+                .collectList().block();
 
         assertThat(results).containsExactly( maggie.toCustomerSomeFields(), marge.toCustomerSomeFields(),
             matt.toCustomerSomeFields());

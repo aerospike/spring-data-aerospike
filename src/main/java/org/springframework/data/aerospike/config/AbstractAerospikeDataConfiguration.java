@@ -47,7 +47,7 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
                                                QueryEngine queryEngine, IndexRefresher indexRefresher,
                                                ServerVersionSupport serverVersionSupport,
                                                AerospikeSettings settings) {
-        return new AerospikeTemplate(aerospikeClient, settings.getConnectionSettings().getNamespace(),
+        return new AerospikeTemplate(aerospikeClient, settings.getDataSettings().getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine,
             indexRefresher, serverVersionSupport);
     }
@@ -72,7 +72,7 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         return queryEngine;
     }
 
-    @Bean(name = "aerospikePersistenceEntityIndexCreator")
+    @Bean
     public AerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
