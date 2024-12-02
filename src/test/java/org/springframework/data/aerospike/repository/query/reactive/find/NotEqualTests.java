@@ -17,7 +17,7 @@ public class NotEqualTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void findBySimplePropertyNot() {
         List<Customer> results = reactiveRepository.findByLastNameNot("Simpson")
-            .subscribeOn(Schedulers.parallel()).collectList().block();
+            .collectList().block();
 
         assertThat(results).contains(matt);
     }

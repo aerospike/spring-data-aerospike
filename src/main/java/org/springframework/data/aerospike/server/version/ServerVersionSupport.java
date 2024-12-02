@@ -17,6 +17,7 @@ public class ServerVersionSupport {
     private static final ModuleDescriptor.Version SERVER_VERSION_6_1_0_1 = ModuleDescriptor.Version.parse("6.1.0.1");
     private static final ModuleDescriptor.Version SERVER_VERSION_6_3_0_0 = ModuleDescriptor.Version.parse("6.3.0.0");
     private static final ModuleDescriptor.Version SERVER_VERSION_7_0_0_0 = ModuleDescriptor.Version.parse("7.0.0.0");
+    private static final ModuleDescriptor.Version SERVER_VERSION_8_0_0_0 = ModuleDescriptor.Version.parse("8.0.0.0");
 
     private final IAerospikeClient client;
     private final ScheduledExecutorService executorService;
@@ -84,5 +85,13 @@ public class ServerVersionSupport {
     public boolean isServerVersionGtOrEq7() {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_7_0_0_0) >= 0;
+    }
+
+    /**
+     * @return true if Server version is 8.0 or greater
+     */
+    public boolean isMRTSupported() {
+        return ModuleDescriptor.Version.parse(getServerVersion())
+            .compareTo(SERVER_VERSION_8_0_0_0) >= 0;
     }
 }
