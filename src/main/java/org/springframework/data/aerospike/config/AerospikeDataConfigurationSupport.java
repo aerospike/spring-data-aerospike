@@ -115,11 +115,11 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean
     public AerospikeCustomConversions customConversions(@Autowired(required = false)
                                                               AerospikeCustomConverters converters) {
-        List<Object> allCustomConverters = new ArrayList<>(customConverters());
+        List<Object> aggregatedCustomConverters = new ArrayList<>(customConverters());
         if (converters != null) {
-            allCustomConverters.addAll(converters.getCustomConverters());
+            aggregatedCustomConverters.addAll(converters.getCustomConverters());
         }
-        return new AerospikeCustomConversions(allCustomConverters);
+        return new AerospikeCustomConversions(aggregatedCustomConverters);
     }
 
     protected List<Object> customConverters() {
