@@ -35,7 +35,7 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
     Environment env;
 
     @Override
-    protected List<?> customConverters() {
+    protected List<Object> customConverters() {
         return Arrays.asList(
             SampleClasses.CompositeKey.CompositeKeyToStringConverter.INSTANCE,
             SampleClasses.CompositeKey.StringToCompositeKeyConverter.INSTANCE

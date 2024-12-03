@@ -69,7 +69,7 @@ public abstract class BaseMappingAerospikeConverterTest {
                                                                      Converter<?, ?>... customConverters) {
         AerospikeMappingContext mappingContext = new AerospikeMappingContext();
         mappingContext.setApplicationContext(getApplicationContext());
-        CustomConversions customConversions = new AerospikeCustomConversions(asList(customConverters));
+        CustomConversions customConversions = new AerospikeCustomConversionsHolder(asList(customConverters));
 
         MappingAerospikeConverter converter = new MappingAerospikeConverter(mappingContext, customConversions,
             typeAliasAccessor, settings);

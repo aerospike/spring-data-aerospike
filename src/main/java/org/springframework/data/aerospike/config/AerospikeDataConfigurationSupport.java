@@ -32,6 +32,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -40,6 +41,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessorImpl;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
+import org.springframework.data.aerospike.convert.AerospikeCustomConversionsHolder;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
@@ -95,7 +97,7 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean(name = "mappingAerospikeConverter")
     public MappingAerospikeConverter mappingAerospikeConverter(AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
-                                                               AerospikeCustomConversions customConversions,
+                                                               AerospikeCustomConversionsHolder customConversions,
                                                                AerospikeSettings settings) {
         return new MappingAerospikeConverter(aerospikeMappingContext, customConversions, aerospikeTypeAliasAccessor,
             settings.getDataSettings());
@@ -109,12 +111,16 @@ public abstract class AerospikeDataConfigurationSupport {
             : new AerospikeTypeAliasAccessor();
     }
 
-    @Bean(name = "aerospikeCustomConversions")
-    public AerospikeCustomConversions customConversions() {
-        return new AerospikeCustomConversions(customConverters());
+    @Bean
+    public AerospikeCustomConversionsHolder customConversions(@Autowired(required = false)
+                                                              AerospikeCustomConversions converters) {
+        return new AerospikeCustomConversionsHolder(converters == null
+            ? customConverters()
+            : converters.getCustomConverters()
+        );
     }
 
-    protected List<?> customConverters() {
+    protected List<Object> customConverters() {
         return Collections.emptyList();
     }
 

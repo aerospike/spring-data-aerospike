@@ -52,7 +52,7 @@ public interface ReactiveAerospikeOperations {
     MappingContext<?, ?> getMappingContext();
 
     /**
-     * @return converter in use.
+     * @return Converter in use.
      */
     MappingAerospikeConverter getAerospikeConverter();
 

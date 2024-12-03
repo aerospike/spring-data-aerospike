@@ -36,7 +36,7 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
     Environment env;
 
     @Override
-    protected List<?> customConverters() {
+    protected List<Object> customConverters() {
         return Arrays.asList(
             SampleClasses.CompositeKey.CompositeKeyToStringConverter.INSTANCE,
             SampleClasses.CompositeKey.StringToCompositeKeyConverter.INSTANCE
