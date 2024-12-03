@@ -16,23 +16,47 @@
 package org.springframework.data.aerospike.convert;
 
 import lombok.Getter;
+import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
+import org.springframework.data.convert.CustomConversions;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * Storage for a list of custom converters
+ * Value object to capture custom conversion.
+ *
+ * @author Mark Paluch
+ * @author Christoph Strobl
+ * @author Anastasiia Smirnova
+ * @see CustomConversions
+ * @see org.springframework.data.mapping.model.SimpleTypeHolder
+ * @see AerospikeSimpleTypes
  */
-public class AerospikeCustomConversions {
+public class AerospikeCustomConversions extends CustomConversions {
 
+    private static final StoreConversions STORE_CONVERSIONS;
+    private static final List<Object> STORE_CONVERTERS;
     @Getter
     private final List<Object> customConverters;
 
+    static {
+        List<Object> converters = new ArrayList<>();
+
+        converters.addAll(DateConverters.getConvertersToRegister());
+        converters.addAll(AerospikeConverters.getConvertersToRegister());
+
+        STORE_CONVERTERS = Collections.unmodifiableList(converters);
+        STORE_CONVERSIONS = StoreConversions.of(AerospikeSimpleTypes.HOLDER, STORE_CONVERTERS);
+    }
+
     /**
-     * Create a storage for custom converters
+     * Create a new instance with a given list of converters
      *
-     * @param converters a list of custom converters
+     * @param converters the list of custom converters
      */
     public AerospikeCustomConversions(final List<Object> converters) {
+        super(STORE_CONVERSIONS, converters);
         this.customConverters = converters;
     }
 }

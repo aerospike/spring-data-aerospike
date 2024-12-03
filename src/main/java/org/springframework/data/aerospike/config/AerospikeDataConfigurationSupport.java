@@ -41,7 +41,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessorImpl;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
-import org.springframework.data.aerospike.convert.AerospikeCustomConversionsHolder;
+import org.springframework.data.aerospike.convert.AerospikeCustomConverters;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
@@ -61,6 +61,7 @@ import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -97,7 +98,7 @@ public abstract class AerospikeDataConfigurationSupport {
     @Bean(name = "mappingAerospikeConverter")
     public MappingAerospikeConverter mappingAerospikeConverter(AerospikeMappingContext aerospikeMappingContext,
                                                                AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor,
-                                                               AerospikeCustomConversionsHolder customConversions,
+                                                               AerospikeCustomConversions customConversions,
                                                                AerospikeSettings settings) {
         return new MappingAerospikeConverter(aerospikeMappingContext, customConversions, aerospikeTypeAliasAccessor,
             settings.getDataSettings());
@@ -112,12 +113,13 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean
-    public AerospikeCustomConversionsHolder customConversions(@Autowired(required = false)
-                                                              AerospikeCustomConversions converters) {
-        return new AerospikeCustomConversionsHolder(converters == null
-            ? customConverters()
-            : converters.getCustomConverters()
-        );
+    public AerospikeCustomConversions customConversions(@Autowired(required = false)
+                                                              AerospikeCustomConverters converters) {
+        List<Object> allCustomConverters = new ArrayList<>(customConverters());
+        if (converters != null) {
+            allCustomConverters.addAll(converters.getCustomConverters());
+        }
+        return new AerospikeCustomConversions(allCustomConverters);
     }
 
     protected List<Object> customConverters() {

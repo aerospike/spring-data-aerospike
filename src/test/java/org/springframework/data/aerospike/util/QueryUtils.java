@@ -1,7 +1,7 @@
 package org.springframework.data.aerospike.util;
 
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
-import org.springframework.data.aerospike.convert.AerospikeCustomConversionsHolder;
+import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -75,7 +75,7 @@ public class QueryUtils {
         PartTree partTree = new PartTree(method.getName(), entityClass);
 
         AerospikeMappingContext context = new AerospikeMappingContext();
-        AerospikeCustomConversionsHolder conversions = new AerospikeCustomConversionsHolder(Collections.emptyList());
+        AerospikeCustomConversions conversions = new AerospikeCustomConversions(Collections.emptyList());
         MappingAerospikeConverter converter = getMappingAerospikeConverter(conversions);
 
         AerospikeQueryCreator creator =
@@ -104,7 +104,7 @@ public class QueryUtils {
         return argType;
     }
 
-    private static MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversionsHolder conversions)
+    private static MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions)
     {
         MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
             conversions, new AerospikeTypeAliasAccessor(), new AerospikeDataSettings());

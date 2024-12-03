@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
-import org.springframework.data.aerospike.convert.AerospikeCustomConversionsHolder;
+import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -25,7 +25,7 @@ import java.util.List;
 public class AerospikeQueryCreatorUnitTests {
 
     AerospikeMappingContext context;
-    AerospikeCustomConversionsHolder conversions;
+    AerospikeCustomConversions conversions;
     MappingAerospikeConverter converter;
     AutoCloseable openMocks;
     ServerVersionSupport serverVersionSupport;
@@ -34,7 +34,7 @@ public class AerospikeQueryCreatorUnitTests {
     public void setUp() {
         openMocks = MockitoAnnotations.openMocks(this);
         context = new AerospikeMappingContext();
-        conversions = new AerospikeCustomConversionsHolder(Collections.emptyList());
+        conversions = new AerospikeCustomConversions(Collections.emptyList());
         converter = getMappingAerospikeConverter(conversions);
         serverVersionSupport = Mockito.mock(ServerVersionSupport.class);
     }
@@ -64,7 +64,7 @@ public class AerospikeQueryCreatorUnitTests {
         creator1.createQuery();
     }
 
-    private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversionsHolder conversions) {
+    private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
         MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
             conversions, new AerospikeTypeAliasAccessor(), new AerospikeDataSettings());
         converter.afterPropertiesSet();
