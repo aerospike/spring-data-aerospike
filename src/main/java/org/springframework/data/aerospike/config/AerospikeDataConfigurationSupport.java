@@ -32,6 +32,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanInstantiationException;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -40,6 +41,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessorImpl;
 import org.springframework.data.aerospike.convert.AerospikeCustomConversions;
+import org.springframework.data.aerospike.convert.AerospikeCustomConverters;
 import org.springframework.data.aerospike.convert.AerospikeTypeAliasAccessor;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.AerospikeExceptionTranslator;
@@ -59,6 +61,7 @@ import org.springframework.data.mapping.model.PropertyNameFieldNamingStrategy;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -109,12 +112,17 @@ public abstract class AerospikeDataConfigurationSupport {
             : new AerospikeTypeAliasAccessor();
     }
 
-    @Bean(name = "aerospikeCustomConversions")
-    public AerospikeCustomConversions customConversions() {
-        return new AerospikeCustomConversions(customConverters());
+    @Bean
+    public AerospikeCustomConversions customConversions(@Autowired(required = false)
+                                                              AerospikeCustomConverters converters) {
+        List<Object> aggregatedCustomConverters = new ArrayList<>(customConverters());
+        if (converters != null) {
+            aggregatedCustomConverters.addAll(converters.getCustomConverters());
+        }
+        return new AerospikeCustomConversions(aggregatedCustomConverters);
     }
 
-    protected List<?> customConverters() {
+    protected List<Object> customConverters() {
         return Collections.emptyList();
     }
 

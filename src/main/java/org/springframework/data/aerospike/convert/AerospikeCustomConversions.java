@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.convert;
 
+import lombok.Getter;
 import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
 import org.springframework.data.convert.CustomConversions;
 
@@ -28,15 +29,16 @@ import java.util.List;
  * @author Mark Paluch
  * @author Christoph Strobl
  * @author Anastasiia Smirnova
- * @see org.springframework.data.convert.CustomConversions
+ * @see CustomConversions
  * @see org.springframework.data.mapping.model.SimpleTypeHolder
  * @see AerospikeSimpleTypes
  */
 public class AerospikeCustomConversions extends CustomConversions {
 
     private static final StoreConversions STORE_CONVERSIONS;
-
     private static final List<Object> STORE_CONVERTERS;
+    @Getter
+    private final List<Object> customConverters;
 
     static {
         List<Object> converters = new ArrayList<>();
@@ -49,11 +51,12 @@ public class AerospikeCustomConversions extends CustomConversions {
     }
 
     /**
-     * Create a new instance with a given list of converters.
+     * Create a new instance with a given list of converters
      *
-     * @param converters the list of custom converters.
+     * @param converters the list of custom converters
      */
-    public AerospikeCustomConversions(final List<?> converters) {
+    public AerospikeCustomConversions(final List<Object> converters) {
         super(STORE_CONVERSIONS, converters);
+        this.customConverters = converters;
     }
 }
