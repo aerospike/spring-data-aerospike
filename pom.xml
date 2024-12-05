@@ -23,11 +23,9 @@
         <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        <spring.version>3.3.0</spring.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springdata.commons>3.4.0</springdata.commons>
-        <springdata.spring-boot>${spring.version}</springdata.spring-boot>
-        <spring-boot-starter-test>${spring.version}</spring-boot-starter-test>
+        <spring-boot-starter-test>3.3.0</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.1.2</spring-cloud-starter-bootstrap>
         <spring-tx>6.1.11</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
@@ -182,12 +180,6 @@
                 <groupId>org.springframework.data</groupId>
                 <artifactId>spring-data-commons</artifactId>
                 <version>${springdata.commons}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot</artifactId>
-                <version>${springdata.spring-boot}</version>
-                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework</groupId>

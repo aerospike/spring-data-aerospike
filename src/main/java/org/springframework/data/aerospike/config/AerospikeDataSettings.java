@@ -17,13 +17,15 @@ package org.springframework.data.aerospike.config;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.env.Environment;
 
 import static org.springframework.data.aerospike.config.AerospikeDataConfigurationSupport.CONFIG_PREFIX_DATA;
+import static org.springframework.data.aerospike.util.Utils.setBoolFromConfig;
+import static org.springframework.data.aerospike.util.Utils.setIntFromConfig;
+import static org.springframework.data.aerospike.util.Utils.setStringFromConfig;
 
 @Setter
 @Getter
-@ConfigurationProperties(prefix = CONFIG_PREFIX_DATA)
 public class AerospikeDataSettings {
 
     // Namespace
@@ -49,6 +51,25 @@ public class AerospikeDataSettings {
     boolean writeSortedMaps = true;
     // Name for the bin to store entity's class
     private String classKey = "@_class";
-    // Fully qualified name of the FieldNamingStrategy for entities
-    private Class<?> fieldNamingStrategy;
+    // Fully qualified name of a class to be used for FieldNamingStrategy for entities
+    private String fieldNamingStrategy;
+
+    public AerospikeDataSettings(Environment environment) {
+        if (environment != null) {
+            setStringFromConfig(this::setNamespace, environment, CONFIG_PREFIX_DATA, "namespace");
+            setBoolFromConfig(this::setScansEnabled, environment, CONFIG_PREFIX_DATA, "scansEnabled");
+            setBoolFromConfig(this::setCreateIndexesOnStartup, environment, CONFIG_PREFIX_DATA,
+                "createIndexesOnStartup");
+            setIntFromConfig(this::setIndexCacheRefreshSeconds, environment, CONFIG_PREFIX_DATA,
+                "indexCacheRefreshSeconds");
+            setIntFromConfig(this::setServerVersionRefreshSeconds, environment, CONFIG_PREFIX_DATA,
+                "serverVersionRefreshSeconds");
+            setIntFromConfig(this::setQueryMaxRecords, environment, CONFIG_PREFIX_DATA, "queryMaxRecords");
+            setIntFromConfig(this::setBatchWriteSize, environment, CONFIG_PREFIX_DATA, "batchWriteSize");
+            setBoolFromConfig(this::setKeepOriginalKeyTypes, environment, CONFIG_PREFIX_DATA, "keepOriginalKeyTypes");
+            setBoolFromConfig(this::setWriteSortedMaps, environment, CONFIG_PREFIX_DATA, "writeSortedMaps");
+            setStringFromConfig(this::setClassKey, environment, CONFIG_PREFIX_DATA, "classKey");
+            setStringFromConfig(this::setFieldNamingStrategy, environment, CONFIG_PREFIX_DATA, "fieldNamingStrategy");
+        }
+    }
 }

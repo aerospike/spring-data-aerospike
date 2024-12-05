@@ -22,12 +22,12 @@ import static org.mockito.Mockito.when;
 public abstract class BaseMappingAerospikeConverterTest {
 
     protected static final String NAMESPACE = "namespace";
-    public final AerospikeDataSettings settings = new AerospikeDataSettings();
+    public final AerospikeDataSettings settings = new AerospikeDataSettings(null);
     public final AerospikeDataSettings settingsReversedKeyTypesOption =
         getAerospikeSettings(!settings.isKeepOriginalKeyTypes());
 
     private AerospikeDataSettings getAerospikeSettings(boolean keepOriginalKeyTypes) {
-        AerospikeDataSettings settings = new AerospikeDataSettings();
+        AerospikeDataSettings settings = new AerospikeDataSettings(null);
         settings.setKeepOriginalKeyTypes(keepOriginalKeyTypes);
         return settings;
     }

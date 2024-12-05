@@ -18,13 +18,13 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.Host;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.env.Environment;
 
 import static org.springframework.data.aerospike.config.AerospikeDataConfigurationSupport.CONFIG_PREFIX_CONNECTION;
+import static org.springframework.data.aerospike.util.Utils.setStringFromConfig;
 
 @Setter
 @Getter
-@ConfigurationProperties(prefix = CONFIG_PREFIX_CONNECTION)
 public class AerospikeConnectionSettings {
 
     // String of hosts separated by ',' in form of hostname1[:tlsName1]:port1,...
@@ -33,8 +33,13 @@ public class AerospikeConnectionSettings {
     // IPv6: [xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
     // IPv6: [xxxx::xxxx]
     // IPv6 addresses must be enclosed by brackets. tlsName is optional.
-
     String hosts;
     // Storing hosts
     Host[] hostsArray;
+
+    public AerospikeConnectionSettings(Environment environment) {
+        if (environment != null) {
+            setStringFromConfig(this::setHosts, environment, CONFIG_PREFIX_CONNECTION, "hosts");
+        }
+    }
 }

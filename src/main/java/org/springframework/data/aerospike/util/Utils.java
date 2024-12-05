@@ -26,9 +26,11 @@ import com.aerospike.client.exp.Exp;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import org.slf4j.Logger;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -38,6 +40,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.temporal.Temporal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Currency;
 import java.util.Date;
@@ -47,6 +50,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -224,5 +228,96 @@ public class Utils {
     public static <T> List<T> iterableToList(Iterable<T> iterable) {
         return StreamSupport.stream(iterable.spliterator(), false)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Given a String in camel case generate its variants in different formats: kebab case, snake case, Pascal case and
+     * upper case
+     *
+     * @param input String in a camel case
+     * @return List with 5 variants of the given String, or an empty List if input is null or empty
+     */
+    public static List<String> getInDifferentFormats(String input) {
+        if (!StringUtils.hasText(input)) return List.of();
+
+        List<String> variants = new ArrayList<>();
+
+        // Camel case (already in the original form)
+        variants.add(input);
+
+        // Kebab case (convert camel case to kebab case)
+        variants.add(input.replaceAll("([a-z])([A-Z])", "$1-$2").toLowerCase());
+
+        // Snake case (convert camel case to snake case)
+        variants.add(input.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase());
+
+        // Uppercase (convert to uppercase with underscores)
+        variants.add(input.replaceAll("([a-z])([A-Z])", "$1_$2").toUpperCase());
+
+        // Pascal case (capitalize the first letter of the camel case)
+        variants.add(input.substring(0, 1).toUpperCase() + input.substring(1));
+
+        return variants;
+    }
+
+    /**
+     * Get value of a property by providing its prefix and name in the environment
+     *
+     * @param environment  - Actual environment
+     * @param prefix       Property prefix
+     * @param propertyName Property name in camel case, will be also checked in kebab case, snake case and
+     *                     underscore-separated upper case
+     * @return The value of the property or null
+     */
+    public static String getProperty(Environment environment, String prefix, String propertyName) {
+        for (String property : getInDifferentFormats(propertyName)) {
+            property = prefix + "." + property;
+            if (environment.containsProperty(property)) {
+                return environment.getProperty(property);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Set String value of the given property if it is found in external configuration
+     *
+     * @param setter       Setter method reference
+     * @param environment  Actual environment
+     * @param prefix       Property prefix
+     * @param propertyName Property name in camel case
+     */
+    public static void setStringFromConfig(Consumer<String> setter, Environment environment, String prefix,
+                                           String propertyName) {
+        String value = getProperty(environment, prefix, propertyName);
+        if (value != null) setter.accept(value);
+    }
+
+    /**
+     * Set boolean value of the given property if it is found in external configuration
+     *
+     * @param setter       Setter method reference
+     * @param environment  Actual environment
+     * @param prefix       Property prefix
+     * @param propertyName Property name in camel case
+     */
+    public static void setBoolFromConfig(Consumer<Boolean> setter, Environment environment, String prefix,
+                                         String propertyName) {
+        String value = getProperty(environment, prefix, propertyName);
+        if (value != null) setter.accept(Boolean.parseBoolean(value));
+    }
+
+    /**
+     * Set integer value of the given property if it is found in external configuration
+     *
+     * @param setter       Setter method reference
+     * @param environment  Actual environment
+     * @param prefix       Property prefix
+     * @param propertyName Property name in camel case
+     */
+    public static void setIntFromConfig(Consumer<Integer> setter, Environment environment, String prefix,
+                                        String propertyName) {
+        String value = getProperty(environment, prefix, propertyName);
+        if (value != null) setter.accept(Integer.parseInt(value));
     }
 }
