@@ -33,6 +33,7 @@ public class AerospikeConnectionSettings {
     // IPv6: [xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
     // IPv6: [xxxx::xxxx]
     // IPv6 addresses must be enclosed by brackets. tlsName is optional.
+
     String hosts;
     // Storing hosts
     Host[] hostsArray;

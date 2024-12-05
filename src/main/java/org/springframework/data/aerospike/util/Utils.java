@@ -17,7 +17,6 @@ package org.springframework.data.aerospike.util;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.Info;
 import com.aerospike.client.ResultCode;
 import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
@@ -50,6 +49,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.aerospike.client.command.ParticleType.BOOL;
 import static com.aerospike.client.command.ParticleType.DOUBLE;
@@ -67,21 +67,6 @@ import static org.springframework.util.StringUtils.hasLength;
  */
 @UtilityClass
 public class Utils {
-
-    /**
-     * Issues an "Info" request to all nodes in the cluster.
-     *
-     * @param client     An IAerospikeClient.
-     * @param infoString The name of the variable to retrieve.
-     * @return An "Info" value for the given variable from all the nodes in the cluster.
-     */
-    @SuppressWarnings("UnusedReturnValue")
-    public static String[] infoAll(IAerospikeClient client, String infoString) {
-        return Arrays.stream(client.getNodes())
-            .filter(Node::isActive)
-            .map(node -> Info.request(client.getInfoPolicyDefault(), node, infoString))
-            .toArray(String[]::new);
-    }
 
     public static int getReplicationFactor(IAerospikeClient client, Node[] nodes, String namespace) {
         Node randomNode = getRandomNode(nodes);
@@ -234,5 +219,10 @@ public class Utils {
     public static String valueToString(Value value) {
         if (value != null && hasLength(value.toString())) return value.toString();
         return value == Value.getAsNull() ? "null" : "";
+    }
+
+    public static <T> List<T> iterableToList(Iterable<T> iterable) {
+        return StreamSupport.stream(iterable.spliterator(), false)
+            .collect(Collectors.toList());
     }
 }

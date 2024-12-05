@@ -32,7 +32,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
 
 import java.util.ArrayList;
@@ -45,6 +44,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.data.aerospike.util.Utils.iterableToList;
 
 /**
  * @author Peter Milne
@@ -124,7 +124,7 @@ public class SimpleAerospikeRepositoryTest {
 
     @Test
     public void findAllPageable() {
-        Page<Person> page = new PageImpl<>(IterableConverter.toList(testPersons), PageRequest.of(0, 2), 5);
+        Page<Person> page = new PageImpl<>(iterableToList(testPersons), PageRequest.of(0, 2), 5);
 
         doReturn(testPersons.stream()).when(operations).findInRange(0, 2, Sort.unsorted(), Person.class);
         doReturn("set").when(operations).getSetName(Person.class);

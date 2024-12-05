@@ -51,7 +51,6 @@ import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.aerospike.util.InfoCommandUtils;
 import org.springframework.data.aerospike.util.Utils;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PropertyHandler;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -87,6 +86,7 @@ import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQua
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
+import static org.springframework.data.aerospike.util.Utils.iterableToList;
 
 /**
  * Primary implementation of {@link ReactiveAerospikeOperations}.
@@ -855,7 +855,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     private <T> Flux<T> findByIds(Collection<?> ids, Class<T> targetClass, String setName) {
-        Key[] keys = IterableConverter.toList(ids).stream()
+        Key[] keys = iterableToList(ids).stream()
             .map(id -> getKey(id, setName))
             .toArray(Key[]::new);
 

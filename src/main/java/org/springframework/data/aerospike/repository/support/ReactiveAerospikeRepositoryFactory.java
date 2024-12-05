@@ -20,9 +20,6 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
 import org.springframework.data.aerospike.repository.query.ReactiveAerospikePartTreeQuery;
-import org.springframework.data.keyvalue.core.KeyValueOperations;
-import org.springframework.data.keyvalue.repository.support.QuerydslKeyValuePredicateExecutor;
-import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -55,7 +52,7 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 
     private final MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty> context;
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
-    private ReactiveAerospikeTemplate aerospikeTemplate;
+    private final ReactiveAerospikeTemplate aerospikeTemplate;
 
     public ReactiveAerospikeRepositoryFactory(ReactiveAerospikeTemplate template) {
         this(template, DEFAULT_QUERY_CREATOR);
@@ -92,22 +89,21 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
     @Override
     protected Object getTargetRepository(RepositoryInformation repositoryInformation) {
         EntityInformation<?, Object> entityInformation = getEntityInformation(repositoryInformation.getDomainType());
-        return super.getTargetRepositoryViaReflection(repositoryInformation, entityInformation, aerospikeTemplate);
+        return getTargetRepositoryViaReflection(repositoryInformation, entityInformation, aerospikeTemplate);
     }
 
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
-        return isQueryDslRepository(metadata.getRepositoryInterface()) ? QuerydslKeyValuePredicateExecutor.class
-            : SimpleKeyValueRepository.class;
+        return SimpleReactiveAerospikeRepository.class;
     }
 
     @Override
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
         Key key,
-        QueryMethodEvaluationContextProvider evaluationContextProvider) {
+        QueryMethodEvaluationContextProvider evaluationContextProvider)
+    {
         return Optional.of(
-            new ReactiveAerospikeQueryLookupStrategy(key, evaluationContextProvider, this.aerospikeTemplate,
-                this.queryCreator));
+            new ReactiveAerospikeQueryLookupStrategy(key, evaluationContextProvider, aerospikeTemplate, queryCreator));
     }
 
     /**
@@ -118,11 +114,11 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
 
         private final QueryMethodEvaluationContextProvider evaluationContextProvider;
         private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
-        private ReactiveAerospikeTemplate aerospikeTemplate;
+        private final ReactiveAerospikeTemplate aerospikeTemplate;
 
         /**
          * Creates a new {@link ReactiveAerospikeQueryLookupStrategy} for the given {@link Key},
-         * {@link QueryMethodEvaluationContextProvider}, {@link KeyValueOperations} and query creator type.
+         * {@link QueryMethodEvaluationContextProvider} and query creator type.
          * <p>
          *
          * @param key                       Currently unused, same behaviour in the built-in spring's
