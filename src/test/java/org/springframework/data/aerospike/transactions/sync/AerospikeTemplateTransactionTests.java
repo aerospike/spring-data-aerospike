@@ -32,7 +32,6 @@ import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
 import org.springframework.data.aerospike.util.AsyncUtils;
 import org.springframework.data.aerospike.util.AwaitilityUtils;
-import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.UnexpectedRollbackException;
@@ -65,8 +64,8 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @BeforeAll
     public void beforeAll() {
-        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
-            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
+//        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+//            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
     }
 
     @BeforeEach
@@ -142,6 +141,21 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
             .hasMessageContaining("MRT expired");
 
         SampleClasses.DocumentWithIntegerId result = template.findById(115, SampleClasses.DocumentWithIntegerId.class);
+        assertThat(result).isNull(); // No record is written because all commands were in the same transaction
+    }
+
+    @Test
+    public void multipleWritesInTransactionWithDefaultTimeoutExpired() {
+        // Multi-record transactions are supported starting with Server version 8.0+
+        assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
+            template.insert(new SampleClasses.DocumentWithIntegerId(124, "test1"));
+            AwaitilityUtils.wait(15, SECONDS); // timeout expires during this wait
+            template.save(new SampleClasses.DocumentWithIntegerId(124, "test2"));
+        }))
+            .isInstanceOf(RecoverableDataAccessException.class)
+            .hasMessageContaining("MRT expired");
+
+        SampleClasses.DocumentWithIntegerId result = template.findById(124, SampleClasses.DocumentWithIntegerId.class);
         assertThat(result).isNull(); // No record is written because all commands were in the same transaction
     }
 

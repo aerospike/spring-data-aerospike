@@ -29,7 +29,6 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.util.AwaitilityUtils;
-import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,8 +47,8 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
 
     @BeforeAll
     public void beforeAll() {
-        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
-            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
+//        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+//            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
     }
 
     @BeforeEach
