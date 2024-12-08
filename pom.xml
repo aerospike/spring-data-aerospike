@@ -26,7 +26,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springdata.commons>3.4.0</springdata.commons>
         <spring-boot-starter-test>3.3.0</spring-boot-starter-test>
-        <spring-cloud-starter-bootstrap>4.1.2</spring-cloud-starter-bootstrap>
+        <spring-cloud-starter-bootstrap>4.2.0</spring-cloud-starter-bootstrap>
         <spring-tx>6.1.11</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
