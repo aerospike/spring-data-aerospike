@@ -23,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.util.Assert;
 
@@ -31,6 +30,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.springframework.data.aerospike.util.Utils.iterableToList;
 
 public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, ID> {
 
@@ -65,7 +66,7 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     public <S extends T> List<S> saveAll(Iterable<S> entities) {
         Assert.notNull(entities, "Entities for save must not be null!");
 
-        List<S> entitiesList = IterableConverter.toList(entities);
+        List<S> entitiesList = iterableToList(entities);
         operations.saveAll(entitiesList);
 
         return entitiesList;

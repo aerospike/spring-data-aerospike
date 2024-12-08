@@ -37,6 +37,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessor;
 import org.springframework.data.aerospike.cache.AerospikeCacheKeyProcessorImpl;
@@ -114,7 +115,7 @@ public abstract class AerospikeDataConfigurationSupport {
 
     @Bean
     public AerospikeCustomConversions customConversions(@Autowired(required = false)
-                                                              AerospikeCustomConverters converters) {
+                                                        AerospikeCustomConverters converters) {
         List<Object> aggregatedCustomConverters = new ArrayList<>(customConverters());
         if (converters != null) {
             aggregatedCustomConverters.addAll(converters.getCustomConverters());
@@ -128,8 +129,7 @@ public abstract class AerospikeDataConfigurationSupport {
 
     @Bean(name = "aerospikeMappingContext")
     public AerospikeMappingContext aerospikeMappingContext(AerospikeDataSettings dataSettings)
-        throws AerospikeException
-    {
+        throws AerospikeException {
         AerospikeMappingContext context = new AerospikeMappingContext();
         try {
             context.setInitialEntitySet(getInitialEntitySet());
@@ -140,9 +140,12 @@ public abstract class AerospikeDataConfigurationSupport {
         if (dataSettings.getFieldNamingStrategy() != null) {
             try {
                 context.setFieldNamingStrategy(
-                    (FieldNamingStrategy) BeanUtils.instantiateClass(dataSettings.getFieldNamingStrategy()));
+                    (FieldNamingStrategy) BeanUtils.instantiateClass(
+                        Class.forName(dataSettings.getFieldNamingStrategy())));
             } catch (BeanInstantiationException e) {
                 throw new AerospikeException("Cannot set fieldNamingStrategy in AerospikeMappingContext", e);
+            } catch (ClassNotFoundException e) {
+                throw new AerospikeException("Cannot use the given fieldNamingStrategy: class not found", e);
             }
         } else {
             context.setFieldNamingStrategy(fieldNamingStrategy());
@@ -295,13 +298,13 @@ public abstract class AerospikeDataConfigurationSupport {
     }
 
     @Bean
-    public AerospikeDataSettings readAerospikeDataSettings() {
-        return new AerospikeDataSettings();
+    public AerospikeDataSettings readAerospikeDataSettings(Environment environment) {
+        return new AerospikeDataSettings(environment);
     }
 
     @Bean
-    public AerospikeConnectionSettings readAerospikeSettings() {
-        return new AerospikeConnectionSettings();
+    public AerospikeConnectionSettings readAerospikeSettings(Environment environment) {
+        return new AerospikeConnectionSettings(environment);
     }
 
     @Bean

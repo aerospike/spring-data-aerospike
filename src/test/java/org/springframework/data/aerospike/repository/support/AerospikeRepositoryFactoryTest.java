@@ -19,14 +19,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.sample.Person;
-import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.repository.core.EntityInformation;
 import org.springframework.data.repository.core.RepositoryInformation;
@@ -87,10 +85,8 @@ public class AerospikeRepositoryFactoryTest {
     @Test
     public void testGetRepositoryBaseClassRepositoryMetadata() {
         RepositoryMetadata metadata = mock(RepositoryMetadata.class);
-        Mockito.<Class<?>>when(metadata.getRepositoryInterface()).thenReturn(SimpleKeyValueRepository.class);
-
         AerospikeRepositoryFactory factory = new AerospikeRepositoryFactory(aerospikeTemplate);
         Class<?> repositoryBaseClass = factory.getRepositoryBaseClass(metadata);
-        assertThat(repositoryBaseClass.getSimpleName()).isEqualTo(SimpleKeyValueRepository.class.getSimpleName());
+        assertThat(repositoryBaseClass.getSimpleName()).isEqualTo(SimpleAerospikeRepository.class.getSimpleName());
     }
 }

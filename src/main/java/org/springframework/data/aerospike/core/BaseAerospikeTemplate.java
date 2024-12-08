@@ -48,7 +48,6 @@ import org.springframework.data.aerospike.mapping.Field;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.keyvalue.core.IterableConverter;
 import org.springframework.data.mapping.PersistentPropertyAccessor;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
@@ -67,6 +66,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
+import static org.springframework.data.aerospike.util.Utils.iterableToList;
 
 /**
  * Base class for creation Aerospike templates
@@ -385,7 +385,7 @@ abstract class BaseAerospikeTemplate {
         Assert.notNull(ids, "List of ids must not be null!");
 
         AerospikePersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(entityClass);
-        List<?> idsList = IterableConverter.toList(ids);
+        List<?> idsList = iterableToList(ids);
 
         return idsList.stream()
             .map(id -> getKey(id, entity))

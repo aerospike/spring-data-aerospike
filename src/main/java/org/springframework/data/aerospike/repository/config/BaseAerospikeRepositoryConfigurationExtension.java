@@ -17,14 +17,9 @@ package org.springframework.data.aerospike.repository.config;
 
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.core.annotation.AnnotationAttributes;
-import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
-import org.springframework.data.keyvalue.repository.config.QueryCreatorType;
-import org.springframework.data.keyvalue.repository.query.SpelQueryCreator;
 import org.springframework.data.repository.config.AnnotationRepositoryConfigurationSource;
 import org.springframework.data.repository.config.RepositoryConfigurationExtensionSupport;
-
-import java.util.Map;
 
 /**
  * @author Oliver Gierke
@@ -35,34 +30,13 @@ public abstract class BaseAerospikeRepositoryConfigurationExtension extends Repo
     protected static final String MAPPING_CONTEXT_BEAN_NAME = "aerospikeMappingContext";
     protected static final String AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE = "aerospikeTemplateRef";
 
-    /**
-     * Detects the query creator type to be used for the factory to set. Will look up a {@link QueryCreatorType}
-     * annotation on the {@code @Enable}-annotation or use {@link SpelQueryCreator} if not found.
-     *
-     * @param config The annotation repository configuration to get the query creator metadata from.
-     * @return Query creator class.
-     */
-    private static Class<?> getQueryCreatorType(AnnotationRepositoryConfigurationSource config) {
-
-        AnnotationMetadata metadata = config.getEnableAnnotationMetadata();
-
-        Map<String, Object> queryCreatorFoo = metadata.getAnnotationAttributes(QueryCreatorType.class.getName());
-
-        if (queryCreatorFoo == null) {
-            return AerospikeQueryCreator.class;
-        }
-
-        AnnotationAttributes queryCreatorAttributes = new AnnotationAttributes(queryCreatorFoo);
-        return queryCreatorAttributes.getClass("value");
-    }
-
     @Override
     public void postProcess(BeanDefinitionBuilder builder, AnnotationRepositoryConfigurationSource config) {
 
         AnnotationAttributes attributes = config.getAttributes();
 
         builder.addPropertyReference("template", attributes.getString(AEROSPIKE_TEMPLATE_BEAN_REF_ATTRIBUTE));
-        builder.addPropertyValue("queryCreator", getQueryCreatorType(config));
+        builder.addPropertyValue("queryCreator", AerospikeQueryCreator.class);
         builder.addPropertyReference("mappingContext", MAPPING_CONTEXT_BEAN_NAME);
     }
 }
