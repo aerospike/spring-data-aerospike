@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.springframework.data.build</groupId>
         <artifactId>spring-data-parent</artifactId>
-        <version>3.3.0</version>
+        <version>3.4.0</version>
     </parent>
 
     <properties>
@@ -24,27 +24,25 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.3.0</springdata.commons>
-        <springdata.keyvalue>3.3.0</springdata.keyvalue>
-        <springdata.spring-boot>3.3.0</springdata.spring-boot>
+        <springdata.commons>3.4.0</springdata.commons>
         <spring-boot-starter-test>3.3.0</spring-boot-starter-test>
-        <spring-cloud-starter-bootstrap>4.1.2</spring-cloud-starter-bootstrap>
-        <spring-tx>6.1.11</spring-tx>
+        <spring-cloud-starter-bootstrap>4.1.5</spring-cloud-starter-bootstrap>
+        <spring-tx>6.2.0</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike-client-jdk8>9.0.0</aerospike-client-jdk8>
+        <aerospike-client-jdk8>9.0.2</aerospike-client-jdk8>
         <aerospike-reactor-client>8.1.2</aerospike-reactor-client>
-        <aerospike-proxy-client>8.1.2</aerospike-proxy-client>
-        <reactor-test>3.6.8</reactor-test>
-        <embedded-aerospike>3.1.6</embedded-aerospike>
-        <jodatime>2.12.7</jodatime>
-        <lombok>1.18.32</lombok>
-        <awaitility>4.2.1</awaitility>
-        <logback.test>1.5.6</logback.test>
+        <aerospike-proxy-client>8.1.4</aerospike-proxy-client>
+        <reactor-test>3.7.0</reactor-test>
+        <embedded-aerospike>3.1.9</embedded-aerospike>
+        <jodatime>2.13.0</jodatime>
+        <lombok>1.18.36</lombok>
+        <awaitility>4.2.2</awaitility>
+        <logback.test>1.5.8</logback.test>
         <hibernate.validator>8.0.1.Final</hibernate.validator>
-        <netty.version>4.1.110.Final</netty.version>
-        <kryo.version>5.6.0</kryo.version>
-        <apacheCommonsCodec.version>1.17.0</apacheCommonsCodec.version>
+        <netty.version>4.1.115.Final</netty.version>
+        <kryo.version>5.6.2</kryo.version>
+        <apacheCommonsCodec.version>1.17.1</apacheCommonsCodec.version>
     </properties>
 
     <licenses>
@@ -184,17 +182,6 @@
                 <version>${springdata.commons}</version>
             </dependency>
             <dependency>
-                <groupId>org.springframework.data</groupId>
-                <artifactId>spring-data-keyvalue</artifactId>
-                <version>${springdata.keyvalue}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot</artifactId>
-                <version>${springdata.spring-boot}</version>
-                <scope>compile</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-tx</artifactId>
                 <version>${spring-tx}</version>
@@ -241,10 +228,6 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-commons</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-keyvalue</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

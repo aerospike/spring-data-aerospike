@@ -20,9 +20,6 @@ import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.repository.query.AerospikePartTreeQuery;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryCreator;
-import org.springframework.data.keyvalue.core.KeyValueOperations;
-import org.springframework.data.keyvalue.repository.support.QuerydslKeyValuePredicateExecutor;
-import org.springframework.data.keyvalue.repository.support.SimpleKeyValueRepository;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.projection.ProjectionFactory;
 import org.springframework.data.querydsl.QuerydslPredicateExecutor;
@@ -39,7 +36,6 @@ import org.springframework.data.repository.query.QueryMethodEvaluationContextPro
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.util.Assert;
-import reactor.util.annotation.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -98,15 +94,14 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
 
     @Override
     protected Class<?> getRepositoryBaseClass(RepositoryMetadata metadata) {
-        return isQueryDslRepository(metadata.getRepositoryInterface()) ? QuerydslKeyValuePredicateExecutor.class
-            : SimpleKeyValueRepository.class;
+        return SimpleAerospikeRepository.class;
     }
 
     @Override
     protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
         Key key,
         QueryMethodEvaluationContextProvider evaluationContextProvider) {
-        return Optional.of(new AerospikeQueryLookupStrategy(key, evaluationContextProvider, this.template,
+        return Optional.of(new AerospikeQueryLookupStrategy(evaluationContextProvider, this.template,
             this.queryCreator));
     }
 
@@ -122,18 +117,14 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
 
         /**
          * Creates a new {@link AerospikeQueryLookupStrategy} for the given {@link Key},
-         * {@link QueryMethodEvaluationContextProvider}, {@link KeyValueOperations} and query creator type.
+         * {@link QueryMethodEvaluationContextProvider} and query creator type.
          * <p>
-         * TODO: Key is not considered. Should it?
          *
-         * @param key                       Currently unused, same behaviour in the built-in spring's
-         *                                  KeyValueQueryLookupStrategy implementation.
          * @param evaluationContextProvider must not be {@literal null}.
          * @param aerospikeTemplate         must not be {@literal null}.
          * @param queryCreator              must not be {@literal null}.
          */
-        public AerospikeQueryLookupStrategy(@Nullable Key key,
-                                            QueryMethodEvaluationContextProvider evaluationContextProvider,
+        public AerospikeQueryLookupStrategy(QueryMethodEvaluationContextProvider evaluationContextProvider,
                                             AerospikeTemplate aerospikeTemplate,
                                             Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
             Assert.notNull(evaluationContextProvider, "QueryMethodEvaluationContextProvider must not be null!");
