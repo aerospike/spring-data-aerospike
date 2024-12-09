@@ -29,6 +29,7 @@ import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
+import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.NestedTransactionNotSupportedException;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -60,14 +61,13 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
 
     @BeforeAll
     public void beforeAll() {
-//        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
-//            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
+        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
         utils = new AerospikeTransactionTestUtils(client, template);
     }
 
     @BeforeEach
     public void beforeEach() {
-//        AwaitilityUtils.wait(11, SECONDS); // timeout does not expire during this wait
         deleteAll(Person.class, DocumentWithPrimitiveIntId.class,
             SampleClasses.DocumentWithIntegerId.class);
     }

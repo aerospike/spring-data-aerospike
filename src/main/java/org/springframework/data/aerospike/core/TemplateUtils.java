@@ -1,7 +1,9 @@
 package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.policy.BatchPolicy;
 import com.aerospike.client.policy.Policy;
+import com.aerospike.client.policy.WritePolicy;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -113,20 +115,35 @@ public class TemplateUtils {
 
         List<String> binNamesList = new ArrayList<>();
 
-        targetEntity.doWithProperties((PropertyHandler<AerospikePersistentProperty>) property
-            -> binNamesList.add(property.getFieldName()));
+        targetEntity.doWithProperties(
+            (PropertyHandler<AerospikePersistentProperty>) property -> {
+                if (!property.isIdProperty()) {
+                    binNamesList.add(property.getFieldName());
+                }
+            });
 
         return binNamesList.toArray(new String[0]);
     }
 
-    public static Policy checkForTransaction(IAerospikeClient client, Policy policy) {
+    public static Policy enrichPolicyWithTransaction(IAerospikeClient client, Policy policy) {
         if (TransactionSynchronizationManager.hasResource(client)) {
             AerospikeTransactionResourceHolder resourceHolder =
                 (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
-            if (resourceHolder != null) policy.txn = resourceHolder.getTransaction();
-            return policy;
+            Policy newPolicy = getNewPolicy(policy);
+            if (resourceHolder != null) newPolicy.txn = resourceHolder.getTransaction();
+            return newPolicy;
         }
         return policy;
+    }
+
+    protected static Policy getNewPolicy(Policy policy) {
+        if (policy instanceof WritePolicy writePolicy) {
+            return new WritePolicy(writePolicy);
+        } else if (policy instanceof BatchPolicy batchPolicy) {
+            return new BatchPolicy(batchPolicy);
+        } else {
+            return new Policy(policy);
+        }
     }
 
     private static Policy getPolicyFilterExp(IAerospikeClient client, QueryEngine queryEngine, Query query) {
@@ -141,6 +158,6 @@ public class TemplateUtils {
 
     static Policy getPolicyFilterExpOrDefault(IAerospikeClient client, QueryEngine queryEngine, Query query) {
         Policy policy = getPolicyFilterExp(client, queryEngine, query);
-        return checkForTransaction(client, policy != null ? policy : client.getReadPolicyDefault());
+        return policy != null ? policy : new Policy(client.getReadPolicyDefault());
     }
 }

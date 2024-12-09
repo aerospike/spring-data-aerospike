@@ -86,6 +86,7 @@ import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredi
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
 import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+import static org.springframework.data.aerospike.core.TemplateUtils.getNewPolicy;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
@@ -1472,10 +1473,15 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(ctx -> {
                 AerospikeReactiveTransactionResourceHolder resourceHolder =
                     (AerospikeReactiveTransactionResourceHolder) ctx.getResources().get(reactiveClient);
-                if (resourceHolder != null) policy.txn = resourceHolder.getTransaction();
+                if (resourceHolder != null) {
+                    Policy newPolicy = getNewPolicy(policy);
+                    newPolicy.txn = resourceHolder.getTransaction();
+                    return newPolicy;
+                }
                 return policy;
             })
             .onErrorResume(NoTransactionException.class, ignored ->
                 Mono.just(policy));
     }
+
 }

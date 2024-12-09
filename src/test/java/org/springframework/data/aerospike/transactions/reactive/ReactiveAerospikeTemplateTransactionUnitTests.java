@@ -415,7 +415,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
         transactionalOperator
             .execute(transaction -> forCurrentTransaction()
                 .doOnNext(synchronizationManager -> {
-                    WritePolicy wPolicy = reactiveClient.getWritePolicyDefault();
+                    WritePolicy wPolicy = new WritePolicy(reactiveClient.getWritePolicyDefault());
                     AerospikeReactiveTransactionResourceHolder rHolder =
                         (AerospikeReactiveTransactionResourceHolder) synchronizationManager.getResource(reactiveClient);
                     wPolicy.txn = rHolder != null ? rHolder.getTransaction() : null;
@@ -450,7 +450,7 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
         transactionalOperator
             .execute(transaction -> forCurrentTransaction()
                 .doOnNext(synchronizationManager -> {
-                    WritePolicy wPolicy = reactiveClient.getWritePolicyDefault();
+                    WritePolicy wPolicy = new WritePolicy(reactiveClient.getWritePolicyDefault());
                     AerospikeReactiveTransactionResourceHolder rHolder =
                         (AerospikeReactiveTransactionResourceHolder) synchronizationManager.getResource(reactiveClient);
                     wPolicy.txn = rHolder != null ? rHolder.getTransaction() : null;
