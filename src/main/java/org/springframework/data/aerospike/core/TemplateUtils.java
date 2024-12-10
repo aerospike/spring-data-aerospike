@@ -126,7 +126,14 @@ public class TemplateUtils {
         return binNamesList.toArray(new String[0]);
     }
 
-    public static Policy checkForTransaction(IAerospikeClient client, Policy policy) {
+    /**
+     * Enrich given Policy with transaction id if transaction is active
+     *
+     * @param client IAerospikeClient
+     * @param policy Policy instance, typically not default policy to avoid saving transaction id to defaults
+     * @return Policy with filled {@link Policy#txn} if transaction is active
+     */
+    public static Policy enrichPolicyWithTransaction(IAerospikeClient client, Policy policy) {
         if (TransactionSynchronizationManager.hasResource(client)) {
             AerospikeTransactionResourceHolder resourceHolder =
                 (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
@@ -138,7 +145,7 @@ public class TemplateUtils {
 
     private static Policy getPolicyFilterExp(IAerospikeClient client, QueryEngine queryEngine, Query query) {
         if (queryCriteriaIsNotNull(query)) {
-            Policy policy = new Policy(client.getReadPolicyDefault());
+            Policy policy = client.copyReadPolicyDefault();
             Qualifier qualifier = query.getCriteriaObject();
             policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifier);
             return policy;
@@ -148,15 +155,25 @@ public class TemplateUtils {
 
     static Policy getPolicyFilterExpOrDefault(IAerospikeClient client, QueryEngine queryEngine, Query query) {
         Policy policy = getPolicyFilterExp(client, queryEngine, query);
-        return checkForTransaction(client, policy != null ? policy : client.getReadPolicyDefault());
+        return policy != null ? policy : client.copyReadPolicyDefault();
     }
 
-    static Mono<Policy> enrichPolicyWithTransaction(IAerospikeReactorClient reactiveClient, Policy policy) {
+    /**
+     * Enrich given Policy with transaction id if transaction is active
+     *
+     * @param reactorClient IAerospikeReactorClient
+     * @param policy Policy instance, typically not default policy to avoid saving transaction id to defaults
+     * @return Mono&lt;Policy&gt; with filled {@link Policy#txn} if transaction is active
+     */
+    static Mono<Policy> enrichPolicyWithTransaction(IAerospikeReactorClient reactorClient, Policy policy) {
         return TransactionContextManager.currentContext()
             .map(ctx -> {
                 AerospikeReactiveTransactionResourceHolder resourceHolder =
-                    (AerospikeReactiveTransactionResourceHolder) ctx.getResources().get(reactiveClient);
-                if (resourceHolder != null) policy.txn = resourceHolder.getTransaction();
+                    (AerospikeReactiveTransactionResourceHolder) ctx.getResources().get(reactorClient);
+                if (resourceHolder != null) {
+                    policy.txn = resourceHolder.getTransaction();
+                    return policy;
+                }
                 return policy;
             })
             .onErrorResume(NoTransactionException.class, ignored ->

@@ -146,6 +146,21 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
     }
 
     @Test
+    public void multipleWritesInTransactionWithDefaultTimeoutExpired() {
+        // Multi-record transactions are supported starting with Server version 8.0+
+        assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
+            template.insert(new SampleClasses.DocumentWithIntegerId(124, "test1"));
+            AwaitilityUtils.wait(15, SECONDS); // timeout expires during this wait
+            template.save(new SampleClasses.DocumentWithIntegerId(124, "test2"));
+        }))
+            .isInstanceOf(RecoverableDataAccessException.class)
+            .hasMessageContaining("MRT expired");
+
+        SampleClasses.DocumentWithIntegerId result = template.findById(124, SampleClasses.DocumentWithIntegerId.class);
+        assertThat(result).isNull(); // No record is written because all commands were in the same transaction
+    }
+
+    @Test
     // just for testing purposes as performing only one write in a transaction lacks sense
     public void batchWriteInTransaction() {
         // Multi-record transactions are supported starting with Server version 8.0+
