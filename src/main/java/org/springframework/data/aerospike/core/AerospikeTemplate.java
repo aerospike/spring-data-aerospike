@@ -208,8 +208,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
         try {
-            BatchPolicy bPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, client.getBatchPolicyDefault());
-            client.operate(bPolicy, batchWriteRecords);
+            BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, client.getBatchPolicyDefault());
+            client.operate(batchPolicy, batchWriteRecords);
         } catch (AerospikeException e) {
             throw translateError(e); // no exception is thrown for versions mismatch, only record's result code shows it
         }
@@ -944,8 +944,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private GroupedEntities findGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
-        BatchPolicy bPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, client.getBatchPolicyDefault());
-        Record[] aeroRecords = client.get(bPolicy, entitiesKeys.getKeys());
+        BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, client.getBatchPolicyDefault());
+        Record[] aeroRecords = client.get(batchPolicy, entitiesKeys.getKeys());
 
         return toGroupedEntities(entitiesKeys, aeroRecords);
     }
@@ -1540,13 +1540,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         try {
             Key[] keys = getKeys(ids, setName);
 
-            BatchPolicy bPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, getBatchPolicyFilterExp(query));
+            BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, getBatchPolicyFilterExp(query));
             Record[] aeroRecords;
             if (targetClass != null) {
                 String[] binNames = getBinNamesFromTargetClass(targetClass, mappingContext);
-                aeroRecords = client.get(bPolicy, keys, binNames);
+                aeroRecords = client.get(batchPolicy, keys, binNames);
             } else {
-                aeroRecords = client.get(bPolicy, keys);
+                aeroRecords = client.get(batchPolicy, keys);
             }
 
             return IntStream.range(0, keys.length)

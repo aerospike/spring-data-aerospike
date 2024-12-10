@@ -886,7 +886,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
 
         return enrichPolicyWithTransaction(reactorClient, batchPolicy)
-            .flatMap(bPolicy -> reactorClient.get((BatchPolicy) bPolicy, entitiesKeys.getKeys()))
+            .flatMap(batchPolicyEnriched -> reactorClient.get((BatchPolicy) batchPolicyEnriched, entitiesKeys.getKeys()))
             .map(item -> toGroupedEntities(entitiesKeys, item.records))
             .onErrorMap(this::translateError);
     }

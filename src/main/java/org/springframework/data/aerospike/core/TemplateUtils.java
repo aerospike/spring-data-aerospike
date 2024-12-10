@@ -144,9 +144,8 @@ public class TemplateUtils {
             return new WritePolicy(writePolicy);
         } else if (policy instanceof BatchPolicy batchPolicy) {
             return new BatchPolicy(batchPolicy);
-        } else {
-            return new Policy(policy);
         }
+        return new Policy(policy);
     }
 
     private static Policy getPolicyFilterExp(IAerospikeClient client, QueryEngine queryEngine, Query query) {
