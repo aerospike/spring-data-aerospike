@@ -31,6 +31,7 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
 import org.springframework.data.aerospike.util.AsyncUtils;
+import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -65,8 +66,8 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @BeforeAll
     public void beforeAll() {
-//        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
-//            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
+        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
     }
 
     @BeforeEach

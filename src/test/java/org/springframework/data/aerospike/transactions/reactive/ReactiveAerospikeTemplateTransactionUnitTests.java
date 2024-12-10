@@ -31,6 +31,7 @@ import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithPrimitiveIntId;
+import org.springframework.data.aerospike.util.TestUtils;
 import org.springframework.transaction.IllegalTransactionStateException;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.transaction.reactive.GenericReactiveTransaction;
@@ -75,8 +76,8 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
 
     @BeforeAll
     public void beforeAll() {
-//        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
-//            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
+        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+            "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
         when(mockTxManager.getReactiveTransaction(any()))
             .thenReturn(Mono.just(
                 new GenericReactiveTransaction("name", new AerospikeReactiveTransaction(null),
