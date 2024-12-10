@@ -112,8 +112,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                                      AerospikeExceptionTranslator exceptionTranslator,
                                      ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher,
                                      ServerVersionSupport serverVersionSupport) {
-        super(namespace, converter, mappingContext, exceptionTranslator, reactorClient.getWritePolicyDefault(),
-            serverVersionSupport);
+        super(namespace, converter, mappingContext, exceptionTranslator,
+            reactorClient.getAerospikeClient().copyWritePolicyDefault(), serverVersionSupport);
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
         this.reactorClient = reactorClient;
         this.reactorQueryEngine = queryEngine;
@@ -204,7 +204,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
 
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getBatchPolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyBatchPolicyDefault())
             .flatMapMany(batchPolicyEnriched ->
                 batchWriteAndCheckForErrors((BatchPolicy) batchPolicyEnriched, batchWriteRecords, batchWriteDataList,
                     operationType));
@@ -317,7 +317,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         AerospikeWriteData data = writeData(document, setName);
 
         Operation[] operations = operations(data.getBinsAsArray(), Operation::put);
-        return enrichPolicyWithTransaction(reactorClient, writePolicy)
+        // not using initial writePolicy instance because it can get enriched with transaction id
+        return enrichPolicyWithTransaction(reactorClient, new WritePolicy(writePolicy))
             .flatMap(writePolicyEnriched ->
                 doPersistAndHandleError(document, data, (WritePolicy) writePolicyEnriched, operations));
     }
@@ -555,7 +556,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return Mono.empty();
         };
 
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getBatchPolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyBatchPolicyDefault())
             .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, null, keys))
             .onErrorMap(this::translateError)
             .flatMap(checkForErrors);
@@ -575,7 +576,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private Mono<Void> deleteEntitiesByGroupedKeys(GroupedKeys groupedKeys) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
 
-        enrichPolicyWithTransaction(reactorClient, reactorClient.getBatchPolicyDefault())
+        enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyBatchPolicyDefault())
             .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, null, entitiesKeys.getKeys()))
             .doOnError(this::translateError);
 
@@ -682,7 +683,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         AerospikeWriteData data = writeData(document, setName);
         Operation[] operations = operations(values, Operation.Type.APPEND, Operation.get());
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getWritePolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyWritePolicyDefault())
             .flatMap(writePolicyEnriched ->
                 executeOperationsOnValue(document, data, (WritePolicy) writePolicyEnriched, operations));
     }
@@ -699,7 +700,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         AerospikeWriteData data = writeData(document, setName);
         Operation[] operations = {Operation.append(new Bin(binName, value)), Operation.get(binName)};
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getWritePolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyWritePolicyDefault())
             .flatMap(writePolicyEnriched ->
                 executeOperationsOnValue(document, data, (WritePolicy) writePolicyEnriched, operations));
     }
@@ -717,7 +718,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         AerospikeWriteData data = writeData(document, setName);
         Operation[] operations = operations(values, Operation.Type.PREPEND, Operation.get());
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getWritePolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyWritePolicyDefault())
             .flatMap(writePolicyEnriched -> executeOperationsOnValue(document, data,
                 (WritePolicy) writePolicyEnriched, operations));
     }
@@ -734,7 +735,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         AerospikeWriteData data = writeData(document, setName);
         Operation[] operations = {Operation.prepend(new Bin(binName, value)), Operation.get(binName)};
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getWritePolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyWritePolicyDefault())
             .flatMap(writePolicyEnriched ->
                 executeOperationsOnValue(document, data, (WritePolicy) writePolicyEnriched, operations));
     }
@@ -778,7 +779,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 )
                 .onErrorMap(this::translateError);
         } else {
-            return enrichPolicyWithTransaction(reactorClient, reactorClient.getReadPolicyDefault())
+            return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyReadPolicyDefault())
                 .flatMap(policy -> reactorClient.get(policy, key))
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record))
@@ -810,7 +811,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 )
                 .onErrorMap(this::translateError);
         } else {
-            return enrichPolicyWithTransaction(reactorClient, reactorClient.getReadPolicyDefault())
+            return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyReadPolicyDefault())
                 .flatMap(policy -> reactorClient.get(policy, key, binNames))
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
@@ -859,7 +860,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(id -> getKey(id, setName))
             .toArray(Key[]::new);
 
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getBatchPolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyBatchPolicyDefault())
             .flatMap(batchPolicy -> reactorClient.get((BatchPolicy) batchPolicy, keys))
             .flatMap(kr -> Mono.just(kr.asMap()))
             .flatMapMany(keyRecordMap -> {
@@ -879,7 +880,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return Mono.just(GroupedEntities.builder().build());
         }
 
-        return findGroupedEntitiesByGroupedKeys(reactorClient.getBatchPolicyDefault(), groupedKeys);
+        return findGroupedEntitiesByGroupedKeys(reactorClient.getAerospikeClient().copyBatchPolicyDefault(), groupedKeys);
     }
 
     private Mono<GroupedEntities> findGroupedEntitiesByGroupedKeys(BatchPolicy batchPolicy, GroupedKeys groupedKeys) {
@@ -926,7 +927,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         } else {
             Policy policy = null;
             if (queryCriteriaIsNotNull(query)) {
-                policy = new Policy(reactorClient.getReadPolicyDefault());
+                policy = reactorClient.getAerospikeClient().copyReadPolicyDefault();
                 Qualifier qualifier = query.getCriteriaObject();
                 policy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(qualifier);
             }
@@ -1081,7 +1082,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private BatchPolicy getBatchPolicyFilterExp(Query query) {
         if (queryCriteriaIsNotNull(query)) {
-            BatchPolicy batchPolicy = new BatchPolicy(reactorClient.getAerospikeClient().getBatchPolicyDefault());
+            BatchPolicy batchPolicy = reactorClient.getAerospikeClient().copyBatchPolicyDefault();
             Qualifier qualifier = query.getCriteriaObject();
             batchPolicy.filterExp = reactorQueryEngine.getFilterExpressionsBuilder().build(qualifier);
             return batchPolicy;
@@ -1113,7 +1114,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set name must not be null!");
 
         Key key = getKey(id, setName);
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().getReadPolicyDefault())
+        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyReadPolicyDefault())
             .flatMap(policy -> reactorClient.exists(policy, key))
             .map(Objects::nonNull)
             .defaultIfEmpty(false)

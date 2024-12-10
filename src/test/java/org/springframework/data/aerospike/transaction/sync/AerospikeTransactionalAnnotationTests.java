@@ -101,11 +101,10 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
     // only for testing purposes as performing one write in a transaction lacks sense
     public void verifyTransaction_oneInsert() {
         TestTransactionSynchronization testSync = new TestTransactionSynchronization(() -> {
-            var resultsList =
-                // findAll() is used here because it uses QueryPolicy and ignores transaction id
-                // it is a callback after transaction completion, typically fast enough to happen before cleanup,
-                // so de facto transaction id is often still findable at this point
-                template.findAll(SampleClasses.DocumentWithPrimitiveIntId.class).toList();
+            // findAll() is used here because it uses QueryPolicy and ignores transaction id
+            // it is a callback after transaction completion, typically fast enough to happen before cleanup,
+            // so de facto transaction id is often still findable at this point
+            var resultsList = template.findAll(SampleClasses.DocumentWithPrimitiveIntId.class).toList();
             assertThat(resultsList).hasSize(1);
             assertThat(resultsList.stream().map(SampleClasses.DocumentWithPrimitiveIntId::getId).toList())
                 .containsExactlyInAnyOrder(300);

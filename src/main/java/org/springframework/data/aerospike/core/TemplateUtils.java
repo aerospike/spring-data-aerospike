@@ -1,9 +1,7 @@
 package org.springframework.data.aerospike.core;
 
 import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.policy.BatchPolicy;
 import com.aerospike.client.policy.Policy;
-import com.aerospike.client.policy.WritePolicy;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.experimental.UtilityClass;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
@@ -128,29 +126,26 @@ public class TemplateUtils {
         return binNamesList.toArray(new String[0]);
     }
 
+    /**
+     * Enrich given Policy with transaction id if transaction is active
+     *
+     * @param client IAerospikeClient
+     * @param policy Policy instance, typically not default policy to avoid saving transaction id to defaults
+     * @return Policy with filled {@link Policy#txn} if transaction is active
+     */
     public static Policy enrichPolicyWithTransaction(IAerospikeClient client, Policy policy) {
         if (TransactionSynchronizationManager.hasResource(client)) {
             AerospikeTransactionResourceHolder resourceHolder =
                 (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
-            Policy newPolicy = getNewPolicy(policy);
-            if (resourceHolder != null) newPolicy.txn = resourceHolder.getTransaction();
-            return newPolicy;
+            if (resourceHolder != null) policy.txn = resourceHolder.getTransaction();
+            return policy;
         }
         return policy;
     }
 
-    private static Policy getNewPolicy(Policy policy) {
-        if (policy instanceof WritePolicy writePolicy) {
-            return new WritePolicy(writePolicy);
-        } else if (policy instanceof BatchPolicy batchPolicy) {
-            return new BatchPolicy(batchPolicy);
-        }
-        return new Policy(policy);
-    }
-
     private static Policy getPolicyFilterExp(IAerospikeClient client, QueryEngine queryEngine, Query query) {
         if (queryCriteriaIsNotNull(query)) {
-            Policy policy = new Policy(client.getReadPolicyDefault());
+            Policy policy = client.copyReadPolicyDefault();
             Qualifier qualifier = query.getCriteriaObject();
             policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifier);
             return policy;
@@ -160,18 +155,24 @@ public class TemplateUtils {
 
     static Policy getPolicyFilterExpOrDefault(IAerospikeClient client, QueryEngine queryEngine, Query query) {
         Policy policy = getPolicyFilterExp(client, queryEngine, query);
-        return policy != null ? policy : new Policy(client.getReadPolicyDefault());
+        return policy != null ? policy : client.copyReadPolicyDefault();
     }
 
-    static Mono<Policy> enrichPolicyWithTransaction(IAerospikeReactorClient reactiveClient, Policy policy) {
+    /**
+     * Enrich given Policy with transaction id if transaction is active
+     *
+     * @param reactorClient IAerospikeReactorClient
+     * @param policy Policy instance, typically not default policy to avoid saving transaction id to defaults
+     * @return Mono&lt;Policy&gt; with filled {@link Policy#txn} if transaction is active
+     */
+    static Mono<Policy> enrichPolicyWithTransaction(IAerospikeReactorClient reactorClient, Policy policy) {
         return TransactionContextManager.currentContext()
             .map(ctx -> {
                 AerospikeReactiveTransactionResourceHolder resourceHolder =
-                    (AerospikeReactiveTransactionResourceHolder) ctx.getResources().get(reactiveClient);
+                    (AerospikeReactiveTransactionResourceHolder) ctx.getResources().get(reactorClient);
                 if (resourceHolder != null) {
-                    Policy newPolicy = getNewPolicy(policy);
-                    newPolicy.txn = resourceHolder.getTransaction();
-                    return newPolicy;
+                    policy.txn = resourceHolder.getTransaction();
+                    return policy;
                 }
                 return policy;
             })
