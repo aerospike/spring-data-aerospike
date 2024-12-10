@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>4.8.0</version>
+    <version>5.0.0-MRT-alpha3.11</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
@@ -32,7 +32,7 @@
         <spring-tx>6.1.11</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike-client-jdk8>9.0.1</aerospike-client-jdk8>
+        <aerospike-client-jdk8>9.0.2</aerospike-client-jdk8>
         <aerospike-reactor-client>8.1.2</aerospike-reactor-client>
         <aerospike-proxy-client>8.1.2</aerospike-proxy-client>
         <reactor-test>3.6.8</reactor-test>
@@ -170,6 +170,10 @@
             <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
+        <repository>
+            <id>jfrog-snapshots-upload</id>
+            <url>https://aerospike.jfrog.io/artifactory/ecosystem-maven-dev-local/</url>
+        </repository>
     </distributionManagement>
 
     <dependencyManagement>
@@ -426,6 +430,32 @@
                         --add-opens java.base/java.lang.reflect=ALL-UNNAMED
                     </argLine>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                            <shadedArtifactAttached>true</shadedArtifactAttached>
+                            <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
