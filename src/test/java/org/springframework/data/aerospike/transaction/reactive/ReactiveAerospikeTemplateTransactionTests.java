@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
 @Slf4j
@@ -131,8 +130,8 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
     @Test
     public void verifyMultipleWritesInTransactionWithTimeout() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(501, "test1");
-        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(501, "test2");
+        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(520, "test1");
+        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(520, "test2");
 
         reactiveTemplate.insert(document1)
             // wait less than the specified timeout for this transactional operator
@@ -144,7 +143,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
             .verifyComplete();
 
         reactiveTemplate
-            .findById(501, SampleClasses.DocumentWithIntegerId.class)
+            .findById(520, SampleClasses.DocumentWithIntegerId.class)
             .as(StepVerifier::create)
             .consumeNextWith(result -> assertThat(result.getContent().equals("test2")).isTrue())
             .verifyComplete();
@@ -153,8 +152,8 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
     @Test
     public void verifyMultipleWritesInTransactionWithTimeoutExpired() {
         // Multi-record transactions are supported starting with Server version 8.0+
-        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(501, "test1");
-        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(501, "test2");
+        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(521, "test1");
+        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(521, "test2");
 
         reactiveTemplate.insert(document1)
             // wait more than the specified timeout for this transactional operator
@@ -162,6 +161,27 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
             .then(reactiveTemplate.save(document2))
             .then()
             .as(transactionalOperatorWithTimeout2::transactional)
+            .as(StepVerifier::create)
+            .verifyErrorMatches(throwable -> {
+                if (throwable instanceof RecoverableDataAccessException) {
+                    return throwable.getMessage().contains("MRT expired");
+                }
+                return false;
+            });
+    }
+
+    @Test
+    public void verifyMultipleWritesInTransactionWithDefaultTimeoutExpired() {
+        // Multi-record transactions are supported starting with Server version 8.0+
+        SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(522, "test1");
+        SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(522, "test2");
+
+        reactiveTemplate.insert(document1)
+            // wait more than the specified timeout for this transactional operator
+            .delayElement(Duration.ofSeconds(15))
+            .then(reactiveTemplate.save(document2))
+            .then()
+            .as(transactionalOperator::transactional)
             .as(StepVerifier::create)
             .verifyErrorMatches(throwable -> {
                 if (throwable instanceof RecoverableDataAccessException) {
