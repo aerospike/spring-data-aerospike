@@ -32,7 +32,6 @@
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike-client-jdk8>9.0.2</aerospike-client-jdk8>
         <aerospike-reactor-client>8.1.2</aerospike-reactor-client>
-        <aerospike-proxy-client>8.1.4</aerospike-proxy-client>
         <reactor-test>3.7.0</reactor-test>
         <embedded-aerospike>3.1.9</embedded-aerospike>
         <jodatime>2.13.0</jodatime>
@@ -197,11 +196,6 @@
                 <version>${aerospike-reactor-client}</version>
             </dependency>
             <dependency>
-                <groupId>com.aerospike</groupId>
-                <artifactId>aerospike-proxy-client</artifactId>
-                <version>${aerospike-proxy-client}</version>
-            </dependency>
-            <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${jodatime}</version>
@@ -248,10 +242,6 @@
         <dependency>
             <groupId>com.aerospike</groupId>
             <artifactId>aerospike-reactor-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.aerospike</groupId>
-            <artifactId>aerospike-proxy-client</artifactId>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
