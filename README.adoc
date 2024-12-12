@@ -111,7 +111,7 @@ Add the `spring-data-aerospike` Maven dependency:
 
 Notes:
 
-* It is recommended to use the latest version of Spring Data Aerospike, checkout Spring Data Aerospike
+* It is recommended to use the latest version, checkout Spring Data Aerospike
 https://github.com/aerospike/spring-data-aerospike/releases[GitHub releases]
 * Spring Data Aerospike uses the https://github.com/aerospike/aerospike-client-java[Aerospike Java Client]
 (and https://github.com/aerospike/aerospike-client-java-reactive[Aerospike Reactive Java Client]) under the hood
@@ -148,8 +148,8 @@ In order to configure Spring Data Aerospike you will need to create a configurat
 annotation.
 
 To set the connection details you can either override `getHosts()` and `nameSpace()` methods
-of the `AbstractAerospikeDataConfiguration` class or define `spring-data-aerospike.connection.hosts` and
-`spring-data-aerospike.connection.namespace` in `application.properties` file.
+of the `AbstractAerospikeDataConfiguration` class or define `spring.aerospike.hosts` and
+`spring.data.aerospike.namespace` in `application.properties` file.
 
 NOTE: You can further customize your configuration by changing other xref:#configuration[`settings`].
 

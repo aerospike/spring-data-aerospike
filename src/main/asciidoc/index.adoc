@@ -1,3 +1,4 @@
+[[aerospike.index]]
 = Spring Data Aerospike - Documentation
 :doctype: book
 :revnumber: 4.8.0
@@ -5,7 +6,6 @@
 :toc:
 :toc-placement!:
 :toclevels: 1
-:spring-data-commons-docs-online: https://docs.spring.io/spring-data/commons/docs/current/reference/html
 
 (C) 2018-2024 The original authors.
 
@@ -26,28 +26,24 @@ include::preface.adoc[]
 
 include::reference/functionality.adoc[]
 include::reference/installation-and-usage.adoc[]
-include::spring-data-commons-docs/repositories.adoc[]
 include::reference/aerospike-repositories.adoc[]
 include::reference/aerospike-reactive-repositories.adoc[]
-include::spring-data-commons-docs/repository-projections.adoc[]
 include::reference/aerospike-projections.adoc[]
-include::spring-data-commons-docs/query-by-example.adoc[]
 include::reference/query-methods-preface.adoc[]
 include::reference/query-methods-simple-property.adoc[]
 include::reference/query-methods-collection.adoc[]
 include::reference/query-methods-map.adoc[]
 include::reference/query-methods-pojo.adoc[]
 include::reference/query-methods-id.adoc[]
+include::reference/query-methods-combined.adoc[]
 include::reference/query-methods-modification.adoc[]
-include::spring-data-commons-docs/object-mapping.adoc[]
 include::reference/aerospike-object-mapping.adoc[]
+include::reference/aerospike-custom-converters.adoc[]
 include::reference/template.adoc[]
 include::reference/secondary-indexes.adoc[]
 include::reference/indexed-annotation.adoc[]
 include::reference/caching.adoc[]
 include::reference/configuration.adoc[]
-include::spring-data-commons-docs/dependencies.adoc[]
-include::spring-data-commons-docs/auditing.adoc[]
 
 :leveloffset: -1
 
@@ -56,9 +52,8 @@ include::spring-data-commons-docs/auditing.adoc[]
 
 :leveloffset: +1
 
-include::spring-data-commons-docs/repository-namespace-reference.adoc[]
-include::spring-data-commons-docs/repository-populator-namespace-reference.adoc[]
-include::spring-data-commons-docs/repository-query-keywords-reference.adoc[]
-include::spring-data-commons-docs/repository-query-return-types-reference.adoc[]
+link:https://docs.spring.io/spring-data/commons/reference/index.html[Spring Data Commons Documentation Reference]
+
+link:https://docs.spring.io/spring-framework/reference/[Spring Framework Documentation Overview]
 
 :leveloffset: -1

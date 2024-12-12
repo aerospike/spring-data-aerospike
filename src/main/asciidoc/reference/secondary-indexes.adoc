@@ -12,7 +12,7 @@ Let's consider a simple query for finding by equality:
 
 [source,java]
 ----
-public List<Person> personRepsitory.findByLastName(lastName);
+public List<Person> personRepository.findByLastName(lastName);
 ----
 
 Notice that findByLastName is not a simple lookup by key, but rather finding all records in a set.

@@ -1,7 +1,7 @@
 [[configuration]]
 = Configuration
 
-Configuration parameters can be set in a standard `application.properties` file using `spring-data-aerospike.*` prefix
+Configuration parameters can be set in a standard `application.properties` file using `spring.data.aerospike*` prefix
 or by overriding configuration from `AbstractAerospikeDataConfiguration` class.
 
 [[configuration.application-properties]]
@@ -12,16 +12,16 @@ Here is an example:
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.connection.hosts=localhost:3000
-spring-data-aerospike.connection.namespace=test
-spring-data-aerospike.data.scans-enabled=false
-spring-data-aerospike.data.send-key=true
-spring-data-aerospike.data.create-indexes-on-startup=true
-spring-data-aerospike.data.index-cache-refresh-seconds=3600
-spring-data-aerospike.data.server-version-refresh-seconds=3600
-spring-data-aerospike.data.query-max-records=10000
-spring-data-aerospike.data.batch-write-size=100
-spring-data-aerospike.data.keep-original-key-types=false
+spring.aerospike..hosts=localhost:3000
+spring.data.aerospike..namespace=test
+spring.data.aerospike.scans-enabled=false
+spring.data.aerospike.send-key=true
+spring-data-aerospike.create-indexes-on-startup=true
+spring.data.aerospike.index-cache-refresh-seconds=3600
+spring.data.aerospike.server-version-refresh-seconds=3600
+spring.data.aerospike.query-max-records=10000
+spring.data.aerospike.batch-write-size=100
+spring.data.aerospike.keep-original-key-types=false
 ----
 
 Configuration class:
@@ -60,7 +60,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
     }
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setScansEnabled(false);
         aerospikeDataSettings.setCreateIndexesOnStartup(true);
         aerospikeDataSettings.setIndexCacheRefreshSeconds(3600);
@@ -85,7 +85,7 @@ set via application.properties.
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.connection.hosts=hostname1:3001, hostname2:tlsName2:3002
+spring.aerospike..hosts=hostname1:3001, hostname2:tlsName2:3002
 ----
 
 A String of hosts separated by `,` in form of `hostname1[:tlsName1][:port1],...`
@@ -125,7 +125,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.connection.namespace=test
+spring.data.aerospike..namespace=test
 ----
 
 Aerospike DB namespace.
@@ -160,7 +160,7 @@ for implementation details.
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.data.scans-enabled=false
+spring.data.aerospike.scans-enabled=false
 ----
 
 A scan can be an expensive operation as all records in the set must be read by the Aerospike server,
@@ -178,7 +178,7 @@ It has precedence over reading from application.properties. Here is an example:
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setScansEnabled(false);
     }
 }
@@ -195,7 +195,7 @@ in a particular use case.
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.data.create-indexes-on-startup=true
+spring.data.aerospike.create-indexes-on-startup=true
 ----
 
 Create secondary indexes specified using `@Indexed` annotation on startup.
@@ -210,7 +210,7 @@ It has precedence over reading from application.properties. Here is an example:
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setCreateIndexesOnStartup(true);
     }
 }
@@ -224,7 +224,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.data.index-cache-refresh-seconds=3600
+spring.data.aerospike.index-cache-refresh-seconds=3600
 ----
 
 Automatically refresh indexes cache every <N> seconds.
@@ -239,7 +239,7 @@ It has precedence over reading from application.properties. Here is an example:
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setIndexCacheRefreshSeconds(3600);
     }
 }
@@ -253,7 +253,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.data.server-version-refresh-seconds=3600
+spring.data.aerospike.server-version-refresh-seconds=3600
 ----
 
 Automatically refresh cached server version every <N> seconds.
@@ -268,7 +268,7 @@ It has precedence over reading from application.properties. Here is an example:
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setServerVersionRefreshSeconds(3600);
     }
 }
@@ -282,7 +282,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.data.query-max-records=10000
+spring.data.aerospike.query-max-records=10000
 ----
 
 Limit amount of results returned by server. Non-positive value means no limit.
@@ -297,7 +297,7 @@ It has precedence over reading from application.properties. Here is an example:
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setQueryMaxRecords(10000L);
     }
 }
@@ -311,7 +311,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.data.batch-write-size=100
+spring.data.aerospike.batch-write-size=100
 ----
 
 Maximum batch size for batch write operations. Non-positive value means no limit.
@@ -326,7 +326,7 @@ It has precedence over reading from application.properties. Here is an example:
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setBatchWriteSize(100);
     }
 }
@@ -340,7 +340,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.data.keep-original-key-types=false
+spring.data.aerospike.keep-original-key-types=false
 ----
 
 Define how `@Id` fields (primary keys) and `Map` keys are stored in the Aerospike database:
@@ -381,7 +381,7 @@ It has precedence over reading from application.properties. Here is an example:
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setKeepOriginalKeyTypes(false);
     }
 }
@@ -395,7 +395,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring-data-aerospike.data.writeSortedMaps=true
+spring.data.aerospike.writeSortedMaps=true
 ----
 
 Define how Maps and POJOs are written: `true` - as sorted maps (`TreeMap`, default), `false` - as unsorted (`HashMap`).
@@ -414,7 +414,7 @@ It has precedence over reading from application.properties. Here is an example:
 class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 
     @Override
-    public void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
+    protected void configureDataSettings(AerospikeDataSettings aerospikeDataSettings) {
         aerospikeDataSettings.setWriteSortedMaps(true);
     }
 }

@@ -9,7 +9,7 @@ One of the main goals of the Spring Data is to significantly reduce the amount o
 One of the core interfaces of Spring Data is `Repository`.
 This interface acts primarily to capture the types to work with and to help user to discover interfaces that extend Repository.
 
-In other words, it allows user to have basic and complicated queries without writing the implementation. This builds on the <<repositories, Core SpringData Repository Support>>, so make sure you've got a sound understanding of this concept.
+In other words, it allows user to have basic and complicated queries without writing the implementation. This builds on the link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories.html[Core Spring Data Repository Support], so make sure you've got a sound understanding of this concept.
 
 [[aerospike-repo-usage]]
 == Usage

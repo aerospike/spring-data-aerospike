@@ -11,6 +11,8 @@ predefined rules and constraints.
 transaction are not visible to others.
 . **Durability** guarantees that once a transaction has been committed, its changes are permanent.
 
+For more details, see link:https://docs.spring.io/spring-framework/reference/data-access/transaction.html[Spring Transaction Management].
+
 == Choosing Transaction Management Model
 
 Spring offers two models of transaction management: **declarative** and **programmatic**. When choosing between them,
