@@ -12,8 +12,8 @@ Here is an example:
 [source,properties]
 ----
 # application.properties
-spring.aerospike..hosts=localhost:3000
-spring.data.aerospike..namespace=test
+spring.aerospike.hosts=localhost:3000
+spring.data.aerospike.namespace=test
 spring.data.aerospike.scans-enabled=false
 spring.data.aerospike.send-key=true
 spring-data-aerospike.create-indexes-on-startup=true
@@ -85,7 +85,7 @@ set via application.properties.
 [source,properties]
 ----
 # application.properties
-spring.aerospike..hosts=hostname1:3001, hostname2:tlsName2:3002
+spring.aerospike.hosts=hostname1:3001, hostname2:tlsName2:3002
 ----
 
 A String of hosts separated by `,` in form of `hostname1[:tlsName1][:port1],...`
@@ -125,7 +125,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 [source,properties]
 ----
 # application.properties
-spring.data.aerospike..namespace=test
+spring.data.aerospike.namespace=test
 ----
 
 Aerospike DB namespace.
