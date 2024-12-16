@@ -7,11 +7,9 @@ This chapter provides some basic introduction to Spring and Aerospike, it explai
 
 [[get-started:first-steps:spring]]
 == Knowing Spring
-Spring Data uses Spring framework's https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/spring-core.html[core] functionality, such as the https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/beans.html[IoC] container, https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/validation.html#core-convert[type conversion system], https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/expressions.html[expression language], https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/jmx.html[JMX integration], and portable https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy]. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar regardless of IoC container you choose to use.
+Spring Data uses Spring framework's https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/spring-core.html[core] functionality, such as the https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/beans.html[IoC] container, https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/validation.html#core-convert[type conversion system], https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy] etc. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar regardless of IoC container you choose to use.
 
-The core functionality of the Aerospike support can be used directly, with no need to invoke the IoC services of the Spring Container. This is much like `JdbcTemplate` which can be used 'standalone' without any other services of the Spring container. To leverage all the features of the Spring Data document, such as the repository support, you will need to configure some parts of the library using Spring.
-
-To learn more about Spring, you can refer to the comprehensive (and sometimes disarming) documentation that explains in detail the Spring Framework. There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework https://docs.spring.io/spring-framework/reference/[documentation reference] for more information.
+To learn more about Spring, you can refer to the comprehensive documentation that explains in detail the Spring Framework. There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework https://docs.spring.io/spring-framework/reference/[documentation reference] for more information.
 
 [[get-started:first-steps:nosql]]
 == Knowing NoSQL and Aerospike
@@ -28,7 +26,7 @@ The jumping off ground for learning about Aerospike is https://www.aerospike.com
 
 Spring Data Aerospike binaries require JDK level 17.0 and above.
 
-In terms of server, it is required to use  at least https://www.aerospike.com/download/server/[Aerospike server] version 5.2 (recommended to use the latest version when possible).
+In terms of server, it is required to use  at least https://www.aerospike.com/download/server/[Aerospike server] version 6.1 (recommended to use the latest version when possible).
 
 == Additional Help Resources
 

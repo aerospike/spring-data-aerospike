@@ -25,7 +25,7 @@ protected AerospikeTemplate template;
 
 An alternative is to instantiate it yourself, you can see the bean in `AbstractAerospikeDataConfiguration`.
 
-In case if you need to use custom `WritePolicy`, the `persist` operation can be used
+In case if you need to use custom `WritePolicy`, the `persist` operation can be used.
 
 For CAS updates `save` operation must be used.
 

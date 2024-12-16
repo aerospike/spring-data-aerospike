@@ -1,0 +1,53 @@
+[[aerospike.query-methods-combined]]
+= Combined Query Methods
+
+In Spring Data, complex query methods using `And` or `Or` conjunction allow developers to define custom database queries based on method names that combine multiple conditions. These methods leverage query derivation, enabling developers to create expressive and type-safe queries by simply defining method signatures.
+
+For more details, see link:https://docs.spring.io/spring-data/commons/reference/repositories/query-methods-details.html[Defining Query Methods].
+
+For instance, a method like `findByFirstNameAndLastName` will fetch records matching both conditions, while `findByFirstNameOrLastName` will return records that match either condition. These query methods simplify database interaction by reducing boilerplate code and relying on convention over configuration for readability and maintainability.
+
+In Spring Data Aerospike you define such queries by adding query methods signatures to a `Repository`, as you would typically, wrapping each query parameter with `QueryParam.of()` method. This method is required to pass arguments to each part of a combined query, it can receive one or more objects of the same type.
+
+This way `QueryParam` stores arguments passed to each part of a combined repository query, e.g., `repository.findByNameAndEmail(QueryParam.of("John"), QueryParam.of("email"))`.
+
+Here are some examples:
+
+
+[source,java]
+----
+public interface CustomerRepository extends AerospikeRepository<Customer, String> {
+
+     // simple query
+    List<Customer> findByLastName(String lastName);
+
+     // simple query
+    List<Customer> findByFirstName(String firstName);
+
+    // combined query with AND conjunction
+    List<Customer> findByEmailAndFirstName(QueryParam email, QueryParam firstName);
+
+    // combined query with AND conjunctions
+    List<Customer> findByIdAndFirstNameAndAge(QueryParam id, QueryParam firstName, QueryParam age);
+
+    // combined query with OR conjunction
+    List<Consumer> findByFirstNameOrAge(QueryParam firstName, QueryParam age);
+
+    // combined query with AND and OR conjunctions
+    List<Consumer> findByEmailAndFirstNameOrAge(QueryParam email, QueryParam firstName, QueryParam age);
+}
+
+    @Test
+    void findByCombinedQuery() {
+        QueryParam email = QueryParam.of(dave.getEmail());
+        QueryParam name = QueryParam.of(carter.getFirstName());
+        List<Customer> customers = repository.findByEmailAndFirstName(email, name);
+        assertThat(customers).isEmpty();
+
+        QueryParam ids = QueryParam.of(List.of(leroi.getId(), dave.getId(), carter.getId()));
+        QueryParam firstName = QueryParam.of(leroi.getFirstName());
+        QueryParam age = QueryParam.of(leroi.getAge());
+        List<Customer> customers2 = repository.findByIdAndFirstNameAndAge(ids, firstName, age);
+        assertThat(customers).containsOnly(leroi);
+    }
+----

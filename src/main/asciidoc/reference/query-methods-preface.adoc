@@ -1,3 +1,4 @@
+[[aerospike.query-methods-preface]]
 = Query Methods
 
 Spring Data Aerospike supports defining queries by method name in the Repository interface so that the implementation is generated.
@@ -6,7 +7,7 @@ The format of method names is fairly flexible, comprising a verb and criteria.
 Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`.
 For example, `findByFirstName`, `countByLastName` etc.
 
-For more details refer to basic SpringData documentation: <<query-by-example, Query By Example>>.
+For more details, refer to basic Spring Data documentation: link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories/query-methods-details.html[Defining Query Methods].
 
 == Repository Query Keywords
 

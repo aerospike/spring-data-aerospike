@@ -1,0 +1,55 @@
+[[aerospike.custom-converters]]
+= Aerospike Custom Converters
+
+Spring type converters are components used to convert data between different types, particularly when interacting with databases or binding data from external sources. They facilitate seamless transformation of data, such as converting between String and database-specific types (e.g., LocalDate to DATE or String to enumerations).
+
+For more details, see link:https://docs.spring.io/spring-framework/reference/core/validation/convert.html[Spring Type Conversion].
+
+Spring provides a set of default type converters for common conversions. Spring Data Aerospike has its own built-in converters in `DateConverters` and `AerospikeConverters` classes.
+
+However, in certain cases, custom converters are necessary to handle specific logic or custom serialization requirements. Custom converters allow developers to define precise conversion rules, ensuring data integrity and compatibility between application types and database representations.
+
+In order to add a custom converter you can leverage Spring's `Converter` SPI to implement type conversion logic and override `customConverters()` method available in `AerospikeDataConfigurationSupport`. Here is an example:
+
+[source,java]
+----
+public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
+
+    @Override
+    protected List<Object> customConverters() {
+        return List.of(
+            CompositeKey.CompositeKeyToStringConverter.INSTANCE,
+            CompositeKey.StringToCompositeKeyConverter.INSTANCE
+        );
+    }
+
+    @Value
+    public static class CompositeKey {
+
+        String firstPart;
+        long secondPart;
+
+        @WritingConverter
+        public enum CompositeKeyToStringConverter implements Converter<CompositeKey, String> {
+            INSTANCE;
+
+            @Override
+            public String convert(CompositeKey source) {
+                return source.firstPart + "::" + source.secondPart;
+            }
+        }
+
+        @ReadingConverter
+        public enum StringToCompositeKeyConverter implements Converter<String, CompositeKey> {
+            INSTANCE;
+
+            @Override
+            public CompositeKey convert(String source) {
+                String[] split = source.split("::");
+                return new CompositeKey(split[0], Long.parseLong(split[1]));
+            }
+        }
+    }
+}
+----
+

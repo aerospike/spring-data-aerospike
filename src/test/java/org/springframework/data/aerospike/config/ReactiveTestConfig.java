@@ -21,7 +21,6 @@ import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.testcontainers.containers.GenericContainer;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -37,7 +36,7 @@ public class ReactiveTestConfig extends AbstractReactiveAerospikeDataConfigurati
 
     @Override
     protected List<Object> customConverters() {
-        return Arrays.asList(
+        return List.of(
             SampleClasses.CompositeKey.CompositeKeyToStringConverter.INSTANCE,
             SampleClasses.CompositeKey.StringToCompositeKeyConverter.INSTANCE
         );
