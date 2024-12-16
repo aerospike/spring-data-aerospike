@@ -17,21 +17,17 @@ package org.springframework.data.aerospike.convert;
 
 import org.springframework.data.convert.TypeAliasAccessor;
 import org.springframework.data.mapping.Alias;
+import org.springframework.util.StringUtils;
 
 import java.util.Map;
 
-import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY_DEFAULT;
 
 public class AerospikeTypeAliasAccessor implements TypeAliasAccessor<Map<String, Object>> {
 
     private final String classKey;
 
     public AerospikeTypeAliasAccessor(String classKey) {
-        this.classKey = classKey;
-    }
-
-    public AerospikeTypeAliasAccessor() {
-        this.classKey = CLASS_KEY_DEFAULT;
+        this.classKey = StringUtils.hasText(classKey) ? classKey : null;
     }
 
     @Override

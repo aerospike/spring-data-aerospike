@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
-import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY_DEFAULT;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion.NULL_PARAM;
 import static org.springframework.util.ClassUtils.isAssignable;
@@ -233,6 +232,10 @@ public class AerospikeQueryCreatorUtils {
             && queryParameters.get(0) instanceof Collection<?>) {
             params = ((Collection<Object>) queryParameters.get(0)).stream();
         }
+
+        // skipping further validations as they depend on using classKey
+        if (!StringUtils.hasText(converter.getAerospikeDataSettings().getClassKey())) return;
+
         if (!params.allMatch(param -> isAssignableValueOrConverted(clazz, param, converter))) {
             String validTypes = propertyType.getSimpleName();
             if (alternativeTypes.length > 0) {
@@ -265,12 +268,13 @@ public class AerospikeQueryCreatorUtils {
         }
     }
 
+    // works only when classKey configuration property is not null
     protected static boolean isAssignableValueOrConverted(Class<?> propertyType, Object obj,
                                                           MappingAerospikeConverter converter) {
         return isAssignableValue(propertyType, obj)
             || converter.getCustomConversions().hasCustomReadTarget(obj.getClass(), propertyType)
             // POJOs and enums got converted to Strings when query parameters were set
-            || isPojoMap(obj, propertyType)
+            || isPojoMap(obj, propertyType, converter.getAerospikeDataSettings().getClassKey())
             || (propertyType.isEnum() && obj instanceof String);
     }
 
@@ -279,12 +283,13 @@ public class AerospikeQueryCreatorUtils {
      *
      * @param object       Instance to be compared
      * @param propertyType Class for comparing
+     * @param classKey     Name of the bin to store entity's class
      * @return Whether the object is a converted POJO of the given class
      */
-    protected static boolean isPojoMap(Object object, Class<?> propertyType) {
+    protected static boolean isPojoMap(Object object, Class<?> propertyType, String classKey) {
         if (object instanceof TreeMap<?, ?> treeMap) {
-            Object classKey = treeMap.get(CLASS_KEY_DEFAULT);
-            return classKey != null && classKey.equals(propertyType.getName());
+            Object className = treeMap.get(classKey);
+            return className != null && className.equals(propertyType.getName());
         }
         return false;
     }

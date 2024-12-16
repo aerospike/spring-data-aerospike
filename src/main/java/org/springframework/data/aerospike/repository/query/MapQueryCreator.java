@@ -11,6 +11,7 @@ import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.util.TypeInformation;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,6 +96,9 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                         "expecting two");
                 }
 
+                // skipping further validations as they depend on using classKey
+                if (!StringUtils.hasText(converter.getAerospikeDataSettings().getClassKey())) return;
+
                 if (!(isValidMapKeyTypeOrUnresolved(part.getProperty().getTypeInformation(), param2))) {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid map key type at position 2");
                 }
@@ -105,6 +109,9 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                         "expecting two");
                 }
 
+                // skipping further validations as they depend on using classKey
+                if (!StringUtils.hasText(converter.getAerospikeDataSettings().getClassKey())) return;
+
                 if (!(isValidMapValueTypeOrUnresolved(part.getProperty().getTypeInformation(), param2))) {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid map value type at position 2");
                 }
@@ -114,6 +121,9 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, " +
                         "expecting three");
                 }
+
+                // skipping further validations as they depend on using classKey
+                if (!StringUtils.hasText(converter.getAerospikeDataSettings().getClassKey())) return;
 
                 if (!(isValidMapKeyTypeOrUnresolved(part.getProperty().getTypeInformation(), param2))) {
                     throw new IllegalArgumentException(queryPartDescription + ": invalid map key type at position 2");

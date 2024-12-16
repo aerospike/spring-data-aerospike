@@ -107,10 +107,7 @@ public abstract class AerospikeDataConfigurationSupport {
 
     @Bean(name = "aerospikeTypeAliasAccessor")
     public AerospikeTypeAliasAccessor aerospikeTypeAliasAccessor(AerospikeDataSettings dataSettings) {
-        String classKey = dataSettings.getClassKey();
-        return StringUtils.hasText(classKey)
-            ? new AerospikeTypeAliasAccessor(classKey)
-            : new AerospikeTypeAliasAccessor();
+        return new AerospikeTypeAliasAccessor(dataSettings.getClassKey());
     }
 
     @Bean

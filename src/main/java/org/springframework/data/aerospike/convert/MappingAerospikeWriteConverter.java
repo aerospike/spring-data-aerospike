@@ -267,7 +267,7 @@ public class MappingAerospikeWriteConverter implements EntityWriter<Object, Aero
     }
 
     private Map<String, Object> convertCustomType(Object source, TypeInformation<?> type) {
-        Assert.notNull(source, "Given map must not be null!");
+        Assert.notNull(source, "Given source must not be null!");
         Assert.notNull(type, "Given type must not be null!");
 
         AerospikePersistentEntity<?> entity;
