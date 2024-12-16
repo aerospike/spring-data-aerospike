@@ -775,7 +775,7 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     }
 
     @Test
-    void shouldWriteAndReadNestedPOJOs() {
+    void shouldWriteAndReadNestedPOJOsWithNullClassKey() {
         MappingAerospikeConverter converter =
             getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor(null));
 
