@@ -20,7 +20,6 @@ import java.util.List;
 
 import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY_DEFAULT;
 
-
 /**
  * @author Peter Milne
  * @author Jean Mercier
