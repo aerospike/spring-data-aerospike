@@ -18,6 +18,8 @@ import org.springframework.data.repository.query.parser.PartTree;
 import java.util.Collections;
 import java.util.List;
 
+import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY_DEFAULT;
+
 /**
  * @author Peter Milne
  * @author Jean Mercier
@@ -66,7 +68,7 @@ public class AerospikeQueryCreatorUnitTests {
 
     private MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions) {
         MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor(), new AerospikeDataSettings(null));
+            conversions, new AerospikeTypeAliasAccessor(CLASS_KEY_DEFAULT), new AerospikeDataSettings(null));
         converter.afterPropertiesSet();
         return converter;
     }

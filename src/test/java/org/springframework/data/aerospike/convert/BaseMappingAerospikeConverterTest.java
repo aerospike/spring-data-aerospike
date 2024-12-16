@@ -61,7 +61,8 @@ public abstract class BaseMappingAerospikeConverterTest {
 
     protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeDataSettings settings,
                                                                      Converter<?, ?>... customConverters) {
-        return getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor(), customConverters);
+        return getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor(settings.getClassKey()),
+            customConverters);
     }
 
     protected MappingAerospikeConverter getMappingAerospikeConverter(AerospikeDataSettings settings,

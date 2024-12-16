@@ -409,7 +409,7 @@ public class MappingAerospikeConverterTests extends BaseMappingAerospikeConverte
     @Test
     public void getConversionService() {
         MappingAerospikeConverter mappingAerospikeConverter =
-            getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor());
+            getMappingAerospikeConverter(settings, new AerospikeTypeAliasAccessor(settings.getClassKey()));
         assertThat(mappingAerospikeConverter.getConversionService()).isNotNull()
             .isInstanceOf(DefaultConversionService.class);
     }

@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static org.springframework.data.aerospike.convert.AerospikeConverter.CLASS_KEY_DEFAULT;
+
 public class QueryUtils {
 
     private static final Map<Class<?>, Class<?>> WRAPPERS_TO_PRIMITIVES
@@ -107,7 +109,7 @@ public class QueryUtils {
     private static MappingAerospikeConverter getMappingAerospikeConverter(AerospikeCustomConversions conversions)
     {
         MappingAerospikeConverter converter = new MappingAerospikeConverter(new AerospikeMappingContext(),
-            conversions, new AerospikeTypeAliasAccessor(), new AerospikeDataSettings(null));
+            conversions, new AerospikeTypeAliasAccessor(CLASS_KEY_DEFAULT), new AerospikeDataSettings(null));
         converter.afterPropertiesSet();
         return converter;
     }
