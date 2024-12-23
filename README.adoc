@@ -111,7 +111,7 @@ Add the `spring-data-aerospike` Maven dependency:
 
 Notes:
 
-* It is recommended to use the latest version, check out Spring Data Aerospike
+* It is recommended to use the latest version. Check out Spring Data Aerospike
 https://github.com/aerospike/spring-data-aerospike/releases[GitHub releases]
 * Spring Data Aerospike uses the https://github.com/aerospike/aerospike-client-java[Aerospike Java Client]
 (and https://github.com/aerospike/aerospike-client-java-reactive[Aerospike Reactive Java Client]) under the hood
