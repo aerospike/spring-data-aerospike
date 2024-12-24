@@ -13,7 +13,7 @@ xref:#configuration.scans-enabled[`scansEnabled`] parameter to `true`.
 
 [source,properties]
 ----
-spring-data-aerospike.scans-enabled=true
+spring.data.aerospike.scans-enabled=true
 ----
 
 NOTE: Once this flag is enabled, scans run whenever needed with no warnings.
