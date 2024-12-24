@@ -46,7 +46,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                QueryEngine queryEngine, IndexRefresher indexRefresher,
                                                ServerVersionSupport serverVersionSupport,
-                                               AerospikeSettings settings) {
+                                               AerospikeSettings settings)
+    {
         return new AerospikeTemplate(aerospikeClient, settings.getDataSettings().getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine,
             indexRefresher, serverVersionSupport);
@@ -55,7 +56,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
     @Bean(name = "aerospikeQueryEngine")
     public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
                                    StatementBuilder statementBuilder,
-                                   FilterExpressionsBuilder filterExpressionsBuilder, AerospikeSettings settings) {
+                                   FilterExpressionsBuilder filterExpressionsBuilder, AerospikeSettings settings)
+    {
         QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder,
             settings.getDataSettings());
         boolean scansEnabled = settings.getDataSettings().isScansEnabled();
@@ -72,11 +74,12 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         return queryEngine;
     }
 
-    @Bean
+    @Bean(name = "aerospikePersistenceEntityIndexCreator")
     public AerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
-        ObjectProvider<AerospikeTemplate> template, AerospikeSettings settings) {
+        ObjectProvider<AerospikeTemplate> template, AerospikeSettings settings)
+    {
         boolean indexesOnStartup = settings.getDataSettings().isCreateIndexesOnStartup();
         log.info("AerospikeDataSettings.indexesOnStartup: {}", indexesOnStartup);
         return new AerospikePersistenceEntityIndexCreator(aerospikeMappingContext, indexesOnStartup,
@@ -85,7 +88,8 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
 
     @Bean(name = "aerospikeIndexRefresher")
     public IndexRefresher indexRefresher(IAerospikeClient aerospikeClient, IndexesCacheUpdater indexesCacheUpdater,
-                                         ServerVersionSupport serverVersionSupport, AerospikeSettings settings) {
+                                         ServerVersionSupport serverVersionSupport, AerospikeSettings settings)
+    {
         IndexRefresher refresher = new IndexRefresher(aerospikeClient, aerospikeClient.getInfoPolicyDefault(),
             new InternalIndexOperations(new IndexInfoParser()), indexesCacheUpdater, serverVersionSupport);
         refresher.refreshIndexes();
