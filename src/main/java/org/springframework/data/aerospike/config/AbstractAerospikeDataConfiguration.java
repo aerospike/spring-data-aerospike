@@ -72,7 +72,7 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
         return queryEngine;
     }
 
-    @Bean
+    @Bean(name = "aerospikePersistenceEntityIndexCreator")
     public AerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,

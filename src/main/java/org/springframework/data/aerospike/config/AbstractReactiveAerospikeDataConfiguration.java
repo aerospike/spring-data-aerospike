@@ -105,7 +105,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
         return clientPolicy;
     }
 
-    @Bean
+    @Bean(name = "reactiveAerospikePersistenceEntityIndexCreator")
     public ReactiveAerospikePersistenceEntityIndexCreator aerospikePersistenceEntityIndexCreator(
         ObjectProvider<AerospikeMappingContext> aerospikeMappingContext,
         AerospikeIndexResolver aerospikeIndexResolver,
