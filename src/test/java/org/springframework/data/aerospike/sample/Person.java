@@ -66,6 +66,7 @@ public class Person {
     private List<String> strings;
     private List<Integer> ints;
     private int[] intArray;
+    private byte[] byteArray;
     private List<List<Integer>> listOfIntLists;
     private List<Map<String, Integer>> listOfIntMaps;
     private Set<Integer> intSet;

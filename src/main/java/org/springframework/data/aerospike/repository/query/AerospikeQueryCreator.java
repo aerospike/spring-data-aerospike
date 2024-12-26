@@ -108,6 +108,7 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
     private CriteriaDefinition create(Part part, AerospikePersistentProperty property, Iterator<?> parameters) {
         FilterOperation filterOperation = getFilterOperation(part.getType());
         List<Object> queryParameters = getQueryParameters(parameters, filterOperation);
+        // In case of byte[] it does not get converted to an ArrayList, so queryParameters contain byte array
         IAerospikeQueryCreator queryCreator = getQueryCreator(part, property, queryParameters, filterOperation);
 
         queryCreator.validate();

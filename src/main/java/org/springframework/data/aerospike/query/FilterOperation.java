@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
+import static com.aerospike.client.command.ParticleType.BLOB;
 import static com.aerospike.client.command.ParticleType.BOOL;
 import static com.aerospike.client.command.ParticleType.INTEGER;
 import static com.aerospike.client.command.ParticleType.LIST;
@@ -192,6 +193,7 @@ public enum FilterOperation {
                         Exp::mapBin);
                     case LIST -> getFilterExp(Exp.val((List<?>) value.getObject()), getBinName(qualifierMap), Exp::eq,
                         Exp::listBin);
+                    case BLOB -> Exp.eq(Exp.blobBin(getBinName(qualifierMap)), Exp.val((byte[]) value.getObject()));
                     default -> throw new IllegalArgumentException("EQ FilterExpression unsupported particle type: " +
                         value.getClass().getSimpleName());
                 };
@@ -210,6 +212,12 @@ public enum FilterOperation {
                         yield null;
                     }
                     yield Filter.equal(getBinName(qualifierMap), value.toString());
+                }
+                case BLOB -> {
+                    if (!FilterOperation.getServerVersionSupport(qualifierMap).isServerVersionGtOrEq7()) {
+                        yield null;
+                    }
+                    yield Filter.equal(getBinName(qualifierMap), (byte[]) value.getObject());
                 }
                 default -> null;
             };

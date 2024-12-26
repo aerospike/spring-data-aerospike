@@ -53,7 +53,9 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         .strings(Collections.singletonList("str1")).friend(new Person("id21", "TestPerson21", 50)).build();
     final Person ashley = Person.builder().id(nextId()).firstName("Ashley").lastName("Matthews")
         .ints(Collections.singletonList(22))
-        .strings(Collections.singletonList("str2")).age(22).friend(new Person("id22", "TestPerson22", 50)).build();
+        .byteArray(new byte[]{1, 0, 1, 1, 0, 0, 0, 1})
+        .strings(Collections.singletonList("str2")).age(22).friend(new Person("id22", "TestPerson22", 50))
+        .build();
     final Person beatrice = Person.builder().id(nextId()).firstName("Beatrice").lastName("Matthews").age(23)
         .ints(Collections.singletonList(23))
         .friend(new Person("id23", "TestPerson23", 42)).build();
@@ -86,6 +88,8 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
 
         additionalAerospikeTestOperations.createIndex(Person.class, "person_first_name_index", "firstName",
             IndexType.STRING);
+        additionalAerospikeTestOperations.createIndex(Person.class, "person_byte_array_index", "byteArray",
+            IndexType.BLOB);
     }
 
     @Override
@@ -102,10 +106,20 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
     }
 
     @Test
-    public void findWithFilterEqual() {
+    public void findWithFilterEqual_String() {
         Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
         Stream<Person> result = template.find(query, Person.class);
         assertThat(result).containsOnly(dave);
+    }
+
+    @Test
+    public void findWithFilterEqual_ByteArray() {
+        if (serverVersionSupport.isServerVersionGtOrEq7()) {
+            byte[] byteArray = new byte[]{1, 0, 1, 1, 0, 0, 0, 1};
+            Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByByteArray", new Object[]{byteArray});
+            Stream<Person> result = template.find(query, Person.class);
+            assertThat(result).containsOnly(ashley);
+        }
     }
 
     @Test
