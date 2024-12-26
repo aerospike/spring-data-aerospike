@@ -1577,6 +1577,10 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByGenderIn(List<Person.Gender> list);
 
+    List<P> findByByteArray(byte[] byteArray);
+
+    List<P> findByIntArray(int[] intArray);
+
     List<P> findByFirstNameIs(String name);
 
     boolean existsByFirstNameIs(String name);

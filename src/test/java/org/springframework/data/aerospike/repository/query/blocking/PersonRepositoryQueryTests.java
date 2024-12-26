@@ -70,6 +70,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         .firstName("Stefan")
         .lastName("Lessard")
         .age(34)
+        .byteArray(new byte[]{1, 0, 1, 1, 0, 0, 0, 1})
         .build();
     protected static final Person leroi = Person.builder()
         .id(nextId())
@@ -89,7 +90,7 @@ public class PersonRepositoryQueryTests extends BaseBlockingIntegrationTests {
         .firstName("Matias")
         .lastName("Craft")
         .age(24)
-        .intArray(new int[]{1, 2, 3, 4, 5})
+        .intArray(new int[]{0, 1, 2, 3, 4, 5})
         .build();
     protected static final Person douglas = Person.builder()
         .id(nextId())

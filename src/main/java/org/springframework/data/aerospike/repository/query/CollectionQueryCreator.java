@@ -85,6 +85,11 @@ public class CollectionQueryCreator implements IAerospikeQueryCreator {
             throw new IllegalArgumentException(queryPartDescription + ": invalid number of arguments, expecting one");
         }
 
+        // In case of byte[] it does not get converted to an ArrayList, so queryParameters contain byte array
+        if (queryParameters.get(0) instanceof byte[]) {
+             return;
+        }
+
         if (queryParameters.get(0) instanceof Collection) {
             validateTypes(converter, Collection.class, queryParameters, this.filterOperation, queryPartDescription);
         } else {

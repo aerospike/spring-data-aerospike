@@ -408,6 +408,12 @@ public class EqualsTests extends PersonRepositoryQueryTests {
             // another way to call the method
             List<Person> persons2 = repository.findByStrings(listToCompareWith);
             assertThat(persons2).contains(dave);
+
+            List<Person> persons3 = repository.findByIntArray(new int[]{0, 1, 2, 3, 4, 5});
+            assertThat(persons3).containsOnly(matias);
+
+            List<Person> persons4 = repository.findByByteArray(new byte[]{1, 0, 1, 1, 0, 0, 0, 1});
+            assertThat(persons4).containsOnly(stefan);
         }
     }
 
