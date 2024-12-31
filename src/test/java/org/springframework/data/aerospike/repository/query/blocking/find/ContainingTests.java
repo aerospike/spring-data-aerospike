@@ -166,6 +166,18 @@ public class ContainingTests extends PersonRepositoryQueryTests {
     }
 
     @Test
+    void findByNestedCollectionContainingList() {
+        if (serverVersionSupport.isFindByCDTSupported()) {
+            List<List<Integer>> listOfLists1 = List.of(List.of(100));
+            stefan.setListOfIntLists(listOfLists1);
+            repository.save(stefan);
+
+            List<Person> persons = repository.findByListOfIntListsContaining(List.of(100));
+            assertThat(persons).contains(stefan);
+        }
+    }
+
+    @Test
     void findByMapKeysContainingString() {
         assertThat(donny.getStringMap()).containsKey("key1");
         assertThat(boyd.getStringMap()).containsKey("key1");
