@@ -1697,6 +1697,11 @@ public enum FilterOperation {
     private static Exp mapKeysContain(Map<QualifierKey, Object> qualifierMap) {
         String errMsg = "MAP_KEYS_CONTAIN FilterExpression unsupported type: got " +
             getValue(qualifierMap).getClass().getSimpleName();
+        String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap));
+        if (hasMapKeyPlaceholder(qualifierMap) && dotPathArray != null && dotPathArray.length > 1) {
+            List<String> ctxList = convertToStringListExclStart(dotPathArray);
+            qualifierMap.put(CTX_ARRAY, resolveCtxList(ctxList));
+        }
         return mapKeysCountComparedToZero(qualifierMap, Exp::gt, getValue(qualifierMap), errMsg);
     }
 
@@ -2006,5 +2011,10 @@ public enum FilterOperation {
     @SuppressWarnings("SameParameterValue")
     protected Filter geoWithinRadius(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap) {
         return Filter.geoContains(getBinName(qualifierMap), getValue(qualifierMap).toString());
+    }
+
+    private static boolean hasMapKeyPlaceholder(Map<QualifierKey, Object> qualifierMap) {
+        Object mapKeyPlaceholder = qualifierMap.get(MAP_KEY_PLACEHOLDER);
+        return mapKeyPlaceholder != null && Boolean.parseBoolean(mapKeyPlaceholder.toString());
     }
 }
