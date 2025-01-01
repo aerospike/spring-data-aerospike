@@ -41,7 +41,7 @@ public class AerospikeQueryCreatorUtils {
             qb.setDotPath(dotPath);
             String[] dotPathArr = getDotPathArray(dotPath);
             if (dotPathArr != null && dotPathArr.length > 2) {
-                List<String> ctxList = getCtxFromDotPathArray(dotPathArr);
+                List<String> ctxList = convertToStringListExclStartAndEnd(dotPathArr);
                 qb.setCtxArray(resolveCtxList(ctxList));
             }
         }
@@ -49,7 +49,7 @@ public class AerospikeQueryCreatorUtils {
         return qb.build();
     }
 
-    private static CTX[] resolveCtxList(List<String> ctxList) {
+    public static CTX[] resolveCtxList(List<String> ctxList) {
         return ctxList.stream()
             .filter(not(String::isEmpty))
             .map(AerospikeContextDslResolverUtils::toCtx)
@@ -69,10 +69,29 @@ public class AerospikeQueryCreatorUtils {
         return null;
     }
 
-    protected static List<String> getCtxFromDotPathArray(@NonNull String[] dotPathArr) {
-        return Arrays.stream(dotPathArr)
+    /**
+     * Convert a String array into String List excluding the first and the last elements
+     *
+     * @param array String array
+     * @return String List
+     */
+    protected static List<String> convertToStringListExclStartAndEnd(@NonNull String[] array) {
+        return Arrays.stream(array)
             .skip(1) // first element is bin name
-            .limit(dotPathArr.length - 2L) // last element is the key we already have
+            .limit(array.length - 2L) // last element is the key we already have
+            .collect(Collectors.toList());
+    }
+
+    /**
+     * Convert a String array into String List excluding the first element
+     *
+     * @param array String array
+     * @return String List
+     */
+    public static List<String> convertToStringListExclStart(@NonNull String[] array) {
+        return Arrays.stream(array)
+            .skip(1) // first element is bin name
+            .limit(array.length - 1L)
             .collect(Collectors.toList());
     }
 

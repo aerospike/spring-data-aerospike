@@ -1420,7 +1420,12 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     /**
      * Find all entities that satisfy the condition "have the list of lists which is greater than the given list".
      * <p>
-     * ListOfIntLists is the name of the list of lists
+     * ListOfIntLists is the name of the list of lists.
+     * <br><br>
+     * Note: only the upper level ListOfLists will be compared even if the parameter has different number of levels.
+     * So findByListOfListsGreaterThan(List.of(1)) and findByListOfListsGreaterThan(List.of(List.of(List.of(1))))
+     * will compare with the given parameter only the upper level ListOfLists itself
+     *
      * </p>
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list">Information about ordering</a>
@@ -1428,6 +1433,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * @param list List to compare with
      */
     List<P> findByListOfIntListsGreaterThan(List<List<Integer>> list);
+
+    /**
+     * Find all entities that satisfy the condition "contain the given list".
+     * <p>
+     * @param list List to contain
+     */
+    List<P> findByListOfIntListsContaining(List<Integer> list);
 
     /**
      * Find all entities that satisfy the condition "have map in the given range"

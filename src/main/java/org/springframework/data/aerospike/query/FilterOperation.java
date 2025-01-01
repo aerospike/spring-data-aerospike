@@ -48,7 +48,9 @@ import static com.aerospike.client.command.ParticleType.LIST;
 import static com.aerospike.client.command.ParticleType.MAP;
 import static com.aerospike.client.command.ParticleType.STRING;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.*;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.convertToStringListExclStart;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getDotPathArray;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.resolveCtxList;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getContaining;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getEndsWith;
 import static org.springframework.data.aerospike.util.FilterOperationRegexpBuilder.getNotContaining;
@@ -1082,7 +1084,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            return collectionContains(IndexCollectionType.MAPKEYS, qualifierMap);
+            return cdtContains(IndexCollectionType.MAPKEYS, qualifierMap);
         }
     },
     /**
@@ -1118,7 +1120,7 @@ public enum FilterOperation {
 
         @Override
         public Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap) {
-            return collectionContains(IndexCollectionType.MAPVALUES, qualifierMap);
+            return cdtContains(IndexCollectionType.MAPVALUES, qualifierMap);
         }
     },
     /**
@@ -1255,7 +1257,7 @@ public enum FilterOperation {
                 return null;
             }
 
-            return collectionContains(IndexCollectionType.LIST, qualifierMap);
+            return cdtContains(IndexCollectionType.LIST, qualifierMap);
         }
     },
     /**
@@ -1937,10 +1939,6 @@ public enum FilterOperation {
         return Value.get(qualifierMap.get(KEY));
     }
 
-    protected static String getKeyAsString(Map<QualifierKey, Object> qualifierMap) {
-        return (String) qualifierMap.get(KEY);
-    }
-
     protected static Value getNestedKey(Map<QualifierKey, Object> qualifierMap) {
         return Value.get(qualifierMap.get(NESTED_KEY));
     }
@@ -1977,9 +1975,14 @@ public enum FilterOperation {
 
     public abstract Filter sIndexFilter(Map<QualifierKey, Object> qualifierMap);
 
-    protected Filter collectionContains(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap) {
+    protected Filter cdtContains(IndexCollectionType collectionType, Map<QualifierKey, Object> qualifierMap) {
         Value val = getValue(qualifierMap);
         int valType = val.getType();
+        String[] dotPathArray = getDotPathArray(getDotPath(qualifierMap));
+        if (dotPathArray != null && dotPathArray.length > 1) {
+            List<String> ctxList = convertToStringListExclStart(dotPathArray);
+            qualifierMap.put(CTX_ARRAY, resolveCtxList(ctxList));
+        }
         return switch (valType) {
             // TODO: Add Bytes and Double Support (will fail on old mode - no results)
             case INTEGER -> Filter.contains(getBinName(qualifierMap), collectionType, val.toLong(),
