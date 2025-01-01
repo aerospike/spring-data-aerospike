@@ -321,14 +321,4 @@ public class Utils {
         String value = getProperty(environment, prefix, propertyName);
         if (value != null) setter.accept(Integer.parseInt(value));
     }
-
-    /**
-     * Convert an Object to boolean.
-     *
-     * @param object Can be null
-     * @return The given object cast to boolean, or false if it is null
-     */
-    public static boolean objectToBoolean(@Nullable Object object) {
-        return object != null && (boolean) object;
-    }
 }

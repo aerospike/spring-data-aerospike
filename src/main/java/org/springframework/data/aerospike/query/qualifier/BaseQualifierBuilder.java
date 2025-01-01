@@ -12,7 +12,6 @@ import static org.springframework.data.aerospike.query.qualifier.QualifierKey.IG
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.PATH;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.SECOND_VALUE;
 import static org.springframework.data.aerospike.query.qualifier.QualifierKey.VALUE;
-import static org.springframework.data.aerospike.util.Utils.objectToBoolean;
 
 @SuppressWarnings("unchecked")
 public abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> implements IQualifierBuilder {
@@ -20,7 +19,7 @@ public abstract class BaseQualifierBuilder<T extends BaseQualifierBuilder<?>> im
     protected final Map<QualifierKey, Object> map = new HashMap<>();
 
     public boolean getIgnoreCase() {
-        return objectToBoolean(map.get(IGNORE_CASE));
+        return  (Boolean) map.getOrDefault(IGNORE_CASE, false);
     }
 
     public FilterOperation getFilterOperation() {
