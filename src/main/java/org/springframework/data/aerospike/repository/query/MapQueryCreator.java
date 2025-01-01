@@ -280,11 +280,8 @@ public class MapQueryCreator implements IAerospikeQueryCreator {
                 case KEY -> {
                     op = keysOp;
                     setQualifierBuilderValue(qb, queryParameters.get(1));
-                    // the actual value is irrelevant here,
-                    // the last dotPath element is discarded within AerospikeQueryCreatorUtils.getCtxFromDotPathArray(),
-                    // the elements except the first and the last are converted to CTX,
-                    // the key object (can contain '.') is transferred separately via qualifier builder value
-                    dotPath.add("mapKeyPlaceholder");
+                    // Map key placeholder is set for "Map keys containing" queries
+                    qb.setMapKeyPlaceholder();
                 }
                 case VALUE -> {
                     op = valuesOp;

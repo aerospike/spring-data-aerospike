@@ -102,8 +102,15 @@ public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder
         return this;
     }
 
+    /**
+     * Set Map key placeholder (for "Map keys containing" queries).
+     */
+    public QueryQualifierBuilder setMapKeyPlaceholder() {
+        this.map.put(MAP_KEY_PLACEHOLDER, true);
+        return this;
+    }
+
     public boolean hasDotPath() {
         return map.get(DOT_PATH) != null;
     }
-
 }
