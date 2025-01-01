@@ -30,6 +30,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -319,5 +320,15 @@ public class Utils {
                                         String propertyName) {
         String value = getProperty(environment, prefix, propertyName);
         if (value != null) setter.accept(Integer.parseInt(value));
+    }
+
+    /**
+     * Convert an Object to boolean.
+     *
+     * @param object Can be null
+     * @return The given object cast to boolean, or false if it is null
+     */
+    public static boolean objectToBoolean(@Nullable Object object) {
+        return object != null && (boolean) object;
     }
 }

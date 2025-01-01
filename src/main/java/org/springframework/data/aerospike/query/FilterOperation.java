@@ -59,6 +59,7 @@ import static org.springframework.data.aerospike.util.FilterOperationRegexpBuild
 import static org.springframework.data.aerospike.util.Utils.ctxArrToString;
 import static org.springframework.data.aerospike.util.Utils.getExpType;
 import static org.springframework.data.aerospike.util.Utils.getExpValOrFail;
+import static org.springframework.data.aerospike.util.Utils.objectToBoolean;
 
 public enum FilterOperation {
     /**
@@ -2014,7 +2015,6 @@ public enum FilterOperation {
     }
 
     private static boolean hasMapKeyPlaceholder(Map<QualifierKey, Object> qualifierMap) {
-        Object mapKeyPlaceholder = qualifierMap.get(MAP_KEY_PLACEHOLDER);
-        return mapKeyPlaceholder != null && Boolean.parseBoolean(mapKeyPlaceholder.toString());
+        return objectToBoolean(qualifierMap.get(MAP_KEY_PLACEHOLDER));
     }
 }
