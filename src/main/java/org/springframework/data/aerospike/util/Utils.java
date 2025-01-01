@@ -30,7 +30,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
