@@ -38,7 +38,7 @@
         <lombok>1.18.36</lombok>
         <awaitility>4.2.2</awaitility>
         <logback.test>1.5.8</logback.test>
-        <hibernate.validator>8.0.1.Final</hibernate.validator>
+        <hibernate.validator>8.0.2.Final</hibernate.validator>
         <netty.version>4.1.115.Final</netty.version>
         <kryo.version>5.6.2</kryo.version>
         <apacheCommonsCodec.version>1.17.1</apacheCommonsCodec.version>
