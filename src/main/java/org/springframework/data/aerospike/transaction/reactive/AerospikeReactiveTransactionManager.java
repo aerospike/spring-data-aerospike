@@ -25,7 +25,6 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     /**
      * Create a new instance of {@link AerospikeReactiveTransactionManager}
      */
-
     public AerospikeReactiveTransactionManager(IAerospikeReactorClient client) {
         this.client = client;
     }
@@ -73,7 +72,12 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
                     rHolder.setSynchronizedWithTransaction(true);
                     synchronizationManager.bindResource(client, rHolder);
                 })
-                .onErrorMap(e -> new TransactionSystemException("Could not bind transaction resource", e))
+                .onErrorMap(e -> {
+                    if (e instanceof TransactionSystemException) {
+                        return e;
+                    }
+                    return new TransactionSystemException("Could not bind transaction resource", e);
+                })
                 .then();
         });
     }
@@ -89,10 +93,8 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     @Override
     protected Mono<Void> doCommit(TransactionSynchronizationManager synchronizationManager,
                                   GenericReactiveTransaction status) {
-        return Mono.fromRunnable(() -> {
-                AerospikeReactiveTransaction transaction = getTransaction(status);
-                transaction.commitTransaction();
-            })
+        return Mono.fromSupplier(() -> getTransaction(status))
+            .flatMap(AerospikeReactiveTransaction::commitTransaction)
             .onErrorMap(e -> new TransactionSystemException("Could not commit transaction", e))
             .then();
     }
@@ -100,10 +102,8 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     @Override
     protected Mono<Void> doRollback(TransactionSynchronizationManager synchronizationManager,
                                     GenericReactiveTransaction status) {
-        return Mono.fromRunnable(() -> {
-                AerospikeReactiveTransaction transaction = getTransaction(status);
-                transaction.abortTransaction();
-            })
+        return Mono.fromSupplier(() -> getTransaction(status))
+            .flatMap(AerospikeReactiveTransaction::abortTransaction)
             .onErrorMap(e -> new TransactionSystemException("Could not abort transaction", e))
             .then();
     }
@@ -135,7 +135,8 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
                 AerospikeReactiveTransaction transaction = toAerospikeTransaction(status);
                 transaction.getRequiredResourceHolder().setRollbackOnly();
             })
-            .onErrorMap(e -> new TransactionSystemException("Could not resume transaction", e))
+            .onErrorMap(e ->
+                new TransactionSystemException("Could not set rollback only for a transaction", e))
             .then();
     }
 
@@ -149,7 +150,7 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
                 synchronizationManager.unbindResource(client);
                 aerospikeTransaction.getRequiredResourceHolder().clear();
             })
-            .onErrorMap(e -> new TransactionSystemException("Could not resume transaction", e))
+            .onErrorMap(e -> new TransactionSystemException("Could not clean up transaction", e))
             .then();
     }
 }

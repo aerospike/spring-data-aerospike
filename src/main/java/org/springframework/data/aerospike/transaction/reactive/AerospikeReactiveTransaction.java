@@ -1,9 +1,11 @@
 package org.springframework.data.aerospike.transaction.reactive;
 
-import org.springframework.data.aerospike.transaction.sync.AerospikeTransactionResourceHolder;
+import com.aerospike.client.AbortStatus;
+import com.aerospike.client.CommitStatus;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.support.SmartTransactionObject;
 import org.springframework.util.Assert;
+import reactor.core.publisher.Mono;
 
 /**
  * A {@link SmartTransactionObject} implementation that has reactive transaction resource holder
@@ -39,26 +41,29 @@ public class AerospikeReactiveTransaction implements SmartTransactionObject {
         this.resourceHolder = resourceHolder;
     }
 
-    private void failIfNoTransaction() {
-        if (!hasResourceHolder()) {
-            throw new IllegalStateException("Error: expecting transaction to exist");
-        }
+    private Mono<AerospikeReactiveTransactionResourceHolder> getResourceHolder() {
+        return Mono.fromCallable(() -> {
+            if (!hasResourceHolder()) {
+                throw new IllegalStateException("Error: expecting transaction to exist");
+            }
+            return resourceHolder;
+        });
     }
 
     /**
      * Commit the transaction
      */
-    public void commitTransaction() {
-        failIfNoTransaction();
-        resourceHolder.getClient().getAerospikeClient().commit(resourceHolder.getTransaction());
+    public Mono<CommitStatus> commitTransaction() {
+        return getResourceHolder()
+            .flatMap(h -> h.getClient().commit(h.getTransaction()));
     }
 
     /**
      * Rollback (abort) the transaction
      */
-    public void abortTransaction() {
-        failIfNoTransaction();
-        resourceHolder.getClient().getAerospikeClient().abort(resourceHolder.getTransaction());
+    public Mono<AbortStatus> abortTransaction() {
+        return getResourceHolder()
+            .flatMap(h -> h.getClient().abort(h.getTransaction()));
     }
 
     @Override
