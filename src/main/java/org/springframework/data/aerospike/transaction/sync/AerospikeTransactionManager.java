@@ -120,7 +120,7 @@ public class AerospikeTransactionManager extends AbstractPlatformTransactionMana
             AerospikeTransaction transaction = getTransaction(status);
             transaction.getResourceHolderOrFail().setRollbackOnly();
         } catch (Exception e) {
-            throw new TransactionSystemException("Could not set rollback only for a transaction", e);
+            throw new TransactionSystemException("Could not set transaction to rollback-only", e);
         }
     }
 

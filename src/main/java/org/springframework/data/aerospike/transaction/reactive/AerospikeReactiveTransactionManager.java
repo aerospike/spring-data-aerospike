@@ -109,8 +109,8 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
     }
 
     @Override
-    protected Mono<Object> doSuspend(TransactionSynchronizationManager synchronizationManager, Object transaction)
-        throws TransactionException {
+    protected Mono<Object> doSuspend(TransactionSynchronizationManager synchronizationManager,
+                                     Object transaction) throws TransactionException {
         return Mono.fromSupplier(() -> {
             AerospikeReactiveTransaction aerospikeTransaction = toAerospikeTransaction(transaction);
             aerospikeTransaction.setResourceHolder(null);
@@ -121,8 +121,7 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
 
     @Override
     protected Mono<Void> doResume(TransactionSynchronizationManager synchronizationManager,
-                                  @Nullable Object transaction,
-                                  Object suspendedResources) {
+                                  @Nullable Object transaction, Object suspendedResources) {
         return Mono.fromRunnable(() -> synchronizationManager.bindResource(client, suspendedResources))
             .onErrorMap(e -> new TransactionSystemException("Could not resume transaction", e))
             .then();
@@ -135,8 +134,7 @@ public class AerospikeReactiveTransactionManager extends AbstractReactiveTransac
                 AerospikeReactiveTransaction transaction = toAerospikeTransaction(status);
                 transaction.getRequiredResourceHolder().setRollbackOnly();
             })
-            .onErrorMap(e ->
-                new TransactionSystemException("Could not set rollback only for a transaction", e))
+            .onErrorMap(e -> new TransactionSystemException("Could not set transaction to rollback-only", e))
             .then();
     }
 
