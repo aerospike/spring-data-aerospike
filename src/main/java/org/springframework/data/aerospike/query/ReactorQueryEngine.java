@@ -25,6 +25,8 @@ import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -41,6 +43,7 @@ import static org.springframework.data.aerospike.query.QueryEngine.SEC_INDEX_ERR
  * @author Sergii Karpenko
  * @author Anastasiia Smirnova
  */
+@Slf4j
 public class ReactorQueryEngine {
 
     private final IAerospikeReactorClient client;
@@ -111,13 +114,23 @@ public class ReactorQueryEngine {
                     && statement.getFilter() != null
                     && SEC_INDEX_ERROR_RESULT_CODES.contains(ae.getResultCode()))
                 {
-                    // retry without sIndex filter
-                    statement.setFilter(null);
-                    return client.query(localQueryPolicy, statement);
+                    return retryWithoutSIndexFilter(namespace, qualifier, statement, ae);
                 }
                 // for other exceptions
                 return Mono.error(throwable);
             });
+    }
+
+    private Publisher<? extends KeyRecord> retryWithoutSIndexFilter(String namespace, Qualifier qualifier,
+                                                                    Statement statement, AerospikeException ae) {
+        // retry without sIndex filter
+        log.warn(
+            "Got secondary index related exception (resultCode: {}), retrying with filter expression only",
+            ae.getResultCode());
+        qualifier.setHasSecIndexFilter(false);
+        QueryPolicy localQueryPolicyFallback = getQueryPolicy(qualifier, true);
+        statement.setFilter(null);
+        return client.query(localQueryPolicyFallback, statement);
     }
 
     /**

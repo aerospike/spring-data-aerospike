@@ -1548,11 +1548,10 @@ public enum FilterOperation {
      * FilterOperations that require both sIndexFilter and FilterExpression
      */
     protected static final List<FilterOperation> dualFilterOperations =
-//        Arrays.asList(
-//        MAP_VAL_EQ_BY_KEY, MAP_VAL_GT_BY_KEY, MAP_VAL_GTEQ_BY_KEY, MAP_VAL_LT_BY_KEY, MAP_VAL_LTEQ_BY_KEY,
-//        MAP_VAL_BETWEEN_BY_KEY, MAP_KEYS_BETWEEN, MAP_VAL_BETWEEN
-//    );
-    Arrays.stream(FilterOperation.values()).toList();
+        Arrays.asList(
+        MAP_VAL_EQ_BY_KEY, MAP_VAL_GT_BY_KEY, MAP_VAL_GTEQ_BY_KEY, MAP_VAL_LT_BY_KEY, MAP_VAL_LTEQ_BY_KEY,
+        MAP_VAL_BETWEEN_BY_KEY, MAP_KEYS_BETWEEN, MAP_VAL_BETWEEN
+    );
 
     @SuppressWarnings("unchecked")
     private static Exp processMetadataFieldInOrNot(Map<QualifierKey, Object> qualifierMap, boolean notIn) {

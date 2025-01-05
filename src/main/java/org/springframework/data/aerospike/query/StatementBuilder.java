@@ -142,8 +142,8 @@ public class StatementBuilder {
         }
 
         if (log.isDebugEnabled() && hasField) {
-            log.debug("Qualifier #{}, bin {}.{}.{} has {} secondary index(es)",
-                qualifier.hashCode(), stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), indexesForField.size());
+            log.debug("Qualifier #{}, bin {}.{}.{} has {} secondary index(es)", qualifier.hashCode(),
+                stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), indexesForField.size());
         }
         return !indexesForField.isEmpty();
     }
