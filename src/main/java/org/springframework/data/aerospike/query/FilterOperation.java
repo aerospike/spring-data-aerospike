@@ -1547,8 +1547,7 @@ public enum FilterOperation {
     /**
      * FilterOperations that require both sIndexFilter and FilterExpression
      */
-    protected static final List<FilterOperation> dualFilterOperations =
-        Arrays.asList(
+    protected static final List<FilterOperation> dualFilterOperations = Arrays.asList(
         MAP_VAL_EQ_BY_KEY, MAP_VAL_GT_BY_KEY, MAP_VAL_GTEQ_BY_KEY, MAP_VAL_LT_BY_KEY, MAP_VAL_LTEQ_BY_KEY,
         MAP_VAL_BETWEEN_BY_KEY, MAP_KEYS_BETWEEN, MAP_VAL_BETWEEN
     );

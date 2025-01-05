@@ -114,15 +114,15 @@ public class ReactorQueryEngine {
                     && statement.getFilter() != null
                     && SEC_INDEX_ERROR_RESULT_CODES.contains(ae.getResultCode()))
                 {
-                    return retryWithoutSIndexFilter(namespace, qualifier, statement, ae);
+                    return retryWithoutSIndexFilter(qualifier, statement, ae);
                 }
                 // for other exceptions
                 return Mono.error(throwable);
             });
     }
 
-    private Publisher<? extends KeyRecord> retryWithoutSIndexFilter(String namespace, Qualifier qualifier,
-                                                                    Statement statement, AerospikeException ae) {
+    private Publisher<? extends KeyRecord> retryWithoutSIndexFilter(Qualifier qualifier, Statement statement,
+                                                                    AerospikeException ae) {
         // retry without sIndex filter
         log.warn(
             "Got secondary index related exception (resultCode: {}), retrying with filter expression only",
