@@ -41,15 +41,16 @@ public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveInteg
 
     @Test
     public void findWithFilterEqual_String_fallbackToFilterExp() {
+        // incompatible secondary index (should be STRING) causes "index not found" exception
         reactiveTemplate.createIndex(Person.class, "person_first_name_index_numeric", "firstName",
-            IndexType.NUMERIC).block(); // incompatible secondary index (should be STRING) causes "index not found" exception
+            IndexType.NUMERIC).block();
         Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
         reactiveTemplate.insert(new Person(nextId(), "Dave", "Matthews")).block();
         // after getting index exception there is a fallback to filter exp only
         List<Person> result = reactiveTemplate.find(query, Person.class).collectList().block();
         assertThat(Objects.requireNonNull(result).stream().map(Person::getFirstName).collect(Collectors.toList()))
             .containsExactly("Dave");
-        reactiveTemplate.deleteIndex(Person.class, "person_first_name_index_numeric").block(); // incompatible secondary index (should be STRING) causes "index not found" exception
+        reactiveTemplate.deleteIndex(Person.class, "person_first_name_index_numeric").block();
     }
 
     @Test

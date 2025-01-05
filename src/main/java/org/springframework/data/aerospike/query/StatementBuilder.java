@@ -137,6 +137,7 @@ public class StatementBuilder {
         if (StringUtils.hasLength(qualifier.getBinName())) {
             hasField = true;
             indexesForField = indexesCache.getAllIndexesForField(
+//            indexesForField = indexesCache.getAllIndexesForField(
                 new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName())
             );
         }

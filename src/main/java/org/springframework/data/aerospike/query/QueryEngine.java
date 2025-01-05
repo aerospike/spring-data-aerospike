@@ -123,22 +123,21 @@ public class QueryEngine {
             throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
         }
 
+        RecordSet rs = client.query(localQueryPolicy, statement);
         try {
-            RecordSet rs = client.query(localQueryPolicy, statement);
             return new KeyRecordIterator(namespace, rs);
         } catch (AerospikeException e) {
             if (statement.getFilter() != null && SEC_INDEX_ERROR_RESULT_CODES.contains(e.getResultCode())) {
-                return retryWithoutSIndexFilter(namespace, qualifier, statement, e);
+                log.warn("Got secondary index related exception (resultCode: {}), retrying with filter expression only",
+                    e.getResultCode());
+                return retryWithFilterExpression(namespace, qualifier, statement);
             }
             throw e;
         }
     }
 
-    private KeyRecordIterator retryWithoutSIndexFilter(String namespace, Qualifier qualifier, Statement statement,
-                                                       AerospikeException e) {
+    private KeyRecordIterator retryWithFilterExpression(String namespace, Qualifier qualifier, Statement statement) {
         // retry without sIndex filter
-        log.warn("Got secondary index related exception (resultCode: {}), retrying with filter expression only",
-            e.getResultCode());
         qualifier.setHasSecIndexFilter(false);
         QueryPolicy localQueryPolicyFallback = getQueryPolicy(qualifier, true);
         statement.setFilter(null);
