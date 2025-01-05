@@ -26,7 +26,6 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -132,21 +131,19 @@ public class StatementBuilder {
     }
 
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
-        List<Index> indexesForField = new ArrayList<>();
-        boolean hasField = false;
+        boolean hasIndexesForField = false, hasField = false;
         if (StringUtils.hasLength(qualifier.getBinName())) {
             hasField = true;
-            indexesForField = indexesCache.getAllIndexesForField(
-//            indexesForField = indexesCache.getAllIndexesForField(
+            hasIndexesForField = indexesCache.hasIndexFor(
                 new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName())
             );
         }
 
         if (log.isDebugEnabled() && hasField) {
-            log.debug("Qualifier #{}, bin {}.{}.{} has {} secondary index(es)", qualifier.hashCode(),
-                stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), indexesForField.size());
+            log.debug("Qualifier #{}, bin {}.{}.{} has secondary index(es): {}", qualifier.hashCode(),
+                stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndexesForField);
         }
-        return !indexesForField.isEmpty();
+        return hasIndexesForField;
     }
 
     private int getMinBinValuesRatioForQualifier(Statement stmt, Qualifier qualifier) {
