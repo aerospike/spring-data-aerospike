@@ -53,7 +53,7 @@ public class LoggingTests {
 
         // 3 events: Created query, Bin has secondary index, Secondary index filter is not set
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(3);
-        String msg = "bin TEST.testSet.testField has secondary index: false";
+        String msg = "bin TEST.testSet.testField has 0 secondary index(es)";
         assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }

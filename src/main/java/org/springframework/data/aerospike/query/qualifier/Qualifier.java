@@ -57,7 +57,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         }
     }
 
-    protected Qualifier(Qualifier qualifier) {
+    public Qualifier(Qualifier qualifier) {
         if (!qualifier.getImmutableMap().isEmpty()) {
             internalMap.putAll(qualifier.getImmutableMap());
         }

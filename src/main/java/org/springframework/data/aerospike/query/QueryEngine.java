@@ -16,6 +16,7 @@
  */
 package org.springframework.data.aerospike.query;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
@@ -32,6 +33,14 @@ import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 
+import java.util.List;
+
+import static com.aerospike.client.ResultCode.INDEX_GENERIC;
+import static com.aerospike.client.ResultCode.INDEX_MAXCOUNT;
+import static com.aerospike.client.ResultCode.INDEX_NAME_MAXLEN;
+import static com.aerospike.client.ResultCode.INDEX_NOTFOUND;
+import static com.aerospike.client.ResultCode.INDEX_NOTREADABLE;
+import static com.aerospike.client.ResultCode.INDEX_OOM;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
 /**
@@ -47,6 +56,8 @@ public class QueryEngine {
         "Query without a filter will initiate a scan. Since scans are potentially dangerous operations, they are " +
             "disabled by default in spring-data-aerospike. " +
             "If you still need to use them, enable them via `scans-enabled` property.";
+    public static final List<Integer> SEC_INDEX_ERROR_RESULT_CODES = List.of(
+        INDEX_NOTFOUND, INDEX_OOM, INDEX_NOTREADABLE, INDEX_GENERIC, INDEX_NAME_MAXLEN, INDEX_MAXCOUNT);
     private final IAerospikeClient client;
     @Getter
     private final StatementBuilder statementBuilder;
@@ -110,8 +121,18 @@ public class QueryEngine {
             throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
         }
 
-        RecordSet rs = client.query(localQueryPolicy, statement);
-        return new KeyRecordIterator(namespace, rs);
+        try {
+            RecordSet rs = client.query(localQueryPolicy, statement);
+            return new KeyRecordIterator(namespace, rs);
+        } catch (AerospikeException e) {
+            if (statement.getFilter() != null && SEC_INDEX_ERROR_RESULT_CODES.contains(e.getResultCode())) {
+                // retry without sIndex filter
+                statement.setFilter(null);
+                RecordSet rs = client.query(localQueryPolicy, statement);
+                return new KeyRecordIterator(namespace, rs);
+            }
+            throw e;
+        }
     }
 
     /**

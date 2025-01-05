@@ -16,6 +16,7 @@
  */
 package org.springframework.data.aerospike.query;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.QueryPolicy;
@@ -32,6 +33,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
+import static org.springframework.data.aerospike.query.QueryEngine.SEC_INDEX_ERROR_RESULT_CODES;
 
 /**
  * This class provides a multi-filter reactive query engine that augments the query capability in Aerospike.
@@ -103,7 +105,19 @@ public class ReactorQueryEngine {
             return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
         }
 
-        return client.query(localQueryPolicy, statement);
+        return client.query(localQueryPolicy, statement)
+            .onErrorResume(throwable -> {
+                if (throwable instanceof AerospikeException ae
+                    && statement.getFilter() != null
+                    && SEC_INDEX_ERROR_RESULT_CODES.contains(ae.getResultCode()))
+                {
+                    // retry without sIndex filter
+                    statement.setFilter(null);
+                    return client.query(localQueryPolicy, statement);
+                }
+                // for other exceptions
+                return Mono.error(throwable);
+            });
     }
 
     /**
