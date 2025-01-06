@@ -103,6 +103,7 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         template.deleteAll(allPersons);
         template.deleteAll(allPersons, OVERRIDE_SET_NAME);
         additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index");
+        additionalAerospikeTestOperations.dropIndex(Person.class, "person_byte_array_index");
     }
 
     @Test
@@ -110,6 +111,17 @@ public class AerospikeTemplateFindByQueryTests extends BaseBlockingIntegrationTe
         Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
         Stream<Person> result = template.find(query, Person.class);
         assertThat(result).containsOnly(dave);
+    }
+
+    @Test
+    public void findWithFilterEqual_String_fallbackToFilterExp() {
+        additionalAerospikeTestOperations.createIndex(Person.class, "person_first_name_index_numeric", "firstName",
+            IndexType.NUMERIC); // incompatible secondary index (should be STRING) causes "index not found" exception
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
+        // after getting index exception there is a fallback to filter exp only
+        Stream<Person> result = template.find(query, Person.class);
+        assertThat(result).containsOnly(dave);
+        additionalAerospikeTestOperations.dropIndex(Person.class, "person_first_name_index_numeric");
     }
 
     @Test

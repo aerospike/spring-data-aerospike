@@ -131,19 +131,19 @@ public class StatementBuilder {
     }
 
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
-        boolean hasIndex = false, hasField = false;
+        boolean hasIndexesForField = false, hasField = false;
         if (StringUtils.hasLength(qualifier.getBinName())) {
             hasField = true;
-            hasIndex = indexesCache.hasIndexFor(
+            hasIndexesForField = indexesCache.hasIndexFor(
                 new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName())
             );
         }
 
         if (log.isDebugEnabled() && hasField) {
-            log.debug("Qualifier #{}, bin {}.{}.{} has secondary index: {}",
-                qualifier.hashCode(), stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndex);
+            log.debug("Qualifier #{}, bin {}.{}.{} has secondary index(es): {}", qualifier.hashCode(),
+                stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndexesForField);
         }
-        return hasIndex;
+        return hasIndexesForField;
     }
 
     private int getMinBinValuesRatioForQualifier(Statement stmt, Qualifier qualifier) {

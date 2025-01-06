@@ -16,6 +16,7 @@
  */
 package org.springframework.data.aerospike.query;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.QueryPolicy;
@@ -24,6 +25,8 @@ import com.aerospike.client.query.Statement;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Publisher;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -32,6 +35,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
+import static org.springframework.data.aerospike.query.QueryEngine.SEC_INDEX_ERROR_RESULT_CODES;
 
 /**
  * This class provides a multi-filter reactive query engine that augments the query capability in Aerospike.
@@ -39,6 +43,7 @@ import static org.springframework.data.aerospike.query.QualifierUtils.queryCrite
  * @author Sergii Karpenko
  * @author Anastasiia Smirnova
  */
+@Slf4j
 public class ReactorQueryEngine {
 
     private final IAerospikeReactorClient client;
@@ -103,7 +108,28 @@ public class ReactorQueryEngine {
             return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
         }
 
-        return client.query(localQueryPolicy, statement);
+        return client.query(localQueryPolicy, statement)
+            .onErrorResume(throwable -> {
+                if (throwable instanceof AerospikeException ae
+                    && statement.getFilter() != null
+                    && SEC_INDEX_ERROR_RESULT_CODES.contains(ae.getResultCode()))
+                {
+                    log.warn(
+                        "Got secondary index related exception (resultCode: {}), retrying with filter expression only",
+                        ae.getResultCode());
+                    return retryWithFilterExpression(qualifier, statement);
+                }
+                // for other exceptions
+                return Mono.error(throwable);
+            });
+    }
+
+    private Publisher<? extends KeyRecord> retryWithFilterExpression(Qualifier qualifier, Statement statement) {
+        // retry without sIndex filter
+        qualifier.setHasSecIndexFilter(false);
+        QueryPolicy localQueryPolicyFallback = getQueryPolicy(qualifier, true);
+        statement.setFilter(null);
+        return client.query(localQueryPolicyFallback, statement);
     }
 
     /**

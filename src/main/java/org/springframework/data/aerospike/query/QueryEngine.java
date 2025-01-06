@@ -16,6 +16,7 @@
  */
 package org.springframework.data.aerospike.query;
 
+import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.Key;
 import com.aerospike.client.Record;
@@ -25,6 +26,7 @@ import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
@@ -32,6 +34,14 @@ import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 
+import java.util.List;
+
+import static com.aerospike.client.ResultCode.INDEX_GENERIC;
+import static com.aerospike.client.ResultCode.INDEX_MAXCOUNT;
+import static com.aerospike.client.ResultCode.INDEX_NAME_MAXLEN;
+import static com.aerospike.client.ResultCode.INDEX_NOTFOUND;
+import static com.aerospike.client.ResultCode.INDEX_NOTREADABLE;
+import static com.aerospike.client.ResultCode.INDEX_OOM;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
 /**
@@ -40,6 +50,7 @@ import static org.springframework.data.aerospike.query.QualifierUtils.queryCrite
  * @author peter
  * @author Anastasiia Smirnova
  */
+@Slf4j
 public class QueryEngine {
 
     private static final Logger logger = LoggerFactory.getLogger(QueryEngine.class);
@@ -47,6 +58,8 @@ public class QueryEngine {
         "Query without a filter will initiate a scan. Since scans are potentially dangerous operations, they are " +
             "disabled by default in spring-data-aerospike. " +
             "If you still need to use them, enable them via `scans-enabled` property.";
+    public static final List<Integer> SEC_INDEX_ERROR_RESULT_CODES = List.of(
+        INDEX_NOTFOUND, INDEX_OOM, INDEX_NOTREADABLE, INDEX_GENERIC, INDEX_NAME_MAXLEN, INDEX_MAXCOUNT);
     private final IAerospikeClient client;
     @Getter
     private final StatementBuilder statementBuilder;
@@ -111,6 +124,24 @@ public class QueryEngine {
         }
 
         RecordSet rs = client.query(localQueryPolicy, statement);
+        try {
+            return new KeyRecordIterator(namespace, rs);
+        } catch (AerospikeException e) {
+            if (statement.getFilter() != null && SEC_INDEX_ERROR_RESULT_CODES.contains(e.getResultCode())) {
+                log.warn("Got secondary index related exception (resultCode: {}), retrying with filter expression only",
+                    e.getResultCode());
+                return retryWithFilterExpression(namespace, qualifier, statement);
+            }
+            throw e;
+        }
+    }
+
+    private KeyRecordIterator retryWithFilterExpression(String namespace, Qualifier qualifier, Statement statement) {
+        // retry without sIndex filter
+        qualifier.setHasSecIndexFilter(false);
+        QueryPolicy localQueryPolicyFallback = getQueryPolicy(qualifier, true);
+        statement.setFilter(null);
+        RecordSet rs = client.query(localQueryPolicyFallback, statement);
         return new KeyRecordIterator(namespace, rs);
     }
 

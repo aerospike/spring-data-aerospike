@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike.core.reactive;
 
-import org.junit.jupiter.api.BeforeAll;
+import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -31,18 +31,26 @@ import static org.springframework.data.domain.Sort.Order.asc;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ReactiveAerospikeTemplateFindByQueryTests extends BaseReactiveIntegrationTests {
 
-    @BeforeAll
-    public void beforeAllSetUp() {
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
-        additionalAerospikeTestOperations.deleteAllAndVerify(Person.class, OVERRIDE_SET_NAME);
-    }
-
     @Override
     @BeforeEach
     public void setUp() {
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class);
         additionalAerospikeTestOperations.deleteAllAndVerify(Person.class, OVERRIDE_SET_NAME);
         super.setUp();
+    }
+
+    @Test
+    public void findWithFilterEqual_String_fallbackToFilterExp() {
+        // incompatible secondary index (should be STRING) causes "index not found" exception
+        reactiveTemplate.createIndex(Person.class, "person_first_name_index_numeric", "firstName",
+            IndexType.NUMERIC).block();
+        Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "Dave");
+        reactiveTemplate.insert(new Person(nextId(), "Dave", "Matthews")).block();
+        // after getting index exception there is a fallback to filter exp only
+        List<Person> result = reactiveTemplate.find(query, Person.class).collectList().block();
+        assertThat(Objects.requireNonNull(result).stream().map(Person::getFirstName).collect(Collectors.toList()))
+            .containsExactly("Dave");
+        reactiveTemplate.deleteIndex(Person.class, "person_first_name_index_numeric").block();
     }
 
     @Test
