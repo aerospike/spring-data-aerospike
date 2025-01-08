@@ -43,6 +43,7 @@ include::reference/template.adoc[]
 include::reference/secondary-indexes.adoc[]
 include::reference/indexed-annotation.adoc[]
 include::reference/caching.adoc[]
+include::reference/transactions.adoc[]
 include::reference/configuration.adoc[]
 
 :leveloffset: -1

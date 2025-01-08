@@ -128,11 +128,9 @@ public class MyService {
 
 == Aerospike Operations Support
 
-Behind the curtains Aerospike transaction manager uses MRTs (multi-record transactions)
-which is an Aerospike feature allowing to group together multiple Aerospike operation requests
-into a single transaction.
+Behind the curtains Aerospike transaction manager uses an Aerospike feature allowing to group together multiple Aerospike operation requests into a single transaction.
 
-NOTE: Not all of the Aerospike operations can participate in transactions.
+NOTE: Not all the Aerospike operations can participate in transactions.
 
 Here is a list of Aerospike operations that participate in transactions:
 
