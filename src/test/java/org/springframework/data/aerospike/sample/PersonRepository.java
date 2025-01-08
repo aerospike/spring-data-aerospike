@@ -1573,6 +1573,11 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     long countByFirstName(String name);
 
+    /**
+     * Delete all entities with the given first name
+     *
+     * @param name First name to match
+     */
     void deleteByFirstName(String name);
 
     List<P> readByFirstName(String name);

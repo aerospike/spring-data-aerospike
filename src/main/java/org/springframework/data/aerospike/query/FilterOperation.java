@@ -1989,10 +1989,11 @@ public enum FilterOperation {
             qualifierMap.put(CTX_ARRAY, resolveCtxList(ctxList));
         }
         return switch (valType) {
-            // TODO: Add Bytes and Double Support (will fail on old mode - no results)
             case INTEGER -> Filter.contains(getBinName(qualifierMap), collectionType, val.toLong(),
                 getCtxArr(qualifierMap));
             case STRING -> Filter.contains(getBinName(qualifierMap), collectionType, val.toString(),
+                getCtxArr(qualifierMap));
+            case BLOB -> Filter.contains(getBinName(qualifierMap), collectionType, (byte[]) val.getObject(),
                 getCtxArr(qualifierMap));
             default -> null;
         };
