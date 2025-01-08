@@ -89,7 +89,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void verifyOneWriteInTransaction() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(500, "test1");
 
         // only for testing purposes as performing one write in a transaction lacks sense
@@ -109,7 +109,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void verifyMultipleWritesInTransaction() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(501, "test1");
         SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(501, "test2");
 
@@ -129,7 +129,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void verifyMultipleWritesInTransactionWithTimeout() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(520, "test1");
         SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(520, "test2");
 
@@ -151,7 +151,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void verifyMultipleWritesInTransactionWithTimeoutExpired() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(521, "test1");
         SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(521, "test2");
 
@@ -172,7 +172,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void verifyMultipleWritesInTransactionWithDefaultTimeoutExpired() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(522, "test1");
         SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(522, "test2");
 
@@ -193,7 +193,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void oneWriteInTransaction_manual_transactional() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(502, "test1");
 
         transactionalOperator.transactional(reactiveTemplate.insert(document)).then()
@@ -209,7 +209,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void oneWriteInTransaction_manual_execute() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(503, "test1");
 
         // Manually manage the transaction by using transactionalOperator.execute()
@@ -231,7 +231,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void multipleWritesInTransaction_manual_execute() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(504, "test1");
         SampleClasses.DocumentWithIntegerId document2 = new SampleClasses.DocumentWithIntegerId(505, "test2");
 
@@ -254,7 +254,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void verifyRepeatingCommit() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document1 = new SampleClasses.DocumentWithIntegerId(506, "test1");
 
         // Manually manage the transaction by using transactionalOperator.execute()
@@ -280,7 +280,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void verifyTransactionRollback() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         SampleClasses.DocumentWithIntegerId document = new SampleClasses.DocumentWithIntegerId(507, "test1");
 
         reactiveTemplate.insert(document).then(reactiveTemplate.insert(document))
@@ -298,7 +298,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void oneWriteInTransaction_multipleThreads() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         AtomicInteger counter = new AtomicInteger();
         int threadsNumber = 5;
         AsyncUtils.executeConcurrently(threadsNumber, () -> {
@@ -320,7 +320,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void rollbackTransaction_multipleThreads() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         AtomicInteger counter = new AtomicInteger();
         int threadsNumber = 5;
         AsyncUtils.executeConcurrently(threadsNumber, () -> {
@@ -343,7 +343,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @Test
     public void multipleWritesInTransaction_multipleThreads() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         AtomicInteger counter = new AtomicInteger();
         int threadsNumber = 5;
         AsyncUtils.executeConcurrently(threadsNumber, () -> {

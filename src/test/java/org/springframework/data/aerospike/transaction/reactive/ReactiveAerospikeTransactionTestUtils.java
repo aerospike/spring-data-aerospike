@@ -34,7 +34,7 @@ public class ReactiveAerospikeTransactionTestUtils {
 
     protected Mono<Void> verifyOngoingTransaction_withPropagation(SampleClasses.DocumentWithPrimitiveIntId document,
                                                                   int propagationType, int numberOfSuspendCalls) {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         AerospikeReactiveTransactionManager trackedTxManager = spy(txManager);
         DefaultTransactionDefinition tranDefinition = new DefaultTransactionDefinition();
         tranDefinition.setPropagationBehavior(propagationType);

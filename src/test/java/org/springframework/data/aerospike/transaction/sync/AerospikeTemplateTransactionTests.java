@@ -90,7 +90,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
     @Test
     // just for testing purposes as performing only one write in a transaction lacks sense
     public void writeInTransaction() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         transactionTemplate.executeWithoutResult(status -> {
             assertThat(status.isNewTransaction()).isTrue();
             template.insert(new SampleClasses.DocumentWithIntegerId(107, "test1"));
@@ -102,7 +102,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void multipleWritesInTransaction() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         transactionTemplate.executeWithoutResult(status -> {
             assertThat(status.isNewTransaction()).isTrue();
             template.insert(new SampleClasses.DocumentWithIntegerId(101, "test1"));
@@ -115,7 +115,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void multipleWritesInTransactionWithTimeout() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         transactionTemplate.setTimeout(2); // timeout after the first command within a transaction
         transactionTemplate.executeWithoutResult(status -> {
             assertThat(status.isNewTransaction()).isTrue();
@@ -131,7 +131,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void multipleWritesInTransactionWithTimeoutExpired() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         transactionTemplate.setTimeout(2); // timeout after the first command within a transaction
         assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
             template.insert(new SampleClasses.DocumentWithIntegerId(115, "test1"));
@@ -147,7 +147,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void multipleWritesInTransactionWithDefaultTimeoutExpired() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
             template.insert(new SampleClasses.DocumentWithIntegerId(124, "test1"));
             AwaitilityUtils.wait(15, SECONDS); // timeout expires during this wait
@@ -163,7 +163,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
     @Test
     // just for testing purposes as performing only one write in a transaction lacks sense
     public void batchWriteInTransaction() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         List<Person> persons = IntStream.range(1, 10)
             .mapToObj(age -> Person.builder().id(nextId())
                 .firstName("Gregor")
@@ -181,7 +181,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void multipleBatchWritesInTransactionWithTimeout() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         transactionTemplate.setTimeout(2); // timeout after the first command within a transaction
         transactionTemplate.executeWithoutResult(status -> {
             assertThat(status.isNewTransaction()).isTrue();
@@ -200,7 +200,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void multipleBatchWritesInTransactionWithTimeoutExpired() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         transactionTemplate.setTimeout(2); // timeout after the first command within a transaction
         assertThatThrownBy(() -> transactionTemplate.executeWithoutResult(status -> {
             template.insertAll(List.of(new DocumentWithPrimitiveIntId(120),
@@ -375,7 +375,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void oneWriteInTransaction_multipleThreads() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         AtomicInteger counter = new AtomicInteger();
         int threadsNumber = 5;
         AsyncUtils.executeConcurrently(threadsNumber, () -> {
@@ -394,7 +394,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void rollbackTransaction_multipleThreads() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         AtomicInteger counter = new AtomicInteger();
         int threadsNumber = 10;
         AsyncUtils.executeConcurrently(threadsNumber, () -> {
@@ -414,7 +414,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @Test
     public void multipleWritesInTransaction_multipleThreads() {
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         AtomicInteger counter = new AtomicInteger();
         int threadsNumber = 10;
         AsyncUtils.executeConcurrently(threadsNumber, () -> {
@@ -438,7 +438,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
     public void deleteInTransaction() {
         DocumentWithPrimitiveIntId doc = new DocumentWithPrimitiveIntId(1000);
         template.insert(doc);
-        // Multi-record transactions are supported starting with Server version 8.0+
+        // Transactions are supported starting with Server version 8.0+
         transactionTemplate.executeWithoutResult(status -> {
             assertThat(status.isNewTransaction()).isTrue();
             template.delete(doc);
