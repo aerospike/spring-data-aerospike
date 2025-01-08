@@ -66,7 +66,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
 
     @BeforeAll
     public void beforeAll() {
-        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+        TestUtils.checkAssumption(serverVersionSupport.isTxnSupported(),
             "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
     }
 
@@ -164,7 +164,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
             .as(StepVerifier::create)
             .verifyErrorMatches(throwable -> {
                 if (throwable instanceof RecoverableDataAccessException) {
-                    return throwable.getMessage().contains("MRT expired");
+                    return throwable.getMessage().contains("Transaction expired");
                 }
                 return false;
             });
@@ -185,7 +185,7 @@ public class ReactiveAerospikeTemplateTransactionTests extends BaseReactiveInteg
             .as(StepVerifier::create)
             .verifyErrorMatches(throwable -> {
                 if (throwable instanceof RecoverableDataAccessException) {
-                    return throwable.getMessage().contains("MRT expired");
+                    return throwable.getMessage().contains("Transaction expired");
                 }
                 return false;
             });

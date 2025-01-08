@@ -61,7 +61,7 @@ public class AerospikeTemplateTransactionUnitTests extends BaseBlockingIntegrati
 
     @BeforeAll
     public void beforeAll() {
-        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+        TestUtils.checkAssumption(serverVersionSupport.isTxnSupported(),
             "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
         utils = new AerospikeTransactionTestUtils(client, template);
     }

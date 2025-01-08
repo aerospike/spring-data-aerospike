@@ -48,7 +48,7 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
 
     @BeforeAll
     public void beforeAll() {
-        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+        TestUtils.checkAssumption(serverVersionSupport.isTxnSupported(),
             "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
     }
 
@@ -180,7 +180,7 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
         AwaitilityUtils.wait(3, SECONDS); // wait more than the given timeout
         assertThatThrownBy(() -> template.insert(new SampleClasses.DocumentWithPrimitiveIntId(306)))
             .isInstanceOf(RecoverableDataAccessException.class)
-            .hasMessageContaining("MRT expired");
+            .hasMessageContaining("Transaction expired");
     }
 
     @Test
@@ -234,7 +234,7 @@ public class AerospikeTransactionalAnnotationTests extends BaseBlockingIntegrati
             template.insertAll(List.of(new SampleClasses.DocumentWithPrimitiveIntId(310),
                 new SampleClasses.DocumentWithPrimitiveIntId(410)));
         } catch (AerospikeException.BatchRecordArray e) {
-            System.out.println("MRT expired");
+            System.out.println("Transaction expired");
         }
     }
 

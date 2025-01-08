@@ -90,7 +90,7 @@ public class ServerVersionSupport {
     /**
      * @return true if Server version is 8.0 or greater
      */
-    public boolean isMRTSupported() {
+    public boolean isTxnSupported() {
         return ModuleDescriptor.Version.parse(getServerVersion())
             .compareTo(SERVER_VERSION_8_0_0_0) >= 0;
     }

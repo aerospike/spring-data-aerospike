@@ -65,7 +65,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
 
     @BeforeAll
     public void beforeAll() {
-        TestUtils.checkAssumption(serverVersionSupport.isMRTSupported(),
+        TestUtils.checkAssumption(serverVersionSupport.isTxnSupported(),
             "Skipping transactions tests because Aerospike Server 8.0.0+ is required", log);
     }
 
@@ -139,7 +139,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
             template.save(new SampleClasses.DocumentWithIntegerId(115, "test2"));
         }))
             .isInstanceOf(RecoverableDataAccessException.class)
-            .hasMessageContaining("MRT expired");
+            .hasMessageContaining("Transaction expired");
 
         SampleClasses.DocumentWithIntegerId result = template.findById(115, SampleClasses.DocumentWithIntegerId.class);
         assertThat(result).isNull(); // No record is written because all commands were in the same transaction
@@ -154,7 +154,7 @@ public class AerospikeTemplateTransactionTests extends BaseBlockingIntegrationTe
             template.save(new SampleClasses.DocumentWithIntegerId(124, "test2"));
         }))
             .isInstanceOf(RecoverableDataAccessException.class)
-            .hasMessageContaining("MRT expired");
+            .hasMessageContaining("Transaction expired");
 
         SampleClasses.DocumentWithIntegerId result = template.findById(124, SampleClasses.DocumentWithIntegerId.class);
         assertThat(result).isNull(); // No record is written because all commands were in the same transaction
