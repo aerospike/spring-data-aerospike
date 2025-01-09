@@ -1,8 +1,8 @@
 [[configuration]]
 = Configuration
 
-Configuration parameters can be set in a standard `application.properties` file using `spring.data.aerospike*` prefix
-or by overriding configuration from `AbstractAerospikeDataConfiguration` class.
+Configuration parameters can be set in a standard `application.properties` file using `spring.aerospike*`
+and `spring.data.aerospike*` prefixes or by overriding configuration from `AbstractAerospikeDataConfiguration` class.
 
 [[configuration.application-properties]]
 == Application.properties

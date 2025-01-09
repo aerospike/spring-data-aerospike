@@ -16,7 +16,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
     void deleteBySimplePropertyEquals_String() {
-        assertThat(repository.findByFirstName("Leroi")).isNotEmpty();
+        assertThat(repository.findByFirstName("Leroi")).isNotEmpty().hasSize(2);
         repository.deleteByFirstName("Leroi");
         assertThat(repository.findByFirstName("Leroi")).isEmpty();
 

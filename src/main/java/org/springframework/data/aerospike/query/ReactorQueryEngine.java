@@ -115,7 +115,8 @@ public class ReactorQueryEngine {
                     && SEC_INDEX_ERROR_RESULT_CODES.contains(ae.getResultCode()))
                 {
                     log.warn(
-                        "Got secondary index related exception (resultCode: {}), retrying with filter expression only",
+                        "Got secondary index related exception (resultCode: {}), " +
+                            "retrying with filter expression only (scan operation)",
                         ae.getResultCode());
                     return retryWithFilterExpression(qualifier, statement);
                 }

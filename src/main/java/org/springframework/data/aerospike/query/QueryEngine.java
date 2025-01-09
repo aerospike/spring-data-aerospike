@@ -27,8 +27,6 @@ import com.aerospike.client.query.Statement;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -53,10 +51,9 @@ import static org.springframework.data.aerospike.query.QualifierUtils.queryCrite
 @Slf4j
 public class QueryEngine {
 
-    private static final Logger logger = LoggerFactory.getLogger(QueryEngine.class);
     public static final String SCANS_DISABLED_MESSAGE =
-        "Query without a filter will initiate a scan. Since scans are potentially dangerous operations, they are " +
-            "disabled by default in spring-data-aerospike. " +
+        "Query without a secondary index filter will initiate a scan. Since scans are potentially dangerous operations," +
+            " they are disabled by default in spring-data-aerospike. " +
             "If you still need to use them, enable them via `scans-enabled` property.";
     public static final List<Integer> SEC_INDEX_ERROR_RESULT_CODES = List.of(
         INDEX_NOTFOUND, INDEX_OOM, INDEX_NOTREADABLE, INDEX_GENERIC, INDEX_NAME_MAXLEN, INDEX_MAXCOUNT);
@@ -128,7 +125,8 @@ public class QueryEngine {
             return new KeyRecordIterator(namespace, rs);
         } catch (AerospikeException e) {
             if (statement.getFilter() != null && SEC_INDEX_ERROR_RESULT_CODES.contains(e.getResultCode())) {
-                log.warn("Got secondary index related exception (resultCode: {}), retrying with filter expression only",
+                log.warn("Got secondary index related exception (resultCode: {}), " +
+                        "retrying with filter expression only (scan operation)",
                     e.getResultCode());
                 return retryWithFilterExpression(namespace, qualifier, statement);
             }
