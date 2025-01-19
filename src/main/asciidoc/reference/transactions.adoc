@@ -147,3 +147,4 @@ The following operations do not participate in transactions
 . queries that do not include `id` (e.g., repository queries like `findByName`)
 . operations that perform info commands (e.g., `indexExists`)
 . operations that perform scans (using ScanPolicy)
+

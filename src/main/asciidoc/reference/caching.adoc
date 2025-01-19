@@ -322,3 +322,4 @@ aql> select * from test
 | "1" | "jimmy page" | "com.aerospike.cache.simpleSpringBootAerospikeCache.objects.User"  | "jimmy@gmail.com" | 77 |
 +-----+-----------+----------+-------------+-------------------------------------+
 ----
+
