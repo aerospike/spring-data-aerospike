@@ -1,13 +1,13 @@
 [[aerospike.index]]
 = Spring Data Aerospike - Documentation
 :doctype: book
-:revnumber: 4.8.0
+:revnumber: 5.0.0
 :revdate: {localdate}
 :toc:
 :toc-placement!:
 :toclevels: 1
 
-(C) 2018-2024 The original authors.
+(C) 2018-2025 The original authors.
 
 NOTE: Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.
 
@@ -26,6 +26,7 @@ include::preface.adoc[]
 
 include::reference/functionality.adoc[]
 include::reference/installation-and-usage.adoc[]
+include::reference/configuration.adoc[]
 include::reference/aerospike-repositories.adoc[]
 include::reference/aerospike-reactive-repositories.adoc[]
 include::reference/aerospike-projections.adoc[]
@@ -44,7 +45,6 @@ include::reference/secondary-indexes.adoc[]
 include::reference/indexed-annotation.adoc[]
 include::reference/caching.adoc[]
 include::reference/transactions.adoc[]
-include::reference/configuration.adoc[]
 
 :leveloffset: -1
 
