@@ -3,9 +3,7 @@ package org.springframework.data.aerospike.config;
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
 import org.springframework.data.aerospike.BlockingAerospikeTestOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
@@ -29,9 +27,6 @@ import java.util.List;
 @EnableAerospikeRepositories(basePackageClasses = {ContactRepository.class, CustomerRepository.class})
 @EnableTransactionManagement
 public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
-
-    @Autowired
-    Environment env;
 
     @Override
     protected List<Object> customConverters() {
