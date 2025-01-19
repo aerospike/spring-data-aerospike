@@ -25,7 +25,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springdata.commons>3.4.0</springdata.commons>
-        <spring-boot-starter-test>3.3.0</spring-boot-starter-test>
+        <spring-boot-starter-test>3.3.7</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.1.5</spring-cloud-starter-bootstrap>
         <spring-tx>6.2.2</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
