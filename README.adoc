@@ -56,6 +56,8 @@ Data Aerospike - Projections]
 [width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
 |Spring Data Aerospike |Spring Boot |Aerospike Client |Aerospike Reactor Client |Aerospike Server
+|5.0.x  |3.4.x |9.0.x |9.0.x |6.1.x.x +
+
 |4.8.x  |3.3.x |7.2.x |7.1.x |5.2.x.x +
 
 |4.7.x  |3.2.x |7.2.x |7.1.x |5.2.x.x +
