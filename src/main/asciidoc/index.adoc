@@ -1,11 +1,13 @@
 [[aerospike.index]]
-= Spring Data Aerospike - Documentation
+
 :doctype: book
 :revnumber: 5.0.0
 :revdate: {localdate}
 :toc:
 :toc-placement!:
 :toclevels: 1
+
+== Spring Data Aerospike - Documentation
 
 (C) 2018-2025 The original authors.
 
@@ -20,7 +22,7 @@ include::preface.adoc[]
 :leveloffset: -1
 
 [[reference-documentation]]
-= Reference documentation
+== Reference documentation
 
 :leveloffset: +1
 
@@ -49,7 +51,7 @@ include::reference/transactions.adoc[]
 :leveloffset: -1
 
 [[appendix]]
-= Appendix
+== Appendix
 
 :leveloffset: +1
 
