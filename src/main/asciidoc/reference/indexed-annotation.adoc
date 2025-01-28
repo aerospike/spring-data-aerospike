@@ -66,7 +66,8 @@ void test() {
 
 A `Person` object in this example has a field called "friend" (`Friend` object).
 A `Friend` object has a field called "address" (`Address` object).
-So when "friend" field is set to a `Friend` with existing `Address`, we have a person (`dave` in the example above) with a friend (`carter`) who has
+So when "friend" field is set to a `Friend` with existing `Address`, we have a person (`dave` in the example above)
+with a friend (`carter`) who has
 a particular address.
 
 `Address` object on its own has certain fields: `street`, `apartment`, `zipCode`, `city`.
@@ -75,13 +76,17 @@ NOTE: In Aerospike DB a POJO (such as `Address`) is represented by a Map, so the
 
 Thus, if we want to index by `Address` object fields, we set `collectionType` to `IndexCollectionType.MAPKEYS`.
 
-`Ctx` parameter represents context, or path to the necessary element in the specified bin ("friend") - which is "address", because we want to index by fields of friend's address.
+`Ctx` parameter represents context, or path to the necessary element in the specified bin ("friend") - which is
+"address", because we want to index by fields of friend's address.
 
 == Secondary Index Context DSL
 
-Secondary index context (`ctx` parameter in `@Indexed` annotation) represents path to a necessary element in hierarchy. It uses infix notation.
+Secondary index context (`ctx` parameter in `@Indexed` annotation) represents path to a necessary element in hierarchy.
+It uses infix notation.
 
-The document path is described as dot-separated context elements (e.g., "a.b.[2].c") written as a string. A path is made of singular path elements and ends with one (a leaf element) or more elements (leaves) - for example, "a.b.[2].c.[0:3]".
+The document path is described as dot-separated context elements (e.g., "a.b.[2].c") written as a string.
+A path is made of singular path elements and ends with one (a leaf element) or more elements (leaves) - for example,
+"a.b.[2].c.[0:3]".
 
 [width="100%",cols="<14%,<24%,<18%",options="header",]
 |===

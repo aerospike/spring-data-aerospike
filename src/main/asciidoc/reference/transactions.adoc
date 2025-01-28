@@ -1,7 +1,8 @@
 [[transactions]]
 = Transactions
 
-In the context of database operations, a transaction is a sequence of statements that are executed as a single unit of work. Transactions typically follow the A.C.I.D. principle:
+In the context of database operations, a transaction is a sequence of statements that are executed as a single unit of
+work. Transactions typically follow the A.C.I.D. principle:
 [arabic]
 . **Atomicity** ensures that a transaction is treated as a single, indivisible unit; either all operations within the
 transaction are completed successfully, or none of them are applied.
@@ -11,7 +12,8 @@ predefined rules and constraints.
 transaction are not visible to others.
 . **Durability** guarantees that once a transaction has been committed, its changes are permanent.
 
-For more details, see link:https://docs.spring.io/spring-framework/reference/data-access/transaction.html[Spring Transaction Management].
+For more details, see
+link:https://docs.spring.io/spring-framework/reference/data-access/transaction.html[Spring Transaction Management].
 
 == Choosing Transaction Management Model
 
@@ -128,7 +130,8 @@ public class MyService {
 
 == Aerospike Operations Support
 
-Behind the curtains Aerospike transaction manager uses an Aerospike feature allowing to group together multiple Aerospike operation requests into a single transaction.
+Behind the curtains Aerospike transaction manager uses an Aerospike feature allowing to group together multiple
+Aerospike operation requests into a single transaction.
 
 NOTE: Not all the Aerospike operations can participate in transactions.
 

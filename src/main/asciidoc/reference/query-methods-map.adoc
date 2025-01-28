@@ -63,7 +63,8 @@ findByStringMapNotNull()
 ----
 
 |...where x.stringMap != null
-|"Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist when their value is not equal to null.
+|"Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist
+when their value is not equal to null.
 
 |LessThan, IsLessThan a|
 [source,java]
@@ -71,7 +72,8 @@ findByStringMapNotNull()
 findByStringMapLessThan(Map<String, String> stringMap)
 ----
 |...where x.stringMap < ?
-|Find records where `stringMap` bin value has fewer elements or has a corresponding element lower in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `stringMap` bin value has fewer elements or has a corresponding element lower in ordering than
+in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |LessThanEqual, IsLessThanEqual a|
 [source,java]
@@ -79,7 +81,9 @@ findByStringMapLessThan(Map<String, String> stringMap)
 findByStringMapLessThanEqual(Map<String, String> stringMap)
 ----
 |...where x.stringMap < = ?
-|Find records where `stringMap` bin value has smaller or the same amount of elements or has each corresponding element lower in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `stringMap` bin value has smaller or the same amount of elements or has each corresponding element
+lower in ordering or the same as in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |GreaterThan, IsGreaterThan a|
 [source,java]
@@ -87,7 +91,8 @@ findByStringMapLessThanEqual(Map<String, String> stringMap)
 findByStringMapGreaterThan(Map<String, String> stringMap)
 ----
 |...where x.stringMap > ?
-|Find records where `stringMap` bin value has more elements or has a corresponding element higher in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `stringMap` bin value has more elements or has a corresponding element higher in ordering than
+in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |GreaterThanEqual, IsGreaterThanEqual a|
 [source,java]
@@ -95,7 +100,9 @@ findByStringMapGreaterThan(Map<String, String> stringMap)
 findByStringMapGreaterThanEqual(Map<String, String> stringMap)
 ----
 |...where x.stringMap >= ?
-|Find records where `stringMap` bin value has larger or the same amount of elements or has each corresponding element higher in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `stringMap` bin value has larger or the same amount of elements or has each corresponding element
+higher in ordering or the same as in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |Between, IsBetween a|
 [source,java]
@@ -103,7 +110,8 @@ findByStringMapGreaterThanEqual(Map<String, String> stringMap)
 findByStringMapBetween(Map<String, String> lowerLimit, Map<String, String> upperLimit)
 ----
 |...where x.stringMap between ? and ?
-|Find records where `stringMap` bin value is in the range between the given arguments. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `stringMap` bin value is in the range between the given arguments.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |Containing, IsContaining, Contains a|
 [source,java]

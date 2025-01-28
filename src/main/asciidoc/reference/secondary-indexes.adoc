@@ -1,10 +1,12 @@
 [[secondary-indexes]]
 = Secondary indexes
 
-A secondary index (SI) is a data structure that locates all the records in a namespace, or a set within it, based on a bin value in the record.
+A secondary index (SI) is a data structure that locates all the records in a namespace, or a set within it, based on
+a bin value in the record.
 When a value is updated in the indexed record, the secondary index automatically updates.
 
-You can read more about secondary index implementation and usage in Aerospike https://docs.aerospike.com/server/architecture/secondary-index[on the official documentation page].
+You can read more about secondary index implementation and usage in Aerospike
+https://docs.aerospike.com/server/architecture/secondary-index[on the official documentation page].
 
 == Why Secondary Index
 
@@ -23,13 +25,15 @@ Aerospike has 2 ways of achieving this:
 . Defining a secondary index on the field `lastName` and using this secondary index to satisfy the query.
 
 The second approach is far more efficient.
-Aerospike stores the secondary indexes in a memory structure, allowing exceptionally fast identification of the records that match.
+Aerospike stores the secondary indexes in a memory structure, allowing exceptionally fast identification of the
+records that match.
 
 It relies on a secondary index having been created.
 
 == Ways to Create Secondary Indexes
 
-In SpringData Aerospike secondary indexes can either be created by systems administrators using the `asadm` tool, or by developers telling SpringData that such an index is necessary.
+In SpringData Aerospike secondary indexes can either be created by systems administrators using the `asadm` tool,
+or by developers telling SpringData that such an index is necessary.
 
 There are two ways to accomplish this task with the help of SpringData Aerospike:
 
@@ -41,7 +45,8 @@ There are two ways to accomplish this task with the help of SpringData Aerospike
 
 For more information about AerospikeTemplate see the <<aerospike.template, documentation page>>.
 
-Setting a secondary index via AerospikeTemplate can be helpful, for example, in cases when an index creation does not change a lot.
+Setting a secondary index via AerospikeTemplate can be helpful, for example, in cases when an index creation does not
+change a lot.
 
 Here is an example of a numeric secondary index for the `rating` field in the `MovieDocument` entity:
 
@@ -114,7 +119,8 @@ Due to the cost of performing this operation, scans from Spring Data Aerospike a
 
 For the details on how to enable scans see <<scan-operation, Scan Operation>>.
 
-Following the query from the example above, assume there was a new requirement to be able to find by `firstName` with an exact match:
+Following the query from the example above, assume there was a new requirement to be able to find by `firstName`
+with an exact match:
 
 [source,java]
 ----

@@ -41,7 +41,7 @@ Below is an example of different variations:
 ----
     // creating an expression "firsName is equal to John"
     Qualifier firstNameEqJohn = Qualifier.builder()
-        .setField("firstName")
+        .setPath("firstName")
         .setFilterOperation(FilterOperation.EQ)
         .setValue("John")
         .build();

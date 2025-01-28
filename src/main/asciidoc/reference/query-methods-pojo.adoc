@@ -62,7 +62,8 @@ findByAddressExists()
 findByAddressNotNull()
 ----
 |...where x.address != null
-|"Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist when their value is not equal to null.
+|"Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist
+when their value is not equal to null.
 
 |LessThan, IsLessThan a|
 [source,java]
@@ -70,7 +71,9 @@ findByAddressNotNull()
 findByAddressLessThan(Address address)
 ----
 |...where x.address < ?
-|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has fewer elements or has a corresponding element lower in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has fewer elements or has
+a corresponding element lower in ordering than in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |LessThanEqual, IsLessThanEqual a|
 [source,java]
@@ -78,7 +81,9 @@ findByAddressLessThan(Address address)
 findByAddressLessThanEqual(Address address)
 ----
 |...where x.address < = ?
-|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has smaller or the same amount of elements or has each corresponding element lower in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has smaller or the same amount of
+elements or has each corresponding element lower in ordering or the same as in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |GreaterThan, IsGreaterThan a|
 [source,java]
@@ -86,7 +91,9 @@ findByAddressLessThanEqual(Address address)
 findByAddressGreaterThan(Address address)
 ----
 |...where x.address > ?
-|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has more elements or has a corresponding element higher in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has more elements or has
+a corresponding element higher in ordering than in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |GreaterThanEqual, IsGreaterThanEqual a|
 [source,java]
@@ -94,7 +101,9 @@ findByAddressGreaterThan(Address address)
 findByAddressGreaterThanEqual(Address address)
 ----
 |...where x.address >= ?
-|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has larger or the same amount of elements or has each corresponding element higher in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has larger or the same amount
+of elements or has each corresponding element higher in ordering or the same as in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |Between, IsBetween a|
 [source,java]
@@ -102,7 +111,8 @@ findByAddressGreaterThanEqual(Address address)
 findByAddressBetween(Address lowerLimit, Address upperLimit)
 ----
 |...where x.address between ? and ?
-|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) is in the range between the given arguments. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
+|Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) is in the range between
+the given arguments. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |And a|
 [source,java]
