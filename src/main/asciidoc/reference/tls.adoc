@@ -1,0 +1,21 @@
+[[tls]]
+= TLS Configuration
+
+If a TLS connection is required, initialize new `TlsPolicy` for the underlying Java client.
+
+Here is an example:
+
+[source,java]
+----
+public class MyConfiguration extends AbstractAerospikeDataConfiguration {
+
+    @Override
+    protected ClientPolicy getClientPolicy() {
+        ClientPolicy clientPolicy = super.getClientPolicy(); // applying default values first
+        clientPolicy.tlsPolicy = new TlsPolicy();
+        return clientPolicy;
+    }
+}
+----
+
+NOTE:  For running with TLS, an application must have the appropriate certificate. When using default `TlsPolicy` with the regular TLS it is typically required to provide the certificate via JVM argument `-Djavax.net.ssl.trustStore`. For details on configuring TLS see https://aerospike.com/docs/server/operations/configure/network/tls[TLS Configuration], https://github.com/aerospike-examples/aerospike-tls-examples/blob/master/tls-example-java/README.md[Aerospike TLS Example].

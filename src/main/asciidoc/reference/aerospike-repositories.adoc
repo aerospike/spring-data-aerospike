@@ -4,17 +4,23 @@
 [[aerospike-repo-intro]]
 == Introduction
 
-One of the main goals of the Spring Data is to significantly reduce the amount of boilerplate code required to implement data access layers for various persistence stores.
+One of the main goals of the Spring Data is to significantly reduce the amount of boilerplate code required to implement
+data access layers for various persistence stores.
 
 One of the core interfaces of Spring Data is `Repository`.
-This interface acts primarily to capture the types to work with and to help user to discover interfaces that extend Repository.
+This interface acts primarily to capture the types to work with and to help user to discover interfaces that
+extend Repository.
 
-In other words, it allows user to have basic and complicated queries without writing the implementation. This builds on the link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories.html[Core Spring Data Repository Support], so make sure you've got a sound understanding of this concept.
+In other words, it allows user to have basic and complicated queries without writing the implementation.
+This builds on the
+link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories.html[Core Spring Data Repository Support],
+so make sure you've got a sound understanding of this concept.
 
 [[aerospike-repo-usage]]
 == Usage
 
-To access entities stored in Aerospike you can leverage repository support that eases implementing those quite significantly. To do so, simply create an interface for your repository:
+To access entities stored in Aerospike you can leverage repository support that eases implementing those quite
+significantly. To do so, simply create an interface for your repository:
 
 .Sample Person entity
 ====
@@ -35,7 +41,9 @@ public class Person {
 }
 ----
 ====
-We have a quite simple domain object here. The default serialization mechanism used in `AerospikeTemplate` (which is backing the repository support) regards properties named "id" as document id. Currently we support `String` and `long` as id-types.
+We have a quite simple domain object here. The default serialization mechanism used in `AerospikeTemplate`
+(which is backing the repository support) regards properties named "id" as document id.
+Currently we support `String` and `long` as id-types.
 
 .Basic repository interface to persist Person entities
 ====
@@ -51,35 +59,10 @@ public interface PersonRepository extends AerospikeRepository<Person, String> {
 ----
 ====
 
-Right now this interface simply serves typing purposes, but we will add additional methods to it later. In your Spring configuration simply add
+Right now this interface simply serves typing purposes, but we will add additional methods to it later.
 
-.General Aerospike repository Spring configuration
-====
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xmlns:aerospike="http://www.springframework.org/schema/data/aerospike"
-  xsi:schemaLocation="http://www.springframework.org/schema/beans
-    https://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-    http://www.springframework.org/schema/data/aerospike
-    https://www.springframework.org/schema/data/aerospike/spring-aerospike-1.0.xsd">
-
-  <aerospike:aerospike id="aerospike" />
-
-  <bean id="aerospikeTemplate" class="rg.springframework.data.aerospike.core.AerospikeTemplate">
- </bean>
-
-  <aerospike:repositories base-package="org.springframework.data.aerospike.example.data" />
-
-</beans>
-----
-====
-
-This namespace element will cause the base packages to be scanned for interfaces extending `AerospikeRepository` and create Spring beans for each of them found. By default, the repositories will get an `AerospikeTemplate` Spring bean wired that is called `aerospikeTemplate`.
-
-If you'd rather like to go with JavaConfig use the `@EnableAerospikeRepositories` annotation. The annotation carries the very same attributes like the namespace element. If no base package is configured the infrastructure will scan the package of the annotated configuration class.
+We are going to use the `@EnableAerospikeRepositories` annotation. If no base package is configured the infrastructure
+will scan the package of the annotated configuration class.
 
 .JavaConfig for repositories
 ====
@@ -93,7 +76,7 @@ public class TestRepositoryConfig {
 		ClientPolicy policy = new ClientPolicy();
 		policy.failIfNotConnected = true;
 
-		return new AerospikeClient(policy, "52.23.205.208", 3000);
+		return new AerospikeClient(policy, "localhost", 3000);
 	}
 
 	public @Bean AerospikeTemplate aerospikeTemplate() {
@@ -103,7 +86,10 @@ public class TestRepositoryConfig {
 ----
 ====
 
-As our domain repository extends `PagingAndSortingRepository` it provides you with CRUD operations as well as methods for paginated and sorted access to the entities. Working with the repository instance is just a matter of dependency injecting it into a client. So accessing the second page of `Person`s at a page size of 10 would simply look something like this:
+As our domain repository extends `PagingAndSortingRepository` it provides you with CRUD operations as well as methods
+for paginated and sorted access to the entities. Working with the repository instance is just a matter of dependency
+injecting it into a client. So accessing the second page of `Person`s at a page size of 10 would simply look something
+like this:
 
 .Paging access to Person entities
 ====
@@ -125,12 +111,15 @@ public class PersonRepositoryTests {
 ----
 ====
 
-The sample creates an application context with Spring's unit test support which will perform annotation-based dependency injection into test cases. Inside the test method, we simply use the repository to query the datastore. We hand the repository a `PageRequest` instance that requests the first page of persons at a page size of 10.
+The sample creates an application context with Spring's unit test support which will perform annotation-based
+dependency injection into test cases. Inside the test method, we simply use the repository to query the datastore.
+We hand the repository a `PageRequest` instance that requests the first page of persons at a page size of 10.
 
 [[aerospike.repositories.queries]]
 == Query methods
 
-Most of the data access operations you usually trigger on a repository result in a query being executed against the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface
+Most of the data access operations you usually trigger on a repository result in a query being executed against
+the Aerospike databases. Defining such a query is just a matter of declaring a method on the repository interface
 
 .PersonRepository with query methods
 ====
@@ -146,8 +135,10 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
  
  }
 ----
-<1> The method shows a query for all people with the given name. The query will be derived by parsing the method name for constraints that can be concatenated with `And` and `Or`.
-<2> Applies pagination to a query. Just equip your method signature with a `Pageable` parameter and let the method return a `Page` instance, and it will automatically page the query accordingly (i.e. return the required part of results).
+<1> The method shows a query for all people with the given name. The query will be derived by parsing the method name
+for constraints that can be concatenated with `And` and `Or`.
+<2> Applies pagination to a query. Just equip your method signature with a `Pageable` parameter and let the method
+return a `Page` instance, and it will automatically page the query accordingly (i.e. return the required part of results).
 <3> Uses query-based partial name search.
 ====
 [[aerospike.repositories.example]]

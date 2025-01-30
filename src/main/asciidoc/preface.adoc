@@ -1,24 +1,48 @@
 [[preface]]
 = Preface
 
-The Spring Data Aerospike project applies core Spring concepts and provides interface for using Aerospike key-value style data store.  We provide a "repository" and a "template" as high-level abstractions for storing and querying data. You will notice similarities to the JDBC support in the Spring Framework.
+The Spring Data Aerospike project applies core Spring concepts and provides interface for using Aerospike key-value
+style data store.  We provide a "repository" and a "template" as high-level abstractions for storing and querying data.
+You will notice similarities to the JDBC support in the Spring Framework.
 
-This chapter provides some basic introduction to Spring and Aerospike, it explains Aerospike concepts and syntax. The rest of the documentation refers to Spring Data Aerospike features and assumes the user is familiar with Aerospike as well as Spring concepts.
+This chapter provides some basic introduction to Spring and Aerospike, it explains Aerospike concepts and syntax.
+The rest of the documentation refers to Spring Data Aerospike features and assumes the user is familiar
+with Aerospike as well as Spring concepts.
 
 [[get-started:first-steps:spring]]
 == Knowing Spring
-Spring Data uses Spring framework's https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/spring-core.html[core] functionality, such as the https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/beans.html[IoC] container, https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/validation.html#core-convert[type conversion system], https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy] etc. While it is not important to know the Spring APIs, understanding the concepts behind them is. At a minimum, the idea behind IoC should be familiar regardless of IoC container you choose to use.
+Spring Data uses Spring framework's
+https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/spring-core.html[core] functionality, such as
+the https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/beans.html[IoC] container,
+https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/validation.html#core-convert[type conversion system],
+https://docs.spring.io/spring/docs/3.2.x/spring-framework-reference/html/dao.html#dao-exceptions[DAO exception hierarchy]
+etc. While it is not important to know the Spring APIs, understanding the concepts behind them is.
+At a minimum, the idea behind IoC should be familiar regardless of IoC container you choose to use.
 
-To learn more about Spring, you can refer to the comprehensive documentation that explains in detail the Spring Framework. There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework https://docs.spring.io/spring-framework/reference/[documentation reference] for more information.
+To learn more about Spring, you can refer to the comprehensive documentation that explains in detail the Spring Framework.
+There are a lot of articles, blog entries and books on the matter - take a look at the Spring framework
+https://docs.spring.io/spring-framework/reference/[documentation reference] for more information.
 
 [[get-started:first-steps:nosql]]
 == Knowing NoSQL and Aerospike
-NoSQL stores have taken the storage world by storm. It is a vast domain with a plethora of solutions, terms and patterns (to make things worthwhile even the term itself has multiple https://www.google.com/search?q=nosoql+acronym[meanings]). While some principles are common, it is crucial that the user is familiar to some degree with Aerospike key-value store operations that supply the mechanism for associating keys with a set of named values, similar to a row in standard RDBMS terminology.  The data layer in Aerospike Database is optimized to store data in solid state drives, RAM, or traditional rotational media. The database indices are stored in RAM for quick availability, and data writes are optimized through large block writes to reduce latency. The software also employs two sub-programs that are codenamed Defragmenter and Evictor. Defragmenter removes data blocks that have been deleted, and Evictor frees RAM space by removing references to expired records.
+NoSQL stores have taken the storage world by storm. It is a vast domain with a plethora of solutions, terms and patterns
+(to make things worthwhile even the term itself has multiple https://www.google.com/search?q=nosoql+acronym[meanings]).
+While some principles are common, it is crucial that the user is familiar to some degree with Aerospike key-value
+store operations that supply the mechanism for associating keys with a set of named values, similar to a row in
+standard RDBMS terminology.  The data layer in Aerospike Database is optimized to store data in solid state drives,
+RAM, or traditional rotational media. The database indices are stored in RAM for quick availability, and data writes
+are optimized through large block writes to reduce latency. The software also employs two sub-programs that are
+codenamed Defragmenter and Evictor. Defragmenter removes data blocks that have been deleted, and Evictor frees RAM space
+by removing references to expired records.
 
-The jumping off ground for learning about Aerospike is https://www.aerospike.com/[www.aerospike.com]. Here is a list of other useful resources:
+The jumping off ground for learning about Aerospike is https://www.aerospike.com/[www.aerospike.com]. Here is a list of
+other useful resources:
 
-* The https://www.aerospike.com/docs/[technical documentation] introduces Aerospike and contains links to getting started guides, reference documentation and tutorials.
-* The https://www.aerospike.com/docs/client/java/[java client documentation] provides a convenient way to interact with an Aerospike instance in combination with the online https://www.aerospike.com:443/docs/client/java/start/index.html/[Getting started]
+* The https://www.aerospike.com/docs/[technical documentation] introduces Aerospike and contains links to getting
+started guides, reference documentation and tutorials.
+* The https://www.aerospike.com/docs/client/java/[java client documentation] provides a convenient way to interact
+with an Aerospike instance in combination with the online
+https://www.aerospike.com:443/docs/client/java/start/index.html/[Getting started]
 * https://www.aerospike.com/community/[Aerospike Community]
 
 [[requirements]]
@@ -26,11 +50,14 @@ The jumping off ground for learning about Aerospike is https://www.aerospike.com
 
 Spring Data Aerospike binaries require JDK level 17.0 and above.
 
-In terms of server, it is required to use  at least https://www.aerospike.com/download/server/[Aerospike server] version 6.1 (recommended to use the latest version when possible).
+In terms of server, it is required to use  at least https://www.aerospike.com/download/server/[Aerospike server]
+version 6.1 (recommended to use the latest version when possible).
 
 == Additional Help Resources
 
-Learning a new framework is not always straightforward. In this section, we try to provide what we think is an easy-to-follow guide for starting with Spring Data Aerospike module. However, if you encounter issues, or you are just looking for advice, feel free to use one of the links below:
+Learning a new framework is not always straightforward. In this section, we try to provide what we think is an
+easy-to-follow guide for starting with Spring Data Aerospike module. However, if you encounter issues, or you are
+just looking for advice, feel free to use one of the links below:
 
 [[get-started:help]]
 == Support
@@ -40,7 +67,8 @@ There are a few support options available:
 [[get-started:help:community]]
 === Questions & Answers
 
-Developers post questions and answers on Stack Overflow. The two key tags to search for related answers to this project are:
+Developers post questions and answers on Stack Overflow. The two key tags to search for related answers to this project
+are:
 
 * https://stackoverflow.com/questions/tagged/spring-data[spring-data]
 * https://stackoverflow.com/questions/tagged/spring-data-aerospike[spring-data-aerospike]
@@ -48,4 +76,5 @@ Developers post questions and answers on Stack Overflow. The two key tags to sea
 [[get-started:up-to-date]]
 === Following Development
 
-If you encounter a bug or want to suggest an improvement, please create an https://github.com/aerospike/spring-data-aerospike/issues[issue on GitHub].
+If you encounter a bug or want to suggest an improvement, please create an
+https://github.com/aerospike/spring-data-aerospike/issues[issue on GitHub].

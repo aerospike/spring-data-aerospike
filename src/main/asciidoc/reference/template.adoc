@@ -10,12 +10,14 @@ It provides the following functionality:
 - Methods to interact with the database
 - Mapping between Java objects and Aerospike Bins (see <<aerospike.object-mapping, Object Mapping>>)
 - Providing connection callback
-- Translating exceptions into Spring's technology-agnostic https://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions[DAO exceptions hierarchy]
+- Translating exceptions into Spring's technology-agnostic
+https://docs.spring.io/spring/docs/current/spring-framework-reference/html/dao.html#dao-exceptions[DAO exceptions hierarchy]
 
 [[aerospike-template.instantiating]]
 == Instantiating AerospikeTemplate
 
-If you are subclassing `AbstractAerospikeDataConfiguration` then the `aerospikeTemplate` bean is already present in your context, and you can use it.
+If you are subclassing `AbstractAerospikeDataConfiguration` then the `aerospikeTemplate` bean is already present
+in your context, and you can use it.
 
 [source,java]
 ----
@@ -31,9 +33,11 @@ For CAS updates `save` operation must be used.
 
 == Methods for interacting with database
 
-`AerospikeOperations` interface provides operations for interacting with the database (`exists`, `find`, `insert`, `update` etc.) as well as basic operations with indexes: `createIndex`, `deleteIndex`, `indexExists`.
+`AerospikeOperations` interface provides operations for interacting with the database (`exists`, `find`, `insert`,
+`update` etc.) as well as basic operations with indexes: `createIndex`, `deleteIndex`, `indexExists`.
 
-The names of operations are typically self-descriptive. To read from Aerospike you can use `findById`, `findByIds` and `find` methods, to delete - `delete` methods, and so on.
+The names of operations are typically self-descriptive. To read from Aerospike you can use `findById`, `findByIds`
+and `find` methods, to delete - `delete` methods, and so on.
 
 [source,java]
 ----
@@ -52,7 +56,8 @@ assertThat(result).hasSize(6);
 
 The simple case of using the save operation is to save a POJO.
 
-NOTE: For more information about Id property when inserting or saving see xref:#mapping-conventions-id-field[Mapping Conventions: Id Field] for more information.
+NOTE: For more information about Id property when inserting or saving see
+xref:#mapping-conventions-id-field[Mapping Conventions: Id Field] for more information.
 
 [source,java]
 ----
@@ -74,7 +79,7 @@ long count = template.count
             (new Query
                 (new QualifierBuilder()
                     .setFilterOperation(FilterOperation.EQ)
-                    .setField("firstName")
+                    .setPath("firstName")
                     .setValue("John")
                     .build()
                 ),

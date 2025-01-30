@@ -63,7 +63,8 @@ findByStringListNotNull()
 ----
 
 |...where x.stringList != null
-|("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist in AerospikeDB when their value is not equal to null).
+|("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields
+exist in AerospikeDB when their value is not equal to null).
 
 |LessThan, IsLessThan a|
 [source,java]
@@ -71,7 +72,9 @@ findByStringListNotNull()
 findByStringListLessThan(Collection<String> stringList)
 ----
 |...where x.stringList < ?
-|Find records where `stringList` bin value has fewer elements or has a corresponding element lower in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
+|Find records where `stringList` bin value has fewer elements or has a corresponding element lower in ordering
+than in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |LessThanEqual, IsLessThanEqual a|
 [source,java]
@@ -79,7 +82,9 @@ findByStringListLessThan(Collection<String> stringList)
 findByStringListLessThanEqual(Collection<String> stringList)
 ----
 |...where x.stringList < = ?
-|Find records where `stringList` bin value has smaller or the same amount of elements or has each corresponding element lower in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
+|Find records where `stringList` bin value has smaller or the same amount of elements or has each
+corresponding element lower in ordering or the same as in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |GreaterThan, IsGreaterThan a|
 [source,java]
@@ -87,7 +92,9 @@ findByStringListLessThanEqual(Collection<String> stringList)
 findByStringListGreaterThan(Collection<String> stringList)
 ----
 |...where x.stringList > ?
-|Find records where `stringList` bin value has more elements or has a corresponding element higher in ordering than in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
+|Find records where `stringList` bin value has more elements or has a corresponding element higher in ordering
+than in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |GreaterThanEqual, IsGreaterThanEqual a|
 [source,java]
@@ -95,7 +102,9 @@ findByStringListGreaterThan(Collection<String> stringList)
 findByStringListGreaterThanEqual(Collection<String> stringList)
 ----
 |...where x.stringList >= ?
-|Find records where `stringList` bin value has larger or the same amount of elements or has each corresponding element higher in ordering or the same as in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
+|Find records where `stringList` bin value has larger or the same amount of elements or has each
+corresponding element higher in ordering or the same as in the given argument.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |Between, IsBetween a|
 [source,java]
@@ -103,7 +112,8 @@ findByStringListGreaterThanEqual(Collection<String> stringList)
 findByStringListBetween(Collection<String> lowerLimit, Collection<String> upperLimit)
 ----
 |...where x.stringList between ? and ?
-|Find records where `stringList` bin value is in the range between the given arguments. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
+|Find records where `stringList` bin value is in the range between the given arguments.
+See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
 |Containing, IsContaining, Contains a|
 [source,java]

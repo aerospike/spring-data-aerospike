@@ -1,38 +1,48 @@
 [[caching]]
 = Caching
 
-Caching is the process of storing data in a cache or temporary storage location, usually to improve application performance and make data access faster.
+Caching is the process of storing data in a cache or temporary storage location, usually to improve application
+performance and make data access faster.
 
 The caching process also provides an efficient way to reuse previously retrieved or computed data.
 The cache is used to reduce the need for accessing the underlying storage layer which is slower.
 
-Spring Cache with Aerospike database allows you to use annotations such as `@Cacheable`, `@CachePut` and `@CacheEvict` that provide a fully managed cache store using Aerospike database.
+Spring Cache with Aerospike database allows you to use annotations such as `@Cacheable`, `@CachePut`
+and `@CacheEvict` that provide a fully managed cache store using Aerospike database.
 
 == Introduction
 
-In this example, we are going to use the annotations on `UserRepository` class methods to create/read/update and delete user’s data from the cache.
+In this example, we are going to use the annotations on `UserRepository` class methods to create/read/update
+and delete user’s data from the cache.
 
-If a `User` is stored in the cache, calling a method with `@Cacheable` annotation will fetch the user from the cache instead of executing the method’s body responsible for the actual user fetch from the database.
+If a `User` is stored in the cache, calling a method with `@Cacheable` annotation will fetch the user from
+the cache instead of executing the method’s body responsible for the actual user fetch from the database.
 
-If the `User` does not exist in the cache, the user’s data will be fetched from the database and put in the cache for later usage (a “cache miss”).
+If the `User` does not exist in the cache, the user’s data will be fetched from the database and put in the cache
+for later usage (a “cache miss”).
 
 With Spring Cache and Aerospike database, we can achieve that with only a few lines of code.
 
 == Motivation
 
 Let’s say that we are using another database as our main data store.
-We don’t want to fetch the results from it every time we request the data, instead, we want to get the data from a cache layer.
+We don’t want to fetch the results from it every time we request the data, instead, we want to get the data from
+a cache layer.
 
 There is a number of benefits of using a cache layer, here are some of them:
 
 [arabic]
-. Performance: Aerospike can work purely in RAM but reading a record from Aerospike in Hybrid Memory (primary index in memory, data stored on Flash drives) is extremely fast as well (~1ms).
-. Reduce database load: Moving a significant part of the read load from the main database to Aerospike can help balance the resources on heavy loads.
-. Scalability: Aerospike scales horizontally by adding more nodes to the cluster, scaling a relational database might be tricky and expensive, so if you are facing a read heavy load you can easily scale up the cache layer.
+. Performance: Aerospike can work purely in RAM but reading a record from Aerospike in Hybrid Memory (primary index
+in memory, data stored on Flash drives) is extremely fast as well (~1ms).
+. Reduce database load: Moving a significant part of the read load from the main database to Aerospike can help
+balance the resources on heavy loads.
+. Scalability: Aerospike scales horizontally by adding more nodes to the cluster, scaling a relational database
+might be tricky and expensive, so if you are facing a read heavy load you can easily scale up the cache layer.
 
 == Example
 
-We will not use an actual database as our main data store for this example, instead, we will simulate database access by printing a simulation message and replace a database read by just returning a specific `User`.
+We will not use an actual database as our main data store for this example, instead, we will simulate database access
+by printing a simulation message and replace a database read by just returning a specific `User`.
 
 === Configuration
 
@@ -98,9 +108,13 @@ The heart of the cache layer, to define an AerospikeCacheManager you need:
 [arabic]
 . aerospikeClient (AerospikeClient).
 . aerospikeConverter (MappingAerospikeConverter).
-. defaultCacheConfiguration (AerospikeCacheConfiguration), a default cache configuration that applies when creating new caches.
-Cache configuration contains a namespace, a set (null by default meaning write directly to the namespace w/o specifying a set) and an expirationInSeconds (AKA TTL, default is 0 meaning use Aerospike server’s default).
-. Optional: initialPerCacheConfiguration (Map<String, AerospikeCacheConfiguration>), You can also specify a map of cache names and matching configuration, it will create the caches with the given matching configuration at the application startup.
+. defaultCacheConfiguration (AerospikeCacheConfiguration), a default cache configuration that applies when creating
+new caches.
+Cache configuration contains a namespace, a set (null by default meaning write directly to the namespace w/o
+specifying a set) and an expirationInSeconds (AKA TTL, default is 0 meaning use Aerospike server’s default).
+. Optional: initialPerCacheConfiguration (Map<String, AerospikeCacheConfiguration>), You can also specify a map
+of cache names and matching configuration, it will create the caches with the given matching configuration
+at the application startup.
 
 NOTE: A cache name is only a link to the cache configuration.
 
@@ -134,7 +148,8 @@ public class UserRepository {
     @Cacheable(value = "test", key = "#id")
     public Optional<User> getUserById(int id) {
         System.out.println("Simulating a read from the main data store.");
-        // In case the id doesn't exist in the cache it will "fetch" jimmy page with the requested id and add it to the cache (cache miss).
+        // In case the id doesn't exist in the cache
+        // it will "fetch" jimmy page with the requested id and add it to the cache (cache miss)
         return Optional.of(new User(id, "jimmy page", "jimmy@gmail.com", 77));
     }
 
@@ -151,7 +166,10 @@ public class UserRepository {
 }
 ----
 
-The cache annotations require a “value” field, which is the cache name, if the cache name doesn't exist — by passing initialPerCacheConfiguration param when creating a Bean of AerospikeCacheManager in a configuration class, it will configure the cache with the properties of the given defaultCacheConfiguration (Configuration > <<cache-example-configuration-AerospikeCacheManager, AerospikeCacheManager>>).
+The cache annotations require a “value” field, which is the cache name, if the cache name doesn't exist —
+by passing initialPerCacheConfiguration param when creating a Bean of AerospikeCacheManager in a configuration class,
+it will configure the cache with the properties of the given defaultCacheConfiguration
+(Configuration > <<cache-example-configuration-AerospikeCacheManager, AerospikeCacheManager>>).
 
 === Services
 
@@ -298,7 +316,8 @@ aql> select * from test
 
 === Cache miss (@Cacheable)
 
-For reading `User` that is not in the cache we can use the GET request configured before with an id that we know for sure is not there.
+For reading `User` that is not in the cache we can use the GET request configured before with an id that we know
+for sure is not there.
 
 If we try calling the GET request with the id 5, we get the following user data:
 
@@ -309,7 +328,8 @@ If we try calling the GET request with the id 5, we get the following user data:
         "age": 77
     }
 
-We wrote it hard-coded in `UserRepository` to simulate an actual database fetch of a user id that doesn't exist in the cache.
+We wrote it hard-coded in `UserRepository` to simulate an actual database fetch of a user id that doesn't exist
+in the cache.
 
 We can now also see that the user was added to the cache.
 

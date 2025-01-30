@@ -1,8 +1,13 @@
 [[configuration]]
 = Configuration
 
-Configuration parameters can be set in a standard `application.properties` file using `spring.aerospike*`
-and `spring.data.aerospike*` prefixes or by overriding configuration from `AbstractAerospikeDataConfiguration` class (it has precedence over `hosts` and `namespace` parameters set via application.properties).
+Configuration parameters can be set using one of these ways:
+
+- In a standard `application.properties` file using `spring.aerospike*`
+and `spring.data.aerospike*` prefixes.
+
+- By overriding configuration methods `getHosts()`, `nameSpace()` and `configureDataSettings()`.
+These methods have precedence over parameters set via application.properties.
 
 [[configuration.application-properties]]
 == Application.properties
@@ -40,7 +45,8 @@ In this case extending `AbstractAerospikeDataConfiguration` class is required to
 [[configuration.overriding-configuration]]
 == Overriding configuration
 
-Configuration can also be set by overriding `getHosts()`, `nameSpace()` and `configureDataSettings()` methods of the `AbstractAerospikeDataConfiguration` class.
+Configuration can also be set by overriding `getHosts()`, `nameSpace()` and `configureDataSettings()` methods of the
+`AbstractAerospikeDataConfiguration` class.
 
 Here is an example:
 
@@ -421,3 +427,28 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 ----
 
 *Default*: `true` (write Maps and POJOs as sorted maps).
+
+[[configuration.client-policy]]
+== ClientPolicy
+
+To set the necessary `ClientPolicy` parameters of the underlying Java client, override the `getClientPolicy()` method and call `super.getClientPolicy()` to apply default values first.
+
+Here is an example with several parameters set for running a test:
+
+[source,java]
+----
+public class MyConfiguration extends AbstractAerospikeDataConfiguration {
+
+    @Override
+    protected ClientPolicy getClientPolicy() {
+        ClientPolicy clientPolicy = super.getClientPolicy(); // applying default values first
+        int totalTimeout = 2000;
+        clientPolicy.readPolicyDefault.totalTimeout = totalTimeout;
+        clientPolicy.writePolicyDefault.totalTimeout = totalTimeout;
+        clientPolicy.batchPolicyDefault.totalTimeout = totalTimeout;
+        clientPolicy.infoPolicyDefault.timeout = totalTimeout;
+        clientPolicy.readPolicyDefault.maxRetries = 3;
+        return clientPolicy;
+    }
+}
+----

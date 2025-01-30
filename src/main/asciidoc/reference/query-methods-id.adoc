@@ -1,7 +1,8 @@
 [[aerospike.query_methods.id]]
 = Id Repository Queries
 
-*Id repository reading queries* (like `findById()`, `findByIds()`, `findByFirstNameAndId()`, `findAllById()`, `countById()`, `existsById()` etc.) utilize `get` operation of the underlying Java client (`client.get()`).
+*Id repository reading queries* (like `findById()`, `findByIds()`, `findByFirstNameAndId()`, `findAllById()`,
+`countById()`, `existsById()` etc.) utilize `get` operation of the underlying Java client (`client.get()`).
 
 [width="100%",cols="<7%,<30%,<25%,<20%",options="header",]
 |===
