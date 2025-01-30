@@ -7,7 +7,11 @@
 :toc-placement!:
 :toclevels: 1
 
+:leveloffset: -1
+
 == Spring Data Aerospike - Documentation
+
+:leveloffset: +1
 
 (C) 2018-2025 The original authors.
 
@@ -31,6 +35,7 @@ include::preface.adoc[]
 include::reference/functionality.adoc[]
 include::reference/installation-and-usage.adoc[]
 include::reference/configuration.adoc[]
+include::reference/tls.adoc[]
 include::reference/aerospike-repositories.adoc[]
 include::reference/aerospike-reactive-repositories.adoc[]
 include::reference/aerospike-projections.adoc[]
