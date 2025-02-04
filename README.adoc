@@ -26,9 +26,7 @@ about https://projects.spring.io/[Spring Projects]
 
 == Examples
 
-. Demo project example with a step-by-step tutorial can be found
-https://github.com/aerospike-examples/simple-springboot-aerospike-demo[here]
-. Demo project with detailed guides is located
+Demo repository with detailed guides is located
 https://github.com/aerospike-community/spring-data-aerospike-demo[here]
 
 == Getting Started Blog Posts
