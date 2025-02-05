@@ -1,13 +1,13 @@
 [[configuration]]
 = Configuration
 
-Configuration can be set using one of these ways:
+Configuration can be applied using one of these ways:
 
-- By using a standard `application.properties` file with `spring.aerospike*`
-and `spring.data.aerospike*` parameters together with a configuration class to enable repositories.
+- Via parameters with `spring.aerospike*`
+and `spring.data.aerospike*` prefixes in `application.properties` file, and using configuration class to enable repositories.
 
-- By overriding configuration methods `getHosts()`, `nameSpace()` and `configureDataSettings()`.
-These methods have precedence over parameters set in application.properties.
+- By overriding methods `getHosts()`, `nameSpace()`, `configureDataSettings()` and enabling repositories
+in a configuration class. These methods have precedence over parameters set in application.properties.
 
 [[configuration.application-properties]]
 == Application.properties and Enabling Repositories
@@ -40,13 +40,13 @@ public class AerospikeConfiguration extends AbstractAerospikeDataConfiguration {
 }
 ----
 
-NOTE: Within this approach having a configuration class extending `AbstractAerospikeDataConfiguration` is required at least to enable repositories. Depending on the use case it might be required to override other configuration methods like xref:#aerospike.custom-converters[`customConverters()`] or xref:#configuration.client-policy[`getClientPolicy()`].
+NOTE: Depending on the use case it might be required to override optional configuration methods like
+xref:#aerospike.custom-converters[`customConverters()`] or xref:#configuration.client-policy[`getClientPolicy()`].
 
 [[configuration.overriding-configuration]]
 == Overriding Configuration Methods
 
-Configuration can also be set by overriding `getHosts()`, `nameSpace()` and `configureDataSettings()` methods of the
-`AbstractAerospikeDataConfiguration` class.
+Configuration can also be set by overriding `getHosts()`, `nameSpace()` and `configureDataSettings()` methods.
 
 Here is an example:
 
@@ -78,11 +78,11 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 }
 ----
 
-NOTE: Return values of `getHosts()`, `nameSpace()` and `configureDataSettings()` methods
-of the `AbstractAerospikeDataConfiguration` class have precedence over the parameters
-set via application.properties.
+NOTE: Return values of `getHosts()`, `nameSpace()` and `configureDataSettings()` methods have precedence over the
+parameters set via application.properties.
 
-Depending on the use case it might be required to override other configuration methods like xref:#aerospike.custom-converters[`customConverters()`] or xref:#configuration.client-policy[`getClientPolicy()`].
+Depending on the use case it might be required to override other configuration methods like
+xref:#aerospike.custom-converters[`customConverters()`] or xref:#configuration.client-policy[`getClientPolicy()`].
 
 
 [[configuration.parameters]]
