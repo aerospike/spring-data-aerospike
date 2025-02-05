@@ -47,8 +47,8 @@ public @interface EnableReactiveAerospikeRepositories {
 
     /**
      * Alias for the {@link #basePackages()} attribute. Allows for more concise annotation declarations e.g.:
-     * {@code @EnableJpaRepositories("org.my.pkg")} instead of
-     * {@code @EnableJpaRepositories(basePackages="org.my.pkg")}.
+     * {@code @EnableAerospikeRepositories("org.my.pkg")} instead of
+     * {@code @EnableAerospikeRepositories(basePackages="org.my.pkg")}.
      */
     String[] value() default {};
 

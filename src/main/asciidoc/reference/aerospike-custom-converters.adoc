@@ -9,7 +9,9 @@ Spring provides a set of default type converters for common conversions. Spring 
 
 However, in certain cases, custom converters are necessary to handle specific logic or custom serialization requirements. Custom converters allow developers to define precise conversion rules, ensuring data integrity and compatibility between application types and database representations.
 
-In order to add a custom converter you can leverage Spring's `Converter` SPI to implement type conversion logic and override `customConverters()` method available in `AerospikeDataConfigurationSupport`. Here is an example:
+In order to add a custom converter you can leverage Spring's `Converter` SPI to implement type conversion logic and override `customConverters()` method available in `AerospikeDataConfigurationSupport`.
+
+Here is an example:
 
 [source,java]
 ----
@@ -53,3 +55,4 @@ public class BlockingTestConfig extends AbstractAerospikeDataConfiguration {
 }
 ----
 
+For more examples see the link:https://github.com/aerospike-community/spring-data-aerospike-demo/blob/main/asciidoc/custom-converters.adoc[Custom Converters Guide] in the demo repository.
