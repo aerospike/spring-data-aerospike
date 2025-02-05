@@ -6,7 +6,7 @@ Configuration can be set using one of these ways:
 - By using a standard `application.properties` file with `spring.aerospike*`
 and `spring.data.aerospike*` parameters together with a configuration class to enable repositories.
 
-- By overriding configuration methods `getHosts()`, `nameSpace()` and `configureDataSettings()` in a configuration class.
+- By overriding configuration methods `getHosts()`, `nameSpace()` and `configureDataSettings()`.
 These methods have precedence over parameters set in application.properties.
 
 [[configuration.application-properties]]
