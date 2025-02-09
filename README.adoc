@@ -44,6 +44,10 @@ with Spring Boot and Aerospike]
 Data Aerospike: Reactive Repositories]
 . https://medium.com/aerospike-developer-blog/spring-data-aerospike-projections-951382bc07b5?source=friends_link&sk=d0a3be4fd171bbc9e072d09ccbcf056f[Spring
 Data Aerospike - Projections]
+. https://aerospike.com/blog/spring-data-aerospike-5-new-features[Spring
+Data Aerospike 5.0.0: New Features]
+. https://aerospike.com/blog/spring-data-aerospike-5-updates[Spring
+Data Aerospike 5.0.0: Important Updates]
 
 == Spring Data Aerospike Compatibility
 
