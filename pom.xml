@@ -30,7 +30,7 @@
         <spring-tx>6.2.2</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike-client-jdk8>9.0.3</aerospike-client-jdk8>
+        <aerospike-client-jdk8>9.0.4</aerospike-client-jdk8>
         <aerospike-reactor-client>9.0.2</aerospike-reactor-client>
         <reactor-test>3.7.2</reactor-test>
         <embedded-aerospike>3.1.10</embedded-aerospike>
