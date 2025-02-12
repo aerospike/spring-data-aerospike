@@ -6,7 +6,7 @@
 
     <groupId>com.aerospike</groupId>
     <artifactId>spring-data-aerospike</artifactId>
-    <version>5.0.0</version>
+    <version>5.0.1</version>
     <name>Spring Data Aerospike</name>
     <organization>
         <name>Aerospike Inc.</name>
@@ -30,18 +30,18 @@
         <spring-tx>6.2.2</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
-        <aerospike-client-jdk8>9.0.3</aerospike-client-jdk8>
+        <aerospike-client-jdk8>9.0.4</aerospike-client-jdk8>
         <aerospike-reactor-client>9.0.2</aerospike-reactor-client>
         <reactor-test>3.7.2</reactor-test>
-        <embedded-aerospike>3.1.10</embedded-aerospike>
-        <jodatime>2.13.0</jodatime>
+        <embedded-aerospike>3.1.11</embedded-aerospike>
+        <jodatime>2.13.1</jodatime>
         <lombok>1.18.36</lombok>
         <awaitility>4.2.2</awaitility>
         <logback.test>1.5.16</logback.test>
         <hibernate.validator>8.0.2.Final</hibernate.validator>
-        <netty.version>4.1.117.Final</netty.version>
+        <netty.version>4.1.118.Final</netty.version>
         <kryo.version>5.6.2</kryo.version>
-        <apacheCommonsCodec.version>1.17.2</apacheCommonsCodec.version>
+        <apacheCommonsCodec.version>1.18.0</apacheCommonsCodec.version>
     </properties>
 
     <licenses>
