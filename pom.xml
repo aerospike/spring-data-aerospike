@@ -36,7 +36,7 @@
         <embedded-aerospike>3.1.11</embedded-aerospike>
         <jodatime>2.13.1</jodatime>
         <lombok>1.18.36</lombok>
-        <awaitility>4.2.2</awaitility>
+        <awaitility>4.3.0</awaitility>
         <logback.test>1.5.16</logback.test>
         <hibernate.validator>8.0.2.Final</hibernate.validator>
         <netty.version>4.1.118.Final</netty.version>
