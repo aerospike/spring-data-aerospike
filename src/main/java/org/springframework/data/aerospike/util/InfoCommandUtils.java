@@ -15,11 +15,11 @@ import java.util.concurrent.TimeUnit;
 @UtilityClass
 public class InfoCommandUtils {
 
-    public static String request(IAerospikeClient client, Node node, String command) {
+    public String request(IAerospikeClient client, Node node, String command) {
         return request(client, client.getInfoPolicyDefault(), node, command);
     }
 
-    public static String request(IAerospikeClient client, InfoPolicy infoPolicy, Node node, String command) {
+    public String request(IAerospikeClient client, InfoPolicy infoPolicy, Node node, String command) {
         InfoListenerWithStringValue listener = new InfoListenerWithStringValue() {
 
             private final CompletableFuture<String> stringValueFuture = new CompletableFuture<>();
@@ -58,7 +58,7 @@ public class InfoCommandUtils {
         return value == null ? "" : value;
     }
 
-    private static AerospikeException commandFailed(String command, Throwable t) {
+    private AerospikeException commandFailed(String command, Throwable t) {
         return new AerospikeException(String.format("Info command %s failed", command), t);
     }
 

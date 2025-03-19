@@ -39,7 +39,7 @@ import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
-import org.springframework.data.aerospike.index.ReactiveIndexesCacheRefresher;
+import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -66,6 +66,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -97,7 +98,7 @@ import static org.springframework.data.aerospike.util.Utils.iterableToList;
  */
 @Slf4j
 public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations,
-    ReactiveIndexesCacheRefresher {
+    IndexesCacheRefresher<Mono<?>> {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
 
@@ -122,7 +123,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     @Override
     public Mono<Void> refreshIndexesCache() {
-        return reactorIndexRefresher.refreshIndexes();
+        return reactorIndexRefresher.refreshIndexes()
+            .then(Mono.empty());
     }
 
     @Override

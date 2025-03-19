@@ -18,7 +18,6 @@ import lombok.SneakyThrows;
 import lombok.Value;
 import org.awaitility.Awaitility;
 import org.springframework.data.aerospike.core.WritePolicyBuilder;
-import org.springframework.data.aerospike.index.BaseIndexesCacheRefresher;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.model.Index;
@@ -48,7 +47,7 @@ public abstract class AdditionalAerospikeTestOperations {
     private final IndexInfoParser indexInfoParser;
     private final IAerospikeClient client;
     private final ServerVersionSupport serverVersionSupport;
-    private final BaseIndexesCacheRefresher baseIndexesRefresher;
+    private final IndexesCacheRefresher baseIndexesRefresher;
     private final GenericContainer<?> aerospike;
 
     public void assertScansForSet(String setName, Consumer<List<? extends ScanJob>> consumer) {
@@ -141,7 +140,7 @@ public abstract class AdditionalAerospikeTestOperations {
         IndexUtils.createIndex(client, serverVersionSupport, namespace, setName, indexName, binName, indexType,
             collType,
             ctx);
-        ((IndexesCacheRefresher) baseIndexesRefresher).refreshIndexesCache();
+        baseIndexesRefresher.refreshIndexesCache();
     }
 
     public void createIndexes(Collection<Index> indexesToBeCreated) {
@@ -153,12 +152,12 @@ public abstract class AdditionalAerospikeTestOperations {
                     index.getBin(), index.getIndexType(), collType, index.getCtx());
             }
         );
-        ((IndexesCacheRefresher) baseIndexesRefresher).refreshIndexesCache();
+        baseIndexesRefresher.refreshIndexesCache();
     }
 
     public <T> void dropIndex(String setName, String indexName) {
         IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), setName, indexName);
-        ((IndexesCacheRefresher) baseIndexesRefresher).refreshIndexesCache();
+        baseIndexesRefresher.refreshIndexesCache();
     }
 
     public <T> void dropIndex(Class<T> entityClass, String indexName) {
@@ -170,7 +169,7 @@ public abstract class AdditionalAerospikeTestOperations {
                 IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName());
             }
         );
-        ((IndexesCacheRefresher) baseIndexesRefresher).refreshIndexesCache();
+        baseIndexesRefresher.refreshIndexesCache();
     }
 
     public <T> void deleteAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
