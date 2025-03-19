@@ -7,7 +7,6 @@ import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.reactive.ReactiveCustomerRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Customer;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.util.List;
@@ -138,7 +137,6 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     @Test
     public void deleteAllIterable_ShouldRejectNullObject() {
         List<Customer> entities = asList(homer, null, marge);
-
         assertThatThrownBy(() -> reactiveRepository.deleteAll(entities).block())
             .isInstanceOf(IllegalArgumentException.class);
     }
