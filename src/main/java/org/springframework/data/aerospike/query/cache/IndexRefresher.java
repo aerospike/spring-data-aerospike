@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class IndexRefresher {
 
-    public static final String INDEX_CACHE_REFRESH_SECONDS = "index.cache.refresh.seconds";
     private final Logger log = LoggerFactory.getLogger(IndexRefresher.class);
 
     private final IAerospikeClient client;
