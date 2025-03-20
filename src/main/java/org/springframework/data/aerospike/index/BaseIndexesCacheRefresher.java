@@ -1,6 +1,6 @@
 package org.springframework.data.aerospike.index;
 
-public interface IndexesCacheRefresher<T> {
+public interface BaseIndexesCacheRefresher<T> {
 
     T refreshIndexesCache();
 }

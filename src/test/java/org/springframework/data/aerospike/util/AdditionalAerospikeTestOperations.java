@@ -18,7 +18,7 @@ import lombok.SneakyThrows;
 import lombok.Value;
 import org.awaitility.Awaitility;
 import org.springframework.data.aerospike.core.WritePolicyBuilder;
-import org.springframework.data.aerospike.index.IndexesCacheRefresher;
+import org.springframework.data.aerospike.index.BaseIndexesCacheRefresher;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.model.Index;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
@@ -47,7 +47,7 @@ public abstract class AdditionalAerospikeTestOperations {
     private final IndexInfoParser indexInfoParser;
     private final IAerospikeClient client;
     private final ServerVersionSupport serverVersionSupport;
-    private final IndexesCacheRefresher baseIndexesRefresher;
+    private final BaseIndexesCacheRefresher baseIndexesRefresher;
     private final GenericContainer<?> aerospike;
 
     public void assertScansForSet(String setName, Consumer<List<? extends ScanJob>> consumer) {

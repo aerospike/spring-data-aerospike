@@ -59,7 +59,7 @@ public class IndexRefresher {
             TimeUnit.SECONDS);
     }
 
-    public void refreshIndexes() {
+    public int refreshIndexes() {
         log.trace("Loading indexes");
         IndexesInfo cache = Arrays.stream(client.getNodes())
             .filter(Node::isActive)
@@ -74,6 +74,7 @@ public class IndexRefresher {
             .orElse(IndexesInfo.empty());
         log.debug("Loaded indexes: {}", cache.indexes);
         this.indexesCacheUpdater.update(cache);
+        return cache.indexes.size();
     }
 
     public void clearCache() {

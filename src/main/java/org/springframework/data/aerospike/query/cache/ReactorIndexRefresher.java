@@ -46,16 +46,17 @@ public class ReactorIndexRefresher {
         this.serverVersionSupport = serverVersionSupport;
     }
 
-    public Mono<Void> refreshIndexes() {
+    public Mono<Integer> refreshIndexes() {
         return client.info(infoPolicy, null, indexOperations.buildGetIndexesCommand())
             .doOnSubscribe(subscription -> log.trace("Loading indexes"))
-            .doOnNext(indexInfo -> {
+            .map(indexInfo -> {
                 IndexesInfo cache = indexOperations.parseIndexesInfo(indexInfo);
                 indexOperations.enrichIndexesWithCardinality(client.getAerospikeClient(), cache.indexes,
                     serverVersionSupport);
                 this.indexesCacheUpdater.update(cache);
                 log.debug("Loaded indexes: {}", cache.indexes);
-            }).then();
+                return cache.indexes.size();
+            });
     }
 
     public Mono<Void> clearCache() {
