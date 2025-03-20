@@ -483,6 +483,8 @@ public interface ReactiveAerospikeOperations {
      * Reactively delete records using a single batch delete operation, set name will be determined by the given entity
      * class. The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
+     * Deleting non-existing records is not allowed.
+     * <p>
      * This operation requires Server version 6.0+.
      *
      * @param ids         The ids of the records to find. Must not be {@literal null}.
@@ -495,8 +497,27 @@ public interface ReactiveAerospikeOperations {
     <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
+     * Reactively delete records using a single batch delete operation, set name will be determined by the given entity
+     * class. The policies are analogous to {@link #deleteById(Object, Class)}.
+     * <p>
+     * Non-existing records are ignored.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids             The ids of the records to find. Must not be {@literal null}.
+     * @param entityClass     The class to extract the Aerospike set name from and to map the results to. Must not be
+     *                        {@literal null}.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors.
+     * @throws DataAccessException                 if batch operation failed (see
+     *                                             {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    <T> Mono<Void> deleteExistingByIds(Iterable<?> ids, Class<T> entityClass);
+
+    /**
      * Reactively delete records within the given set using a single batch delete operation. The policies are analogous
      * to {@link #deleteById(Object, String)}.
+     * <p>
+     * Deleting non-existing records is not allowed.
      * <p>
      * This operation requires Server version 6.0+.
      *
@@ -507,6 +528,22 @@ public interface ReactiveAerospikeOperations {
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     Mono<Void> deleteByIds(Iterable<?> ids, String setName);
+
+    /**
+     * Reactively delete records within the given set using a single batch delete operation. The policies are analogous
+     * to {@link #deleteById(Object, String)}.
+     * <p>
+     * Non-existing records are ignored.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids     The ids of the documents to find. Must not be {@literal null}.
+     * @param setName Set name to use.
+     * @throws AerospikeException.BatchRecordArray if batch delete results contain errors.
+     * @throws DataAccessException                 if batch operation failed (see
+     *                                             {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    Mono<Void> deleteExistingByIds(Iterable<?> ids, String setName);
 
     /**
      * Reactively delete records from different sets in a single request.

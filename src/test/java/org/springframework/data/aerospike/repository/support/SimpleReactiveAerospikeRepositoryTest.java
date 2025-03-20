@@ -216,7 +216,7 @@ public class SimpleReactiveAerospikeRepositoryTest {
             .collect(toList());
         repository.deleteAllById(customersIds);
 
-        verify(operations).deleteByIds(customersIds, Customer.class);
+        verify(operations).deleteExistingByIds(customersIds, Customer.class);
     }
 
     @Test

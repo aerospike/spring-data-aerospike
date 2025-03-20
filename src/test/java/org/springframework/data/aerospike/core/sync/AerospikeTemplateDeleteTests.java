@@ -260,6 +260,19 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
     }
 
     @Test
+    public void deleteExistingByIds_skipsDuplicateIds() {
+        String id1 = nextId();
+        DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
+        DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
+        template.save(document1);
+        template.save(document2);
+
+        List<String> ids = List.of(id1, id1);
+        template.deleteExistingByIds(ids, DocumentWithExpiration.class);
+        assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
+    }
+
+    @Test
     public void deleteByIds_ShouldDeleteAllDocuments() {
         String id1 = nextId();
         String id2 = nextId();
@@ -267,17 +280,17 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         template.save(new DocumentWithExpiration(id2));
 
         List<String> ids = List.of(id1, id2);
-        template.deleteByIds(ids, DocumentWithExpiration.class);
+        template.deleteExistingByIds(ids, DocumentWithExpiration.class);
         assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
 
         List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
         ids = persons.stream().map(Person::getId).toList();
-        template.deleteByIds(ids, Person.class);
+        template.deleteExistingByIds(ids, Person.class);
         assertThat(template.findByIds(ids, Person.class)).isEmpty();
 
         List<Person> persons2 = additionalAerospikeTestOperations.saveGeneratedPersons(1001);
         ids = persons2.stream().map(Person::getId).toList();
-        template.deleteByIds(ids, Person.class);
+        template.deleteExistingByIds(ids, Person.class);
         assertThat(template.findByIds(ids, Person.class)).isEmpty();
     }
 
@@ -289,7 +302,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
         template.save(new DocumentWithExpiration(id2), OVERRIDE_SET_NAME);
 
         List<String> ids = List.of(id1, id2);
-        template.deleteByIds(ids, OVERRIDE_SET_NAME);
+        template.deleteExistingByIds(ids, OVERRIDE_SET_NAME);
 
         assertThat(template.findByIds(ids, DocumentWithExpiration.class, OVERRIDE_SET_NAME)).isEmpty();
     }
