@@ -47,7 +47,7 @@ public abstract class AdditionalAerospikeTestOperations {
     private final IndexInfoParser indexInfoParser;
     private final IAerospikeClient client;
     private final ServerVersionSupport serverVersionSupport;
-    private final IndexesCacheRefresher baseIndexesRefresher;
+    private final IndexesCacheRefresher indexesRefresher;
     private final GenericContainer<?> aerospike;
 
     public void assertScansForSet(String setName, Consumer<List<? extends ScanJob>> consumer) {
@@ -140,7 +140,7 @@ public abstract class AdditionalAerospikeTestOperations {
         IndexUtils.createIndex(client, serverVersionSupport, namespace, setName, indexName, binName, indexType,
             collType,
             ctx);
-        baseIndexesRefresher.refreshIndexesCache();
+        indexesRefresher.refreshIndexesCache();
     }
 
     public void createIndexes(Collection<Index> indexesToBeCreated) {
@@ -152,12 +152,12 @@ public abstract class AdditionalAerospikeTestOperations {
                     index.getBin(), index.getIndexType(), collType, index.getCtx());
             }
         );
-        baseIndexesRefresher.refreshIndexesCache();
+        indexesRefresher.refreshIndexesCache();
     }
 
     public <T> void dropIndex(String setName, String indexName) {
         IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), setName, indexName);
-        baseIndexesRefresher.refreshIndexesCache();
+        indexesRefresher.refreshIndexesCache();
     }
 
     public <T> void dropIndex(Class<T> entityClass, String indexName) {
@@ -169,7 +169,7 @@ public abstract class AdditionalAerospikeTestOperations {
                 IndexUtils.dropIndex(client, serverVersionSupport, getNamespace(), index.getSet(), index.getName());
             }
         );
-        baseIndexesRefresher.refreshIndexesCache();
+        indexesRefresher.refreshIndexesCache();
     }
 
     public <T> void deleteAll(AerospikeRepository<T, ?> repository, Collection<T> entities) {
