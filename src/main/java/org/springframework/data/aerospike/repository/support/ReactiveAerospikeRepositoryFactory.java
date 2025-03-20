@@ -32,8 +32,9 @@ import org.springframework.data.repository.core.support.ReactiveRepositoryFactor
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.util.Assert;
 import reactor.util.annotation.Nullable;
@@ -98,12 +99,12 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
     }
 
     @Override
-    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
-        Key key,
-        QueryMethodEvaluationContextProvider evaluationContextProvider)
-    {
+    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@org.springframework.lang.Nullable Key key,
+                                                                   ValueExpressionDelegate valueExpressionDelegate) {
         return Optional.of(
-            new ReactiveAerospikeQueryLookupStrategy(key, evaluationContextProvider, aerospikeTemplate, queryCreator));
+            new ReactiveAerospikeQueryLookupStrategy(key, valueExpressionDelegate.getEvaluationContextAccessor(),
+                aerospikeTemplate, queryCreator)
+        );
     }
 
     /**
@@ -112,29 +113,29 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
      */
     private static class ReactiveAerospikeQueryLookupStrategy implements QueryLookupStrategy {
 
-        private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+        private final QueryMethodValueEvaluationContextAccessor evaluationContextAccessor;
         private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
         private final ReactiveAerospikeTemplate aerospikeTemplate;
 
         /**
          * Creates a new {@link ReactiveAerospikeQueryLookupStrategy} for the given {@link Key},
-         * {@link QueryMethodEvaluationContextProvider} and query creator type.
+         * {@link QueryMethodValueEvaluationContextAccessor} and query creator type.
          * <p>
          *
          * @param key                       Currently unused, same behaviour in the built-in spring's
          *                                  KeyValueQueryLookupStrategy implementation.
-         * @param evaluationContextProvider must not be {@literal null}.
+         * @param evaluationContextAccessor must not be {@literal null}.
          * @param aerospikeTemplate         must not be {@literal null}.
          * @param queryCreator              must not be {@literal null}.
          */
         public ReactiveAerospikeQueryLookupStrategy(@Nullable Key key,
-                                                    QueryMethodEvaluationContextProvider evaluationContextProvider,
+                                                    QueryMethodValueEvaluationContextAccessor evaluationContextAccessor,
                                                     ReactiveAerospikeTemplate aerospikeTemplate,
                                                     Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-            Assert.notNull(evaluationContextProvider, "QueryMethodEvaluationContextProvider must not be null!");
+            Assert.notNull(evaluationContextAccessor, "QueryMethodEvaluationContextAccessor must not be null!");
             Assert.notNull(aerospikeTemplate, "AerospikeTemplate must not be null!");
             Assert.notNull(queryCreator, "Query creator type must not be null!");
-            this.evaluationContextProvider = evaluationContextProvider;
+            this.evaluationContextAccessor = evaluationContextAccessor;
             this.aerospikeTemplate = aerospikeTemplate;
             this.queryCreator = queryCreator;
         }
@@ -144,7 +145,7 @@ public class ReactiveAerospikeRepositoryFactory extends ReactiveRepositoryFactor
                                             ProjectionFactory projectionFactory,
                                             NamedQueries namedQueries) {
             QueryMethod queryMethod = new QueryMethod(method, metadata, projectionFactory);
-            return new ReactiveAerospikePartTreeQuery(queryMethod, evaluationContextProvider, this.aerospikeTemplate,
+            return new ReactiveAerospikePartTreeQuery(queryMethod, evaluationContextAccessor, this.aerospikeTemplate,
                 this.queryCreator);
         }
     }

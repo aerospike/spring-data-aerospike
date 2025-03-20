@@ -1,9 +1,12 @@
 package org.springframework.data.aerospike.core;
 
+import com.aerospike.client.BatchRecord;
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.client.ResultCode;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.experimental.UtilityClass;
+import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
@@ -19,6 +22,7 @@ import org.springframework.transaction.NoTransactionException;
 import org.springframework.transaction.reactive.TransactionContextManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
@@ -35,7 +39,7 @@ import static org.springframework.data.aerospike.query.qualifier.Qualifier.or;
 @UtilityClass
 public class TemplateUtils {
 
-    public static List<Object> getIdValue(Qualifier qualifier) {
+    public List<Object> getIdValue(Qualifier qualifier) {
         if (qualifier.hasId()) {
             return idObjectToList(qualifier.getId());
         } else {
@@ -43,7 +47,7 @@ public class TemplateUtils {
         }
     }
 
-    private static List<Object> idObjectToList(Object ids) {
+    private List<Object> idObjectToList(Object ids) {
         List<Object> result;
         Assert.notNull(ids, "Ids must not be null");
 
@@ -64,7 +68,7 @@ public class TemplateUtils {
         return result;
     }
 
-    public static Qualifier[] excludeIdQualifier(Qualifier[] qualifiers) {
+    public Qualifier[] excludeIdQualifier(Qualifier[] qualifiers) {
         List<Qualifier> qualifiersWithoutId = new ArrayList<>();
         if (qualifiers != null && qualifiers.length > 0) {
             for (Qualifier qualifier : qualifiers) {
@@ -80,7 +84,7 @@ public class TemplateUtils {
         return null;
     }
 
-    public static Qualifier excludeIdQualifier(Qualifier qualifier) {
+    public Qualifier excludeIdQualifier(Qualifier qualifier) {
         List<Qualifier> qualifiersWithoutId = new ArrayList<>();
         if (qualifier != null && qualifier.hasQualifiers()) {
             for (Qualifier innerQual : qualifier.getQualifiers()) {
@@ -99,7 +103,7 @@ public class TemplateUtils {
         return qualifier;
     }
 
-    private static Qualifier combineMultipleQualifiers(FilterOperation operation, Qualifier[] qualifiers) {
+    private Qualifier combineMultipleQualifiers(FilterOperation operation, Qualifier[] qualifiers) {
         if (operation == FilterOperation.OR) {
             return or(qualifiers);
         } else if (operation == FilterOperation.AND) {
@@ -109,7 +113,7 @@ public class TemplateUtils {
         }
     }
 
-    public static String[] getBinNamesFromTargetClass(Class<?> targetClass,
+    public String[] getBinNamesFromTargetClass(Class<?> targetClass,
                                                       MappingContext<BasicAerospikePersistentEntity<?>,
                                                           AerospikePersistentProperty> mappingContext) {
         AerospikePersistentEntity<?> targetEntity = mappingContext.getRequiredPersistentEntity(targetClass);
@@ -133,7 +137,7 @@ public class TemplateUtils {
      * @param policy Policy instance, typically not default policy to avoid saving transaction id to defaults
      * @return Policy with filled {@link Policy#txn} if transaction is active
      */
-    public static Policy enrichPolicyWithTransaction(IAerospikeClient client, Policy policy) {
+    public Policy enrichPolicyWithTransaction(IAerospikeClient client, Policy policy) {
         if (TransactionSynchronizationManager.hasResource(client)) {
             AerospikeTransactionResourceHolder resourceHolder =
                 (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
@@ -143,7 +147,7 @@ public class TemplateUtils {
         return policy;
     }
 
-    private static Policy getPolicyFilterExp(IAerospikeClient client, QueryEngine queryEngine, Query query) {
+    private Policy getPolicyFilterExp(IAerospikeClient client, QueryEngine queryEngine, Query query) {
         if (queryCriteriaIsNotNull(query)) {
             Policy policy = client.copyReadPolicyDefault();
             Qualifier qualifier = query.getCriteriaObject();
@@ -153,7 +157,7 @@ public class TemplateUtils {
         return null;
     }
 
-    static Policy getPolicyFilterExpOrDefault(IAerospikeClient client, QueryEngine queryEngine, Query query) {
+    Policy getPolicyFilterExpOrDefault(IAerospikeClient client, QueryEngine queryEngine, Query query) {
         Policy policy = getPolicyFilterExp(client, queryEngine, query);
         return policy != null ? policy : client.copyReadPolicyDefault();
     }
@@ -162,10 +166,10 @@ public class TemplateUtils {
      * Enrich given Policy with transaction id if transaction is active
      *
      * @param reactorClient IAerospikeReactorClient
-     * @param policy Policy instance, typically not default policy to avoid saving transaction id to defaults
+     * @param policy        Policy instance, typically not default policy to avoid saving transaction id to defaults
      * @return Mono&lt;Policy&gt; with filled {@link Policy#txn} if transaction is active
      */
-    static Mono<Policy> enrichPolicyWithTransaction(IAerospikeReactorClient reactorClient, Policy policy) {
+    Mono<Policy> enrichPolicyWithTransaction(IAerospikeReactorClient reactorClient, Policy policy) {
         return TransactionContextManager.currentContext()
             .map(ctx -> {
                 AerospikeReactiveTransactionResourceHolder resourceHolder =
@@ -178,5 +182,57 @@ public class TemplateUtils {
             })
             .onErrorResume(NoTransactionException.class, ignored ->
                 Mono.just(policy));
+    }
+
+    void validateGroupedKeys(GroupedKeys groupedKeys) {
+        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
+        validateForBatchWrite(groupedKeys.getEntitiesKeys(), "Entities keys");
+    }
+
+    void validateForBatchWrite(Object object, String objectName) {
+        Assert.notNull(object, objectName + " must not be null!");
+    }
+
+    boolean batchWriteSizeMatch(int batchSize, int currentSize) {
+        return batchSize > 0 && currentSize == batchSize;
+    }
+
+    boolean batchRecordFailed(BatchRecord batchRecord) {
+        return batchRecord.resultCode != ResultCode.OK || batchRecord.record == null;
+    }
+
+    /**
+     * Creates batches from an iterable source, tolerating null values. Each batch will have at most batchSize elements
+     *
+     * @param source    The source iterable containing elements to batch
+     * @param batchSize The maximum size of each batch
+     * @return A Flux emitting lists of batched elements
+     */
+    <T> Flux<List<T>> createNullTolerantBatches(Iterable<? extends T> source, int batchSize) {
+        return Flux.create(sink -> {
+            try {
+                List<T> currentBatch = new ArrayList<>();
+
+                for (T item : source) {
+                    // Add item to the current batch (even if null)
+                    currentBatch.add(item);
+
+                    // When we hit batch size, emit the batch and start a new one
+                    if (batchWriteSizeMatch(batchSize, currentBatch.size())) {
+                        sink.next(new ArrayList<>(currentBatch));
+                        currentBatch.clear();
+                    }
+                }
+
+                // Emit any remaining items in the final batch
+                if (!currentBatch.isEmpty()) {
+                    sink.next(new ArrayList<>(currentBatch));
+                }
+
+                sink.complete();
+            } catch (Exception e) {
+                sink.error(e);
+            }
+        });
     }
 }

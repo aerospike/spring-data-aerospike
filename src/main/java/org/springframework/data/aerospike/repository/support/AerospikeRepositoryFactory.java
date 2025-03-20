@@ -32,9 +32,11 @@ import org.springframework.data.repository.core.support.RepositoryFactorySupport
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
+import org.springframework.data.repository.query.ValueExpressionDelegate;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
@@ -98,11 +100,13 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
     }
 
     @Override
-    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(
-        Key key,
-        QueryMethodEvaluationContextProvider evaluationContextProvider) {
-        return Optional.of(new AerospikeQueryLookupStrategy(evaluationContextProvider, this.template,
-            this.queryCreator));
+    protected Optional<QueryLookupStrategy> getQueryLookupStrategy(@Nullable Key key,
+                                                                   ValueExpressionDelegate valueExpressionDelegate) {
+        return Optional.of(
+            new AerospikeQueryLookupStrategy(valueExpressionDelegate.getEvaluationContextAccessor(),
+            this.template,
+            this.queryCreator)
+        );
     }
 
     /**
@@ -111,26 +115,26 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
      */
     private static class AerospikeQueryLookupStrategy implements QueryLookupStrategy {
 
-        private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+        private final QueryMethodValueEvaluationContextAccessor evaluationContextAccessor;
         private final AerospikeTemplate aerospikeTemplate;
         private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
 
         /**
          * Creates a new {@link AerospikeQueryLookupStrategy} for the given {@link Key},
-         * {@link QueryMethodEvaluationContextProvider} and query creator type.
+         * {@link QueryMethodValueEvaluationContextAccessor} and query creator type.
          * <p>
          *
-         * @param evaluationContextProvider must not be {@literal null}.
+         * @param evaluationContextAccessor must not be {@literal null}.
          * @param aerospikeTemplate         must not be {@literal null}.
          * @param queryCreator              must not be {@literal null}.
          */
-        public AerospikeQueryLookupStrategy(QueryMethodEvaluationContextProvider evaluationContextProvider,
+        public AerospikeQueryLookupStrategy(QueryMethodValueEvaluationContextAccessor evaluationContextAccessor,
                                             AerospikeTemplate aerospikeTemplate,
                                             Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-            Assert.notNull(evaluationContextProvider, "QueryMethodEvaluationContextProvider must not be null!");
+            Assert.notNull(evaluationContextAccessor, "QueryMethodEvaluationContextAccessor must not be null!");
             Assert.notNull(aerospikeTemplate, "AerospikeTemplate must not be null!");
             Assert.notNull(queryCreator, "Query creator type must not be null!");
-            this.evaluationContextProvider = evaluationContextProvider;
+            this.evaluationContextAccessor = evaluationContextAccessor;
             this.aerospikeTemplate = aerospikeTemplate;
             this.queryCreator = queryCreator;
         }
@@ -140,7 +144,7 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
                                             ProjectionFactory projectionFactory,
                                             NamedQueries namedQueries) {
             QueryMethod queryMethod = new QueryMethod(method, metadata, projectionFactory);
-            return new AerospikePartTreeQuery(queryMethod, evaluationContextProvider, this.aerospikeTemplate,
+            return new AerospikePartTreeQuery(queryMethod, evaluationContextAccessor, this.aerospikeTemplate,
                 this.queryCreator);
         }
     }

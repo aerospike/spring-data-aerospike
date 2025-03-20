@@ -81,9 +81,7 @@ import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.Oper
 import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.OperationType.UPDATE_OPERATION;
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
-import static org.springframework.data.aerospike.core.TemplateUtils.enrichPolicyWithTransaction;
-import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
-import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+import static org.springframework.data.aerospike.core.TemplateUtils.*;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 import static org.springframework.data.aerospike.util.Utils.iterableToList;
@@ -170,44 +168,41 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
     private <T> Flux<T> applyBufferedBatchWrite(Iterable<? extends T> documents, String setName,
                                                 OperationType operationType) {
-        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
-        List<T> docsList = new ArrayList<>();
-        Flux<T> result = Flux.empty();
+        return Flux.defer(() -> {
+            int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
 
-        for (T doc : documents) {
-            if (batchWriteSizeMatch(batchSize, docsList.size())) {
-                result = Flux.concat(result, batchWriteAllDocuments(docsList, setName, operationType));
-                docsList.clear();
-            }
-            docsList.add(doc);
-        }
-        if (!docsList.isEmpty()) {
-            result = Flux.concat(result, batchWriteAllDocuments(docsList, setName, operationType));
-        }
-
-        return result;
+            // Create batches
+            return createNullTolerantBatches(documents, batchSize)
+                .concatMap(batch -> batchWriteAllDocuments(batch, setName, operationType));
+        });
     }
 
     private <T> Flux<T> batchWriteAllDocuments(List<T> documents, String setName, OperationType operationType) {
-        List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>();
-        switch (operationType) {
-            case SAVE_OPERATION ->
-                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForSave(document, setName)));
-            case INSERT_OPERATION ->
-                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForInsert(document, setName)));
-            case UPDATE_OPERATION ->
-                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForUpdate(document, setName)));
-            case DELETE_OPERATION ->
-                documents.forEach(document -> batchWriteDataList.add(getBatchWriteForDelete(document, setName)));
-            default -> throw new IllegalArgumentException("Unexpected operation name: " + operationType);
-        }
+        return Flux.defer(() -> {
+            try {
+                List<BaseAerospikeTemplate.BatchWriteData<T>> batchWriteDataList = documents.stream().map(document ->
+                    switch (operationType) {
+                        case SAVE_OPERATION -> getBatchWriteForSave(document, setName);
+                        case INSERT_OPERATION -> getBatchWriteForInsert(document, setName);
+                        case UPDATE_OPERATION -> getBatchWriteForUpdate(document, setName);
+                        case DELETE_OPERATION -> getBatchWriteForDelete(document, setName);
+                    }
+                ).toList();
 
-        List<BatchRecord> batchWriteRecords = batchWriteDataList.stream().map(BatchWriteData::batchRecord).toList();
+                List<BatchRecord> batchWriteRecords = batchWriteDataList.stream()
+                    .map(BatchWriteData::batchRecord)
+                    .toList();
 
-        return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyBatchPolicyDefault())
-            .flatMapMany(batchPolicyEnriched ->
-                batchWriteAndCheckForErrors((BatchPolicy) batchPolicyEnriched, batchWriteRecords, batchWriteDataList,
-                    operationType));
+                return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
+                    .copyBatchPolicyDefault())
+                    .flatMapMany(batchPolicyEnriched ->
+                        batchWriteAndCheckForErrors((BatchPolicy) batchPolicyEnriched, batchWriteRecords,
+                            batchWriteDataList,
+                            operationType));
+            } catch (Exception e) {
+                return Flux.error(e);
+            }
+        });
     }
 
     private <T> Flux<T> batchWriteAndCheckForErrors(BatchPolicy batchPolicy, List<BatchRecord> batchWriteRecords,
@@ -513,11 +508,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 
-        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
         Flux<Void> result = Flux.empty();
         for (Object id : ids) {
-            if (batchWriteSizeMatch(batchSize, idsList.size())) {
+            if (batchWriteSizeMatch(converter.getAerospikeDataSettings().getBatchWriteSize(), idsList.size())) {
                 result = deleteByIds(idsList, setName).concatWith(result);
                 idsList.clear();
             }
@@ -779,7 +773,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 )
                 .onErrorMap(this::translateError);
         } else {
-            return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyReadPolicyDefault())
+            return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
+                .copyReadPolicyDefault())
                 .flatMap(policy -> reactorClient.get(policy, key))
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, entityClass, keyRecord.record))
@@ -811,7 +806,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                 )
                 .onErrorMap(this::translateError);
         } else {
-            return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient().copyReadPolicyDefault())
+            return enrichPolicyWithTransaction(reactorClient, reactorClient.getAerospikeClient()
+                .copyReadPolicyDefault())
                 .flatMap(policy -> reactorClient.get(policy, key, binNames))
                 .filter(keyRecord -> Objects.nonNull(keyRecord.record))
                 .map(keyRecord -> mapToEntity(keyRecord.key, targetClass, keyRecord.record))
@@ -837,12 +833,10 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(targetClass, "Class must not be null!");
         Assert.notNull(setName, "Set name must not be null!");
 
-        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
         Flux<T> result = Flux.empty();
-
         for (Object id : ids) {
-            if (batchWriteSizeMatch(batchSize, idsList.size())) {
+            if (batchWriteSizeMatch(converter.getAerospikeDataSettings().getBatchWriteSize(), idsList.size())) {
                 result = Flux.concat(result, findByIds(idsList, targetClass, setName));
                 idsList.clear();
             }
@@ -851,7 +845,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         if (!idsList.isEmpty()) {
             result = Flux.concat(result, findByIds(idsList, targetClass, setName));
         }
-
         return result;
     }
 
@@ -880,14 +873,16 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             return Mono.just(GroupedEntities.builder().build());
         }
 
-        return findGroupedEntitiesByGroupedKeys(reactorClient.getAerospikeClient().copyBatchPolicyDefault(), groupedKeys);
+        return findGroupedEntitiesByGroupedKeys(reactorClient.getAerospikeClient()
+            .copyBatchPolicyDefault(), groupedKeys);
     }
 
     private Mono<GroupedEntities> findGroupedEntitiesByGroupedKeys(BatchPolicy batchPolicy, GroupedKeys groupedKeys) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
 
         return enrichPolicyWithTransaction(reactorClient, batchPolicy)
-            .flatMap(batchPolicyEnriched -> reactorClient.get((BatchPolicy) batchPolicyEnriched, entitiesKeys.getKeys()))
+            .flatMap(batchPolicyEnriched -> reactorClient.get((BatchPolicy) batchPolicyEnriched,
+                entitiesKeys.getKeys()))
             .map(item -> toGroupedEntities(entitiesKeys, item.records))
             .onErrorMap(this::translateError);
     }
