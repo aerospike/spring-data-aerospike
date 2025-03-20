@@ -39,7 +39,7 @@ import static org.springframework.data.aerospike.query.qualifier.Qualifier.or;
 @UtilityClass
 public class TemplateUtils {
 
-    public static List<Object> getIdValue(Qualifier qualifier) {
+    public List<Object> getIdValue(Qualifier qualifier) {
         if (qualifier.hasId()) {
             return idObjectToList(qualifier.getId());
         } else {
@@ -47,7 +47,7 @@ public class TemplateUtils {
         }
     }
 
-    private static List<Object> idObjectToList(Object ids) {
+    private List<Object> idObjectToList(Object ids) {
         List<Object> result;
         Assert.notNull(ids, "Ids must not be null");
 
@@ -68,7 +68,7 @@ public class TemplateUtils {
         return result;
     }
 
-    public static Qualifier[] excludeIdQualifier(Qualifier[] qualifiers) {
+    public Qualifier[] excludeIdQualifier(Qualifier[] qualifiers) {
         List<Qualifier> qualifiersWithoutId = new ArrayList<>();
         if (qualifiers != null && qualifiers.length > 0) {
             for (Qualifier qualifier : qualifiers) {
@@ -84,7 +84,7 @@ public class TemplateUtils {
         return null;
     }
 
-    public static Qualifier excludeIdQualifier(Qualifier qualifier) {
+    public Qualifier excludeIdQualifier(Qualifier qualifier) {
         List<Qualifier> qualifiersWithoutId = new ArrayList<>();
         if (qualifier != null && qualifier.hasQualifiers()) {
             for (Qualifier innerQual : qualifier.getQualifiers()) {
@@ -103,7 +103,7 @@ public class TemplateUtils {
         return qualifier;
     }
 
-    private static Qualifier combineMultipleQualifiers(FilterOperation operation, Qualifier[] qualifiers) {
+    private Qualifier combineMultipleQualifiers(FilterOperation operation, Qualifier[] qualifiers) {
         if (operation == FilterOperation.OR) {
             return or(qualifiers);
         } else if (operation == FilterOperation.AND) {
@@ -113,7 +113,7 @@ public class TemplateUtils {
         }
     }
 
-    public static String[] getBinNamesFromTargetClass(Class<?> targetClass,
+    public String[] getBinNamesFromTargetClass(Class<?> targetClass,
                                                       MappingContext<BasicAerospikePersistentEntity<?>,
                                                           AerospikePersistentProperty> mappingContext) {
         AerospikePersistentEntity<?> targetEntity = mappingContext.getRequiredPersistentEntity(targetClass);
@@ -137,7 +137,7 @@ public class TemplateUtils {
      * @param policy Policy instance, typically not default policy to avoid saving transaction id to defaults
      * @return Policy with filled {@link Policy#txn} if transaction is active
      */
-    public static Policy enrichPolicyWithTransaction(IAerospikeClient client, Policy policy) {
+    public Policy enrichPolicyWithTransaction(IAerospikeClient client, Policy policy) {
         if (TransactionSynchronizationManager.hasResource(client)) {
             AerospikeTransactionResourceHolder resourceHolder =
                 (AerospikeTransactionResourceHolder) TransactionSynchronizationManager.getResource(client);
@@ -147,7 +147,7 @@ public class TemplateUtils {
         return policy;
     }
 
-    private static Policy getPolicyFilterExp(IAerospikeClient client, QueryEngine queryEngine, Query query) {
+    private Policy getPolicyFilterExp(IAerospikeClient client, QueryEngine queryEngine, Query query) {
         if (queryCriteriaIsNotNull(query)) {
             Policy policy = client.copyReadPolicyDefault();
             Qualifier qualifier = query.getCriteriaObject();
@@ -157,7 +157,7 @@ public class TemplateUtils {
         return null;
     }
 
-    static Policy getPolicyFilterExpOrDefault(IAerospikeClient client, QueryEngine queryEngine, Query query) {
+    Policy getPolicyFilterExpOrDefault(IAerospikeClient client, QueryEngine queryEngine, Query query) {
         Policy policy = getPolicyFilterExp(client, queryEngine, query);
         return policy != null ? policy : client.copyReadPolicyDefault();
     }
@@ -169,7 +169,7 @@ public class TemplateUtils {
      * @param policy        Policy instance, typically not default policy to avoid saving transaction id to defaults
      * @return Mono&lt;Policy&gt; with filled {@link Policy#txn} if transaction is active
      */
-    static Mono<Policy> enrichPolicyWithTransaction(IAerospikeReactorClient reactorClient, Policy policy) {
+    Mono<Policy> enrichPolicyWithTransaction(IAerospikeReactorClient reactorClient, Policy policy) {
         return TransactionContextManager.currentContext()
             .map(ctx -> {
                 AerospikeReactiveTransactionResourceHolder resourceHolder =
@@ -202,7 +202,7 @@ public class TemplateUtils {
     }
 
     /**
-     * Creates batches from an iterable source, tolerating null values Each batch will have at most batchSize elements
+     * Creates batches from an iterable source, tolerating null values. Each batch will have at most batchSize elements
      *
      * @param source    The source iterable containing elements to batch
      * @param batchSize The maximum size of each batch

@@ -180,18 +180,14 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private <T> Flux<T> batchWriteAllDocuments(List<T> documents, String setName, OperationType operationType) {
         return Flux.defer(() -> {
             try {
-                List<BatchWriteData<T>> batchWriteDataList = new ArrayList<>(documents.size());
-                // Process all documents
-                for (T document : documents) {
-                    BatchWriteData<T> batchWriteData = switch (operationType) {
+                List<BaseAerospikeTemplate.BatchWriteData<T>> batchWriteDataList = documents.stream().map(document ->
+                    switch (operationType) {
                         case SAVE_OPERATION -> getBatchWriteForSave(document, setName);
                         case INSERT_OPERATION -> getBatchWriteForInsert(document, setName);
                         case UPDATE_OPERATION -> getBatchWriteForUpdate(document, setName);
                         case DELETE_OPERATION -> getBatchWriteForDelete(document, setName);
-                        default -> throw new IllegalArgumentException("Unexpected operation name: " + operationType);
-                    };
-                    batchWriteDataList.add(batchWriteData);
-                }
+                    }
+                ).toList();
 
                 List<BatchRecord> batchWriteRecords = batchWriteDataList.stream()
                     .map(BatchWriteData::batchRecord)
