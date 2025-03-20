@@ -95,7 +95,7 @@ import static org.springframework.data.aerospike.util.Utils.iterableToList;
  */
 @Slf4j
 public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations,
-    IndexesCacheRefresher {
+    IndexesCacheRefresher<Mono<Integer>> {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
 
@@ -119,8 +119,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     }
 
     @Override
-    public void refreshIndexesCache() {
-        reactorIndexRefresher.refreshIndexes();
+    public Mono<Integer> refreshIndexesCache() {
+        return reactorIndexRefresher.refreshIndexes();
     }
 
     @Override
@@ -1257,7 +1257,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
 
         return reactorClient.createIndex(null, namespace,
                 setName, indexName, binName, indexType, indexCollectionType, ctx)
-            .then(reactorIndexRefresher.refreshIndexes())
+            .then(refreshIndexesCache())
+            .then()
             .onErrorMap(this::translateError);
     }
 
@@ -1273,7 +1274,8 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Assert.notNull(indexName, "Index name must not be null!");
 
         return reactorClient.dropIndex(null, namespace, setName, indexName)
-            .then(reactorIndexRefresher.refreshIndexes())
+            .then(refreshIndexesCache())
+            .then()
             .onErrorMap(this::translateError);
     }
 

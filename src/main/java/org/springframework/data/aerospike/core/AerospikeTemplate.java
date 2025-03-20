@@ -52,15 +52,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -91,7 +83,7 @@ import static org.springframework.data.aerospike.query.QualifierUtils.queryCrite
  */
 @Slf4j
 public class AerospikeTemplate extends BaseAerospikeTemplate implements AerospikeOperations,
-    IndexesCacheRefresher {
+    IndexesCacheRefresher<Integer> {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
 
@@ -125,8 +117,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
-    public void refreshIndexesCache() {
-        indexRefresher.refreshIndexes();
+    public Integer refreshIndexesCache() {
+        return indexRefresher.refreshIndexes();
     }
 
     @Override

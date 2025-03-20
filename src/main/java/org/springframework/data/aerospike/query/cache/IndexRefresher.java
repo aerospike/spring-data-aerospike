@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class IndexRefresher {
 
-    public static final String INDEX_CACHE_REFRESH_SECONDS = "index.cache.refresh.seconds";
     private final Logger log = LoggerFactory.getLogger(IndexRefresher.class);
 
     private final IAerospikeClient client;
@@ -59,7 +58,7 @@ public class IndexRefresher {
             TimeUnit.SECONDS);
     }
 
-    public void refreshIndexes() {
+    public int refreshIndexes() {
         log.trace("Loading indexes");
         IndexesInfo cache = Arrays.stream(client.getNodes())
             .filter(Node::isActive)
@@ -74,6 +73,7 @@ public class IndexRefresher {
             .orElse(IndexesInfo.empty());
         log.debug("Loaded indexes: {}", cache.indexes);
         this.indexesCacheUpdater.update(cache);
+        return cache.indexes.size();
     }
 
     public void clearCache() {
