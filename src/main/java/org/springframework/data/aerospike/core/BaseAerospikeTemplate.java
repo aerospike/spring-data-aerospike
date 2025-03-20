@@ -517,23 +517,6 @@ abstract class BaseAerospikeTemplate {
             entity.hasVersionProperty());
     }
 
-    protected void validateGroupedKeys(GroupedKeys groupedKeys) {
-        Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        validateForBatchWrite(groupedKeys.getEntitiesKeys(), "Entities keys");
-    }
-
-    protected void validateForBatchWrite(Object object, String objectName) {
-        Assert.notNull(object, objectName + " must not be null!");
-    }
-
-    protected boolean batchWriteSizeMatch(int batchSize, int currentSize) {
-        return batchSize > 0 && currentSize == batchSize;
-    }
-
-    protected boolean batchRecordFailed(BatchRecord batchRecord) {
-        return batchRecord.resultCode != ResultCode.OK || batchRecord.record == null;
-    }
-
     protected enum OperationType {
         SAVE_OPERATION("save"),
         INSERT_OPERATION("insert"),

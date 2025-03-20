@@ -24,7 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
 import java.util.List;
@@ -32,8 +32,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
-import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+import static org.springframework.data.aerospike.core.TemplateUtils.*;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 
 /**
@@ -45,10 +44,10 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     private final AerospikeOperations operations;
 
     public AerospikePartTreeQuery(QueryMethod queryMethod,
-                                  QueryMethodEvaluationContextProvider evalContextProvider,
+                                  QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                   AerospikeTemplate operations,
                                   Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-        super(queryMethod, evalContextProvider, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
+        super(queryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
             operations.getAerospikeConverter(), operations.getServerVersionSupport());
         this.operations = operations;
     }

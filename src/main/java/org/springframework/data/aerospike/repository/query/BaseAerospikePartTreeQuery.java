@@ -22,10 +22,12 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.expression.ValueEvaluationContext;
+import org.springframework.data.expression.ValueEvaluationContextProvider;
 import org.springframework.data.repository.query.ParameterAccessor;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
 import org.springframework.data.repository.query.QueryMethod;
-import org.springframework.data.repository.query.QueryMethodEvaluationContextProvider;
+import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 import org.springframework.data.repository.query.parser.PartTree;
@@ -47,19 +49,19 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
     protected final QueryMethod queryMethod;
     protected final Class<?> entityClass;
-    private final QueryMethodEvaluationContextProvider evaluationContextProvider;
+    private final QueryMethodValueEvaluationContextAccessor evaluationContextAccessor;
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
     private final AerospikeMappingContext context;
     private final MappingAerospikeConverter converter;
     private final ServerVersionSupport versionSupport;
 
     protected BaseAerospikePartTreeQuery(QueryMethod queryMethod,
-                                         QueryMethodEvaluationContextProvider evalContextProvider,
+                                         QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                          Class<? extends AbstractQueryCreator<?, ?>> queryCreator,
                                          AerospikeMappingContext context,
                                          MappingAerospikeConverter converter, ServerVersionSupport versionSupport) {
         this.queryMethod = queryMethod;
-        this.evaluationContextProvider = evalContextProvider;
+        this.evaluationContextAccessor = evalContextAccessor;
         this.queryCreator = queryCreator;
         this.entityClass = queryMethod.getEntityInformation().getJavaType();
         this.context = context;
@@ -100,10 +102,20 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         }
 
         if (query.getCriteria() instanceof SpelExpression spelExpression) {
-            EvaluationContext context = this.evaluationContextProvider.getEvaluationContext(queryMethod.getParameters(),
-                parameters);
+            // Create a ValueEvaluationContextProvider using the accessor
+            ValueEvaluationContextProvider provider = this.evaluationContextAccessor.create(queryMethod.getParameters());
+
+            // Get the ValueEvaluationContext using the provider
+            ValueEvaluationContext valueContext = provider.getEvaluationContext(parameters);
+
+            // Convert to EvaluationContext using the getDelegate() method
+            EvaluationContext context = valueContext.getRequiredEvaluationContext();
+
+            // Set the context on the SpelExpression
             spelExpression.setEvaluationContext(context);
         }
+
+
 
         return query;
     }
