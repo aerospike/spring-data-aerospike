@@ -123,7 +123,7 @@ public class SimpleReactiveAerospikeRepository<T, ID> implements ReactiveAerospi
     @Override
     public Mono<Void> deleteAllById(Iterable<? extends ID> ids) {
         Assert.notNull(ids, "The given ids must not be null!");
-        return operations.deleteByIds(ids, entityInformation.getJavaType());
+        return operations.deleteExistingByIds(ids, entityInformation.getJavaType());
     }
 
     @Override

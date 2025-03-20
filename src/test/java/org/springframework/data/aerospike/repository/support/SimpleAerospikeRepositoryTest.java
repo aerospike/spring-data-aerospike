@@ -177,7 +177,7 @@ public class SimpleAerospikeRepositoryTest {
             .collect(toList());
         aerospikeRepository.deleteAllById(personIds);
 
-        verify(operations).deleteByIds(personIds, Person.class);
+        verify(operations).deleteExistingByIds(personIds, Person.class);
     }
 
     @Test

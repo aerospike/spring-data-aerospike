@@ -497,6 +497,8 @@ public interface AerospikeOperations {
      * Delete records by ids using a single batch delete operation, set name will be determined by the given
      * entityClass. The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
+     * Deleting non-existing records is not allowed.
+     * <p>
      * This operation requires Server version 6.0+.
      *
      * @param ids         The ids of the records to be deleted. Must not be {@literal null}.
@@ -508,8 +510,26 @@ public interface AerospikeOperations {
     <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass);
 
     /**
+     * Delete existing records by ids using a single batch delete operation, set name will be determined by the given
+     * entityClass. The policies are analogous to {@link #deleteById(Object, Class)}.
+     * <p>
+     * Non-existing records are ignored.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids         The ids of the records to be deleted. Must not be {@literal null}.
+     * @param entityClass The class to extract set name from. Must not be {@literal null}.
+     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors.
+     * @throws DataAccessException                 If batch operation failed (see
+     *                                             {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    <T> void deleteExistingByIds(Iterable<?> ids, Class<T> entityClass);
+
+    /**
      * Delete records by ids within the given set using a single batch delete operation. The policies are analogous to
      * {@link #deleteById(Object, String)}.
+     * <p>
+     * Deleting non-existing records is not allowed.
      * <p>
      * This operation requires Server version 6.0+.
      *
@@ -520,6 +540,22 @@ public interface AerospikeOperations {
      *                                             {@link DefaultAerospikeExceptionTranslator} for details).
      */
     void deleteByIds(Iterable<?> ids, String setName);
+
+    /**
+     * Delete records by ids within the given set using a single batch delete operation. The policies are analogous to
+     * {@link #deleteById(Object, String)}.
+     * <p>
+     * Non-existing records are ignored.
+     * <p>
+     * This operation requires Server version 6.0+.
+     *
+     * @param ids     The ids of the records to be deleted. Must not be {@literal null}.
+     * @param setName Set name to use.
+     * @throws AerospikeException.BatchRecordArray If batch delete results contain errors.
+     * @throws DataAccessException                 If batch operation failed (see
+     *                                             {@link DefaultAerospikeExceptionTranslator} for details).
+     */
+    void deleteExistingByIds(Iterable<?> ids, String setName);
 
     /**
      * Perform a single batch delete operation for records from different sets.

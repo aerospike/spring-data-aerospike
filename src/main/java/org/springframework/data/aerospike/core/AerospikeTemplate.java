@@ -211,11 +211,11 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         boolean errorsFound = false;
         String casErrorDocumentId = null;
         for (BaseAerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
-            if (!errorsFound && batchRecordFailed(data.batchRecord())) {
+            if (!errorsFound && batchRecordFailed(data.batchRecord(), false)) {
                 errorsFound = true;
             }
             if (data.hasVersionProperty()) {
-                if (!batchRecordFailed(data.batchRecord())) {
+                if (!batchRecordFailed(data.batchRecord(), false)) {
                     if (operationType != DELETE_OPERATION) updateVersion(data.document(), data.batchRecord().record);
                 } else {
                     if (hasOptimisticLockingError(data.batchRecord().resultCode)) {
@@ -499,6 +499,13 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     }
 
     @Override
+    public <T> void deleteExistingByIds(Iterable<?> ids, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+
+        deleteExistingByIds(ids, getSetName(entityClass));
+    }
+
+    @Override
     public void deleteByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
@@ -507,17 +514,36 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         List<Object> idsList = new ArrayList<>();
         for (Object id : ids) {
             if (batchWriteSizeMatch(batchSize, idsList.size())) {
-                deleteByIds(idsList, setName);
+                deleteByIds(idsList, setName, false);
                 idsList.clear();
             }
             idsList.add(id);
         }
         if (!idsList.isEmpty()) {
-            deleteByIds(idsList, setName);
+            deleteByIds(idsList, setName, false);
         }
     }
 
-    private void deleteByIds(Collection<?> ids, String setName) {
+    @Override
+    public void deleteExistingByIds(Iterable<?> ids, String setName) {
+        Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(ids, "IDs");
+
+        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
+        List<Object> idsList = new ArrayList<>();
+        for (Object id : ids) {
+            if (batchWriteSizeMatch(batchSize, idsList.size())) {
+                deleteByIds(idsList, setName, true);
+                idsList.clear();
+            }
+            idsList.add(id);
+        }
+        if (!idsList.isEmpty()) {
+            deleteByIds(idsList, setName, true);
+        }
+    }
+
+    private void deleteByIds(Collection<?> ids, String setName, boolean skipNonExisting) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 
@@ -530,7 +556,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
             .toArray(Key[]::new);
 
         // requires server ver. >= 6.0.0
-        deleteAndHandleErrors(client, keys);
+        deleteAndHandleErrors(client, keys, skipNonExisting);
     }
 
     @Override
@@ -546,7 +572,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private void deleteGroupedEntitiesByGroupedKeys(GroupedKeys groupedKeys) {
         EntitiesKeys entitiesKeys = EntitiesKeys.of(toEntitiesKeyMap(groupedKeys));
-        deleteAndHandleErrors(client, entitiesKeys.getKeys());
+        deleteAndHandleErrors(client, entitiesKeys.getKeys(), false);
     }
 
     @Override
@@ -579,7 +605,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
     }
 
-    private void deleteAndHandleErrors(IAerospikeClient client, Key[] keys) {
+    private void deleteAndHandleErrors(IAerospikeClient client, Key[] keys, boolean skipNonExisting) {
         BatchResults results;
         try {
             BatchPolicy batchPolicy = (BatchPolicy) enrichPolicyWithTransaction(client, client.copyBatchPolicyDefault());
@@ -594,7 +620,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         }
         for (int i = 0; i < results.records.length; i++) {
             BatchRecord record = results.records[i];
-            if (batchRecordFailed(record)) {
+            if (batchRecordFailed(record, skipNonExisting)) {
                 throw new AerospikeException.BatchRecordArray(results.records,
                     new AerospikeException("Errors during batch delete"));
             }
