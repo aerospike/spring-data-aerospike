@@ -39,7 +39,7 @@
         <awaitility>4.2.2</awaitility>
         <logback.test>1.5.16</logback.test>
         <hibernate.validator>8.0.2.Final</hibernate.validator>
-        <netty.version>4.1.118.Final</netty.version>
+        <netty.version>4.1.119.Final</netty.version>
         <kryo.version>5.6.2</kryo.version>
         <apacheCommonsCodec.version>1.18.0</apacheCommonsCodec.version>
     </properties>
@@ -360,7 +360,7 @@
                     <doctitle>Spring Data Aerospike</doctitle>
                     <show>public</show>
                     <splitindex>true</splitindex>
-                    <bottom>Copyright &#169; 2020&#x2013;{currentYear} Aerospike, Inc. All rights reserved.</bottom>
+                    <bottom>Copyright © 2020–{currentYear} Aerospike, Inc. All rights reserved.</bottom>
                     <sourcepath>${basedir}/src/main/java</sourcepath>
                     <source>17</source>
                 </configuration>
