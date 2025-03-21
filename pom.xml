@@ -24,7 +24,7 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <springdata.commons>3.4.2</springdata.commons>
+        <springdata.commons>3.4.3</springdata.commons>
         <spring-boot-starter-test>3.3.7</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.1.5</spring-cloud-starter-bootstrap>
         <spring-tx>6.2.2</spring-tx>
@@ -360,7 +360,7 @@
                     <doctitle>Spring Data Aerospike</doctitle>
                     <show>public</show>
                     <splitindex>true</splitindex>
-                    <bottom>Copyright &#169; 2020&#x2013;{currentYear} Aerospike, Inc. All rights reserved.</bottom>
+                    <bottom>Copyright © 2020–{currentYear} Aerospike, Inc. All rights reserved.</bottom>
                     <sourcepath>${basedir}/src/main/java</sourcepath>
                     <source>17</source>
                 </configuration>
