@@ -251,6 +251,19 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     }
 
     @Test
+    public void deleteExistingByIds_skipsDuplicateIds() {
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(201);
+        reactiveTemplate.deleteAll(persons).block();
+        var ids = persons.stream().map(Person::getId).toList();
+        assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
+
+        // Ignores non-existing records
+        StepVerifier.create(reactiveTemplate.deleteExistingByIds(ids, Person.class))
+            .expectComplete()
+            .verify();
+    }
+
+    @Test
     public void deleteAll_ShouldDeleteAllDocuments() {
         String id1 = nextId();
         String id2 = nextId();

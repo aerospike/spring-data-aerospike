@@ -222,11 +222,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         boolean errorsFound = false;
         String casErrorDocumentId = null;
         for (BaseAerospikeTemplate.BatchWriteData<T> data : batchWriteDataList) {
-            if (!errorsFound && batchRecordFailed(data.batchRecord())) {
+            if (!errorsFound && batchRecordFailed(data.batchRecord(), false)) {
                 errorsFound = true;
             }
             if (data.hasVersionProperty()) {
-                if (!batchRecordFailed(data.batchRecord())) {
+                if (!batchRecordFailed(data.batchRecord(), false)) {
                     if (operationType != DELETE_OPERATION) updateVersion(data.document(), data.batchRecord().record);
                 } else {
                     if (hasOptimisticLockingError(data.batchRecord().resultCode)) {
@@ -499,32 +499,51 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
         validateForBatchWrite(ids, "IDs");
-
         return deleteByIds(ids, getSetName(entityClass));
+    }
+
+    @Override
+    public <T> Mono<Void> deleteExistingByIds(Iterable<?> ids, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Class must not be null!");
+        validateForBatchWrite(ids, "IDs");
+        return deleteExistingByIds(ids, getSetName(entityClass));
     }
 
     @Override
     public Mono<Void> deleteByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
+        return deleteByIds(ids, setName, false);
+    }
+
+    @Override
+    public Mono<Void> deleteExistingByIds(Iterable<?> ids, String setName) {
+        Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(ids, "IDs");
+        return deleteByIds(ids, setName, true);
+    }
+
+    private Mono<Void> deleteByIds(Iterable<?> ids, String setName, boolean skipNonExisting) {
+        Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(ids, "IDs");
 
         List<Object> idsList = new ArrayList<>();
-        Flux<Void> result = Flux.empty();
+        List<Mono<Void>> deleteResults = new ArrayList<>();
         for (Object id : ids) {
             if (batchWriteSizeMatch(converter.getAerospikeDataSettings().getBatchWriteSize(), idsList.size())) {
-                result = deleteByIds(idsList, setName).concatWith(result);
+                deleteResults.add(doDeleteByIds(new ArrayList<>(idsList), setName, skipNonExisting));
                 idsList.clear();
             }
             idsList.add(id);
         }
         if (!idsList.isEmpty()) {
-            result = deleteByIds(idsList, setName).concatWith(result);
+            deleteResults.add(doDeleteByIds(new ArrayList<>(idsList), setName, skipNonExisting));
         }
 
-        return result.then();
+        return Flux.concat(Flux.fromIterable(deleteResults)).then();
     }
 
-    private Mono<Void> deleteByIds(Collection<?> ids, String setName) {
+    private Mono<Void> doDeleteByIds(Collection<?> ids, String setName, boolean skipNonExisting) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 
@@ -532,17 +551,19 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .map(id -> getKey(id, setName))
             .toArray(Key[]::new);
 
-        return batchDeleteAndCheckForErrors(reactorClient, keys);
+        return batchDeleteAndCheckForErrors(reactorClient, keys, skipNonExisting);
     }
 
-    private Mono<Void> batchDeleteAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys) {
+    private Mono<Void> batchDeleteAndCheckForErrors(IAerospikeReactorClient reactorClient, Key[] keys,
+                                                    boolean skipNonExisting)
+    {
         Function<BatchResults, Mono<Void>> checkForErrors = results -> {
             if (results.records == null) {
                 return Mono.error(new AerospikeException.BatchRecordArray(results.records,
                     new AerospikeException("Errors during batch delete")));
             }
             for (BatchRecord record : results.records) {
-                if (batchRecordFailed(record)) {
+                if (batchRecordFailed(record, skipNonExisting)) {
                     return Mono.error(new AerospikeException.BatchRecordArray(results.records,
                         new AerospikeException("Errors during batch delete")));
                 }
@@ -574,7 +595,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
             .flatMap(batchPolicy -> reactorClient.delete((BatchPolicy) batchPolicy, null, entitiesKeys.getKeys()))
             .doOnError(this::translateError);
 
-        return batchDeleteAndCheckForErrors(reactorClient, entitiesKeys.getKeys());
+        return batchDeleteAndCheckForErrors(reactorClient, entitiesKeys.getKeys(), false);
     }
 
     @Override

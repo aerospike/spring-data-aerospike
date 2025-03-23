@@ -140,7 +140,7 @@ public class SimpleAerospikeRepository<T, ID> implements AerospikeRepository<T, 
     @Override
     public void deleteAllById(Iterable<? extends ID> ids) {
         Assert.notNull(ids, "The given ids must not be null!");
-        operations.deleteByIds(ids, entityInformation.getJavaType());
+        operations.deleteExistingByIds(ids, entityInformation.getJavaType());
     }
 
     @Override
