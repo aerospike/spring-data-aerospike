@@ -101,6 +101,12 @@ public class Person {
             .build();
     }
 
+    public PersonId toPersonId() {
+        return PersonId.builder()
+            .id(getId())
+            .build();
+    }
+
     public enum Gender {
         MALE, FEMALE
     }

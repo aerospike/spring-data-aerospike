@@ -11,6 +11,7 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.blocking.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Address;
 import org.springframework.data.aerospike.sample.Person;
+import org.springframework.data.aerospike.sample.PersonId;
 import org.springframework.data.aerospike.sample.PersonSomeFields;
 import org.springframework.data.aerospike.util.TestUtils;
 
@@ -46,6 +47,12 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     void findBySimpleProperty_String_projection() {
         List<PersonSomeFields> result = repository.findPersonSomeFieldsByLastName("Beauford");
         assertThat(result).containsOnly(carter.toPersonSomeFields());
+    }
+
+    @Test
+    void findBySimpleProperty_id_projection() {
+        List<PersonId> result = repository.findPersonIdByFirstName("Carter");
+        assertThat(result).containsOnly(carter.toPersonId());
     }
 
     @Test

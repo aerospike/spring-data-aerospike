@@ -48,6 +48,9 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     // DTO Projection
     List<PersonSomeFields> findPersonSomeFieldsByLastName(String lastName);
 
+    // DTO projection
+    List<PersonId> findPersonIdByFirstName(String firstName);
+
     // DTO Projection
     List<PersonSomeFields> findPersonSomeFieldsById(String id);
 
@@ -146,6 +149,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     List<P> findByFirstNameLikeIgnoreCase(String firstNameRegex);
 
     List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
+
+    List<P> findByIdLike(String idRegex);
 
     /**
      * Find all entities with firstName matching the given regex. POSIX Extended Regular Expression syntax is used to
