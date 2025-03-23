@@ -528,19 +528,19 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         validateForBatchWrite(ids, "IDs");
 
         List<Object> idsList = new ArrayList<>();
-        Flux<Void> result = Flux.empty();
+        List<Mono<Void>> deleteResults = new ArrayList<>();
         for (Object id : ids) {
             if (batchWriteSizeMatch(converter.getAerospikeDataSettings().getBatchWriteSize(), idsList.size())) {
-                result = doDeleteByIds(idsList, setName, skipNonExisting).concatWith(result);
+                deleteResults.add(doDeleteByIds(new ArrayList<>(idsList), setName, skipNonExisting));
                 idsList.clear();
             }
             idsList.add(id);
         }
         if (!idsList.isEmpty()) {
-            result = doDeleteByIds(idsList, setName, skipNonExisting).concatWith(result);
+            deleteResults.add(doDeleteByIds(new ArrayList<>(idsList), setName, skipNonExisting));
         }
 
-        return result.then();
+        return Flux.concat(Flux.fromIterable(deleteResults)).then();
     }
 
     private Mono<Void> doDeleteByIds(Collection<?> ids, String setName, boolean skipNonExisting) {
