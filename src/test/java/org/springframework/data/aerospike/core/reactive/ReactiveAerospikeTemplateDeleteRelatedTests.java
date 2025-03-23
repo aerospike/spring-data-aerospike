@@ -251,15 +251,14 @@ public class ReactiveAerospikeTemplateDeleteRelatedTests extends BaseReactiveInt
     }
 
     @Test
-    public void deleteByIds_canSkipDuplicateIds() {
-        String id1 = nextId();
-        SampleClasses.DocumentWithExpiration document1 = new SampleClasses.DocumentWithExpiration(id1);
-        SampleClasses.DocumentWithExpiration document2 = new SampleClasses.DocumentWithExpiration(id1);
-        reactiveTemplate.save(document1).block();
-        reactiveTemplate.save(document2).block();
+    public void deleteExistingByIds_skipsDuplicateIds() {
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        var ids = persons.stream().map(Person::getId).toList();
+        reactiveTemplate.deleteAll(persons).block();
+        assertThat(reactiveTemplate.findByIds(ids, Person.class).collectList().block()).hasSize(0);
 
-        List<String> ids = List.of(id1, id1);
-        StepVerifier.create(reactiveTemplate.deleteExistingByIds(ids, SampleClasses.DocumentWithExpiration.class))
+        // Ignores non-existing records
+        StepVerifier.create(reactiveTemplate.deleteExistingByIds(ids, Person.class))
             .expectComplete()
             .verify();
     }

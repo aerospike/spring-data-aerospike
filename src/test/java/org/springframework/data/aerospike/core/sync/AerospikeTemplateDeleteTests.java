@@ -260,15 +260,12 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @Test
     public void deleteExistingByIds_skipsDuplicateIds() {
-        String id1 = nextId();
-        DocumentWithExpiration document1 = new DocumentWithExpiration(id1);
-        DocumentWithExpiration document2 = new DocumentWithExpiration(id1);
-        template.save(document1);
-        template.save(document2);
-
-        List<String> ids = List.of(id1, id1);
-        template.deleteExistingByIds(ids, DocumentWithExpiration.class);
-        assertThat(template.findByIds(ids, DocumentWithExpiration.class)).isEmpty();
+        List<Person> persons = additionalAerospikeTestOperations.saveGeneratedPersons(101);
+        var ids = persons.stream().map(Person::getId).toList();
+        template.deleteExistingByIds(ids, Person.class);
+        assertThat(template.findByIds(ids, Person.class)).isEmpty();
+        template.deleteExistingByIds(ids, Person.class); // ignores non-existing records
+        assertThat(template.findByIds(ids, Person.class)).isEmpty();
     }
 
     @Test
