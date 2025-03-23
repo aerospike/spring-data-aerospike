@@ -200,7 +200,7 @@ public class TemplateUtils {
     boolean batchRecordFailed(BatchRecord batchRecord, boolean skipNonExisting) {
         int resultCode = batchRecord.resultCode;
         if (skipNonExisting) {
-            return (resultCode != ResultCode.OK && resultCode != ResultCode.KEY_NOT_FOUND_ERROR);
+            return resultCode != ResultCode.OK && resultCode != ResultCode.KEY_NOT_FOUND_ERROR;
         }
         return resultCode != ResultCode.OK || batchRecord.record == null;
     }

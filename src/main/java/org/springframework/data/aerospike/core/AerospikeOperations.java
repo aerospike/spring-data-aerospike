@@ -497,7 +497,7 @@ public interface AerospikeOperations {
      * Delete records by ids using a single batch delete operation, set name will be determined by the given
      * entityClass. The policies are analogous to {@link #deleteById(Object, Class)}.
      * <p>
-     * Deleting non-existing records is not allowed.
+     * Deleting non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
      * <p>
      * This operation requires Server version 6.0+.
      *
@@ -529,7 +529,7 @@ public interface AerospikeOperations {
      * Delete records by ids within the given set using a single batch delete operation. The policies are analogous to
      * {@link #deleteById(Object, String)}.
      * <p>
-     * Deleting non-existing records is not allowed.
+     * Deleting non-existing records results in {@link AerospikeException.BatchRecordArray} exception.
      * <p>
      * This operation requires Server version 6.0+.
      *

@@ -494,14 +494,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void deleteByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
-
         deleteByIds(ids, getSetName(entityClass));
     }
 
     @Override
     public <T> void deleteExistingByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
-
         deleteExistingByIds(ids, getSetName(entityClass));
     }
 
@@ -509,23 +507,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public void deleteByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
-
-        int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
-        List<Object> idsList = new ArrayList<>();
-        for (Object id : ids) {
-            if (batchWriteSizeMatch(batchSize, idsList.size())) {
-                deleteByIds(idsList, setName, false);
-                idsList.clear();
-            }
-            idsList.add(id);
-        }
-        if (!idsList.isEmpty()) {
-            deleteByIds(idsList, setName, false);
-        }
+        deleteByIds(ids, setName, false);
     }
 
     @Override
     public void deleteExistingByIds(Iterable<?> ids, String setName) {
+        Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(ids, "IDs");
+        deleteByIds(ids, setName, true);
+    }
+
+    private void deleteByIds(Iterable<?> ids, String setName, boolean skipNonExisting) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 
@@ -533,17 +525,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         List<Object> idsList = new ArrayList<>();
         for (Object id : ids) {
             if (batchWriteSizeMatch(batchSize, idsList.size())) {
-                deleteByIds(idsList, setName, true);
+                doDeleteByIds(idsList, setName, skipNonExisting);
                 idsList.clear();
             }
             idsList.add(id);
         }
         if (!idsList.isEmpty()) {
-            deleteByIds(idsList, setName, true);
+            doDeleteByIds(idsList, setName, skipNonExisting);
         }
     }
 
-    private void deleteByIds(Collection<?> ids, String setName, boolean skipNonExisting) {
+    private void doDeleteByIds(Collection<?> ids, String setName, boolean skipNonExisting) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 

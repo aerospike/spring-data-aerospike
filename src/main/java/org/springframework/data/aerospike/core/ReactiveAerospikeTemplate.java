@@ -499,7 +499,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Mono<Void> deleteByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
         validateForBatchWrite(ids, "IDs");
-
         return deleteByIds(ids, getSetName(entityClass));
     }
 
@@ -507,7 +506,6 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public <T> Mono<Void> deleteExistingByIds(Iterable<?> ids, Class<T> entityClass) {
         Assert.notNull(entityClass, "Class must not be null!");
         validateForBatchWrite(ids, "IDs");
-
         return deleteExistingByIds(ids, getSetName(entityClass));
     }
 
@@ -515,25 +513,17 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     public Mono<Void> deleteByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
-
-        List<Object> idsList = new ArrayList<>();
-        Flux<Void> result = Flux.empty();
-        for (Object id : ids) {
-            if (batchWriteSizeMatch(converter.getAerospikeDataSettings().getBatchWriteSize(), idsList.size())) {
-                result = deleteByIds(idsList, setName, false).concatWith(result);
-                idsList.clear();
-            }
-            idsList.add(id);
-        }
-        if (!idsList.isEmpty()) {
-            result = deleteByIds(idsList, setName, false).concatWith(result);
-        }
-
-        return result.then();
+        return deleteByIds(ids, setName, false);
     }
 
     @Override
     public Mono<Void> deleteExistingByIds(Iterable<?> ids, String setName) {
+        Assert.notNull(setName, "Set name must not be null!");
+        validateForBatchWrite(ids, "IDs");
+        return deleteByIds(ids, setName, true);
+    }
+
+    private Mono<Void> deleteByIds(Iterable<?> ids, String setName, boolean skipNonExisting) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 
@@ -541,19 +531,19 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         Flux<Void> result = Flux.empty();
         for (Object id : ids) {
             if (batchWriteSizeMatch(converter.getAerospikeDataSettings().getBatchWriteSize(), idsList.size())) {
-                result = deleteByIds(idsList, setName, true).concatWith(result);
+                result = doDeleteByIds(idsList, setName, skipNonExisting).concatWith(result);
                 idsList.clear();
             }
             idsList.add(id);
         }
         if (!idsList.isEmpty()) {
-            result = deleteByIds(idsList, setName, true).concatWith(result);
+            result = doDeleteByIds(idsList, setName, skipNonExisting).concatWith(result);
         }
 
         return result.then();
     }
 
-    private Mono<Void> deleteByIds(Collection<?> ids, String setName, boolean skipNonExisting) {
+    private Mono<Void> doDeleteByIds(Collection<?> ids, String setName, boolean skipNonExisting) {
         Assert.notNull(setName, "Set name must not be null!");
         validateForBatchWrite(ids, "IDs");
 

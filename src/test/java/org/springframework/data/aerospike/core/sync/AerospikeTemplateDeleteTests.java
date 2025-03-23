@@ -48,7 +48,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Durations.TEN_SECONDS;
 
-@Disabled
 public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
 
     @BeforeEach
@@ -420,6 +419,7 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             .hasMessageContaining("Failed to delete the record with ID 'id2' due to versions mismatch");
     }
 
+    @Disabled
     @Test
     public void deleteByIdsUsingQuery_Paginated() {
         Person person1 = new Person("id1", "Alicia", 100);
