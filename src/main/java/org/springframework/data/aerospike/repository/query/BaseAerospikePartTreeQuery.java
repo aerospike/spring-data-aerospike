@@ -115,8 +115,6 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             spelExpression.setEvaluationContext(context);
         }
 
-
-
         return query;
     }
 
@@ -169,7 +167,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         return new PropertyComparator<>(order.getProperty(), ignoreCase, ascending);
     }
 
-    protected abstract Object runQueryWithIds(Class<?> targetClass, List<Object> ids, Query query);
+    protected abstract Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query);
 
     protected boolean isExistsQuery(QueryMethod queryMethod) {
         return queryMethod.getName().startsWith("existsBy");

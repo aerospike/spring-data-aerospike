@@ -210,6 +210,10 @@ public class AerospikeQueryCreatorUtils {
         qb.setSecondValue(getValueOfQueryParameter(value));
     }
 
+    protected static void setQualifierBuilderIsIdExpr(QueryQualifierBuilder qb, boolean value) {
+        qb.setIsIdExpr(value);
+    }
+
     protected static FilterOperation getCorrespondingMapValueFilterOperationOrFail(FilterOperation op) {
         try {
             return FilterOperation.valueOf("MAP_VAL_" + op + "_BY_KEY");

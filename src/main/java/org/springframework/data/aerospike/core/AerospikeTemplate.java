@@ -1513,7 +1513,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         if (qualifier != null) {
             Qualifier idQualifier = getIdQualifier(qualifier);
             if (idQualifier != null) {
-                // a separate flow for a query with id
+                // a separate flow for a query for id equality
                 return findByIdsWithoutMapping(getIdValue(idQualifier), setName, targetClass,
                     new Query(excludeIdQualifier(qualifier))).stream();
             }

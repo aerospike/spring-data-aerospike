@@ -113,4 +113,13 @@ public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder
     public boolean hasDotPath() {
         return map.get(DOT_PATH) != null;
     }
+
+    /**
+     * Set a flag showing that the query has an id expression
+     */
+    public QueryQualifierBuilder setIsIdExpr(boolean value) {
+        this.map.put(IS_ID_EXPR, value);
+        return this;
+    }
+
 }

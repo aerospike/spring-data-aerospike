@@ -20,6 +20,7 @@ import static org.springframework.data.aerospike.query.FilterOperation.IS_NULL;
 import static org.springframework.data.aerospike.query.FilterOperation.NOT_CONTAINING;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getCorrespondingMapValueFilterOperationOrFail;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
+import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderIsIdExpr;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
@@ -38,6 +39,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
     private final boolean isNested;
     private ServerVersionSupport versionSupport;
     private final boolean isBooleanQuery;
+    private final boolean isIdExprQuery;
 
     public SimplePropertyQueryCreator(Part part, PropertyPath propertyPath, AerospikePersistentProperty property,
                                       String fieldName, List<Object> queryParameters,
@@ -45,6 +47,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
                                       boolean isNested, ServerVersionSupport versionSupport) {
         this.part = part;
         this.isBooleanQuery = part.getType() == Part.Type.FALSE || part.getType() == Part.Type.TRUE;
+        this.isIdExprQuery = property.isIdProperty();
         this.propertyPath = propertyPath;
         this.property = property;
         this.fieldName = fieldName;
@@ -146,6 +149,10 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
             if (isNested) {
                 setQualifierBuilderKey(qb, property.getFieldName());
             }
+        }
+
+        if (isIdExprQuery) {
+            setQualifierBuilderIsIdExpr(qb, true);
         }
 
         return setQualifier(qb, fieldName, op, part, dotPath, versionSupport);

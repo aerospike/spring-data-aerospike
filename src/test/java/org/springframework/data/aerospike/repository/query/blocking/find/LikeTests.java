@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.repository.query.blocking.find;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.query.blocking.PersonRepositoryQueryTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.util.TestUtils;
@@ -8,6 +9,7 @@ import org.springframework.data.aerospike.util.TestUtils;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.data.aerospike.query.QueryParam.of;
 
 /**
  * Tests for the "Is like" repository query. Keywords: Like, IsLike.
@@ -27,6 +29,22 @@ public class LikeTests extends PersonRepositoryQueryTests {
 
         List<Person> persons2 = repository.findByFirstNameLike("Carr.*er");
         assertThat(persons2).isEmpty();
+    }
+
+    @Test
+    // "findByIdLike" uses filter expression (scan operation), only for String ids
+    void findByIdLike_String() {
+        List<Person> persons = repository.findByIdLike("as-.*");
+        assertThat(persons).containsExactlyInAnyOrderElementsOf(allPersons);
+
+        QueryParam idLike = of("as-.*");
+        QueryParam name = of(carter.getFirstName());
+        persons = repository.findByIdLikeAndFirstName(idLike, name);
+        assertThat(persons).containsOnly(carter);
+
+        QueryParam ids = of(List.of(carter.getId(), dave.getId()));
+        persons = repository.findByIdLikeAndId(idLike, ids);
+        assertThat(persons).containsOnly(carter, dave);
     }
 
     @Test

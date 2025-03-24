@@ -97,39 +97,39 @@ public class SampleClasses {
 
     @Document
     @Data
-    public static class MapWithShortId {
+    public static class MapWithShortKey {
 
         @Id
         final long id;
-        final Map<Short, String> mapWithShortId;
+        final Map<Short, String> mapWithShortKey;
     }
 
 
     @Document
     @Data
-    public static class MapWithIntegerId {
+    public static class MapWithIntegerKey {
 
         @Id
         final long id;
-        final Map<Integer, String> mapWithIntId;
+        final Map<Integer, String> mapWithIntKey;
     }
 
     @Document
     @Data
-    public static class MapWithLongId {
+    public static class MapWithLongKey {
 
         @Id
         final long id;
-        final Map<Long, String> mapWithLongId;
+        final Map<Long, String> mapWithLongKey;
     }
 
     @Document
     @Data
-    public static class MapWithDoubleId {
+    public static class MapWithDoubleKey {
 
         @Id
         final long id;
-        final Map<Double, String> mapWithDoubleId;
+        final Map<Double, String> mapWithDoubleKey;
     }
 
     @Document
@@ -138,16 +138,16 @@ public class SampleClasses {
 
         @Id
         final long id;
-        final Map<Byte, String> mapWithByteId;
+        final Map<Byte, String> mapWithByteKey;
     }
 
     @Document
     @Data
-    public static class MapWithCharacterId {
+    public static class MapWithCharacterKey {
 
         @Id
         final long id;
-        final Map<Character, String> mapWithCharacterId;
+        final Map<Character, String> mapWithCharacterKey;
     }
 
     @Document
