@@ -17,6 +17,7 @@ import static org.springframework.data.aerospike.query.FilterOperation.BETWEEN;
 import static org.springframework.data.aerospike.query.FilterOperation.CONTAINING;
 import static org.springframework.data.aerospike.query.FilterOperation.IS_NOT_NULL;
 import static org.springframework.data.aerospike.query.FilterOperation.IS_NULL;
+import static org.springframework.data.aerospike.query.FilterOperation.LIKE;
 import static org.springframework.data.aerospike.query.FilterOperation.NOT_CONTAINING;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getCorrespondingMapValueFilterOperationOrFail;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
@@ -39,7 +40,6 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
     private final boolean isNested;
     private ServerVersionSupport versionSupport;
     private final boolean isBooleanQuery;
-    private final boolean isIdExprQuery;
 
     public SimplePropertyQueryCreator(Part part, PropertyPath propertyPath, AerospikePersistentProperty property,
                                       String fieldName, List<Object> queryParameters,
@@ -47,7 +47,6 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
                                       boolean isNested, ServerVersionSupport versionSupport) {
         this.part = part;
         this.isBooleanQuery = part.getType() == Part.Type.FALSE || part.getType() == Part.Type.TRUE;
-        this.isIdExprQuery = property.isIdProperty();
         this.propertyPath = propertyPath;
         this.property = property;
         this.fieldName = fieldName;
@@ -98,6 +97,15 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
 
         if (isBooleanQuery && paramsSize != 0) {
             throw new IllegalArgumentException(queryPartDescription + ": no arguments expected");
+        }
+
+        if (property.isIdProperty() && filterOperation == LIKE) {
+            if (queryParameters.size() > 1) {
+                throw new IllegalArgumentException("Expecting only one parameter for id LIKE query");
+            }
+            if (queryParameters.size() == 1 && !(queryParameters.get(0) instanceof String)) {
+                throw new IllegalArgumentException("Expecting a String parameter for id LIKE query");
+            }
         }
     }
 
@@ -151,7 +159,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
             }
         }
 
-        if (isIdExprQuery) {
+        if (property.isIdProperty()) {
             setQualifierBuilderIsIdExpr(qb, true);
         }
 

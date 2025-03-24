@@ -503,11 +503,7 @@ public enum FilterOperation {
                 flags = RegexFlag.EXTENDED | RegexFlag.ICASE;
             }
             if (hasId(qualifierMap)) {
-                Value value = getValue(qualifierMap);
-                if (value.getType() == STRING) {
-                    return Exp.regexCompare(getValue(qualifierMap).toString(), flags, Exp.key(Exp.Type.STRING));
-                }
-                throw new IllegalArgumentException("Expecting only a String parameter for id LIKE query");
+                return Exp.regexCompare(getValue(qualifierMap).toString(), flags, Exp.key(Exp.Type.STRING));
             }
             return Exp.regexCompare(getValue(qualifierMap).toString(), flags, Exp.stringBin(getBinName(qualifierMap)));
         }
