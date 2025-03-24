@@ -134,7 +134,7 @@ public class SampleClasses {
 
     @Document
     @Data
-    public static class MapWithByteId {
+    public static class MapWithByteKey {
 
         @Id
         final long id;
