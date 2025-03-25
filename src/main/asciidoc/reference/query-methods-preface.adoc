@@ -6,28 +6,40 @@ is generated.
 The format of method names is fairly flexible, comprising a verb and criteria.
 
 Some of the verbs include `find`, `query`, `read`, `get`, `count` and `delete`.
-For example, `findByFirstName`, `countByLastName` etc.
+For example, queries might look like `findByFirstName`, `countByLastName` etc.
 
 For more details, refer to basic Spring Data documentation:
 link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories/query-methods-details.html[Defining Query Methods].
+
+== Using Secondary Index
+
+Repository queries in Spring Data Aerospike can be divided into 3 groups:
+
+* Queries that utilize secondary index (if it is created)
+* Queries that only use <<scan-operation, scan operation>>
+* Queries that use both secondary index and scan (when looking for a nested integer or string property).
+
+If no corresponding secondary index is found on server, each query uses a fallback of using scan only.
+
+For details see "Uses secondary index" column in the tables referring to different queries examples below.
 
 == Repository Query Keywords
 
 Here are the references to the examples of repository queries:
 
-<<aerospike.query_methods.simple_property, Simple property>>
+<<aerospike.query_methods.simple_property, Simple property queries>>
 
-<<aerospike.query_methods.collection, Collection>>
+<<aerospike.query_methods.collection, Collection queries>>
 
-<<aerospike.query_methods.map, Map>>
+<<aerospike.query_methods.map, Map queries>>
 
-<<aerospike.query_methods.pojo, POJO>>
+<<aerospike.query_methods.pojo, POJO queries>>
 
-<<aerospike.query_methods.id, Id>>
+<<aerospike.query_methods.id, Id queries>>
 
-NOTE: *Id repository read queries* (like `findById()`, `findByIds()`, `findByFirstNameAndId()`, `findAllById()`,
+NOTE: *Repository read queries featuring id equality* (e.g., `findById()`, `findByIds()`, `findByFirstNameAndId()`, `findAllById()`,
 `countById()`, `existsById()` etc.) utilize `get()` operation of the underlying Java client.
-*Repository read queries without id* (like `findByFirstName()`, `findByFirstNameAndLastName()`, `findAll()`  etc.)
+*Repository read queries without id or with 'string id like'* (e.g., `findByFirstName()`, `findByFirstNameAndLastName()`, `findAll()` , `findByIdLike()` etc.)
 utilize `query()` operation of the underlying Java client.
 
 
@@ -46,3 +58,15 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
     Optional<Person> findById(Long id);
 }
 ----
+
+== Combined Queries and Secondary Index
+
+Queries can be combined using `And` or `Or` keywords, e.g. `findByFirstNameAndLastName()`, `findByNameOrJob()` etc. There are certain rules applied to processing such queries regarding secondary index in Spring Data Aerospike:
+
+* If no query parts have corresponding secondary index, a <<scan-operation, scan operation>> is used
+* If only one part of a query has secondary index, and it is eligible to use the index, it will be used. For instance, if an index was created for the `name` String bin, then it will be used in queries like `findByNameAndJob()`, `findByNameAndJobAndEmail()`, `findByJobAndName()` etc.
+* If two or more query parts have secondary index and are eligible to use index, then one index will be chosen based on cardinality.
+
+Cardinality is calculated the following way: when indexes info is retrieved (configurable, typically on startup and then once an hour), Spring Data Aerospike uses `sindex-stat` command to gather statistics for secondary indexes to look at the ratio of entries to unique bin values for a given secondary index on the node (`entries_per_bval`), which is used as cardinality based on distribution of data within the secondary index.
+
+So when a query has more than one SI, cardinality of each query part (qualifier) is compared using cache of indexes, and the index with the lowest ratio of entries to unique bin values is selected. If two or more parts have the same cardinality, the first of them will be used.

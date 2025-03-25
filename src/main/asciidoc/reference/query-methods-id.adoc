@@ -4,9 +4,9 @@
 *Id repository reading queries* (like `findById()`, `findByIds()`, `findByFirstNameAndId()`, `findAllById()`,
 `countById()`, `existsById()` etc.) utilize `get` operation of the underlying Java client (`client.get()`).
 
-[width="100%",cols="<7%,<30%,<25%,<20%",options="header",]
+[width="100%",cols="<7%,<30%,<25%,<10%,<20%",options="header",]
 |===
-|Keyword |Repository query sample |Snippet |Notes
+|Keyword |Repository query sample |Snippet |Uses secondary index |Notes
 
 |no keyword a|
 [source,java]
@@ -14,13 +14,29 @@
 findById(String id)
 ----
 |...where x.PK = ?
+|uses primary key directly
 |
+
+|Like a|
+[source,java]
+----
+findByIdLike(String idPattern)
+----
+|...where x.PK like ?
+|only scan
+|`idPattern` must be a String
 
 |And a|
 [source,java]
 ----
-findByIdAndFirstName(String id, String firstName)
+findByIdAndFirstName(QueryParam ids, QueryParam firstName)
+
+findByIdLikeAndFirstName(QueryParam id, QueryParam firstName)
 ----
 |...where x.PK = ? and x.firstName = ?
+
+...where x.PK like ? and x.firstName = ?
+|depending on each part of query
 |
+
 |===
