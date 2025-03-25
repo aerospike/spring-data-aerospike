@@ -172,8 +172,7 @@ for implementation details.
 spring.data.aerospike.scans-enabled=false
 ----
 
-A scan can be an expensive operation as all records in the set must be read by the Aerospike server,
-and then the condition is applied to see if they match.
+Whether to enable <<aerospike.scan-operation, scan operations>>.
 
 Due to the cost of performing this operation, scans from Spring Data Aerospike are disabled by default.
 
