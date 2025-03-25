@@ -455,3 +455,4 @@ public class MyConfiguration extends AbstractAerospikeDataConfiguration {
     }
 }
 ----
+
