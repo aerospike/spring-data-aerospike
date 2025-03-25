@@ -60,3 +60,15 @@ public interface CustomerRepository extends AerospikeRepository<Customer, String
         assertThat(customers).containsOnly(leroi);
     }
 ----
+
+== Combined Queries and Secondary Index
+
+Queries can be combined using `And` or `Or` keywords, e.g. `findByFirstNameAndLastName()`, `findByNameOrJob()` etc. There are certain rules applied to processing such queries regarding secondary index in Spring Data Aerospike:
+
+* If no query parts have corresponding secondary index, a <<aerospike.scan-operation, scan operation>> is used
+* If only one part of a query has secondary index, and it is eligible to use the index, it will be used. For instance, if an index was created for the `name` String bin, then it will be used in queries like `findByNameAndJob()`, `findByNameAndJobAndEmail()`, `findByJobAndName()` etc.
+* If two or more query parts have secondary index and are eligible to use index, then one index will be chosen based on cardinality.
+
+Cardinality is calculated the following way: when indexes info is retrieved (configurable, typically on startup and then once an hour), Spring Data Aerospike uses `sindex-stat` command to gather statistics for secondary indexes to look at the ratio of entries to unique bin values for a given secondary index on the node (`entries_per_bval`), which is used as cardinality based on distribution of data within the secondary index.
+
+So when a query has more than one SI, cardinality of each query part (qualifier) is compared using cache of indexes, and the index with the lowest ratio of entries to unique bin values is selected. If two or more parts have the same cardinality, the first of them will be used.

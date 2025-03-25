@@ -1,7 +1,7 @@
 [[aerospike.query_methods.collection]]
 = Collection Repository Queries
 
-NOTE: *Repository read queries without id* utilize `query()` operation of the underlying Java client.
+NOTE: *These repository queries* utilize `query()` operation of the underlying Java client.
 
 [width="100%",cols="<7%,<30%,<25%,<10%,<20%",options="header",]
 |===

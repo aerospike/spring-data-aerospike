@@ -1,7 +1,7 @@
 [[aerospike.query_methods.id]]
 = Id Repository Queries
 
-*Id repository reading queries* (like `findById()`, `findByIds()`, `findByFirstNameAndId()`, `findAllById()`,
+*Repository reading queries featuring id equality* (like `findById()`, `findByIds()`, `findByFirstNameAndId()`, `findAllById()`,
 `countById()`, `existsById()` etc.) utilize `get` operation of the underlying Java client (`client.get()`).
 
 [width="100%",cols="<7%,<30%,<25%,<10%,<20%",options="header",]
@@ -15,7 +15,7 @@ findById(String id)
 ----
 |...where x.PK = ?
 |uses primary key directly
-|
+| This query utilizes `get` operation of Java client
 
 |Like a|
 [source,java]
@@ -24,7 +24,7 @@ findByIdLike(String idPattern)
 ----
 |...where x.PK like ?
 |only scan
-|`idPattern` must be a String
+|`idPattern` must be a String. This query utilizes `query` operation of Java client
 
 |And a|
 [source,java]
