@@ -25,8 +25,8 @@ import org.springframework.data.aerospike.BaseBlockingIntegrationTests;
 import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.aerospike.sample.SampleClasses;
 import org.springframework.data.aerospike.sample.SampleClasses.DocumentWithTouchOnRead;
-import org.springframework.data.aerospike.sample.SampleClasses.MapWithDoubleId;
-import org.springframework.data.aerospike.sample.SampleClasses.MapWithIntegerId;
+import org.springframework.data.aerospike.sample.SampleClasses.MapWithDoubleKey;
+import org.springframework.data.aerospike.sample.SampleClasses.MapWithIntegerKey;
 import org.springframework.data.aerospike.sample.SampleClasses.VersionedClassWithAllArgsConstructor;
 
 import java.util.Arrays;
@@ -167,13 +167,13 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
             long id = 10L;
             long id2 = 11L;
 
-            template.save(new MapWithIntegerId(id, Map.of(intKey, value)));
-            template.save(new MapWithDoubleId(id2, Map.of(doubleKey, value)));
+            template.save(new MapWithIntegerKey(id, Map.of(intKey, value)));
+            template.save(new MapWithDoubleKey(id2, Map.of(doubleKey, value)));
 
-            MapWithIntegerId resultInt = template.findById(id, MapWithIntegerId.class);
-            MapWithDoubleId resultDouble = template.findById(id2, MapWithDoubleId.class);
-            assertThat(resultInt.getMapWithIntId()).isEqualTo(Map.of(intKey, value));
-            assertThat(resultDouble.getMapWithDoubleId()).isEqualTo(Map.of(doubleKey, value));
+            MapWithIntegerKey resultInt = template.findById(id, MapWithIntegerKey.class);
+            MapWithDoubleKey resultDouble = template.findById(id2, MapWithDoubleKey.class);
+            assertThat(resultInt.getMapWithIntKey()).isEqualTo(Map.of(intKey, value));
+            assertThat(resultDouble.getMapWithDoubleKey()).isEqualTo(Map.of(doubleKey, value));
             template.delete(resultInt); // cleanup
             template.delete(resultDouble); // cleanup
         }
@@ -195,10 +195,10 @@ public class AerospikeTemplateFindByIdTests extends BaseBlockingIntegrationTests
                 MapOperation.put(MapPolicy.Default, "mapWithDoubleId", Value.get(doubleKey), Value.get(value))
             );
 
-            MapWithIntegerId resultInt = template.findById(id1, MapWithIntegerId.class);
-            assertThat(resultInt.getMapWithIntId()).isEqualTo(Map.of(intKey, value));
-            MapWithDoubleId resultDouble = template.findById(id2, MapWithDoubleId.class);
-            assertThat(resultDouble.getMapWithDoubleId()).isEqualTo(Map.of(doubleKey, value));
+            MapWithIntegerKey resultInt = template.findById(id1, MapWithIntegerKey.class);
+            assertThat(resultInt.getMapWithIntKey()).isEqualTo(Map.of(intKey, value));
+            MapWithDoubleKey resultDouble = template.findById(id2, MapWithDoubleKey.class);
+            assertThat(resultDouble.getMapWithDoubleKey()).isEqualTo(Map.of(doubleKey, value));
             template.delete(resultInt); // cleanup
             template.delete(resultDouble); // cleanup
         }

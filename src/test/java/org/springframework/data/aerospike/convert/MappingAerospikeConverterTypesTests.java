@@ -182,12 +182,12 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ValueSource(ints = {0, 1})
     void mapWithShortId(int converterOption) {
         Map<Short, String> map = of((short) 1, "value1", (short) 2, "value2", (short) 3, null);
-        MapWithShortId object = new MapWithShortId(10L, map);
+        MapWithShortKey object = new MapWithShortKey(10L, map);
 
         assertWriteAndRead(converterOption, object,
-            MapWithShortId.class.getSimpleName(), 10L,
-            new Bin("mapWithShortId", of((short) 1, "value1", (short) 2, "value2", (short) 3, null)),
-            new Bin(CLASS_KEY_DEFAULT, MapWithShortId.class.getName())
+            MapWithShortKey.class.getSimpleName(), 10L,
+            new Bin("mapWithShortKey", of((short) 1, "value1", (short) 2, "value2", (short) 3, null)),
+            new Bin(CLASS_KEY_DEFAULT, MapWithShortKey.class.getName())
         );
     }
 
@@ -195,12 +195,12 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ValueSource(ints = {0, 1})
     void mapWithIntegerId(int converterOption) {
         Map<Integer, String> map = of(1, "value1", 2, "value2", 3, null);
-        MapWithIntegerId object = new MapWithIntegerId(10L, map);
+        MapWithIntegerKey object = new MapWithIntegerKey(10L, map);
 
         assertWriteAndRead(converterOption, object,
-            MapWithIntegerId.class.getSimpleName(), 10L,
-            new Bin("mapWithIntId", of(1, "value1", 2, "value2", 3, null)),
-            new Bin(CLASS_KEY_DEFAULT, MapWithIntegerId.class.getName())
+            MapWithIntegerKey.class.getSimpleName(), 10L,
+            new Bin("mapWithIntKey", of(1, "value1", 2, "value2", 3, null)),
+            new Bin(CLASS_KEY_DEFAULT, MapWithIntegerKey.class.getName())
         );
     }
 
@@ -208,12 +208,12 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ValueSource(ints = {0, 1})
     void mapWithLongId(int converterOption) {
         Map<Long, String> map = of(1L, "value1", 2L, "value2", 3L, null);
-        MapWithLongId object = new MapWithLongId(10L, map);
+        MapWithLongKey object = new MapWithLongKey(10L, map);
 
         assertWriteAndRead(converterOption, object,
-            MapWithLongId.class.getSimpleName(), 10L,
-            new Bin("mapWithLongId", of(1L, "value1", 2L, "value2", 3L, null)),
-            new Bin(CLASS_KEY_DEFAULT, MapWithLongId.class.getName())
+            MapWithLongKey.class.getSimpleName(), 10L,
+            new Bin("mapWithLongKey", of(1L, "value1", 2L, "value2", 3L, null)),
+            new Bin(CLASS_KEY_DEFAULT, MapWithLongKey.class.getName())
         );
     }
 
@@ -221,12 +221,12 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ValueSource(ints = {0, 1})
     void mapWithDoubleId(int converterOption) {
         Map<Double, String> map = of(100.25, "value1", 200.25, "value2", 300.25, null);
-        MapWithDoubleId object = new MapWithDoubleId(10L, map);
+        MapWithDoubleKey object = new MapWithDoubleKey(10L, map);
 
         assertWriteAndRead(converterOption, object,
-            MapWithDoubleId.class.getSimpleName(), 10L,
-            new Bin("mapWithDoubleId", of(100.25, "value1", 200.25, "value2", 300.25, null)),
-            new Bin(CLASS_KEY_DEFAULT, MapWithDoubleId.class.getName())
+            MapWithDoubleKey.class.getSimpleName(), 10L,
+            new Bin("mapWithDoubleKey", of(100.25, "value1", 200.25, "value2", 300.25, null)),
+            new Bin(CLASS_KEY_DEFAULT, MapWithDoubleKey.class.getName())
         );
     }
 
@@ -234,12 +234,12 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ValueSource(ints = {0, 1})
     void mapWithByteId(int converterOption) {
         Map<Byte, String> map = of((byte) 100, "value1", (byte) 200, "value2", (byte) 300, null);
-        MapWithByteId object = new MapWithByteId(10L, map);
+        MapWithByteKey object = new MapWithByteKey(10L, map);
 
         assertWriteAndRead(converterOption, object,
-            MapWithByteId.class.getSimpleName(), 10L,
-            new Bin("mapWithByteId", of((byte) 100, "value1", (byte) 200, "value2", (byte) 300, null)),
-            new Bin(CLASS_KEY_DEFAULT, MapWithByteId.class.getName())
+            MapWithByteKey.class.getSimpleName(), 10L,
+            new Bin("mapWithByteKey", of((byte) 100, "value1", (byte) 200, "value2", (byte) 300, null)),
+            new Bin(CLASS_KEY_DEFAULT, MapWithByteKey.class.getName())
         );
     }
 
@@ -247,12 +247,12 @@ public class MappingAerospikeConverterTypesTests extends BaseMappingAerospikeCon
     @ValueSource(ints = {0, 1})
     void mapWithCharacterId(int converterOption) {
         Map<Character, String> map = of('a', "value1", 'b', "value2", 'c', null);
-        MapWithCharacterId object = new MapWithCharacterId(10L, map);
+        MapWithCharacterKey object = new MapWithCharacterKey(10L, map);
 
         assertWriteAndRead(converterOption, object,
-            MapWithCharacterId.class.getSimpleName(), 10L,
-            new Bin("mapWithCharacterId", of('a', "value1", 'b', "value2", 'c', null)),
-            new Bin(CLASS_KEY_DEFAULT, MapWithCharacterId.class.getName())
+            MapWithCharacterKey.class.getSimpleName(), 10L,
+            new Bin("mapWithCharacterKey", of('a', "value1", 'b', "value2", 'c', null)),
+            new Bin(CLASS_KEY_DEFAULT, MapWithCharacterKey.class.getName())
         );
     }
 

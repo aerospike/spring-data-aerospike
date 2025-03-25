@@ -502,6 +502,9 @@ public enum FilterOperation {
             if (ignoreCase(qualifierMap)) {
                 flags = RegexFlag.EXTENDED | RegexFlag.ICASE;
             }
+            if (hasId(qualifierMap)) {
+                return Exp.regexCompare(getValue(qualifierMap).toString(), flags, Exp.key(Exp.Type.STRING));
+            }
             return Exp.regexCompare(getValue(qualifierMap).toString(), flags, Exp.stringBin(getBinName(qualifierMap)));
         }
 
@@ -1959,6 +1962,10 @@ public enum FilterOperation {
     protected static Integer getNestedType(Map<QualifierKey, Object> qualifierMap) {
         Object fieldType = qualifierMap.get(NESTED_TYPE);
         return fieldType != null ? (int) fieldType : null;
+    }
+
+    protected static boolean hasId(Map<QualifierKey, Object> qualifierMap) {
+        return qualifierMap.containsKey(IS_ID_EXPR) && (Boolean) qualifierMap.get(IS_ID_EXPR);
     }
 
     @SuppressWarnings("unchecked")

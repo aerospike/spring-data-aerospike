@@ -128,15 +128,15 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     public boolean hasId() {
-        return internalMap.get(SINGLE_ID_FIELD) != null || internalMap.get(MULTIPLE_IDS_FIELD) != null;
+        return internalMap.get(SINGLE_ID_EQ_FIELD) != null || internalMap.get(MULTIPLE_IDS_EQ_FIELD) != null;
     }
 
     public boolean hasSingleId() {
-        return internalMap.get(SINGLE_ID_FIELD) != null;
+        return internalMap.get(SINGLE_ID_EQ_FIELD) != null;
     }
 
     public Object getId() {
-        return this.hasSingleId() ? internalMap.get(SINGLE_ID_FIELD) : internalMap.get(MULTIPLE_IDS_FIELD);
+        return this.hasSingleId() ? internalMap.get(SINGLE_ID_EQ_FIELD) : internalMap.get(MULTIPLE_IDS_EQ_FIELD);
     }
 
     /**

@@ -106,6 +106,24 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     void deleteByIdAndFirstName(QueryParam ids, QueryParam firstName);
 
     /**
+     * Find all entities that satisfy the condition "have primary key satisfy th given string pattern
+     * and first name equal to the specified string".
+     *
+     * @param idPattern Primary key pattern, only for String primary keys
+     * @param firstName String to compare with
+     */
+    List<P> findByIdLikeAndFirstName(QueryParam idPattern, QueryParam firstName);
+
+    /**
+     * Find all entities that satisfy the condition "have primary key satisfy th given string pattern
+     * and have primary key in the given list".
+     *
+     * @param idPattern Primary key pattern, only for String primary keys
+     * @param ids       List of primary keys
+     */
+    List<P> findByIdLikeAndId(QueryParam idPattern, QueryParam ids);
+
+    /**
      * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the
      * specified string".
      *
@@ -150,7 +168,13 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByFirstNameLikeOrderByLastNameAsc(String firstName, Sort sort);
 
-    List<P> findByIdLike(String idRegex);
+    /**
+     * Find all entities by ids that satisfy the given pattern. Only for String ids.
+     * @param idPattern Regex to find matching ids
+     */
+    List<P> findByIdLike(String idPattern);
+
+    List<P> findByIdLike(int idPattern);
 
     /**
      * Find all entities with firstName matching the given regex. POSIX Extended Regular Expression syntax is used to

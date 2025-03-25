@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.repository.query;
 
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
+import org.springframework.data.repository.query.parser.Part;
 
 import java.util.Collection;
 import java.util.List;
@@ -10,25 +11,32 @@ import static org.springframework.data.aerospike.query.qualifier.Qualifier.idIn;
 
 public class IdQueryCreator implements IAerospikeQueryCreator {
 
+    private final Part.Type partType;
     private final List<Object> queryParameters;
 
-    public IdQueryCreator(List<Object> queryParameters) {
+    public IdQueryCreator(Part part, List<Object> queryParameters) {
+        this.partType = part.getType();
         this.queryParameters = queryParameters;
     }
 
     @Override
     public void validate() {
-        // in this case validation is done within process()
+        if (partType != Part.Type.SIMPLE_PROPERTY && partType != Part.Type.LIKE) {
+            throw new UnsupportedOperationException(
+                String.format("Unsupported type for an id query '%s', only EQ and LIKE id queries are supported",
+                    partType)
+            );
+        }
     }
 
     @Override
     public Qualifier process() {
-        Object value1 = queryParameters.get(0);
-        if (value1 instanceof Collection<?>) {
-            List<?> ids = ((Collection<?>) value1).stream().toList();
+        Object value = queryParameters.get(0);
+        if (value instanceof Collection<?>) {
+            List<?> ids = ((Collection<?>) value).stream().toList();
             return getIdInQualifier(ids);
         } else {
-            return getIdEqualsQualifier(value1);
+            return getIdEqualsQualifier(value);
         }
     }
 
@@ -56,22 +64,22 @@ public class IdQueryCreator implements IAerospikeQueryCreator {
         return qualifier;
     }
 
-    private Qualifier getIdEqualsQualifier(Object value1) {
+    private Qualifier getIdEqualsQualifier(Object value) {
         Qualifier qualifier;
-        if (value1 instanceof String) {
-            qualifier = idEquals((String) value1);
-        } else if (value1 instanceof Long) {
-            qualifier = idEquals((Long) value1);
-        } else if (value1 instanceof Integer) {
-            qualifier = idEquals((Integer) value1);
-        } else if (value1 instanceof Short) {
-            qualifier = idEquals((Short) value1);
-        } else if (value1 instanceof Byte) {
-            qualifier = idEquals((Byte) value1);
-        } else if (value1 instanceof Character) {
-            qualifier = idEquals((Character) value1);
-        } else if (value1 instanceof byte[]) {
-            qualifier = idEquals((byte[]) value1);
+        if (value instanceof String) {
+            qualifier = idEquals((String) value);
+        } else if (value instanceof Long) {
+            qualifier = idEquals((Long) value);
+        } else if (value instanceof Integer) {
+            qualifier = idEquals((Integer) value);
+        } else if (value instanceof Short) {
+            qualifier = idEquals((Short) value);
+        } else if (value instanceof Byte) {
+            qualifier = idEquals((Byte) value);
+        } else if (value instanceof Character) {
+            qualifier = idEquals((Character) value);
+        } else if (value instanceof byte[]) {
+            qualifier = idEquals((byte[]) value);
         } else {
             throw new IllegalArgumentException("Invalid ID argument type: expected String, Number or byte[]");
         }

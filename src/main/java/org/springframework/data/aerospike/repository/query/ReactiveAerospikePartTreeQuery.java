@@ -60,15 +60,16 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         Query query = prepareQuery(parameters, accessor);
         Class<?> targetClass = getTargetClass(accessor);
 
-        // queries that include id have their own processing flow
+        // queries with id equality have their own processing flow
         if (parameters != null && parameters.length > 0) {
             Qualifier criteria = query.getCriteriaObject();
+            // only for id EQ, id LIKE queries have SimpleProperty query creator
             if (criteria.hasSingleId()) {
-                return runQueryWithIds(targetClass, getIdValue(criteria), null);
+                return runQueryWithIdsEquality(targetClass, getIdValue(criteria), null);
             } else {
                 Qualifier idQualifier;
                 if ((idQualifier = getIdQualifier(criteria)) != null) {
-                    return runQueryWithIds(targetClass, getIdValue(idQualifier),
+                    return runQueryWithIdsEquality(targetClass, getIdValue(idQualifier),
                         new Query(excludeIdQualifier(criteria)));
                 }
             }
@@ -115,7 +116,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             "supported");
     }
 
-    protected Object runQueryWithIds(Class<?> targetClass, List<Object> ids, Query query) {
+    protected Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query) {
         if (isExistsQuery(queryMethod)) {
             return operations.existsByIdsUsingQuery(ids, entityClass, query);
         } else if (isCountQuery(queryMethod)) {
