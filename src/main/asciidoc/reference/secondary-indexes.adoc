@@ -117,7 +117,7 @@ by the Aerospike server, and then the condition is applied to see if they match.
 
 Due to the cost of performing this operation, scans from Spring Data Aerospike are disabled by default.
 
-For the details on how to enable scans see xref:#scan-operation[scan operation].
+For the details on how to enable scans see <<aerospike.scan-operation, scan operation>>.
 
 Following the query from the example above, assume there was a new requirement to be able to find by `firstName`
 with an exact match:

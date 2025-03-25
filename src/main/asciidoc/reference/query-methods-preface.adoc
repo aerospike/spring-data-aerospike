@@ -16,7 +16,9 @@ link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories
 Repository queries in Spring Data Aerospike can be divided into 3 groups:
 
 * Queries that utilize secondary index (if it is created)
-* Queries that only use xref:#scan-operation[scan operation]
+
+* Queries that only use <<aerospike.scan-operation, scan operation>>
+
 * Queries that use both secondary index and scan (when looking for a nested integer or string property).
 
 If no corresponding secondary index is found, each query does a fallback to using scan only.
@@ -63,7 +65,7 @@ public interface PersonRepository extends AerospikeRepository<Person, Long> {
 
 Queries can be combined using `And` or `Or` keywords, e.g. `findByFirstNameAndLastName()`, `findByNameOrJob()` etc. There are certain rules applied to processing such queries regarding secondary index in Spring Data Aerospike:
 
-* If no query parts have corresponding secondary index, a xref:#scan-operation[scan operation] is used
+* If no query parts have corresponding secondary index, a <<aerospike.scan-operation, scan operation>> is used
 * If only one part of a query has secondary index, and it is eligible to use the index, it will be used. For instance, if an index was created for the `name` String bin, then it will be used in queries like `findByNameAndJob()`, `findByNameAndJobAndEmail()`, `findByJobAndName()` etc.
 * If two or more query parts have secondary index and are eligible to use index, then one index will be chosen based on cardinality.
 

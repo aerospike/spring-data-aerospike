@@ -1,4 +1,4 @@
-[[scan-operation]]
+[[aerospike.scan-operation]]
 = Scan Operation
 
 A scan can be an expensive operation as all records in the set must be read by the Aerospike server,
