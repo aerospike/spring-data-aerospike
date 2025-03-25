@@ -63,7 +63,7 @@ public interface CustomerRepository extends AerospikeRepository<Customer, String
 
 == Combined Queries and Secondary Index
 
-Queries can be combined using `And` or `Or` keywords, e.g. `findByFirstNameAndLastName()`, `findByNameOrJob()` etc. There are certain rules applied to processing such queries regarding secondary index in Spring Data Aerospike:
+There are certain rules applied to processing such queries regarding secondary index in Spring Data Aerospike:
 
 * If no query parts have corresponding secondary index, a <<aerospike.scan-operation, scan operation>> is used
 * If only one part of a query has secondary index, and it is eligible to use the index, it will be used. For instance, if an index was created for the `name` String bin, then it will be used in queries like `findByNameAndJob()`, `findByNameAndJobAndEmail()`, `findByJobAndName()` etc.

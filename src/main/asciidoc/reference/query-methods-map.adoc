@@ -1,7 +1,7 @@
 [[aerospike.query_methods.map]]
 = Map Repository Queries
 
-NOTE: *These repository queries* utilize `query()` operation of the underlying Java client.
+NOTE: *Map repository queries* utilize `query()` operation of the underlying Java client.
 
 [width="100%",cols="<7%,<30%,<25%,<10%,<20%",options="header",]
 |===
