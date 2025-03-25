@@ -19,9 +19,9 @@ Repository queries in Spring Data Aerospike can be divided into 3 groups:
 * Queries that only use xref:#scan-operation[scan operation]
 * Queries that use both secondary index and scan (when looking for a nested integer or string property).
 
-If no corresponding secondary index is found, each query uses a fallback to using scan only.
+If no corresponding secondary index is found, each query does a fallback to using scan only.
 
-For details see "Uses secondary index" column in the tables referring to queries examples below.
+For details on particular repository queries see the tables referring to queries examples below.
 
 == Repository Query Keywords
 
