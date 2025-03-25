@@ -243,3 +243,4 @@ findByLastNameOrFirstName(String lastName, String firstName)
 |depending on each part of query
 |
 |===
+

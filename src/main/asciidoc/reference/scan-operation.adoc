@@ -1,3 +1,4 @@
+
 [[aerospike.scan-operation]]
 = Scan Operation
 
@@ -18,3 +19,4 @@ spring.data.aerospike.scans-enabled=true
 
 NOTE: Once this flag is enabled, scans run whenever needed with no warnings.
 This may or may not be optimal in a particular use case.
+
