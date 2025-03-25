@@ -21,7 +21,6 @@ import static org.springframework.data.aerospike.query.FilterOperation.LIKE;
 import static org.springframework.data.aerospike.query.FilterOperation.NOT_CONTAINING;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getCorrespondingMapValueFilterOperationOrFail;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifier;
-import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderIsIdExpr;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderKey;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderSecondValue;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.setQualifierBuilderValue;
