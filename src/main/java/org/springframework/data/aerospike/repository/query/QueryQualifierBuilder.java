@@ -121,5 +121,4 @@ public class QueryQualifierBuilder extends BaseQualifierBuilder<QualifierBuilder
         this.map.put(IS_ID_EXPR, value);
         return this;
     }
-
 }

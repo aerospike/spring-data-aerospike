@@ -160,7 +160,7 @@ public class SimplePropertyQueryCreator implements IAerospikeQueryCreator {
         }
 
         if (property.isIdProperty()) {
-            setQualifierBuilderIsIdExpr(qb, true);
+            qb.setIsIdExpr(true);
         }
 
         return setQualifier(qb, fieldName, op, part, dotPath, versionSupport);
