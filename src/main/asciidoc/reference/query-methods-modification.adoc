@@ -31,8 +31,9 @@ Ordering affects performance depending on the amount of query results
 |Distinct | findDistinctByFirstNameContaining | select distinct ... where x.firstName like 'abc%'
 |===
 
-NOTE: Limiting of queries results is done applicatively in Spring Data Aerospike as post-processing of query results.
-It can affect performance depending on the amount of query results and limiting parameters
+NOTE: Query result limiting is performed in Spring Data Aerospike at the application level as a
+post-processing step. This limiting can affect performance, depending on the number of query
+results and limiting parameters.
 
 [[find-using-query]]
 == Find Using Query

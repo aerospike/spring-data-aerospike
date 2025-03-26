@@ -15,7 +15,7 @@ link:https://docs.spring.io/spring-data/rest/reference/data-commons/repositories
 
 Repository queries in Spring Data Aerospike can be divided into 3 groups:
 
-* Queries that utilize secondary index (if it is created)
+* Queries that utilize secondary index (if at least one corresponding index is available)
 
 * Queries that only use <<aerospike.scan-operation, scan operation>>
 
