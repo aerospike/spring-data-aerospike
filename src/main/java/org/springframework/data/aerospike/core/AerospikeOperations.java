@@ -185,7 +185,7 @@ public interface AerospikeOperations {
      * @param document The document to be inserted. Must not be {@literal null}.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               If batch operation failed (see
+     * @throws DataAccessException               If operation failed (see
      *                                           {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void insert(T document);
@@ -200,7 +200,7 @@ public interface AerospikeOperations {
      * @param setName  Set name to override the set associated with the document.
      * @throws OptimisticLockingFailureException if the document has a version attribute with a different value from
      *                                           that found on server.
-     * @throws DataAccessException               If batch operation failed (see
+     * @throws DataAccessException               If operation failed (see
      *                                           {@link DefaultAerospikeExceptionTranslator} for details).
      */
     <T> void insert(T document, String setName);
