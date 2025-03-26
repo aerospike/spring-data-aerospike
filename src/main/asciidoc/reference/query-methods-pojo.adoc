@@ -1,11 +1,11 @@
 [[aerospike.query_methods.pojo]]
 = POJO Repository Queries
 
-NOTE: *Repository read queries without id* utilize `query()` operation of the underlying Java client.
+NOTE: *These repository queries* utilize `query()` operation of the underlying Java client.
 
-[width="100%",cols="<7%,<30%,<25%,<20%",options="header",]
+[width="100%",cols="<7%,<30%,<25%,<10%,<20%",options="header",]
 |===
-|Keyword |Repository query sample |Snippet |Notes
+|Keyword |Repository query sample |Snippet |Uses secondary index |Notes
 
 |Is, Equals
 
@@ -15,6 +15,7 @@ or no keyword a|
 findByAddress(Address address)
 ----
 |...where x.address = ?
+|only scan
 |
 
 |Not, IsNot a|
@@ -23,6 +24,7 @@ findByAddress(Address address)
 findByAddressNot(Address address)
 ----
 |...where x.address <> ?
+|only scan
 |
 
 |In a|
@@ -31,6 +33,7 @@ findByAddressNot(Address address)
 findByAddressIn(Collection<Address>)
 ----
 |...where x.address in ?
+|only scan
 |Find records where `address` bin value equals one of the Address objects in the given argument.
 
 |Not In a|
@@ -39,6 +42,7 @@ findByAddressIn(Collection<Address>)
 findByAddressNotIn(Collection<Address>)
 ----
 |...where x.address not in ?
+|only scan
 |Find records where `address` bin value is not equal to any of the Address objects in the given argument.
 
 |Null, IsNull a|
@@ -47,6 +51,7 @@ findByAddressNotIn(Collection<Address>)
 findByAddressIsNull()
 ----
 |...where x.address = null or x.address does not exist
+|only scan
 |The same as "does not exist", objects and fields exist in AerospikeDB when their value is not equal to null.
 
 |Exists
@@ -62,6 +67,7 @@ findByAddressExists()
 findByAddressNotNull()
 ----
 |...where x.address != null
+|only scan
 |"Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist
 when their value is not equal to null.
 
@@ -71,6 +77,7 @@ when their value is not equal to null.
 findByAddressLessThan(Address address)
 ----
 |...where x.address < ?
+|only scan
 |Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has fewer elements or has
 a corresponding element lower in ordering than in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
@@ -81,6 +88,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[informat
 findByAddressLessThanEqual(Address address)
 ----
 |...where x.address < = ?
+|only scan
 |Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has smaller or the same amount of
 elements or has each corresponding element lower in ordering or the same as in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
@@ -91,6 +99,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[informat
 findByAddressGreaterThan(Address address)
 ----
 |...where x.address > ?
+|only scan
 |Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has more elements or has
 a corresponding element higher in ordering than in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
@@ -101,6 +110,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[informat
 findByAddressGreaterThanEqual(Address address)
 ----
 |...where x.address >= ?
+|only scan
 |Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) has larger or the same amount
 of elements or has each corresponding element higher in ordering or the same as in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
@@ -111,22 +121,25 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[informat
 findByAddressBetween(Address lowerLimit, Address upperLimit)
 ----
 |...where x.address between ? and ?
+|only scan
 |Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) is in the range between
 the given arguments. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
 |And a|
 [source,java]
 ----
-findByAddressAndFriend(Address address, Person friend)
+findByAddressAndFriend(QueryParam address, QueryParam friend)
 ----
 |...where x.address = ? and x.friend = ?
+|only scan
 |
 
 |Or a|
 [source,java]
 ----
-findByAddressOrFriend(Address address, Person friend)
+findByAddressOrFriend(QueryParam address, QueryParam friend)
 ----
 |...where x.address = ? or x.friend = ?
+|only scan
 |
 |===

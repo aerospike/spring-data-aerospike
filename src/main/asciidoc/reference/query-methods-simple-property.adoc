@@ -1,11 +1,11 @@
 [[aerospike.query_methods.simple_property]]
 = Simple Property Repository Queries
 
-NOTE: *Repository read queries without id* utilize `query()` operation of the underlying Java client.
+NOTE: *Simple property repository queries* utilize `query()` operation of the underlying Java client.
 
-[width="100%",cols="<7%,<30%,<25%,<20%",options="header",]
+[width="100%",cols="<7%,<30%,<25%,<10%,<20%",options="header",]
 |===
-|Keyword |Repository query sample |Snippet |Notes
+|Keyword |Repository query sample |Snippet |Uses secondary index |Notes
 
 |Is, Equals
 
@@ -15,7 +15,8 @@ or no keyword a|
 findByLastName(String lastName)
 ----
 |...where x.lastName = ?
-|
+|only for integers, strings and byte arrays
+|Both secondary index and scan are used for queries featuring nested integer or string property, e.g. `findByFriendAddressZipCode()`
 
 |Not, IsNot a|
 [source,java]
@@ -23,6 +24,7 @@ findByLastName(String lastName)
 findByLastNameNot(String lastName)
 ----
 |...where x.lastName <> ?
+|only scan
 |
 
 |True, isTrue a|
@@ -31,7 +33,8 @@ findByLastNameNot(String lastName)
 findByEnabledTrue()
 ----
 |...where x.enabled = true
-|
+|only scan
+|Currently there is no secondary index for a boolean bin
 
 |False, isFalse a|
 [source,java]
@@ -39,7 +42,8 @@ findByEnabledTrue()
 findByEnabledFalse()
 ----
 |...where x.enabled = false
-|
+|only scan
+|Currently there is no secondary index for a boolean bin
 
 |In, IsIn a|
 [source,java]
@@ -47,6 +51,7 @@ findByEnabledFalse()
 findByLastNameIn(Collection<String>)
 ----
 |...where x.lastName in ?
+|only for integers, strings and byte arrays
 |
 
 |NotIn, IsNotIn a|
@@ -55,6 +60,7 @@ findByLastNameIn(Collection<String>)
 findByLastNameNotIn(Collection<String>)
 ----
 |...where x.lastName not in ?
+|only scan
 |
 
 |Null, IsNull a|
@@ -64,6 +70,7 @@ findByEmailAddressIsNull()
 ----
 
 |...where x.emailAddress = null or x.emailAddress does not exist
+|only scan
 |The same as "does not exist", objects and fields exist in AerospikeDB when their value is not equal to null.
 
 |Exists
@@ -80,6 +87,7 @@ findByEmailAddressNotNull()
 ----
 
 |...where x.emailAddress != null
+|only scan
 |"Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields
 exist in AerospikeDB when their value is not equal to null.
 
@@ -93,6 +101,7 @@ findByFirstNameLessThan(String string)
 |...where x.age < ?
 
 ...where x.firstName < ?
+|only for integers
 |Strings are compared by order of each byte, assuming they have UTF-8 encoding.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string[information about ordering].
 
@@ -107,6 +116,7 @@ findByFirstNameLessThanEqual(String string)
 |...where x.age < = ?
 
 ...where x.firstName < = ?
+|only for integers
 |Strings are compared by order of each byte, assuming they have UTF-8 encoding.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string[information about ordering].
 
@@ -120,6 +130,7 @@ findByFirstNameGreaterThan(String string)
 |...where x.age > ?
 
 ...where x.firstName > ?
+|only for integers
 |Strings are compared by order of each byte, assuming they have UTF-8 encoding.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string[information about ordering].
 
@@ -133,6 +144,7 @@ findByFirstNameGreaterThanEqual(String string)
 |...where x.age >= ?
 
 ...where x.firstName >= ?
+|only for integers
 |Strings are compared by order of each byte, assuming they have UTF-8 encoding.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string[information about ordering].
 
@@ -146,6 +158,7 @@ findByFirstNameBetween(String lowerLimit, String upperLimit)
 |...where x.age between ? and ?
 
 ...where x.firstName between ? and ?
+|only for integers
 |Strings are compared by order of each byte, assuming they have UTF-8 encoding.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string[information about ordering].
 
@@ -155,6 +168,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string[infor
 findByDateOfBirthBefore(Date date)
 ----
 |...where x.dateOfBirth < ?
+|yes
 |
 
 |After, IsAfter a|
@@ -163,6 +177,7 @@ findByDateOfBirthBefore(Date date)
 findByDateOfBirthAfter(Date date)
 ----
 |...where x.dateOfBirth > ?
+|yes
 |
 
 |StartingWith, IsStartingWith, StartsWith a|
@@ -171,6 +186,7 @@ findByDateOfBirthAfter(Date date)
 findByLastNameStartingWith(String string)
 ----
 |...where x.lastName like 'abc%'
+|only scan
 |
 
 |EndingWith, IsEndingWith, EndsWith a|
@@ -179,6 +195,7 @@ findByLastNameStartingWith(String string)
 findByLastNameEndingWith(String string)
 ----
 |...where x.lastName like '%abc'
+|only scan
 |
 
 |Like, IsLike, MatchesRegex a|
@@ -187,6 +204,7 @@ findByLastNameEndingWith(String string)
 findByLastNameLike(String lastNameRegex)
 ----
 |...where x.lastName like ?
+|only scan
 |
 
 |Containing, IsContaining, Contains a|
@@ -195,6 +213,7 @@ findByLastNameLike(String lastNameRegex)
 findByLastNameContaining(String substring)
 ----
 |...where x.lastName like '%abc%'
+|only scan
 |
 
 |NotContaining, IsNotContaining, NotContains a|
@@ -203,6 +222,7 @@ findByLastNameContaining(String substring)
 findByLastNameNotContaining(String substring)
 ----
 |...where x.lastName not like '%abc%'
+|only scan
 |
 
 |And a|
@@ -211,6 +231,7 @@ findByLastNameNotContaining(String substring)
 findByLastNameAndFirstName(String lastName, String firstName)
 ----
 |...where x.lastName = ? and x.firstName = ?
+|depending on each part of query
 |
 
 |Or a|
@@ -219,5 +240,7 @@ findByLastNameAndFirstName(String lastName, String firstName)
 findByLastNameOrFirstName(String lastName, String firstName)
 ----
 |...where x.lastName = ? or x.firstName = ?
+|depending on each part of query
 |
 |===
+

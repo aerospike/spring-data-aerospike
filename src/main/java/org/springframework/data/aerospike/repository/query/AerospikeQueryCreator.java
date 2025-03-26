@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static org.springframework.data.aerospike.query.FilterOperation.IS_NOT_NULL;
-import static org.springframework.data.aerospike.query.FilterOperation.IS_NULL;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.convertIfNecessary;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getFieldName;
 import static org.springframework.data.aerospike.repository.query.AerospikeQueryCreatorUtils.getNestedPropertyPath;
@@ -185,8 +183,8 @@ public class AerospikeQueryCreator extends AbstractQueryCreator<Query, CriteriaD
             case NEGATING_SIMPLE_PROPERTY -> FilterOperation.NOTEQ;
             case IN -> FilterOperation.IN;
             case NOT_IN -> FilterOperation.NOT_IN;
-            case EXISTS, IS_NOT_NULL -> IS_NOT_NULL;
-            case IS_NULL -> IS_NULL;
+            case EXISTS, IS_NOT_NULL -> FilterOperation.IS_NOT_NULL;
+            case IS_NULL -> FilterOperation.IS_NULL;
             default -> throw new IllegalArgumentException(String.format("Unsupported keyword '%s'", type));
         };
     }

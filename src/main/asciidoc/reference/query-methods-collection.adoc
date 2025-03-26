@@ -1,11 +1,11 @@
 [[aerospike.query_methods.collection]]
 = Collection Repository Queries
 
-NOTE: *Repository read queries without id* utilize `query()` operation of the underlying Java client.
+NOTE: *Collection repository queries* utilize `query()` operation of the underlying Java client.
 
-[width="100%",cols="<7%,<30%,<25%,<20%",options="header",]
+[width="100%",cols="<7%,<30%,<25%,<10%,<20%",options="header",]
 |===
-|Keyword |Repository query sample |Snippet |Notes
+|Keyword |Repository query sample |Snippet |Uses secondary index |Notes
 
 |Is, Equals
 
@@ -15,6 +15,7 @@ or no keyword a|
 findByStringList(Collection<String> stringList)
 ----
 |...where x.stringList = ?
+|only scan
 |
 
 |Not, IsNot a|
@@ -23,6 +24,7 @@ findByStringList(Collection<String> stringList)
 findByStringListNot(Collection<String> stringList)
 ----
 |...where x.stringList <> ?
+|only scan
 |
 
 |In a|
@@ -31,6 +33,7 @@ findByStringListNot(Collection<String> stringList)
 findByStringListIn(Collection<Collection<String>>)
 ----
 |...where x.stringList in ?
+|only scan
 |Find records where `stringList` bin value equals one of the collections in the given argument.
 
 |Not In a|
@@ -39,6 +42,7 @@ findByStringListIn(Collection<Collection<String>>)
 findByStringListNotIn(Collection<Collection<String>>)
 ----
 |...where x.stringList not in ?
+|only scan
 |Find records where `stringList` bin value is not equal to any of the collections in the given argument.
 
 |Null, IsNull a|
@@ -47,6 +51,7 @@ findByStringListNotIn(Collection<Collection<String>>)
 findByStringListIsNull()
 ----
 |...where x.stringList = null or x.stringList does not exist
+|only scan
 |The same as "does not exist", objects and fields exist in AerospikeDB when their value is not equal to null.
 
 |Exists
@@ -63,6 +68,7 @@ findByStringListNotNull()
 ----
 
 |...where x.stringList != null
+|only scan
 |("Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields
 exist in AerospikeDB when their value is not equal to null).
 
@@ -72,6 +78,7 @@ exist in AerospikeDB when their value is not equal to null).
 findByStringListLessThan(Collection<String> stringList)
 ----
 |...where x.stringList < ?
+|only scan
 |Find records where `stringList` bin value has fewer elements or has a corresponding element lower in ordering
 than in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
@@ -82,6 +89,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[informa
 findByStringListLessThanEqual(Collection<String> stringList)
 ----
 |...where x.stringList < = ?
+|only scan
 |Find records where `stringList` bin value has smaller or the same amount of elements or has each
 corresponding element lower in ordering or the same as in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
@@ -92,6 +100,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[informa
 findByStringListGreaterThan(Collection<String> stringList)
 ----
 |...where x.stringList > ?
+|only scan
 |Find records where `stringList` bin value has more elements or has a corresponding element higher in ordering
 than in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
@@ -102,6 +111,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[informa
 findByStringListGreaterThanEqual(Collection<String> stringList)
 ----
 |...where x.stringList >= ?
+|only scan
 |Find records where `stringList` bin value has larger or the same amount of elements or has each
 corresponding element higher in ordering or the same as in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
@@ -112,6 +122,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[informa
 findByStringListBetween(Collection<String> lowerLimit, Collection<String> upperLimit)
 ----
 |...where x.stringList between ? and ?
+|only scan
 |Find records where `stringList` bin value is in the range between the given arguments.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].
 
@@ -121,6 +132,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[informa
 findByStringListContaining(String string)
 ----
 |...where x.stringList contains ?
+|only scan
 |
 
 |NotContaining, IsNotContaining, NotContains a|
@@ -129,21 +141,24 @@ findByStringListContaining(String string)
 findByStringListNotContaining(String string)
 ----
 |...where x.stringList not contains ?
+|only scan
 |
 
 |And a|
 [source,java]
 ----
-findByStringListAndIntList(Collection<String> stringList, Collection<Integer> intList)
+findByStringListAndIntList(QueryParam stringList, QueryParam intList)
 ----
 |...where x.stringList = ? and x.intList = ?
+|only scan
 |
 
 |Or a|
 [source,java]
 ----
-findByStringListOrIntList(Collection<String> stringList, Collection<Integer> intList)
+findByStringListOrIntList(QueryParam stringList, QueryParam intList)
 ----
 |...where x.stringList = ? or x.intList = ?
+|only scan
 |
 |===

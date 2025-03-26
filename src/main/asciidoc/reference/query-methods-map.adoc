@@ -1,11 +1,11 @@
 [[aerospike.query_methods.map]]
 = Map Repository Queries
 
-NOTE: *Repository read queries without id* utilize `query()` operation of the underlying Java client.
+NOTE: *Map repository queries* utilize `query()` operation of the underlying Java client.
 
-[width="100%",cols="<7%,<30%,<25%,<20%",options="header",]
+[width="100%",cols="<7%,<30%,<25%,<10%,<20%",options="header",]
 |===
-|Keyword |Repository query sample |Snippet |Notes
+|Keyword |Repository query sample |Snippet |Uses secondary index |Notes
 
 |Is, Equals
 
@@ -15,6 +15,7 @@ or no keyword a|
 findByStringMap(Map<String, String> stringMap)
 ----
 |...where x.stringMap = ?
+|only scan
 |
 
 |Not, IsNot a|
@@ -23,6 +24,7 @@ findByStringMap(Map<String, String> stringMap)
 findByStringMapNot(Map<String, String> stringMap)
 ----
 |...where x.stringMap <> ?
+|only scan
 |
 
 |In a|
@@ -31,6 +33,7 @@ findByStringMapNot(Map<String, String> stringMap)
 findByStringMapIn(Collection<Map<String, String>>)
 ----
 |...where x.stringMap in ?
+|only scan
 |Find records where `stringMap` bin value equals one of the maps in the given argument.
 
 |Not In a|
@@ -39,6 +42,7 @@ findByStringMapIn(Collection<Map<String, String>>)
 findByStringMapNotIn(Collection<Map<String, String>>)
 ----
 |...where x.stringMap not in ?
+|only scan
 |Find records where `stringMap` bin value is not equal to any of the maps in the given argument.
 
 |Null, IsNull a|
@@ -47,6 +51,7 @@ findByStringMapNotIn(Collection<Map<String, String>>)
 findByStringMapIsNull()
 ----
 |...where x.stringMap = null or x.stringMap does not exist
+|only scan
 |The same as "does not exist", objects and fields exist in AerospikeDB when their value is not equal to null.
 
 |Exists
@@ -63,6 +68,7 @@ findByStringMapNotNull()
 ----
 
 |...where x.stringMap != null
+|only scan
 |"Exists" and "IsNotNull" represent the same functionality and can be used interchangeably, objects and fields exist
 when their value is not equal to null.
 
@@ -72,6 +78,7 @@ when their value is not equal to null.
 findByStringMapLessThan(Map<String, String> stringMap)
 ----
 |...where x.stringMap < ?
+|only scan
 |Find records where `stringMap` bin value has fewer elements or has a corresponding element lower in ordering than
 in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
@@ -81,6 +88,7 @@ in the given argument. See https://docs.aerospike.com/server/guide/data-types/cd
 findByStringMapLessThanEqual(Map<String, String> stringMap)
 ----
 |...where x.stringMap < = ?
+|only scan
 |Find records where `stringMap` bin value has smaller or the same amount of elements or has each corresponding element
 lower in ordering or the same as in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
@@ -91,6 +99,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[informat
 findByStringMapGreaterThan(Map<String, String> stringMap)
 ----
 |...where x.stringMap > ?
+|only scan
 |Find records where `stringMap` bin value has more elements or has a corresponding element higher in ordering than
 in the given argument. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
@@ -100,6 +109,7 @@ in the given argument. See https://docs.aerospike.com/server/guide/data-types/cd
 findByStringMapGreaterThanEqual(Map<String, String> stringMap)
 ----
 |...where x.stringMap >= ?
+|only scan
 |Find records where `stringMap` bin value has larger or the same amount of elements or has each corresponding element
 higher in ordering or the same as in the given argument.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
@@ -110,6 +120,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[informat
 findByStringMapBetween(Map<String, String> lowerLimit, Map<String, String> upperLimit)
 ----
 |...where x.stringMap between ? and ?
+|only scan
 |Find records where `stringMap` bin value is in the range between the given arguments.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].
 
@@ -121,6 +132,7 @@ findByStringMapContaining(AerospikeQueryCriterion criterion, String string)
 findByStringMapContaining(AerospikeQueryCriterion criterionPair, String string, String value)
 ----
 |...where x.stringMap contains ?
+|only scan
 a|* Find records where `stringMap` bin value (which is a Map) contains key "key1":
 
 `findByStringMapContaining(KEY, "key1")`
@@ -139,6 +151,7 @@ a|* Find records where `stringMap` bin value (which is a Map) contains key "key1
 findByStringNameNotContaining(AerospikeQueryCriterion criterion, String string)
 ----
 |...where x.stringMap not contains ?
+|only scan
 |`findByStringMapNotContaining(KEY, "key1")`
 
 `findByStringMapNotContaining(VALUE, "value1")`
@@ -148,16 +161,18 @@ findByStringNameNotContaining(AerospikeQueryCriterion criterion, String string)
 |And a|
 [source,java]
 ----
-findByStringMapAndIntMap(Map<String, String> stringMap, Map<Integer, Integer> intMap)
+findByStringMapAndIntMap(QueryParam stringMap, QueryParam intMap)
 ----
 |...where x.stringMap = ? and x.intMap = ?
+|only scan
 |
 
 |Or a|
 [source,java]
 ----
-findByStringMapOrIntMap(Map<String, String> stringMap, Map<Integer, Integer> intList)
+findByStringMapOrIntMap(QueryParam stringMap, QueryParam intMap)
 ----
 |...where x.stringMap = ? or x.intMap = ?
+|only scan
 |
 |===

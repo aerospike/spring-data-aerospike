@@ -2,13 +2,17 @@
 
 == Query Modifiers
 
-[width="100%",cols="<12%,<25%,<30%",options="header",]
+[width="100%",cols="<12%,<25%,<30%,<25%",options="header",]
 |===
-|Keyword |Sample |Snippet
+|Keyword |Sample |Snippet |Notes
 
-|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?)
+|IgnoreCase |findByLastNameIgnoreCase |...where UPPER(x.lastName) = UPPER(?) |
 
 |OrderBy |findByLastNameOrderByFirstNameDesc |...where x.lastName = ? order by x.firstName desc
+|Ordering is done applicatively in Spring Data Aerospike as post-processing of the query results.
+If there is a secondary index created for the ordering bin (in this example `firstName`), it is not used,
+indexes are relevant only for the main query part before `OrderBy`.
+Ordering affects performance depending on the amount of query results
 |===
 
 == Limiting Query Results
@@ -26,6 +30,10 @@
 
 |Distinct | findDistinctByFirstNameContaining | select distinct ... where x.firstName like 'abc%'
 |===
+
+NOTE: Query result limiting is performed in Spring Data Aerospike at the application level as a
+post-processing step. This limiting can affect performance, depending on the number of query
+results and limiting parameters.
 
 [[find-using-query]]
 == Find Using Query

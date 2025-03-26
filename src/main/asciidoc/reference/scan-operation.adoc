@@ -1,4 +1,5 @@
-[[scan-operation]]
+
+[[aerospike.scan-operation]]
 = Scan Operation
 
 A scan can be an expensive operation as all records in the set must be read by the Aerospike server,
@@ -18,3 +19,4 @@ spring.data.aerospike.scans-enabled=true
 
 NOTE: Once this flag is enabled, scans run whenever needed with no warnings.
 This may or may not be optimal in a particular use case.
+
