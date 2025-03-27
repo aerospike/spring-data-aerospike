@@ -29,7 +29,7 @@ import static org.springframework.data.aerospike.util.Utils.setStringFromConfig;
 public class AerospikeDataSettings {
 
     // Namespace
-    String namespace;
+    String namespace = "test";
     // Enable scan operation
     boolean scansEnabled = false;
     // Create secondary indexes specified using `@Indexed` annotation on startup

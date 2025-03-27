@@ -126,7 +126,7 @@ class ApplicationConfig extends AbstractAerospikeDataConfiguration {
 }
 ----
 
-*Default:* `null`.
+*Default:* `localhost:3000`.
 
 [[configuration.namespace]]
 === namespace
@@ -161,7 +161,7 @@ configuration class per namespace.
 See https://github.com/aerospike-examples/spring-data-multiple-namespaces-example[multiple namespaces example]
 for implementation details.
 
-*Default:* `null`.
+*Default:* `test`.
 
 [[configuration.scans-enabled]]
 === scansEnabled
