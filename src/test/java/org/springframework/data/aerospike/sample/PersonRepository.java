@@ -16,6 +16,7 @@
 package org.springframework.data.aerospike.sample;
 
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.aerospike.annotation.Query;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeNullQueryCriterion;
@@ -1594,6 +1595,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
+    @Query(expression = "$.firstName == 'Leroi'")
     List<P> findByFirstName(String name);
 
     boolean existsByFirstName(String name);

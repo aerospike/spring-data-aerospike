@@ -32,6 +32,7 @@
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <aerospike-client-jdk8>9.0.5</aerospike-client-jdk8>
         <aerospike-reactor-client>9.0.5</aerospike-reactor-client>
+        <aerospike-expression-dsl.version>0.1.0</aerospike-expression-dsl.version>
         <reactor-test>3.7.4</reactor-test>
         <embedded-aerospike>3.1.11</embedded-aerospike>
         <jodatime>2.13.1</jodatime>
@@ -196,6 +197,11 @@
                 <version>${aerospike-reactor-client}</version>
             </dependency>
             <dependency>
+                <groupId>com.aerospike</groupId>
+                <artifactId>aerospike-expression-dsl</artifactId>
+                <version>${aerospike-expression-dsl.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
                 <version>${jodatime}</version>
@@ -242,6 +248,10 @@
         <dependency>
             <groupId>com.aerospike</groupId>
             <artifactId>aerospike-reactor-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.aerospike</groupId>
+            <artifactId>aerospike-expression-dsl</artifactId>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>

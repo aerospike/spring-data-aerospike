@@ -56,7 +56,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     @Override
     @SuppressWarnings({"NullableProblems"})
     public Object execute(Object[] parameters) {
-        ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
+        ParametersParameterAccessor accessor = new ParametersParameterAccessor(baseQueryMethod.getParameters(), parameters);
         Query query = prepareQuery(parameters, accessor);
         Class<?> targetClass = getTargetClass(accessor);
 
@@ -75,14 +75,14 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
             }
         }
 
-        if (isExistsQuery(queryMethod)) {
-            return operations.exists(query, queryMethod.getEntityInformation().getJavaType());
-        } else if (isCountQuery(queryMethod)) {
-            return operations.count(query, queryMethod.getEntityInformation().getJavaType());
-        } else if (isDeleteQuery(queryMethod)) {
-            operations.delete(query, queryMethod.getEntityInformation().getJavaType());
+        if (isExistsQuery(baseQueryMethod)) {
+            return operations.exists(query, baseQueryMethod.getEntityInformation().getJavaType());
+        } else if (isCountQuery(baseQueryMethod)) {
+            return operations.count(query, baseQueryMethod.getEntityInformation().getJavaType());
+        } else if (isDeleteQuery(baseQueryMethod)) {
+            operations.delete(query, baseQueryMethod.getEntityInformation().getJavaType());
             return Optional.empty();
-        } else if (queryMethod.isPageQuery() || queryMethod.isSliceQuery()) {
+        } else if (baseQueryMethod.isPageQuery() || baseQueryMethod.isSliceQuery()) {
             Pageable pageable = accessor.getPageable();
             Flux<?> unprocessedResults = operations.findUsingQueryWithoutPostProcessing(entityClass, targetClass,
                 query);
@@ -101,27 +101,27 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                 }
                 return getPage(unprocessedResults, size, pageable, query);
             });
-        } else if (queryMethod.isStreamQuery()) {
+        } else if (baseQueryMethod.isStreamQuery()) {
             return findByQuery(query, targetClass).toStream();
-        } else if (queryMethod.isCollectionQuery()) {
+        } else if (baseQueryMethod.isCollectionQuery()) {
             // Currently there seems to be no way to distinguish return type Collection from Mono<Collection> etc.,
             // so a query method with return type Collection will compile but throw ClassCastException in runtime
             return findByQuery(query, targetClass).collectList();
         }
-         else if (queryMethod.isQueryForEntity() || !isEntityAssignableFromReturnType(queryMethod)) {
+         else if (baseQueryMethod.isQueryForEntity() || !isEntityAssignableFromReturnType(baseQueryMethod)) {
             // Queries with Flux<Entity> and Mono<Entity> return types including projection queries
             return findByQuery(query, targetClass);
         }
-        throw new UnsupportedOperationException("Query method " + queryMethod.getNamedQueryName() + " is not " +
+        throw new UnsupportedOperationException("Query method " + baseQueryMethod.getNamedQueryName() + " is not " +
             "supported");
     }
 
     protected Object runQueryWithIdsEquality(Class<?> targetClass, List<Object> ids, Query query) {
-        if (isExistsQuery(queryMethod)) {
+        if (isExistsQuery(baseQueryMethod)) {
             return operations.existsByIdsUsingQuery(ids, entityClass, query);
-        } else if (isCountQuery(queryMethod)) {
+        } else if (isCountQuery(baseQueryMethod)) {
             return operations.countByIdsUsingQuery(ids, entityClass, query);
-        } else if (isDeleteQuery(queryMethod)) {
+        } else if (isDeleteQuery(baseQueryMethod)) {
             return operations.deleteByIdsUsingQuery(ids, entityClass, query);
         } else {
             return operations.findByIdsUsingQuery(ids, entityClass, targetClass, query);
@@ -129,7 +129,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     public Object getPage(List<?> unprocessedResults, long overallSize, Pageable pageable, Query query) {
-        if (queryMethod.isSliceQuery()) {
+        if (baseQueryMethod.isSliceQuery()) {
             return processSliceQuery(unprocessedResults, overallSize, pageable, query);
         } else {
             return processPageQuery(unprocessedResults, overallSize, pageable, query);
@@ -137,7 +137,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
     }
 
     public Object getPage(Flux<?> unprocessedResults, long overallSize, Pageable pageable, Query query) {
-        if (queryMethod.isSliceQuery()) {
+        if (baseQueryMethod.isSliceQuery()) {
             List<?> resultsPaginated = applyPostProcessing(unprocessedResults, query).toList();
             boolean hasNext = overallSize > pageable.getPageSize() * (pageable.getOffset() + 1);
             return new SliceImpl<>(resultsPaginated, pageable, hasNext);

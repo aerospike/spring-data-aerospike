@@ -1055,11 +1055,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> Stream<T> find(Query query, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Entity class name must not be null!");
+
         return find(query, entityClass, getSetName(entityClass));
     }
 
     @Override
     public <T, S> Stream<S> find(Query query, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Entity class name must not be null!");
+
         return find(query, targetClass, getSetName(entityClass));
     }
 
@@ -1102,11 +1106,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> Stream<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Entity class name must not be null!");
+
         return findAll(sort, offset, limit, entityClass, getSetName(entityClass));
     }
 
     @Override
     public <T, S> Stream<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Entity class name must not be null!");
+
         return findAll(sort, offset, limit, targetClass, getSetName(entityClass));
     }
 

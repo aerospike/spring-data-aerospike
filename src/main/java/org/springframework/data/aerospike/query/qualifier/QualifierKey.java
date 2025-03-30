@@ -15,6 +15,7 @@ public enum QualifierKey {
     DOT_PATH,
     CTX_ARRAY,
     IGNORE_CASE,
+    FILTER_EXPRESSION,
     KEY,
     NESTED_KEY,
     VALUE,

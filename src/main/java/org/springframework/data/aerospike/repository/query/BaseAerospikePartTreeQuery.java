@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  */
 public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
-    protected final QueryMethod queryMethod;
+    protected final QueryMethod baseQueryMethod;
     protected final Class<?> entityClass;
     private final QueryMethodValueEvaluationContextAccessor evaluationContextAccessor;
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
@@ -60,7 +60,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
                                          Class<? extends AbstractQueryCreator<?, ?>> queryCreator,
                                          AerospikeMappingContext context,
                                          MappingAerospikeConverter converter, ServerVersionSupport versionSupport) {
-        this.queryMethod = queryMethod;
+        this.baseQueryMethod = queryMethod;
         this.evaluationContextAccessor = evalContextAccessor;
         this.queryCreator = queryCreator;
         this.entityClass = queryMethod.getEntityInformation().getJavaType();
@@ -71,11 +71,11 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
     @Override
     public QueryMethod getQueryMethod() {
-        return queryMethod;
+        return baseQueryMethod;
     }
 
     protected Query prepareQuery(Object[] parameters, ParametersParameterAccessor accessor) {
-        PartTree tree = new PartTree(queryMethod.getName(), entityClass);
+        PartTree tree = new PartTree(baseQueryMethod.getName(), entityClass);
         Query baseQuery = createQuery(accessor, tree);
 
         Qualifier criteria = baseQuery.getCriteriaObject();
@@ -103,7 +103,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
         if (query.getCriteria() instanceof SpelExpression spelExpression) {
             // Create a ValueEvaluationContextProvider using the accessor
-            ValueEvaluationContextProvider provider = this.evaluationContextAccessor.create(queryMethod.getParameters());
+            ValueEvaluationContextProvider provider = this.evaluationContextAccessor.create(baseQueryMethod.getParameters());
 
             // Get the ValueEvaluationContext using the provider
             ValueEvaluationContext valueContext = provider.getEvaluationContext(parameters);
@@ -124,11 +124,11 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
             return accessor.findDynamicProjection();
         }
         // DTO projection
-        if (!isEntityAssignableFromReturnType(queryMethod)) {
-            return queryMethod.getReturnedObjectType();
+        if (!isEntityAssignableFromReturnType(baseQueryMethod)) {
+            return baseQueryMethod.getReturnedObjectType();
         }
         // No projection - target class will be the entity class.
-        return queryMethod.getEntityInformation().getJavaType();
+        return baseQueryMethod.getEntityInformation().getJavaType();
     }
 
     public Query createQuery(ParametersParameterAccessor accessor, PartTree tree) {

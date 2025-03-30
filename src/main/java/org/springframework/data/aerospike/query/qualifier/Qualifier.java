@@ -20,6 +20,7 @@ import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
@@ -85,6 +86,11 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     @Beta
     public static MetadataQualifierBuilder metadataBuilder() {
         return new MetadataQualifierBuilder();
+    }
+
+    @Beta
+    public static FilterQualifierBuilder filterExpBuilder() {
+        return new FilterQualifierBuilder();
     }
 
     public FilterOperation getOperation() {
@@ -173,6 +179,14 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     public Filter getSecondaryIndexFilter() {
         return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
+    }
+
+    public boolean hasFilterExpression() {
+        return internalMap.get(FILTER_EXPRESSION) != null;
+    }
+
+    public Expression getFilterExpression() {
+        return (Expression) internalMap.get(FILTER_EXPRESSION);
     }
 
     public Exp getFilterExp() {

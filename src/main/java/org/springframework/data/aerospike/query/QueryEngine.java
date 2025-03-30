@@ -175,7 +175,9 @@ public class QueryEngine {
 
     private QueryPolicy getQueryPolicy(Qualifier qualifier, boolean includeBins) {
         QueryPolicy queryPolicy = new QueryPolicy(client.getQueryPolicyDefault());
-        queryPolicy.filterExp = filterExpressionsBuilder.build(qualifier);
+        queryPolicy.filterExp = qualifier != null && qualifier.hasFilterExpression()
+            ? qualifier.getFilterExpression()
+            : filterExpressionsBuilder.build(qualifier);
         queryPolicy.includeBinData = includeBins;
         return queryPolicy;
     }
