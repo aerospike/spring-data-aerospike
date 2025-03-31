@@ -15,8 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.support;
 
-import com.aerospike.dsl.DSLParser;
-import com.aerospike.dsl.DSLParserImpl;
 import org.springframework.data.aerospike.repository.query.AerospikeQueryMethod;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
@@ -57,7 +55,6 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
     private final AerospikeTemplate template;
     private final MappingContext<? extends AerospikePersistentEntity<?>, AerospikePersistentProperty> context;
     private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
-    private final DSLParser dslParser = new DSLParserImpl();
 
     public AerospikeRepositoryFactory(AerospikeTemplate aerospikeTemplate) {
         this(aerospikeTemplate, DEFAULT_QUERY_CREATOR);
@@ -108,8 +105,7 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
         return Optional.of(
             new AerospikeQueryLookupStrategy(valueExpressionDelegate.getEvaluationContextAccessor(),
             this.template,
-            this.queryCreator,
-            this.dslParser)
+            this.queryCreator)
         );
     }
 
@@ -122,7 +118,6 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
         private final QueryMethodValueEvaluationContextAccessor evaluationContextAccessor;
         private final AerospikeTemplate aerospikeTemplate;
         private final Class<? extends AbstractQueryCreator<?, ?>> queryCreator;
-        private final DSLParser dslParser;
 
         /**
          * Creates a new {@link AerospikeQueryLookupStrategy} for the given {@link Key},
@@ -135,15 +130,13 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
          */
         public AerospikeQueryLookupStrategy(QueryMethodValueEvaluationContextAccessor evaluationContextAccessor,
                                             AerospikeTemplate aerospikeTemplate,
-                                            Class<? extends AbstractQueryCreator<?, ?>> queryCreator,
-                                            DSLParser dslParser) {
+                                            Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
             Assert.notNull(evaluationContextAccessor, "QueryMethodEvaluationContextAccessor must not be null!");
             Assert.notNull(aerospikeTemplate, "AerospikeTemplate must not be null!");
             Assert.notNull(queryCreator, "Query creator type must not be null!");
             this.evaluationContextAccessor = evaluationContextAccessor;
             this.aerospikeTemplate = aerospikeTemplate;
             this.queryCreator = queryCreator;
-            this.dslParser = dslParser;
         }
 
         @Override
@@ -152,7 +145,7 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
                                             NamedQueries namedQueries) {
             AerospikeQueryMethod queryMethod = new AerospikeQueryMethod(method, metadata, projectionFactory);
             return new AerospikePartTreeQuery(queryMethod, evaluationContextAccessor, this.aerospikeTemplate,
-                this.queryCreator, dslParser);
+                this.queryCreator);
         }
     }
 }

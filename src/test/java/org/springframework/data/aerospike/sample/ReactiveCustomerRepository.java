@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import org.springframework.data.aerospike.annotation.Query;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.ReactiveAerospikeRepository;
 import org.springframework.data.domain.Sort;
@@ -33,6 +34,9 @@ import java.util.stream.Stream;
 public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<Customer, String> {
 
     Flux<Customer> findByLastName(String lastName);
+
+    @Query(expression = "$.firstName == 'Homer'")
+    Flux<Customer> findByFirstName(String firstName);
 
     // DTO Projection
     Flux<CustomerSomeFields> findCustomerSomeFieldsByLastName(String lastName);

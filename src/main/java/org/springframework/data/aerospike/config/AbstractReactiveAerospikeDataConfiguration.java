@@ -19,6 +19,7 @@ import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.reactor.AerospikeReactorClient;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import com.aerospike.dsl.DSLParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -55,11 +56,11 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                ReactorQueryEngine reactorQueryEngine,
                                                                ReactorIndexRefresher reactorIndexRefresher,
                                                                ServerVersionSupport serverVersionSupport,
-                                                               AerospikeSettings settings)
+                                                               AerospikeSettings settings, DSLParser dslParser)
     {
         return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getDataSettings().getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
-            reactorQueryEngine, reactorIndexRefresher, serverVersionSupport);
+            reactorQueryEngine, reactorIndexRefresher, serverVersionSupport, dslParser);
     }
 
     @Bean(name = "reactiveAerospikeQueryEngine")

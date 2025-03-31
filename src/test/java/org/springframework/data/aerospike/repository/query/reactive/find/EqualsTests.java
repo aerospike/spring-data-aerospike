@@ -85,6 +85,14 @@ public class EqualsTests extends ReactiveCustomerRepositoryQueryTests {
     }
 
     @Test
+    public void findBySimpleProperty_usingQueryAnnotation() {
+        List<Customer> results = reactiveRepository.findByFirstName("Homer")
+            .collectList().block();
+
+        assertThat(results).containsOnly(homer);
+    }
+
+    @Test
     public void findBySimpleProperty_Projection() {
         List<CustomerSomeFields> results = reactiveRepository.findCustomerSomeFieldsByLastName("Simpson")
             .collectList().block();

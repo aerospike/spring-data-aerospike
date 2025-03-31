@@ -15,6 +15,8 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import com.aerospike.client.exp.Expression;
+import com.aerospike.dsl.DSLParser;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -43,22 +45,33 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
 public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
     private final ReactiveAerospikeOperations operations;
+    private final AerospikeQueryMethod queryMethod;
+    private final DSLParser dslParser;
 
-    public ReactiveAerospikePartTreeQuery(QueryMethod queryMethod,
+    public ReactiveAerospikePartTreeQuery(QueryMethod baseQueryMethod,
                                           QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                           ReactiveAerospikeTemplate operations,
                                           Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-        super(queryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
+        super(baseQueryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
             operations.getAerospikeConverter(), operations.getServerVersionSupport());
         this.operations = operations;
+        this.dslParser = operations.getDSLParser();
+        // each queryMethod here is AerospikeQueryMethod
+        this.queryMethod = (AerospikeQueryMethod) baseQueryMethod;
     }
 
     @Override
     @SuppressWarnings({"NullableProblems"})
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(baseQueryMethod.getParameters(), parameters);
-        Query query = prepareQuery(parameters, accessor);
         Class<?> targetClass = getTargetClass(accessor);
+
+        if (queryMethod.hasQueryAnnotation()) {
+            Expression exp = dslParser.parseExpression(queryMethod.getQueryAnnotation());
+            Query query = new Query(Qualifier.filterExpBuilder().setFilterExpression(exp).build());
+            return findByQuery(query, targetClass);
+        }
+        Query query = prepareQuery(parameters, accessor);
 
         // queries with id equality have their own processing flow
         if (parameters != null && parameters.length > 0) {

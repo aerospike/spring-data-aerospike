@@ -30,6 +30,7 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
+import com.aerospike.dsl.DSLParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -90,6 +91,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private final IAerospikeClient client;
     private final QueryEngine queryEngine;
     private final IndexRefresher indexRefresher;
+    private final DSLParser dslParser;
 
     public AerospikeTemplate(IAerospikeClient client,
                              String namespace,
@@ -98,12 +100,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                              AerospikeExceptionTranslator exceptionTranslator,
                              QueryEngine queryEngine,
                              IndexRefresher indexRefresher,
-                             ServerVersionSupport serverVersionSupport) {
+                             ServerVersionSupport serverVersionSupport,
+                             DSLParser dslParser) {
         super(namespace, converter, mappingContext, exceptionTranslator, client.copyWritePolicyDefault(),
             serverVersionSupport);
         this.client = client;
         this.queryEngine = queryEngine;
         this.indexRefresher = indexRefresher;
+        this.dslParser = dslParser;
     }
 
     @Override
@@ -119,6 +123,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public Integer refreshIndexesCache() {
         return indexRefresher.refreshIndexes();
+    }
+
+    public DSLParser getDSLParser() {
+        return dslParser;
     }
 
     @Override

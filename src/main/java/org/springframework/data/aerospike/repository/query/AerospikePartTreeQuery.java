@@ -44,17 +44,17 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
 public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
 
     private final AerospikeOperations operations;
-    private final DSLParser dslParser;
     private final AerospikeQueryMethod queryMethod;
+    private final DSLParser dslParser;
 
     public AerospikePartTreeQuery(QueryMethod baseQueryMethod,
                                   QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                   AerospikeTemplate operations,
-                                  Class<? extends AbstractQueryCreator<?, ?>> queryCreator, DSLParser dslParser) {
+                                  Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(baseQueryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
             operations.getAerospikeConverter(), operations.getServerVersionSupport());
         this.operations = operations;
-        this.dslParser = dslParser;
+        this.dslParser = operations.getDSLParser();
         // each queryMethod here is AerospikeQueryMethod
         this.queryMethod = (AerospikeQueryMethod) baseQueryMethod;
     }
