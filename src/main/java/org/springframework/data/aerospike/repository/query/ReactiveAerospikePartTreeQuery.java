@@ -36,13 +36,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.springframework.data.aerospike.core.TemplateUtils.*;
+import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 
 /**
  * @author Igor Ermolenko
  */
-public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
+public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Flux<?>> {
 
     private final ReactiveAerospikeOperations operations;
     private final AerospikeQueryMethod queryMethod;
@@ -53,7 +54,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
                                           ReactiveAerospikeTemplate operations,
                                           Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(baseQueryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
-            operations.getAerospikeConverter(), operations.getServerVersionSupport());
+            operations.getAerospikeConverter(), operations.getServerVersionSupport(), operations.getDSLParser());
         this.operations = operations;
         this.dslParser = operations.getDSLParser();
         // each queryMethod here is AerospikeQueryMethod
@@ -67,8 +68,8 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         Class<?> targetClass = getTargetClass(accessor);
 
         if (queryMethod.hasQueryAnnotation()) {
-            Expression exp = dslParser.parseExpression(queryMethod.getQueryAnnotation());
-            Query query = new Query(Qualifier.filterExpBuilder().setFilterExpression(exp).build());
+            Expression exp = dslParser.parseExpression(replacePlaceholders(queryMethod.getQueryAnnotation(), parameters));
+            Query query = new Query(Qualifier.filterBuilder().setFilterExpression(exp).build());
             return findByQuery(query, targetClass);
         }
         Query query = prepareQuery(parameters, accessor);
@@ -191,7 +192,8 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         return results.toStream();
     }
 
-    private Flux<?> findByQuery(Query query, Class<?> targetClass) {
+    @Override
+    protected Flux<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
         if (targetClass != entityClass) {
             return operations.find(query, entityClass, targetClass);

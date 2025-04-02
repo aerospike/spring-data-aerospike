@@ -89,7 +89,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     @Beta
-    public static FilterQualifierBuilder filterExpBuilder() {
+    public static FilterQualifierBuilder filterBuilder() {
         return new FilterQualifierBuilder();
     }
 

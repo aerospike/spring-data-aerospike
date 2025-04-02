@@ -15,8 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.client.exp.Expression;
-import com.aerospike.dsl.DSLParser;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -34,27 +32,26 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.springframework.data.aerospike.core.TemplateUtils.*;
+import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 
 /**
  * @author Peter Milne
  * @author Jean Mercier
  */
-public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
+public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Stream<?>> {
 
     private final AerospikeOperations operations;
     private final AerospikeQueryMethod queryMethod;
-    private final DSLParser dslParser;
 
     public AerospikePartTreeQuery(QueryMethod baseQueryMethod,
                                   QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                   AerospikeTemplate operations,
                                   Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
         super(baseQueryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
-            operations.getAerospikeConverter(), operations.getServerVersionSupport());
+            operations.getAerospikeConverter(), operations.getServerVersionSupport(), operations.getDSLParser());
         this.operations = operations;
-        this.dslParser = operations.getDSLParser();
         // each queryMethod here is AerospikeQueryMethod
         this.queryMethod = (AerospikeQueryMethod) baseQueryMethod;
     }
@@ -66,9 +63,7 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         Class<?> targetClass = getTargetClass(accessor);
 
         if (queryMethod.hasQueryAnnotation()) {
-            Expression exp = dslParser.parseExpression(queryMethod.getQueryAnnotation());
-            Query query = new Query(Qualifier.filterExpBuilder().setFilterExpression(exp).build());
-            return findByQuery(query, targetClass);
+            return findByQueryAnnotation(queryMethod, targetClass, parameters);
         }
         Query query = prepareQuery(parameters, accessor);
 
@@ -163,7 +158,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         return new PageImpl<>(resultsPage, pageable, numberOfAllResults);
     }
 
-    private Stream<?> findByQuery(Query query, Class<?> targetClass) {
+    @Override
+    protected Stream<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
         if (targetClass != null && targetClass != entityClass) {
             return operations.find(query, entityClass, targetClass);

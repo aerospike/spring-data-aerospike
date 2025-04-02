@@ -378,6 +378,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     List<P> findByAgeIn(ArrayList<Integer> ages);
 
+    @Query(expression = "$.isActive.get(type: BOOL) == ?0")
     List<P> findByIsActive(boolean isActive);
 
     List<P> findByIsActiveTrue();
@@ -416,6 +417,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      *
      * @param age integer to compare with
      */
+    @Query(expression = "$.age > ?0")
     List<P> findByAgeGreaterThan(int age);
 
     /**
@@ -1595,7 +1597,7 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
 
     Page<P> findTop3ByLastNameStartingWith(String lastName, Pageable pageRequest);
 
-    @Query(expression = "$.firstName == 'Leroi'")
+    @Query(expression = "$.firstName == ?0")
     List<P> findByFirstName(String name);
 
     boolean existsByFirstName(String name);

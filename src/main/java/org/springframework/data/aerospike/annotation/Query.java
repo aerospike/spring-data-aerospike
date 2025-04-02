@@ -17,6 +17,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 @Documented
 @QueryAnnotation
+@Beta
 public @interface Query {
 
     /**

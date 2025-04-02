@@ -15,6 +15,9 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import com.aerospike.client.exp.Expression;
+import com.aerospike.dsl.DSLParser;
+import com.aerospike.dsl.exception.AerospikeDSLException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -36,8 +39,13 @@ import org.springframework.expression.spel.standard.SpelExpression;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 /**
@@ -45,7 +53,7 @@ import java.util.stream.Stream;
  * @author Jean Mercier
  * @author Igor Ermolenko
  */
-public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
+public abstract class BaseAerospikePartTreeQuery<T> implements RepositoryQuery {
 
     protected final QueryMethod baseQueryMethod;
     protected final Class<?> entityClass;
@@ -54,12 +62,15 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     private final AerospikeMappingContext context;
     private final MappingAerospikeConverter converter;
     private final ServerVersionSupport versionSupport;
+    private final DSLParser dslParser;
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("(?<!\\.)\\?(\\d+)");
 
     protected BaseAerospikePartTreeQuery(QueryMethod queryMethod,
                                          QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                          Class<? extends AbstractQueryCreator<?, ?>> queryCreator,
                                          AerospikeMappingContext context,
-                                         MappingAerospikeConverter converter, ServerVersionSupport versionSupport) {
+                                         MappingAerospikeConverter converter, ServerVersionSupport versionSupport,
+                                         DSLParser dslParser) {
         this.baseQueryMethod = queryMethod;
         this.evaluationContextAccessor = evalContextAccessor;
         this.queryCreator = queryCreator;
@@ -67,6 +78,7 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
         this.context = context;
         this.converter = converter;
         this.versionSupport = versionSupport;
+        this.dslParser = dslParser;
     }
 
     @Override
@@ -103,7 +115,8 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
 
         if (query.getCriteria() instanceof SpelExpression spelExpression) {
             // Create a ValueEvaluationContextProvider using the accessor
-            ValueEvaluationContextProvider provider = this.evaluationContextAccessor.create(baseQueryMethod.getParameters());
+            ValueEvaluationContextProvider provider =
+                this.evaluationContextAccessor.create(baseQueryMethod.getParameters());
 
             // Get the ValueEvaluationContext using the provider
             ValueEvaluationContext valueContext = provider.getEvaluationContext(parameters);
@@ -182,13 +195,68 @@ public abstract class BaseAerospikePartTreeQuery implements RepositoryQuery {
     }
 
     /**
-     * Find whether entity domain class is assignable from query method's returned object class.
-     * Not assignable when using a detached DTO (data transfer object, e.g., for projections).
+     * Find whether entity domain class is assignable from query method's returned object class. Not assignable when
+     * using a detached DTO (data transfer object, e.g., for projections).
      *
      * @param queryMethod QueryMethod in use
      * @return true when entity is assignable from query method's return class, otherwise false
      */
     protected boolean isEntityAssignableFromReturnType(QueryMethod queryMethod) {
         return queryMethod.getEntityInformation().getJavaType().isAssignableFrom(queryMethod.getReturnedObjectType());
+    }
+
+    protected abstract T findByQuery(Query query, Class<?> targetClass);
+
+    protected List<String> convertToStringsList(Object[] parameters) {
+        if (parameters == null) {
+            return new ArrayList<>();
+        }
+
+        return IntStream.range(0, parameters.length)
+            .mapToObj(idx -> {
+                Object obj = parameters[idx];
+                if (obj == null) {
+                    throw new IllegalArgumentException("Element at index " + idx + " is null");
+                } else if (obj instanceof String str) {
+                    // Replace any existing single quotes with escaped quotes
+                    str = str.replace("'", "\\'");
+                    return "'" + str + "'";
+                } else if (obj instanceof Number || obj instanceof Boolean) {
+                    return obj.toString();
+                } else {
+                    throw new IllegalArgumentException(String.format(
+                        "Element at index %s is expected to be a String, number or boolean, instead got %s",
+                        idx, obj.getClass().getName())
+                    );
+                }
+            }).collect(Collectors.toList());
+    }
+
+    protected String replacePlaceholders(String input, Object[] parameters) {
+        if (parameters == null || parameters.length == 0) return input;
+
+        List<String> parametersList = convertToStringsList(parameters);
+        // Use regex to find and replace placeholders
+        Matcher matcher = PLACEHOLDER_PATTERN.matcher(input);
+        StringBuffer result = new StringBuffer();
+
+        while (matcher.find()) {
+            int index = Integer.parseInt(matcher.group(1));
+            if (index >= 0 && index < parametersList.size()) {
+                // Escape any special characters in the replacement
+                String replacement = Matcher.quoteReplacement(parametersList.get(index));
+                matcher.appendReplacement(result, replacement);
+            } else {
+                throw new AerospikeDSLException("Parameter index out of bounds: " + index);
+            }
+        }
+        matcher.appendTail(result);
+        return result.toString();
+    }
+
+    protected T findByQueryAnnotation(AerospikeQueryMethod queryMethod, Class<?> targetClass, Object[] parameters) {
+        Expression exp = dslParser.parseExpression(replacePlaceholders(queryMethod.getQueryAnnotation(), parameters));
+        Query query = new Query(Qualifier.filterBuilder().setFilterExpression(exp).build());
+        return findByQuery(query, targetClass);
     }
 }

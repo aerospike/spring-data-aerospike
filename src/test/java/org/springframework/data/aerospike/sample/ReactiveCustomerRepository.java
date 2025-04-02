@@ -35,7 +35,7 @@ public interface ReactiveCustomerRepository extends ReactiveAerospikeRepository<
 
     Flux<Customer> findByLastName(String lastName);
 
-    @Query(expression = "$.firstName == 'Homer'")
+    @Query(expression = "$.firstName == ?0")
     Flux<Customer> findByFirstName(String firstName);
 
     // DTO Projection
