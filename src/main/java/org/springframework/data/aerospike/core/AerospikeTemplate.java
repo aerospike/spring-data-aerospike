@@ -53,7 +53,15 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -69,7 +77,15 @@ import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.Oper
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
-import static org.springframework.data.aerospike.core.TemplateUtils.*;
+import static org.springframework.data.aerospike.core.TemplateUtils.batchRecordFailed;
+import static org.springframework.data.aerospike.core.TemplateUtils.batchWriteSizeMatch;
+import static org.springframework.data.aerospike.core.TemplateUtils.enrichPolicyWithTransaction;
+import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
+import static org.springframework.data.aerospike.core.TemplateUtils.getBinNamesFromTargetClass;
+import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
+import static org.springframework.data.aerospike.core.TemplateUtils.getPolicyFilterExpOrDefault;
+import static org.springframework.data.aerospike.core.TemplateUtils.validateForBatchWrite;
+import static org.springframework.data.aerospike.core.TemplateUtils.validateGroupedKeys;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
@@ -1064,7 +1080,9 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> Stream<T> find(Query query, Class<T> entityClass) {
         Assert.notNull(entityClass, "Entity class name must not be null!");
-
+        if (query.getCriteriaObject().hasDSLString()) {
+            query.getCriteriaObject().parseDSLString(query.getCriteriaObject().getDSLString(), getDSLParser());
+        }
         return find(query, entityClass, getSetName(entityClass));
     }
 

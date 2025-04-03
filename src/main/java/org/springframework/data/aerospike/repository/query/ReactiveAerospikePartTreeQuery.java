@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.client.exp.Expression;
 import com.aerospike.dsl.DSLParser;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
@@ -68,9 +67,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<F
         Class<?> targetClass = getTargetClass(accessor);
 
         if (queryMethod.hasQueryAnnotation()) {
-            Expression exp = dslParser.parseExpression(replacePlaceholders(queryMethod.getQueryAnnotation(), parameters));
-            Query query = new Query(Qualifier.filterBuilder().setFilterExpression(exp).build());
-            return findByQuery(query, targetClass);
+            return findByQueryAnnotation(queryMethod, targetClass, parameters);
         }
         Query query = prepareQuery(parameters, accessor);
 

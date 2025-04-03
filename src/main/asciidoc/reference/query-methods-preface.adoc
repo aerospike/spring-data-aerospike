@@ -1,7 +1,7 @@
 [[aerospike.query-methods-preface]]
 = Query Methods
 
-Spring Data Aerospike supports defining queries by method name in the Repository interface so that the implementation
+Spring Data Aerospike supports defining queries by method names in the Repository interface so that the implementation
 is generated.
 The format of method names is fairly flexible, comprising a verb and criteria.
 

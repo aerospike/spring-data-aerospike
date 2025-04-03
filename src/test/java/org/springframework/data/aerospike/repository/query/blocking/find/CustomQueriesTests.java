@@ -310,10 +310,24 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         carter.setActive(true);
         repository.save(carter);
 
-        Qualifier isActiveEq1 = Qualifier.filterBuilder()
+        Qualifier isActiveEqTrue = Qualifier.filterBuilder()
             .setFilterExpression(Exp.build(Exp.eq(Exp.boolBin("isActive"), Exp.val(true))))
             .build();
-        assertThat(repository.findUsingQuery(new Query(isActiveEq1))).contains(carter);
+        assertThat(repository.findUsingQuery(new Query(isActiveEqTrue))).contains(carter);
+
+        carter.setActive(false);
+        repository.save(carter);
+    }
+
+    @Test
+    void findByDSLString() {
+        carter.setActive(true);
+        repository.save(carter);
+
+        Qualifier isActiveEqTrue = Qualifier.dslStringBuilder()
+            .setDSLString("$.isActive.get(type: BOOL) == true")
+            .build();
+        assertThat(repository.findUsingQuery(new Query(isActiveEqTrue))).contains(carter);
 
         carter.setActive(false);
         repository.save(carter);

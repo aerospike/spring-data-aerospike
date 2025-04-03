@@ -16,6 +16,8 @@ public enum QualifierKey {
     CTX_ARRAY,
     IGNORE_CASE,
     FILTER_EXPRESSION,
+    SINDEX_FILTER,
+    DSL_STRING,
     KEY,
     NESTED_KEY,
     VALUE,

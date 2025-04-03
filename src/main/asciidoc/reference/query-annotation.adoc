@@ -1,0 +1,75 @@
+[[aerospike.query-annotation]]
+= Query Annotation
+
+For details on standard Spring Data Aerospike repository queries see <<aerospike.query-methods-preface, Query Methods>>.
+
+Another way of defining queries is leveraging `@Query` annotation for particular method names in the repository.
+
+This annotation allows to define custom query expressions directly within methods. Instead of relying on Spring Data's
+automatic query derivation, you can use `@Query` to specify the exact String-based expression that should be executed. This provides greater flexibility for complex or specific data retrieval needs.
+
+NOTE: DSL expression provided via `@Query` annotation replaces the original query method that it is added to.
+
+== Using Placeholders
+
+Element `?0` in the following example is a placeholder that gets substituted with the actual query parameter, number 0 in it is referring to the parameter's index.
+
+[source,java]
+----
+public interface PersonRepository extends AerospikeRepository<Person, Long> {
+
+    @Query(expression = "$.lastName == ?0")
+    List<Person> findByLastName(String lastName);
+}
+----
+
+NOTE: Currently placeholders in `@Query` annotation can substitute only String, number and boolean parameters.
+
+== Using Static Expression
+
+DSL expression can be provided via `@Query` without placeholders, thus discarding query parameters. Here is an example:
+
+[source,java]
+----
+public interface PersonRepository extends AerospikeRepository<Person, Long> {
+
+    @Query(expression = "$.lastName == 'Simpson''")
+    List<Person> findByLastName(String lastName);
+}
+----
+
+NOTE: Such a query will always run with the same static expression " `lastName` bin has value 'Simpson' ".
+
+== Examples
+
+Below is an example of an interface with several `@Query`-annotated methods.
+
+[source,java]
+----
+public interface PersonRepository extends AerospikeRepository<Person, Long> {
+
+    @Query(expression = "$.lastName == ?0")
+    List<Person> findByLastName(String lastName);
+
+    @Query(expression = "$.age > ?0")
+    List<P> findByAgeGreaterThan(int age);
+
+    @Query(expression = "$.isActive.get(type: BOOL) == ?0")
+    List<P> findByIsActive(boolean isActive);
+}
+----
+
+== Custom Queries
+
+Just like with regular and metadata queries, you can use <<find-using-query, custom queries>> with DSL expressions when such flexibility is required or when there is no need to annotate repository methods.
+
+[source,java]
+----
+    // creating an expression "firsName is equal to John" using DSL expression
+    Qualifier firstNameEqJohn = Qualifier.dslStringBuilder()
+            .setDSLString("$.firstName == 'John'")
+            .build();
+    result = repository.findUsingQuery(new Query(firstNameEqJohn))
+    assertThat(result).containsOnly(john);
+----
+

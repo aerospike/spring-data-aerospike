@@ -36,13 +36,15 @@ post-processing step. This limiting can affect performance, depending on the num
 results and limiting parameters.
 
 [[find-using-query]]
-== Find Using Query
+== Custom Queries
 
-User can perform a custom `Query` for finding matching entities in the Aerospike database.
-A `Query` can be created using a `Qualifier` which represents an expression.
+You can perform a custom `Query` for finding matching entities in the Aerospike database via `findUsingQuery()` method.
+
+A `Query` object can be created using a `Qualifier` which represents an expression.
 It may contain other qualifiers and combine them using either `AND` or `OR`.
 
-`Qualifier` can be created for regular bins, metadata and ids (primary keys).
+`Qualifier` can be created for regular bins, metadata and ids (primary keys). It can also be created for a DSL expression.
+
 Below is an example of different variations:
 
 [source,java]
@@ -72,5 +74,12 @@ Below is an example of different variations:
 
     // expressions are combined using AND
     result = repository.findUsingQuery(new Query(Qualifier.and(firstNameEqJohn, keyEqJohnsId, sinceUpdateTimeLt50Seconds)));
+    assertThat(result).containsOnly(john);
+
+    // creating an expression "firsName is equal to John" using DSL expression
+    Qualifier firstNameEqJohn = Qualifier.dslStringBuilder()
+            .setDSLString("$.firstName == 'John'")
+            .build();
+    result = repository.findUsingQuery(new Query(firstNameEqJohn))
     assertThat(result).containsOnly(john);
 ----

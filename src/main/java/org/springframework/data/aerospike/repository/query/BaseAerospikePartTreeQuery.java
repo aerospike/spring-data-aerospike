@@ -232,7 +232,7 @@ public abstract class BaseAerospikePartTreeQuery<T> implements RepositoryQuery {
             }).collect(Collectors.toList());
     }
 
-    protected String replacePlaceholders(String input, Object[] parameters) {
+    protected String fillPlaceholders(String input, Object[] parameters) {
         if (parameters == null || parameters.length == 0) return input;
 
         List<String> parametersList = convertToStringsList(parameters);
@@ -255,7 +255,7 @@ public abstract class BaseAerospikePartTreeQuery<T> implements RepositoryQuery {
     }
 
     protected T findByQueryAnnotation(AerospikeQueryMethod queryMethod, Class<?> targetClass, Object[] parameters) {
-        Expression exp = dslParser.parseExpression(replacePlaceholders(queryMethod.getQueryAnnotation(), parameters));
+        Expression exp = dslParser.parseExpression(fillPlaceholders(queryMethod.getQueryAnnotation(), parameters));
         Query query = new Query(Qualifier.filterBuilder().setFilterExpression(exp).build());
         return findByQuery(query, targetClass);
     }
