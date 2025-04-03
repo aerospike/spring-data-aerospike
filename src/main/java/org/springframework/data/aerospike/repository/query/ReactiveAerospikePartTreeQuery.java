@@ -15,7 +15,6 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.dsl.DSLParser;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
@@ -45,7 +44,6 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<F
 
     private final ReactiveAerospikeOperations operations;
     private final AerospikeQueryMethod queryMethod;
-    private final DSLParser dslParser;
 
     public ReactiveAerospikePartTreeQuery(QueryMethod baseQueryMethod,
                                           QueryMethodValueEvaluationContextAccessor evalContextAccessor,
@@ -54,7 +52,6 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<F
         super(baseQueryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
             operations.getAerospikeConverter(), operations.getServerVersionSupport(), operations.getDSLParser());
         this.operations = operations;
-        this.dslParser = operations.getDSLParser();
         // each queryMethod here is AerospikeQueryMethod
         this.queryMethod = (AerospikeQueryMethod) baseQueryMethod;
     }
