@@ -77,15 +77,7 @@ import static org.springframework.data.aerospike.core.BaseAerospikeTemplate.Oper
 import static org.springframework.data.aerospike.core.CoreUtils.getDistinctPredicate;
 import static org.springframework.data.aerospike.core.CoreUtils.operations;
 import static org.springframework.data.aerospike.core.CoreUtils.verifyUnsortedWithOffset;
-import static org.springframework.data.aerospike.core.TemplateUtils.batchRecordFailed;
-import static org.springframework.data.aerospike.core.TemplateUtils.batchWriteSizeMatch;
-import static org.springframework.data.aerospike.core.TemplateUtils.enrichPolicyWithTransaction;
-import static org.springframework.data.aerospike.core.TemplateUtils.excludeIdQualifier;
-import static org.springframework.data.aerospike.core.TemplateUtils.getBinNamesFromTargetClass;
-import static org.springframework.data.aerospike.core.TemplateUtils.getIdValue;
-import static org.springframework.data.aerospike.core.TemplateUtils.getPolicyFilterExpOrDefault;
-import static org.springframework.data.aerospike.core.TemplateUtils.validateForBatchWrite;
-import static org.springframework.data.aerospike.core.TemplateUtils.validateGroupedKeys;
+import static org.springframework.data.aerospike.core.TemplateUtils.*;
 import static org.springframework.data.aerospike.query.QualifierUtils.getIdQualifier;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 
