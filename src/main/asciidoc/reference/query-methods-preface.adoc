@@ -1,7 +1,7 @@
 [[aerospike.query-methods-preface]]
 = Query Methods
 
-Spring Data Aerospike supports defining queries by method name in the Repository interface so that the implementation
+Spring Data Aerospike supports defining queries by method names in the Repository interface so that the implementation
 is generated.
 The format of method names is fairly flexible, comprising a verb and criteria.
 
@@ -19,7 +19,7 @@ Repository queries in Spring Data Aerospike can be divided into 3 groups:
 
 * Queries that only use <<aerospike.scan-operation, scan operation>>
 
-* Queries that use both secondary index and scan (when looking for a nested integer or string property).
+* Queries that use both secondary index and scan (when looking for a nested property).
 
 If no corresponding secondary index is found, each query does a fallback to using scan only.
 
