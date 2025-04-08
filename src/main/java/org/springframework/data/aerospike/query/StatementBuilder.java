@@ -57,7 +57,7 @@ public class StatementBuilder {
         if (binNames != null && binNames.length != 0) {
             stmt.setBinNames(binNames);
         }
-        if (queryCriteriaIsNotNull(query)) {
+        if (queryCriteriaIsNotNull(query) && !query.getCriteriaObject().hasFilterExpression()) {
             // logging query
             logQualifierDetails(query.getCriteriaObject(), log);
             // statement's filter is set based either on cardinality (the lowest bin values ratio)

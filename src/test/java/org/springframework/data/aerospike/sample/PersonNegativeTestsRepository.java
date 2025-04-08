@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.sample;
 
+import org.springframework.data.aerospike.annotation.Query;
 import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.repository.AerospikeRepository;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
@@ -199,6 +200,11 @@ public interface PersonNegativeTestsRepository<P extends Person> extends Aerospi
      */
     List<P> findByStringsEquals(String string1, String string2);
 
+    /**
+     * Invalid number of arguments: expecting one
+     */
+    @Query(expression = "$.strings == ?0")
+    List<P> findByStringsEquals(Collection<String> strings);
     /**
      * Invalid number of arguments: expecting one
      */

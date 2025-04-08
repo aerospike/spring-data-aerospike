@@ -34,6 +34,7 @@ import com.aerospike.client.query.IndexCollectionType;
 import com.aerospike.client.query.IndexType;
 import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import com.aerospike.dsl.DSLParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -102,6 +103,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     private final IAerospikeReactorClient reactorClient;
     private final ReactorQueryEngine reactorQueryEngine;
     private final ReactorIndexRefresher reactorIndexRefresher;
+    private final DSLParser dslParser;
 
     public ReactiveAerospikeTemplate(IAerospikeReactorClient reactorClient,
                                      String namespace,
@@ -109,13 +111,19 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                                      AerospikeMappingContext mappingContext,
                                      AerospikeExceptionTranslator exceptionTranslator,
                                      ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher,
-                                     ServerVersionSupport serverVersionSupport) {
+                                     ServerVersionSupport serverVersionSupport,
+                                     DSLParser dslParser) {
         super(namespace, converter, mappingContext, exceptionTranslator,
             reactorClient.getAerospikeClient().copyWritePolicyDefault(), serverVersionSupport);
         Assert.notNull(reactorClient, "Aerospike reactor client must not be null!");
         this.reactorClient = reactorClient;
         this.reactorQueryEngine = queryEngine;
         this.reactorIndexRefresher = reactorIndexRefresher;
+        this.dslParser = dslParser;
+    }
+
+    public DSLParser getDSLParser() {
+        return dslParser;
     }
 
     @Override

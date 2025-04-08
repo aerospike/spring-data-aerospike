@@ -39,30 +39,37 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
  * @author Peter Milne
  * @author Jean Mercier
  */
-public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
+public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Stream<?>> {
 
     private final AerospikeOperations operations;
+    private final AerospikeQueryMethod queryMethod;
 
-    public AerospikePartTreeQuery(QueryMethod queryMethod,
+    public AerospikePartTreeQuery(QueryMethod baseQueryMethod,
                                   QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                   AerospikeTemplate operations,
                                   Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-        super(queryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
-            operations.getAerospikeConverter(), operations.getServerVersionSupport());
+        super(baseQueryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
+            operations.getAerospikeConverter(), operations.getServerVersionSupport(), operations.getDSLParser());
         this.operations = operations;
+        // each queryMethod here is AerospikeQueryMethod
+        this.queryMethod = (AerospikeQueryMethod) baseQueryMethod;
     }
 
     @Override
     @SuppressWarnings({"NullableProblems"})
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
-        Query query = prepareQuery(parameters, accessor);
         Class<?> targetClass = getTargetClass(accessor);
+
+        if (queryMethod.hasQueryAnnotation()) {
+            return findByQueryAnnotation(queryMethod, targetClass, parameters);
+        }
+        Query query = prepareQuery(parameters, accessor);
 
         // queries with id equality have their own processing flow
         if (parameters != null && parameters.length > 0) {
             Qualifier criteria = query.getCriteriaObject();
-            // only for id EQ, id LIKE queries get SimpleProperty query creator
+            // only for id EQ, id LIKE queries have SimpleProperty query creator
             if (criteria.hasSingleId()) {
                 return runQueryWithIdsEquality(targetClass, getIdValue(criteria), null);
             } else {
@@ -150,7 +157,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         return new PageImpl<>(resultsPage, pageable, numberOfAllResults);
     }
 
-    private Stream<?> findByQuery(Query query, Class<?> targetClass) {
+    @Override
+    protected Stream<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
         if (targetClass != null && targetClass != entityClass) {
             return operations.find(query, entityClass, targetClass);

@@ -30,6 +30,7 @@ import com.aerospike.client.query.KeyRecord;
 import com.aerospike.client.query.ResultSet;
 import com.aerospike.client.query.Statement;
 import com.aerospike.client.task.IndexTask;
+import com.aerospike.dsl.DSLParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.aerospike.convert.AerospikeWriteData;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
@@ -52,7 +53,15 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
@@ -90,6 +99,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     private final IAerospikeClient client;
     private final QueryEngine queryEngine;
     private final IndexRefresher indexRefresher;
+    private final DSLParser dslParser;
 
     public AerospikeTemplate(IAerospikeClient client,
                              String namespace,
@@ -98,12 +108,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
                              AerospikeExceptionTranslator exceptionTranslator,
                              QueryEngine queryEngine,
                              IndexRefresher indexRefresher,
-                             ServerVersionSupport serverVersionSupport) {
+                             ServerVersionSupport serverVersionSupport,
+                             DSLParser dslParser) {
         super(namespace, converter, mappingContext, exceptionTranslator, client.copyWritePolicyDefault(),
             serverVersionSupport);
         this.client = client;
         this.queryEngine = queryEngine;
         this.indexRefresher = indexRefresher;
+        this.dslParser = dslParser;
     }
 
     @Override
@@ -119,6 +131,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public Integer refreshIndexesCache() {
         return indexRefresher.refreshIndexes();
+    }
+
+    public DSLParser getDSLParser() {
+        return dslParser;
     }
 
     @Override
@@ -1055,11 +1071,17 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> Stream<T> find(Query query, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Entity class name must not be null!");
+        if (query.getCriteriaObject().hasDSLString()) {
+            query.getCriteriaObject().parseDSLString(query.getCriteriaObject().getDSLString(), getDSLParser());
+        }
         return find(query, entityClass, getSetName(entityClass));
     }
 
     @Override
     public <T, S> Stream<S> find(Query query, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Entity class name must not be null!");
+
         return find(query, targetClass, getSetName(entityClass));
     }
 
@@ -1102,11 +1124,15 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> Stream<T> findAll(Sort sort, long offset, long limit, Class<T> entityClass) {
+        Assert.notNull(entityClass, "Entity class name must not be null!");
+
         return findAll(sort, offset, limit, entityClass, getSetName(entityClass));
     }
 
     @Override
     public <T, S> Stream<S> findAll(Sort sort, long offset, long limit, Class<T> entityClass, Class<S> targetClass) {
+        Assert.notNull(entityClass, "Entity class name must not be null!");
+
         return findAll(sort, offset, limit, targetClass, getSetName(entityClass));
     }
 

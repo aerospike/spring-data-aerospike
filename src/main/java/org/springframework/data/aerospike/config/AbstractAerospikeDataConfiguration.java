@@ -16,6 +16,7 @@
 package org.springframework.data.aerospike.config;
 
 import com.aerospike.client.IAerospikeClient;
+import com.aerospike.dsl.DSLParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -46,11 +47,11 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                QueryEngine queryEngine, IndexRefresher indexRefresher,
                                                ServerVersionSupport serverVersionSupport,
-                                               AerospikeSettings settings)
+                                               AerospikeSettings settings, DSLParser dslParser)
     {
         return new AerospikeTemplate(aerospikeClient, settings.getDataSettings().getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine,
-            indexRefresher, serverVersionSupport);
+            indexRefresher, serverVersionSupport, dslParser);
     }
 
     @Bean(name = "aerospikeQueryEngine")
