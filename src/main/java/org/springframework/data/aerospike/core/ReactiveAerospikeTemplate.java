@@ -41,11 +41,15 @@ import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.core.model.GroupedEntities;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.index.IndexesCacheRefresher;
+import org.springframework.data.aerospike.index.IndexesCacheRetriever;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
+import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
@@ -96,13 +100,14 @@ import static org.springframework.data.aerospike.util.Utils.iterableToList;
  */
 @Slf4j
 public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements ReactiveAerospikeOperations,
-    IndexesCacheRefresher<Mono<Integer>> {
+    IndexesCacheRefresher<Mono<Integer>>, IndexesCacheRetriever {
 
     private static final Pattern INDEX_EXISTS_REGEX_PATTERN = Pattern.compile("^FAIL:(-?\\d+).*$");
 
     private final IAerospikeReactorClient reactorClient;
     private final ReactorQueryEngine reactorQueryEngine;
     private final ReactorIndexRefresher reactorIndexRefresher;
+    private final IndexesCacheHolder indexCacheHolder;
     private final DSLParser dslParser;
 
     public ReactiveAerospikeTemplate(IAerospikeReactorClient reactorClient,
@@ -111,6 +116,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
                                      AerospikeMappingContext mappingContext,
                                      AerospikeExceptionTranslator exceptionTranslator,
                                      ReactorQueryEngine queryEngine, ReactorIndexRefresher reactorIndexRefresher,
+                                     IndexesCacheHolder indexCacheHolder,
                                      ServerVersionSupport serverVersionSupport,
                                      DSLParser dslParser) {
         super(namespace, converter, mappingContext, exceptionTranslator,
@@ -119,6 +125,7 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
         this.reactorClient = reactorClient;
         this.reactorQueryEngine = queryEngine;
         this.reactorIndexRefresher = reactorIndexRefresher;
+        this.indexCacheHolder = indexCacheHolder;
         this.dslParser = dslParser;
     }
 
@@ -129,6 +136,11 @@ public class ReactiveAerospikeTemplate extends BaseAerospikeTemplate implements 
     @Override
     public Mono<Integer> refreshIndexesCache() {
         return reactorIndexRefresher.refreshIndexes();
+    }
+
+    @Override
+    public Map<IndexKey, Index> getIndexesCache() {
+        return indexCacheHolder.getAllIndexes();
     }
 
     @Override

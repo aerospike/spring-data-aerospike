@@ -18,6 +18,8 @@ package org.springframework.data.aerospike.repository.query;
 import org.springframework.data.aerospike.core.ReactiveAerospikeOperations;
 import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +33,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -44,6 +47,8 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<F
 
     private final ReactiveAerospikeOperations operations;
     private final AerospikeQueryMethod queryMethod;
+    private final String namespace;
+    private final Map<IndexKey, Index> indexCache;
 
     public ReactiveAerospikePartTreeQuery(QueryMethod baseQueryMethod,
                                           QueryMethodValueEvaluationContextAccessor evalContextAccessor,
@@ -52,6 +57,8 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<F
         super(baseQueryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
             operations.getAerospikeConverter(), operations.getServerVersionSupport(), operations.getDSLParser());
         this.operations = operations;
+        this.namespace = operations.getNamespace();
+        this.indexCache = operations.getIndexesCache();
         // each queryMethod here is AerospikeQueryMethod
         this.queryMethod = (AerospikeQueryMethod) baseQueryMethod;
     }
@@ -63,7 +70,7 @@ public class ReactiveAerospikePartTreeQuery extends BaseAerospikePartTreeQuery<F
         Class<?> targetClass = getTargetClass(accessor);
 
         if (queryMethod.hasQueryAnnotation()) {
-            return findByQueryAnnotation(queryMethod, targetClass, parameters);
+            return findByQueryAnnotation(queryMethod, targetClass, namespace, indexCache, parameters);
         }
         Query query = prepareQuery(parameters, accessor);
 

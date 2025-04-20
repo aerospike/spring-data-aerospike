@@ -32,6 +32,7 @@ import org.springframework.data.aerospike.query.QueryEngine;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
+import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
@@ -46,12 +47,13 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
                                                AerospikeMappingContext aerospikeMappingContext,
                                                AerospikeExceptionTranslator aerospikeExceptionTranslator,
                                                QueryEngine queryEngine, IndexRefresher indexRefresher,
+                                               IndexesCacheHolder indexCacheHolder,
                                                ServerVersionSupport serverVersionSupport,
                                                AerospikeSettings settings, DSLParser dslParser)
     {
         return new AerospikeTemplate(aerospikeClient, settings.getDataSettings().getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator, queryEngine,
-            indexRefresher, serverVersionSupport, dslParser);
+            indexRefresher, indexCacheHolder, serverVersionSupport, dslParser);
     }
 
     @Bean(name = "aerospikeQueryEngine")

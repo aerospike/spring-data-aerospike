@@ -128,7 +128,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     public void parseDSLString(String dslString, DSLParser dslParser) {
-        internalMap.put(FILTER_EXPRESSION, dslParser.parseExpression(dslString));
+        internalMap.put(FILTER_EXPRESSION, dslParser.parseFilterExpression(dslString));
     }
 
     public Boolean hasSecIndexFilter() {

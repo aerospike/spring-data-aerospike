@@ -15,13 +15,15 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
-import com.aerospike.client.exp.Expression;
 import com.aerospike.dsl.DSLParser;
+import com.aerospike.dsl.ParsedExpression;
 import com.aerospike.dsl.exception.AerospikeDSLException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.data.aerospike.convert.MappingAerospikeConverter;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
 import org.springframework.data.domain.Sort;
@@ -42,6 +44,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -254,9 +257,24 @@ public abstract class BaseAerospikePartTreeQuery<T> implements RepositoryQuery {
         return result.toString();
     }
 
-    protected T findByQueryAnnotation(AerospikeQueryMethod queryMethod, Class<?> targetClass, Object[] parameters) {
-        Expression exp = dslParser.parseExpression(fillPlaceholders(queryMethod.getQueryAnnotation(), parameters));
-        Query query = new Query(Qualifier.filterBuilder().setFilterExpression(exp).build());
+    protected T findByQueryAnnotation(AerospikeQueryMethod queryMethod, Class<?> targetClass, String namespace,
+                                      Map<IndexKey, Index> indexCache, Object[] parameters) {
+        // Map cached indexes to DSL
+        List<com.aerospike.dsl.index.Index> indexes = indexCache.values().stream().map(value ->
+            com.aerospike.dsl.index.Index.builder()
+                .bin(value.getBin())
+                .indexType(value.getIndexType())
+                .binValuesRatio(value.getBinValuesRatio())
+                .build())
+            .toList();
+        // Parse the given expression
+        ParsedExpression expr = dslParser.parseDslExpression(
+            fillPlaceholders(queryMethod.getQueryAnnotation(), parameters),
+            namespace,
+            indexes
+        );
+        // Create the query
+        Query query = new Query(Qualifier.filterBuilder().setFilterExpression(expr.getExpression()).build());
         return findByQuery(query, targetClass);
     }
 }
