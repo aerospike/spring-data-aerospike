@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository.query.blocking.find;
 
+import com.aerospike.client.exp.Exp;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
@@ -302,6 +303,34 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
             .setValue(valueToSearchLessThan) // Map value to compare with
             .build();
         assertThat(repository.findUsingQuery(new Query(intMapWithExactKeyAndValueLt100))).containsOnly(carter);
+    }
+
+    @Test
+    void findByFilterExpression() {
+        carter.setActive(true);
+        repository.save(carter);
+
+        Qualifier isActiveEqTrue = Qualifier.filterBuilder()
+            .setFilterExpression(Exp.build(Exp.eq(Exp.boolBin("isActive"), Exp.val(true))))
+            .build();
+        assertThat(repository.findUsingQuery(new Query(isActiveEqTrue))).contains(carter);
+
+        carter.setActive(false);
+        repository.save(carter);
+    }
+
+    @Test
+    void findByDSLString() {
+        carter.setActive(true);
+        repository.save(carter);
+
+        Qualifier isActiveEqTrue = Qualifier.dslStringBuilder()
+            .setDSLString("$.isActive.get(type: BOOL) == true")
+            .build();
+        assertThat(repository.findUsingQuery(new Query(isActiveEqTrue))).contains(carter);
+
+        carter.setActive(false);
+        repository.save(carter);
     }
 }
 

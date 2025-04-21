@@ -70,5 +70,4 @@ public class MetadataQualifierBuilder extends BaseQualifierBuilder<MetadataQuali
                 "metadataField");
         }
     }
-
 }

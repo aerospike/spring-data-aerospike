@@ -121,7 +121,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[informa
 ----
 findByStringListBetween(Collection<String> lowerLimit, Collection<String> upperLimit)
 ----
-|...where x.stringList between ? and ?
+|...where x.stringList between ? (inclusive) and ? (exclusive)
 |only scan
 |Find records where `stringList` bin value is in the range between the given arguments.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#list[information about ordering].

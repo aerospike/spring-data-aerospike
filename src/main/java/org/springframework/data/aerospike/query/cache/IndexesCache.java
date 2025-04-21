@@ -20,6 +20,7 @@ import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.model.IndexedField;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface IndexesCache {
@@ -47,4 +48,11 @@ public interface IndexesCache {
      * @return True if there is an index for the given indexed field.
      */
     boolean hasIndexFor(IndexedField indexedField);
+
+    /**
+     * Get all indexes.
+     *
+     * @return Map of indexes by index keys.
+     */
+    Map<IndexKey, Index> getAllIndexes();
 }

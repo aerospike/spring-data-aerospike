@@ -15,6 +15,7 @@
  */
 package org.springframework.data.aerospike.repository.support;
 
+import org.springframework.data.aerospike.repository.query.AerospikeQueryMethod;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -31,7 +32,6 @@ import org.springframework.data.repository.core.support.PersistentEntityInformat
 import org.springframework.data.repository.core.support.RepositoryFactorySupport;
 import org.springframework.data.repository.query.QueryLookupStrategy;
 import org.springframework.data.repository.query.QueryLookupStrategy.Key;
-import org.springframework.data.repository.query.QueryMethod;
 import org.springframework.data.repository.query.QueryMethodValueEvaluationContextAccessor;
 import org.springframework.data.repository.query.RepositoryQuery;
 import org.springframework.data.repository.query.ValueExpressionDelegate;
@@ -143,7 +143,7 @@ public class AerospikeRepositoryFactory extends RepositoryFactorySupport {
         public RepositoryQuery resolveQuery(Method method, RepositoryMetadata metadata,
                                             ProjectionFactory projectionFactory,
                                             NamedQueries namedQueries) {
-            QueryMethod queryMethod = new QueryMethod(method, metadata, projectionFactory);
+            AerospikeQueryMethod queryMethod = new AerospikeQueryMethod(method, metadata, projectionFactory);
             return new AerospikePartTreeQuery(queryMethod, evaluationContextAccessor, this.aerospikeTemplate,
                 this.queryCreator);
         }

@@ -120,7 +120,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[informat
 ----
 findByAddressBetween(Address lowerLimit, Address upperLimit)
 ----
-|...where x.address between ? and ?
+|...where x.address between ? (inclusive) and ? (exclusive)
 |only scan
 |Find records where `address` bin value (POJOs are stored in AerospikeDB as maps) is in the range between
 the given arguments. See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].

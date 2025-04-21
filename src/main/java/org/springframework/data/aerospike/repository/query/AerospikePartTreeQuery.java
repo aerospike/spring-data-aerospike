@@ -18,6 +18,8 @@ package org.springframework.data.aerospike.repository.query;
 import org.springframework.data.aerospike.core.AerospikeOperations;
 import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
+import org.springframework.data.aerospike.query.model.Index;
+import org.springframework.data.aerospike.query.model.IndexKey;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +30,7 @@ import org.springframework.data.repository.query.QueryMethodValueEvaluationConte
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,30 +42,41 @@ import static org.springframework.data.aerospike.query.QualifierUtils.getIdQuali
  * @author Peter Milne
  * @author Jean Mercier
  */
-public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
+public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery<Stream<?>> {
 
     private final AerospikeOperations operations;
+    private final AerospikeQueryMethod queryMethod;
+    private final String namespace;
+    private final Map<IndexKey, Index> indexCache;
 
-    public AerospikePartTreeQuery(QueryMethod queryMethod,
+    public AerospikePartTreeQuery(QueryMethod baseQueryMethod,
                                   QueryMethodValueEvaluationContextAccessor evalContextAccessor,
                                   AerospikeTemplate operations,
                                   Class<? extends AbstractQueryCreator<?, ?>> queryCreator) {
-        super(queryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
-            operations.getAerospikeConverter(), operations.getServerVersionSupport());
+        super(baseQueryMethod, evalContextAccessor, queryCreator, (AerospikeMappingContext) operations.getMappingContext(),
+            operations.getAerospikeConverter(), operations.getServerVersionSupport(), operations.getDSLParser());
         this.operations = operations;
+        this.namespace = operations.getNamespace();
+        this.indexCache = operations.getIndexesCache();
+        // each queryMethod here is AerospikeQueryMethod
+        this.queryMethod = (AerospikeQueryMethod) baseQueryMethod;
     }
 
     @Override
     @SuppressWarnings({"NullableProblems"})
     public Object execute(Object[] parameters) {
         ParametersParameterAccessor accessor = new ParametersParameterAccessor(queryMethod.getParameters(), parameters);
-        Query query = prepareQuery(parameters, accessor);
         Class<?> targetClass = getTargetClass(accessor);
+
+        if (queryMethod.hasQueryAnnotation()) {
+            return findByQueryAnnotation(queryMethod, targetClass, namespace, indexCache, parameters);
+        }
+        Query query = prepareQuery(parameters, accessor);
 
         // queries with id equality have their own processing flow
         if (parameters != null && parameters.length > 0) {
             Qualifier criteria = query.getCriteriaObject();
-            // only for id EQ, id LIKE queries get SimpleProperty query creator
+            // only for id EQ, id LIKE queries have SimpleProperty query creator
             if (criteria.hasSingleId()) {
                 return runQueryWithIdsEquality(targetClass, getIdValue(criteria), null);
             } else {
@@ -150,7 +164,8 @@ public class AerospikePartTreeQuery extends BaseAerospikePartTreeQuery {
         return new PageImpl<>(resultsPage, pageable, numberOfAllResults);
     }
 
-    private Stream<?> findByQuery(Query query, Class<?> targetClass) {
+    @Override
+    protected Stream<?> findByQuery(Query query, Class<?> targetClass) {
         // Run query and map to different target class.
         if (targetClass != null && targetClass != entityClass) {
             return operations.find(query, entityClass, targetClass);

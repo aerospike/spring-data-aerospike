@@ -19,6 +19,7 @@ import com.aerospike.client.IAerospikeClient;
 import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.reactor.AerospikeReactorClient;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
+import com.aerospike.dsl.DSLParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +34,7 @@ import org.springframework.data.aerospike.query.FilterExpressionsBuilder;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
+import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
@@ -54,12 +56,13 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
                                                                IAerospikeReactorClient aerospikeReactorClient,
                                                                ReactorQueryEngine reactorQueryEngine,
                                                                ReactorIndexRefresher reactorIndexRefresher,
+                                                               IndexesCacheHolder indexCacheHolder,
                                                                ServerVersionSupport serverVersionSupport,
-                                                               AerospikeSettings settings)
+                                                               AerospikeSettings settings, DSLParser dslParser)
     {
         return new ReactiveAerospikeTemplate(aerospikeReactorClient, settings.getDataSettings().getNamespace(),
             mappingAerospikeConverter, aerospikeMappingContext, aerospikeExceptionTranslator,
-            reactorQueryEngine, reactorIndexRefresher, serverVersionSupport);
+            reactorQueryEngine, reactorIndexRefresher, indexCacheHolder, serverVersionSupport, dslParser);
     }
 
     @Bean(name = "reactiveAerospikeQueryEngine")

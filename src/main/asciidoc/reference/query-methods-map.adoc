@@ -119,7 +119,7 @@ See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[informat
 ----
 findByStringMapBetween(Map<String, String> lowerLimit, Map<String, String> upperLimit)
 ----
-|...where x.stringMap between ? and ?
+|...where x.stringMap between ? (inclusive) and ? (exclusive)
 |only scan
 |Find records where `stringMap` bin value is in the range between the given arguments.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#map[information about ordering].

@@ -22,6 +22,7 @@ import org.springframework.data.aerospike.query.model.IndexesInfo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -60,5 +61,10 @@ public class IndexesCacheHolder implements IndexesCache, IndexesCacheUpdater {
     @Override
     public void update(IndexesInfo cache) {
         this.cache = cache;
+    }
+
+    @Override
+    public Map<IndexKey, Index> getAllIndexes() {
+        return cache.indexes;
     }
 }

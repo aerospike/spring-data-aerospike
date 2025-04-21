@@ -20,7 +20,9 @@ import com.aerospike.client.Value;
 import com.aerospike.client.cdt.CTX;
 import com.aerospike.client.command.ParticleType;
 import com.aerospike.client.exp.Exp;
+import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
+import com.aerospike.dsl.DSLParser;
 import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -87,6 +89,16 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return new MetadataQualifierBuilder();
     }
 
+    @Beta
+    public static FilterQualifierBuilder filterBuilder() {
+        return new FilterQualifierBuilder();
+    }
+
+    @Beta
+    public static DSLStringQualifierBuilder dslStringBuilder() {
+        return new DSLStringQualifierBuilder();
+    }
+
     public FilterOperation getOperation() {
         return (FilterOperation) internalMap.get(FILTER_OPERATION);
     }
@@ -113,6 +125,10 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
 
     public void setHasSecIndexFilter(Boolean queryAsFilter) {
         internalMap.put(HAS_SINDEX_FILTER, queryAsFilter);
+    }
+
+    public void parseDSLString(String dslString, DSLParser dslParser) {
+        internalMap.put(FILTER_EXPRESSION, dslParser.parseFilterExpression(dslString));
     }
 
     public Boolean hasSecIndexFilter() {
@@ -175,8 +191,24 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return FilterOperation.valueOf(getOperation().toString()).sIndexFilter(internalMap);
     }
 
+    public boolean hasFilterExpression() {
+        return internalMap.get(FILTER_EXPRESSION) != null;
+    }
+
+    public boolean hasDSLString() {
+        return internalMap.get(DSL_STRING) != null;
+    }
+
+    public Expression getFilterExpression() {
+        return (Expression) internalMap.get(FILTER_EXPRESSION);
+    }
+
     public Exp getFilterExp() {
         return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
+    }
+
+    public String getDSLString() {
+        return (String) internalMap.get(DSL_STRING);
     }
 
     protected String luaFieldString(String field) {
