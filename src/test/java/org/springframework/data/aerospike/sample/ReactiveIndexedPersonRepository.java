@@ -86,7 +86,7 @@ public interface ReactiveIndexedPersonRepository extends ReactiveAerospikeReposi
      * field)
      *
      * @param from lower limit, inclusive
-     * @param to   upper limit, inclusive
+     * @param to   upper limit, exclusive
      */
     Flux<IndexedPerson> findByFriendAgeBetween(int from, int to);
 

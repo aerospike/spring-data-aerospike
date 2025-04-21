@@ -279,12 +279,12 @@ class QualifierTests extends BaseQueryEngineTests {
 
     @Test
     void betweenQualifier() {
-        // Ages range from 25 -> 29. Get back age between 26 and 28 inclusive
+        // Ages range from 25 -> 29. Get back age between 26 (inclusive) and 28 (inclusive)
         Qualifier qualifier = Qualifier.builder()
             .setPath("age")
             .setFilterOperation(FilterOperation.BETWEEN)
             .setValue(26)
-            .setSecondValue(29) // + 1 as upper limit is exclusive
+            .setSecondValue(29) // + 1 as upper limit for BETWEEN is exclusive
             .build();
 
         KeyRecordIterator it = queryEngine.select(namespace, SET_NAME, null, new Query(qualifier));

@@ -155,9 +155,9 @@ findByAgeBetween(int lowerLimit, int upperLimit)
 
 findByFirstNameBetween(String lowerLimit, String upperLimit)
 ----
-|...where x.age between ? and ?
+|...where x.age between ? (inclusive) and ? (exclusive)
 
-...where x.firstName between ? and ?
+...where x.firstName between ? (inclusive) and ? (exclusive)
 |only for integers
 |Strings are compared by order of each byte, assuming they have UTF-8 encoding.
 See https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string[information about ordering].
