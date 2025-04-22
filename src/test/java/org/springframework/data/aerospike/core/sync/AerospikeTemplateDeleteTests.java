@@ -416,6 +416,17 @@ public class AerospikeTemplateDeleteTests extends BaseBlockingIntegrationTests {
             .hasMessageContaining("Failed to delete the record with ID 'id2' due to versions mismatch");
     }
 
+    @Test
+    public void deleteAll_doNothingForEmptyIterable() {
+        String id = nextId();
+        DocumentWithExpiration document = new DocumentWithExpiration(id);
+
+        template.save(document);
+        template.deleteAll(List.of());
+
+        assertThat(template.findById(id, DocumentWithExpiration.class)).isEqualTo(document);
+    }
+
     @Disabled
     @Test
     public void deleteByIdsUsingQuery_Paginated() {

@@ -467,7 +467,14 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void deleteAll(Iterable<T> documents) {
-        String setName = getSetName(documents.iterator().next());
+        Iterator<T> iterator = documents.iterator();
+
+        if (!iterator.hasNext()) {
+            log.debug("There are no documents to delete");
+            return;
+        }
+
+        String setName = getSetName(iterator.next());
 
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> documentsList = new ArrayList<>();
