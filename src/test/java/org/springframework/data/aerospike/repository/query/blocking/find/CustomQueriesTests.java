@@ -1,6 +1,9 @@
 package org.springframework.data.aerospike.repository.query.blocking.find;
 
 import com.aerospike.client.exp.Exp;
+import com.aerospike.client.query.Filter;
+import com.aerospike.client.query.IndexType;
+import com.aerospike.dsl.Index;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
@@ -10,6 +13,8 @@ import org.springframework.data.aerospike.sample.Person;
 import org.springframework.data.domain.Sort;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -311,7 +316,25 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
         repository.save(carter);
 
         Qualifier isActiveEqTrue = Qualifier.filterBuilder()
-            .setFilterExpression(Exp.build(Exp.eq(Exp.boolBin("isActive"), Exp.val(true))))
+            .setExpression(
+                Exp.build(
+                    Exp.eq(Exp.boolBin("isActive"), Exp.val(true))
+                )
+            ).build();
+        assertThat(repository.findUsingQuery(new Query(isActiveEqTrue))).contains(carter);
+
+        carter.setActive(false);
+        repository.save(carter);
+    }
+
+    @Test
+    void findByDSLString_Exp_only() {
+        carter.setActive(true);
+        repository.save(carter);
+
+        Qualifier isActiveEqTrue = Qualifier.dslStringBuilder()
+            // currently there is no corresponding secondary index Filter for this DSL String, so filter Exp is used
+            .setDSLString("$.isActive.get(type: BOOL) == true")
             .build();
         assertThat(repository.findUsingQuery(new Query(isActiveEqTrue))).contains(carter);
 
@@ -320,17 +343,69 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findByDSLString() {
-        carter.setActive(true);
-        repository.save(carter);
+    void findByDSLString_indexed_Filter() {
+        template.createIndex(Person.class, "firstNameIndex", "firstName", IndexType.STRING);
 
-        Qualifier isActiveEqTrue = Qualifier.dslStringBuilder()
-            .setDSLString("$.isActive.get(type: BOOL) == true")
+        List<com.aerospike.dsl.Index> indexes = List.of(
+            Index.builder().namespace("TEST").bin("firstName").indexType(IndexType.STRING).binValuesRatio(0).build()
+        );
+
+        Qualifier firstNameEqCarter = Qualifier.dslStringBuilder()
+            // this DSL String has a corresponding secondary index Filter, so it will be used
+            .setDSLString("$.firstName == 'Carter'")
+            .setIndexes(indexes)
             .build();
-        assertThat(repository.findUsingQuery(new Query(isActiveEqTrue))).contains(carter);
+        assertThat(repository.findUsingQuery(new Query(firstNameEqCarter))).contains(carter);
 
-        carter.setActive(false);
-        repository.save(carter);
+        Qualifier firstNameEqcarter = Qualifier.dslStringBuilder()
+            // this DSL String has a corresponding secondary index Filter, so it will be used
+            // Person's name "Carter" starts with a capital letter, so no match with lower case first letter
+            .setDSLString("$.firstName == 'carter'")
+            .build();
+        assertThat(repository.findUsingQuery(new Query(firstNameEqcarter))).isEmpty();
+    }
+
+    @Test
+    void findByDSLString_indexed_combined_AND() {
+        template.createIndex(Person.class, "firstNameIndex", "firstName", IndexType.STRING);
+        template.createIndex(Person.class, "lastNameIndex", "lastName", IndexType.STRING);
+
+        // Map indexes cached by Spring Data Aerospike to DSL indexes
+        List<com.aerospike.dsl.Index> indexes = indexesCache.getAllIndexes().values().stream().map(value ->
+                com.aerospike.dsl.Index.builder()
+                    .namespace(value.getNamespace())
+                    .bin(value.getBin())
+                    .indexType(value.getIndexType())
+                    .binValuesRatio(value.getBinValuesRatio())
+                    .build())
+            .toList();
+
+        Qualifier firstNameAndLastName = Qualifier.dslStringBuilder()
+            // This DSL String has a corresponding secondary index Filter, so it will be used
+            // The index to build the Filter will be chosen from the collection of indexes based by binValuesRatio (cardinality)
+            // If cardinality is the same, the indexed bin to build Filter will be chosen alphabetically
+            .setDSLString("$.firstName == 'Stefan' and $.lastName == 'Lessard'")
+            .setIndexes(indexes)
+            .build();
+        assertThat(firstNameAndLastName.getDSLIndexes().stream()
+            .map(Index::getBinValuesRatio)
+            .collect(Collectors.toSet())).isEqualTo(Set.of(1)); // the same cardinality between two indexes
+        assertThat(repository.findUsingQuery(new Query(firstNameAndLastName))).contains(stefan);
+
+        // This way indexes for DSLParser can be built manually
+        List<com.aerospike.dsl.Index> indexesBuildManually = List.of(
+            Index.builder().namespace("TEST").bin("firstName").indexType(IndexType.STRING).binValuesRatio(0).build(),
+            // Cardinality is different, and it is larger for the "lastName" bin index
+            Index.builder().namespace("TEST").bin("lastName").indexType(IndexType.STRING).binValuesRatio(1).build()
+        );
+        Qualifier firstNameAndLastName2 = Qualifier.dslStringBuilder()
+            // this DSL String has a corresponding secondary index Filter, so it will be used
+            // the index to build the Filter will be chosen from the collection of indexes based by binValuesRatio (cardinality)
+            .setDSLString("$.firstName == 'Stefan' and $.lastName == 'Lessard'")
+            .setIndexes(indexes)
+            .build();
+        // This time "lastName" bin is chosen based on cardinality (binValuesRatio of its index == 1)
+        assertThat(repository.findUsingQuery(new Query(firstNameAndLastName2))).contains(stefan);
     }
 }
 

@@ -52,8 +52,6 @@ Data Aerospike 5.0.0: Important Updates]
 == Spring Data Aerospike Compatibility
 
 .Compatibility Table
-[%collapsible]
-====
 [width="100%",cols="<24%,<14%,<18%,<26%,<18%",options="header",]
 |===
 |Spring Data Aerospike |Spring Boot |Aerospike Client |Aerospike Reactor Client |Aerospike Server
@@ -97,7 +95,6 @@ Data Aerospike 5.0.0: Important Updates]
 
 |1.2.1.RELEASE |1.5.x |4.1.x | |
 |===
-====
 
 == Quick Start
 

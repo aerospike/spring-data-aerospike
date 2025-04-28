@@ -1,5 +1,6 @@
 package org.springframework.data.aerospike.repository.query.blocking.find;
 
+import com.aerospike.client.query.IndexType;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseIntegrationTests;
@@ -173,11 +174,17 @@ public class EqualsTests extends PersonRepositoryQueryTests {
 
     @Test
     void findBySimpleProperty_AND_simpleProperty_DynamicProjection() {
+        additionalAerospikeTestOperations.createIndex(Person.class, "firstNameIdx", "firstName",
+            IndexType.STRING);
+        additionalAerospikeTestOperations.createIndex(Person.class, "lastNameIdx", "lastName",
+            IndexType.STRING);
         QueryParam firstName = of(carter.getFirstName());
         QueryParam lastName = of(carter.getLastName());
-        List<PersonSomeFields> result = repository.findByFirstNameAndLastName(firstName, lastName,
-            PersonSomeFields.class);
-        assertThat(result).containsOnly(carter.toPersonSomeFields());
+//        List<PersonSomeFields> result = repository.findByFirstNameAndLastName(firstName, lastName,
+//            PersonSomeFields.class);
+        List<Person> result = repository.findByFirstNameAndLastName(firstName, lastName);
+//        assertThat(result).containsOnly(carter.toPersonSomeFields());
+        assertThat(result).containsOnly(carter);
     }
 
     @Test

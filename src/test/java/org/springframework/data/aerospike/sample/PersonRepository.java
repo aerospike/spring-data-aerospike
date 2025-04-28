@@ -68,7 +68,8 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
     <T> List<T> findByLastNameAndId(QueryParam lastName, QueryParam id, Class<T> type);
 
     // Dynamic Projection
-    <T> List<T> findByFirstNameAndLastName(QueryParam firstName, QueryParam lastName, Class<T> type);
+//    <T> List<T> findByFirstNameAndLastName(QueryParam firstName, QueryParam lastName, Class<T> type);
+    List<Person> findByFirstNameAndLastName(QueryParam firstName, QueryParam lastName);
 
     /**
      * Find all entities that satisfy the condition "have primary key in the given list and first name equal to the

@@ -57,12 +57,19 @@ public class StatementBuilder {
         if (binNames != null && binNames.length != 0) {
             stmt.setBinNames(binNames);
         }
-        if (queryCriteriaIsNotNull(query) && !query.getCriteriaObject().hasFilterExpression()) {
-            // logging query
-            logQualifierDetails(query.getCriteriaObject(), log);
-            // statement's filter is set based either on cardinality (the lowest bin values ratio)
-            // or on order (the first processed filter)
-            setStatementFilterFromQualifiers(stmt, query.getCriteriaObject());
+        if (queryCriteriaIsNotNull(query)) {
+            if (!query.getCriteriaObject().hasFilterExpression()) {
+                // logging query
+                logQualifierDetails(query.getCriteriaObject(), log);
+                // statement's filter is set based either on cardinality (the lowest bin values ratio)
+                // or on order (the first processed filter)
+                setStatementFilterFromQualifiers(stmt, query.getCriteriaObject());
+            } else {
+                // logging query
+                logQualifierDetails(query.getCriteriaObject(), log);
+                // statement's filter is set based on parsed DSL expression
+                stmt.setFilter(query.getCriteriaObject().getFilter());
+            }
         }
         return stmt;
     }

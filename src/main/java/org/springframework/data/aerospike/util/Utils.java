@@ -28,6 +28,7 @@ import lombok.experimental.UtilityClass;
 import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
+import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.CriteriaDefinition;
 import org.springframework.util.StringUtils;
@@ -176,8 +177,8 @@ public class Utils {
             Arrays.stream(qualifiers).forEach(innerQualifier -> logQualifierDetails(innerQualifier, logger));
         }
 
-        String operation = qualifier.getOperation().toString();
-        operation = (hasLength(operation) ? operation : "N/A");
+        FilterOperation operation = qualifier.getOperation();
+        String strOperation = (operation != null && hasLength(operation.toString()) ? operation.toString() : "N/A");
 
         String values = "";
         String value = valueToString(qualifier.getValue());
@@ -202,7 +203,7 @@ public class Utils {
             ? String.format(", qualifiers = %s,", qualifiersHashesToString(qualifier.getQualifiers()))
             : "";
 
-        logger.debug("Created qualifier #{}:{} operation = {}{}{}", qualifier.hashCode(), path, operation, values,
+        logger.debug("Created qualifier #{}:{} operation = {}{}{}", qualifier.hashCode(), path, strOperation, values,
             qualifiersStr);
     }
 

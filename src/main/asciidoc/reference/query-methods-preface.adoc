@@ -19,7 +19,8 @@ Repository queries in Spring Data Aerospike can be divided into 3 groups:
 
 * Queries that only use <<aerospike.scan-operation, scan operation>>
 
-* Queries that use both secondary index and scan (when looking for a nested integer or string property).
+* Queries that use both secondary index and scan (e.g., for indexed queries combined with AND
+or when looking for a nested integer or string property).
 
 If no corresponding secondary index is found, each query does a fallback to using scan only.
 

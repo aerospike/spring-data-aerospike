@@ -15,7 +15,10 @@
  */
 package org.springframework.data.aerospike.repository.query;
 
+import com.aerospike.client.exp.Exp;
+import com.aerospike.client.query.Filter;
 import com.aerospike.dsl.DSLParser;
+import com.aerospike.dsl.IndexFilterInput;
 import com.aerospike.dsl.ParsedExpression;
 import com.aerospike.dsl.exception.AerospikeDSLException;
 import org.springframework.beans.BeanUtils;
@@ -260,21 +263,28 @@ public abstract class BaseAerospikePartTreeQuery<T> implements RepositoryQuery {
     protected T findByQueryAnnotation(AerospikeQueryMethod queryMethod, Class<?> targetClass, String namespace,
                                       Map<IndexKey, Index> indexCache, Object[] parameters) {
         // Map cached indexes to DSL
-        List<com.aerospike.dsl.index.Index> indexes = indexCache.values().stream().map(value ->
-            com.aerospike.dsl.index.Index.builder()
+        List<com.aerospike.dsl.Index> indexes = indexCache.values().stream().map(value ->
+            com.aerospike.dsl.Index.builder()
+                .namespace(value.getNamespace())
                 .bin(value.getBin())
                 .indexType(value.getIndexType())
                 .binValuesRatio(value.getBinValuesRatio())
                 .build())
             .toList();
         // Parse the given expression
-        ParsedExpression expr = dslParser.parseDslExpression(
+        ParsedExpression expr = dslParser.parseExpression(
             fillPlaceholders(queryMethod.getQueryAnnotation(), parameters),
-            namespace,
-            indexes
+            IndexFilterInput.of(namespace, indexes)
         );
         // Create the query
-        Query query = new Query(Qualifier.filterBuilder().setFilterExpression(expr.getExpression()).build());
+        Filter filter = expr.getResultPair().getFilter();
+        Exp exp = expr.getResultPair().getExp();
+        Query query = new Query(
+            Qualifier.filterBuilder()
+                .setFilter(filter)
+                .setExpression(exp == null ? null : Exp.build(exp))
+                .build()
+        );
         return findByQuery(query, targetClass);
     }
 }

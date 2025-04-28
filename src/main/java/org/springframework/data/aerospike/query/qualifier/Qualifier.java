@@ -23,6 +23,9 @@ import com.aerospike.client.exp.Exp;
 import com.aerospike.client.exp.Expression;
 import com.aerospike.client.query.Filter;
 import com.aerospike.dsl.DSLParser;
+import com.aerospike.dsl.Index;
+import com.aerospike.dsl.IndexFilterInput;
+import com.aerospike.dsl.ParsedExpression;
 import org.springframework.data.aerospike.annotation.Beta;
 import org.springframework.data.aerospike.config.AerospikeDataSettings;
 import org.springframework.data.aerospike.query.FilterOperation;
@@ -127,8 +130,11 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         internalMap.put(HAS_SINDEX_FILTER, queryAsFilter);
     }
 
-    public void parseDSLString(String dslString, DSLParser dslParser) {
-        internalMap.put(FILTER_EXPRESSION, dslParser.parseFilterExpression(dslString));
+    public void parseDSLString(String dslString, DSLParser dslParser, String namespace, Collection<Index> indexes) {
+        ParsedExpression parsedExpr = dslParser.parseExpression(dslString, IndexFilterInput.of(namespace, indexes));
+        Exp exp = parsedExpr.getResultPair().getExp();
+        internalMap.put(FILTER_EXPRESSION, exp == null ? null : Exp.build(exp));
+        internalMap.put(SINDEX_FILTER, parsedExpr.getResultPair().getFilter());
     }
 
     public Boolean hasSecIndexFilter() {
@@ -207,8 +213,17 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return FilterOperation.valueOf(getOperation().toString()).filterExp(internalMap);
     }
 
+    public Filter getFilter() {
+        return (Filter) internalMap.get(SINDEX_FILTER);
+    }
+
     public String getDSLString() {
         return (String) internalMap.get(DSL_STRING);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Collection<Index> getDSLIndexes() {
+        return (Collection<Index>) internalMap.get(DSL_INDEXES);
     }
 
     protected String luaFieldString(String field) {

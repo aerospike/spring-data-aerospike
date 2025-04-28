@@ -1084,7 +1084,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     public <T> Stream<T> find(Query query, Class<T> entityClass) {
         Assert.notNull(entityClass, "Entity class name must not be null!");
         if (query.getCriteriaObject().hasDSLString()) {
-            query.getCriteriaObject().parseDSLString(query.getCriteriaObject().getDSLString(), getDSLParser());
+            query.getCriteriaObject().parseDSLString(query.getCriteriaObject().getDSLString(), getDSLParser(),
+                namespace, query.getCriteriaObject().getDSLIndexes());
         }
         return find(query, entityClass, getSetName(entityClass));
     }
