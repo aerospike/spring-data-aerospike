@@ -27,7 +27,7 @@
         <springdata.commons>3.4.4</springdata.commons>
         <spring-boot-starter-test>3.4.4</spring-boot-starter-test>
         <spring-cloud-starter-bootstrap>4.2.1</spring-cloud-starter-bootstrap>
-        <spring-tx>6.2.5</spring-tx>
+        <spring-tx>6.2.6</spring-tx>
         <maven.javadoc.plugin>3.3.0</maven.javadoc.plugin>
         <maven.gpg.plugin>1.6</maven.gpg.plugin>
         <central.publishing.maven.plugin>0.7.0</central.publishing.maven.plugin>
@@ -361,7 +361,7 @@
                     <doctitle>Spring Data Aerospike</doctitle>
                     <show>public</show>
                     <splitindex>true</splitindex>
-                    <bottom>Copyright &#169; 2020&#x2013;{currentYear} Aerospike, Inc. All rights reserved.</bottom>
+                    <bottom>Copyright © 2020–{currentYear} Aerospike, Inc. All rights reserved.</bottom>
                     <sourcepath>${basedir}/src/main/java</sourcepath>
                     <source>17</source>
                 </configuration>
