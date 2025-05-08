@@ -187,11 +187,11 @@ public class TemplateUtils {
 
     boolean areInvalidGroupedKeys(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        return isInvalidForBatchWrite(groupedKeys.getEntitiesKeys().keySet(), "Entities keys");
+        return isEmpty(groupedKeys.getEntitiesKeys().keySet());
     }
 
-    boolean isInvalidForBatchWrite(Iterable<?> iterable, String iterableDescription) {
-        Assert.notNull(iterable, iterableDescription + " must not be null!");
+    boolean isEmpty(Iterable<?> iterable) {
+        Assert.notNull(iterable, "Iterable must not be null!");
         return !iterable.iterator().hasNext();
     }
 
