@@ -25,16 +25,18 @@ import org.springframework.data.domain.Sort.Order;
  * @author Peter Milne
  * @author Jean Mercier
  */
+@Getter
 public class Query {
 
+    private final CriteriaDefinition criteria;
     private static final int NOT_SPECIFIED = -1;
-
-    private Sort sort;
-    private long offset = NOT_SPECIFIED;
-    private int rows = NOT_SPECIFIED;
-    private CriteriaDefinition criteria;
     @Setter
-    @Getter
+    private long offset = NOT_SPECIFIED;
+    @Setter
+    private int rows = NOT_SPECIFIED;
+    @Setter
+    private Sort sort;
+    @Setter
     private boolean isDistinct;
 
     /**
@@ -47,49 +49,10 @@ public class Query {
     }
 
     /**
-     * Get the CriteriaDefinition object.
-     */
-    public CriteriaDefinition getCriteria() {
-        return criteria;
-    }
-
-    /**
      * Get the {@link Qualifier} object.
      */
     public Qualifier getCriteriaObject() {
         return criteria.getCriteriaObject();
-    }
-
-    /**
-     * Get {@link Sort}.
-     */
-    public Sort getSort() {
-        return sort;
-    }
-
-    /**
-     * Set {@link Sort} to be applied.
-     */
-    public void setSort(Sort sort) {
-        this.sort = sort;
-    }
-
-    /**
-     * Number of elements to skip.
-     *
-     * @return negative value if not set.
-     */
-    public long getOffset() {
-        return this.offset;
-    }
-
-    /**
-     * Set the number of elements to skip.
-     *
-     * @param offset use negative value for none.
-     */
-    public void setOffset(long offset) {
-        this.offset = offset;
     }
 
     public boolean hasOffset() {
@@ -98,22 +61,6 @@ public class Query {
 
     public boolean hasRows() {
         return this.rows != NOT_SPECIFIED;
-    }
-
-    /**
-     * Number of elements to read.
-     *
-     * @return negative value if not set.
-     */
-    public int getRows() {
-        return this.rows;
-    }
-
-    /**
-     * Set the number of elements to read.
-     */
-    public void setRows(int rows) {
-        this.rows = rows;
     }
 
     /**
@@ -169,7 +116,6 @@ public class Query {
         } else {
             this.sort = this.sort.and(sort);
         }
-
         return this;
     }
 }

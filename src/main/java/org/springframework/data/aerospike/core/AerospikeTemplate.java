@@ -151,16 +151,20 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void saveAll(Iterable<T> documents) {
-        validateForBatchWrite(documents, "Documents for saving");
-
+        if (isEmpty(documents)) {
+            logEmptyItems(log, "Documents for saving");
+            return;
+        }
         saveAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> void saveAll(Iterable<T> documents, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
-        validateForBatchWrite(documents, "Documents for saving");
-
+        if (isEmpty(documents)) {
+            logEmptyItems(log, "Documents for saving");
+            return;
+        }
         applyBufferedBatchWrite(documents, setName, SAVE_OPERATION);
     }
 
@@ -267,16 +271,20 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void insertAll(Iterable<? extends T> documents) {
-        validateForBatchWrite(documents, "Documents for insert");
-
+        if (isEmpty(documents)) {
+            logEmptyItems(log, "Documents for inserting");
+            return;
+        }
         insertAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> void insertAll(Iterable<? extends T> documents, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
-        validateForBatchWrite(documents, "Documents for insert");
-
+        if (isEmpty(documents)) {
+            logEmptyItems(log, "Documents for inserting");
+            return;
+        }
         applyBufferedBatchWrite(documents, setName, INSERT_OPERATION);
     }
 
@@ -355,16 +363,20 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void updateAll(Iterable<T> documents) {
-        validateForBatchWrite(documents, "Documents for update");
-
+        if (isEmpty(documents)) {
+            logEmptyItems(log, "Documents for updating");
+            return;
+        }
         updateAll(documents, getSetName(documents.iterator().next()));
     }
 
     @Override
     public <T> void updateAll(Iterable<T> documents, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
-        validateForBatchWrite(documents, "Documents for update");
-
+        if (isEmpty(documents)) {
+            logEmptyItems(log, "Documents for updating");
+            return;
+        }
         applyBufferedBatchWrite(documents, setName, UPDATE_OPERATION);
     }
 
@@ -467,15 +479,12 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public <T> void deleteAll(Iterable<T> documents) {
-        Iterator<T> iterator = documents.iterator();
-
-        if (!iterator.hasNext()) {
-            log.debug("There are no documents to delete");
+        if (isEmpty(documents)) {
+            logEmptyItems(log, "Documents for deleting");
             return;
         }
 
-        String setName = getSetName(iterator.next());
-
+        String setName = getSetName(documents.iterator().next());
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> documentsList = new ArrayList<>();
         for (Object document : documents) {
@@ -493,8 +502,10 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public <T> void deleteAll(Iterable<T> documents, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
-        validateForBatchWrite(documents, "Documents for deleting");
-
+        if (isEmpty(documents)) {
+            logEmptyItems(log, "Documents for deleting");
+            return;
+        }
         applyBufferedBatchWrite(documents, setName, DELETE_OPERATION);
     }
 
@@ -513,20 +524,29 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
     @Override
     public void deleteByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
-        validateForBatchWrite(ids, "IDs");
+        if (isEmpty(ids)) {
+            logEmptyItems(log, "Ids for deleting");
+            return;
+        }
         deleteByIds(ids, setName, false);
     }
 
     @Override
     public void deleteExistingByIds(Iterable<?> ids, String setName) {
         Assert.notNull(setName, "Set name must not be null!");
-        validateForBatchWrite(ids, "IDs");
+        if (isEmpty(ids)) {
+            logEmptyItems(log, "Ids for deleting");
+            return;
+        }
         deleteByIds(ids, setName, true);
     }
 
     private void deleteByIds(Iterable<?> ids, String setName, boolean skipNonExisting) {
         Assert.notNull(setName, "Set name must not be null!");
-        validateForBatchWrite(ids, "IDs");
+        if (isEmpty(ids)) {
+            logEmptyItems(log, "Ids for deleting");
+            return;
+        }
 
         int batchSize = converter.getAerospikeDataSettings().getBatchWriteSize();
         List<Object> idsList = new ArrayList<>();
@@ -544,9 +564,8 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     private void doDeleteByIds(Collection<?> ids, String setName, boolean skipNonExisting) {
         Assert.notNull(setName, "Set name must not be null!");
-        validateForBatchWrite(ids, "IDs");
-
-        if (ids.isEmpty()) {
+        if (isEmpty(ids)) {
+            logEmptyItems(log, "Ids for deleting");
             return;
         }
 
@@ -560,11 +579,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public void deleteByIds(GroupedKeys groupedKeys) {
-        validateGroupedKeys(groupedKeys);
-
-        if (groupedKeys.getEntitiesKeys().isEmpty()) {
-            return;
-        }
+        if (areInvalidGroupedKeys(groupedKeys)) return;
 
         deleteGroupedEntitiesByGroupedKeys(groupedKeys);
     }
@@ -858,16 +873,6 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
         return mapToEntity(key, targetClass, aeroRecord);
     }
 
-    private Policy getPolicyFilterExp(Query query) {
-        if (queryCriteriaIsNotNull(query)) {
-            Policy policy = new Policy(getAerospikeClient().getReadPolicyDefault());
-            Qualifier qualifier = query.getCriteriaObject();
-            policy.filterExp = queryEngine.getFilterExpressionsBuilder().build(qualifier);
-            return policy;
-        }
-        return null;
-    }
-
     private Record getAndTouch(Key key, int expiration, String[] binNames, @Nullable Query query) {
         WritePolicyBuilder writePolicyBuilder = WritePolicyBuilder.builder(client.copyWritePolicyDefault())
             .expiration(expiration);
@@ -947,11 +952,7 @@ public class AerospikeTemplate extends BaseAerospikeTemplate implements Aerospik
 
     @Override
     public GroupedEntities findByIds(GroupedKeys groupedKeys) {
-        validateGroupedKeys(groupedKeys);
-
-        if (groupedKeys.getEntitiesKeys().isEmpty()) {
-            return GroupedEntities.builder().build();
-        }
+        if (areInvalidGroupedKeys(groupedKeys)) return GroupedEntities.builder().build();
 
         return findGroupedEntitiesByGroupedKeys(groupedKeys);
     }

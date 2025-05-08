@@ -6,6 +6,7 @@ import com.aerospike.client.ResultCode;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.reactor.IAerospikeReactorClient;
 import lombok.experimental.UtilityClass;
+import org.slf4j.Logger;
 import org.springframework.data.aerospike.core.model.GroupedKeys;
 import org.springframework.data.aerospike.mapping.AerospikePersistentEntity;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
@@ -184,13 +185,18 @@ public class TemplateUtils {
                 Mono.just(policy));
     }
 
-    void validateGroupedKeys(GroupedKeys groupedKeys) {
+    boolean areInvalidGroupedKeys(GroupedKeys groupedKeys) {
         Assert.notNull(groupedKeys, "Grouped keys must not be null!");
-        validateForBatchWrite(groupedKeys.getEntitiesKeys(), "Entities keys");
+        return isEmpty(groupedKeys.getEntitiesKeys().keySet());
     }
 
-    void validateForBatchWrite(Object object, String objectName) {
-        Assert.notNull(object, objectName + " must not be null!");
+    boolean isEmpty(Iterable<?> iterable) {
+        Assert.notNull(iterable, "Iterable must not be null!");
+        return !iterable.iterator().hasNext();
+    }
+
+    void logEmptyItems(Logger log, String iterableDescription) {
+        log.debug("{} are empty", iterableDescription);
     }
 
     boolean batchWriteSizeMatch(int batchSize, int currentSize) {
