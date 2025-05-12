@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.repository.query.blocking.find;
 
 import com.aerospike.client.Value;
+import com.aerospike.client.query.IndexType;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseIntegrationTests;
@@ -550,5 +551,17 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddress(100))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.address EQ: Type mismatch, expecting Address");
+    }
+
+    @Test
+    void findBySimpleProperty_AND_indexed() {
+        template.createIndex(Person.class, "firstName_idx", "firstName", IndexType.STRING);
+
+        QueryParam firstName = of(leroi.getFirstName());
+        QueryParam age = of(leroi2.getAge());
+        List<Person> persons2 = repository.findByFirstNameAndAge(firstName, age);
+        assertThat(persons2).containsOnly(leroi2);
+
+        template.deleteIndex(Person.class, "firstName_idx");
     }
 }

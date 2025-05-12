@@ -14,7 +14,9 @@ import org.springframework.data.aerospike.core.AerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.QueryContext;
 import org.springframework.data.aerospike.query.QueryEngine;
+import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.model.IndexedField;
@@ -158,7 +160,9 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
     }
 
     protected boolean queryHasSecIndexFilter(String namespace, String setName, Query query, String[] binNames) {
-        Statement statement = queryEngine.getStatementBuilder().build(namespace, setName, query, binNames);
+        QueryContext queryContext =
+            queryEngine.getStatementBuilder().build(namespace, setName, query, binNames);
+        Statement statement = queryContext.statement();
         // Checking that the statement has secondary index filter (which means it will be used)
         return statement.getFilter() != null;
     }

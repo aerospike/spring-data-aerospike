@@ -111,16 +111,12 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
         return (CriteriaDefinition.AerospikeMetadata) internalMap.get(METADATA_FIELD);
     }
 
-    public void setHasSecIndexFilter(Boolean queryAsFilter) {
-        internalMap.put(HAS_SINDEX_FILTER, queryAsFilter);
-    }
-
-    public Boolean hasSecIndexFilter() {
-        return internalMap.containsKey(HAS_SINDEX_FILTER) && (Boolean) internalMap.get(HAS_SINDEX_FILTER);
-    }
-
     public void setDataSettings(AerospikeDataSettings dataSettings) {
         internalMap.put(DATA_SETTINGS, dataSettings);
+    }
+
+    public AerospikeDataSettings getDataSettings() {
+        return (AerospikeDataSettings) internalMap.get(DATA_SETTINGS);
     }
 
     public boolean hasQualifiers() {
@@ -140,7 +136,7 @@ public class Qualifier implements CriteriaDefinition, Map<QualifierKey, Object>,
     }
 
     /**
-     * Set CTX[].
+     * Get CTX[]
      */
     public CTX[] getCtxArray() {
         return (CTX[]) internalMap.get(CTX_ARRAY);

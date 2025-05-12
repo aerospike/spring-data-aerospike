@@ -100,9 +100,10 @@ public class ReactorQueryEngine {
         if (query != null) {
             query.getCriteriaObject().setDataSettings(dataSettings);
         }
-        Statement statement = statementBuilder.build(namespace, set, query, binNames);
+        QueryContext queryContext = statementBuilder.build(namespace, set, query, binNames);
+        Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
-        QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, true);
+        QueryPolicy localQueryPolicy = getQueryPolicy(queryContext.qualifier(), true);
 
         if (!scansEnabled && statement.getFilter() == null) {
             return Flux.error(new IllegalStateException(QueryEngine.SCANS_DISABLED_MESSAGE));
@@ -127,7 +128,6 @@ public class ReactorQueryEngine {
 
     private Publisher<? extends KeyRecord> retryWithFilterExpression(Qualifier qualifier, Statement statement) {
         // retry without sIndex filter
-        qualifier.setHasSecIndexFilter(false);
         QueryPolicy localQueryPolicyFallback = getQueryPolicy(qualifier, true);
         statement.setFilter(null);
         return client.query(localQueryPolicyFallback, statement);
@@ -142,9 +142,10 @@ public class ReactorQueryEngine {
      * @return A Flux<KeyRecord> for counting
      */
     public Flux<KeyRecord> selectForCount(String namespace, String set, @Nullable Query query) {
-        Statement statement = statementBuilder.build(namespace, set, query);
+        QueryContext queryContext = statementBuilder.build(namespace, set, query);
+        Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
+        Qualifier qualifier = queryContext.qualifier() != null ? queryContext.qualifier() : null;
         QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, false);
 
         if (!scansEnabled && statement.getFilter() == null) {

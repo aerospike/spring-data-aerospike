@@ -103,8 +103,6 @@ public class QueryEngine {
      * @return A KeyRecordIterator to iterate over the results
      */
     public KeyRecordIterator select(String namespace, String set, String[] binNames, @Nullable Query query) {
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
-
         /*
          *  query with filters
          */
@@ -112,14 +110,14 @@ public class QueryEngine {
             // dataSettings provided to be used in FilterOperation
             query.getCriteriaObject().setDataSettings(dataSettings);
         }
-        Statement statement = statementBuilder.build(namespace, set, query, binNames);
+        QueryContext queryContext = statementBuilder.build(namespace, set, query, binNames);
+        Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
-        QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, true);
+        QueryPolicy localQueryPolicy = getQueryPolicy(queryContext.qualifier(), true);
 
         if (!scansEnabled && statement.getFilter() == null) {
             throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
         }
-
         RecordSet rs = client.query(localQueryPolicy, statement);
         try {
             return new KeyRecordIterator(namespace, rs);
@@ -128,7 +126,8 @@ public class QueryEngine {
                 log.warn("Got secondary index related exception (resultCode: {}), " +
                         "retrying with filter expression only (scan operation)",
                     e.getResultCode());
-                return retryWithFilterExpression(namespace, qualifier, statement);
+                Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
+                return retryWithFilterExpression(namespace, qualifier, statement); // TODO
             }
             throw e;
         }
@@ -136,7 +135,6 @@ public class QueryEngine {
 
     private KeyRecordIterator retryWithFilterExpression(String namespace, Qualifier qualifier, Statement statement) {
         // retry without sIndex filter
-        qualifier.setHasSecIndexFilter(false);
         QueryPolicy localQueryPolicyFallback = getQueryPolicy(qualifier, true);
         statement.setFilter(null);
         RecordSet rs = client.query(localQueryPolicyFallback, statement);
@@ -152,9 +150,10 @@ public class QueryEngine {
      * @return A KeyRecordIterator for counting
      */
     public KeyRecordIterator selectForCount(String namespace, String set, @Nullable Query query) {
-        Statement statement = statementBuilder.build(namespace, set, query);
+        QueryContext queryContext = statementBuilder.build(namespace, set, query);
+        Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
-        Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
+        Qualifier qualifier = queryContext.qualifier() != null ? queryContext.qualifier() : null;
         QueryPolicy localQueryPolicy = getQueryPolicy(qualifier, false);
 
         if (!scansEnabled && statement.getFilter() == null) {

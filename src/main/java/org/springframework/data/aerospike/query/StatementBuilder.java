@@ -26,10 +26,14 @@ import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import static org.springframework.data.aerospike.query.FilterOperation.dualFilterOperations;
 import static org.springframework.data.aerospike.query.QualifierUtils.queryCriteriaIsNotNull;
 import static org.springframework.data.aerospike.util.Utils.logQualifierDetails;
 
@@ -46,40 +50,39 @@ public class StatementBuilder {
         this.indexesCache = indexesCache;
     }
 
-    public Statement build(String namespace, String set, Query query) {
+    public QueryContext build(String namespace, String set, Query query) {
         return build(namespace, set, query, null);
     }
 
-    public Statement build(String namespace, String set, @Nullable Query query, String[] binNames) {
+    public QueryContext build(String namespace, String set, @Nullable Query query, String[] binNames) {
         Statement stmt = new Statement();
         stmt.setNamespace(namespace);
         stmt.setSetName(set);
         if (binNames != null && binNames.length != 0) {
             stmt.setBinNames(binNames);
         }
+        Qualifier parentQualifier = query != null ? query.getCriteriaObject() : null;
         if (queryCriteriaIsNotNull(query)) {
             // logging query
             logQualifierDetails(query.getCriteriaObject(), log);
             // statement's filter is set based either on cardinality (the lowest bin values ratio)
             // or on order (the first processed filter)
-            setStatementFilterFromQualifiers(stmt, query.getCriteriaObject());
+            parentQualifier = setStatementFilterFromQualifiers(stmt, query.getCriteriaObject());
         }
-        return stmt;
+        return new QueryContext(stmt, parentQualifier);
     }
 
-    private void setStatementFilterFromQualifiers(Statement stmt, Qualifier qualifier) {
+    private Qualifier setStatementFilterFromQualifiers(Statement stmt, Qualifier qualifier) {
         // No qualifier, no need to set statement filter
-        if (qualifier == null) {
-            log.debug("Query #{}, secondary index filter is not set", qualifier.hashCode());
-            return;
-        }
+        if (qualifier == null) return null;
 
-        // Multiple qualifiers
-        // No sense to use secondary index in case of OR as it requires to enlarge selection to more than 1 field
         if (qualifier.getOperation() == FilterOperation.AND) {
-            setFilterFromMultipleQualifiers(stmt, qualifier);
-        } else if (isIndexedBin(stmt, qualifier)) { // Single qualifier
-            setFilterFromSingleQualifier(stmt, qualifier);
+            // Multiple qualifiers
+            // No sense to use secondary index in case of OR as it requires to enlarge selection to more than 1 field
+            return setFilterFromQualifiersCombinedWithAND(stmt, qualifier);
+        } else if (isIndexedBin(stmt, qualifier)) {
+            // Single qualifier
+            return setFilterFromSingleQualifier(stmt, qualifier);
         }
         if (stmt.getFilter() != null) {
             log.debug("Query #{}, secondary index filter is set on the bin '{}'", qualifier.hashCode(),
@@ -87,13 +90,40 @@ public class StatementBuilder {
         } else {
             log.debug("Query #{}, secondary index filter is not set", qualifier.hashCode());
         }
+        return qualifier;
     }
 
-    private void setFilterFromMultipleQualifiers(Statement stmt, Qualifier qualifier) {
+    private Qualifier setFilterFromQualifiersCombinedWithAND(Statement stmt, Qualifier parentQualifier) {
+        Qualifier minBinValuesRatioQualifier = getMinBinValuesRatioQualifier(parentQualifier, stmt);
+
+        List<Qualifier> newInnerQualifiers;
+        Qualifier newParentQualifier;
+        // If index with min bin values ratio found, set filter with the matching qualifier
+        if (minBinValuesRatioQualifier != null) {
+            // Set secondary index Filter, return null qualifier if Filter is set
+            Qualifier qualifierWithSecIndexFilter = setFilterFromSingleQualifier(stmt, minBinValuesRatioQualifier);
+
+            if (qualifierWithSecIndexFilter == null) {
+                // If Filter was set, exclude the corresponding inner qualifier
+                newInnerQualifiers =
+                    getUpdatedInnerQualifiersWithCardinality(parentQualifier, minBinValuesRatioQualifier);
+                newParentQualifier = getNewParentQualifier(parentQualifier, newInnerQualifiers);
+            } else {
+                // If Filter wasn't set, continue as is
+                newParentQualifier = parentQualifier;
+            }
+        } else {
+            // No index with bin values ratio found, do not consider cardinality when setting a Filter
+            newInnerQualifiers = getUpdatedInnerQualifiersWithoutCardinality(parentQualifier, stmt);
+            newParentQualifier = getNewParentQualifier(parentQualifier, newInnerQualifiers);
+        }
+        return newParentQualifier;
+    }
+
+    private Qualifier getMinBinValuesRatioQualifier(Qualifier parentQualifier, Statement stmt) {
         int minBinValuesRatio = Integer.MAX_VALUE;
         Qualifier minBinValuesRatioQualifier = null;
-
-        for (Qualifier innerQualifier : qualifier.getQualifiers()) {
+        for (Qualifier innerQualifier : parentQualifier.getQualifiers()) {
             if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
                 int currBinValuesRatio = getMinBinValuesRatioForQualifier(stmt, innerQualifier);
                 // Compare the cardinality of each qualifier and select the qualifier that has the index with
@@ -104,30 +134,64 @@ public class StatementBuilder {
                 }
             }
         }
-
-        // If index with min bin values ratio found, set filter with the matching qualifier
-        if (minBinValuesRatioQualifier != null) {
-            setFilterFromSingleQualifier(stmt, minBinValuesRatioQualifier);
-        } else { // No index with bin values ratio found, do not consider cardinality when setting a filter
-            for (Qualifier innerQualifier : qualifier.getQualifiers()) {
-                if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
-                    Filter filter = innerQualifier.getSecondaryIndexFilter();
-                    if (filter != null) {
-                        stmt.setFilter(filter);
-                        innerQualifier.setHasSecIndexFilter(true);
-                        break; // the filter from the first processed qualifier becomes statement's sIndex filter
-                    }
-                }
-            }
-        }
+        return minBinValuesRatioQualifier;
     }
 
-    private void setFilterFromSingleQualifier(Statement stmt, Qualifier qualifier) {
+    private Qualifier getNewParentQualifier(Qualifier parentQualifier, List<Qualifier> newInnerQualifiers) {
+        Qualifier newParentQualifier = Qualifier.and(newInnerQualifiers.toArray(Qualifier[]::new));
+        newParentQualifier.setDataSettings(parentQualifier.getDataSettings());
+        return newParentQualifier;
+    }
+
+    /**
+     * FilterExp is built only for qualifiers without secondary index filter
+     * or for dual filter operations that require both secondary index filter and filter expression
+     */
+    private List<Qualifier> getUpdatedInnerQualifiersWithoutCardinality(Qualifier parentQualifier, Statement stmt) {
+        List<Qualifier> newInnerQualifiers = new ArrayList<>();
+        for (Qualifier innerQualifier : parentQualifier.getQualifiers()) {
+            if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
+                Filter filter = innerQualifier.getSecondaryIndexFilter();
+                if (filter != null) {
+                    // The filter from the first processed qualifier becomes statement's secondary index filter
+                    stmt.setFilter(filter);
+                    // Skip this inner qualifier in subsequent Exp building as it already has secondary index Filter
+                    if (dualFilterOperations.contains(innerQualifier.getOperation())) {
+                        // Still use the inner qualifier in case if it is a dual filter operation
+                        newInnerQualifiers.add(innerQualifier);
+                    }
+                    break;
+                } else {
+                    newInnerQualifiers.add(innerQualifier);
+                }
+            } else {
+                newInnerQualifiers.add(innerQualifier);
+            }
+        }
+        return newInnerQualifiers;
+    }
+
+    private List<Qualifier> getUpdatedInnerQualifiersWithCardinality(Qualifier parentQualifier,
+                                                                     Qualifier minBinValuesRatioQualifier) {
+        return Arrays.stream(parentQualifier.getQualifiers())
+            .filter(innerQualifier -> {
+                // If this inner qualifier is chosen for building secondary index Filter based on cardinality
+                if (innerQualifier.equals(minBinValuesRatioQualifier)) {
+                    // Exclude it unless it is required for dual filter operations
+                    return dualFilterOperations.contains(innerQualifier.getOperation());
+                }
+                return true;
+            })
+            .collect(Collectors.toList());
+    }
+
+    private Qualifier setFilterFromSingleQualifier(Statement stmt, Qualifier qualifier) {
         Filter filter = qualifier.getSecondaryIndexFilter();
         if (filter != null) {
             stmt.setFilter(filter);
-            qualifier.setHasSecIndexFilter(true);
+            return null;
         }
+        return qualifier;
     }
 
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
