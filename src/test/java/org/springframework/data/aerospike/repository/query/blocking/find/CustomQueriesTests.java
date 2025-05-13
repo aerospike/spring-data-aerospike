@@ -308,9 +308,7 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
     }
 
     @Test
-    void findBySimpleProperty_AND_indexed() {
-        template.createIndex(Person.class, "firstName_idx", "firstName", IndexType.STRING);
-
+    void findBySimpleProperty_AND() {
         // creating an expression "firstName is equal to Carter"
         Qualifier firstNameEqCarter = Qualifier.builder()
             .setPath("firstName")
@@ -325,12 +323,108 @@ public class CustomQueriesTests extends PersonRepositoryQueryTests {
             .build();
 
         // conditions "firstName.equals(Carter)" and "age == 49" are combined with AND
-        Qualifier firstNameEqCarterAndAgeEq49 = Qualifier.and(firstNameEqCarter, ageEq49);
-
-        Iterable<Person> result = repository.findUsingQuery(new Query(firstNameEqCarterAndAgeEq49));
+        Iterable<Person> result = repository.findUsingQuery(new Query(Qualifier.and(firstNameEqCarter, ageEq49)));
         assertThat(result).containsOnly(carter);
+    }
 
-        template.deleteIndex(Person.class, "firstName_idx");
+    @Test
+    void findBySimpleProperty_AND_negative() {
+        // creating an expression "firstName is equal to Carter"
+        Qualifier firstNameEqCarter = Qualifier.builder()
+            .setPath("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue("Carter")
+            .build();
+        // creating an expression "firstName is equal to Leroi"
+        Qualifier firstNameEqLeroi = Qualifier.builder()
+            .setPath("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue("Leroi")
+            .build();
+
+        Iterable<Person> result =
+            repository.findUsingQuery(new Query(Qualifier.and(firstNameEqCarter, firstNameEqLeroi)));
+        // First name cannot be simultaneously Carter and Leroi
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void findBySimpleProperty_AND_AND() {
+        // creating an expression "firstName is equal to Carter"
+        Qualifier firstNameEqCarter = Qualifier.builder()
+            .setPath("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue("Carter")
+            .build();
+        // creating an expression "age is equal to 49"
+        Qualifier ageEq49 = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(49)
+            .build();
+        // creating an expression "lastName is equal to Beauford"
+        Qualifier lastNameEqBeauford = Qualifier.builder()
+            .setPath("lastName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue("Beauford")
+            .build();
+
+        // conditions are combined with AND
+        Qualifier combinedQualifier = Qualifier.and(firstNameEqCarter, ageEq49, lastNameEqBeauford);
+        Iterable<Person> result = repository.findUsingQuery(new Query(combinedQualifier));
+        assertThat(result).containsOnly(carter);
+    }
+
+    @Test
+    void findBySimpleProperty_AND_OR() {
+        // creating an expression "firstName is equal to Carter"
+        Qualifier firstNameEqCarter = Qualifier.builder()
+            .setPath("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue("Carter")
+            .build();
+        // creating an expression "age is greater than or equal to 25"
+        Qualifier ageGteq25 = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.GTEQ)
+            .setValue(25)
+            .build();
+        // creating an expression "firstName is equal to Leroi"
+        Qualifier firstNameEqLeroi = Qualifier.builder()
+            .setPath("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue("Leroi")
+            .build();
+
+        Qualifier combinedQualifier = Qualifier.and(ageGteq25, Qualifier.or(firstNameEqCarter, firstNameEqLeroi));
+        Iterable<Person> result = repository.findUsingQuery(new Query(combinedQualifier));
+        assertThat(result).containsExactlyInAnyOrder(carter, leroi, leroi2);
+    }
+
+    @Test
+    void findBySimpleProperty_OR_AND() {
+        // creating an expression "firstName is equal to Carter"
+        Qualifier firstNameEqCarter = Qualifier.builder()
+            .setPath("firstName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue("Carter")
+            .build();
+        // creating an expression "age is equal to 25"
+        Qualifier ageEq25 = Qualifier.builder()
+            .setPath("age")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue(25) // both leroi2 and douglas have this age
+            .build();
+        // creating an expression "lastName is equal to Beauford"
+        Qualifier firstNameEqBeauford = Qualifier.builder()
+            .setPath("lastName")
+            .setFilterOperation(FilterOperation.EQ)
+            .setValue("Beauford")
+            .build();
+
+        Qualifier combinedQualifier = Qualifier.or(ageEq25, Qualifier.and(firstNameEqCarter, firstNameEqBeauford));
+        Iterable<Person> result = repository.findUsingQuery(new Query(combinedQualifier));
+        assertThat(result).containsExactlyInAnyOrder(carter, leroi2, douglas);
     }
 }
 

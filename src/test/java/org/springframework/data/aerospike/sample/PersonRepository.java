@@ -1646,11 +1646,21 @@ public interface PersonRepository<P extends Person> extends AerospikeRepository<
      * <p>
      * <a href="https://docs.aerospike.com/server/guide/data-types/cdt-ordering#string">Information about ordering</a>
      *
-     * @param string - String to compare with
+     * @param firstName - String to compare with
      */
-    List<P> findByFirstNameGreaterThan(String string);
+    List<P> findByFirstNameGreaterThan(String firstName);
 
-    List<P> findByFirstNameAndAge(QueryParam string, QueryParam age);
+    List<P> findByFirstNameAndAge(QueryParam firstName, QueryParam age);
+
+    List<P> findByFirstNameOrAge(QueryParam firstName, QueryParam age);
+
+    List<P> findByFirstNameAndAgeAndLastName(QueryParam firstName, QueryParam age, QueryParam lastName);
+
+    List<P> findByFirstNameAndAgeOrLastName(QueryParam firstName, QueryParam age, QueryParam lastName);
+
+    List<P> findByFirstNameOrAgeAndLastName(QueryParam firstName, QueryParam age, QueryParam lastName);
+
+    List<P> findByFirstNameOrAgeOrLastName(QueryParam firstName, QueryParam age, QueryParam lastName);
 
     Iterable<P> findByAgeBetweenAndLastName(QueryParam ageBetween, QueryParam lastName);
 
