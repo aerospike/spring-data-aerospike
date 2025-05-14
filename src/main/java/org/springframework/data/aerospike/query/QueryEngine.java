@@ -18,9 +18,6 @@ package org.springframework.data.aerospike.query;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.IAerospikeClient;
-import com.aerospike.client.Key;
-import com.aerospike.client.Record;
-import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.QueryPolicy;
 import com.aerospike.client.query.RecordSet;
 import com.aerospike.client.query.Statement;
@@ -52,14 +49,15 @@ import static org.springframework.data.aerospike.query.QualifierUtils.queryCrite
 public class QueryEngine {
 
     public static final String SCANS_DISABLED_MESSAGE =
-        "Query without a secondary index filter will initiate a scan. Since scans are potentially dangerous operations," +
+        "Query without a secondary index filter will initiate a scan. Since scans are potentially dangerous " +
+            "operations," +
             " they are disabled by default in spring-data-aerospike. " +
             "If you still need to use them, enable them via `scans-enabled` property.";
     public static final List<Integer> SEC_INDEX_ERROR_RESULT_CODES = List.of(
         INDEX_NOTFOUND, INDEX_OOM, INDEX_NOTREADABLE, INDEX_GENERIC, INDEX_NAME_MAXLEN, INDEX_MAXCOUNT);
     private final IAerospikeClient client;
     @Getter
-    private final StatementBuilder statementBuilder;
+    private final QueryContextBuilder statementBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
     private final AerospikeDataSettings dataSettings;
@@ -73,7 +71,7 @@ public class QueryEngine {
     @Getter
     private long queryMaxRecords;
 
-    public QueryEngine(IAerospikeClient client, StatementBuilder statementBuilder,
+    public QueryEngine(IAerospikeClient client, QueryContextBuilder statementBuilder,
                        FilterExpressionsBuilder filterExpressionsBuilder, AerospikeDataSettings dataSettings) {
         this.client = client;
         this.statementBuilder = statementBuilder;
@@ -127,7 +125,7 @@ public class QueryEngine {
                         "retrying with filter expression only (scan operation)",
                     e.getResultCode());
                 Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
-                return retryWithFilterExpression(namespace, qualifier, statement); // TODO
+                return retryWithFilterExpression(namespace, qualifier, statement);
             }
             throw e;
         }
@@ -162,14 +160,6 @@ public class QueryEngine {
 
         RecordSet rs = client.query(localQueryPolicy, statement);
         return new KeyRecordIterator(namespace, rs);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private Record getRecord(Policy policy, Key key, String[] binNames) {
-        if (binNames == null || binNames.length == 0) {
-            return client.get(policy, key);
-        }
-        return client.get(policy, key, binNames);
     }
 
     private QueryPolicy getQueryPolicy(Qualifier qualifier, boolean includeBins) {

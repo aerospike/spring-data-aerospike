@@ -16,7 +16,6 @@ import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity
 import org.springframework.data.aerospike.query.FilterOperation;
 import org.springframework.data.aerospike.query.QueryContext;
 import org.springframework.data.aerospike.query.QueryEngine;
-import org.springframework.data.aerospike.query.StatementBuilder;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.model.IndexedField;

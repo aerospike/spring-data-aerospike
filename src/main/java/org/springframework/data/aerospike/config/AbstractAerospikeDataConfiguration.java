@@ -28,7 +28,7 @@ import org.springframework.data.aerospike.index.AerospikePersistenceEntityIndexC
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.FilterExpressionsBuilder;
 import org.springframework.data.aerospike.query.QueryEngine;
-import org.springframework.data.aerospike.query.StatementBuilder;
+import org.springframework.data.aerospike.query.QueryContextBuilder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.cache.IndexRefresher;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
@@ -55,7 +55,7 @@ public abstract class AbstractAerospikeDataConfiguration extends AerospikeDataCo
 
     @Bean(name = "aerospikeQueryEngine")
     public QueryEngine queryEngine(IAerospikeClient aerospikeClient,
-                                   StatementBuilder statementBuilder,
+                                   QueryContextBuilder statementBuilder,
                                    FilterExpressionsBuilder filterExpressionsBuilder, AerospikeSettings settings)
     {
         QueryEngine queryEngine = new QueryEngine(aerospikeClient, statementBuilder, filterExpressionsBuilder,

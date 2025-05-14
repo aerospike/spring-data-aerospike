@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.StatementBuilder;
+import org.springframework.data.aerospike.query.QueryContextBuilder;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
@@ -48,7 +48,7 @@ public class LoggingTests {
             .setValue("testValue1")
             .build();
 
-        StatementBuilder statementBuilder = new StatementBuilder(indexesCacheMock);
+        QueryContextBuilder statementBuilder = new QueryContextBuilder(indexesCacheMock);
         statementBuilder.build("TEST", "testSet", new Query(qualifier));
 
         // 3 events: Created query, Bin has secondary index, Secondary index filter is not set
@@ -60,7 +60,7 @@ public class LoggingTests {
 
     @Test
     void queryIsCreated_RepositoryQuery() {
-        StatementBuilder statementBuilder = new StatementBuilder(Mockito.mock(IndexesCache.class));
+        QueryContextBuilder statementBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
         ServerVersionSupport serverVersionSupport = Mockito.mock(ServerVersionSupport.class);
 
         Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "TestName");
@@ -74,7 +74,7 @@ public class LoggingTests {
 
     @Test
     void queryIsCreated_CustomQuery() {
-        StatementBuilder statementBuilder = new StatementBuilder(Mockito.mock(IndexesCache.class));
+        QueryContextBuilder statementBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
         Query query = new Query(Qualifier.builder()
             .setPath("firstName")
             .setFilterOperation(FilterOperation.EQ)

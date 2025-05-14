@@ -48,7 +48,7 @@ public class ReactorQueryEngine {
 
     private final IAerospikeReactorClient client;
     @Getter
-    private final StatementBuilder statementBuilder;
+    private final QueryContextBuilder statementBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
     private final AerospikeDataSettings dataSettings;
@@ -62,7 +62,7 @@ public class ReactorQueryEngine {
     @Getter
     private long queryMaxRecords;
 
-    public ReactorQueryEngine(IAerospikeReactorClient client, StatementBuilder statementBuilder,
+    public ReactorQueryEngine(IAerospikeReactorClient client, QueryContextBuilder statementBuilder,
                               FilterExpressionsBuilder filterExpressionsBuilder, AerospikeDataSettings dataSettings) {
         this.client = client;
         this.statementBuilder = statementBuilder;

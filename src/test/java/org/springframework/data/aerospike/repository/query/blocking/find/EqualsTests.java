@@ -557,16 +557,16 @@ public class EqualsTests extends PersonRepositoryQueryTests {
     void findBySimpleProperty_AND() {
         QueryParam firstName = of(leroi2.getFirstName());
         QueryParam age = of(leroi2.getAge());
-        List<Person> persons2 = repository.findByFirstNameAndAge(firstName, age);
-        assertThat(persons2).containsOnly(leroi2);
+        List<Person> persons = repository.findByFirstNameAndAge(firstName, age);
+        assertThat(persons).containsOnly(leroi2);
     }
 
     @Test
     void findBySimpleProperty_OR() {
         QueryParam firstName = of(carter.getFirstName());
         QueryParam age = of(leroi2.getAge()); // leroi2 and douglas have the same age
-        List<Person> persons2 = repository.findByFirstNameOrAge(firstName, age);
-        assertThat(persons2).containsOnly(carter, leroi2, douglas);
+        List<Person> persons = repository.findByFirstNameOrAge(firstName, age);
+        assertThat(persons).containsOnly(carter, leroi2, douglas);
     }
 
     @Test
@@ -574,8 +574,8 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         QueryParam firstName = of(leroi2.getFirstName());
         QueryParam age = of(leroi2.getAge());
         QueryParam lastName = of(leroi2.getLastName());
-        List<Person> persons2 = repository.findByFirstNameAndAgeAndLastName(firstName, age, lastName);
-        assertThat(persons2).containsOnly(leroi2);
+        List<Person> persons = repository.findByFirstNameAndAgeAndLastName(firstName, age, lastName);
+        assertThat(persons).containsOnly(leroi2);
     }
 
     @Test
@@ -583,8 +583,8 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         QueryParam firstName = of(leroi2.getFirstName());
         QueryParam age = of(leroi2.getAge());
         QueryParam lastName = of(carter.getLastName());
-        List<Person> persons2 = repository.findByFirstNameAndAgeOrLastName(firstName, age, lastName);
-        assertThat(persons2).containsExactlyInAnyOrder(leroi2, carter);
+        List<Person> persons = repository.findByFirstNameAndAgeOrLastName(firstName, age, lastName);
+        assertThat(persons).containsExactlyInAnyOrder(leroi2, carter);
     }
 
     @Test
@@ -592,8 +592,8 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         QueryParam firstName = of(leroi2.getFirstName());
         QueryParam age = of(carter.getAge());
         QueryParam lastName = of(carter.getLastName());
-        List<Person> persons2 = repository.findByFirstNameOrAgeAndLastName(firstName, age, lastName);
-        assertThat(persons2).containsExactlyInAnyOrder(leroi, leroi2, carter);
+        List<Person> persons = repository.findByFirstNameOrAgeAndLastName(firstName, age, lastName);
+        assertThat(persons).containsExactlyInAnyOrder(leroi, leroi2, carter);
     }
 
     @Test
@@ -601,7 +601,7 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         QueryParam firstName = of(leroi2.getFirstName());
         QueryParam age = of(douglas.getAge());
         QueryParam lastName = of(carter.getLastName());
-        List<Person> persons2 = repository.findByFirstNameOrAgeOrLastName(firstName, age, lastName);
-        assertThat(persons2).containsExactlyInAnyOrder(leroi, leroi2, douglas, carter);
+        List<Person> persons = repository.findByFirstNameOrAgeOrLastName(firstName, age, lastName);
+        assertThat(persons).containsExactlyInAnyOrder(leroi, leroi2, douglas, carter);
     }
 }

@@ -44,11 +44,11 @@ import static org.springframework.data.aerospike.util.Utils.logQualifierDetails;
  * @author Anastasiia Smirnova
  */
 @Slf4j
-public class StatementBuilder {
+public class QueryContextBuilder {
 
     private final IndexesCache indexesCache;
 
-    public StatementBuilder(IndexesCache indexesCache) {
+    public QueryContextBuilder(IndexesCache indexesCache) {
         this.indexesCache = indexesCache;
     }
 
@@ -63,64 +63,98 @@ public class StatementBuilder {
         if (binNames != null && binNames.length != 0) {
             stmt.setBinNames(binNames);
         }
-        Qualifier parentQualifier = query != null ? query.getCriteriaObject() : null;
+
+        Qualifier processedParentQualifier = null;
         if (queryCriteriaIsNotNull(query)) {
             // logging query
             logQualifierDetails(query.getCriteriaObject(), log);
-            // statement's filter is set based either on cardinality (the lowest bin values ratio)
+            // Process qualifier and apply filters
+            // Statement's filter is set based either on cardinality (the lowest bin values ratio)
             // or on order (the first processed filter)
-            parentQualifier = setStatementFilterFromQualifiers(stmt, query.getCriteriaObject());
+            processedParentQualifier = applyFilterAndProcessQualifier(stmt, query.getCriteriaObject());
         }
-        return new QueryContext(stmt, parentQualifier);
+
+        return new QueryContext(stmt, processedParentQualifier);
     }
 
-    private Qualifier setStatementFilterFromQualifiers(Statement stmt, Qualifier parentQualifier) {
+    /**
+     * Applies secondary index filter to the statement and processes the parent qualifier
+     * (excludes a qualifier used for creating secondary index filter).
+     * @return A potentially modified parent qualifier
+     */
+    private Qualifier applyFilterAndProcessQualifier(Statement stmt, Qualifier parentQualifier) {
         // No qualifier, no need to set statement filter
         if (parentQualifier == null) return null;
 
+        Qualifier resultQualifier;
         if (parentQualifier.getOperation() == FilterOperation.AND) {
             // Multiple qualifiers concatenated using logical AND
             // No sense to use secondary index in case of OR which requires to enlarge selection to more than 1 field
-            return setFilterFromQualifiersCombinedWithAND(stmt, parentQualifier);
+            resultQualifier = applyFilterAndProcessAndQualifier(stmt, parentQualifier);
         } else if (isIndexedBin(stmt, parentQualifier)) {
             // Single qualifier
-            return setFilterFromSingleQualifier(stmt, parentQualifier);
-        }
-        if (stmt.getFilter() != null) {
-            log.debug("Query #{}, secondary index filter is set on the bin '{}'", parentQualifier.hashCode(),
-                stmt.getFilter().getName());
+            resultQualifier = applyFilterFromQualifier(stmt, parentQualifier);
         } else {
-            log.debug("Query #{}, secondary index filter is not set", parentQualifier.hashCode());
+            resultQualifier = parentQualifier;
         }
-        // Return the initial parent qualifier as is
-        return parentQualifier;
+
+        // Log filter status
+        logFilterStatus(stmt, parentQualifier);
+
+        return resultQualifier;
     }
 
-    private Qualifier setFilterFromQualifiersCombinedWithAND(Statement stmt, Qualifier parentQualifier) {
+    /**
+     * Logs information about whether a filter was applied
+     */
+    private void logFilterStatus(Statement stmt, Qualifier qualifier) {
+        if (stmt.getFilter() != null) {
+            log.debug("Query #{}, secondary index filter is set on the bin '{}'",
+                qualifier.hashCode(), stmt.getFilter().getName());
+        } else {
+            log.debug("Query #{}, secondary index filter is not set", qualifier.hashCode());
+        }
+    }
+
+    /**
+     * Returns null when secondary index filter is set, otherwise returns the given qualifier
+     */
+    private Qualifier applyFilterFromQualifier(Statement stmt, Qualifier qualifier) {
+        Filter filter = qualifier.getSecondaryIndexFilter();
+        if (filter != null) {
+            stmt.setFilter(filter);
+            return null;
+        }
+        return qualifier;
+    }
+
+    /**
+     * Applies secondary index filter and processes an AND qualifier
+     * (excludes a qualifier used for creating secondary index filter)
+     */
+    private Qualifier applyFilterAndProcessAndQualifier(Statement stmt, Qualifier parentQualifier) {
         Qualifier minBinValuesRatioQualifier = getMinBinValuesRatioQualifier(parentQualifier, stmt);
 
-        List<Qualifier> newInnerQualifiers;
-        Qualifier newParentQualifier;
-        // If index with min bin values ratio found, set filter with the matching qualifier
+        // If a qualifier with minimum bin values ratio is found
         if (minBinValuesRatioQualifier != null) {
-            // Set secondary index Filter, return null qualifier if Filter is set
-            setFilterFromSingleQualifier(stmt, minBinValuesRatioQualifier);
+            // Try to set secondary index Filter
+            Qualifier remainingQualifier = applyFilterFromQualifier(stmt, minBinValuesRatioQualifier);
 
-            if (stmt.getFilter() != null) {
+            if (remainingQualifier == null) {
                 // Secondary index Filter was set, exclude the corresponding inner qualifier
-                newInnerQualifiers =
+                List<Qualifier> updatedQualifiers =
                     getUpdatedInnerQualifiersWithCardinality(parentQualifier, minBinValuesRatioQualifier);
-                newParentQualifier = getNewParentQualifierWithAND(parentQualifier, newInnerQualifiers);
+                return getNewParentQualifierWithAND(parentQualifier, updatedQualifiers);
             } else {
                 // Filter wasn't set, continue as is
-                newParentQualifier = parentQualifier;
+                return parentQualifier;
             }
         } else {
-            // No index with min bin values ratio found, do not consider cardinality when setting a Filter
-            newInnerQualifiers = getUpdatedInnerQualifiersWithoutCardinality(parentQualifier, stmt);
-            newParentQualifier = getNewParentQualifierWithAND(parentQualifier, newInnerQualifiers);
+            // No qualifier with minimum bin values ratio found
+            List<Qualifier> updatedQualifiers =
+                getUpdatedInnerQualifiersWithoutCardinality(parentQualifier, stmt);
+            return getNewParentQualifierWithAND(parentQualifier, updatedQualifiers);
         }
-        return newParentQualifier;
     }
 
     private Qualifier getMinBinValuesRatioQualifier(Qualifier parentQualifier, Statement stmt) {
@@ -196,18 +230,6 @@ public class StatementBuilder {
                 return true;
             })
             .collect(Collectors.toList());
-    }
-
-    /**
-     * Returns null when secondary index filter is set, otherwise returns the given qualifier
-     */
-    private Qualifier setFilterFromSingleQualifier(Statement stmt, Qualifier qualifier) {
-        Filter filter = qualifier.getSecondaryIndexFilter();
-        if (filter != null) {
-            stmt.setFilter(filter);
-            return null;
-        }
-        return qualifier;
     }
 
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {

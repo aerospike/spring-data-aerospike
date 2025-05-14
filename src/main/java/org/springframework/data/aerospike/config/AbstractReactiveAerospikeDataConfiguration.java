@@ -31,7 +31,7 @@ import org.springframework.data.aerospike.index.ReactiveAerospikePersistenceEnti
 import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.query.FilterExpressionsBuilder;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
-import org.springframework.data.aerospike.query.StatementBuilder;
+import org.springframework.data.aerospike.query.QueryContextBuilder;
 import org.springframework.data.aerospike.query.cache.IndexInfoParser;
 import org.springframework.data.aerospike.query.cache.IndexesCacheUpdater;
 import org.springframework.data.aerospike.query.cache.InternalIndexOperations;
@@ -64,7 +64,7 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
 
     @Bean(name = "reactiveAerospikeQueryEngine")
     public ReactorQueryEngine reactorQueryEngine(IAerospikeReactorClient aerospikeReactorClient,
-                                                 StatementBuilder statementBuilder,
+                                                 QueryContextBuilder statementBuilder,
                                                  FilterExpressionsBuilder filterExpressionsBuilder,
                                                  AerospikeSettings settings)
     {
