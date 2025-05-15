@@ -48,8 +48,8 @@ public class LoggingTests {
             .setValue("testValue1")
             .build();
 
-        QueryContextBuilder statementBuilder = new QueryContextBuilder(indexesCacheMock);
-        statementBuilder.build("TEST", "testSet", new Query(qualifier));
+        QueryContextBuilder QueryContextBuilder = new QueryContextBuilder(indexesCacheMock);
+        QueryContextBuilder.build("TEST", "testSet", new Query(qualifier));
 
         // 3 events: Created query, Bin has secondary index, Secondary index filter is not set
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(3);
@@ -60,11 +60,11 @@ public class LoggingTests {
 
     @Test
     void queryIsCreated_RepositoryQuery() {
-        QueryContextBuilder statementBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
+        QueryContextBuilder QueryContextBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
         ServerVersionSupport serverVersionSupport = Mockito.mock(ServerVersionSupport.class);
 
         Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "TestName");
-        statementBuilder.build("TEST", "Person", query, null);
+        QueryContextBuilder.build("TEST", "Person", query, null);
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
         String msg = "path = firstName, operation = EQ, value = TestName";
@@ -74,13 +74,13 @@ public class LoggingTests {
 
     @Test
     void queryIsCreated_CustomQuery() {
-        QueryContextBuilder statementBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
+        QueryContextBuilder QueryContextBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
         Query query = new Query(Qualifier.builder()
             .setPath("firstName")
             .setFilterOperation(FilterOperation.EQ)
             .setValue("TestName")
             .build());
-        statementBuilder.build("TEST", "Person", query, null);
+        QueryContextBuilder.build("TEST", "Person", query, null);
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
         String msg = "path = firstName, operation = EQ, value = TestName";

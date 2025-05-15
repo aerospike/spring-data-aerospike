@@ -81,7 +81,7 @@ public abstract class AerospikeDataConfigurationSupport {
     public static final String CONFIG_PREFIX_DATA = CONFIG_PREFIX + ".data.aerospike";
     public static final String CONFIG_PREFIX_CONNECTION = CONFIG_PREFIX + ".aerospike";
 
-    @Bean(name = "aerospikeStatementBuilder")
+    @Bean(name = "aerospikeQueryContextBuilder")
     public QueryContextBuilder queryContextBuilder(IndexesCache indexesCache) {
         return new QueryContextBuilder(indexesCache);
     }

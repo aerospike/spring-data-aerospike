@@ -150,7 +150,7 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
             serverVersionSupport, methodName, methodParams);
 
         QueryContext queryContext =
-            reactiveQueryEngine.getStatementBuilder().build(namespace, setName, query, binNames);
+            reactiveQueryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
         Statement statement = queryContext.statement();
         // Checking that the statement has secondary index filter (which means it will be used)
         return statement.getFilter() != null;

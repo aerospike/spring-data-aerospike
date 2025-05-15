@@ -57,7 +57,7 @@ public class QueryEngine {
         INDEX_NOTFOUND, INDEX_OOM, INDEX_NOTREADABLE, INDEX_GENERIC, INDEX_NAME_MAXLEN, INDEX_MAXCOUNT);
     private final IAerospikeClient client;
     @Getter
-    private final QueryContextBuilder statementBuilder;
+    private final QueryContextBuilder queryContextBuilder;
     @Getter
     private final FilterExpressionsBuilder filterExpressionsBuilder;
     private final AerospikeDataSettings dataSettings;
@@ -71,10 +71,10 @@ public class QueryEngine {
     @Getter
     private long queryMaxRecords;
 
-    public QueryEngine(IAerospikeClient client, QueryContextBuilder statementBuilder,
+    public QueryEngine(IAerospikeClient client, QueryContextBuilder QueryContextBuilder,
                        FilterExpressionsBuilder filterExpressionsBuilder, AerospikeDataSettings dataSettings) {
         this.client = client;
-        this.statementBuilder = statementBuilder;
+        this.queryContextBuilder = QueryContextBuilder;
         this.filterExpressionsBuilder = filterExpressionsBuilder;
         this.dataSettings = dataSettings;
     }
@@ -108,7 +108,7 @@ public class QueryEngine {
             // dataSettings provided to be used in FilterOperation
             query.getCriteriaObject().setDataSettings(dataSettings);
         }
-        QueryContext queryContext = statementBuilder.build(namespace, set, query, binNames);
+        QueryContext queryContext = queryContextBuilder.build(namespace, set, query, binNames);
         Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
         QueryPolicy localQueryPolicy = getQueryPolicy(queryContext.qualifier(), true);
@@ -148,7 +148,7 @@ public class QueryEngine {
      * @return A KeyRecordIterator for counting
      */
     public KeyRecordIterator selectForCount(String namespace, String set, @Nullable Query query) {
-        QueryContext queryContext = statementBuilder.build(namespace, set, query);
+        QueryContext queryContext = queryContextBuilder.build(namespace, set, query);
         Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
         Qualifier qualifier = queryContext.qualifier() != null ? queryContext.qualifier() : null;

@@ -64,11 +64,11 @@ public abstract class AbstractReactiveAerospikeDataConfiguration extends Aerospi
 
     @Bean(name = "reactiveAerospikeQueryEngine")
     public ReactorQueryEngine reactorQueryEngine(IAerospikeReactorClient aerospikeReactorClient,
-                                                 QueryContextBuilder statementBuilder,
+                                                 QueryContextBuilder QueryContextBuilder,
                                                  FilterExpressionsBuilder filterExpressionsBuilder,
                                                  AerospikeSettings settings)
     {
-        ReactorQueryEngine queryEngine = new ReactorQueryEngine(aerospikeReactorClient, statementBuilder,
+        ReactorQueryEngine queryEngine = new ReactorQueryEngine(aerospikeReactorClient, QueryContextBuilder,
             filterExpressionsBuilder, settings.getDataSettings());
         boolean scansEnabled = settings.getDataSettings().isScansEnabled();
         queryEngine.setScansEnabled(scansEnabled);

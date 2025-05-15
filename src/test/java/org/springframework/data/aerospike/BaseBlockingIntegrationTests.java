@@ -160,7 +160,7 @@ public abstract class BaseBlockingIntegrationTests extends BaseIntegrationTests 
 
     protected boolean queryHasSecIndexFilter(String namespace, String setName, Query query, String[] binNames) {
         QueryContext queryContext =
-            queryEngine.getStatementBuilder().build(namespace, setName, query, binNames);
+            queryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
         Statement statement = queryContext.statement();
         // Checking that the statement has secondary index filter (which means it will be used)
         return statement.getFilter() != null;
