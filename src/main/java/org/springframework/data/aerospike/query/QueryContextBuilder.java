@@ -118,7 +118,7 @@ public class QueryContextBuilder {
             return processCombinedQualifierWithCardinality(parentQualifier, qualifierChosenByCardinality, filter);
         }
         // No qualifier based on cardinality found
-        QualifiersWithFilter qualifiersWithFilter = processInnerQualifiersWithoutCardinality(parentQualifier, stmt);
+        QualifiersWithFilter qualifiersWithFilter = processCombinedQualifierWithoutCardinality(parentQualifier, stmt);
         if (qualifiersWithFilter.filter() != null) {
             stmt.setFilter(qualifiersWithFilter.filter());
             return getNewParentQualifierForAND(parentQualifier, qualifiersWithFilter.innerQualifiers());
