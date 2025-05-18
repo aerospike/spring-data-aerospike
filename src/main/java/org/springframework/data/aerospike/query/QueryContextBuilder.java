@@ -48,8 +48,8 @@ public class QueryContextBuilder {
         this.indexesCache = indexesCache;
     }
 
-    // Inner record to store a list of inner qualifiers and a secondary index Filter
-    private record QualifiersWithFilter(List<Qualifier> innerQualifiers, Filter filter) {
+    // Stores a list of inner qualifiers for building filter Exp and a secondary index Filter
+    private record QualifiersWithFilter(List<Qualifier> innerQualifiers, @Nullable Filter filter) {
 
     }
 
@@ -106,8 +106,7 @@ public class QueryContextBuilder {
     }
 
     /**
-     * Set secondary index Filter and process AND-combined parent qualifier by excluding inner qualifier with the
-     * Filter
+     * sets secondary index Filter and returns updated AND-combined parent qualifier with excluded inner qualifier
      */
     private Qualifier setFilterAndProcessCombinedQualifier(Statement stmt, Qualifier parentQualifier) {
         Qualifier qualifierChosenByCardinality = getMinBinValuesRatioQualifier(parentQualifier, stmt);
@@ -118,7 +117,8 @@ public class QueryContextBuilder {
             return processCombinedQualifierWithCardinality(parentQualifier, qualifierChosenByCardinality, filter);
         } else {
             // No qualifier based on cardinality found
-            QualifiersWithFilter qualifiersWithFilter = processInnerQualifiersWithoutCardinality(parentQualifier, stmt);
+            QualifiersWithFilter qualifiersWithFilter =
+                processCombinedQualifierWithoutCardinality(parentQualifier, stmt);
             if (qualifiersWithFilter.filter() != null) {
                 stmt.setFilter(qualifiersWithFilter.filter());
                 return getNewParentQualifierForAND(parentQualifier, qualifiersWithFilter.innerQualifiers());
@@ -140,7 +140,8 @@ public class QueryContextBuilder {
     }
 
     /**
-     * Returns null when secondary index filter is set, otherwise returns the initial qualifier
+     * Gets secondary index filter of the given qualifier, then sets the filter and returns null if the filter exists,
+     * otherwise returns the initial qualifier
      */
     private static Qualifier setFilterAndProcessSingleQualifier(Statement stmt, Qualifier qualifier) {
         Filter filter = qualifier.getSecondaryIndexFilter();
@@ -152,8 +153,7 @@ public class QueryContextBuilder {
     }
 
     /**
-     * Processes AND qualifier by excluding inner qualifier with secondary index filter
-     * when a cardinality-based qualifier is found
+     * Processes AND-combined qualifier by excluding cardinality-based inner qualifier with secondary index filter
      */
     private Qualifier processCombinedQualifierWithCardinality(Qualifier parentQualifier,
                                                               Qualifier qualifierChosenByCardinality, Filter filter) {
@@ -187,6 +187,10 @@ public class QueryContextBuilder {
         return minBinValuesRatioQualifier;
     }
 
+    /**
+     * Returns a new AND-combined parent qualifier with the given inner qualifiers and with data settings of the
+     * initial parent qualifier
+     */
     private static Qualifier getNewParentQualifierForAND(Qualifier parentQualifier,
                                                          List<Qualifier> newInnerQualifiers) {
         Qualifier newParentQualifier = Qualifier.and(newInnerQualifiers.toArray(Qualifier[]::new));
@@ -199,8 +203,8 @@ public class QueryContextBuilder {
      * not dual (dual filter operations require both secondary index filter and filter expression)
      * when there is no qualifier based on cardinality
      */
-    private QualifiersWithFilter processInnerQualifiersWithoutCardinality(Qualifier parentQualifier,
-                                                                          Statement stmt) {
+    private QualifiersWithFilter processCombinedQualifierWithoutCardinality(Qualifier parentQualifier,
+                                                                            Statement stmt) {
         List<Qualifier> newInnerQualifiers = new ArrayList<>();
         Filter filter = null;
         for (Qualifier innerQualifier : parentQualifier.getQualifiers()) {
