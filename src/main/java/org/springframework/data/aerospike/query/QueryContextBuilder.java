@@ -106,25 +106,24 @@ public class QueryContextBuilder {
     }
 
     /**
-     * sets secondary index Filter and returns updated AND-combined parent qualifier with excluded inner qualifier
+     * Sets secondary index Filter and returns updated AND-combined parent qualifier with excluded inner qualifier that
+     * the Filter is based on
      */
     private Qualifier setFilterAndProcessCombinedQualifier(Statement stmt, Qualifier parentQualifier) {
         Qualifier qualifierChosenByCardinality = getMinBinValuesRatioQualifier(parentQualifier, stmt);
         if (qualifierChosenByCardinality != null) {
-            // If a qualifier based on cardinality (with minimal bin values ratio) is found
+            // A qualifier based on cardinality (with minimal bin values ratio) is found
             Filter filter = qualifierChosenByCardinality.getSecondaryIndexFilter();
             stmt.setFilter(filter);
             return processCombinedQualifierWithCardinality(parentQualifier, qualifierChosenByCardinality, filter);
-        } else {
-            // No qualifier based on cardinality found
-            QualifiersWithFilter qualifiersWithFilter =
-                processCombinedQualifierWithoutCardinality(parentQualifier, stmt);
-            if (qualifiersWithFilter.filter() != null) {
-                stmt.setFilter(qualifiersWithFilter.filter());
-                return getNewParentQualifierForAND(parentQualifier, qualifiersWithFilter.innerQualifiers());
-            }
-            return parentQualifier;
         }
+        // No qualifier based on cardinality found
+        QualifiersWithFilter qualifiersWithFilter = processInnerQualifiersWithoutCardinality(parentQualifier, stmt);
+        if (qualifiersWithFilter.filter() != null) {
+            stmt.setFilter(qualifiersWithFilter.filter());
+            return getNewParentQualifierForAND(parentQualifier, qualifiersWithFilter.innerQualifiers());
+        }
+        return parentQualifier;
     }
 
     /**
@@ -199,9 +198,9 @@ public class QueryContextBuilder {
     }
 
     /**
-     * Returns Filter and updated inner qualifiers excluding the one with secondary index Filter which is
-     * not dual (dual filter operations require both secondary index filter and filter expression)
-     * when there is no qualifier based on cardinality
+     * Returns Filter and updated inner qualifiers excluding the one with secondary index Filter which is not dual (dual
+     * filter operations require both secondary index filter and filter expression) when there is no qualifier based on
+     * cardinality
      */
     private QualifiersWithFilter processCombinedQualifierWithoutCardinality(Qualifier parentQualifier,
                                                                             Statement stmt) {
