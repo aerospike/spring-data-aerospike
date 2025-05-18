@@ -342,7 +342,6 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
         utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_NOT_SUPPORTED, 1)
             .as(StepVerifier::create)
             .verifyComplete();
-        ;
     }
 
     @Test
@@ -353,7 +352,6 @@ public class ReactiveAerospikeTemplateTransactionUnitTests extends BaseReactiveI
         utils.verifyOngoingTransaction_withPropagation(doc, PROPAGATION_MANDATORY, 0)
             .as(StepVerifier::create)
             .verifyComplete();
-        ;
     }
 
     @Test
