@@ -50,8 +50,7 @@ public class QueryEngine {
 
     public static final String SCANS_DISABLED_MESSAGE =
         "Query without a secondary index filter will initiate a scan. Since scans are potentially dangerous " +
-            "operations," +
-            " they are disabled by default in spring-data-aerospike. " +
+            "operations, they are disabled by default in spring-data-aerospike. " +
             "If you still need to use them, enable them via `scans-enabled` property.";
     public static final List<Integer> SEC_INDEX_ERROR_RESULT_CODES = List.of(
         INDEX_NOTFOUND, INDEX_OOM, INDEX_NOTREADABLE, INDEX_GENERIC, INDEX_NAME_MAXLEN, INDEX_MAXCOUNT);
@@ -71,10 +70,10 @@ public class QueryEngine {
     @Getter
     private long queryMaxRecords;
 
-    public QueryEngine(IAerospikeClient client, QueryContextBuilder QueryContextBuilder,
+    public QueryEngine(IAerospikeClient client, QueryContextBuilder queryContextBuilder,
                        FilterExpressionsBuilder filterExpressionsBuilder, AerospikeDataSettings dataSettings) {
         this.client = client;
-        this.queryContextBuilder = QueryContextBuilder;
+        this.queryContextBuilder = queryContextBuilder;
         this.filterExpressionsBuilder = filterExpressionsBuilder;
         this.dataSettings = dataSettings;
     }
@@ -101,13 +100,12 @@ public class QueryEngine {
      * @return A KeyRecordIterator to iterate over the results
      */
     public KeyRecordIterator select(String namespace, String set, String[] binNames, @Nullable Query query) {
-        /*
-         *  query with filters
-         */
+        // query with filters
         if (query != null) {
             // dataSettings provided to be used in FilterOperation
             query.getCriteriaObject().setDataSettings(dataSettings);
         }
+
         QueryContext queryContext = queryContextBuilder.build(namespace, set, query, binNames);
         Statement statement = queryContext.statement();
         statement.setMaxRecords(queryMaxRecords);
@@ -116,14 +114,14 @@ public class QueryEngine {
         if (!scansEnabled && statement.getFilter() == null) {
             throw new IllegalStateException(SCANS_DISABLED_MESSAGE);
         }
+
         RecordSet rs = client.query(localQueryPolicy, statement);
         try {
             return new KeyRecordIterator(namespace, rs);
         } catch (AerospikeException e) {
             if (statement.getFilter() != null && SEC_INDEX_ERROR_RESULT_CODES.contains(e.getResultCode())) {
                 log.warn("Got secondary index related exception (resultCode: {}), " +
-                        "retrying with filter expression only (scan operation)",
-                    e.getResultCode());
+                    "retrying with filter expression only (scan operation)", e.getResultCode());
                 Qualifier qualifier = queryCriteriaIsNotNull(query) ? query.getCriteriaObject() : null;
                 return retryWithFilterExpression(namespace, qualifier, statement);
             }

@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class LoggingTests {
 
-    static String LOGGER_NAME = "org.springframework.data.aerospike";
+    static final String LOGGER_NAME = "org.springframework.data.aerospike";
     static MemoryAppender memoryAppender;
 
     @BeforeAll
@@ -48,43 +48,43 @@ public class LoggingTests {
             .setValue("testValue1")
             .build();
 
-        QueryContextBuilder QueryContextBuilder = new QueryContextBuilder(indexesCacheMock);
-        QueryContextBuilder.build("TEST", "testSet", new Query(qualifier));
+        QueryContextBuilder queryContextBuilder = new QueryContextBuilder(indexesCacheMock);
+        queryContextBuilder.build("TEST", "testSet", new Query(qualifier));
 
         // 3 events: Created query, Bin has secondary index, Secondary index filter is not set
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isEqualTo(3);
         String msg = "bin TEST.testSet.testField has secondary index(es): false";
-        assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
+        assertThat(memoryAppender.search(msg, Level.DEBUG)).hasSize(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }
 
     @Test
     void queryIsCreated_RepositoryQuery() {
-        QueryContextBuilder QueryContextBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
+        QueryContextBuilder queryContextBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
         ServerVersionSupport serverVersionSupport = Mockito.mock(ServerVersionSupport.class);
 
         Query query = QueryUtils.createQueryForMethodWithArgs(serverVersionSupport, "findByFirstName", "TestName");
-        QueryContextBuilder.build("TEST", "Person", query, null);
+        queryContextBuilder.build("TEST", "Person", query, null);
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
         String msg = "path = firstName, operation = EQ, value = TestName";
-        assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
+        assertThat(memoryAppender.search(msg, Level.DEBUG)).hasSize(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }
 
     @Test
     void queryIsCreated_CustomQuery() {
-        QueryContextBuilder QueryContextBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
+        QueryContextBuilder queryContextBuilder = new QueryContextBuilder(Mockito.mock(IndexesCache.class));
         Query query = new Query(Qualifier.builder()
             .setPath("firstName")
             .setFilterOperation(FilterOperation.EQ)
             .setValue("TestName")
             .build());
-        QueryContextBuilder.build("TEST", "Person", query, null);
+        queryContextBuilder.build("TEST", "Person", query, null);
 
         assertThat(memoryAppender.countEventsForLogger(LOGGER_NAME)).isPositive();
         String msg = "path = firstName, operation = EQ, value = TestName";
-        assertThat(memoryAppender.search(msg, Level.DEBUG).size()).isEqualTo(1);
+        assertThat(memoryAppender.search(msg, Level.DEBUG)).hasSize(1);
         assertThat(memoryAppender.contains(msg, Level.INFO)).isFalse();
     }
 }

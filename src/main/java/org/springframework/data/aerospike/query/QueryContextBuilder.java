@@ -145,16 +145,15 @@ public class QueryContextBuilder {
                 List<Qualifier> updatedQualifiers =
                     getUpdatedInnerQualifiersWithCardinality(parentQualifier, minBinValuesRatioQualifier);
                 return getNewParentQualifierWithAND(parentQualifier, updatedQualifiers);
-            } else {
-                // Filter wasn't set, continue as is
-                return parentQualifier;
             }
-        } else {
-            // No qualifier with minimum bin values ratio found
-            List<Qualifier> updatedQualifiers =
-                getUpdatedInnerQualifiersWithoutCardinality(parentQualifier, stmt);
-            return getNewParentQualifierWithAND(parentQualifier, updatedQualifiers);
+
+            // Filter wasn't set, continue as is
+            return parentQualifier;
         }
+
+        // No qualifier with minimum bin values ratio found
+        List<Qualifier> updatedQualifiers = getUpdatedInnerQualifiersWithoutCardinality(parentQualifier, stmt);
+        return getNewParentQualifierWithAND(parentQualifier, updatedQualifiers);
     }
 
     private Qualifier getMinBinValuesRatioQualifier(Qualifier parentQualifier, Statement stmt) {
@@ -189,7 +188,7 @@ public class QueryContextBuilder {
         for (Qualifier innerQualifier : parentQualifier.getQualifiers()) {
             if (innerQualifier != null && isIndexedBin(stmt, innerQualifier)) {
                 Filter filter = innerQualifier.getSecondaryIndexFilter();
-                if (filter != null) {
+                if (filter != null && stmt.getFilter() == null) {
                     // The filter from the first processed qualifier becomes statement's secondary index filter
                     stmt.setFilter(filter);
                     // Skip this inner qualifier in subsequent Exp building as it already has secondary index Filter
@@ -197,13 +196,10 @@ public class QueryContextBuilder {
                         // Still use the inner qualifier in case if it is a dual filter operation
                         newInnerQualifiers.add(innerQualifier);
                     }
-                    break;
-                } else {
-                    newInnerQualifiers.add(innerQualifier);
+                    continue;
                 }
-            } else {
-                newInnerQualifiers.add(innerQualifier);
             }
+            newInnerQualifiers.add(innerQualifier);
         }
         return newInnerQualifiers;
     }
@@ -233,18 +229,18 @@ public class QueryContextBuilder {
     }
 
     private boolean isIndexedBin(Statement stmt, Qualifier qualifier) {
-        boolean hasIndexesForField = false, hasField = false;
+        boolean hasIndexesForField = false;
         if (StringUtils.hasLength(qualifier.getBinName())) {
-            hasField = true;
             hasIndexesForField = indexesCache.hasIndexFor(
                 new IndexedField(stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName())
             );
+
+            if (log.isDebugEnabled()) {
+                log.debug("Qualifier #{}, bin {}.{}.{} has secondary index(es): {}", qualifier.hashCode(),
+                    stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndexesForField);
+            }
         }
 
-        if (log.isDebugEnabled() && hasField) {
-            log.debug("Qualifier #{}, bin {}.{}.{} has secondary index(es): {}", qualifier.hashCode(),
-                stmt.getNamespace(), stmt.getSetName(), qualifier.getBinName(), hasIndexesForField);
-        }
         return hasIndexesForField;
     }
 
