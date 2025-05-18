@@ -1,9 +1,7 @@
 package org.springframework.data.aerospike.repository.query.blocking.find;
 
-import com.aerospike.client.query.IndexType;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.query.FilterOperation;
-import org.springframework.data.aerospike.query.QueryParam;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 import org.springframework.data.aerospike.repository.query.Query;
 import org.springframework.data.aerospike.repository.query.blocking.PersonRepositoryQueryTests;
@@ -14,7 +12,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.springframework.data.aerospike.query.QueryParam.of;
 import static org.springframework.data.aerospike.repository.query.CriteriaDefinition.AerospikeMetadata.SINCE_UPDATE_TIME;
 
 public class CustomQueriesTests extends PersonRepositoryQueryTests {
