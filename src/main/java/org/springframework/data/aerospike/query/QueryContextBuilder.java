@@ -112,19 +112,20 @@ public class QueryContextBuilder {
     private Qualifier setFilterAndProcessCombinedQualifier(Statement stmt, Qualifier parentQualifier) {
         Qualifier qualifierChosenByCardinality = getMinBinValuesRatioQualifier(parentQualifier, stmt);
         if (qualifierChosenByCardinality != null) {
-            // If a qualifier based on cardinality (with minimal bin values ratio) is found
+            // A qualifier based on cardinality (with minimal bin values ratio) is found
             Filter filter = qualifierChosenByCardinality.getSecondaryIndexFilter();
             stmt.setFilter(filter);
             return processCombinedQualifierWithCardinality(parentQualifier, qualifierChosenByCardinality, filter);
-        } else {
-            // No qualifier based on cardinality found
-            QualifiersWithFilter qualifiersWithFilter = processInnerQualifiersWithoutCardinality(parentQualifier, stmt);
-            if (qualifiersWithFilter.filter() != null) {
-                stmt.setFilter(qualifiersWithFilter.filter());
-                return getNewParentQualifierForAND(parentQualifier, qualifiersWithFilter.innerQualifiers());
-            }
-            return parentQualifier;
         }
+
+        // No qualifier based on cardinality found
+        QualifiersWithFilter qualifiersWithFilter = processInnerQualifiersWithoutCardinality(parentQualifier, stmt);
+        if (qualifiersWithFilter.filter() != null) {
+            stmt.setFilter(qualifiersWithFilter.filter());
+            return getNewParentQualifierForAND(parentQualifier, qualifiersWithFilter.innerQualifiers());
+        }
+
+        return parentQualifier;
     }
 
     /**
