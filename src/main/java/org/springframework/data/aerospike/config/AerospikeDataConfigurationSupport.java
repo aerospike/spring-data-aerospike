@@ -52,7 +52,7 @@ import org.springframework.data.aerospike.mapping.AerospikeMappingContext;
 import org.springframework.data.aerospike.mapping.AerospikeSimpleTypes;
 import org.springframework.data.aerospike.mapping.Document;
 import org.springframework.data.aerospike.query.FilterExpressionsBuilder;
-import org.springframework.data.aerospike.query.StatementBuilder;
+import org.springframework.data.aerospike.query.QueryContextBuilder;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.cache.IndexesCacheHolder;
 import org.springframework.data.aerospike.server.version.ServerVersionSupport;
@@ -81,9 +81,9 @@ public abstract class AerospikeDataConfigurationSupport {
     public static final String CONFIG_PREFIX_DATA = CONFIG_PREFIX + ".data.aerospike";
     public static final String CONFIG_PREFIX_CONNECTION = CONFIG_PREFIX + ".aerospike";
 
-    @Bean(name = "aerospikeStatementBuilder")
-    public StatementBuilder statementBuilder(IndexesCache indexesCache) {
-        return new StatementBuilder(indexesCache);
+    @Bean(name = "aerospikeQueryContextBuilder")
+    public QueryContextBuilder queryContextBuilder(IndexesCache indexesCache) {
+        return new QueryContextBuilder(indexesCache);
     }
 
     @Bean(name = "aerospikeIndexCache")

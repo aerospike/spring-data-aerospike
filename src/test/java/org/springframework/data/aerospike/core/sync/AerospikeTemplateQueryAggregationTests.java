@@ -80,6 +80,8 @@ public class AerospikeTemplateQueryAggregationTests extends BaseBlockingIntegrat
         template.delete(firstPerson);
         template.delete(secondPerson);
         template.delete(thirdPerson);
+        // Remove the created index
+        additionalAerospikeTestOperations.dropIndex(Person.class, "person_age_index");
     }
 
     @Test

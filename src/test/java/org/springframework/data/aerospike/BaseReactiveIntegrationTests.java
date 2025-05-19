@@ -11,6 +11,7 @@ import org.springframework.data.aerospike.core.ReactiveAerospikeTemplate;
 import org.springframework.data.aerospike.mapping.AerospikePersistentProperty;
 import org.springframework.data.aerospike.mapping.BasicAerospikePersistentEntity;
 import org.springframework.data.aerospike.query.FilterOperation;
+import org.springframework.data.aerospike.query.QueryContext;
 import org.springframework.data.aerospike.query.ReactorQueryEngine;
 import org.springframework.data.aerospike.query.cache.IndexesCache;
 import org.springframework.data.aerospike.query.cache.ReactorIndexRefresher;
@@ -148,7 +149,9 @@ public abstract class BaseReactiveIntegrationTests extends BaseIntegrationTests 
         Query query = QueryUtils.createQueryForMethodWithArgs(ReactiveIndexedPersonRepository.class, returnEntityClass,
             serverVersionSupport, methodName, methodParams);
 
-        Statement statement = reactiveQueryEngine.getStatementBuilder().build(namespace, setName, query, binNames);
+        QueryContext queryContext =
+            reactiveQueryEngine.getQueryContextBuilder().build(namespace, setName, query, binNames);
+        Statement statement = queryContext.statement();
         // Checking that the statement has secondary index filter (which means it will be used)
         return statement.getFilter() != null;
     }

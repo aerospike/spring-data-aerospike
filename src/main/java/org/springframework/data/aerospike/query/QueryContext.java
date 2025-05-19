@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,15 @@
  */
 package org.springframework.data.aerospike.query;
 
-import com.aerospike.client.exp.Exp;
-import com.aerospike.client.exp.Expression;
-import lombok.extern.slf4j.Slf4j;
+import com.aerospike.client.query.Statement;
 import org.springframework.data.aerospike.query.qualifier.Qualifier;
 
-@Slf4j
-public class FilterExpressionsBuilder {
+/**
+ * This class holds {@link Statement} and {@link Qualifier} used for query building.
+ *
+ * @param statement
+ * @param qualifier
+ */
+public record QueryContext(Statement statement, Qualifier qualifier) {
 
-    public Expression build(Qualifier qualifier) {
-        if (qualifier != null && !qualifier.isEmpty()) {
-            Exp exp = qualifier.getFilterExp();
-            if (exp == null) {
-                log.debug("Query #{}, filterExp is not set", qualifier.hashCode());
-                return null;
-            }
-            log.debug("Query #{}, filterExp is set", qualifier.hashCode());
-            return Exp.build(exp);
-        }
-        return null;
-    }
 }

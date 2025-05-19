@@ -1,6 +1,7 @@
 package org.springframework.data.aerospike.repository.query.blocking.find;
 
 import com.aerospike.client.Value;
+import com.aerospike.client.query.IndexType;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.aerospike.BaseIntegrationTests;
@@ -550,5 +551,57 @@ public class EqualsTests extends PersonRepositoryQueryTests {
         assertThatThrownBy(() -> negativeTestsRepository.findByFriendAddress(100))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Person.address EQ: Type mismatch, expecting Address");
+    }
+
+    @Test
+    void findBySimpleProperty_AND() {
+        QueryParam firstName = of(leroi2.getFirstName());
+        QueryParam age = of(leroi2.getAge());
+        List<Person> persons = repository.findByFirstNameAndAge(firstName, age);
+        assertThat(persons).containsOnly(leroi2);
+    }
+
+    @Test
+    void findBySimpleProperty_OR() {
+        QueryParam firstName = of(carter.getFirstName());
+        QueryParam age = of(leroi2.getAge()); // leroi2 and douglas have the same age
+        List<Person> persons = repository.findByFirstNameOrAge(firstName, age);
+        assertThat(persons).containsOnly(carter, leroi2, douglas);
+    }
+
+    @Test
+    void findBySimpleProperty_AND_AND() {
+        QueryParam firstName = of(leroi2.getFirstName());
+        QueryParam age = of(leroi2.getAge());
+        QueryParam lastName = of(leroi2.getLastName());
+        List<Person> persons = repository.findByFirstNameAndAgeAndLastName(firstName, age, lastName);
+        assertThat(persons).containsOnly(leroi2);
+    }
+
+    @Test
+    void findBySimpleProperty_AND_OR() {
+        QueryParam firstName = of(leroi2.getFirstName());
+        QueryParam age = of(leroi2.getAge());
+        QueryParam lastName = of(carter.getLastName());
+        List<Person> persons = repository.findByFirstNameAndAgeOrLastName(firstName, age, lastName);
+        assertThat(persons).containsExactlyInAnyOrder(leroi2, carter);
+    }
+
+    @Test
+    void findBySimpleProperty_OR_AND() {
+        QueryParam firstName = of(leroi2.getFirstName());
+        QueryParam age = of(carter.getAge());
+        QueryParam lastName = of(carter.getLastName());
+        List<Person> persons = repository.findByFirstNameOrAgeAndLastName(firstName, age, lastName);
+        assertThat(persons).containsExactlyInAnyOrder(leroi, leroi2, carter);
+    }
+
+    @Test
+    void findBySimpleProperty_OR_OR() {
+        QueryParam firstName = of(leroi2.getFirstName());
+        QueryParam age = of(douglas.getAge());
+        QueryParam lastName = of(carter.getLastName());
+        List<Person> persons = repository.findByFirstNameOrAgeOrLastName(firstName, age, lastName);
+        assertThat(persons).containsExactlyInAnyOrder(leroi, leroi2, douglas, carter);
     }
 }
